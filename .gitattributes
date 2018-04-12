@@ -1,0 +1,13 @@
+# Set the default behavior to have all files normalized to Unix-style
+# line endings upon check-in.
+* text=auto
+
+# Declare files that will always have CRLF line endings on checkout.
+*.bat text eol=crlf
+
+# Denote all files that are truly binary and should not be modified.
+*.dll binary
+*.exp binary
+*.lib binary
+*.pdb binary
+*.exe binary
