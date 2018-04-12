@@ -1,0 +1,23 @@
+# exclude from ANY directory
+global-exclude *.ipynb
+global-exclude *.py[cod]
+global-exclude __pycache__
+global-exclude .git
+global-exclude .ipynb_checkpoints
+global-exclude .DS_Store
+global-exclude *.sh
+
+# explicit includes
+include README.md
+include LICENSE
+include enterprise_scheduler_ui/static/*
+
+include LICENSE
+include README.md
+
+recursive-include tests *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
+
