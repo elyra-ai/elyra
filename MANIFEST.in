@@ -10,7 +10,7 @@ global-exclude *.sh
 # explicit includes
 include README.md
 include LICENSE
-include enterprise_scheduler_ui/static/*
+include enterprise_scheduler_extension/static/*
 
 include LICENSE
 include README.md

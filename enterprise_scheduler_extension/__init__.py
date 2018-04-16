@@ -1,10 +1,10 @@
 from notebook.utils import url_path_join
 
-from jupyter_enterprise_scheduler_extension.scheduler import SchedulerHandler
+from enterprise_scheduler_extension.scheduler import SchedulerHandler
 
 def _jupyter_server_extension_paths():
     return [{
-        "module": "jupyter_enterprise_scheduler_extension"
+        "module": "enterprise_scheduler_extension"
     }]
 
 
