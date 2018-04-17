@@ -12,9 +12,6 @@ include README.md
 include LICENSE
 include enterprise_scheduler_extension/static/*
 
-include LICENSE
-include README.md
-
 recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
