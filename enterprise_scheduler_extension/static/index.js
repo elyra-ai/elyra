@@ -27,41 +27,80 @@ define([
     }
 
     function submit_notebok_to_scheduler() {
-        console.log(Jupyter.notebook.toJSON())
 
-        var csrftoken = getCookie('_xsrf');
-        console.log(csrftoken);
+        var content = $('<p/>').html('');
+        content.append($('<label for="scheduler-platform">Platform:</label>'));
+        content.append($('<br/>'));
+        content.append($('<select id="scheduler-platform"><option value="Jupyter" selected>Jupyter</option><option value="dlaas">DLAAS</option><option value="FfDL">FfDL</option></select>'));
+        content.append($('<br/><br/>'));
+        content.append($('<label for="scheduler-endpoint">Platform API Endpoint:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="text" id="scheduler-endpoint" name="scheduler-endpoint" placeholder="lresende-elyra:8888" value="lresende-elyra:8888"/>'));
+        content.append($('<br/><br/>'));
+        content.append($('<label for="framework">Deep Learning Framework:</label>'));
+        content.append($('<br/>'));
+        content.append($('<select id="framework"><option value="keras">Keras</option><option value="spark">Spark</option><option value="tensorflow" selected>TensorFlow</option></select>'));
 
-        var schedulerUrl = utils.url_path_join(utils.get_body_data('baseUrl'), 'scheduler')
-        console.log(schedulerUrl)
+        Jupyter.keyboard_manager.register_events(content);
 
-        $.ajaxSetup({
-            crossDomain: false, // obviates need for sameOrigin test
-            beforeSend: function(xhr, settings) {
-                if (!csrfSafeMethod(settings.type)) {
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        dialog.modal({
+            title: 'Submit Options ...',
+            body: content,
+            buttons: {
+                Cancel: {
+                    'class': 'btn-danger'
+                },
+                Publish: {
+                    'class': 'btn-primary',
+                    'click': function() {
+
+                        var platform = $('#scheduler-platform option:selected').text();
+                        var endpoint = $('#scheduler-endpoint').val();
+                        var framework = $('#framework option:selected').text();
+
+                        console.log(platform)
+                        console.log(endpoint)
+                        console.log(framework)
+
+                        // ---
+                        var csrftoken = getCookie('_xsrf');
+                        var schedulerUrl = utils.url_path_join(utils.get_body_data('baseUrl'), 'scheduler')
+
+                        $.ajaxSetup({
+                            crossDomain: false, // obviates need for sameOrigin test
+                            beforeSend: function(xhr, settings) {
+                                if (!csrfSafeMethod(settings.type)) {
+                                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                                }
+                            }
+                        });
+
+                        $.ajax({
+                            type: "POST",
+                            url: "/scheduler",
+                            // The key needs to match your method's input parameter (case-sensitive).
+                            data: JSON.stringify(Jupyter.notebook.toJSON()),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            success: function(data){
+                                console.log('Inside ui extension callback')
+                                console.log("Data: ", data)
+                                dialog.modal(data)
+                            },
+                            failure: function(errMsg) {
+                                console.log('Inside ui extension error callback')
+                                console.log("Error: ", errMsg)
+                                dialog.modal(errMsg)
+                            }
+                        });
+                        // ---
+
+
+                    }
                 }
             }
         });
 
-        $.ajax({
-            type: "POST",
-            url: "/scheduler",
-            // The key needs to match your method's input parameter (case-sensitive).
-            data: JSON.stringify(Jupyter.notebook.toJSON()),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function(data){
-                console.log('Inside ui extension callback')
-                console.log("Data: ", data)
-                dialog.modal(data)
-            },
-            failure: function(errMsg) {
-                console.log('Inside ui extension error callback')
-                console.log("Error: ", errMsg)
-                dialog.modal(errMsg)
-            }
-        });
     }
 
     function place_button() {
