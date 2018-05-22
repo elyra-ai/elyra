@@ -13,14 +13,19 @@ class SchedulerHandler(IPythonHandler):
     def post(self, *args, **kwargs):
         url = 'http://localhost:5000/scheduler/tasks'
 
-        payload = {}
-        payload['notebook'] = self.get_json_body()
+        options = self.get_json_body()
+
+        task = {}
+        task['executor'] = options['platform']
+        task['host'] = options['endpoint']
+        task['kernelspec'] = 'python2'
+        task['notebook'] = options['notebook']
 
         #TODO: don't send cell outputs to optimize bandwith
         #for cell in payload['notebook']['cells']:
         #    del cell['outputs']
 
-        requests.post(url=url, data=json.dumps(payload))
+        requests.post(url=url, data=json.dumps(task))
 
         msg_json = dict(title="Job submitted to scheduler Successfully!")
         self.write(msg_json)

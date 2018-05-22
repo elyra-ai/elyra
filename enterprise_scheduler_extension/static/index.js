@@ -39,7 +39,7 @@ define([
         content.append($('<br/><br/>'));
         content.append($('<label for="framework">Deep Learning Framework:</label>'));
         content.append($('<br/>'));
-        content.append($('<select id="framework"><option value="keras">Keras</option><option value="spark">Spark</option><option value="tensorflow" selected>TensorFlow</option></select>'));
+        content.append($('<select id="framework"><option value="tensorflow">Tensorflow</option><option value="caffe" selected>Caffe</option><option value="pytorch" selected>PyTorch</option><option value="caffe2" selected>Caffe2</option></select>'));
 
         Jupyter.keyboard_manager.register_events(content);
 
@@ -75,11 +75,18 @@ define([
                             }
                         });
 
+
+                        options = {}
+                        options['platform'] = platform
+                        options['endpoint'] = endpoint
+                        options['framework'] = framework
+                        options['notebook'] = Jupyter.notebook.toJSON()
+
                         $.ajax({
                             type: "POST",
                             url: "/scheduler",
                             // The key needs to match your method's input parameter (case-sensitive).
-                            data: JSON.stringify(Jupyter.notebook.toJSON()),
+                            data: options_string = JSON.stringify(options),
                             contentType: "application/json; charset=utf-8",
                             dataType: "json",
                             success: function(data){
