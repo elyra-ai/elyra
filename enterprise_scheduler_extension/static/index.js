@@ -29,17 +29,58 @@ define([
     function submit_notebok_to_scheduler() {
 
         var content = $('<p/>').html('');
-        content.append($('<label for="scheduler-platform">Platform:</label>'));
+        content.append($('<label for="platform">Platform:</label>'));
         content.append($('<br/>'));
-        content.append($('<select id="scheduler-platform"><option value="Jupyter" selected>Jupyter</option><option value="dlaas">DLAAS</option><option value="FfDL">FfDL</option></select>'));
+        content.append($('<select id="platform"><option value="jupyter">Jupyter</option><option value="docker">Docker</option><option value="dlaas">DLAAS</option><option value="ffdl" selected>FfDL</option></select>'));
         content.append($('<br/><br/>'));
-        content.append($('<label for="scheduler-endpoint">Platform API Endpoint:</label>'));
+        content.append($('<label for="endpoint">Platform API Endpoint:</label>'));
         content.append($('<br/>'));
-        content.append($('<input type="text" id="scheduler-endpoint" name="scheduler-endpoint" placeholder="lresende-elyra:8888" value="lresende-elyra:8888"/>'));
+        content.append($('<input type="text" id="endpoint" name="endpoint" placeholder="##########" value="##########" size="60"/>'));
         content.append($('<br/><br/>'));
         content.append($('<label for="framework">Deep Learning Framework:</label>'));
         content.append($('<br/>'));
-        content.append($('<select id="framework"><option value="tensorflow">Tensorflow</option><option value="caffe" selected>Caffe</option><option value="pytorch" selected>PyTorch</option><option value="caffe2" selected>Caffe2</option></select>'));
+        content.append($('<select id="framework"><option value="tensorflow" selected>Tensorflow</option><option value="caffe">Caffe</option><option value="pytorch">PyTorch</option><option value="caffe2">Caffe2</option></select>'));
+
+        content.append($('<br/><br/>'));
+        content.append($('<label for="framework-user">User:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="text" id="framework-user" name="framework-user" placeholder="test" value="test"/>'));
+
+        content.append($('<br/><br/>'));
+        content.append($('<label for="framework-userinfo">User/Instance information:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="text" id="framework-userinfo" name="framework-userinfo" placeholder="##########" value="##########" size="35"/>'));
+
+        content.append($('<br/><br/>'));
+        content.append($('<label for="framework-cpus">CPUs:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="text" id="framework-cpus" name="framework-cpus" placeholder="1" value="1"/>'));
+
+        content.append($('<br/><br/>'));
+        content.append($('<label for="framework-gpus">GPUs:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="text" id="framework-gpus" name="framework-gpus" placeholder="0" value="0"/>'));
+
+        content.append($('<br/><br/>'));
+        content.append($('<label for="framework-memory">Memory:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="text" id="framework-memory" name="framework-memory" placeholder="1Gb" value="1Gb"/>'));
+
+        content.append($('<br/>'));
+        content.append($('<br/><br/>'));
+        content.append($('<label for="cos_endpoint">COS Endpoint:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="text" id="cos_endpoint" name="cos_endpoint" placeholder="##########" value="##########" size="35"/>'));
+
+        content.append($('<br/><br/>'));
+        content.append($('<label for="cos_user">COS User:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="text" id="cos_user" name="cos_user" placeholder="##########" value="##########" size="20"/>'));
+
+        content.append($('<br/><br/>'));
+        content.append($('<label for="cos_password">COS Password:</label>'));
+        content.append($('<br/>'));
+        content.append($('<input type="password" id="cos_password" name="cos_password" placeholder="##########" value="##########" size="20"/>'));
 
         Jupyter.keyboard_manager.register_events(content);
 
@@ -54,14 +95,6 @@ define([
                     'class': 'btn-primary',
                     'click': function() {
 
-                        var platform = $('#scheduler-platform option:selected').text();
-                        var endpoint = $('#scheduler-endpoint').val();
-                        var framework = $('#framework option:selected').text();
-
-                        console.log(platform)
-                        console.log(endpoint)
-                        console.log(framework)
-
                         // ---
                         var csrftoken = getCookie('_xsrf');
                         var schedulerUrl = utils.url_path_join(utils.get_body_data('baseUrl'), 'scheduler')
@@ -75,11 +108,21 @@ define([
                             }
                         });
 
-
                         options = {}
-                        options['platform'] = platform
-                        options['endpoint'] = endpoint
-                        options['framework'] = framework
+                        options['platform'] = $('#platform option:selected').text().toLowerCase();
+                        options['framework'] = $('#framework option:selected').text().toLowerCase();
+                        options['endpoint'] = $('#endpoint').val();
+                        options['user'] = $('#framework-user').val();
+                        options['userinfo'] = $('#framework-userinfo').val();
+                        options['cpus'] = Number($('#framework-cpus').val());
+                        options['gpus'] = Number($('#framework-gpus').val());
+                        options['memory'] = $('#framework-memory').val();
+
+                        options['cos_endpoint'] = $('#cos_endpoint').val();
+                        options['cos_user'] = $('#cos_user').val();
+                        options['cos_password'] = $('#cos_password').val();
+
+                        options['kernelspec'] = 'python3'
                         options['notebook'] = Jupyter.notebook.toJSON()
 
                         $.ajax({
@@ -92,7 +135,16 @@ define([
                             success: function(data){
                                 console.log('Inside ui extension callback')
                                 console.log("Data: ", data)
-                                dialog.modal(data)
+
+                                dialog.modal({
+                                    sanitize: false,
+                                    title: 'Job submitted to ' + options['platform'] + 'Successfully!',
+                                    body: 'Check details on submited jobs at : <br/><br/> <a href="##########" target="_blank">Console & Job Status</a>',
+                                    buttons: {
+                                        'OK': {}
+                                    }
+                                });
+
                             },
                             failure: function(errMsg) {
                                 console.log('Inside ui extension error callback')

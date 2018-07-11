@@ -17,8 +17,17 @@ class SchedulerHandler(IPythonHandler):
 
         task = {}
         task['executor'] = options['platform']
-        task['host'] = options['endpoint']
-        task['kernelspec'] = 'python2'
+        task['framework'] = options['framework']
+        task['endpoint'] = options['endpoint']
+        task['user'] = options['user']
+        task['userinfo'] = options['userinfo']
+        task['cpus'] = options['cpus']
+        task['gpus'] = options['gpus']
+        task['memory'] = options['memory']
+        task['cos_endpoint'] = options['cos_endpoint']
+        task['cos_user'] = options['cos_user']
+        task['cos_password'] = options['cos_password']
+        task['kernelspec'] = 'python3'
         task['notebook'] = options['notebook']
 
         #TODO: don't send cell outputs to optimize bandwith
