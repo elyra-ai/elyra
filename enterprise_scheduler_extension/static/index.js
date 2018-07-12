@@ -28,65 +28,101 @@ define([
 
     function submit_notebok_to_scheduler() {
 
-        var content = $('<p/>').html('');
-        content.append($('<label for="platform">Platform:</label>'));
-        content.append($('<br/>'));
-        content.append($('<select id="platform"><option value="jupyter">Jupyter</option><option value="docker">Docker</option><option value="dlaas">DLAAS</option><option value="ffdl" selected>FfDL</option></select>'));
-        content.append($('<br/><br/>'));
-        content.append($('<label for="endpoint">Platform API Endpoint:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="text" id="endpoint" name="endpoint" placeholder="##########" value="##########" size="60"/>'));
-        content.append($('<br/><br/>'));
-        content.append($('<label for="framework">Deep Learning Framework:</label>'));
-        content.append($('<br/>'));
-        content.append($('<select id="framework"><option value="tensorflow" selected>Tensorflow</option><option value="caffe">Caffe</option><option value="pytorch">PyTorch</option><option value="caffe2">Caffe2</option></select>'));
+        var tr = '<tr style="padding: 1px;">'
+        var td = '<td style="padding: 1px;">'
+        var td_colspan2 = '<td style="padding: 1px;" colspan=2>'
+        var td_colspan3 = '<td style="padding: 1px;" colspan=3>'
+        var content = '<p/>'
+        +'<table><tbody>'
 
-        content.append($('<br/><br/>'));
-        content.append($('<label for="framework-user">User:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="text" id="framework-user" name="framework-user" placeholder="test" value="test"/>'));
+        + tr
+        + td
+        +'<label for="platform">Platform:</label>'
+        +'<br/>'
+        +'<select id="platform"><option value="jupyter">Jupyter</option><option value="docker">Docker</option><option value="dlaas">DLAAS</option><option value="ffdl" selected>FfDL</option></select>'
+        +'</td>'
 
-        content.append($('<br/><br/>'));
-        content.append($('<label for="framework-userinfo">User/Instance information:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="text" id="framework-userinfo" name="framework-userinfo" placeholder="##########" value="##########" size="35"/>'));
+        + td_colspan2
+        +'<label for="endpoint">Platform API Endpoint:</label>'
+        +'<br/>'
+        +'<input type="text" id="endpoint" name="endpoint" placeholder="##########" value="##########" size="60"/>'
+        +'</td>'
+        +'</tr>'
 
-        content.append($('<br/><br/>'));
-        content.append($('<label for="framework-cpus">CPUs:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="text" id="framework-cpus" name="framework-cpus" placeholder="1" value="1"/>'));
+        + tr
+        + td_colspan3
+        +'<label for="framework">Deep Learning Framework:</label>'
+        +'<br/>'
+        +'<select id="framework"><option value="tensorflow" selected>Tensorflow</option><option value="caffe">Caffe</option><option value="pytorch">PyTorch</option><option value="caffe2">Caffe2</option></select>'
+        +'</td>'
+        +'</tr>'
 
-        content.append($('<br/><br/>'));
-        content.append($('<label for="framework-gpus">GPUs:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="text" id="framework-gpus" name="framework-gpus" placeholder="0" value="0"/>'));
+        + tr
+        + td
+        +'<label for="framework-user">User:</label>'
+        +'<br/>'
+        +'<input type="text" id="framework-user" name="framework-user" placeholder="##########" value="##########"/>'
+        +'</td>'
 
-        content.append($('<br/><br/>'));
-        content.append($('<label for="framework-memory">Memory:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="text" id="framework-memory" name="framework-memory" placeholder="1Gb" value="1Gb"/>'));
+        + td_colspan2
+        +'<label for="framework-userinfo">User/Instance information:</label>'
+        +'<br/>'
+        +'<input type="text" id="framework-userinfo" name="framework-userinfo" placeholder="##########" value="##########" size="35"/>'
+        +'</td>'
+        +'</tr>'
 
-        content.append($('<br/>'));
-        content.append($('<br/><br/>'));
-        content.append($('<label for="cos_endpoint">COS Endpoint:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="text" id="cos_endpoint" name="cos_endpoint" placeholder="##########" value="##########" size="35"/>'));
+        + tr
+        + td
+        +'<label for="framework-cpus">CPUs:</label>'
+        +'<br/>'
+        +'<input type="text" id="framework-cpus" name="framework-cpus" placeholder="1" value="1"/>'
+        +'</td>'
 
-        content.append($('<br/><br/>'));
-        content.append($('<label for="cos_user">COS User:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="text" id="cos_user" name="cos_user" placeholder="##########" value="##########" size="20"/>'));
+        + td
+        +'<label for="framework-gpus">GPUs:</label>'
+        +'<br/>'
+        +'<input type="text" id="framework-gpus" name="framework-gpus" placeholder="0" value="0"/>'
+        +'</td>'
 
-        content.append($('<br/><br/>'));
-        content.append($('<label for="cos_password">COS Password:</label>'));
-        content.append($('<br/>'));
-        content.append($('<input type="password" id="cos_password" name="cos_password" placeholder="##########" value="##########" size="20"/>'));
+        + td
+        +'<label for="framework-memory">Memory:</label>'
+        +'<br/>'
+        +'<input type="text" id="framework-memory" name="framework-memory" placeholder="1Gb" value="1Gb"/>'
+        +'</td>'
+        +'</tr>'
 
-        Jupyter.keyboard_manager.register_events(content);
+        + tr
+        + td_colspan3
+        +'<label for="cos_endpoint">COS Endpoint:</label>'
+        +'<br/>'
+        +'<input type="text" id="cos_endpoint" name="cos_endpoint" placeholder="##########" value="##########" size="35"/>'
+        +'</td>'
+        +'</tr>'
+
+        + tr
+        + td
+        +'<label for="cos_user">COS User:</label>'
+        +'<br/>'
+        +'<input type="text" id="cos_user" name="cos_user" placeholder="##########" value="##########" size="20"/>'
+        +'</td>'
+
+        + td
+        +'<label for="cos_password">COS Password:</label>'
+        +'<br/>'
+        +'<input type="password" id="cos_password" name="cos_password" placeholder="##########" value="##########" size="20"/>'
+        +'</td>'
+        +'</tr>'
+
+        +'</tbody></table>'
+
+
+        var htmlContent = $.parseHTML(content);
+
+        Jupyter.keyboard_manager.register_events( htmlContent );
 
         dialog.modal({
             title: 'Submit Options ...',
-            body: content,
+            body: htmlContent,
             buttons: {
                 Cancel: {
                     'class': 'btn-danger'
@@ -175,8 +211,9 @@ define([
         id: 'submit-notebook-to-scheduler-button'
 	}])
     }
-
+    
     function load_ipython_extension() {
+        console.log('Loading scheduler extension')
 	    place_button();
     }
 

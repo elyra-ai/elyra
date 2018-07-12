@@ -2,6 +2,7 @@ from notebook.utils import url_path_join
 
 from enterprise_scheduler_extension.scheduler import SchedulerHandler
 
+
 def _jupyter_server_extension_paths():
     return [{
         "module": "enterprise_scheduler_extension"
