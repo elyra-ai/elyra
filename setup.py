@@ -13,7 +13,10 @@ setup(
     version="0.0.1",
     packages=find_packages(),
     install_requires=[
-        "jupyter==1"
+        'ipywidgets',
+        'notebook>=4,<6',
+        'nbconvert',
+        'requests>=2.9.1,<3.0',
     ],
     include_package_data=True,
     description="A button on Jupyter's toolbar for Schedulig notebooks",
