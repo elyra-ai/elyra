@@ -32,6 +32,8 @@ define([
         var td = '<td style="padding: 1px;">'
         var td_colspan2 = '<td style="padding: 1px;" colspan=2>'
         var td_colspan3 = '<td style="padding: 1px;" colspan=3>'
+        var td_colspan4 = '<td style="padding: 1px;" colspan=4>'
+
         var content = '<p/>'
         +'<table><tbody>'
 
@@ -42,36 +44,20 @@ define([
         +'<select id="platform"><option value="jupyter">Jupyter</option><option value="docker">Docker</option><option value="dlaas">DLAAS</option><option value="ffdl" selected>FfDL</option></select>'
         +'</td>'
 
-        + td_colspan2
+        + td_colspan3
         +'<label for="endpoint">Platform API Endpoint:</label>'
         +'<br/>'
-        +'<input type="text" id="endpoint" name="endpoint" placeholder="##########" value="##########" size="60"/>'
-        +'</td>'
-        +'</tr>'
-
-        + tr
-        + td_colspan3
-        +'<label for="framework">Deep Learning Framework:</label>'
-        +'<br/>'
-        +'<select id="framework"><option value="tensorflow" selected>Tensorflow</option><option value="caffe">Caffe</option><option value="pytorch">PyTorch</option><option value="caffe2">Caffe2</option></select>'
+        +'<input type="text" id="endpoint" name="endpoint" placeholder="##########" value="##########" size="65"/>'
         +'</td>'
         +'</tr>'
 
         + tr
         + td
-        +'<label for="framework-user">User:</label>'
+        +'<label for="framework">Deep Learning Framework:</label>'
         +'<br/>'
-        +'<input type="text" id="framework-user" name="framework-user" placeholder="##########" value="##########"/>'
+        +'<select id="framework"><option value="tensorflow" selected>Tensorflow</option><option value="caffe">Caffe</option><option value="pytorch">PyTorch</option><option value="caffe2">Caffe2</option></select>'
         +'</td>'
 
-        + td_colspan2
-        +'<label for="framework-userinfo">User/Instance information:</label>'
-        +'<br/>'
-        +'<input type="text" id="framework-userinfo" name="framework-userinfo" placeholder="##########" value="##########" size="35"/>'
-        +'</td>'
-        +'</tr>'
-
-        + tr
         + td
         +'<label for="framework-cpus">CPUs:</label>'
         +'<br/>'
@@ -92,10 +78,24 @@ define([
         +'</tr>'
 
         + tr
+        + td
+        +'<label for="framework-user">User:</label>'
+        +'<br/>'
+        +'<input type="text" id="framework-user" name="framework-user" placeholder="##########" value="##########"/>'
+        +'</td>'
+
         + td_colspan3
+        +'<label for="framework-userinfo">User/Instance information:</label>'
+        +'<br/>'
+        +'<input type="text" id="framework-userinfo" name="framework-userinfo" placeholder="##########" value="##########" size="35"/>'
+        +'</td>'
+        +'</tr>'
+
+        + tr
+        + td_colspan4
         +'<label for="cos_endpoint">COS Endpoint:</label>'
         +'<br/>'
-        +'<input type="text" id="cos_endpoint" name="cos_endpoint" placeholder="##########" value="##########" size="35"/>'
+        +'<input type="text" id="cos_endpoint" name="cos_endpoint" placeholder="##########" value="##########" size="65"/>'
         +'</td>'
         +'</tr>'
 
@@ -111,6 +111,10 @@ define([
         +'<br/>'
         +'<input type="password" id="cos_password" name="cos_password" placeholder="##########" value="##########" size="20"/>'
         +'</td>'
+
+        + td_colspan2
+        +'</td>'
+
         +'</tr>'
 
         +'</tbody></table>'
