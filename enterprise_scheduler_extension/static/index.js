@@ -196,10 +196,19 @@ define([
                                 });
 
                             },
-                            failure: function(errMsg) {
+                            error: function(request, status, errorMsg) {
                                 console.log('Inside ui extension error callback')
-                                console.log("Error: ", errMsg)
-                                dialog.modal(errMsg)
+                                console.log("Error: ", errorMsg)
+
+                                dialog.modal({
+                                    sanitize: false,
+                                    title: 'Error submitting job',
+                                    body: 'Scheduler service not available: ' + errorMsg,
+                                    buttons: {
+                                        'OK': {}
+                                    }
+                                });
+
                             }
                         });
                         // ---
