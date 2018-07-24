@@ -19,6 +19,6 @@ setup(
         'requests>=2.9.1,<3.0',
     ],
     include_package_data=True,
-    description="A button on Jupyter's toolbar for Schedulig notebooks",
+    description="A button on Jupyter's toolbar for Scheduling notebooks",
     long_description=long_desc,
 )
