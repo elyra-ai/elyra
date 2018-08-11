@@ -37,9 +37,9 @@ class SchedulerHandler(IPythonHandler):
         task['kernelspec'] = 'python3'
         task['notebook'] = options['notebook']
 
-        #TODO: don't send cell outputs to optimize bandwith
-        #for cell in payload['notebook']['cells']:
-        #    del cell['outputs']
+        # Clean cell outputs to optimize bandwidth
+        for cell in task['notebook']['cells']:
+            cell['outputs'] = []
 
         # UI port and username are temporarily hard coded
         job_url = "http://" + options['endpoint'].split(':')[1] + ':32150/#/login?endpoint=' + \
