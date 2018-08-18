@@ -117,6 +117,20 @@ define([
 
         +'</tr>'
 
+        + tr
+        + td
+        +'<br/>'
+        +'<input type="checkbox" id="dependency_include" name="dependency_include" value="true" size="20"/> Include dependencies<br/>'
+        +'</td>'
+
+        + td
+        +'<br/>'
+        +'<input type="text" id="dependency_list" name="dependency_list" placeholder="*.py" value="*.py" size="20"/>'
+        +'</td>'
+
+        +'</tr>'
+
+
         +'</tbody></table>'
 
 
@@ -163,6 +177,12 @@ define([
                         options['cos_password'] = $('#cos_password').val();
 
                         options['kernelspec'] = 'python3'
+
+                        if ($('#dependency_include').prop('checked')) {
+                            options['dependency_list'] = $('#dependency_list').val();
+                        }
+
+                        options['notebook_name'] = Jupyter.notebook.notebook_name
                         options['notebook'] = Jupyter.notebook.toJSON()
 
                         $.ajax({

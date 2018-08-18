@@ -1,6 +1,9 @@
 import json
 import requests
 
+from os import listdir
+from os.path import isfile, join
+
 from notebook.base.handlers import IPythonHandler
 
 
@@ -35,8 +38,26 @@ class SchedulerHandler(IPythonHandler):
         task['cos_user'] = options['cos_user']
         task['cos_password'] = options['cos_password']
         task['kernelspec'] = 'python3'
-        task['notebook'] = options['notebook']
 
+        #Add Dependencies
+        dependencies = dict()
+        if 'dependency_list' in options:
+            allfiles = [f for f in listdir('.') if isfile(join('.', f))]
+
+            dependency_types = options['dependency_list'].split(',')
+            for dependency_type in dependency_types:
+                dependency_extension = dependency_type.replace('*.', '.')
+                for dependency_file in allfiles:
+                    if dependency_file.endswith(dependency_extension):
+                        with open(dependency_file, "r") as dependency_file_content:
+                            data = dependency_file_content.read()
+                            dependencies[dependency_file] = data
+
+        task['dependencies'] = dependencies
+
+        #Add Notebook
+        task['notebook_name'] = options['notebook_name']
+        task['notebook'] = options['notebook']
         # Clean cell outputs to optimize bandwidth
         for cell in task['notebook']['cells']:
             cell['outputs'] = []
