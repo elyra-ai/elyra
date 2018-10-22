@@ -1,0 +1,45 @@
+{
+  "name": "@jupyterlab/scheduler-ui",
+  "version": "0.0.2",
+  "description": "Add a 'Submit Notebook' toolbar button and context menu item.",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "homepage": "https://github.com/lresende/jupyterlab-scheduler-button",
+  "bugs": {
+    "url": "https://github.com/lresende/jupyterlab-scheduler-button/issues"
+  },
+  "license": "Apache-2.0",
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lresende/enterprise_scheduler_extension"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^0.19.1",
+    "@jupyterlab/apputils": "^0.19.1",
+    "@jupyterlab/docregistry": "^0.19.1",
+    "@jupyterlab/notebook": "^0.19.1",
+    "@phosphor/disposable": "^1.1.2",
+    "react-dom": "^16.5.2"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.1",
+    "typescript": "~2.9.2"
+  },
+  "jupyterlab": {
+    "extension": true
+  }
+}

@@ -1,11 +1,8 @@
-.PHONY: help clean sdist release clean-docker
+.PHONY: help clean build install clean-docker
 
 SHELL:=/bin/bash
 
 VERSION:=0.0.1
-
-WHEEL_FILE:=dist/enterprise_scheduler_extension-$(VERSION)-py2.py3-none-any.whl
-WHEEL_FILES:=$(shell find . -type f ! -path "./build/*" ! -path "./etc/*" ! -path "./docs/*" ! -path "./.git/*" ! -path "./.idea/*" ! -path "./dist/*" ! -path "./.image-docker" )
 
 TAG:=dev
 
@@ -15,27 +12,24 @@ help:
 
 clean: ## Make a clean source tree
 	-rm -rf dist
-	-rm -rf build
+	-rm -rf lib
 	-rm -rf *.egg-info
-	-find enterprise_scheduler_extension -name __pycache__ -exec rm -fr {} \;
-	-find enterprise_scheduler_extension -name '*.pyc' -exec rm -fr {} \;
 
-bdist:
-	make $(WHEEL_FILE)
+build: ## Build distribution
+	-jlpm install
+	-jlpm run build
 
-$(WHEEL_FILE): $(WHEEL_FILES)
-	@echo $(WHEEL_FILES)
-	python setup.py bdist_wheel $(POST_SDIST) \
-		&& rm -rf *.egg-info
 
-sdist:
-	python setup.py sdist $(POST_SDIST) \
-		&& rm -rf *.egg-info
+install: build ## Build distribution and install
+	-jupyter labextension install
 
-dist: bdist sdist ## Make binary and source distribution to dist folder
 
-release: POST_SDIST=upload
-release: bdist sdist ## Make a wheel + source release on PyPI
+offline: ##Build and install in offline mode
+	- npm pack .
+	- yarn --offline install
+	- yarn --offline run build
+	- jupyter labextension install --no-build
+
 
 docker-image: .image-docker ## Build elyra/jupyter_scheduler:dev docker image
 .image-docker: etc/docker/* $(WHEEL_FILE)  
