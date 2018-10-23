@@ -12,15 +12,19 @@ help:
 
 clean: ## Make a clean source tree
 	-rm -rf dist
+	-rm -rf build
 	-rm -rf lib
 	-rm -rf *.egg-info
 
 build: ## Build distribution
+	-python setup.py bdist_wheel
 	-jlpm install
 	-jlpm run build
 
 
 install: build ## Build distribution and install
+	-pip install --upgrade -e .
+	-jupyter serverextension enable --py enterprise_scheduler_extension --sys-prefix
 	-jupyter labextension install
 
 
