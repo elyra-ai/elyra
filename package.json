@@ -1,5 +1,5 @@
 {
-  "name": "@jupyterlab/scheduler-ui",
+  "name": "@deeplearningworkspace/scheduler-extension",
   "version": "0.0.2",
   "description": "Add a 'Submit Notebook' toolbar button and context menu item.",
   "keywords": [

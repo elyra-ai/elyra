@@ -62,14 +62,14 @@ function activate(app: JupyterLab): void {
   app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
   app.contextMenu.addItem({
     selector: '.jp-Notebook',
-    command: 'notebook:run-all-cells',
+    command: 'notebook:submit',
     rank: -0.5
   });
 }
 
 
 const extension: JupyterLabPlugin<void> = {
-  id: 'runall-extension',
+  id: 'run-submit-extension',
   autoStart: true,
   activate
 };

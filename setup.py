@@ -7,7 +7,7 @@ except:
 
 setup(
     name="enterprise_scheduler_extension",
-    url="https://github.com/codait/enterprise_scheduler_extension",
+    url="https://github.com/lresende/enterprise_scheduler_extension",
     author="Luciano Resende",
     author_email="lresende@apache.org",
     version="0.0.1",
