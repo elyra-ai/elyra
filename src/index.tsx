@@ -1,77 +1,28 @@
-import { IDisposable } from '@phosphor/disposable';
-
-//import { CommandRegistry } from '@phosphor/commands';
-
 import { JupyterLab, JupyterLabPlugin } from '@jupyterlab/application';
 
-import { ToolbarButton  } from '@jupyterlab/apputils';
-//Dialog, IFrame, InstanceTracker, MainAreaWidget,showDialog
-
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-
-import { NotebookPanel, INotebookModel } from '@jupyterlab/notebook';
-
-import { SubmitTable } from './SubmitTable'
+import { SubmitNotebookButtonExtension} from "./SubmitNotebook";
 
 import '../style/index.css';
 
-
-class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
-
-  constructor(app: JupyterLab) {
-    this.app = app;
-  }
-
-  readonly app: JupyterLab;
-
-  createNew(panel: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): IDisposable {
-    // Create the on-click callback for the toolbar button.
-    // let submitNotebook = () => {
-    //   dialogDemo()
-    // };
-    //
-    // function dialogDemo(): void {
-    //   showDialog({
-    //     title: 'Create new notebook',
-    //     body: SubmitTable.htmlContent,
-    //     buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    //   });
-    // }
-
-    // Create the toolbar button
-    let submitNotebookButton = new ToolbarButton({
-      iconClassName: 'fa fa-send',
-      label: 'Submit Notebook ...',
-      onClick: SubmitTable.showSubmitDialog,
-      tooltip: 'Submit Notebook ...'
-    });
-
-    // Add the toolbar button to the notebook
-    panel.toolbar.insertItem(9, 'submitNotebook', submitNotebookButton);
-
-    // The ToolbarButton class implements `IDisposable`, so the
-    // button *is* the extension for the purposes of this method.
-    return submitNotebookButton;
-  }
-}
-
-
-
-function activate(app: JupyterLab): void {
-  let buttonExtension = new SubmitNotebookButtonExtension(app);
-  app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
-  app.contextMenu.addItem({
-    selector: '.jp-Notebook',
-    command: 'notebook:submit',
-    rank: -0.5
-  });
-}
-
-
+/**
+ * A JupyterLab extension to submit notebooks to
+ * be executed in a remote platform
+ */
 const extension: JupyterLabPlugin<void> = {
-  id: 'run-submit-extension',
+  id: 'run-submit-notebook-extension',
   autoStart: true,
-  activate
+  activate: (
+    app: JupyterLab
+  ): void => {
+    // Extension initialization code
+    let buttonExtension = new SubmitNotebookButtonExtension(app);
+    app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
+    app.contextMenu.addItem({
+      selector: '.jp-Notebook',
+      command: 'notebook:submit',
+      rank: -0.5
+    });
+  }
 };
 
 

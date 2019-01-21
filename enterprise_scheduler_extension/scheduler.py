@@ -58,9 +58,11 @@ class SchedulerHandler(IPythonHandler):
         #Add Notebook
         task['notebook_name'] = options['notebook_name']
         task['notebook'] = options['notebook']
+
         # Clean cell outputs to optimize bandwidth
         for cell in task['notebook']['cells']:
-            cell['outputs'] = []
+            if cell['cell_type'] == 'code':
+                cell['outputs'] = []
 
         # UI port and username are temporarily hard coded
         job_url = "http://" + options['endpoint'].split(':')[1] + ':32150/#/login?endpoint=' + \
