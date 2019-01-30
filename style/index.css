@@ -2,3 +2,35 @@
     max-width: 100vw;
     max-height: 100vh;
  }
+
+.dlw-Table-experiments {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    width: 100%;
+    background-color: #ffffff;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.dlw-Table-experiments tr:hover {
+    background-color: #ddd;
+}
+
+.dlw-Table-experiments nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.dlw-Table-experiments td {
+    font-weight: normal;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.dlw-Table-experiments thead {
+    color: #495057;
+
+    background-color: #e9ecef;
+    padding-left: 10px;
+    padding-right: 10px;
+}

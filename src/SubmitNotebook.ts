@@ -60,15 +60,15 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
       body: new SubmitNotebook(),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then( result => {
-      let notebookTask: ISubmitNotebookTask = <ISubmitNotebookTask> result.value
+      let notebookTask: ISubmitNotebookTask = <ISubmitNotebookTask> result.value;
 
       notebookTask.kernelspec = "python3";
-      notebookTask.notebook_name = "---"
-      notebookTask.notebook = this.panel.content.model.toJSON()
+      notebookTask.notebook_name = "---";
+      notebookTask.notebook = this.panel.content.model.toJSON();
 
       let settings = ServerConnection.makeSettings();
       let url = URLExt.join(settings.baseUrl, 'scheduler');
-      let requestBody = JSON.stringify(notebookTask)
+      let requestBody = JSON.stringify(notebookTask);
 
       ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
         .then(response => {
@@ -78,8 +78,8 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
           return response.json();
         })
         .then(data => {
-          let dialogTitle = 'Job submission to ' + result.value.platform + ' succeeded !'
-          let dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['job_url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>'
+          let dialogTitle = 'Job submission to ' + result.value.platform + ' succeeded !';
+          let dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['job_url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>';
           showDialog({
             title: dialogTitle,
             body: dialogBody,
@@ -132,11 +132,11 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
    * required to submit/run the notebook remotely
    */
   renderHtml() {
-    var tr = '<tr style="padding: 1px;">'
-    var td = '<td style="padding: 1px;">'
-    var td_colspan2 = '<td style="padding: 1px;" colspan=2>'
-    var td_colspan3 = '<td style="padding: 1px;" colspan=3>'
-    var td_colspan4 = '<td style="padding: 1px;" colspan=4>'
+    var tr = '<tr style="padding: 1px;">';
+    var td = '<td style="padding: 1px;">';
+    var td_colspan2 = '<td style="padding: 1px;" colspan=2>';
+    var td_colspan3 = '<td style="padding: 1px;" colspan=3>';
+    var td_colspan4 = '<td style="padding: 1px;" colspan=4>';
 
     var content = ''
     +'<table id="table-submit-dialog"><tbody>'
@@ -244,7 +244,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
   
   getValue(): ISubmitNotebookConfiguration {
 
-    let dependency_list = ''
+    let dependency_list = '';
     if ((<HTMLInputElement> document.getElementById('dependency_include')).value == "true") {
       dependency_list = (<HTMLInputElement>document.getElementById('dependencies')).value
     }
@@ -263,7 +263,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       cos_endpoint: (<HTMLInputElement>document.getElementById('cos_endpoint')).value,
       cos_user: (<HTMLInputElement>document.getElementById('cos_user')).value,
       cos_password: (<HTMLInputElement>document.getElementById('cos_password')).value,
-    }
+    };
 
     return returnData;
   }
