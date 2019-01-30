@@ -35,6 +35,10 @@ export const dlw_extension: JupyterLabPlugin<void> = {
     // Declare a widget variable
     let notebookExperimentWidget: NotebookExperimentWidget
 
+    setTimeout(() => {
+      notebookExperimentWidget.update()
+    }, 30 * 1000);
+
     // Add an application command
     const command: string = 'dlw:open-experiments';
     app.commands.addCommand(command, {
