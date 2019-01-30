@@ -22,7 +22,6 @@ export class NotebookExperimentWidget extends Widget {
     this.node.appendChild(this.div);
   }
 
-
   /**
    * Handle update requests for the widget.
    */
@@ -97,6 +96,7 @@ export class NotebookExperimentWidget extends Widget {
           tableRow.insertCell(3).innerText = training_status.status.toString();
         }
 
+        this.div.innerHTML = ""
         this.div.appendChild(table);
       });
   }
