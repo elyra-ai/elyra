@@ -22,6 +22,22 @@ export class NotebookExperimentWidget extends Widget {
     this.node.appendChild(this.div);
   }
 
+  createResultTable() : HTMLTableElement {
+    let table = <HTMLTableElement> document.createElement('table');
+    table.className = "dlw-Table-experiments";
+
+    let tableHead = table.createTHead();
+    tableHead.className = "dlw-Table-experiments";
+
+    let tableHeadRow = tableHead.insertRow();
+    tableHeadRow.insertCell(0).innerText = "Model ID";
+    tableHeadRow.insertCell(1).innerText = "Name";
+    tableHeadRow.insertCell(2).innerText = "Description";
+    tableHeadRow.insertCell(3).innerText = "Status";
+
+    return table;
+  }
+
   /**
    * Handle update requests for the widget.
    */
@@ -33,6 +49,17 @@ export class NotebookExperimentWidget extends Widget {
     ServerConnection.makeRequest(url, { method: 'GET' }, settings)
       .then(response => {
         if (response.status !== 200) {
+          console.log('Error retrieving list of experiments from server.');
+
+          let table = this.createResultTable()
+
+          let errorMessage = <HTMLParagraphElement> document.createElement('p');
+          errorMessage.innerText = 'Error retrieving list of experiments from server.';
+
+          this.div.innerHTML = "";
+          this.div.appendChild(table);
+          this.div.appendChild(errorMessage);
+
           throw new ServerConnection.ResponseError(response);
         }
         return response.json()
@@ -70,17 +97,7 @@ export class NotebookExperimentWidget extends Widget {
 
         let json = data;
 
-        let table = <HTMLTableElement> document.createElement('table');
-        table.className = "dlw-Table-experiments";
-
-        let tableHead = table.createTHead();
-        tableHead.className = "dlw-Table-experiments";
-
-        let tableHeadRow = tableHead.insertRow();
-        tableHeadRow.insertCell(0).innerText = "Model ID";
-        tableHeadRow.insertCell(1).innerText = "Name";
-        tableHeadRow.insertCell(2).innerText = "Description";
-        tableHeadRow.insertCell(3).innerText = "Status";
+        let table = this.createResultTable();
 
         // populate the header
         for(var i=0; i < json.models.length; i++) {
