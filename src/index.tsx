@@ -1,4 +1,4 @@
-import {ILayoutRestorer, JupyterLab, JupyterLabPlugin} from '@jupyterlab/application';
+import {ILayoutRestorer, JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
 import {ICommandPalette, InstanceTracker} from "@jupyterlab/apputils";
 import {JSONExt} from "@phosphor/coreutils";
 import {Widget} from "@phosphor/widgets";
@@ -12,12 +12,12 @@ import '../style/index.css';
  * be executed in a remote platform
  */
 
-export const dlw_extension: JupyterLabPlugin<void> = {
+export const dlw_extension: JupyterFrontEndPlugin<void> = {
   id: 'dlw-extension',
   requires: [ICommandPalette, ILayoutRestorer],
   autoStart: true,
   activate: (
-    app: JupyterLab,
+    app: JupyterFrontEnd,
     palette: ICommandPalette,
     restorer: ILayoutRestorer
   ): void => {
@@ -56,14 +56,14 @@ export const dlw_extension: JupyterLabPlugin<void> = {
       }
       if (!notebookExperimentWidget.isAttached) {
         // Attach the widget to the main work area if it's not there
-        app.shell.addToMainArea(notebookExperimentWidget);
+        app.shell.add(notebookExperimentWidget,'main');
       } else {
         // Refresh the comic in the widget
         notebookExperimentWidget.update();
       }
 
       // Add as right side panel
-      app.shell.addToRightArea(notebookExperimentWidget)
+      app.shell.add(notebookExperimentWidget,'right')
 
       // Activate the widget
       app.shell.activateById(notebookExperimentWidget.id);
@@ -71,7 +71,7 @@ export const dlw_extension: JupyterLabPlugin<void> = {
   });
 
   // Add the command to the palette.
-  palette.addItem({ command, category: 'Tutorial' });
+  palette.addItem({ command, category: 'Deep Learning Workspace' });
 
 
   // Track and restore the widget state

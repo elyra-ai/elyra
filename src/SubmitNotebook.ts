@@ -3,7 +3,7 @@ import {JSONObject, JSONValue} from "@phosphor/coreutils";
 import {PanelLayout, Widget} from '@phosphor/widgets';
 import {DocumentRegistry} from "@jupyterlab/docregistry";
 import {INotebookModel, NotebookPanel} from "@jupyterlab/notebook";
-import {JupyterLab} from "@jupyterlab/application";
+import {JupyterFrontEnd} from "@jupyterlab/application";
 import {IDisposable} from "@phosphor/disposable";
 import {URLExt} from "@jupyterlab/coreutils";
 import {ServerConnection} from "@jupyterlab/services";
@@ -48,11 +48,11 @@ export interface ISubmitNotebookTask extends ISubmitNotebookConfiguration {
 export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
   private panel: NotebookPanel;
 
-  constructor(app: JupyterLab) {
+  constructor(app: JupyterFrontEnd) {
     this.app = app;
   }
 
-  readonly app: JupyterLab;
+  readonly app: JupyterFrontEnd;
 
   showWidget = () => {
     showDialog({
@@ -241,7 +241,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
 
     return htmlContent;
   }
-  
+
   getValue(): ISubmitNotebookConfiguration {
 
     let dependency_list = '';
