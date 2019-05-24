@@ -68,28 +68,45 @@ class SchedulerHandler(IPythonHandler):
         job_url = "http://" + options['endpoint'].split(':')[1] + ':32150/#/login?endpoint=' + \
                   options['endpoint'].split('v1')[0] + "&username=test-user"
 
-        result = None
+        response = None
         try:
-            result = requests.post(url=url, data=json.dumps(task))
+            response = requests.post(url=url, data=json.dumps(task))
+
+            if response.status_code in [200,201]:
+                # Job submission is successful
+                self.send_success_message("Job has been submitted!",
+                                          job_url)
+            else:
+                error_message = "HTTP Error - {} ".format(response.status_code)
+                self.send_error_message(response.status_code,
+                                        "Job submission has failed!")
 
         except requests.exceptions.ConnectionError:
-            job_msg = "Connection Error: Could not connect to {}".format(task['endpoint'])
-            self.send_message(" has failed", job_msg, job_url)
-            return -1
-        except requests.exceptions.HTTPError as http_err:
-            job_msg = "HTTP Error - {} ".format(http_err)
-            self.send_message(" has failed", job_msg, job_url)
-            return -1
+            error_message = "Connection Error: Could not connect to {}".format(task['endpoint'])
+            self.send_error_message(403, error_message)
         except requests.exceptions.RequestException as err:
-            job_msg = err
-            self.send_message(" has failed", job_msg, job_url)
-            return -1
+            error_message = err
+            self.send_error_message(500, error_message)
+        except requests.exceptions.HTTPError as http_err:
+            error_message = http_err
+            self.send_error_message(500, error_message)
+        except Exception as err:
+            error_message = err
+            self.send_error_message(500, error_message)
 
-        # Job submission is successful
-        self.send_message(" Successfully!", "Job has been submitted.", job_url)
-
-    def send_message(self, status, message, result_url):
-        msg_json = json.dumps({"title": status, "message": message, "job_url": result_url})
-        self.write(msg_json)
+    def send_message(self, message):
+        self.write(message)
         self.flush()
 
+    def send_success_message(self, message, job_url):
+        self.set_status(200)
+        msg = json.dumps({"status":"ok",
+                          "message": message,
+                          "url": job_url})
+        self.send_message(msg)
+
+    def send_error_message(self, status_code, error_message):
+        self.set_status(status_code)
+        msg = json.dumps({"status": "error",
+                          "message": error_message})
+        self.send_message(msg)

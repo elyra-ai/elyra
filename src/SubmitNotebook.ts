@@ -60,12 +60,20 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
       body: new SubmitNotebook(),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then( result => {
+      if( result.value == null) {
+        // When Cancel is clicked on the dialog, just return
+        return;
+      }
+
+      // prepare notebook submission details
       let notebookTask: ISubmitNotebookTask = <ISubmitNotebookTask> result.value;
 
       notebookTask.kernelspec = "python3";
       notebookTask.notebook_name = "---";
       notebookTask.notebook = this.panel.content.model.toJSON();
 
+      // use ServerConnection utility to make calls to Jupyter Based services
+      // which in this case is the scheduler extension installed by this package
       let settings = ServerConnection.makeSettings();
       let url = URLExt.join(settings.baseUrl, 'scheduler');
       let requestBody = JSON.stringify(notebookTask);
@@ -73,18 +81,33 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
       ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
         .then(response => {
           if (response.status !== 200) {
-            throw new ServerConnection.ResponseError(response);
+            return response.json().then(data => {
+              showDialog({
+                title: "Error submitting Notebook !",
+                body: data.message,
+                buttons: [Dialog.okButton()]
+              })
+            });
           }
           return response.json();
         })
         .then(data => {
-          let dialogTitle = 'Job submission to ' + result.value.platform + ' succeeded !';
-          let dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['job_url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>';
-          showDialog({
-            title: dialogTitle,
-            body: dialogBody,
-            buttons: [Dialog.okButton()]
-          })
+          if( data ) {
+            let dialogTitle: string = 'Job submission to ' + result.value.platform;
+            let dialogBody: string = '';
+            if (data['status_code'] == 'ok') {
+              dialogTitle =  dialogTitle + ' succeeded !';
+              dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>';
+            } else {
+              dialogTitle =  dialogTitle + ' failed !';
+              dialogBody = data['message'];
+            }
+            showDialog({
+              title: dialogTitle,
+              body: dialogBody,
+              buttons: [Dialog.okButton()]
+            })
+          }
         });
       });
   };
