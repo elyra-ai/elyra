@@ -36,8 +36,10 @@ export const dlw_extension: JupyterFrontEndPlugin<void> = {
     let notebookExperimentWidget: NotebookExperimentWidget
 
     setInterval(() => {
-      console.log('>>> timer expired... will refresh experiment list')
-      notebookExperimentWidget.update()
+      if(notebookExperimentWidget) {
+        console.log('>>> timer expired... will refresh experiment list')
+        notebookExperimentWidget.update()
+      }
     }, 10 * 1000);
 
     // Add an application command
