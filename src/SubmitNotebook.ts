@@ -8,6 +8,8 @@ import {IDisposable} from "@phosphor/disposable";
 import {URLExt} from "@jupyterlab/coreutils";
 import {ServerConnection} from "@jupyterlab/services";
 
+import Utils from './utils'
+
 /**
  * Details about notebook submission configuration, including
  * details about the remote platform and any other
@@ -29,6 +31,8 @@ export interface ISubmitNotebookConfiguration extends JSONObject {
   cos_password: string,
   cos_bucket_in: string,
   cos_bucket_out: string,
+
+  env: { [index: string]: string }
 }
 
 /**
@@ -57,9 +61,11 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
   readonly app: JupyterFrontEnd;
 
   showWidget = () => {
+    let envVars: string[] = Utils.getEnvVars(this.panel.content.model.toString());
+
     showDialog({
       title: 'Submit notebook',
-      body: new SubmitNotebook(),
+      body: new SubmitNotebook(envVars),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then( result => {
       if( result.value == null) {
@@ -97,7 +103,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
           if( data ) {
             let dialogTitle: string = 'Job submission to ' + result.value.platform;
             let dialogBody: string = '';
-            if (data['status_code'] == 'ok') {
+            if (data['status'] == 'ok') {
               dialogTitle =  dialogTitle + ' succeeded !';
               dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>';
             } else {
@@ -141,9 +147,12 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
  */
 export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmitNotebookConfiguration>  {
   private _htmlDialogElement: HTMLElement;
+  _envVars: string[];
 
-  constructor() {
+  constructor(envVars: string[]) {
     super();
+
+    this._envVars = envVars;
 
     this._htmlDialogElement = this.renderHtml();
 
@@ -176,7 +185,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     + td_colspan3
     +'<label for="endpoint">Platform API Endpoint:</label>'
     +'<br/>'
-    +'<input type="text" id="endpoint" name="endpoint" placeholder="##########" value="#############" size="65"/>'
+    +'<input type="text" id="endpoint" name="endpoint" placeholder="##########" value="##########" size="65"/>'
     +'</td>'
     +'</tr>'
 
@@ -210,13 +219,13 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     + td
     +'<label for="user">User:</label>'
     +'<br/>'
-    +'<input type="text" id="user" name="user" placeholder="##########" value="#############"/>'
+    +'<input type="text" id="user" name="user" placeholder="##########" value="##########"/>'
     +'</td>'
 
     + td_colspan3
     +'<label for="userinfo">User/Instance information:</label>'
     +'<br/>'
-    +'<input type="text" id="userinfo" name="userinfo" placeholder="##########" value="#############" size="35"/>'
+    +'<input type="text" id="userinfo" name="userinfo" placeholder="##########" value="##########" size="35"/>'
     +'</td>'
     +'</tr>'
 
@@ -224,7 +233,10 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     + td_colspan3
     +'<label for="cos_endpoint">COS Endpoint:</label>'
     +'<br/>'
-    +'<input type="text" id="cos_endpoint" name="cos_endpoint" placeholder="##########" value="#############" size="65"/>'
+    +'<input type="text" id="cos_endpoint" name="cos_endpoint" placeholder="##########" value="##########" size="65"/>'
+    +'</td>'
+
+    + td
     +'</td>'
     +'</tr>'
 
@@ -232,7 +244,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     + td
     +'<label for="cos_user">COS User:</label>'
     +'<br/>'
-    +'<input type="text" id="cos_user" name="cos_user" placeholder="##########" value="##############t" size="20"/>'
+    +'<input type="text" id="cos_user" name="cos_user" placeholder="##########" value="##########" size="20"/>'
     +'</td>'
 
     + td
@@ -268,6 +280,8 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
 
     +'</tr>'
 
+    + this.getEnvHtml()
+
     +'</tbody></table>'
 
     let htmlContent = document.createElement('div');
@@ -276,11 +290,49 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     return htmlContent;
   }
 
+  getEnvHtml(): string {
+    let tr = '<tr style="padding: 1px;">';
+    let td = '<td style="padding: 1px;">';
+    let td_colspan4 = '<td style="padding: 1px;" colspan=4>';
+    let subtitle = '<div style="font-size: var(--jp-ui-font-size3)">Environmental Variables</div>'
+
+    let html = '' + tr + td_colspan4 + subtitle + '</td>' + '</tr>';
+
+    for (let i = 0; i < this._envVars.length; i++) {
+
+      if (i % 4 === 0) {
+        html = html + tr;
+      }
+
+      html = html + td
+        +`<label for="envVar${i}">${this._envVars[i]}:</label>`
+        +'<br/>'
+        +`<input type="text" id="envVar${i}" class="envVar" name="envVar${i}" placeholder="" value="" size="20"/>`
+        +'</td>';
+
+      if (i % 4 === 3) {
+        html = html + '</tr>';
+      }
+    }
+
+
+    return html;
+  }
+
   getValue(): ISubmitNotebookConfiguration {
 
     let dependency_list = '';
     if ((<HTMLInputElement> document.getElementById('dependency_include')).value == "true") {
       dependency_list = (<HTMLInputElement>document.getElementById('dependencies')).value
+    }
+
+    let envVars: { [index: string]: string } = {};
+
+    let envElements = document.getElementsByClassName('envVar');
+
+    for (let i = 0; i < envElements.length; i++) {
+      let index: number  = parseInt(envElements[i].id.match(/\d+/)[0], 10);
+      envVars[this._envVars[index]] = (<HTMLInputElement>envElements[i]).value;
     }
 
     let returnData: ISubmitNotebookConfiguration = {
@@ -299,6 +351,8 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       cos_password: (<HTMLInputElement>document.getElementById('cos_password')).value,
       cos_bucket_in: (<HTMLInputElement>document.getElementById('cos_bucket_in')).value,
       cos_bucket_out: (<HTMLInputElement>document.getElementById('cos_bucket_out')).value,
+
+      env: envVars,
     };
 
     return returnData;

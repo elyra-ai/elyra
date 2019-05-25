@@ -39,6 +39,7 @@ class SchedulerHandler(IPythonHandler):
         task['cos_bucket_out'] = options['cos_bucket_out']
         task['cos_user'] = options['cos_user']
         task['cos_password'] = options['cos_password']
+        task['env'] = options['env']
         task['kernelspec'] = 'python3'
 
         #Add Dependencies
