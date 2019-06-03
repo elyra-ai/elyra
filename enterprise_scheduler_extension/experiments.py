@@ -26,7 +26,7 @@ class ExperimentsHandler(IPythonHandler):
         result = None
         try:
             client = FfDLClient(config)
-            result = client.get('/models')
+            result = client.get('/models').json()
 
         except requests.exceptions.ConnectionError:
             job_msg = "Connection Error: Could not connect to {}".format(config.api_endpoint)

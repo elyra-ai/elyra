@@ -11,7 +11,7 @@ export default class Utils {
   static getEnvVars(notebookStr: string): string[] {
     let envVars: string[] = [];
     let notebook = JSON.parse(notebookStr);
-    let match_regex = /os\.environ(?:\["([^"]+)|\['([^']+)|\.get\("([^"]+)|\.get\('([^']+))/;
+    let match_regex = /os\.(?:environ(?:\["([^"]+)|\['([^']+)|\.get\("([^"]+)|\.get\('([^']+))|getenv\("([^"]+)|getenv\('([^']+))/;
 
     for (let cell of notebook['cells']) {
       if (cell['cell_type'] == 'code') {
