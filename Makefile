@@ -21,22 +21,13 @@ build: ## Build distribution
 	-jlpm install
 	-jlpm run build
 
-
 install: build ## Build distribution and install
 	-pip install --upgrade -e .
 	-jupyter serverextension enable --py enterprise_scheduler_extension --sys-prefix
 	-jupyter labextension install
 
-
-offline: ##Build and install in offline mode
-	- npm pack .
-	- yarn --offline install
-	- yarn --offline run build
-	- jupyter labextension install --no-build
-
-
 docker-image: .image-docker ## Build elyra/jupyter_scheduler:dev docker image
-.image-docker: etc/docker/* $(WHEEL_FILE)  
+.image-docker: etc/docker/* $(WHEEL_FILE)
 	@make clean-docker-image bdist
 	@mkdir -p build/docker
 	cp etc/docker/* build/docker
