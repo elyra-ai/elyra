@@ -66,4 +66,5 @@ target/
 # Build-related
 .image-*
 
+tsconfig.tsbuildinfo
 node_modules
