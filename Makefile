@@ -15,8 +15,10 @@ clean: ## Make a clean source tree
 	-rm -rf build
 	-rm -rf lib
 	-rm -rf *.egg-info
+	-rm -f yarn.lock package-lock.json
 
 build: ## Build distribution
+	-rm -f yarn.lock package-lock.json
 	-python setup.py bdist_wheel
 	-jlpm install
 	-jlpm run build
