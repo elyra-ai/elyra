@@ -7,24 +7,34 @@
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
     width: 100%;
     background-color: #ffffff;
-    margin-top: 10px;
+    margin-top: 5px;
     margin-bottom: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
 }
 
-.dlw-Table-experiments tr:hover {
+.p-Widget #jp-left-stack {
+    padding-left: 8px;
+}
+
+.p-Widget #jp-right-stack {
+    margin-top: 25px;
+    margin-right: 5px;
+}
+
+.dlw-Table-experiments tr:hover:nth-child(even) {
     background-color: #ddd;
 }
 
-.dlw-Table-experiments nth-child(even) {
+.dlw-Table-experiments tr:hover:nth-child(odd) {
+    background-color: #ddd;
+}
+
+.dlw-Table-experiments tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
 .dlw-Table-experiments td {
     font-weight: normal;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 10px;
 }
 
 .dlw-Table-experiments thead {
@@ -33,4 +43,12 @@
     background-color: #e9ecef;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+.dlw-notebookExperimentWidget {
+    overflow: scroll
+}
+
+.dlw-experiments {
+    padding-right: 5px;
 }
