@@ -7,6 +7,7 @@ import {JupyterFrontEnd} from "@jupyterlab/application";
 import {IDisposable} from "@phosphor/disposable";
 import {URLExt} from "@jupyterlab/coreutils";
 import {ServerConnection} from "@jupyterlab/services";
+import * as React from 'react';
 
 import Utils from './utils'
 
@@ -102,19 +103,23 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
         .then(data => {
           if( data ) {
             let dialogTitle: string = 'Job submission to ' + result.value.platform;
-            let dialogBody: string = '';
             if (data['status'] == 'ok') {
+              let dialogLink: React.ReactElement<any> = React.createElement('a',{href: data['url'].replace('/&', '&'), target:"_blank"}, 'Console & Job Status');
+              let dialogBody: React.ReactElement<any> = React.createElement('p',null,'Check details on submitted jobs at ',dialogLink);
               dialogTitle =  dialogTitle + ' succeeded !';
-              dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>';
+              showDialog({
+                title: dialogTitle,
+                body: dialogBody,
+                buttons: [Dialog.okButton()]
+              });
             } else {
               dialogTitle =  dialogTitle + ' failed !';
-              dialogBody = data['message'];
+              showDialog({
+                title: dialogTitle,
+                body: data['message'],
+                buttons: [Dialog.okButton()]
+              });
             }
-            showDialog({
-              title: dialogTitle,
-              body: dialogBody,
-              buttons: [Dialog.okButton()]
-            })
           }
         });
       });

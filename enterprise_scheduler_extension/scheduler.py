@@ -68,7 +68,7 @@ class SchedulerHandler(IPythonHandler):
                 cell['outputs'] = []
 
         # UI port and username are temporarily hard coded
-        job_url = "http://" + options['endpoint'].split(':')[1] + ':32150/#/login?endpoint=' + \
+        job_url = "http://" + options['endpoint'].split(':')[1] + ':31715/#/login?endpoint=' + \
                   options['endpoint'].split('v1')[0] + "&username=test-user"
 
         response = None
