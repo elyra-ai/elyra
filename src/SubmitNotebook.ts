@@ -301,27 +301,31 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     let td_colspan4 = '<td style="padding: 1px;" colspan=4>';
     let subtitle = '<div style="font-size: var(--jp-ui-font-size3)">Environmental Variables</div>'
 
-    let html = '' + tr + td_colspan4 + subtitle + '</td>' + '</tr>';
+    if (this._envVars.length > 0) {
+      let html = '' + tr + td_colspan4 + subtitle + '</td>' + '</tr>';
 
-    for (let i = 0; i < this._envVars.length; i++) {
+      for (let i = 0; i < this._envVars.length; i++) {
 
-      if (i % 4 === 0) {
-        html = html + tr;
+        if (i % 4 === 0) {
+          html = html + tr;
+        }
+
+        html = html + td
+          +`<label for="envVar${i}">${this._envVars[i]}:</label>`
+          +'<br/>'
+          +`<input type="text" id="envVar${i}" class="envVar" name="envVar${i}" placeholder="" value="" size="20"/>`
+          +'</td>';
+
+        if (i % 4 === 3) {
+          html = html + '</tr>';
+        }
       }
 
-      html = html + td
-        +`<label for="envVar${i}">${this._envVars[i]}:</label>`
-        +'<br/>'
-        +`<input type="text" id="envVar${i}" class="envVar" name="envVar${i}" placeholder="" value="" size="20"/>`
-        +'</td>';
-
-      if (i % 4 === 3) {
-        html = html + '</tr>';
-      }
+      return html;
+      
+    } else {
+      return '';
     }
-
-
-    return html;
   }
 
   getValue(): ISubmitNotebookConfiguration {
