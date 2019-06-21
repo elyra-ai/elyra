@@ -1,5 +1,5 @@
 {
-  "name": "@deeplearningworkspace/scheduler-extension",
+  "name": "@aiworkspace/scheduler-extension",
   "version": "0.0.2",
   "description": "Add a 'Submit Notebook' toolbar button and context menu item.",
   "keywords": [
@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/lresende/jupyterlab-scheduler-button",
+  "homepage": "https://github.com/lresende/enterprise_scheduler_extension",
   "bugs": {
-    "url": "https://github.com/lresende/jupyterlab-scheduler-button/issues"
+    "url": "https://github.com/lresende/enterprise_scheduler_extension/issues"
   },
   "license": "Apache-2.0",
   "files": [
