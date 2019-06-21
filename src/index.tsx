@@ -1,5 +1,5 @@
 import {ILayoutRestorer, JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
-import {ICommandPalette, InstanceTracker} from "@jupyterlab/apputils";
+import {ICommandPalette, WidgetTracker} from "@jupyterlab/apputils";
 import {JSONExt} from "@phosphor/coreutils";
 import {Widget} from "@phosphor/widgets";
 
@@ -77,7 +77,7 @@ export const dlw_extension: JupyterFrontEndPlugin<void> = {
 
 
   // Track and restore the widget state
-  let tracker = new InstanceTracker<Widget>({ namespace: 'dlw' });
+  let tracker = new WidgetTracker<Widget>({ namespace: 'dlw' });
   restorer.restore(tracker, {
     command,
     args: () => JSONExt.emptyObject,
