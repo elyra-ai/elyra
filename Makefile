@@ -20,8 +20,8 @@ clean: ## Make a clean source tree
 build: ## Build distribution
 	-rm -f yarn.lock package-lock.json
 	-python setup.py bdist_wheel
-	-jlpm install
-	-jlpm run build
+	-yarn install
+	-yarn run build
 
 install: build ## Build distribution and install
 	-pip install --upgrade -e .
