@@ -1,4 +1,5 @@
 {
+    "extends": "../../tsconfig-base",
     "compilerOptions": {
       "jsx": "react",
       "declaration": true,
@@ -9,9 +10,9 @@
       "noUnusedLocals": true,
       "outDir": "./lib",
       "target": "es2015",
-      "strict": true,
-      "strictNullChecks": false,
-      "types": []
+      "strict": true
     },
-    "include": ["src/*"]
-  }
+    "include": [
+      "./src"
+    ]
+}

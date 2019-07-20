@@ -1,0 +1,41 @@
+---
+dist: trusty
+sudo: false
+python : "3.6"
+language: python
+node_js : "8.15"
+addons:
+  apt:
+    packages:
+      - python3-pip
+before_install:
+# Install YARN [not use NPM]
+  - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+  - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+  - sudo apt update
+  - python --version
+  - which python
+  # Build the python wheel for the extension
+  - python setup.py bdist_wheel
+install:
+  - sudo apt install yarn nodejs
+  - pip install jupyterlab jupyter_contrib_nbextensions enterprise_scheduler
+  - export PATH=$PATH:$(pwd)/node_modules/.bin/
+  - pip install ./dist/enterprise_scheduler_extension*.whl
+  - jupyter serverextension enable --py enterprise_scheduler_extension --sys-prefix
+  - yarn add --dev lerna -W
+# Install JS dependencies
+  - lerna bootstrap
+# Build the extensions under packages/*
+  - lerna run build
+# Install the package(s)
+  - cd packages/enterprise_scheduler_extension && jupyter labextension install --debug
+script:
+  - jupyter labextension list
+#deploy:
+#after_deploy:
+#notifications:
+#  slack:
+#    rooms:
+#      - [slack channel : api token]
+group: bluezone
