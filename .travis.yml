@@ -19,7 +19,7 @@ before_install:
   - python setup.py bdist_wheel
 install:
   - sudo apt install yarn nodejs
-  - pip install jupyterlab jupyter_contrib_nbextensions enterprise_scheduler
+  - pip install jupyterlab enterprise_scheduler
   - export PATH=$PATH:$(pwd)/node_modules/.bin/
   - pip install ./dist/enterprise_scheduler_extension*.whl
   - jupyter serverextension enable --py enterprise_scheduler_extension --sys-prefix

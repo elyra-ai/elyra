@@ -1,0 +1,50 @@
+{
+  "name": "python-runner-extension",
+  "version": "0.1.0",
+  "description": "Extends Jupyter Lab to run python files using the kernel",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "homepage": "https://github.ibm.com/ai-workspace/python-runner-extension",
+  "bugs": {
+    "url": "https://github.ibm.com/ai-workspace/python-runner-extension/issues"
+  },
+  "license": "Apache-2.0",
+  "author": "Alex Bozarth",
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "repository": {
+    "type": "git",
+    "url": "https://github.ibm.com/ai-workspace/python-runner-extension.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
+    "prepare": "npm run clean && npm run build",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^1.0.0",
+    "@jupyterlab/apputils": "^1.0.0",
+    "@jupyterlab/codeeditor": "^1.0.0",
+    "@jupyterlab/docregistry": "^1.0.0",
+    "@jupyterlab/fileeditor": "^1.0.0",
+    "@jupyterlab/outputarea": "^1.0.0",
+    "@phosphor/messaging": "^1.2.3",
+    "@phosphor/widgets": "^1.8.0"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.3",
+    "typescript": "~3.5.2"
+  },
+  "jupyterlab": {
+    "extension": true
+  }
+}

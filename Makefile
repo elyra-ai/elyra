@@ -15,17 +15,31 @@ clean: ## Make a clean source tree
 	-rm -rf build
 	-rm -rf lib
 	-rm -rf *.egg-info
-	-rm -f yarn.lock package-lock.json
+	-rm -rf node_modules
+	-$(call CLEAN_LAB_EXTENSION,python-runner)
 
 build: ## Build distribution
 	-rm -f yarn.lock package-lock.json
 	-python setup.py bdist_wheel
-	-yarn install
-	-yarn run build
+	-$(call BUILD_LAB_EXTENSION,python-runner)
 
 install: build ## Build distribution and install
 	-pip install --upgrade -e .
 	-jupyter serverextension enable --py enterprise_scheduler_extension --sys-prefix
-	-jupyter labextension install
+	-$(call INSTALL_LAB_EXTENSION,python-runner)
+
+define CLEAN_LAB_EXTENSION
+	-rm -rf packages/$1/lib
+	-rm -rf packages/$1/node_modules
+	-rm -rf packages/$1/package-lock.json
+	-rm -rf packages/$1/yarn.lock
+endef
 
 
+define BUILD_LAB_EXTENSION
+	-cd packages/$1 && jlpm install
+endef
+
+define INSTALL_LAB_EXTENSION
+	-cd packages/$1 && jupyter labextension link --debug .
+endef
