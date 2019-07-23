@@ -1,18 +1,24 @@
 {
-    "extends": "../../tsconfig-base",
-    "compilerOptions": {
-      "jsx": "react",
-      "declaration": true,
-      "lib": ["es2015", "dom"],
-      "module": "commonjs",
-      "moduleResolution": "node",
-      "noEmitOnError": true,
-      "noUnusedLocals": true,
-      "outDir": "./lib",
-      "target": "es2015",
-      "strict": true
-    },
-    "include": [
-      "./src"
-    ]
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "composite": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "incremental": true,
+    "jsx": "react",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "preserveWatchOutput": true,
+    "resolveJsonModule": true,
+    "outDir": "lib",
+    "rootDir": "src",
+    "strict": true,
+    "strictNullChecks": false,
+    "target": "es2017",
+    "types": []
+  },
+  "include": ["src/*"]
 }
