@@ -27,9 +27,14 @@ install:
 # Install JS dependencies
   - lerna bootstrap
 # Build the extensions under packages/*
-  - lerna run build
+#  - lerna run build
+  - echo $(pwd)
+  - pushd packages/enterprise_scheduler_extension && jlpm install && popd
+  - echo $(pwd)
+  - pushd packages/python-runner && jlpm install && popd
 # Install the package(s)
-  - cd packages/enterprise_scheduler_extension && jupyter labextension install --debug
+  - pushd packages/enterprise_scheduler_extension && jupyter labextension link --debug . && popd
+  - pushd packages/python-runner && jupyter labextension link --debug . && popd
 script:
   - jupyter labextension list
 #deploy:

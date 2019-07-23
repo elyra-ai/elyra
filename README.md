@@ -1,4 +1,4 @@
-# Jupyter Notebook Scheduler - JupyterLab Extension
+# Enterprise Workspace for AI
 
 This is a JupyterLab extension to schedule Jupyter Notebooks on external runtime. 
 Currently, the only supported/tested platform is [FfDL](https://github.com/ibm/ffdl).

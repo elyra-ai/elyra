@@ -16,16 +16,19 @@ clean: ## Make a clean source tree
 	-rm -rf lib
 	-rm -rf *.egg-info
 	-rm -rf node_modules
+	-$(call CLEAN_LAB_EXTENSION,enterprise_scheduler_extension)
 	-$(call CLEAN_LAB_EXTENSION,python-runner)
 
 build: ## Build distribution
 	-rm -f yarn.lock package-lock.json
 	-python setup.py bdist_wheel
+	-$(call BUILD_LAB_EXTENSION,enterprise_scheduler_extension)
 	-$(call BUILD_LAB_EXTENSION,python-runner)
 
 install: build ## Build distribution and install
 	-pip install --upgrade -e .
 	-jupyter serverextension enable --py enterprise_scheduler_extension --sys-prefix
+	-$(call INSTALL_LAB_EXTENSION,enterprise_scheduler_extension)
 	-$(call INSTALL_LAB_EXTENSION,python-runner)
 
 define CLEAN_LAB_EXTENSION
