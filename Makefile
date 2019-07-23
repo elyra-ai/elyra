@@ -28,17 +28,4 @@ install: build ## Build distribution and install
 	-jupyter serverextension enable --py enterprise_scheduler_extension --sys-prefix
 	-jupyter labextension install
 
-docker-image: .image-docker ## Build elyra/jupyter_scheduler:dev docker image
-.image-docker: etc/docker/* $(WHEEL_FILE)
-	@make clean-docker-image bdist
-	@mkdir -p build/docker
-	cp etc/docker/* build/docker
-	cp dist/enterprise_scheduler_extension* build/docker
-	@(cd build/docker; docker build -t elyra/jupyter_scheduler:$(TAG) . )
-	@touch .image-docker
-	@-docker images elyra/jupyter_scheduler:$(TAG)
-
-clean-docker-image: ## Remove elyra/jupyter_scheduler:dev docker image
-	@rm -f .image-docker
-	@-docker rmi -f elyra/jupyter_scheduler:$(TAG)
 
