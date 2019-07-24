@@ -1,0 +1,52 @@
+{
+  "version": "3.0",
+  "categories": [
+    {
+      "label": "",
+      "description": "Description for Import",
+      "id": "import",
+      "node_types": [
+        {
+          "id": "",
+          "type": "execution_node",
+          "op": "sample",
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": 1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ],
+          "parameters": {},
+          "app_data": {
+            "ui_data": {
+              "label": "Sample",
+              "description": "Samples the data"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+.palette-list-item {
+	background-image: url('./jupyterLogo.svg');
+	background-repeat: no-repeat;
+    background-position: center;
+    background-size: 50%;
+}
+
+.palette-flyout-category {
+	background-image: url('./jupyterLogo.svg');
+	background-repeat: no-repeat;
+    background-position: center;
+    background-size: 50%;
+}

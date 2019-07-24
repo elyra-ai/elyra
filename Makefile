@@ -18,18 +18,21 @@ clean: ## Make a clean source tree
 	-rm -rf node_modules
 	-$(call CLEAN_LAB_EXTENSION,enterprise_scheduler_extension)
 	-$(call CLEAN_LAB_EXTENSION,python-runner)
+	-$(call CLEAN_LAB_EXTENSION,pipeline-editor)
 
 build: ## Build distribution
 	-rm -f yarn.lock package-lock.json
 	-python setup.py bdist_wheel
-	-$(call BUILD_LAB_EXTENSION,enterprise_scheduler_extension)
+#	-$(call BUILD_LAB_EXTENSION,enterprise_scheduler_extension)
 	-$(call BUILD_LAB_EXTENSION,python-runner)
+	-$(call BUILD_LAB_EXTENSION,pipeline-editor)
 
 install: build ## Build distribution and install
 	-pip install --upgrade -e .
-	-jupyter serverextension enable --py enterprise_scheduler_extension --sys-prefix
-	-$(call INSTALL_LAB_EXTENSION,enterprise_scheduler_extension)
+	-jupyter serverextension enable --py ai-workspace --sys-prefix
+#	-$(call INSTALL_LAB_EXTENSION,enterprise_scheduler_extension)
 	-$(call INSTALL_LAB_EXTENSION,python-runner)
+	-$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 
 define CLEAN_LAB_EXTENSION
 	-rm -rf packages/$1/lib
@@ -37,7 +40,6 @@ define CLEAN_LAB_EXTENSION
 	-rm -rf packages/$1/package-lock.json
 	-rm -rf packages/$1/yarn.lock
 endef
-
 
 define BUILD_LAB_EXTENSION
 	-cd packages/$1 && jlpm install
