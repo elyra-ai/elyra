@@ -18,8 +18,14 @@ setup(
         'nbconvert',
         'requests>=2.9.1,<3.0',
         'ffdl-client>=0.1.1',
+        "jupyter_core>=4.0,<5.0"
     ],
     include_package_data=True,
     description="A button on Jupyter's toolbar for Scheduling notebooks",
     long_description=long_desc,
+    entry_points={
+        'console_scripts': [
+            'jupyter-runtime = ai_workspace.metadata.runtime:RuntimeMetadataApp.launch_instance',
+        ],
+    },
 )
