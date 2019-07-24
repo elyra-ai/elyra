@@ -19,6 +19,7 @@ const OUTPUT_AREA_ERROR_CLASS = 'jp-OutputArea-Error';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown';
+const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 
 /**
  * A widget for python editors.
@@ -37,6 +38,9 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
     this.runner = new PythonRunner(this.content.model);
     this.kernelSettings = {name: null};
+
+    // Add python icon to main tab
+    this.title.iconClass = PYTHON_ICON_CLASS;
 
     // Add toolbar widgets
     const dropDown = new CellTypeSwitcher(this.runner, this.updateSelectedKernel);
