@@ -29,7 +29,7 @@ build: ## Build distribution
 
 install: build ## Build distribution and install
 	-pip install --upgrade -e .
-	-jupyter serverextension enable --py ai-workspace --sys-prefix
+	-jupyter serverextension enable --py ai_workspace --sys-prefix
 #	-$(call INSTALL_LAB_EXTENSION,enterprise_scheduler_extension)
 	-$(call INSTALL_LAB_EXTENSION,python-runner)
 	-$(call INSTALL_LAB_EXTENSION,pipeline-editor)
