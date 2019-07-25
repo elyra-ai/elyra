@@ -13,24 +13,26 @@ from notebook.base.handlers import IPythonHandler
 
 class SchedulerHandler(IPythonHandler):
 
-    """REST-ish method calls to run our batch jobs"""
+    """REST-ish method calls to execute pipelines as batch jobs"""
     def get(self):
-
-        """ Assume that in the future this method will support status of batch jobs
-        FFDL - may support polling through /v1/models/{model_id}/training_status """
         msg_json = dict(title="Operation not supported.")
         self.write(msg_json)
         self.flush()
 
     def post(self, *args, **kwargs):
+        print('>>> SchedulerHandler.post')
+
         """Upload endpoint"""
         url = 'http://weakish1.fyre.ibm.com:32488/pipeline'
         endpoint = 'http://weakish1.fyre.ibm.com:30427'
         minio_username = 'minio'
         minio_password = 'minio123'
-        bucket_name = 'pipelinenotebooks'
+        bucket_name = 'lresende'
 
         options = self.get_json_body()
+
+        print('>>>')
+        print(options)
 
         # Iterate through the components and create a list of input components
         links = {}
@@ -56,7 +58,8 @@ class SchedulerHandler(IPythonHandler):
 
         # Make a bucket with the make_bucket API call.
         try:
-            minio_client.make_bucket(bucket_name)
+            if not minio_client.bucket_exists(bucket_name):
+                minio_client.make_bucket(bucket_name)
         except BucketAlreadyOwnedByYou as err:
             pass
         except BucketAlreadyExists as err:
@@ -69,10 +72,18 @@ class SchedulerHandler(IPythonHandler):
             notebookops = {}
             # Create component for each node from CommonCanvas
             for componentId, inputs in links.items():
-                name = labels[componentId].split(".")[0]
+                notebookPath = labels[componentId]
+                name = os.path.basename(notebookPath).split(".")[0]
+                output_filename = options['pipeline_name'] + datetime.now().strftime("%m%d%H%M%S") + ".tar.gz"
+                extracted_dir_from_tar = "jupyter-work-dir"
 
-                output_filename = "tar" + options['pipeline_name'] + datetime.now().strftime("%m%d%H%M%S")
-                extracted_dir_from_tar = os.path.basename(os.getcwd())
+                print('>>> componentId {}'.format(componentId))
+                print('>>> inputs {}'.format(inputs))
+                print('>>> name {}'.format(name))
+                print('>>> output_filename {}'.format(output_filename))
+                print('>>> extracted_dir_from_tar {}'.format(extracted_dir_from_tar))
+
+
 
                 notebookops[componentId] = \
                     kfp.dsl.ContainerOp(name=name,
@@ -84,28 +95,44 @@ class SchedulerHandler(IPythonHandler):
                                                    'chmod +x mc && '
                                                    './mc config host add aiworkspace '+endpoint+' '+minio_username+' '+minio_password+' && '
                                                    './mc cp aiworkspace/'+bucket_name+'/'+output_filename+ ' . && '
-                                                   'tar -zxvf ' + output_filename + ' && '
-                                                   'cd '+ extracted_dir_from_tar+ ' && '
-                                                   'papermill ' + name + '.ipynb ' + name+'_output.ipynb'
+                                                   'mkdir -p '+extracted_dir_from_tar+' && '
+                                                   'cd '+extracted_dir_from_tar+' && '
+                                                   'tar -zxvf ../'+output_filename+' --strip 1 && '
+                                                   'echo $(pwd) && '
+                                                   'ls -la && '
+                                                   'papermill '+name+'.ipynb '+name+'_output.ipynb && '
+                                                   '../mc cp '+name+'_output.ipynb aiworkspace/'+bucket_name+'/'+name+'_output.ipynb'
                                         ])
 
+                print('>>> after notebookOps created')
                 try:
-                    source_dir = os.getcwd()
-                    with tarfile.open(output_filename, "w:gz") as tar:
-                        tar.add(source_dir, arcname=os.path.basename(source_dir))
+                    full_notebook_path = os.path.join(os.getcwd(), notebookPath)
+                    notebook_work_dir = os.path.dirname(full_notebook_path)
 
-                    minio_client.fput_object(bucket_name='pipelinenotebooks',
+                    print('>>> will create {} with contents from {}'.format(output_filename, notebook_work_dir))
+
+                    with tarfile.open(output_filename, "w:gz") as tar:
+                        tar.add(notebook_work_dir, arcname=output_filename)
+
+                    print('>>> tar file created')
+                    minio_client.fput_object(bucket_name=bucket_name,
                                              object_name=output_filename,
                                              file_path=output_filename)
-                except ResponseError as err:
-                    print(err)
+
+                    print('>>> tar file uploaded to minio')
+                except ResponseError as re:
+                    print(re)
 
             # Add order based on list of inputs for each component.
             for componentId, inputs in links.items():
                 for inputComponentId in inputs:
                     notebookops[componentId].after(notebookops[inputComponentId])
 
+            print('>>> pipeline dependencies set')
+
         pipeline_name = options['pipeline_name']+datetime.now().strftime("%m%d%H%M%S")
+
+        print('>>> pipeline_name {}'.format(pipeline_name))
 
         if not os.path.exists('pipeline_files'):
             os.mkdir('pipeline_files')
@@ -115,11 +142,19 @@ class SchedulerHandler(IPythonHandler):
         # Compile the new pipeline
         kfp.compiler.Compiler().compile(cc_pipeline,pipeline_path)
 
+        print('>>> kfp compiled')
+
         # Upload the compiled pipeline and create an experiment and run
         client = kfp.Client(host=url)
+        kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
+
+        print('>>> kfp uploaded')
+
         client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
                             job_name=datetime.now().strftime("%m%d%H%M%S"),
-                            pipeline_package_path=pipeline_path)
+                            pipeline_id=kfp_pipeline.id)
+
+        print('>>> kfp run')
 
     def send_message(self, message):
         self.write(message)
