@@ -3,13 +3,13 @@
   "categories": [
     {
       "label": "",
-      "description": "Description for Import",
+      "description": "Notebook Pipeline",
       "id": "import",
       "node_types": [
         {
           "id": "",
-          "type": "execution_node",
-          "op": "sample",
+          "type": "pipeline_node",
+          "op": "notebook",
           "inputs": [
             {
               "id": "inPort",
@@ -41,8 +41,8 @@
           "parameters": {},
           "app_data": {
             "ui_data": {
-              "label": "Sample",
-              "description": "Samples the data"
+              "label": "Notebook",
+              "description": "Notebook file"
             }
           }
         }

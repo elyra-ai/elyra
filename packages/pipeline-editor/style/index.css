@@ -1,13 +1,21 @@
 .palette-list-item {
-	background-image: url('./jupyterLogo.svg');
+	background-image: url('./jupyter-logo.svg');
 	background-repeat: no-repeat;
     background-position: center;
     background-size: 50%;
 }
 
 .palette-flyout-category {
-	background-image: url('./jupyterLogo.svg');
+	background-image: url('./jupyter-logo.svg');
 	background-repeat: no-repeat;
     background-position: center;
     background-size: 50%;
+}
+
+.add {
+	background-image: url('./add-notebook-node.svg');
+	background-repeat: no-repeat;
+    background-position: center;
+    background-size: 50%;
+
 }

@@ -1,14 +1,20 @@
 import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
-import {CommonCanvas, CanvasController} from "@wdp/common-canvas";
-import {Widget, PanelLayout} from '@phosphor/widgets';
+import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
+import {ServerConnection} from "@jupyterlab/services";
+import {URLExt} from "@jupyterlab/coreutils";
 import {ICommandPalette, showDialog, Dialog} from "@jupyterlab/apputils";
-import * as React from "react";
-import * as ReactDOM from "react-dom";
+
+import {Widget, PanelLayout} from '@phosphor/widgets';
+import {toArray} from '@phosphor/algorithm';
+
+import {CommonCanvas, CanvasController} from "@wdp/common-canvas";
 import "carbon-components/css/carbon-components.min.css";
 import "@wdp/common-canvas/dist/common-canvas.min.css";
 import * as palette from "./palette.json";
-import {ServerConnection} from "@jupyterlab/services";
-import {URLExt} from "@jupyterlab/coreutils";
+import '../style/index.css';
+
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 
 /*
  * Class for dialog that pops up for new nodes (takes the filename as input)
@@ -25,9 +31,9 @@ class NotebookNode extends Widget implements Dialog.IBodyWidget<string> {
     let htmlContent = document.createElement('div');
     ReactDOM.render(<input
       type="text"
-      id="endpoint"
-      name="endpoint"
-      placeholder="Filename" />, htmlContent);
+      id="notebook"
+      name="notebook"
+      placeholder="Notebook file" />, htmlContent);
 
     this.nodeId = nodeId;
 
@@ -35,7 +41,13 @@ class NotebookNode extends Widget implements Dialog.IBodyWidget<string> {
   }
 
   getValue() {
-  	return (document.getElementById("endpoint") as HTMLInputElement).value;
+    let notebook = (document.getElementById("notebook") as HTMLInputElement).value;
+    // add default notebook extension if not provided
+    if(! notebook.endsWith('ipynb')) {
+      notebook += '.ipynb'
+    }
+    console.log('notebook -> ' + notebook);
+  	return (notebook);
   }
 }
 
@@ -50,7 +62,7 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
     let layout = (this.layout = new PanelLayout());
     let htmlContent = document.createElement('div');
     ReactDOM.render(
-    	(<input 
+    	(<input
       	type="text"
       	id="pipeline_name"
       	name="pipeline_name"
@@ -67,10 +79,14 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
  * Class for Common Canvas React Component
  */
 class Canvas extends React.Component<{},{}> {
+  jupyterFrontEnd: JupyterFrontEnd;
+  browserFactory: IFileBrowserFactory;
   canvasController: any;
 
   constructor(props: any) {
     super(props);
+    this.jupyterFrontEnd = props.app;
+    this.browserFactory = props.browserFactory;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.editActionHandler = this.editActionHandler.bind(this);
@@ -88,6 +104,8 @@ class Canvas extends React.Component<{},{}> {
       editActionHandler={this.editActionHandler}
       toolbarMenuActionHandler={this.toolbarMenuActionHandler}
       toolbarConfig={[
+       { action: "add", label: "Add Notebook to Pipeline", enable: true, iconEnabled: "/"},
+       { divider: true },
        { action: "run", label: "Run Pipeline", enable: true },
        { divider: true },
        { action: "undo", label: "Undo", enable: true },
@@ -110,26 +128,56 @@ class Canvas extends React.Component<{},{}> {
    */
   editActionHandler(data: any) {
     if (data.editType == "createNode") {
-      showDialog({
-        body: new NotebookNode(this.canvasController, data.nodeId)
-      }).then( result => {
-      	console.log(result);
-        if( result.value == null) {
-          // When Cancel is clicked on the dialog, just return
-          return;
-        }
-        console.log(result);
-        this.canvasController.setNodeLabel(data.nodeId,result.value);
-      });
+      // When creating the node programmatically based on the
+      // selected notebook, the label will be already filled with
+      // the notebook path.
+      if(data.nodeTemplate.label == "Notebook") {
+        // used via the UI to enter the notebook name
+        showDialog({
+          body: new NotebookNode(this.canvasController, data.nodeId)
+        }).then( result => {
+          console.log(result);
+          if( result.value == null) {
+            // When Cancel is clicked on the dialog, just return
+            return;
+          }
+          this.canvasController.setNodeLabel(data.nodeId,result.value);
+        });
+      }
     }
   }
 
-  /* 
+  /*
    * Handles submitting pipeline runs
    */
   toolbarMenuActionHandler(action: any, source: any) {
-  	console.log(action);
-  	if (action == 'run') {
+  	console.log('Handling action: ' + action);
+  	if(action == 'add') { // When adding a new node to the pipeline
+  	  toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
+  	    item => {
+  	      // if the selected item is a file
+          if (item.type != 'directory') {
+            //add each selected notebook
+            console.log('Adding ==> ' + item.path );
+
+            const nodeTemplate = this.canvasController.getPaletteNode("notebook");
+            if (nodeTemplate) {
+              const data = {
+                "editType": "createNode",
+                "offsetX": 75,
+                "offsetY": 85,
+                "nodeTemplate": this.canvasController.convertNodeTemplate(nodeTemplate)
+              }
+
+              data.nodeTemplate.label = item.path;
+              this.canvasController.editActionHandler(data);
+            }
+          }
+
+        }
+      )
+    } else if (action == 'run') { // When executing the pipeline
+  	  // request name to publish pipeline
 	    showDialog({
 	      body: new PipelineDialog({})
 	    }).then( result => {
@@ -141,7 +189,7 @@ class Canvas extends React.Component<{},{}> {
 
 	      // prepare notebook submission details
 	      console.log(this.canvasController.getPipelineFlow());
-	      let notebookTask = {'pipeline_data': this.canvasController.getPipelineFlow().pipelines[0], 
+	      let notebookTask = {'pipeline_data': this.canvasController.getPipelineFlow().pipelines[0],
 	      										'pipeline_name': result.value.pipeline_name,
                             'docker_image': 'tensorflow/tensorflow:1.13.2-py3-jupyter'};
 	      let requestBody = JSON.stringify(notebookTask);
@@ -150,8 +198,8 @@ class Canvas extends React.Component<{},{}> {
 	      // which in this case is the scheduler extension installed by this package
 	      let settings = ServerConnection.makeSettings();
 	      let url = URLExt.join(settings.baseUrl, 'scheduler');
-	      // let requestBody = JSON.stringify(notebookTask);
 
+        console.log('Submitting pipeline to -> ' + url);
 	      ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
 	      .then(response => {
 	        if (response.status !== 200) {
@@ -195,10 +243,15 @@ const extension: JupyterFrontEndPlugin<void> = {
   id: 'pipeline-editor-extension',
   autoStart: true,
   requires: [ICommandPalette],
+  optional: [IFileBrowserFactory],
 
-  activate: (app: JupyterFrontEnd, palette: ICommandPalette) => {
+  activate: (app: JupyterFrontEnd,
+             palette: ICommandPalette,
+             browserFactory: IFileBrowserFactory | null,) => {
+    console.log('AI Workspace - pipeline-editor extension is activated!');
+
     let widget: Widget = new Widget();
-    widget.id = 'pipeline-editor-jupyterlab';
+    widget.id = 'ewai-pipeline-editor';
     widget.title.label = 'Pipeline Editor';
     widget.title.closable = true;
 
@@ -212,7 +265,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           app.shell.add(widget,'main');
         }
 
-        let props = {};
+        let props = {app: app, browserFactory: browserFactory};
         let canvas = React.createElement(Canvas, props, null);
 
         ReactDOM.render(canvas,widget.node);
