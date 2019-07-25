@@ -17,23 +17,29 @@ before_install:
   - which python
   # Build the python wheel for the extension
   - python setup.py bdist_wheel
+  # Setup artifactory registry credentials
+  - echo "registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/" >> ~/.npmrc
+  - curl -H "X-JFrog-Art-Api:${ARTIFACTORY_KEY}" -X GET https://na.artifactory.swg-devops.com/artifactory/api/npm/auth >> ~/.npmrc
+  - cp ~/.npmrc ./packages/pipeline-editor
+  - npm config set @wdp:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-local/
 install:
-  - sudo apt install yarn nodejs
+  - sudo apt install yarn
   - pip install jupyterlab enterprise_scheduler
   - export PATH=$PATH:$(pwd)/node_modules/.bin/
   - pip install ./dist/ai_workspace*.whl
   - jupyter serverextension enable --py ai_workspace --sys-prefix
-#  - yarn add --dev lerna -W
-# Install JS dependencies
-#  - lerna bootstrap
-# Build the extensions under packages/*
-#  - pushd packages/enterprise_scheduler_extension && jlpm install && popd
-#  - pushd packages/python-runner && jlpm install && popd
-#  - pushd packages/pipeline-editor && jlpm install && popd
-# Install the package(s)
-#  - pushd packages/enterprise_scheduler_extension && jupyter labextension link --debug . && popd
-#  - pushd packages/python-runner && jupyter labextension link --debug . && popd
-#  - pushd packages/pipeline-editor && jupyter labextension link --debug . && popd
+  - yarn add --dev lerna -W
+  # Install JS dependencies
+  - lerna bootstrap
+  - lerna run build
+  # Build the extensions under packages/*
+  - pushd packages/enterprise_scheduler_extension && jlpm install && popd
+  - pushd packages/python-runner && jlpm install && popd
+  - pushd packages/pipeline-editor && jlpm install && popd
+  # Install the package(s)
+  - pushd packages/pipeline-editor && jupyter labextension link --debug . && popd
+  - pushd packages/enterprise_scheduler_extension && jupyter labextension link --debug . && popd
+  - pushd packages/python-runner && jupyter labextension link --debug . && popd
 script:
   - jupyter labextension list
 #deploy:
