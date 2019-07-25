@@ -12,7 +12,7 @@ const PYTHON = 'python';
  * Initialization data for the python-runner-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: 'python-runner-extension',
+  id: 'ewai-python-runner-extension',
   autoStart: true,
   requires: [IEditorServices],
   optional: [ILauncher, IMainMenu],
