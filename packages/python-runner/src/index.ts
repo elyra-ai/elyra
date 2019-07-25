@@ -21,7 +21,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     editorServices: IEditorServices,
     launcher: ILauncher | null,
     menu: IMainMenu | null) => {
-      console.log('JupyterLab python-runner-extension is activated!');
+      console.log('AI Workspace - python-runner extension is activated!');
 
       const factory = new PythonFileEditorFactory({
         editorServices,
