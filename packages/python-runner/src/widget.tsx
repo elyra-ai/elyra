@@ -1,7 +1,7 @@
 import {FileEditor} from '@jupyterlab/fileeditor';
 import {ABCWidgetFactory, DocumentRegistry, DocumentWidget} from '@jupyterlab/docregistry';
 import {CodeEditor, IEditorServices} from '@jupyterlab/codeeditor';
-import {ToolbarButton, ReactWidget} from '@jupyterlab/apputils';
+import {ToolbarButton, ReactWidget, showDialog, Dialog} from '@jupyterlab/apputils';
 import {PythonRunner} from './PythonRunner';
 import {HTMLSelect} from '@jupyterlab/ui-components';
 import {Kernel} from '@jupyterlab/services';
@@ -20,6 +20,7 @@ const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown';
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
+const SAVE_ICON_CLASS = 'jp-SaveIcon';
 
 /**
  * A widget for python editors.
@@ -27,8 +28,8 @@ const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistry.ICodeModel> {
   private runner: PythonRunner;
   private kernelSettings: Kernel.IOptions;
-  // private editorWidget: any;
   private outputAreaWidget: OutputArea;
+  private model: any;
 
   /**
    * Construct a new editor widget.
@@ -36,13 +37,20 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
   constructor(options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>) {
     super(options);
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
-    this.runner = new PythonRunner(this.content.model);
+    this.model = this.content.model;
+    this.runner = new PythonRunner(this.model);
     this.kernelSettings = {name: null};
 
     // Add python icon to main tab
     this.title.iconClass = PYTHON_ICON_CLASS;
 
     // Add toolbar widgets
+    const saveButton = new ToolbarButton({
+      iconClassName: SAVE_ICON_CLASS,
+      onClick: this.saveFile,
+      tooltip: 'Save file contents'
+    });
+
     const dropDown = new CellTypeSwitcher(this.runner, this.updateSelectedKernel);
 
     const runButton = new ToolbarButton({
@@ -58,6 +66,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     });
 
     const toolbar = this.toolbar;
+    toolbar.addItem('save', saveButton);
     toolbar.addItem('select', dropDown);
     toolbar.addItem('run', runButton);
     toolbar.addItem('stop', stopButton);
@@ -110,6 +119,24 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
         text: [output]
       });
     }
+  };
+
+  private saveFile = () => {
+    if (this.model.readOnly) {
+      return showDialog({
+          title: 'Cannot Save',
+          body: 'Document is read-only',
+          buttons: [Dialog.okButton()]
+      });
+    }
+    void this.context.save();
+    // Future reference for creating a checkpoint
+
+    // .then(() => {
+    //     if (!this.isDisposed) {
+    //         return this.context.createCheckpoint();
+    //     }
+    // });
   };
 }
 
