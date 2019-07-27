@@ -101,7 +101,9 @@ class SchedulerHandler(IPythonHandler):
                                                    'echo $(pwd) && '
                                                    'ls -la && '
                                                    'papermill '+name+'.ipynb '+name+'_output.ipynb && '
-                                                   '../mc cp '+name+'_output.ipynb aiworkspace/'+bucket_name+'/'+name+'_output.ipynb'
+                                                   'jupyter nbconvert --to html '+name+'_output.ipynb --output '+name+'_output.html && '
+                                                   '../mc cp '+name+'_output.ipynb aiworkspace/'+bucket_name+'/'+name+'_output.ipynb && '
+                                                   '../mc cp '+name+'_output.html aiworkspace/'+bucket_name+'/'+name+'_output.html'
                                         ])
 
                 print('>>> after notebookOps created')
