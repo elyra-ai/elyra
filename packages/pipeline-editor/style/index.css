@@ -16,6 +16,12 @@
 	background-image: url('./add-notebook-node.svg');
 	background-repeat: no-repeat;
     background-position: center;
-    background-size: 50%;
+    background-size: 30%;
+}
 
+.jp-PipelineIcon {
+	background-image: url('./pipelineIcon.png');
+	background-repeat: no-repeat;
+    background-position: center;
+    background-size: 30%;
 }

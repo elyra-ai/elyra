@@ -6,6 +6,7 @@ import {ICommandPalette, showDialog, Dialog} from "@jupyterlab/apputils";
 
 import {Widget, PanelLayout} from '@phosphor/widgets';
 import {toArray} from '@phosphor/algorithm';
+import {ILauncher} from '@jupyterlab/launcher';
 
 import {CommonCanvas, CanvasController} from "@wdp/common-canvas";
 import "carbon-components/css/carbon-components.min.css";
@@ -15,6 +16,8 @@ import '../style/index.css';
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+
+const PIPELINE_ICON_CLASS = 'jp-PipelineIcon';
 
 /*
  * Class for dialog that pops up for new nodes (takes the filename as input)
@@ -242,12 +245,12 @@ class Canvas extends React.Component<{},{}> {
 const extension: JupyterFrontEndPlugin<void> = {
   id: 'pipeline-editor-extension',
   autoStart: true,
-  requires: [ICommandPalette],
-  optional: [IFileBrowserFactory],
+  requires: [ICommandPalette, ILauncher, IFileBrowserFactory],
 
   activate: (app: JupyterFrontEnd,
              palette: ICommandPalette,
-             browserFactory: IFileBrowserFactory | null,) => {
+             launcher: ILauncher | null,
+             browserFactory: IFileBrowserFactory | null) => {
     console.log('AI Workspace - pipeline-editor extension is activated!');
 
     let widget: Widget = new Widget();
@@ -256,9 +259,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     widget.title.closable = true;
 
     // Add an application command
-    const command: string = 'pipeline-editor:open';
-    app.commands.addCommand(command, {
+    const openPipelineEditor: string = 'pipeline-editor:open';
+    app.commands.addCommand(openPipelineEditor, {
       label: 'Pipeline Editor',
+      iconClass: PIPELINE_ICON_CLASS,
       execute: () => {
         if (!widget.isAttached) {
           // Attach the widget to the main work area if it's not there
@@ -275,7 +279,14 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     });
     // Add the command to the palette.
-    palette.addItem({command, category: 'Extensions'});
+    palette.addItem({command: openPipelineEditor, category: 'Extensions'});
+    if (launcher) {
+      launcher.add({
+        command: openPipelineEditor,
+        category: 'Other',
+        rank: 3 
+      });
+    }
   }
  };
  export default extension;
