@@ -20,7 +20,7 @@ class SchedulerHandler(IPythonHandler):
         self.flush()
 
     def post(self, *args, **kwargs):
-        print('>>> SchedulerHandler.post')
+        self.log.debug("Pipeline SchedulerHandler now executing post request")
 
         """Upload endpoint"""
         url = 'http://weakish1.fyre.ibm.com:32488/pipeline'
@@ -31,8 +31,7 @@ class SchedulerHandler(IPythonHandler):
 
         options = self.get_json_body()
 
-        print('>>>')
-        print(options)
+        self.log.debug("JSON options: %s", options)
 
         # Iterate through the components and create a list of input components
         links = {}
@@ -60,11 +59,14 @@ class SchedulerHandler(IPythonHandler):
         try:
             if not minio_client.bucket_exists(bucket_name):
                 minio_client.make_bucket(bucket_name)
-        except BucketAlreadyOwnedByYou as err:
+        except BucketAlreadyOwnedByYou:
+            self.log.warning("Minio bucket already owned by you", exc_info=True)
             pass
-        except BucketAlreadyExists as err:
+        except BucketAlreadyExists:
+            self.log.warning("Minio bucket already exists", exc_info=True)
             pass
-        except ResponseError as err:
+        except ResponseError:
+            self.log.error("Minio error", exc_info=True)
             raise
 
         def cc_pipeline():
@@ -77,12 +79,12 @@ class SchedulerHandler(IPythonHandler):
                 output_filename = options['pipeline_name'] + datetime.now().strftime("%m%d%H%M%S") + ".tar.gz"
                 extracted_dir_from_tar = "jupyter-work-dir"
 
-                print('>>> componentId {}'.format(componentId))
-                print('>>> inputs {}'.format(inputs))
-                print('>>> name {}'.format(name))
-                print('>>> output_filename {}'.format(output_filename))
-                print('>>> extracted_dir_from_tar {}'.format(extracted_dir_from_tar))
-
+                self.log.debug("Creating pipeline component :\n "
+                              "componentID : %s \n "
+                              "inputs : %s \n "
+                              "name : %s \n "
+                              "output_filename : %s \n "
+                              "extracted_dir_from_tar : %s", componentId, inputs, name, output_filename, extracted_dir_from_tar)
 
 
                 notebookops[componentId] = \
@@ -106,57 +108,63 @@ class SchedulerHandler(IPythonHandler):
                                                    '../mc cp '+name+'_output.html aiworkspace/'+bucket_name+'/'+name+'_output.html'
                                         ])
 
-                print('>>> after notebookOps created')
+                self.log.info("NotebookOp Created for Component %s", componentId)
+
                 try:
                     full_notebook_path = os.path.join(os.getcwd(), notebookPath)
                     notebook_work_dir = os.path.dirname(full_notebook_path)
 
-                    print('>>> will create {} with contents from {}'.format(output_filename, notebook_work_dir))
+                    self.log.debug("Creating TAR archive %s with contents from %s", output_filename, notebook_work_dir)
 
                     with tarfile.open(output_filename, "w:gz") as tar:
                         tar.add(notebook_work_dir, arcname=output_filename)
 
-                    print('>>> tar file created')
+                    self.log.info("TAR archive %s created", output_filename)
+
                     minio_client.fput_object(bucket_name=bucket_name,
                                              object_name=output_filename,
                                              file_path=output_filename)
 
-                    print('>>> tar file uploaded to minio')
-                except ResponseError as re:
-                    print(re)
+                    self.log.debug("TAR archive %s pushed to bucket : %s ", output_filename, bucket_name)
+
+                except ResponseError:
+                    self.log.error("ERROR : From object storage", exc_info=True)
 
             # Add order based on list of inputs for each component.
             for componentId, inputs in links.items():
                 for inputComponentId in inputs:
                     notebookops[componentId].after(notebookops[inputComponentId])
 
-            print('>>> pipeline dependencies set')
+            self.log.info("Pipeline dependencies are set")
 
         pipeline_name = options['pipeline_name']+datetime.now().strftime("%m%d%H%M%S")
 
-        print('>>> pipeline_name {}'.format(pipeline_name))
+        local_working_dir = "pipeline_files"
+        self.log.info("Pipeline : %s", pipeline_name)
+        self.log.debug("Creating local directory %s", local_working_dir)
 
-        if not os.path.exists('pipeline_files'):
-            os.mkdir('pipeline_files')
+        if not os.path.exists(local_working_dir):
+            os.mkdir(local_working_dir)
 
-        pipeline_path = 'pipeline_files/'+pipeline_name+'.tar.gz'
+        pipeline_path = local_working_dir+'/'+pipeline_name+'.tar.gz'
 
         # Compile the new pipeline
         kfp.compiler.Compiler().compile(cc_pipeline,pipeline_path)
 
-        print('>>> kfp compiled')
+        self.log.info("Kubeflow Pipeline successfully compiled!")
+        self.log.debug("Kubeflow Pipeline compiled pipeline placed into %s", pipeline_path)
 
         # Upload the compiled pipeline and create an experiment and run
         client = kfp.Client(host=url)
         kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
 
-        print('>>> kfp uploaded')
+        self.log.info("Kubeflow Pipeline successfully uploaded to : %s", url)
 
         client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
                             job_name=datetime.now().strftime("%m%d%H%M%S"),
                             pipeline_id=kfp_pipeline.id)
 
-        print('>>> kfp run')
+        self.log.info("Starting Kubeflow Pipeline Run...")
 
     def send_message(self, message):
         self.write(message)
