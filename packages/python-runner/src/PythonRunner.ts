@@ -30,7 +30,14 @@ export class PythonRunner {
                 type: msg.content.ename,
                 output: msg.content.evalue
               }
-            } else if (msg.msg_type === 'stream' || msg.msg_type === 'execute_result') {
+            } else if (msg.msg_type === 'execute_result') {
+              if('text/plain' in msg.content.data) {
+                msgOutput.output = msg.content.data['text/plain'];
+              } else {
+                // ignore
+                console.log('Ignoring received message ' + msg)
+              }
+            } else if (msg.msg_type === 'stream' ) {
               msgOutput.output = msg.content.text;
             } else {
               // ignore other message types
@@ -39,7 +46,7 @@ export class PythonRunner {
             // Notify UI
             handleKernelMsg(msgOutput);
           };
-    
+
           try {
             await future.done;
             this.shutDownKernel();
@@ -49,27 +56,25 @@ export class PythonRunner {
           }
         }
       };
-    
+
       getKernelSpecs = async () => {
         const kernelSpecs = await Kernel.getSpecs();
         return kernelSpecs;
       };
-    
+
       startKernel = async (options: Kernel.IOptions) => {
         return Kernel.startNew(options);
       };
-    
+
       shutDownKernel = async () => {
         if (this.kernel) {
           const name = this.kernel.name;
-          
+
           try {
             const tempKernel = this.kernel;
             this.kernel = null;
             await tempKernel.shutdown();
             console.log(name + ' kernel shut down');
-            
-
           } catch (e) {
             console.log('Exception: shutdown = ' + JSON.stringify(e));
           }
