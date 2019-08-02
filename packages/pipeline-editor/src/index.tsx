@@ -172,7 +172,8 @@ class Canvas extends React.Component<{},{}> {
                 "nodeTemplate": this.canvasController.convertNodeTemplate(nodeTemplate)
               }
 
-              data.nodeTemplate.label = item.path;
+              data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '')
+              data.nodeTemplate.app_data.notebook = item.path;
               this.canvasController.editActionHandler(data);
             }
           }
@@ -284,7 +285,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       launcher.add({
         command: openPipelineEditor,
         category: 'Other',
-        rank: 3 
+        rank: 3
       });
     }
   }
