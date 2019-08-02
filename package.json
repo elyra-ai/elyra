@@ -8,6 +8,7 @@
     ]
   },
   "devDependencies": {
+    "lerna": "^3.16.4",
     "rimraf": "^2.6.3",
     "typescript": "~3.5.2"
   }
