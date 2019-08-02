@@ -1,14 +1,16 @@
+import React from 'react';
+
 import {FileEditor} from '@jupyterlab/fileeditor';
 import {ABCWidgetFactory, DocumentRegistry, DocumentWidget} from '@jupyterlab/docregistry';
 import {CodeEditor, IEditorServices} from '@jupyterlab/codeeditor';
 import {ToolbarButton, ReactWidget, showDialog, Dialog} from '@jupyterlab/apputils';
-import {PythonRunner} from './PythonRunner';
 import {HTMLSelect} from '@jupyterlab/ui-components';
 import {Kernel} from '@jupyterlab/services';
 import {OutputArea, OutputAreaModel} from '@jupyterlab/outputarea';
 import {RenderMimeRegistry,standardRendererFactories as initialFactories} from '@jupyterlab/rendermime';
 import {BoxLayout} from '@phosphor/widgets';
-import React from 'react';
+
+import {PythonRunner} from './PythonRunner';
 
 /**
  * The CSS class added to widgets

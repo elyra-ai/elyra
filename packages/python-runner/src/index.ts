@@ -1,26 +1,41 @@
-import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
-import {IEditorServices} from '@jupyterlab/codeeditor';
 import '../style/index.css';
-import {PythonFileEditorFactory} from "./widget";
+
+import {JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer} from '@jupyterlab/application';
+import {IEditorServices} from '@jupyterlab/codeeditor';
 import {ILauncher} from '@jupyterlab/launcher';
 import {IMainMenu} from '@jupyterlab/mainmenu';
+import {WidgetTracker, ICommandPalette} from '@jupyterlab/apputils';
+
+import {PythonFileEditorFactory, PythonFileEditor} from "./widget";
 
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const PYTHON_FACTORY = 'PyEditor';
 const PYTHON = 'python';
+const PYTHON_EDITOR_NAMESPACE = 'python-runner-extension';
+
+const commandIDs = {
+  createNewPython : 'pyeditor:create-new-python-file',
+  openPyEditor : 'pyeditor:open',
+  openDocManager : 'docmanager:open',
+  newDocManager : 'docmanager:new-untitled'
+};
+
 /**
- * Initialization data for the python-runner-extension extension.
+ * Initialization data for the python-editor-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: 'ewai-python-runner-extension',
+  id: PYTHON_EDITOR_NAMESPACE,
   autoStart: true,
-  requires: [IEditorServices],
-  optional: [ILauncher, IMainMenu],
+  requires: [IEditorServices, ICommandPalette, ILayoutRestorer, IMainMenu],
+  optional: [ILauncher],
   activate: (
     app: JupyterFrontEnd, 
     editorServices: IEditorServices,
-    launcher: ILauncher | null,
-    menu: IMainMenu | null) => {
+    palette: ICommandPalette,
+    restorer: ILayoutRestorer | null,
+    menu: IMainMenu | null,
+    launcher: ILauncher | null
+    ) => {
       console.log('AI Workspace - python-runner extension is activated!');
 
       const factory = new PythonFileEditorFactory({
@@ -32,18 +47,68 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       });
 
-      const { commands } = app;
+      /*
+       * Track PythonFileEditor widget on page refresh
+      **/
+
+      const tracker = new WidgetTracker<PythonFileEditor>({
+        namespace: PYTHON_EDITOR_NAMESPACE
+      });
+
+      if (restorer){
+        // Handle state restoration
+        void restorer.restore(tracker, 
+        {
+          command: commandIDs.openDocManager,
+          args: widget => ({ 
+            path: widget.context.path, 
+            factory: PYTHON_FACTORY 
+          }),
+          name: widget => widget.context.path
+        });
+      }  
+
+      app.docRegistry.addWidgetFactory(factory);  
+
+      factory.widgetCreated.connect((sender, widget) => {
+        void tracker.add(widget);
+
+        // Notify the widget tracker if restore data needs to update
+        widget.context.pathChanged.connect(() => {
+          void tracker.save(widget);
+        });
+      });
+
+      /*
+       * Create new python file from launcher and file menu
+      **/
+
+      // Add a python launcher
+      if (launcher) {
+        launcher.add({
+          command: commandIDs.createNewPython,
+          category: 'Other',
+          rank: 3
+        });
+      }
+
+      if (menu) {
+        // Add new python file creation to the file menu
+        menu.fileMenu.newMenu.addGroup(
+          [{ command: commandIDs.createNewPython }],
+          30
+        );
+      }
 
       // Function to create a new untitled python file, given the current working directory
       const createNew = (cwd: string, ext: string = 'py') => {
-        return commands
-          .execute('docmanager:new-untitled', {
+        return app.commands.execute(commandIDs.newDocManager, {
             path: cwd,
             type: 'file',
             ext
           })
           .then(model => {
-            return commands.execute('docmanager:open', {
+            return app.commands.execute(commandIDs.openDocManager, {
               path: model.path,
               factory: PYTHON_FACTORY
             });
@@ -51,7 +116,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       };
   
       // Add a command to create new Python file
-      commands.addCommand(createNewPython, {
+      app.commands.addCommand(commandIDs.createNewPython, {
         label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
         caption: 'Create a new python file',
         iconClass: args => (args['isPalette'] ? '' : PYTHON_ICON_CLASS),
@@ -61,27 +126,11 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       });
 
-      // Add a python launcher
-      if (launcher) {
-        launcher.add({
-          command: createNewPython,
-          category: 'Other',
-          rank: 3
-        });
-      }
-
-      if (menu) {
-        // Add new python file creation to the file menu
-        menu.fileMenu.newMenu.addGroup(
-          [{ command: createNewPython }],
-          30
-        );
-      }
-      
-      app.docRegistry.addWidgetFactory(factory);
+      palette.addItem({ 
+        command: commandIDs.createNewPython, 
+        category: 'Python Editor' 
+      });
     }
 };
 
 export default extension;
-export const createNewPython = 'fileeditor:create-new-python-file';
-export const createNew = 'fileeditor:create-new';
