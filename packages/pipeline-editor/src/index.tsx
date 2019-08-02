@@ -170,10 +170,11 @@ class Canvas extends React.Component<{},{}> {
                 "offsetX": 75,
                 "offsetY": 85,
                 "nodeTemplate": this.canvasController.convertNodeTemplate(nodeTemplate)
-              }
+              };
 
-              data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '')
+              data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
               data.nodeTemplate.app_data.notebook = item.path;
+              data.nodeTemplate.app_data.docker_image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
               this.canvasController.editActionHandler(data);
             }
           }
@@ -194,8 +195,8 @@ class Canvas extends React.Component<{},{}> {
 	      // prepare notebook submission details
 	      console.log(this.canvasController.getPipelineFlow());
 	      let notebookTask = {'pipeline_data': this.canvasController.getPipelineFlow().pipelines[0],
-	      										'pipeline_name': result.value.pipeline_name,
-                            'docker_image': 'tensorflow/tensorflow:1.13.2-py3-jupyter'};
+          'pipeline_name': result.value.pipeline_name};
+
 	      let requestBody = JSON.stringify(notebookTask);
 
 	      // use ServerConnection utility to make calls to Jupyter Based services
