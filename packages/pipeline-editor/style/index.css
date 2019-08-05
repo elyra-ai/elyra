@@ -1,22 +1,36 @@
-.palette-list-item {
-	background-image: url('./jupyter-logo.svg');
-	background-repeat: no-repeat;
-    background-position: center;
-    background-size: 50%;
-}
-
-.palette-flyout-category {
-	background-image: url('./jupyter-logo.svg');
-	background-repeat: no-repeat;
-    background-position: center;
-    background-size: 50%;
-}
-
 .add {
 	background-image: url('./add-notebook-node.svg');
 	background-repeat: no-repeat;
     background-position: center;
     background-size: 30%;
+}
+
+.save {
+	background-image: url('./save-pipeline.svg');
+	background-repeat: no-repeat;
+    background-position: center;
+    background-size: 30%;
+}
+
+.open {
+	background-image: url('./open-pipeline.svg');
+	background-repeat: no-repeat;
+    background-position: center;
+    background-size: 43%;
+}
+
+.new {
+	background-image: url('./new-pipeline.svg');
+	background-repeat: no-repeat;
+    background-position: center;
+    background-size: 40%;
+}
+
+.clear {
+	background-image: url('./clear-pipeline.svg');
+	background-repeat: no-repeat;
+    background-position: center;
+    background-size: 40%;
 }
 
 .jp-PipelineIcon {

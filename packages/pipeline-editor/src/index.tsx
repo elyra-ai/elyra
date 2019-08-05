@@ -1,58 +1,21 @@
-import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
+import {JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer} from '@jupyterlab/application';
 import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
 import {ServerConnection} from "@jupyterlab/services";
 import {URLExt} from "@jupyterlab/coreutils";
-import {ICommandPalette, showDialog, Dialog} from "@jupyterlab/apputils";
-
+import {ICommandPalette, showDialog, Dialog, ReactWidget, WidgetTracker} from "@jupyterlab/apputils";
 import {Widget, PanelLayout} from '@phosphor/widgets';
 import {toArray} from '@phosphor/algorithm';
+import {DocumentRegistry, ABCWidgetFactory, DocumentWidget} from '@jupyterlab/docregistry';
 import {ILauncher} from '@jupyterlab/launcher';
-
 import {CommonCanvas, CanvasController} from "@wdp/common-canvas";
 import "carbon-components/css/carbon-components.min.css";
 import "@wdp/common-canvas/dist/common-canvas.min.css";
 import * as palette from "./palette.json";
 import '../style/index.css';
-
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 const PIPELINE_ICON_CLASS = 'jp-PipelineIcon';
-
-/*
- * Class for dialog that pops up for new nodes (takes the filename as input)
- */
-class NotebookNode extends Widget implements Dialog.IBodyWidget<string> {
-  canvasController: any;
-  nodeId: string;
-
-  constructor(canvasController: any, nodeId: string) {
-    super();
-    this.canvasController = canvasController;
-
-    let layout = (this.layout = new PanelLayout());
-    let htmlContent = document.createElement('div');
-    ReactDOM.render(<input
-      type="text"
-      id="notebook"
-      name="notebook"
-      placeholder="Notebook file" />, htmlContent);
-
-    this.nodeId = nodeId;
-
-    layout.addWidget(new Widget( {node: htmlContent} ));
-  }
-
-  getValue() {
-    let notebook = (document.getElementById("notebook") as HTMLInputElement).value;
-    // add default notebook extension if not provided
-    if(! notebook.endsWith('ipynb')) {
-      notebook += '.ipynb'
-    }
-    console.log('notebook -> ' + notebook);
-  	return (notebook);
-  }
-}
 
 /*
  * Class for dialog that pops up for pipeline submission
@@ -81,10 +44,11 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
 /*
  * Class for Common Canvas React Component
  */
-class Canvas extends React.Component<{},{}> {
+class Canvas extends ReactWidget {
   jupyterFrontEnd: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
   canvasController: any;
+  context: DocumentRegistry.Context;
 
   constructor(props: any) {
     super(props);
@@ -92,24 +56,33 @@ class Canvas extends React.Component<{},{}> {
     this.browserFactory = props.browserFactory;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
-    this.editActionHandler = this.editActionHandler.bind(this);
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
+    this.editActionHandler = this.editActionHandler.bind(this);
+    this.context = props.context;
+    this.context.ready.then( () => {
+      this.canvasController.setPipelineFlow(this.context.model.toJSON());
+    });
   }
 
   render() {
     const style = { height: "100%" };
-    const canvasConfig = { enableInternalObjectModel: true };
-    return (
-      <div style={style}>
-      <CommonCanvas
-      canvasController={this.canvasController}
-      enableNarrowPalette={false}
-      editActionHandler={this.editActionHandler}
-      toolbarMenuActionHandler={this.toolbarMenuActionHandler}
-      toolbarConfig={[
+    const canvasConfig = { 
+      enableInternalObjectModel: true,
+      enablePaletteLayout: "Modal",
+      paletteInitialState: false
+    };
+    const toolbarConfig = [
        { action: "add", label: "Add Notebook to Pipeline", enable: true, iconEnabled: "/"},
        { divider: true },
        { action: "run", label: "Run Pipeline", enable: true },
+       { divider: true },
+       { action: "save", label: "Save Pipeline", enable: true },
+       { divider: true },
+       // { action: "open", label: "Open Pipeline", enable: true },
+       // { divider: true },
+       { action: "new", label: "New Pipeline", enable: true },
+       { divider: true },
+       { action: "clear", label: "Clear Pipeline", enable: true },
        { divider: true },
        { action: "undo", label: "Undo", enable: true },
        { action: "redo", label: "Redo", enable: true },
@@ -119,35 +92,133 @@ class Canvas extends React.Component<{},{}> {
        { action: "addComment", label: "Add Comment", enable: true },
        { action: "delete", label: "Delete", enable: true },
        { action: "arrangeHorizontally", label: "Arrange Horizontally", enable: true },
-       { action: "arrangeVertically", label: "Arrange Vertically", enable: true } ]}
-       config={canvasConfig}
-      />
+       { action: "arrangeVertically", label: "Arrange Vertically", enable: true } ];
+    return (
+      <div style={style}>
+        <CommonCanvas
+        canvasController={this.canvasController}
+        toolbarMenuActionHandler={this.toolbarMenuActionHandler}
+        editActionHandler={this.editActionHandler}
+        toolbarConfig={toolbarConfig}
+        config={canvasConfig}
+        />
       </div>
       );
   }
 
-  /*
-   * Handles creating new nodes in the canvas
-   */
   editActionHandler(data: any) {
-    if (data.editType == "createNode") {
-      // When creating the node programmatically based on the
-      // selected notebook, the label will be already filled with
-      // the notebook path.
-      if(data.nodeTemplate.label == "Notebook") {
-        // used via the UI to enter the notebook name
-        showDialog({
-          body: new NotebookNode(this.canvasController, data.nodeId)
-        }).then( result => {
-          console.log(result);
-          if( result.value == null) {
-            // When Cancel is clicked on the dialog, just return
-            return;
+    this.context.model.fromJSON(this.canvasController.getPipelineFlow());
+  }
+
+  handleAdd() {
+    toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
+      item => {
+        // if the selected item is a file
+        if (item.type != 'directory') {
+          //add each selected notebook
+          console.log('Adding ==> ' + item.path );
+
+          const nodeTemplate = this.canvasController.getPaletteNode("notebook");
+          if (nodeTemplate) {
+            const data = {
+              "editType": "createNode",
+              "offsetX": 75,
+              "offsetY": 85,
+              "nodeTemplate": this.canvasController.convertNodeTemplate(nodeTemplate)
+            }
+
+            data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
+            data.nodeTemplate.app_data.notebook = item.path;
+            data.nodeTemplate.app_data.docker_image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
+            this.canvasController.editActionHandler(data);
           }
-          this.canvasController.setNodeLabel(data.nodeId,result.value);
-        });
+        }
       }
-    }
+    )
+  }
+
+  handleRun() {
+    // request name to publish pipeline
+    showDialog({
+      body: new PipelineDialog({})
+    }).then( result => {
+      console.log(result);
+      if( result.value == null) {
+        // When Cancel is clicked on the dialog, just return
+        return;
+      }
+
+      // prepare notebook submission details
+      console.log(this.canvasController.getPipelineFlow());
+      let notebookTask = {'pipeline_data': this.canvasController.getPipelineFlow().pipelines[0],
+                          'pipeline_name': result.value.pipeline_name};
+      let requestBody = JSON.stringify(notebookTask);
+
+      // use ServerConnection utility to make calls to Jupyter Based services
+      // which in this case is the scheduler extension installed by this package
+      let settings = ServerConnection.makeSettings();
+      let url = URLExt.join(settings.baseUrl, 'scheduler');
+
+      console.log('Submitting pipeline to -> ' + url);
+      ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
+      .then(response => {
+        if (response.status !== 200) {
+          return response.json().then(data => {
+            showDialog({
+              title: "Error submitting Notebook !",
+              body: data.message,
+              buttons: [Dialog.okButton()]
+            })
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if( data ) {
+          let dialogTitle: string = 'Job submission to ' + result.value;
+          let dialogBody: string = '';
+          if (data['status'] == 'ok') {
+            dialogTitle =  dialogTitle + ' succeeded !';
+            dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>';
+          } else {
+            dialogTitle =  dialogTitle + ' failed !';
+            dialogBody = data['message'];
+          }
+          showDialog({
+            title: dialogTitle,
+            body: dialogBody,
+            buttons: [Dialog.okButton()]
+          })
+        }
+      });
+    });
+  }
+
+  handleSave() {
+    this.context.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.context.save();
+  }
+
+  handleOpen() {
+    toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
+      item => {
+        // if the selected item is a file
+        if (item.type != 'directory') {
+          console.log('Opening ==> ' + item.path );
+          this.jupyterFrontEnd.commands.execute('docmanager:open', { path: item.path });
+        }
+      }
+    )
+  }
+
+  handleNew() {
+    // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name. 
+    this.jupyterFrontEnd.commands.execute('pipeline-editor:open');
+  }
+
+  handleClear() {
+    this.canvasController.clearPipelineFlow();
+    this.context.model.fromJSON(this.canvasController.getPipelineFlow());
   }
 
   /*
@@ -156,88 +227,44 @@ class Canvas extends React.Component<{},{}> {
   toolbarMenuActionHandler(action: any, source: any) {
   	console.log('Handling action: ' + action);
   	if(action == 'add') { // When adding a new node to the pipeline
-  	  toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
-  	    item => {
-  	      // if the selected item is a file
-          if (item.type != 'directory') {
-            //add each selected notebook
-            console.log('Adding ==> ' + item.path );
-
-            const nodeTemplate = this.canvasController.getPaletteNode("notebook");
-            if (nodeTemplate) {
-              const data = {
-                "editType": "createNode",
-                "offsetX": 75,
-                "offsetY": 85,
-                "nodeTemplate": this.canvasController.convertNodeTemplate(nodeTemplate)
-              };
-
-              data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
-              data.nodeTemplate.app_data.notebook = item.path;
-              data.nodeTemplate.app_data.docker_image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
-              this.canvasController.editActionHandler(data);
-            }
-          }
-
-        }
-      )
+  	  this.handleAdd();
     } else if (action == 'run') { // When executing the pipeline
-  	  // request name to publish pipeline
-	    showDialog({
-	      body: new PipelineDialog({})
-	    }).then( result => {
-	    	console.log(result);
-	      if( result.value == null) {
-	        // When Cancel is clicked on the dialog, just return
-	        return;
-	      }
+  	  this.handleRun();
+	  } else if (action == 'save') {
+      this.handleSave();
+    } else if (action == 'open') {
+      this.handleOpen();
+    } else if (action == 'new') {
+      this.handleNew();
+    } else if (action == 'clear') {
+      this.handleClear();
+    }
+  }
+}
 
-	      // prepare notebook submission details
-	      console.log(this.canvasController.getPipelineFlow());
-	      let notebookTask = {'pipeline_data': this.canvasController.getPipelineFlow().pipelines[0],
-          'pipeline_name': result.value.pipeline_name};
+class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
+  app: JupyterFrontEnd;
+  browserFactory: IFileBrowserFactory;
 
-	      let requestBody = JSON.stringify(notebookTask);
+  constructor(options: any) {
+    super(options);
+    this.app = options.app;
+    this.browserFactory = options.browserFactory;
+  }
 
-	      // use ServerConnection utility to make calls to Jupyter Based services
-	      // which in this case is the scheduler extension installed by this package
-	      let settings = ServerConnection.makeSettings();
-	      let url = URLExt.join(settings.baseUrl, 'scheduler');
-
-        console.log('Submitting pipeline to -> ' + url);
-	      ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
-	      .then(response => {
-	        if (response.status !== 200) {
-	          return response.json().then(data => {
-	            showDialog({
-	              title: "Error submitting Notebook !",
-	              body: data.message,
-	              buttons: [Dialog.okButton()]
-	            })
-	          });
-	        }
-	        return response.json();
-	      })
-	      .then(data => {
-	        if( data ) {
-	          let dialogTitle: string = 'Job submission to ' + result.value;
-	          let dialogBody: string = '';
-	          if (data['status'] == 'ok') {
-	            dialogTitle =  dialogTitle + ' succeeded !';
-	            dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>';
-	          } else {
-	            dialogTitle =  dialogTitle + ' failed !';
-	            dialogBody = data['message'];
-	          }
-	          showDialog({
-	            title: dialogTitle,
-	            body: dialogBody,
-	            buttons: [Dialog.okButton()]
-	          })
-	        }
-	      });
-	    });
-	  }
+  protected createNewWidget(
+    context: DocumentRegistry.Context
+  ): DocumentWidget {
+    // Creates a blank widget with a DocumentWidget wrapper
+    let props = {
+      app: this.app,
+      browserFactory: this.browserFactory,
+      context: context
+    }
+    const content = new Canvas(props);
+    const widget = new DocumentWidget({ content, context, node: document.createElement('div') });
+    widget.addClass('PipelineEditor');
+    return widget;
   }
 }
 
@@ -247,44 +274,75 @@ class Canvas extends React.Component<{},{}> {
 const extension: JupyterFrontEndPlugin<void> = {
   id: 'pipeline-editor-extension',
   autoStart: true,
-  requires: [ICommandPalette, ILauncher, IFileBrowserFactory],
+  requires: [ICommandPalette, ILauncher, IFileBrowserFactory, ILayoutRestorer],
 
   activate: (app: JupyterFrontEnd,
              palette: ICommandPalette,
-             launcher: ILauncher | null,
-             browserFactory: IFileBrowserFactory | null) => {
-    console.log('AI Workspace - pipeline-editor extension is activated!');
+             launcher: ILauncher,
+             browserFactory: IFileBrowserFactory,
+             restorer: ILayoutRestorer) => {
+    // Set up new widget Factory for .pipeline files
+    const pipelineEditorFactory = new PipelineEditorFactory({
+      name: 'PipelineEditorFactory',
+      fileTypes: ['pipeline'],
+      defaultFor: ['pipeline'],
+      app: app,
+      browserFactory: browserFactory
+    });
 
-    let widget: Widget = new Widget();
-    widget.id = 'ewai-pipeline-editor';
-    widget.title.label = 'Pipeline Editor';
-    widget.title.closable = true;
+    // Add the default behavior of opening the widget for .pipeline files
+    app.docRegistry.addFileType({ name: 'pipeline', extensions: ['.pipeline']});
+    app.docRegistry.addWidgetFactory(pipelineEditorFactory);
+
+    const tracker = new WidgetTracker<DocumentWidget>({
+      namespace: 'pipeline-editor-extension'
+    });
+
+    pipelineEditorFactory.widgetCreated.connect((sender, widget) => {
+      void tracker.add(widget);
+
+      // Notify the widget tracker if restore data needs to update
+      widget.context.pathChanged.connect(() => {
+        void tracker.save(widget);
+      });
+    });
+
+    // Handle state restoration
+    void restorer.restore(tracker, 
+    {
+      command: 'docmanager:open',
+      args: widget => ({ 
+        path: widget.context.path, 
+        factory: 'pipelineEditorFactory' 
+      }),
+      name: widget => widget.context.path
+    });
 
     // Add an application command
-    const openPipelineEditor: string = 'pipeline-editor:open';
-    app.commands.addCommand(openPipelineEditor, {
+    const openPipelineEditorCommand: string = 'pipeline-editor:open';
+    app.commands.addCommand(openPipelineEditorCommand, {
       label: 'Pipeline Editor',
       iconClass: PIPELINE_ICON_CLASS,
       execute: () => {
-        if (!widget.isAttached) {
-          // Attach the widget to the main work area if it's not there
-          app.shell.add(widget,'main');
-        }
-
-        let props = {app: app, browserFactory: browserFactory};
-        let canvas = React.createElement(Canvas, props, null);
-
-        ReactDOM.render(canvas,widget.node);
-
-        // Activate the widget
-        app.shell.activateById(widget.id);
+        // Creates blank file, then opens it in a new window
+        app.commands.execute('docmanager:new-untitled', {
+          type: 'file',
+          path: browserFactory.defaultBrowser.model.path,
+          ext: '.pipeline'
+        })
+        .then(model => {
+          return app.commands.execute('docmanager:open', {
+            path: model.path,
+            factory: 'PipelineEditorFactory'
+          });
+        });
       }
     });
     // Add the command to the palette.
-    palette.addItem({command: openPipelineEditor, category: 'Extensions'});
+    palette.addItem({command: openPipelineEditorCommand, category: 'Extensions'});
     if (launcher) {
       launcher.add({
-        command: openPipelineEditor,
+        command: openPipelineEditorCommand,
         category: 'Other',
         rank: 3
       });
