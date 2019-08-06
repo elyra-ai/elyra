@@ -128,6 +128,7 @@ class Canvas extends ReactWidget {
             }
 
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
+            data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
             data.nodeTemplate.app_data.notebook = item.path;
             data.nodeTemplate.app_data.docker_image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
             this.canvasController.editActionHandler(data);
