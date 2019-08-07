@@ -57,6 +57,8 @@ class Canvas extends ReactWidget {
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
+    this.contextMenuHandler = this.contextMenuHandler.bind(this);
+    this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
     this.context = props.context;
     this.context.ready.then( () => {
@@ -98,6 +100,8 @@ class Canvas extends ReactWidget {
         <CommonCanvas
         canvasController={this.canvasController}
         toolbarMenuActionHandler={this.toolbarMenuActionHandler}
+        contextMenuHandler={this.contextMenuHandler}
+        contextMenuActionHandler={this.contextMenuActionHandler}
         editActionHandler={this.editActionHandler}
         toolbarConfig={toolbarConfig}
         config={canvasConfig}
@@ -106,6 +110,31 @@ class Canvas extends ReactWidget {
       );
   }
 
+  contextMenuHandler(source: any, defaultMenu: any) {
+    let customMenu = defaultMenu;
+    if (source.type === "node") {
+      if (source.selectedObjectIds.length > 1) {
+        customMenu = customMenu.concat({ action: "openNotebook", label: "Open Notebooks"});
+      } else {
+        customMenu = customMenu.concat({ action: "openNotebook", label: "Open Notebook"});
+      }
+    }
+    return customMenu;
+  }
+
+  contextMenuActionHandler( action: any, source: any ) {
+    if (action === "openNotebook" && source.type === "node") {
+      let nodes = source.selectedObjectIds;
+      for (let i = 0; i < nodes.length; i++) {
+        let path = this.canvasController.getNode(nodes[i]).app_data.notebook;
+        this.jupyterFrontEnd.commands.execute('docmanager:open', {path});
+      }
+    }
+  }
+
+  /*
+   * Handles creating new nodes in the canvas
+   */
   editActionHandler(data: any) {
     this.context.model.fromJSON(this.canvasController.getPipelineFlow());
   }
