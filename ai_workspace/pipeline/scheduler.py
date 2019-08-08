@@ -10,8 +10,12 @@ from minio.error import (ResponseError,
                          BucketAlreadyExists)
 from notebook.base.handlers import IPythonHandler
 
+from ai_workspace.metadata.metadata import Metadata, MetadataManager, FileMetadataStore
+
 
 class SchedulerHandler(IPythonHandler):
+    metadata_manager = MetadataManager(namespace="runtime",
+                                       store=FileMetadataStore(namespace='runtime'))
 
     """REST-ish method calls to execute pipelines as batch jobs"""
     def get(self):
@@ -23,11 +27,19 @@ class SchedulerHandler(IPythonHandler):
         self.log.debug("Pipeline SchedulerHandler now executing post request")
 
         """Upload endpoint"""
-        url = 'http://weakish1.fyre.ibm.com:32488/pipeline'
-        endpoint = 'http://weakish1.fyre.ibm.com:30427'
-        minio_username = 'minio'
-        minio_password = 'minio123'
-        bucket_name = 'lresende'
+        runtime_configuration = self.metadata_manager.get('kfp')
+
+        if not runtime_configuration:
+            raise RuntimeError("Runtime metadata not available.")
+
+        api_endpoint = runtime_configuration.metadata['api_endpoint']
+        cos_host = runtime_configuration.metadata['cos_host']
+        cos_username = runtime_configuration.metadata['cos_username']
+        cos_password = runtime_configuration.metadata['cos_password']
+        bucket_name = runtime_configuration.metadata['cos_bucket']
+
+        self.log.info('Runtime configuration: \n {} \n {} \n {} \n {} \n {}'
+                      .format(api_endpoint, cos_host, cos_username, cos_password, bucket_name))
 
         options = self.get_json_body()
 
@@ -52,9 +64,9 @@ class SchedulerHandler(IPythonHandler):
             docker_images[component['id']] = component['app_data']['docker_image']
 
         # Initialize minioClient with an endpoint and access/secret keys.
-        minio_client = Minio('weakish1.fyre.ibm.com:30427',
-                             access_key=minio_username,
-                             secret_key=minio_password,
+        minio_client = Minio(endpoint=cos_host,
+                             access_key=cos_username,
+                             secret_key=cos_password,
                              secure=False)
 
         # Make a bucket with the make_bucket API call.
@@ -104,7 +116,7 @@ class SchedulerHandler(IPythonHandler):
                                                    'apt install -y wget &&'
                                                    'wget https://dl.min.io/client/mc/release/linux-amd64/mc && '
                                                    'chmod +x mc && '
-                                                   './mc config host add aiworkspace '+endpoint+' '+minio_username+' '+minio_password+' && '
+                                                   './mc config host add aiworkspace '+cos_host+' '+cos_username+' '+cos_password+' && '
                                                    './mc cp aiworkspace/'+bucket_name+'/'+output_filename+ ' . && '
                                                    'mkdir -p '+extracted_dir_from_tar+' && '
                                                    'cd '+extracted_dir_from_tar+' && '
@@ -164,10 +176,10 @@ class SchedulerHandler(IPythonHandler):
         self.log.debug("Kubeflow Pipeline compiled pipeline placed into %s", pipeline_path)
 
         # Upload the compiled pipeline and create an experiment and run
-        client = kfp.Client(host=url)
+        client = kfp.Client(host=api_endpoint)
         kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
 
-        self.log.info("Kubeflow Pipeline successfully uploaded to : %s", url)
+        self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
         client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
                             job_name=datetime.now().strftime("%m%d%H%M%S"),
