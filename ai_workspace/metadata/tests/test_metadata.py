@@ -5,7 +5,7 @@ import uuid
 import unittest
 import json
 
-from ai_workspace.metadata.metadata import Metadata, FileMetadataStore
+from ai_workspace.metadata.metadata import Metadata, MetadataManager, FileMetadataStore
 
 valid_metadata_json = {
     'name': 'valid',
@@ -42,6 +42,39 @@ def _create_metadata(location, file_name, content):
 #     def test_instantiate_from_invalid_resource(self):
 #         metadata = Metadata.from_resource(MetadataTestCase.invalid_metadata_resource)
 #         self.assertIsNone(metadata)
+
+
+class MetadataManagerTestCase(unittest.TestCase):
+    def setUp(self) -> None:
+        # create temporary data directory for storing metadata
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.metadata_dir = self.temp_dir.name
+        self.addCleanup(self.temp_dir.cleanup)
+
+        _create_metadata(self.metadata_dir, 'valid.json', valid_metadata_json)
+        _create_metadata(self.metadata_dir, 'another.json', another_metadata_json)
+
+        self.metadata_manager = \
+            MetadataManager(namespace="runtime",
+                            store=FileMetadataStore(namespace='runtime', metadata_dir=self.metadata_dir))
+
+    def test_list_metadata_summary(self):
+        metadata_summary_list = self.metadata_manager.get_all_metadata_summary()
+        self.assertEqual(len(metadata_summary_list), 2)
+
+    def test_list_all_metadata(self):
+        metadata_list = self.metadata_manager.get_all()
+        self.assertEqual(len(metadata_list), 2)
+
+    def test_read_valid_metadata_by_name(self):
+        metadata_name = 'valid'
+        some_metadata = self.metadata_manager.read(metadata_name)
+        self.assertEqual(some_metadata.name, metadata_name)
+
+    def test_read_invalid_metadata_by_name(self):
+        metadata_name = 'invalid'
+        some_metadata = self.metadata_manager.read(metadata_name)
+        self.assertIsNone(some_metadata)
 
 
 class MetadataFileStoreTestCase(unittest.TestCase):
