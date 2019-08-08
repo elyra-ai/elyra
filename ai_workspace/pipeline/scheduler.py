@@ -116,7 +116,7 @@ class SchedulerHandler(IPythonHandler):
                                                    'apt install -y wget &&'
                                                    'wget https://dl.min.io/client/mc/release/linux-amd64/mc && '
                                                    'chmod +x mc && '
-                                                   './mc config host add aiworkspace '+cos_host+' '+cos_username+' '+cos_password+' && '
+                                                   './mc config host add aiworkspace http://'+cos_host+' '+cos_username+' '+cos_password+' && '
                                                    './mc cp aiworkspace/'+bucket_name+'/'+output_filename+ ' . && '
                                                    'mkdir -p '+extracted_dir_from_tar+' && '
                                                    'cd '+extracted_dir_from_tar+' && '
