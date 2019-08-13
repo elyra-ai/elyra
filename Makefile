@@ -16,6 +16,7 @@ clean: ## Make a clean source tree
 	-rm -rf lib
 	-rm -rf *.egg-info
 	-rm -rf node_modules
+	-rm -rf yarn.lock
 	-$(call CLEAN_LAB_EXTENSION,enterprise_scheduler_extension)
 	-$(call CLEAN_LAB_EXTENSION,python-runner)
 	-$(call CLEAN_LAB_EXTENSION,pipeline-editor)
@@ -39,6 +40,7 @@ define CLEAN_LAB_EXTENSION
 	-rm -rf packages/$1/node_modules
 	-rm -rf packages/$1/package-lock.json
 	-rm -rf packages/$1/yarn.lock
+	-rm -rf packages/$1/tsconfig.tsbuildinfo
 endef
 
 define BUILD_LAB_EXTENSION

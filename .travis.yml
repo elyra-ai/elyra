@@ -10,6 +10,7 @@ addons:
       - python3-pip
 before_install:
 # Install YARN [not use NPM]
+  - make clean
   - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
   - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
   - sudo apt update
@@ -29,6 +30,7 @@ install:
   - pip install ./dist/ai_workspace*.whl
   - jupyter serverextension enable --py ai_workspace --sys-prefix
   - yarn add --dev lerna -W
+  - lerna clean --yes
   # Install JS dependencies
   - lerna bootstrap
   - lerna run build

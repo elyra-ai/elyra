@@ -23,8 +23,8 @@
     "url": "https://github.com/lresende/enterprise_scheduler_extension"
   },
   "scripts": {
-    "build": "tsc -b",
-    "clean": "rimraf lib",
+    "build": "tsc",
+    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
     "watch": "tsc -w"
   },
   "dependencies": {
