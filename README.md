@@ -23,3 +23,29 @@ You can check that the JupyterLab extension was successful installed with:
 ```bash
 jupyter labextension list
 ```
+
+To add a runtime configuration for pipelines to your system:
+- Navigate to your local path resulted from the command ```jupyter --data-dir```
+- In metadata/runtime folder, create a new file named **kfp.json** 
+with the following content:
+```
+{
+  "display_name": "Kubeflow Pipeline",
+  "metadata": {
+    "api_endpoint": "http://weakish1.fyre.ibm.com:32488/pipeline",
+    "cos_host":"weakish1.fyre.ibm.com:30427",
+    "cos_username": "minio",
+    "cos_password": "minio123",
+    "cos_bucket": "lresende"
+  }
+}
+```
+
+- To validate your new configuration, run:
+```bash
+make clean install
+```
+followed by
+```bash
+jupyter runtime list
+```
