@@ -1,3 +1,4 @@
+import '../style/index.css';
 import React from 'react';
 
 import {FileEditor} from '@jupyterlab/fileeditor';
@@ -6,23 +7,26 @@ import {CodeEditor, IEditorServices} from '@jupyterlab/codeeditor';
 import {ToolbarButton, ReactWidget, showDialog, Dialog} from '@jupyterlab/apputils';
 import {HTMLSelect} from '@jupyterlab/ui-components';
 import {Kernel} from '@jupyterlab/services';
-import {OutputArea, OutputAreaModel} from '@jupyterlab/outputarea';
+import {OutputArea, OutputAreaModel, OutputPrompt} from '@jupyterlab/outputarea';
 import {RenderMimeRegistry,standardRendererFactories as initialFactories} from '@jupyterlab/rendermime';
-import {BoxLayout} from '@phosphor/widgets';
+import {BoxLayout, PanelLayout} from '@phosphor/widgets';
 
 import {PythonRunner} from './PythonRunner';
 
 /**
  * The CSS class added to widgets
  */
-const PYTHON_FILE_EDITOR_CLASS = 'jp-PythonFileEditor';
-const PYTHON_EDITOR_OUTPUT_AREA_CLASS = 'jp-PythonEditorOutputArea';
-const OUTPUT_AREA_ERROR_CLASS = 'jp-OutputArea-Error';
+const PYTHON_FILE_EDITOR_CLASS = 'jp-PythonEditor';
+const OUTPUT_AREA_CLASS = 'jp-PythonEditor-OutputArea';
+const OUTPUT_AREA_ERROR_CLASS = 'jp-PythonEditor-OutputArea-error';
+const OUTPUT_AREA_CHILD_CLASS = 'jp-PythonEditor-OutputArea-child';
+const OUTPUT_AREA_PROMPT_CLASS = 'jp-PythonEditor-OutputArea-prompt';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown';
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const SAVE_ICON_CLASS = 'jp-SaveIcon';
+
 
 /**
  * A widget for python editors.
@@ -73,27 +77,18 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     toolbar.addItem('run', runButton);
     toolbar.addItem('stop', stopButton);
 
-    // Add output area
+    // Create output area widget
     const model: OutputAreaModel = new OutputAreaModel();
     const rendermime = new RenderMimeRegistry({ initialFactories });
     this.outputAreaWidget = new OutputArea({ rendermime, model });
-    this.outputAreaWidget.addClass(PYTHON_EDITOR_OUTPUT_AREA_CLASS);
+    this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
 
     const layout = this.layout as BoxLayout;
     layout.addWidget(this.outputAreaWidget);
   }
 
-  private handleKernelMsg = async (msg: any) => {
-    let output = "";
-
-    if (msg.error) {
-      output = 'Error : ' + msg.error.type + ' - ' + msg.error.output;
-      this.outputAreaWidget.addClass(OUTPUT_AREA_ERROR_CLASS);
-    } else if (msg.output) {
-      output = msg.output;
-    }
-
-    this.displayOutput(output);
+  private updateSelectedKernel = (selection: string) => {
+    this.kernelSettings.name = selection;
   };
 
   private runPython = async () => {
@@ -101,26 +96,74 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     this.runner.runPython(this.kernelSettings, this.handleKernelMsg);
   };
 
-  private updateSelectedKernel = (selection: string) => {
-    this.kernelSettings.name = selection;
-  };
-
   private resetOutputArea = () => {
     this.outputAreaWidget.model.clear();
-    BoxLayout.setStretch(this.outputAreaWidget, 0);
     this.outputAreaWidget.removeClass(OUTPUT_AREA_ERROR_CLASS);
+    BoxLayout.setStretch(this.outputAreaWidget, 0);
+  };
+
+  private handleKernelMsg = async (msg: any) => {
+    let output = '';
+
+    if (msg.status){
+      this.setOutputAreaVisibility(true);
+      this.displayKernelStatus(msg.status);
+      return;
+    } else if (msg.error) {
+      output = 'Error : ' + msg.error.type + ' - ' + msg.error.output;
+      this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_ERROR_CLASS);
+    } else if (msg.output) {
+      output = msg.output;
+    }
+    this.displayOutput(output);
+  };
+
+  private setOutputAreaVisibility = (visibility: boolean) => {
+    if (visibility){
+      BoxLayout.setStretch(this.outputAreaWidget, 1);
+    }
+  };
+
+  private displayKernelStatus = (status: string) => {
+    if (status === 'busy') {
+      this.addOutputAreaChildWidget(' ');
+      this.updatePromptText('*');
+    }
+    else if (status === 'idle'){
+      this.updatePromptText(' ');
+    }
   };
 
   private displayOutput = (output: string) => {
     if (output) {
-      BoxLayout.setStretch(this.outputAreaWidget, 1);
-
-      this.outputAreaWidget.model.add({
-        name: 'stdout',
-        output_type: 'stream',
-        text: [output]
-      });
+      this.addOutputAreaChildWidget(output);
     }
+  };
+
+  private getOutputAreaChildWidget = () => {
+    const outputAreaChildLayout = this.outputAreaWidget.layout as PanelLayout;
+    return outputAreaChildLayout.widgets[0];
+  };
+
+  private getOutputAreaPromptWidget = () => {
+    const outputAreaChildLayout = this.getOutputAreaChildWidget().layout as PanelLayout;
+    return outputAreaChildLayout.widgets[0] as OutputPrompt;
+  };
+
+  private updatePromptText = (kernelStatusFlag: string) => {
+    this.getOutputAreaPromptWidget().node.innerText = '[' + kernelStatusFlag + ']:';
+  };
+
+  private addOutputAreaChildWidget = (text: string) => {
+    let options = {
+      name: 'stdout',
+      output_type: 'stream',
+      text: [text]
+    };
+    this.outputAreaWidget.model.add(options);
+
+    this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
+    this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
   };
 
   private saveFile = () => {
@@ -274,3 +317,4 @@ export namespace PythonFileEditorFactory {
     factoryOptions: DocumentRegistry.IWidgetFactoryOptions<PythonFileEditor>;
   }
 }
+

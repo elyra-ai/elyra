@@ -39,6 +39,8 @@ export class PythonRunner {
               }
             } else if (msg.msg_type === 'stream' ) {
               msgOutput.output = msg.content.text;
+            } else if (msg.msg_type === 'status'){
+              msgOutput.status = msg.content.execution_state;
             } else {
               // ignore other message types
             }
