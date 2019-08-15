@@ -20,6 +20,7 @@ setup(
         "jupyter_core>=4.0,<5.0",
         "kfp",
         "minio",
+        "kfp-notebook"
     ],
     include_package_data=True,
     description="Enterprise Workspace for AI",

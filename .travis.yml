@@ -25,7 +25,8 @@ before_install:
   - npm config set @wdp:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-local/
 install:
   - sudo apt install yarn
-  - pip install jupyterlab enterprise_scheduler
+  - pip install jupyterlab enterprise_scheduler kfp
+  - pip install kfp-notebook --upgrade -i https://$ARTIFACTORY_USER:$ARTIFACTORY_PASS@na.artifactory.swg-devops.com/artifactory/api/pypi/dbg-aiworkspace-team-pypi-local/simple
   - export PATH=$PATH:$(pwd)/node_modules/.bin/
   - pip install ./dist/ai_workspace*.whl
   - jupyter serverextension enable --py ai_workspace --sys-prefix

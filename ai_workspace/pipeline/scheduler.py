@@ -2,6 +2,8 @@ import json
 import kfp
 import os
 import tarfile
+from notebook.pipeline._notebook_op import NotebookOp
+
 
 from datetime import datetime
 from minio import Minio
@@ -99,7 +101,7 @@ class SchedulerHandler(IPythonHandler):
                                "inputs : %s \n "
                                "name : %s \n "
                                "output_filename : %s \n "
-                               "extracted_dir_from_tar : %s"
+                               "extracted_dir_from_tar : %s \n"
                                "docker image : %s \n ",
                                componentId,
                                inputs,
@@ -108,26 +110,14 @@ class SchedulerHandler(IPythonHandler):
                                extracted_dir_from_tar,
                                docker_image)
 
-                notebookops[componentId] = \
-                    kfp.dsl.ContainerOp(name=name,
-                                        image=docker_image,
-                                        command=['sh', '-c'],
-                                        arguments=['pip install papermill && '
-                                                   'apt install -y wget &&'
-                                                   'wget https://dl.min.io/client/mc/release/linux-amd64/mc && '
-                                                   'chmod +x mc && '
-                                                   './mc config host add aiworkspace http://'+cos_host+' '+cos_username+' '+cos_password+' && '
-                                                   './mc cp aiworkspace/'+bucket_name+'/'+output_filename+ ' . && '
-                                                   'mkdir -p '+extracted_dir_from_tar+' && '
-                                                   'cd '+extracted_dir_from_tar+' && '
-                                                   'tar -zxvf ../'+output_filename+' --strip 1 && '
-                                                   'echo $(pwd) && '
-                                                   'ls -la && '
-                                                   'papermill '+name+'.ipynb '+name+'_output.ipynb && '
-                                                   'jupyter nbconvert --to html '+name+'_output.ipynb --output '+name+'_output.html && '
-                                                   '../mc cp '+name+'_output.ipynb aiworkspace/'+bucket_name+'/'+name+'_output.ipynb && '
-                                                   '../mc cp '+name+'_output.html aiworkspace/'+bucket_name+'/'+name+'_output.html'
-                                        ])
+                notebookops[componentId] = NotebookOp(name=name,
+                                                      notebook=str(name),
+                                                      cos_endpoint=cos_host,
+                                                      cos_user=cos_username,
+                                                      cos_password=cos_password,
+                                                      cos_bucket=bucket_name,
+                                                      cos_pull_archive=output_filename,
+                                                      image='tensorflow/tensorflow:1.13.2-gpu-py3-jupyter')
 
                 self.log.info("NotebookOp Created for Component %s", componentId)
 
@@ -138,7 +128,7 @@ class SchedulerHandler(IPythonHandler):
                     self.log.debug("Creating TAR archive %s with contents from %s", output_filename, notebook_work_dir)
 
                     with tarfile.open(output_filename, "w:gz") as tar:
-                        tar.add(notebook_work_dir, arcname=output_filename)
+                        tar.add(notebook_work_dir, arcname="")
 
                     self.log.info("TAR archive %s created", output_filename)
 
