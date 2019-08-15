@@ -1,7 +1,9 @@
 import json
 import kfp
 import os
+import re
 import tarfile
+
 from notebook.pipeline._notebook_op import NotebookOp
 
 
@@ -35,13 +37,13 @@ class SchedulerHandler(IPythonHandler):
             raise RuntimeError("Runtime metadata not available.")
 
         api_endpoint = runtime_configuration.metadata['api_endpoint']
-        cos_host = runtime_configuration.metadata['cos_host']
+        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata['cos_username']
         cos_password = runtime_configuration.metadata['cos_password']
         bucket_name = runtime_configuration.metadata['cos_bucket']
 
         self.log.info('Runtime configuration: \n {} \n {} \n {} \n {} \n {}'
-                      .format(api_endpoint, cos_host, cos_username, cos_password, bucket_name))
+                      .format(api_endpoint, cos_endpoint, cos_username, cos_password, bucket_name))
 
         options = self.get_json_body()
 
@@ -66,7 +68,7 @@ class SchedulerHandler(IPythonHandler):
             docker_images[component['id']] = component['app_data']['docker_image']
 
         # Initialize minioClient with an endpoint and access/secret keys.
-        minio_client = Minio(endpoint=cos_host,
+        minio_client = Minio(endpoint=re.sub(r'^https?://', '',cos_endpoint),
                              access_key=cos_username,
                              secret_key=cos_password,
                              secure=False)
@@ -112,7 +114,7 @@ class SchedulerHandler(IPythonHandler):
 
                 notebookops[componentId] = NotebookOp(name=name,
                                                       notebook=str(name),
-                                                      cos_endpoint=cos_host,
+                                                      cos_endpoint=cos_endpoint,
                                                       cos_user=cos_username,
                                                       cos_password=cos_password,
                                                       cos_bucket=bucket_name,
