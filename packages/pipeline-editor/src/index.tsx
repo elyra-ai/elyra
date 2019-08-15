@@ -192,7 +192,13 @@ class Canvas extends ReactWidget {
       console.log('Submitting pipeline to -> ' + url);
       ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
       .then(response => {
-        if (response.status !== 200) {
+        if (response.status === 404) {
+            showDialog({
+              title: "Error submitting pipeline !",
+              body: "Service endpoint '"+ url +"'not found",
+              buttons: [Dialog.okButton()]
+            });
+        } else if (response.status !== 200) {
           return response.json().then(data => {
             showDialog({
               title: "Error submitting Notebook !",
