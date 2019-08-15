@@ -1,21 +1,31 @@
 import {JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer} from '@jupyterlab/application';
 import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
-import {ServerConnection} from "@jupyterlab/services";
-import {URLExt} from "@jupyterlab/coreutils";
-import {ICommandPalette, showDialog, Dialog, ReactWidget, WidgetTracker} from "@jupyterlab/apputils";
+import {ServerConnection} from '@jupyterlab/services';
+import {URLExt} from '@jupyterlab/coreutils';
+import {ICommandPalette, showDialog, Dialog, ReactWidget, WidgetTracker} from '@jupyterlab/apputils';
 import {Widget, PanelLayout} from '@phosphor/widgets';
 import {toArray} from '@phosphor/algorithm';
 import {DocumentRegistry, ABCWidgetFactory, DocumentWidget} from '@jupyterlab/docregistry';
 import {ILauncher} from '@jupyterlab/launcher';
-import {CommonCanvas, CanvasController} from "@wdp/common-canvas";
-import "carbon-components/css/carbon-components.min.css";
-import "@wdp/common-canvas/dist/common-canvas.min.css";
-import * as palette from "./palette.json";
+import {CommonCanvas, CanvasController} from '@wdp/common-canvas';
+import 'carbon-components/css/carbon-components.min.css';
+import '@wdp/common-canvas/dist/common-canvas.min.css';
+import * as palette from './palette.json' ;
 import '../style/index.css';
-import * as React from "react";
-import * as ReactDOM from "react-dom";
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 
-const PIPELINE_ICON_CLASS = 'jp-PipelineIcon';
+const PIPELINE_ICON_CLASS = 'ewai-PipelineIcon';
+const PIPELINE_CLASS = 'ewai-PipelineEditor';
+const PIPELINE_FACTORY = 'pipelineEditorFactory';
+const PIPELINE = 'pipeline';
+const PIPELINE_EDITOR_NAMESPACE = 'pipeline-editor-extension';
+
+const commandIDs = {
+  openPipelineEditor : 'pipeline-editor:open',
+  openDocManager : 'docmanager:open',
+  newDocManager : 'docmanager:new-untitled'
+};
 
 /*
  * Class for dialog that pops up for pipeline submission
@@ -29,15 +39,15 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
     let htmlContent = document.createElement('div');
     ReactDOM.render(
     	(<input
-      	type="text"
-      	id="pipeline_name"
-      	name="pipeline_name"
-      	placeholder="Pipeline Name"/>), htmlContent);
+      	type='text'
+      	id='pipeline_name'
+      	name='pipeline_name'
+      	placeholder='Pipeline Name'/>), htmlContent);
 
     layout.addWidget(new Widget( {node: htmlContent} ));
   }
   getValue() {
-  	return {'pipeline_name': (document.getElementById("pipeline_name") as HTMLInputElement).value };
+  	return {'pipeline_name': (document.getElementById('pipeline_name') as HTMLInputElement).value };
   }
  }
 
@@ -67,34 +77,34 @@ class Canvas extends ReactWidget {
   }
 
   render() {
-    const style = { height: "100%" };
+    const style = { height: '100%' };
     const canvasConfig = { 
       enableInternalObjectModel: true,
-      enablePaletteLayout: "Modal",
+      enablePaletteLayout: 'Modal',
       paletteInitialState: false
     };
     const toolbarConfig = [
-       { action: "add", label: "Add Notebook to Pipeline", enable: true, iconEnabled: "/"},
+       { action: 'add', label: 'Add Notebook to Pipeline', enable: true, iconEnabled: '/'},
        { divider: true },
-       { action: "run", label: "Run Pipeline", enable: true },
+       { action: 'run', label: 'Run Pipeline', enable: true },
        { divider: true },
-       { action: "save", label: "Save Pipeline", enable: true },
+       { action: 'save', label: 'Save Pipeline', enable: true },
        { divider: true },
-       // { action: "open", label: "Open Pipeline", enable: true },
+       // { action: 'open', label: 'Open Pipeline', enable: true },
        // { divider: true },
-       { action: "new", label: "New Pipeline", enable: true },
+       { action: 'new', label: 'New Pipeline', enable: true },
        { divider: true },
-       { action: "clear", label: "Clear Pipeline", enable: true },
+       { action: 'clear', label: 'Clear Pipeline', enable: true },
        { divider: true },
-       { action: "undo", label: "Undo", enable: true },
-       { action: "redo", label: "Redo", enable: true },
-       { action: "cut", label: "Cut", enable: false },
-       { action: "copy", label: "Copy", enable: false },
-       { action: "paste", label: "Paste", enable: false },
-       { action: "addComment", label: "Add Comment", enable: true },
-       { action: "delete", label: "Delete", enable: true },
-       { action: "arrangeHorizontally", label: "Arrange Horizontally", enable: true },
-       { action: "arrangeVertically", label: "Arrange Vertically", enable: true } ];
+       { action: 'undo', label: 'Undo', enable: true },
+       { action: 'redo', label: 'Redo', enable: true },
+       { action: 'cut', label: 'Cut', enable: false },
+       { action: 'copy', label: 'Copy', enable: false },
+       { action: 'paste', label: 'Paste', enable: false },
+       { action: 'addComment', label: 'Add Comment', enable: true },
+       { action: 'delete', label: 'Delete', enable: true },
+       { action: 'arrangeHorizontally', label: 'Arrange Horizontally', enable: true },
+       { action: 'arrangeVertically', label: 'Arrange Vertically', enable: true } ];
     return (
       <div style={style}>
         <CommonCanvas
@@ -112,22 +122,22 @@ class Canvas extends ReactWidget {
 
   contextMenuHandler(source: any, defaultMenu: any) {
     let customMenu = defaultMenu;
-    if (source.type === "node") {
+    if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
-        customMenu = customMenu.concat({ action: "openNotebook", label: "Open Notebooks"});
+        customMenu = customMenu.concat({ action: 'openNotebook', label: 'Open Notebooks'});
       } else {
-        customMenu = customMenu.concat({ action: "openNotebook", label: "Open Notebook"});
+        customMenu = customMenu.concat({ action: 'openNotebook', label: 'Open Notebook'});
       }
     }
     return customMenu;
   }
 
   contextMenuActionHandler( action: any, source: any ) {
-    if (action === "openNotebook" && source.type === "node") {
+    if (action === 'openNotebook' && source.type === 'node') {
       let nodes = source.selectedObjectIds;
       for (let i = 0; i < nodes.length; i++) {
         let path = this.canvasController.getNode(nodes[i]).app_data.notebook;
-        this.jupyterFrontEnd.commands.execute('docmanager:open', {path});
+        this.jupyterFrontEnd.commands.execute(commandIDs.openDocManager, {path});
       }
     }
   }
@@ -147,13 +157,13 @@ class Canvas extends ReactWidget {
           //add each selected notebook
           console.log('Adding ==> ' + item.path );
 
-          const nodeTemplate = this.canvasController.getPaletteNode("notebook");
+          const nodeTemplate = this.canvasController.getPaletteNode('notebook');
           if (nodeTemplate) {
             const data = {
-              "editType": "createNode",
-              "offsetX": 75,
-              "offsetY": 85,
-              "nodeTemplate": this.canvasController.convertNodeTemplate(nodeTemplate)
+              'editType': 'createNode',
+              'offsetX': 75,
+              'offsetY': 85,
+              'nodeTemplate': this.canvasController.convertNodeTemplate(nodeTemplate)
             }
 
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
@@ -201,7 +211,7 @@ class Canvas extends ReactWidget {
         } else if (response.status !== 200) {
           return response.json().then(data => {
             showDialog({
-              title: "Error submitting Notebook !",
+              title: 'Error submitting Notebook !',
               body: data.message,
               buttons: [Dialog.okButton()]
             })
@@ -241,7 +251,7 @@ class Canvas extends ReactWidget {
         // if the selected item is a file
         if (item.type != 'directory') {
           console.log('Opening ==> ' + item.path );
-          this.jupyterFrontEnd.commands.execute('docmanager:open', { path: item.path });
+          this.jupyterFrontEnd.commands.execute(commandIDs.openDocManager, { path: item.path });
         }
       }
     )
@@ -249,7 +259,7 @@ class Canvas extends ReactWidget {
 
   handleNew() {
     // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name. 
-    this.jupyterFrontEnd.commands.execute('pipeline-editor:open');
+    this.jupyterFrontEnd.commands.execute(commandIDs.openPipelineEditor);
   }
 
   handleClear() {
@@ -299,7 +309,7 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     }
     const content = new Canvas(props);
     const widget = new DocumentWidget({ content, context, node: document.createElement('div') });
-    widget.addClass('PipelineEditor');
+    widget.addClass(PIPELINE_CLASS);
     return widget;
   }
 }
@@ -308,7 +318,7 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
  * Initialization data for the pipeline-editor-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: 'pipeline-editor-extension',
+  id: PIPELINE,
   autoStart: true,
   requires: [ICommandPalette, ILauncher, IFileBrowserFactory, ILayoutRestorer],
 
@@ -319,19 +329,19 @@ const extension: JupyterFrontEndPlugin<void> = {
              restorer: ILayoutRestorer) => {
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
-      name: 'PipelineEditorFactory',
-      fileTypes: ['pipeline'],
-      defaultFor: ['pipeline'],
+      name: PIPELINE_FACTORY,
+      fileTypes: [PIPELINE],
+      defaultFor: [PIPELINE],
       app: app,
       browserFactory: browserFactory
     });
 
     // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({ name: 'pipeline', extensions: ['.pipeline']});
+    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline']});
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
     const tracker = new WidgetTracker<DocumentWidget>({
-      namespace: 'pipeline-editor-extension'
+      namespace: PIPELINE_EDITOR_NAMESPACE
     });
 
     pipelineEditorFactory.widgetCreated.connect((sender, widget) => {
@@ -346,30 +356,30 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Handle state restoration
     void restorer.restore(tracker, 
     {
-      command: 'docmanager:open',
+      command: commandIDs.openDocManager,
       args: widget => ({ 
         path: widget.context.path, 
-        factory: 'pipelineEditorFactory' 
+        factory: PIPELINE_FACTORY 
       }),
       name: widget => widget.context.path
     });
 
     // Add an application command
-    const openPipelineEditorCommand: string = 'pipeline-editor:open';
+    const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
     app.commands.addCommand(openPipelineEditorCommand, {
       label: 'Pipeline Editor',
       iconClass: PIPELINE_ICON_CLASS,
       execute: () => {
         // Creates blank file, then opens it in a new window
-        app.commands.execute('docmanager:new-untitled', {
+        app.commands.execute(commandIDs.newDocManager, {
           type: 'file',
           path: browserFactory.defaultBrowser.model.path,
           ext: '.pipeline'
         })
         .then(model => {
-          return app.commands.execute('docmanager:open', {
+          return app.commands.execute(commandIDs.openDocManager, {
             path: model.path,
-            factory: 'PipelineEditorFactory'
+            factory: PIPELINE_FACTORY
           });
         });
       }

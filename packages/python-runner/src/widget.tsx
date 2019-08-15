@@ -16,11 +16,11 @@ import {PythonRunner} from './PythonRunner';
 /**
  * The CSS class added to widgets
  */
-const PYTHON_FILE_EDITOR_CLASS = 'jp-PythonEditor';
-const OUTPUT_AREA_CLASS = 'jp-PythonEditor-OutputArea';
-const OUTPUT_AREA_ERROR_CLASS = 'jp-PythonEditor-OutputArea-error';
-const OUTPUT_AREA_CHILD_CLASS = 'jp-PythonEditor-OutputArea-child';
-const OUTPUT_AREA_PROMPT_CLASS = 'jp-PythonEditor-OutputArea-prompt';
+const PYTHON_FILE_EDITOR_CLASS = 'ewai-PythonEditor';
+const OUTPUT_AREA_CLASS = 'ewai-PythonEditor-OutputArea';
+const OUTPUT_AREA_ERROR_CLASS = 'ewai-PythonEditor-OutputArea-error';
+const OUTPUT_AREA_CHILD_CLASS = 'ewai-PythonEditor-OutputArea-child';
+const OUTPUT_AREA_PROMPT_CLASS = 'ewai-PythonEditor-OutputArea-prompt';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown';

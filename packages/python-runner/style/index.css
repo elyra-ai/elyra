@@ -1,13 +1,13 @@
-.jp-PythonEditor-OutputArea-error {
-    background-color: #fdd
+.ewai-PythonEditor-OutputArea-error {
+    background-color: var(--jp-rendermime-error-background);
 }
 
-.jp-PythonEditor-OutputArea-child {
+.ewai-PythonEditor-OutputArea-child {
     border-top: 1px solid var(--jp-border-color2);
     border-bottom: 1px solid var(--jp-border-color2);
 }
 
-.jp-PythonEditor-OutputArea-prompt {
+.ewai-PythonEditor-OutputArea-prompt {
     flex: 0 0 37px;
     border-right: 1px solid var(--jp-border-color2);
     padding: unset;
