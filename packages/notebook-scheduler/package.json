@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/lresende/enterprise_scheduler_extension",
+  "homepage": "https://github.ibm.com/ai-workspace/ai-workspace",
   "bugs": {
-    "url": "https://github.com/lresende/enterprise_scheduler_extension/issues"
+    "url": "https://github.ibm.com/ai-workspace/ai-workspace/issues"
   },
   "license": "Apache-2.0",
   "files": [
