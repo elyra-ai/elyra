@@ -106,7 +106,7 @@ with the following content:
   "display_name": "Kubeflow Pipeline",
   "metadata": {
     "api_endpoint": "http://weakish1.fyre.ibm.com:32488/pipeline",
-    "cos_host":"weakish1.fyre.ibm.com:30427",
+    "cos_endpoint": "http://weakish1.fyre.ibm.com:30427",
     "cos_username": "minio",
     "cos_password": "minio123",
     "cos_bucket": "<<<ENTER A VALID BUCKET NAME>>>"
