@@ -12,7 +12,6 @@
     "url": "https://github.ibm.com/ai-workspace/python-runner-extension/issues"
   },
   "license": "Apache-2.0",
-  "author": "Alex Bozarth",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"

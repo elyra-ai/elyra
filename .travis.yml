@@ -3,47 +3,55 @@ dist: trusty
 sudo: false
 python : "3.6"
 language: python
-node_js : "8.15"
+node_js : "10.14"
 addons:
   apt:
     packages:
       - python3-pip
 before_install:
-# Install YARN [not use NPM]
-  - make clean
+  # Install YARN [not use NPM]
   - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
   - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
   - sudo apt update
-  - python --version
-  - which python
-  # Build the python wheel for the extension
-  - python setup.py bdist_wheel
   # Setup artifactory registry credentials
   - echo "registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/" >> ~/.npmrc
+  #- npm config set registry https://registry.npmjs.org/
+  #- npm config set @xtuc:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
+  #- npm config set @wdp:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
+  #- npm config set @ibm-analytics:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/hyc-design-npm-local/
   - curl -H "X-JFrog-Art-Api:${ARTIFACTORY_KEY}" -X GET https://na.artifactory.swg-devops.com/artifactory/api/npm/auth >> ~/.npmrc
-  - cp ~/.npmrc ./packages/pipeline-editor
-  - npm config set @wdp:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-local/
+  # Display node/npm version
+  - node --version
+  - npm --version
+
 install:
   - sudo apt install yarn
   - pip install jupyterlab enterprise_scheduler kfp
   - pip install kfp-notebook --upgrade -i https://$ARTIFACTORY_USER:$ARTIFACTORY_PASS@na.artifactory.swg-devops.com/artifactory/api/pypi/dbg-aiworkspace-team-pypi-local/simple
   - export PATH=$PATH:$(pwd)/node_modules/.bin/
+  # Build the python wheel for the extension
+  - python setup.py bdist_wheel
   - pip install ./dist/ai_workspace*.whl
   - jupyter serverextension enable --py ai_workspace --sys-prefix
+  # Build js modules
   - yarn add --dev lerna -W
-  - lerna clean --yes
+  - lerna run clean
   # Install JS dependencies
-  - lerna bootstrap
+  #- lerna bootstrap
   - lerna run build
   # Build the extensions under packages/*
   - pushd packages/enterprise_scheduler_extension && jlpm install && popd
-  - pushd packages/python-runner && jlpm install && popd
   - pushd packages/pipeline-editor && jlpm install && popd
+  - pushd packages/python-runner && jlpm install && popd
   # Install the package(s)
-  - pushd packages/pipeline-editor && jupyter labextension link --debug . && popd
   - pushd packages/enterprise_scheduler_extension && jupyter labextension link --debug . && popd
+  - pushd packages/pipeline-editor && jupyter labextension link --debug . && popd
   - pushd packages/python-runner && jupyter labextension link --debug . && popd
 script:
+  # Build the python wheel for the extension
+  - make clean
+  - python setup.py bdist_wheel
+
   - jupyter labextension list
 #deploy:
 #after_deploy:
@@ -51,4 +59,13 @@ script:
 #  slack:
 #    rooms:
 #      - [slack channel : api token]
+
+after_script:
+  - echo "Travis exited with ${TRAVIS_TEST_RESULT}"
+  - cat /home/travis/build/ai-workspace/ai-workspace/*.log
+  - cat /home/travis/build/ai-workspace/ai-workspace/packages/enterprise_scheduler_extension/*.log
+  - cat /home/travis/build/ai-workspace/ai-workspace/packages/pipeline-editor/*.log
+  - cat /home/travis/build/ai-workspace/ai-workspace/packages/python-runner/*.log
+
+
 group: bluezone
