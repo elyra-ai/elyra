@@ -1,7 +1,7 @@
 {
   "name": "@aiworkspace/scheduler-extension",
-  "version": "0.0.1",
-  "description": "Add a 'Submit Notebook' toolbar button and context menu item.",
+  "version": "0.1.0",
+    "description": "JupyterLab extension - Enable submitting notebooks as batch jobs on external runtimes",
   "keywords": [
     "jupyter",
     "jupyterlab",
@@ -18,13 +18,15 @@
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lresende/enterprise_scheduler_extension"
+    "url": "https://github.ibm.com/ai-workspace/ai-workspace"
   },
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
+    "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf tsconfig.tsbuildinfo",
+    "prepare": "npm run clean && npm run build",
     "watch": "tsc -w"
   },
   "dependencies": {

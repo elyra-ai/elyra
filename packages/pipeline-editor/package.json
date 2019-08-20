@@ -1,6 +1,6 @@
 {
   "name": "@aiworkspace/pipeline-editor-extension",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "JupyterLab extension - Visual editor to build Notebook pipelines",
   "keywords": [
     "jupyter",
@@ -21,11 +21,11 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.ibm.com/ai-workspace/pipeline-editor-extension.git"
+    "url": "https://github.ibm.com/ai-workspace/ai-workspace"
   },
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
+    "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf tsconfig.tsbuildinfo",
     "prepare": "npm run clean && npm run build",
     "watch": "tsc -w"
   },

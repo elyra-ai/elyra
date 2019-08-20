@@ -1,7 +1,7 @@
 {
-  "name": "python-runner-extension",
+  "name": "@aiworkspace/python-runner-extension",
   "version": "0.1.0",
-  "description": "Extends Jupyter Lab to run python files using the kernel",
+  "description": "JupyterLab extension - Run python files using a kernel runtime",
   "keywords": [
     "jupyter",
     "jupyterlab",
@@ -21,11 +21,11 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.ibm.com/ai-workspace/python-runner-extension.git"
+    "url": "https://github.ibm.com/ai-workspace/ai-workspace"
   },
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
+    "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf tsconfig.tsbuildinfo",
     "prepare": "npm run clean && npm run build",
     "watch": "tsc -w"
   },
