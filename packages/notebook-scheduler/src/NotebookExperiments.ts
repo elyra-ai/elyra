@@ -11,23 +11,23 @@ export class NotebookExperimentWidget extends Widget {
   constructor() {
     super();
 
-    this.id = "dlw-notebook-experiments";
+    this.id = "ewai-notebook-experiments";
     this.title.label = "Notebook Experiments";
     this.title.closable = true;
-    this.addClass("dlw-notebookExperimentWidget");
+    this.addClass("ewai-notebookExperimentWidget");
 
     this.div = <HTMLDivElement> document.createElement('div');
-    this.div.className = 'dlw-experiments';
+    this.div.className = 'ewai-experiments';
     this.div.id = 'div-experiments';
     this.node.appendChild(this.div);
   }
 
   createResultTable() : HTMLTableElement {
     let table = <HTMLTableElement> document.createElement('table');
-    table.className = "dlw-Table-experiments";
+    table.className = "ewai-Table-experiments";
 
     let tableHead = table.createTHead();
-    tableHead.className = "dlw-Table-experiments";
+    tableHead.className = "ewai-Table-experiments";
 
     let tableHeadRow = tableHead.insertRow();
     tableHeadRow.insertCell(0).innerText = "Model ID";
@@ -106,7 +106,7 @@ export class NotebookExperimentWidget extends Widget {
           var training_status: JSONObject = <JSONObject> training.training_status;
 
           var tableRow = table.insertRow();
-          tableRow.className = "dlw-Table-experiments";
+          tableRow.className = "ewai-Table-experiments";
           tableRow.insertCell(0).innerText = model.model_id.toString();
           tableRow.insertCell(1).innerText = model.name.toString();
           tableRow.insertCell(2).innerText = model.description.toString();

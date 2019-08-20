@@ -12,8 +12,8 @@ import '../style/index.css';
  * be executed in a remote platform
  */
 
-export const dlw_extension: JupyterFrontEndPlugin<void> = {
-  id: 'dlw-extension',
+export const ewai_extension: JupyterFrontEndPlugin<void> = {
+  id: 'ewai-extension',
   requires: [ICommandPalette, ILayoutRestorer],
   autoStart: true,
   activate: (
@@ -21,7 +21,7 @@ export const dlw_extension: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     restorer: ILayoutRestorer
   ): void => {
-    console.log('Activating Deep Learning Workspace JupyterLab extension!');
+    console.log('AI Workspace - notebook-scheduler extension is activated!');
 
     // Extension initialization code
     let buttonExtension = new SubmitNotebookButtonExtension(app);
@@ -43,7 +43,7 @@ export const dlw_extension: JupyterFrontEndPlugin<void> = {
     }, 10 * 1000);
 
     // Add an application command
-    const command: string = 'dlw:open-experiments';
+    const command: string = 'ewai:open-experiments';
     app.commands.addCommand(command, {
     label: 'Notebook Experiments',
     execute: () => {
@@ -77,13 +77,13 @@ export const dlw_extension: JupyterFrontEndPlugin<void> = {
 
 
   // Track and restore the widget state
-  let tracker = new WidgetTracker<Widget>({ namespace: 'dlw' });
+  let tracker = new WidgetTracker<Widget>({ namespace: 'ewai' });
   restorer.restore(tracker, {
     command,
     args: () => JSONExt.emptyObject,
-    name: () => 'dlw'
+    name: () => 'ewai'
   });
   }
 };
 
-export default dlw_extension;
+export default ewai_extension;

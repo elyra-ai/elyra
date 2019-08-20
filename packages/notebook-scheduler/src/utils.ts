@@ -1,3 +1,6 @@
+import uuid4 from 'uuid/v4';
+import pipeline_template from './pipeline-template.json';
+
 /**
  * A utilities class for static functions.
  */
@@ -48,5 +51,32 @@ export default class Utils {
 
     return matched;
   }
+
+  static 	getUUID() {
+		return uuid4();
+	}
+
+  static generateNotebookPipeline(notebookPath:string) {
+    let template = pipeline_template;
+
+    let generated_uuid : string = Utils.getUUID();
+
+    template.id = generated_uuid;
+    template.primary_pipeline = generated_uuid;
+    template.pipelines[0].id = generated_uuid;
+
+    template.pipelines[0].nodes[0].id = generated_uuid;
+    // @ts-ignore
+    template.pipelines[0].nodes[0].app_data.platform = 'kfp';
+    // @ts-ignore
+    template.pipelines[0].nodes[0].app_data.notebook = notebookPath;
+    // @ts-ignore
+    template.pipelines[0].nodes[0].app_data.docker_image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
+    // @ts-ignore
+    template.pipelines[0].nodes[0].app_data.ui_data.label = 'kfp';
+
+    return template;
+  }
+
 
 }

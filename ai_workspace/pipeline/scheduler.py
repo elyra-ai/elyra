@@ -52,9 +52,10 @@ class SchedulerHandler(IPythonHandler):
         for component in options['pipeline_data']['nodes']:
             # Set up dictionary to track node id's of inputs
             links[component['id']] = []
-            if 'links' in component['inputs'][0]:
-                for link in component['inputs'][0]['links']:
-                    links[component['id']].append(link['node_id_ref'])
+            if 'inputs' in component.keys():
+                if 'links' in component['inputs'][0]:
+                    for link in component['inputs'][0]['links']:
+                        links[component['id']].append(link['node_id_ref'])
 
             # Set up dictionary to link component id's to
             # component names (which are ipynb filenames)
@@ -139,9 +140,10 @@ class SchedulerHandler(IPythonHandler):
                     self.log.error("ERROR : From object storage", exc_info=True)
 
             # Add order based on list of inputs for each component.
-            for componentId, inputs in links.items():
-                for inputComponentId in inputs:
-                    notebookops[componentId].after(notebookops[inputComponentId])
+            if links:
+                for componentId, inputs in links.items():
+                    for inputComponentId in inputs:
+                        notebookops[componentId].after(notebookops[inputComponentId])
 
             self.log.info("Pipeline dependencies are set")
 

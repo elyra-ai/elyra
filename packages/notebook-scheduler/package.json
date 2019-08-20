@@ -1,7 +1,7 @@
 {
   "name": "@aiworkspace/scheduler-extension",
   "version": "0.1.0",
-    "description": "JupyterLab extension - Enable submitting notebooks as batch jobs on external runtimes",
+  "description": "JupyterLab extension - Enable submitting notebooks as batch jobs on external runtimes",
   "keywords": [
     "jupyter",
     "jupyterlab",
@@ -35,7 +35,9 @@
     "@jupyterlab/docregistry": "^1.0.0",
     "@jupyterlab/notebook": "^1.0.0",
     "@phosphor/disposable": "^1.1.2",
-    "@phosphor/widgets": "^1.8.0"
+    "@phosphor/widgets": "^1.8.0",
+    "json-loader": "^0.5.7",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "rimraf": "^2.6.3",

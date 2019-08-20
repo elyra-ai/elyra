@@ -1,0 +1,31 @@
+{
+	"doc_type": "pipeline",
+	"version": "3.0",
+	"json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+	"id": "{{ uuid }}",
+	"primary_pipeline": "primary_pipeline_uuid",
+	"pipelines": [{
+		"id": "{{ pipelines.id }}",
+		"nodes": [{
+			"id": "{{ pipelines.noded.id }}",
+			"type": "pipeline_node",
+			"app_data": {
+                "platform": "{{ kfp }}",
+				"notebook": "{{ pipelines.nodes.app_data.notebook }}",
+				"docker_image": "{{ pipelines.nodes.app_data.docker_image }}",
+				"ui_data": {
+					"label": "{{ pipelines.nodes.app_data.ui_data.label }}",
+					"x_pos": 75,
+					"y_pos": 85,
+					"description": "Notebook file"
+				}
+			}
+		}],
+		"app_data": {
+			"ui_data": {
+				"comments": []
+			}
+		}
+	}],
+	"schemas": []
+}

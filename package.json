@@ -13,9 +13,9 @@
     "typescript": "~3.5.2"
   },
   "resolutions": {
-    "react": "^16.8.18",
-    "@types/react": "^16.8.18",
-    "react-dom": "^16.8.4",
-    "@types/react-dom": "^16.8.4"
+    "react": "~16.8.6",
+    "@types/react": "~16.8.6",
+    "react-dom": "~16.8.5",
+    "@types/react-dom": "~16.8.5"
   }
 }

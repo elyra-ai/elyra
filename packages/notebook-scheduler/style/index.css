@@ -3,14 +3,6 @@
     max-height: 100vh;
  }
 
-.dlw-Table-experiments {
-    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-    width: 100%;
-    background-color: #ffffff;
-    margin-top: 5px;
-    margin-bottom: 10px;
-}
-
 .p-Widget #jp-left-stack {
     padding-left: 8px;
 }
@@ -20,39 +12,56 @@
     margin-right: 5px;
 }
 
-.dlw-Table-experiments tr:hover:nth-child(even) {
+.p-Widget a {
+    color: #1970b7;
+}
+
+.ewai-table {
+    margin: 1px;
+    padding: 1px;
+}
+
+.ewai-table th, tr, td {
+    padding: 2px;
+}
+
+.ewai-notebookExperimentWidget {
+    overflow: scroll
+}
+
+.ewai-experiments {
+    padding-right: 5px;
+}
+
+.ewai-Table-experiments {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    width: 100%;
+    background-color: #ffffff;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.ewai-Table-experiments tr:hover:nth-child(even) {
     background-color: #ddd;
 }
 
-.dlw-Table-experiments tr:hover:nth-child(odd) {
+.ewai-Table-experiments tr:hover:nth-child(odd) {
     background-color: #ddd;
 }
 
-.dlw-Table-experiments tr:nth-child(even) {
+.ewai-Table-experiments tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
-.dlw-Table-experiments td {
+.ewai-Table-experiments td {
     font-weight: normal;
     padding: 10px;
 }
 
-.dlw-Table-experiments thead {
+.ewai-Table-experiments thead {
     color: #495057;
 
     background-color: #e9ecef;
     padding-left: 10px;
     padding-right: 10px;
-}
-
-.dlw-notebookExperimentWidget {
-    overflow: scroll
-}
-
-.dlw-experiments {
-    padding-right: 5px;
-}
-
-.p-Widget a {
-    color: #1970b7;
 }

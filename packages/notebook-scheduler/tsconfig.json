@@ -4,5 +4,6 @@
     "outDir": "lib",
     "rootDir": "src"
   },
-  "include": ["src/*"]
+  "include": ["src/*","src/*/*"],
+  "files": ["src/pipeline-template.json"]
 }
