@@ -59,6 +59,7 @@ class Canvas extends ReactWidget {
   browserFactory: IFileBrowserFactory;
   canvasController: any;
   context: DocumentRegistry.Context;
+  position: number = 10;
 
   constructor(props: any) {
     super(props);
@@ -157,12 +158,13 @@ class Canvas extends ReactWidget {
           //add each selected notebook
           console.log('Adding ==> ' + item.path );
 
-          const nodeTemplate = this.canvasController.getPaletteNode('notebook');
+          this.position += 20;
+          const nodeTemplate = this.canvasController.getPaletteNode('execute-notebook-node');
           if (nodeTemplate) {
             const data = {
               'editType': 'createNode',
-              'offsetX': 75,
-              'offsetY': 85,
+              'offsetX': 75 + this.position,
+              'offsetY': 85 + this.position,
               'nodeTemplate': this.canvasController.convertNodeTemplate(nodeTemplate)
             }
 
