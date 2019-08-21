@@ -17,6 +17,7 @@ clean: ## Make a clean source tree
 	-rm -rf *.egg-info
 	-rm -rf node_modules
 	-rm -rf yarn.lock
+	-rm -rf yarn-error.log
 	-lerna run clean
 
 build: ## Build distribution

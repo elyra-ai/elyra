@@ -25,7 +25,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf tsconfig.tsbuildinfo",
+    "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf yarn-error.log && rimraf tsconfig.tsbuildinfo",
     "prepare": "npm run clean && npm run build",
     "watch": "tsc -w"
   },
