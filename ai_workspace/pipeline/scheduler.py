@@ -3,18 +3,14 @@ import kfp
 import os
 import re
 import tarfile
-
-from notebook.pipeline._notebook_op import NotebookOp
-
+import tempfile
 
 from datetime import datetime
-from minio import Minio
-from minio.error import (ResponseError,
-                         BucketAlreadyOwnedByYou,
-                         BucketAlreadyExists)
 from notebook.base.handlers import IPythonHandler
-
+from notebook.pipeline._notebook_op import NotebookOp
 from ai_workspace.metadata.metadata import Metadata, MetadataManager, FileMetadataStore
+from minio import Minio
+from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists
 
 
 class SchedulerHandler(IPythonHandler):
@@ -95,7 +91,6 @@ class SchedulerHandler(IPythonHandler):
                 notebookPath = labels[componentId]
                 name = os.path.basename(notebookPath).split(".")[0]
                 output_filename = options['pipeline_name'] + datetime.now().strftime("%m%d%H%M%S") + ".tar.gz"
-                extracted_dir_from_tar = "jupyter-work-dir"
                 docker_image = docker_images[componentId]
 
                 self.log.debug("Creating pipeline component :\n "
@@ -103,13 +98,11 @@ class SchedulerHandler(IPythonHandler):
                                "inputs : %s \n "
                                "name : %s \n "
                                "output_filename : %s \n "
-                               "extracted_dir_from_tar : %s \n"
                                "docker image : %s \n ",
                                componentId,
                                inputs,
                                name,
                                output_filename,
-                               extracted_dir_from_tar,
                                docker_image)
 
                 notebookops[componentId] = NotebookOp(name=name,
@@ -129,16 +122,18 @@ class SchedulerHandler(IPythonHandler):
 
                     self.log.debug("Creating TAR archive %s with contents from %s", output_filename, notebook_work_dir)
 
-                    with tarfile.open(output_filename, "w:gz") as tar:
-                        tar.add(notebook_work_dir, arcname="")
+                    with tempfile.TemporaryDirectory() as archive_temp_dir:
+                        with tarfile.open(archive_temp_dir+output_filename, "w:gz") as tar:
+                            tar.add(notebook_work_dir, arcname="")
+                        self.log.debug("Creating temp directory for archive TAR : %s", archive_temp_dir)
+                        self.log.info("TAR archive %s created", output_filename)
 
-                    self.log.info("TAR archive %s created", output_filename)
+                        minio_client.fput_object(bucket_name=bucket_name,
+                                                 object_name=output_filename,
 
-                    minio_client.fput_object(bucket_name=bucket_name,
-                                             object_name=output_filename,
-                                             file_path=output_filename)
+                                                 file_path=archive_temp_dir+output_filename)
 
-                    self.log.debug("TAR archive %s pushed to bucket : %s ", output_filename, bucket_name)
+                        self.log.debug("TAR archive %s pushed to bucket : %s ", output_filename, bucket_name)
 
                 except ResponseError:
                     self.log.error("ERROR : From object storage", exc_info=True)
@@ -152,26 +147,23 @@ class SchedulerHandler(IPythonHandler):
 
         pipeline_name = options['pipeline_name']+datetime.now().strftime("%m%d%H%M%S")
 
-        local_working_dir = "pipeline_files"
-        self.log.info("Pipeline : %s", pipeline_name)
-        self.log.debug("Creating local directory %s", local_working_dir)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pipeline_path = temp_dir+'/'+pipeline_name+'.tar.gz'
 
-        if not os.path.exists(local_working_dir):
-            os.mkdir(local_working_dir)
+            self.log.info("Pipeline : %s", pipeline_name)
+            self.log.debug("Creating temp directory %s", temp_dir)
 
-        pipeline_path = local_working_dir+'/'+pipeline_name+'.tar.gz'
+            # Compile the new pipeline
+            kfp.compiler.Compiler().compile(cc_pipeline,pipeline_path)
 
-        # Compile the new pipeline
-        kfp.compiler.Compiler().compile(cc_pipeline,pipeline_path)
+            self.log.info("Kubeflow Pipeline successfully compiled!")
+            self.log.debug("Kubeflow Pipeline compiled pipeline placed into %s", pipeline_path)
 
-        self.log.info("Kubeflow Pipeline successfully compiled!")
-        self.log.debug("Kubeflow Pipeline compiled pipeline placed into %s", pipeline_path)
+            # Upload the compiled pipeline and create an experiment and run
+            client = kfp.Client(host=api_endpoint)
+            kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
 
-        # Upload the compiled pipeline and create an experiment and run
-        client = kfp.Client(host=api_endpoint)
-        kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
-
-        self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
+            self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
         client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
                             job_name=datetime.now().strftime("%m%d%H%M%S"),
@@ -195,4 +187,5 @@ class SchedulerHandler(IPythonHandler):
         msg = json.dumps({"status": "error",
                           "message": error_message})
         self.send_message(msg)
+
 
