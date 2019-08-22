@@ -47,10 +47,7 @@ Note that ```xxx``` should be replaced by your encoded IBM e-mail address (e.g. 
 3. Click on Generate API token
 4. On your MacMook run  
 
-       npm config set registry https://registry.npmjs.org/
-       npm config set @xtuc:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
-       npm config set @wdp:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-local/
-       npm config set @ibm-analytics:registry https://na.artifactory.swg-devops.com/artifactory/api/npm/hyc-design-npm-local/
+       npm config set registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
 5. and
        curl -u [email]:[api token] https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/
 6. Run following and copy output to clipboard
@@ -60,10 +57,7 @@ Note that ```xxx``` should be replaced by your encoded IBM e-mail address (e.g. 
 After all these commands, your ```~/.npmrc``` file should look like
 
 ```bash
-registry=https://registry.npmjs.org/
-@xtuc:registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
-@wdp:registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-local/
-@ibm-analytics:registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/hyc-design-npm-local/
+registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
 _auth=XXXXXXXXXXXXXXXXXXXXXX
 always-auth=true
 email=XXXXXXXX@us.ibm.com
