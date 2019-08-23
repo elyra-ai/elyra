@@ -2,18 +2,24 @@ import {Kernel} from '@jupyterlab/services';
 import {CodeEditor} from '@jupyterlab/codeeditor';
 
 /**
- * A code runner for python editors
+ * Class: A code runner for python editors
  */
 export class PythonRunner {
     kernel : Kernel.IKernel;
     model: CodeEditor.IModel;
     kernelSettings: Kernel.IOptions;
 
+  /**
+   * Construct a new runner.
+   */
     constructor(model: CodeEditor.IModel){
         this.kernel = null;
         this.model = model;
     }
 
+    /**
+     * Function: Starts a python kernel and executes code from file editor.
+     */
     runPython = async (kernelSettings: Kernel.IOptions, handleKernelMsg: Function) => {
         if (!this.kernel) {
           const model = this.model;
@@ -59,15 +65,24 @@ export class PythonRunner {
         }
       };
 
+    /**
+     * Function: Gets available kernel specs.
+     */
       getKernelSpecs = async () => {
         const kernelSpecs = await Kernel.getSpecs();
         return kernelSpecs;
       };
 
+    /**
+     * Function: Starts new kernel.
+     */
       startKernel = async (options: Kernel.IOptions) => {
         return Kernel.startNew(options);
       };
 
+    /**
+     * Function: Shuts down kernel.
+     */
       shutDownKernel = async () => {
         if (this.kernel) {
           const name = this.kernel.name;

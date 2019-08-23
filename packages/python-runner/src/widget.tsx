@@ -9,24 +9,24 @@ import {HTMLSelect} from '@jupyterlab/ui-components';
 import {Kernel} from '@jupyterlab/services';
 import {OutputArea, OutputAreaModel, OutputPrompt} from '@jupyterlab/outputarea';
 import {RenderMimeRegistry,standardRendererFactories as initialFactories} from '@jupyterlab/rendermime';
-import {BoxLayout, PanelLayout} from '@phosphor/widgets';
+import {BoxLayout, PanelLayout, Widget, DockPanel, TabBar} from '@phosphor/widgets';
 
 import {PythonRunner} from './PythonRunner';
 
 /**
- * The CSS class added to widgets
+ * The CSS class added to widgets.
  */
 const PYTHON_FILE_EDITOR_CLASS = 'ewai-PythonEditor';
 const OUTPUT_AREA_CLASS = 'ewai-PythonEditor-OutputArea';
 const OUTPUT_AREA_ERROR_CLASS = 'ewai-PythonEditor-OutputArea-error';
 const OUTPUT_AREA_CHILD_CLASS = 'ewai-PythonEditor-OutputArea-child';
 const OUTPUT_AREA_PROMPT_CLASS = 'ewai-PythonEditor-OutputArea-prompt';
+// const COLLAPSE_ICON_CLASS = 'ewai-PythonEditor-CollapseIcon';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown';
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const SAVE_ICON_CLASS = 'jp-SaveIcon';
-
 
 /**
  * A widget for python editors.
@@ -34,6 +34,7 @@ const SAVE_ICON_CLASS = 'jp-SaveIcon';
 export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistry.ICodeModel> {
   private runner: PythonRunner;
   private kernelSettings: Kernel.IOptions;
+  private dockPanel: DockPanel;
   private outputAreaWidget: OutputArea;
   private model: any;
 
@@ -71,11 +72,27 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
       tooltip: 'Stop'
     });
 
+    // Populate toolbar with button widgets
     const toolbar = this.toolbar;
     toolbar.addItem('save', saveButton);
     toolbar.addItem('select', dropDown);
     toolbar.addItem('run', runButton);
     toolbar.addItem('stop', stopButton);
+
+    // Create output area widget
+    this.createOutputAreaWidget();
+  }
+
+  /**
+   * Function: Creates an OutputArea widget wrapped in a DockPanel.
+   */
+  private createOutputAreaWidget = () => {
+    // Add dockpanel wrapper for output area
+    this.dockPanel = new DockPanel();
+    Widget.attach(this.dockPanel, document.body);
+    window.addEventListener('resize', () => {
+      this.dockPanel.fit();
+    });
 
     // Create output area widget
     const model: OutputAreaModel = new OutputAreaModel();
@@ -84,29 +101,44 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
 
     const layout = this.layout as BoxLayout;
-    layout.addWidget(this.outputAreaWidget);
-  }
+    // TODO: Investigate SplitLayout instead of BoxLayout, for layout resizing functionality
+    // const layout = this.layout as SplitLayout;
+    layout.addWidget(this.dockPanel);
+  };
 
+  /**
+   * Function: Updates kernel settings as per drop down selection.
+   */
   private updateSelectedKernel = (selection: string) => {
     this.kernelSettings.name = selection;
   };
 
+  /**
+   * Function: Clears existing output area and runs python code from file editor.
+   */
   private runPython = async () => {
     this.resetOutputArea();
+    this.displayOutputArea();
     this.runner.runPython(this.kernelSettings, this.handleKernelMsg);
   };
 
+  /**
+   * Function: Clears existing output area.
+   */
   private resetOutputArea = () => {
+    // TODO: hide this.layout(), or set its height to 0
+    this.dockPanel.hide();
     this.outputAreaWidget.model.clear();
-    this.outputAreaWidget.removeClass(OUTPUT_AREA_ERROR_CLASS);
-    BoxLayout.setStretch(this.outputAreaWidget, 0);
+    this.outputAreaWidget.removeClass(OUTPUT_AREA_ERROR_CLASS); // if no error class is found, command is ignored
   };
 
+  /**
+   * Function: Call back function passed to runner, that handles messages coming from the kernel.
+   */
   private handleKernelMsg = async (msg: any) => {
     let output = '';
 
     if (msg.status){
-      this.setOutputAreaVisibility(true);
       this.displayKernelStatus(msg.status);
       return;
     } else if (msg.error) {
@@ -118,15 +150,34 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     this.displayOutput(output);
   };
 
-  private setOutputAreaVisibility = (visibility: boolean) => {
-    if (visibility){
-      BoxLayout.setStretch(this.outputAreaWidget, 1);
+  /**
+   * Function: Displays output area widget.
+   */
+  private displayOutputArea = () => {
+    this.dockPanel.show();
+
+    // TODO: Set layout height to be flexible
+    BoxLayout.setStretch(this.dockPanel, 1);
+
+    if ( !this.hasOutputTab() ){
+      // Add a tab to dockPanel
+      this.dockPanel.addWidget(this.outputAreaWidget, { mode: 'split-bottom' });
+
+      let outputTab: TabBar<Widget> = this.dockPanel.tabBars().next();
+      outputTab.id = 'tab-python-editor-output';
+      outputTab.currentTitle.label = 'Python Console Output';
+      outputTab.currentTitle.closable = true;
+      this.addCollapseButton();
     }
   };
 
+  /**
+   * Function: Displays kernel status, similar to notebook.
+   */
   private displayKernelStatus = (status: string) => {
     if (status === 'busy') {
-      this.addOutputAreaChildWidget(' ');
+      // TODO: Use a character that does not take any space, also not an empty string
+      this.displayOutput(' ');
       this.updatePromptText('*');
     }
     else if (status === 'idle'){
@@ -134,38 +185,66 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     }
   };
 
+  /**
+   * Function: Displays python code in OutputArea widget.
+   */
   private displayOutput = (output: string) => {
     if (output) {
-      this.addOutputAreaChildWidget(output);
+      let options = {
+        name: 'stdout',
+        output_type: 'stream',
+        text: [output]
+      };
+      this.outputAreaWidget.model.add(options);
+  
+      this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
+      this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
     }
   };
 
+  /**
+   * Function: Gets OutputArea child widget, where output and kernel status are displayed.
+   */
   private getOutputAreaChildWidget = () => {
     const outputAreaChildLayout = this.outputAreaWidget.layout as PanelLayout;
     return outputAreaChildLayout.widgets[0];
   };
 
+  /**
+   * Function: Gets OutputArea prompt widget, where kernel status is displayed.
+   */
   private getOutputAreaPromptWidget = () => {
     const outputAreaChildLayout = this.getOutputAreaChildWidget().layout as PanelLayout;
     return outputAreaChildLayout.widgets[0] as OutputPrompt;
   };
 
+  /**
+   * Function: Updates OutputArea prompt widget to display kernel status.
+   */
   private updatePromptText = (kernelStatusFlag: string) => {
     this.getOutputAreaPromptWidget().node.innerText = '[' + kernelStatusFlag + ']:';
   };
 
-  private addOutputAreaChildWidget = (text: string) => {
-    let options = {
-      name: 'stdout',
-      output_type: 'stream',
-      text: [text]
-    };
-    this.outputAreaWidget.model.add(options);
+  /**
+   * Function: Returns a boolean representing if the DockPanel instance has a TabBar.
+   */
+  private hasOutputTab = () => {
+    return Object.entries(this.dockPanel.tabBars()).length !== 0;
+  }
 
-    this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
-    this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
+  //  TODO: Add collapse button to tab
+  private addCollapseButton = () => {
+    // Commented code below swaps close icon to collapse icon. We want both.
+    // const tabBar = this.dockPanel.tabBars().next();
+    // let closeIconElem = tabBar.contentNode.getElementsByClassName('p-TabBar-tabCloseIcon')[0];
+    // if (closeIconElem){
+    //   closeIconElem.classList.add(COLLAPSE_ICON_CLASS);
+    // }
   };
 
+  /**
+   * Function: Saves file editor content.
+   */
   private saveFile = () => {
     if (this.model.readOnly) {
       return showDialog({
@@ -185,22 +264,31 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
   };
 }
 
+/**
+ * Class: Holds properties for toolbar dropdown.
+ */
 class DropDownProps {
   runner: PythonRunner;
   updateKernel: Function;
 };
 
+/**
+ * Class: Holds kernel state property.
+ */
 class DropDownState {
   kernelSpecs: Kernel.ISpecModels;
 };
 
 /**
- * A toolbar dropdown widget populated with available kernel specs
+ * Class: A toolbar dropdown component populated with available kernel specs.
  */
 class DropDown extends React.Component<DropDownProps, DropDownState> {
   private updateKernel: Function;
   private kernelOptionElems: Object[];
 
+  /**
+   * Construct a new dropdown widget.
+   */
   constructor(props: DropDownProps) {
     super(props);
     this.state = {kernelSpecs: null};
@@ -209,6 +297,9 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
     this.getKernelSPecs();
   }
 
+  /**
+   * Function: Gets kernel specs and state.
+   */
   private async getKernelSPecs() {
     const specs: Kernel.ISpecModels = await this.props.runner.getKernelSpecs();
     this.filterPythonKernels(specs);
@@ -220,12 +311,18 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
     this.setState({kernelSpecs: specs});
   }
 
+  /**
+   * Function: Filters for python kernel specs only.
+   */
   private filterPythonKernels = (specs: Kernel.ISpecModels) => {
     Object.entries(specs.kernelspecs)
       .filter(entry => entry[1].language !== 'python')
       .forEach(entry => delete specs.kernelspecs[entry[0]]);
   }
 
+  /**
+   * Function: Creates drop down options with available python kernel specs.
+   */
   private createOptionElems  = (specs: Kernel.ISpecModels) => {
     const kernelNames : string[] = Object.keys(specs.kernelspecs);
     kernelNames.forEach((specName: string, i: number) => {
@@ -234,6 +331,9 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
     });
   }
 
+  /**
+   * Function: Handles kernel selection from dropdown options.
+   */
   private handleSelection = (event: any) => {
     const selection: string = event.target.value;
     this.updateKernel(selection);
@@ -252,10 +352,16 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   }
 }
 
+/**
+ * Class: A CellTypeSwitcher widget that renders the Dropdown component.
+ */
 export class CellTypeSwitcher extends ReactWidget {
   private runner: PythonRunner;
   private updateKernel: Function;
 
+  /**
+   * Construct a new CellTypeSwitcher widget.
+   */
   constructor(runner: PythonRunner, updateKernel: Function) {
     super();
     this.runner = runner;

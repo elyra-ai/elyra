@@ -13,3 +13,13 @@
     padding: unset;
     text-align: center;
 }
+
+/*
+.ewai-PythonEditor .p-DockPanel-tabBar .p-TabBar-tab.p-mod-closable > .ewai-PythonEditor-CollapseIcon { 
+    background-image: url('icons/collapse.svg');
+    background-repeat: no-repeat;
+    background-position: top;
+    background-size: 50%;
+    width: 30px;
+}
+*/
