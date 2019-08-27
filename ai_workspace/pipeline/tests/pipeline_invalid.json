@@ -1,0 +1,22 @@
+{
+    "id": "{{uuid}}",
+    "nodes": [{
+        "id": "{{uuid}}",
+        "type": "{{type}}",
+        "app_data": {
+            "platform": "{{platform}}",
+            "image": "{{image}}",
+            "ui_data": {
+                "label": "{{title}}",
+                "x_pos": 75,
+                "y_pos": 85,
+                "description": "Notebook file"
+            }
+        }
+    }],
+    "app_data": {
+        "ui_data": {
+            "title": "{{title}}"
+        }
+    }
+}
