@@ -68,12 +68,12 @@ class MetadataManagerTestCase(unittest.TestCase):
 
     def test_read_valid_metadata_by_name(self):
         metadata_name = 'valid'
-        some_metadata = self.metadata_manager.read(metadata_name)
+        some_metadata = self.metadata_manager.get(metadata_name)
         self.assertEqual(some_metadata.name, metadata_name)
 
     def test_read_invalid_metadata_by_name(self):
         metadata_name = 'invalid'
-        some_metadata = self.metadata_manager.read(metadata_name)
+        some_metadata = self.metadata_manager.get(metadata_name)
         self.assertIsNone(some_metadata)
 
 
