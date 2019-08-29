@@ -82,7 +82,7 @@ class Canvas extends ReactWidget {
 
   render() {
     const style = { height: '100%' };
-    const canvasConfig = { 
+    const canvasConfig = {
       enableInternalObjectModel: true,
       enablePaletteLayout: 'Modal',
       paletteInitialState: false
@@ -173,8 +173,9 @@ class Canvas extends ReactWidget {
 
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
-            data.nodeTemplate.app_data.notebook = item.path;
-            data.nodeTemplate.app_data.docker_image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
+            data.nodeTemplate.app_data.platform = 'kfp';
+            data.nodeTemplate.app_data.artifact = item.path;
+            data.nodeTemplate.app_data.image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
             this.canvasController.editActionHandler(data);
           }
         }
@@ -195,9 +196,10 @@ class Canvas extends ReactWidget {
 
       // prepare notebook submission details
       console.log(this.canvasController.getPipelineFlow());
-      let notebookTask = {'pipeline_data': this.canvasController.getPipelineFlow().pipelines[0],
-                          'pipeline_name': result.value.pipeline_name};
-      let requestBody = JSON.stringify(notebookTask);
+      let pipelineFlow = this.canvasController.getPipelineFlow().pipelines[0];
+      pipelineFlow['app_data']['ui_data']['title'] = result.value.pipeline_name;
+
+      let requestBody = JSON.stringify(pipelineFlow);
 
       // use ServerConnection utility to make calls to Jupyter Based services
       // which in this case is the scheduler extension installed by this package
@@ -263,7 +265,7 @@ class Canvas extends ReactWidget {
   }
 
   handleNew() {
-    // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name. 
+    // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name.
     this.jupyterFrontEnd.commands.execute(commandIDs.openPipelineEditor);
   }
 
@@ -359,12 +361,12 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // Handle state restoration
-    void restorer.restore(tracker, 
+    void restorer.restore(tracker,
     {
       command: commandIDs.openDocManager,
-      args: widget => ({ 
-        path: widget.context.path, 
-        factory: PIPELINE_FACTORY 
+      args: widget => ({
+        path: widget.context.path,
+        factory: PIPELINE_FACTORY
       }),
       name: widget => widget.context.path
     });
