@@ -173,9 +173,9 @@ class Canvas extends ReactWidget {
 
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
-            data.nodeTemplate.app_data.platform = 'kfp';
-            data.nodeTemplate.app_data.artifact = item.path;
-            data.nodeTemplate.app_data.image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
+            data.nodeTemplate.app_data['platform'] = 'kfp';
+            data.nodeTemplate.app_data['artifact'] = item.path;
+            data.nodeTemplate.app_data['image'] = 'tensorflow/tensorflow:1.13.2-gpu-py3-jupyter';
             this.canvasController.editActionHandler(data);
           }
         }
@@ -188,16 +188,18 @@ class Canvas extends ReactWidget {
     showDialog({
       body: new PipelineDialog({})
     }).then( result => {
-      console.log(result);
       if( result.value == null) {
         // When Cancel is clicked on the dialog, just return
         return;
       }
 
       // prepare notebook submission details
+      console.log('Pipeline definition:')
       console.log(this.canvasController.getPipelineFlow());
+
       let pipelineFlow = this.canvasController.getPipelineFlow().pipelines[0];
       pipelineFlow['app_data']['ui_data']['title'] = result.value.pipeline_name;
+      pipelineFlow['app_data']['ui_data']['platform'] = 'kfp';
 
       let requestBody = JSON.stringify(pipelineFlow);
 

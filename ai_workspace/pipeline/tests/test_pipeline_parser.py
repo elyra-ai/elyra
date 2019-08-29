@@ -36,6 +36,9 @@ class PipelineParserTestCase(unittest.TestCase):
 
         self.assertEqual(len(pipeline.operations), 3)
 
+        for o in pipeline.operations.values():
+            print(o.id)
+
     def test_parse_pipeline_with_dependencies(self):
         pipeline_definition = self.read_pipeline_resource('pipeline_3_node_sample_with_dependencies.json')
 

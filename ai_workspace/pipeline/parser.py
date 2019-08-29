@@ -7,9 +7,12 @@ from traitlets.config import LoggingConfigurable
 class PipelineParser(LoggingConfigurable):
 
     @staticmethod
-    def parse(pipeline):
+    def parse(pipeline) -> Pipeline:
 
-        pipeline_object = Pipeline(pipeline['id'], __class__._read_pipeline_title(pipeline))
+        pipeline_object = Pipeline(pipeline['id'],
+                                   __class__._read_pipeline_title(pipeline),
+                                   __class__._read_pipeline_platform(pipeline))
+
         for node in pipeline['nodes']:
             # parse links as dependencies
             links = __class__._read_pipeline_operation_dependencies(node)
@@ -38,7 +41,7 @@ class PipelineParser(LoggingConfigurable):
         return self.__logger
 
     @staticmethod
-    def _read_pipeline_title(pipeline):
+    def _read_pipeline_title(pipeline) -> str:
         title = 'untitled'
         if 'app_data' in pipeline.keys():
             if 'ui_data' in pipeline['app_data'].keys():
@@ -48,7 +51,17 @@ class PipelineParser(LoggingConfigurable):
         return title
 
     @staticmethod
-    def _read_pipeline_operation_dependencies(node):
+    def _read_pipeline_platform(pipeline) -> str:
+        platform = 'kfp'
+        if 'app_data' in pipeline.keys():
+            if 'ui_data' in pipeline['app_data'].keys():
+                if 'platform' in pipeline['app_data']['ui_data'].keys():
+                    title = pipeline['app_data']['ui_data']['platform']
+
+        return platform
+
+    @staticmethod
+    def _read_pipeline_operation_dependencies(node) -> str:
         dependencies = []
         if 'inputs' in node.keys():
             if 'links' in node['inputs'][0].keys():

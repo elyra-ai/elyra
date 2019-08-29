@@ -54,9 +54,10 @@ class Operation:
 
 class Pipeline:
 
-    def __init__(self, id, title):
+    def __init__(self, id, title, platform):
         self._id = id
         self._title = title
+        self._platform = platform
         self._operations = {}
 
     @property
@@ -68,10 +69,15 @@ class Pipeline:
         return self._title
 
     @property
+    def platform(self):
+        return self._platform
+
+    @property
     def operations(self):
         return self._operations
 
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
             return self.title == other.title and \
+                   self.platform == other.platform and \
                    self.operations == other.operations
