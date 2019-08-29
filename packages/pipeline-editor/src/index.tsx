@@ -1,17 +1,20 @@
 import {JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer} from '@jupyterlab/application';
-import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
-import {ServerConnection} from '@jupyterlab/services';
-import {URLExt} from '@jupyterlab/coreutils';
 import {ICommandPalette, showDialog, Dialog, ReactWidget, WidgetTracker} from '@jupyterlab/apputils';
-import {Widget, PanelLayout} from '@phosphor/widgets';
-import {toArray} from '@phosphor/algorithm';
+import {URLExt} from '@jupyterlab/coreutils';
 import {DocumentRegistry, ABCWidgetFactory, DocumentWidget} from '@jupyterlab/docregistry';
+import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
 import {ILauncher} from '@jupyterlab/launcher';
+import {ServerConnection} from '@jupyterlab/services';
+
+import {toArray} from '@phosphor/algorithm';
+import {Widget, PanelLayout} from '@phosphor/widgets';
+
 import {CommonCanvas, CanvasController} from '@wdp/common-canvas';
-import 'carbon-components/css/carbon-components.min.css';
 import '@wdp/common-canvas/dist/common-canvas.min.css';
-import * as palette from './palette.json' ;
+import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
+
+import * as palette from './palette.json' ;
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
