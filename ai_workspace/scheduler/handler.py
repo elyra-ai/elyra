@@ -7,8 +7,9 @@ import tempfile
 
 from datetime import datetime
 from notebook.base.handlers import IPythonHandler
-from notebook.pipeline._notebook_op import NotebookOp
-from ai_workspace.metadata.metadata import Metadata, MetadataManager, FileMetadataStore
+from notebook.pipeline import NotebookOp
+from ai_workspace.metadata import Metadata, MetadataManager, FileMetadataStore
+from ai_workspace.pipeline import Pipeline, Operation, PipelineParser
 from minio import Minio
 from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists
 
