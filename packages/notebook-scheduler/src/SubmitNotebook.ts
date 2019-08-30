@@ -68,22 +68,14 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
 
       // prepare notebook submission details
       let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions> result.value;
-
-      notebookOptions.kernelspec = "python3";
-      notebookOptions.notebook_name = "---";
-      notebookOptions.notebook = this.panel.content.model.toJSON();
-
-      let pipeline = Utils.generateNotebookPipeline(this.panel.context.path)
+      let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions)
       console.log(pipeline)
 
       // use ServerConnection utility to make calls to Jupyter Based services
       // which in this case is the scheduler extension installed by this package
       let settings = ServerConnection.makeSettings();
       let url = URLExt.join(settings.baseUrl, 'scheduler');
-
-      let notebookTask = {'pipeline_data': pipeline.pipelines[0],
-                          'pipeline_name': notebookOptions.notebook_name};
-      let requestBody = JSON.stringify(notebookTask);
+      let requestBody = JSON.stringify(pipeline.pipelines[0]);
 
       console.log('Submitting pipeline to -> ' + url);
       ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
@@ -273,7 +265,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       }
 
       return html;
-      
+
     } else {
       return '';
     }

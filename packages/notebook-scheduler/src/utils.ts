@@ -1,5 +1,6 @@
 import uuid4 from 'uuid/v4';
 import pipeline_template from './pipeline-template.json';
+import {ISubmitNotebookOptions} from "./SubmitNotebook";
 
 /**
  * A utilities class for static functions.
@@ -56,10 +57,13 @@ export default class Utils {
 		return uuid4();
 	}
 
-  static generateNotebookPipeline(notebookPath:string) {
+  static generateNotebookPipeline(artifact:string, options:ISubmitNotebookOptions) {
     let template = pipeline_template;
-
     let generated_uuid : string = Utils.getUUID();
+
+    let artifactFileName =  artifact.replace(/^.*[\\\/]/, '');
+    let artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
+
 
     template.id = generated_uuid;
     template.primary_pipeline = generated_uuid;
@@ -67,13 +71,15 @@ export default class Utils {
 
     template.pipelines[0].nodes[0].id = generated_uuid;
     // @ts-ignore
-    template.pipelines[0].nodes[0].app_data.platform = 'kfp';
+    template.pipelines[0].nodes[0].app_data.platform = options.platform;
     // @ts-ignore
-    template.pipelines[0].nodes[0].app_data.notebook = notebookPath;
+    template.pipelines[0].nodes[0].app_data.artifact = artifact;
     // @ts-ignore
-    template.pipelines[0].nodes[0].app_data.docker_image = 'tensorflow/tensorflow:1.13.2-py3-jupyter';
+    template.pipelines[0].nodes[0].app_data.image = 'tensorflow/tensorflow:1.13.2-gpu-py3-jupyter';
     // @ts-ignore
-    template.pipelines[0].nodes[0].app_data.ui_data.label = 'kfp';
+    template.pipelines[0].nodes[0].app_data.ui_data.label = artifactName;
+    // @ts-ignore
+    template.pipelines[0].app_data.ui_data.title = artifactName;
 
     return template;
   }
