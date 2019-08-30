@@ -77,7 +77,7 @@ class SchedulerHandler(IPythonHandler):
 
                 # create pipeline operation
                 notebook_op = NotebookOp(name=operation.title,
-                                         notebook=operation.artifact,
+                                         notebook=operation.artifact_name,
                                          cos_endpoint=cos_endpoint,
                                          cos_user=cos_username,
                                          cos_password=cos_password,

@@ -1,3 +1,4 @@
+import os
 
 class Operation:
 
@@ -32,6 +33,14 @@ class Operation:
     @property
     def artifact(self):
         return self._artifact
+
+    @property
+    def artifact_filename(self):
+        return os.path.basename(self._artifact)
+
+    @property
+    def artifact_name(self):
+        return os.path.basename(self._artifact).split(".")[0]
 
     @property
     def image(self):
