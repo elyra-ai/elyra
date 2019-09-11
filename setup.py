@@ -11,6 +11,8 @@ setup(
     author="CODAIT",
     version="0.0.1",
     packages=find_packages(),
+    data_files=[('etc/jupyter/jupyter_notebook_config.d',
+                 ['jupyter-config/jupyter_notebook_config.d/ai_workspace.json'])],
     install_requires=[
         'ipywidgets',
         'notebook>=6',

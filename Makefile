@@ -18,17 +18,15 @@ clean: ## Make a clean source tree
 	-rm -rf node_modules
 	-rm -rf yarn.lock
 	-rm -rf yarn-error.log
-	-lerna run clean
 
 build: ## Build distribution
 	-rm -f yarn.lock package-lock.json
 	-python setup.py bdist_wheel
 	-yarn add --dev lerna -W
-	-lerna run build
+	-./node_modules/.bin/lerna run build
 
 install: build ## Build distribution and install
-	-pip install --upgrade -e .
-	-jupyter serverextension enable --py ai_workspace --sys-prefix
+	-pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
 	-$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	-$(call INSTALL_LAB_EXTENSION,python-runner)
 	-$(call INSTALL_LAB_EXTENSION,pipeline-editor)
