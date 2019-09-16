@@ -117,3 +117,36 @@ followed by
 jupyter runtime list
 ```
 
+## Pushing and Pulling from IBM Container Registry
+
+Ensure you have the IBM Cloud CLI installed on your system. Install Instructions are [HERE](https://cloud.ibm.com/docs/cli?topic=cloud-cli-getting-started)
+
+Login with your IBM id and make sure to select the Developer Advocate Account:
+```bash
+ibmcloud login --sso
+```
+Set your region and login to the registry:
+```bash
+ibmcloud cr region-set us-south
+ibmcloud cr login
+```
+
+### Pushing
+Rename the image you want then push to the following docker schema:
+```bash
+docker tag [local image to push] us.icr.io/tommychaopingli/[local image to push]
+docker push  us.icr.io/tommychaopingli/[local image to push]
+
+Example:
+docker tag akchin/ai-workspace:test us.icr.io/tommychaopingli/ai-workspace:test
+```
+NOTE: We are using the `tommychaopingli` namespace because the account quota is maxed out for namespaces.
+### Pulling
+
+```bash
+docker pull us.icr.io/tommychaopingli/[image to pull]
+
+Example:
+docker pull us.icr.io/tommychaopingli/ai-workspace:test
+```
+
