@@ -180,19 +180,21 @@ class FileMetadataStore(MetadataStore):
         return metadata.resource
 
     def _find_metadata_resource(self, name):
-        for f in os.listdir(self.metadata_dir):
-            resource = os.path.join(self.metadata_dir, f)
-            if os.path.splitext(os.path.basename(resource))[0] == name:
-                return Metadata.from_resource(resource)
+        if os.path.exists(self.metadata_dir):
+            for f in os.listdir(self.metadata_dir):
+                resource = os.path.join(self.metadata_dir, f)
+                if os.path.splitext(os.path.basename(resource))[0] == name:
+                    return Metadata.from_resource(resource)
 
         # Metadata not found
         return None
 
     def _find_all_metadata(self):
         metadata_list = []
-        for f in os.listdir(self.metadata_dir):
-            path = os.path.join(self.metadata_dir, f)
-            metadata = Metadata.from_resource(path)
-            metadata_list.append(metadata)
+        if os.path.exists(self.metadata_dir):
+            for f in os.listdir(self.metadata_dir):
+                path = os.path.join(self.metadata_dir, f)
+                metadata = Metadata.from_resource(path)
+                metadata_list.append(metadata)
 
         return metadata_list
