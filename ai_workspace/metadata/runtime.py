@@ -1,3 +1,5 @@
+import json
+
 from .metadata import Metadata, MetadataManager
 
 from traitlets.config.application import Application
@@ -6,8 +8,6 @@ from jupyter_core.application import (
 )
 from traitlets import Instance, Dict, Unicode, Bool, List
 from ai_workspace._version import __version__
-
-import json
 
 
 class Runtime(Metadata):
@@ -35,7 +35,8 @@ class ListRuntimes(JupyterApp):
         runtimes = self.metadata_manager.get_all_metadata_summary()
 
         if not runtimes:
-            print("No metadata available for external runtimes")
+            print("No metadata available for external runtimes at : '{}'"
+                  .format(self.metadata_manager.get_metadata_location))
             return
 
         if self.json_output:

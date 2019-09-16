@@ -79,6 +79,10 @@ class MetadataManager(LoggingConfigurable):
         else:
             self.metadata_store = FileMetadataStore(namespace, **kwargs)
 
+    @property
+    def get_metadata_location(self):
+        return self.metadata_store.get_metadata_location
+
     def get_all_metadata_summary(self):
         return self.metadata_store.get_all_metadata_summary()
 
@@ -97,6 +101,10 @@ class MetadataManager(LoggingConfigurable):
 
 class MetadataStore(ABC):
     def __init__(self, namespace, **kwargs):
+        ...
+
+    @abstractmethod
+    def get_metadata_location(self):
         ...
 
     @abstractmethod
@@ -126,6 +134,10 @@ class FileMetadataStore(MetadataStore):
         self.namespace = namespace
         self.data_dir = kwargs.get('data_dir', jupyter_data_dir())
         self.metadata_dir = kwargs.get('metadata_dir', os.path.join(self.data_dir, 'metadata/' + self.namespace))
+
+    @property
+    def get_metadata_location(self):
+        return self.metadata_dir
 
     def get_all_metadata_summary(self):
         metadata_list = self._find_all_metadata()
