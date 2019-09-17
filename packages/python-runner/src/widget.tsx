@@ -96,8 +96,8 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
 
     // Create output area widget
     const model: OutputAreaModel = new OutputAreaModel();
-    const rendermime = new RenderMimeRegistry({ initialFactories });
-    this.outputAreaWidget = new OutputArea({ rendermime, model });
+    const renderMimeRegistry = new RenderMimeRegistry({ initialFactories });
+    this.outputAreaWidget = new OutputArea({ rendermime: renderMimeRegistry, model });
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
 
     const layout = this.layout as BoxLayout;
@@ -196,7 +196,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
         text: [output]
       };
       this.outputAreaWidget.model.add(options);
-  
+
       this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
       this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
     }

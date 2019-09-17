@@ -1,8 +1,9 @@
 import {Kernel} from '@jupyterlab/services';
 import {CodeEditor} from '@jupyterlab/codeeditor';
+import {Dialog, showDialog} from "@jupyterlab/apputils";
 
 /**
- * Class: A code runner for python editors
+ * Class: An enhanced Python Script Editor that enables developing and running the script
  */
 export class PythonRunner {
     kernel : Kernel.IKernel;
@@ -25,7 +26,33 @@ export class PythonRunner {
           const model = this.model;
           const code: string = model.value.text;
 
-          this.kernel = await this.startKernel(kernelSettings);
+          try {
+            this.kernel = await this.startKernel(kernelSettings);
+          } catch (e) {
+            return showDialog({
+              title: 'Error',
+              body: 'Could not start kernel environment to execute script.',
+              buttons: [Dialog.okButton()]
+            });
+          }
+
+          if (! this.kernel) {
+            // kernel didn't get started
+            return showDialog({
+              title: 'Error',
+              body: 'Could not start kernel environment to execute script.',
+              buttons: [Dialog.okButton()]
+            });
+          } else if ( ! this.kernel.ready ) {
+            // kernel started, but something is not right and
+            // the kernel is not ready
+            return showDialog({
+              title: 'Error',
+              body: 'Kernel environment not ready to execute script.',
+              buttons: [Dialog.okButton()]
+            });
+          }
+
           const future = this.kernel.requestExecute({ code });
 
           future.onIOPub = (msg: any) => {
@@ -65,36 +92,36 @@ export class PythonRunner {
         }
       };
 
-    /**
-     * Function: Gets available kernel specs.
-     */
-      getKernelSpecs = async () => {
-        const kernelSpecs = await Kernel.getSpecs();
-        return kernelSpecs;
-      };
+  /**
+   * Function: Gets available kernel specs.
+   */
+    getKernelSpecs = async () => {
+      const kernelSpecs = await Kernel.getSpecs();
+      return kernelSpecs;
+    };
 
-    /**
-     * Function: Starts new kernel.
-     */
-      startKernel = async (options: Kernel.IOptions) => {
-        return Kernel.startNew(options);
-      };
+  /**
+   * Function: Starts new kernel.
+   */
+    startKernel = async (options: Kernel.IOptions) => {
+      return Kernel.startNew(options);
+    };
 
-    /**
-     * Function: Shuts down kernel.
-     */
-      shutDownKernel = async () => {
-        if (this.kernel) {
-          const name = this.kernel.name;
+  /**
+   * Function: Shuts down kernel.
+   */
+    shutDownKernel = async () => {
+      if (this.kernel) {
+        const name = this.kernel.name;
 
-          try {
-            const tempKernel = this.kernel;
-            this.kernel = null;
-            await tempKernel.shutdown();
-            console.log(name + ' kernel shut down');
-          } catch (e) {
-            console.log('Exception: shutdown = ' + JSON.stringify(e));
-          }
+        try {
+          const tempKernel = this.kernel;
+          this.kernel = null;
+          await tempKernel.shutdown();
+          console.log(name + ' kernel shut down');
+        } catch (e) {
+          console.log('Exception: shutdown = ' + JSON.stringify(e));
         }
       }
+    }
 }
