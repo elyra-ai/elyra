@@ -54,26 +54,31 @@ class SchedulerHandler(IPythonHandler):
 
             # Create dictionary that maps component Id to its ContainerOp instance
             notebook_ops = {}
+            tars_to_upload = {}
+
             for operation in pipeline.operations.values():
-                artifact_archive = pipeline.title + '-' + timestamp + ".tar.gz"
+                operation_work_dir = os.path.dirname(operation.artifact)
+                operation_artifact_archive = operation_work_dir + '-' + timestamp + ".tar.gz"
+
+                # Create one tar archive for each notebook work directory.
+                # When multiple operations use notebooks from same work directory,
+                # just reuse the tar archive since the notebook will be in the archive
+                if operation_work_dir not in tars_to_upload:
+                    tars_to_upload[operation_work_dir] = operation_artifact_archive
 
                 self.log.debug("Creating pipeline component :\n "
                                "componentID : %s \n "
                                "name : %s \n "
                                "dependencies : %s \n "
+                               "path of workspace : %s \n "
                                "artifact archive : %s \n "
                                "docker image : %s \n ",
                                operation.id,
                                operation.title,
                                operation.dependencies,
-                               artifact_archive,
+                               operation.artifact,
+                               operation_artifact_archive,
                                operation.image)
-
-                # upload operation related artifacts to object store
-                try:
-                    self.__upload_artifacts_to_object_store(runtime_configuration, operation.artifact, artifact_archive)
-                except ResponseError:
-                    self.log.error("Error uploading artifacts to object storage", exc_info=True)
 
                 # create pipeline operation
                 notebook_op = NotebookOp(name=operation.title,
@@ -82,12 +87,19 @@ class SchedulerHandler(IPythonHandler):
                                          cos_user=cos_username,
                                          cos_password=cos_password,
                                          cos_bucket=bucket_name,
-                                         cos_pull_archive=artifact_archive,
+                                         cos_pull_archive=operation_artifact_archive,
                                          image=operation.image)
 
                 notebook_ops[operation.id] = notebook_op
 
-                self.log.info("NotebookOp Created for Component %s", operation.id)
+                self.log.info("NotebookOp Created for Component %s \n", operation.id)
+
+            # upload operation related artifacts to object store
+            try:
+                for artifact_path, artifact_filename in tars_to_upload.items():
+                    self.__upload_artifacts_to_object_store(runtime_configuration, artifact_path, artifact_filename)
+            except ResponseError:
+                self.log.error("Error uploading artifacts to object storage", exc_info=True)
 
             # Process dependencies after all the operations have been created
             for pipeline_operation in pipeline.operations.values():
@@ -174,13 +186,12 @@ class SchedulerHandler(IPythonHandler):
         client = self.__initialize_object_store(config)
 
         full_artifact_path = os.path.join(os.getcwd(), artifact)
-        artifact_work_dir = os.path.dirname(full_artifact_path)
 
-        self.log.debug("Creating TAR archive %s with contents from %s", archive_artifact, artifact_work_dir)
+        self.log.debug("Creating TAR archive %s with contents from %s", archive_artifact, full_artifact_path)
 
         with tempfile.TemporaryDirectory() as archive_temp_dir:
             with tarfile.open(archive_temp_dir + archive_artifact, "w:gz") as tar:
-                tar.add(artifact_work_dir, arcname="")
+                tar.add(full_artifact_path, arcname="")
 
             self.log.debug("Creating temp directory for archive TAR : %s", archive_temp_dir)
             self.log.info("TAR archive %s created", archive_artifact)
