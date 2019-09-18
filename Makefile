@@ -27,9 +27,12 @@ build: ## Build distribution
 
 install: build ## Build distribution and install
 	-pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
+	-pip install --upgrade jupyterlab-git
+	-jupyter serverextension enable --py jupyterlab_git
 	-$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	-$(call INSTALL_LAB_EXTENSION,python-runner)
 	-$(call INSTALL_LAB_EXTENSION,pipeline-editor)
+	-jupyter labextension install @jupyterlab/git --no-build --debug
 	-jupyter lab build
 
 define INSTALL_LAB_EXTENSION
