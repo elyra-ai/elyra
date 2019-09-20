@@ -26,33 +26,20 @@ enable portability of the workspace.
 
 ### Configuring IBM internal repositories
 
-#### Artifactory PyPi
-
-Create a pipy configuration file ```~/.pip/pip.conf``` with the following content:
-
-```bash
-[global]
-index-url = https://pypi.org/simple/
-extra-index-url = https://xxx:ttt@na.artifactory.swg-devops.com/artifactory/api/pypi/dbg-aiworkspace-team-pypi-local/simple
-```
-
-Note that ```xxx``` should be replaced by your encoded IBM e-mail address (e.g. %40 encodes @) and
-```ttt``` replaces the artifactory token that can be found on your Artifactory profile page.
-
 #### Artifactory NPM
 
 1. Login to
         [AI-WORKSPACE ARTIFACTORY](https://na.artifactory.swg-devops.com/artifactory/webapp/#/home)
 2. Click on upper right corner on your email
-3. Click on Generate API token
+3. Click on the gear to generate your API Key
 4. On your MacMook run  
 
        npm config set registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
 5. and
-       curl -u [email]:[api token] https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/
+       curl -u [email]:[api-key] https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/
 6. Run following and copy output to clipboard
 
-       curl -u [email]:[api token] https://na.artifactory.swg-devops.com/artifactory/api/npm/auth >> ~/.npmrc
+       curl -u [email]:[api-key] https://na.artifactory.swg-devops.com/artifactory/api/npm/auth >> ~/.npmrc
 
 After all these commands, your ```~/.npmrc``` file should look like
 
@@ -62,6 +49,26 @@ _auth=XXXXXXXXXXXXXXXXXXXXXX
 always-auth=true
 email=XXXXXXXX@us.ibm.com
 ```
+
+#### Artifactory PyPi
+
+Create a pipy configuration file ```~/.pip/pip.conf``` with the following content:
+
+```bash
+[global]
+index-url = https://pypi.org/simple/
+extra-index-url = https://[email]:[api-key]@na.artifactory.swg-devops.com/artifactory/api/pypi/dbg-aiworkspace-team-pypi-local/simple
+```
+
+Note that ```[email]``` should be replaced by your encoded IBM e-mail address (e.g. %40 encodes @) and
+```[api-key]``` should be replaced by the artifactory API Key found on your Artifactory profile page
+and generated in the [Artifactory NPM step](README.md#Artifactory-NPM).
+
+### Installing Node.js
+
+Many Jupyter projects, including JupyterLab, require Node.js to build locally.
+
+To install Node.js download and run the latest installer file from the [Node.js website](https://nodejs.org/en/) and follow the on screen instructions.
 
 ### Building
 
