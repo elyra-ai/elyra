@@ -1,17 +1,19 @@
 import json
 import kfp
 import os
-import re
 import tarfile
 import tempfile
 
 from datetime import datetime
+from kubernetes.client.models import V1EnvVar
 from notebook.base.handlers import IPythonHandler
 from notebook.pipeline import NotebookOp
-from ai_workspace.metadata import Metadata, MetadataManager, FileMetadataStore
-from ai_workspace.pipeline import Pipeline, Operation, PipelineParser
 from minio import Minio
 from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists
+from urllib.parse import urlparse
+
+from ai_workspace.metadata import Metadata, MetadataManager, FileMetadataStore
+from ai_workspace.pipeline import Pipeline, Operation, PipelineParser
 
 
 class SchedulerHandler(IPythonHandler):
@@ -84,11 +86,12 @@ class SchedulerHandler(IPythonHandler):
                 notebook_op = NotebookOp(name=operation.title,
                                          notebook=operation.artifact_name,
                                          cos_endpoint=cos_endpoint,
-                                         cos_user=cos_username,
-                                         cos_password=cos_password,
                                          cos_bucket=bucket_name,
                                          cos_pull_archive=operation_artifact_archive,
                                          image=operation.image)
+
+                notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
+                notebook_op.container.add_env_variable(V1EnvVar(name='AWS_SECRET_ACCESS_KEY', value=cos_password))
 
                 notebook_ops[operation.id] = notebook_op
 
@@ -155,13 +158,13 @@ class SchedulerHandler(IPythonHandler):
 
     def __initialize_object_store(self, config):
 
-        cos_endpoint = config.metadata['cos_endpoint']
+        cos_endpoint = urlparse(config.metadata['cos_endpoint'])
         cos_username = config.metadata['cos_username']
         cos_password = config.metadata['cos_password']
         bucket_name = config.metadata['cos_bucket']
 
         # Initialize minioClient with an endpoint and access/secret keys.
-        minio_client = Minio(endpoint=re.sub(r'^https?://', '',cos_endpoint),
+        minio_client = Minio(endpoint=cos_endpoint.netloc,
                              access_key=cos_username,
                              secret_key=cos_password,
                              secure=False)
