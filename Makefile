@@ -34,6 +34,7 @@ clean: ## Make a clean source tree
 	-rm -rf node_modules
 	-rm -rf yarn.lock
 	-rm -rf yarn-error.log
+	-lerna run clean
 
 build: ## Build distribution
 	-rm -f yarn.lock package-lock.json
