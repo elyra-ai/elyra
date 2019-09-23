@@ -15,6 +15,7 @@
 #
 import os
 
+
 class Operation:
 
     def __init__(self, id, type, title, platform, artifact, image, dependencies=None ):
