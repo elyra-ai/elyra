@@ -88,6 +88,16 @@ Many Jupyter projects, including JupyterLab, require Node.js to build locally.
 
 To install Node.js download and run the latest installer file from the [Node.js website](https://nodejs.org/en/) and follow the on screen instructions.
 
+### Installing npm build packages
+
+A few npm packages are required for properly building the AI Workspace project:
+
+```bash
+npm config set scripts-prepend-node-path auto
+npm install -g yarn
+```
+
+
 ### Building
 
 This extension is divided in two parts, a backend Jupyter Notebook backend extension,
