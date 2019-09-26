@@ -31,7 +31,7 @@ these scripts in remote environments.
 ![Enhanced Python Support](docs/source/images/python-runner.png)
 
 An **AI Pipeline** visual editor is also available and can be used to chain notebooks
-together. Currently the only supported pipeline runtime supported is **Kubeflow Pipelines**,
+together. Currently the only supported pipeline runtime is **Kubeflow Pipelines**,
 but others can be easily added.
 
 ![Pipeline Editor](docs/source/images/pipeline-editor.png)
@@ -184,4 +184,48 @@ docker pull us.icr.io/tommychaopingli/[image to pull]
 Example:
 docker pull us.icr.io/tommychaopingli/ai-workspace:test
 ```
+
+## KFP Notebook Python Package
+
+[KFP Notebook Github](https://github.ibm.com/ai-workspace/kfp-notebook)  
+[KFP Notebook Python Package](https://na.artifactory.swg-devops.com/artifactory/webapp/#/artifacts/browse/tree/General/dbg-aiworkspace-team-pypi-local)
+
+`KFP Notebook` is an NotebookOp that enables running notebooks as part of a Kubeflow Pipeline. AI Workspace uses this package to 
+construct each of the components in a pipeline created in the `pipeline editor` and configures each with the 
+information it needs to run each operation (Notebook Name, Dependencies, Object Storage Credentials, etc). 
+KFP Notebook currently only supports S3 Object Storage and uses the Minio S3 Client.
+
+### Metadata Configuration and Runtime
+[Configure your Metadata Runtime](#runtime-configuration)  
+KFP Notebook depends on the `Metadata Runtime` in AI Workspace to determine how to communicate with your KubeFlow Pipelines
+Server and with your chosen Object Store to store artifacts.   
+
+|Parameter   | Description  | Example |
+|:---:|:------|:---:|
+|api_endpoint| The KubeFlow Pipelines API Endpoint you wish to run your Pipeline. |  `https://kubernetes-service.ibm.com/pipeline`   |
+|cos_endpoint| This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a kubernetes cluster (Minio), you can use the kubernetes local DNS address.   | `minio-service.kubeflow:9000` |
+|cos_username| Username used to access the Object Store. SEE NOTE. | `minio` |
+|cos_password| Password used to access the Object Store. SEE NOTE. | `minio123` |
+|cos_bucket|   Name of the bucket you want your artifacts in. If the bucket doesn't exist, it will be created| `test_bucket` |
+
+NOTE: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-hmac) 
+and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
+Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.
+
+### Integration with KubeFlow Pipelines
+The `KFP Notebook` package contains a NotebookOp class that extends KubeFlow Pipeline's ContainerOp DSL. Allowing us 
+to outfit any user provided image with the necessary frameworks to run a Jupyter Notebook. 
+#### Storage  
+`KFP Notebook` currently supports two Object Storage modes, Hybrid and Kubernetes.  
+`Hybrid Mode` - AI Workspace is running locally on the user's workstation and is using a remote KubeFlow deployment to run their workloads.  
+`Kubernetes Mode` - AI Workspace is running in a pod in a Kubernetes cluster.  
+In `Hybrid Mode`, user credentials (username and password) are pulled from your local `metadata runtime` to be set as environmental
+variables in the container image. 
+In `Kubernetes Mode`, user credentials will be pulled from a Kubernetes `secrets` object and set as environmental variables in the
+container image. 
+
+### Kubernetes Secrets Configuration
+When running in a pure Kubernetes environment (i.e. `Kubernetes Mode`), secrets are stored on the Kubernetes cluster
+itself so users will need to [Create and Manage Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/).
+
 
