@@ -90,7 +90,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
       // which in this case is the scheduler extension installed by this package
       let settings = ServerConnection.makeSettings();
       let url = URLExt.join(settings.baseUrl, 'scheduler');
-      let requestBody = JSON.stringify(pipeline.pipelines[0]);
+      let requestBody = JSON.stringify(pipeline);
 
       console.log('Submitting pipeline to -> ' + url);
       ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)

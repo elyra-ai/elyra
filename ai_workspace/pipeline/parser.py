@@ -24,6 +24,18 @@ class PipelineParser(LoggingConfigurable):
     @staticmethod
     def parse(pipeline) -> Pipeline:
 
+        # The pipeline blueprint enables defining multiple pipelines
+        # in one pipeline json file. For now we only support processing
+        # one (primary) pipeline.
+        primary_pipeline_id = pipeline['primary_pipeline']
+        for p in pipeline['pipelines']:
+            pipeline_id = p['id']
+            if pipeline_id == primary_pipeline_id:
+                pipeline = p
+
+        if not pipeline:
+            raise RuntimeError('Primary pipeline not found.')
+
         pipeline_object = Pipeline(pipeline['id'],
                                    __class__._read_pipeline_title(pipeline),
                                    __class__._read_pipeline_platform(pipeline))

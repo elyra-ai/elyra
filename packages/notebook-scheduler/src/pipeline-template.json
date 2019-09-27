@@ -2,10 +2,10 @@
 	"doc_type": "pipeline",
 	"version": "3.0",
 	"json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
-	"id": "{{uuid}}",
+	"id": "{{primary_pipeline_uuid}}",
 	"primary_pipeline": "{{primary_pipeline_uuid}}",
 	"pipelines": [{
-		"id": "{{pipelines.uuid}}",
+		"id": "{{primary_pipeline_uuid}}",
 		"nodes": [{
 			"id": "{{pipelines.noded.uuid}}",
 			"type": "pipeline_node",

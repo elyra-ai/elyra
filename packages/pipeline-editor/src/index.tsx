@@ -317,9 +317,9 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       console.log('Pipeline definition:')
       console.log(this.canvasController.getPipelineFlow());
 
-      let pipelineFlow = this.canvasController.getPipelineFlow().pipelines[0];
-      pipelineFlow['app_data']['ui_data']['title'] = result.value.pipeline_name;
-      pipelineFlow['app_data']['ui_data']['platform'] = 'kfp';
+      let pipelineFlow = this.canvasController.getPipelineFlow();
+      pipelineFlow.pipelines[0]['app_data']['ui_data']['title'] = result.value.pipeline_name;
+      pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] = 'kfp';
 
       let requestBody = JSON.stringify(pipelineFlow);
 
