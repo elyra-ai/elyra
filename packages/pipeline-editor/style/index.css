@@ -14,35 +14,35 @@
  * limitations under the License.
  */
 
-.add {
+.add .list-item {
 	background-image: url('./add-notebook-node.svg');
 	background-repeat: no-repeat;
     background-position: center;
     background-size: 30%;
 }
 
-.save {
+.save .list-item {
 	background-image: url('./save-pipeline.svg');
 	background-repeat: no-repeat;
     background-position: center;
     background-size: 30%;
 }
 
-.open {
+.open .list-item {
 	background-image: url('./open-pipeline.svg');
 	background-repeat: no-repeat;
     background-position: center;
     background-size: 43%;
 }
 
-.new {
+.new .list-item {
 	background-image: url('./new-pipeline.svg');
 	background-repeat: no-repeat;
     background-position: center;
     background-size: 30%;
 }
 
-.clear {
+.clear .list-item {
 	background-image: url('./clear-pipeline.svg');
 	background-repeat: no-repeat;
     background-position: center;
