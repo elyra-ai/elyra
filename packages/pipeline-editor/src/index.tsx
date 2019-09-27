@@ -244,7 +244,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     if (action === 'openNotebook' && source.type === 'node') {
       let nodes = source.selectedObjectIds;
       for (let i = 0; i < nodes.length; i++) {
-        let path = this.canvasController.getNode(nodes[i]).app_data.notebook;
+        let path = this.canvasController.getNode(nodes[i]).app_data.artifact;
         this.jupyterFrontEnd.commands.execute(commandIDs.openDocManager, {path});
       }
     } else if (action === 'properties' && source.type === 'node') {
