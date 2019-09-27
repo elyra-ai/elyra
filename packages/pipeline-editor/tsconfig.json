@@ -10,5 +10,5 @@
     ]
   },
   "include": ["src/*","src/*/*"],
-  "files": ["src/palette.json"]
+  "files": ["src/palette.json", "src/properties.json", "src/en.json"]
 }

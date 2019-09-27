@@ -55,3 +55,22 @@
     background-position: center;
     background-size: 30%;
 }
+
+.ewai-PipelineEditor .properties-modal {
+    position: absolute;
+}
+
+.ewai-PipelineEditor .bx--modal-content {
+    padding: 0;
+}
+
+.ewai-PipelineEditor .properties-modal button.bx--btn {
+    -webkit-box-flex: 0;
+    -ms-flex: 0;
+    flex: 0;
+    min-height: 2.5rem;
+    height: 2.5rem;
+    padding: 0 1rem;
+    margin: 0 1rem 0 0;
+    text-align: center;
+}

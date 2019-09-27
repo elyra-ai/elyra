@@ -1,0 +1,32 @@
+{
+  "parameters": [
+    {
+      "id": "selectImageList",
+      "enum": [
+        "tensorflow/tensorflow:1.12.3-py3",
+        "tensorflow/tensorflow:1.12.3-gpu-py3",
+        "pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime",
+        "amancevice/pandas:0.25.0-jupyter"
+      ],
+      "default": "tensorflow/tensorflow:1.12.3-py3"
+    }
+  ],
+  "uihints": {
+    "id": "selectImageList",
+    "parameter_info": [
+      {
+        "parameter_ref": "selectImageList",
+        "control": "oneofselect",
+        "label": {
+          "default": "Docker Image"
+        }
+      }
+    ]
+  },
+  "resources": {
+    "selectImageList.tensorflow/tensorflow:1.12.3-py3.label": "Tensorflow",
+    "selectImageList.tensorflow/tensorflow:1.12.3-gpu-py3.label": "Tensorflow GPU",
+    "selectImageList.pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime.label": "Pytorch",
+    "selectImageList.amancevice/pandas:0.25.0-jupyter.label": "Pandas"
+  }
+}

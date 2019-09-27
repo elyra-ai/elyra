@@ -50,11 +50,13 @@
     "json-loader": "^0.5.7",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-scripts": "3.0.1"
+    "react-scripts": "3.0.1",
+    "react-intl": "^2.3.0"
   },
   "devDependencies": {
     "@types/react": "^16.8.23",
     "@types/react-dom": "^16.8.5",
+    "@types/react-intl": "^2.3.0",
     "awesome-typescript-loader": "^5.2.1",
     "rimraf": "^2.6.3",
     "source-map-loader": "^0.2.4",

@@ -25,14 +25,18 @@ import {ServerConnection} from '@jupyterlab/services';
 import {toArray} from '@phosphor/algorithm';
 import {Widget, PanelLayout} from '@phosphor/widgets';
 
-import {CommonCanvas, CanvasController} from '@wdp/common-canvas';
+import {CommonCanvas, CanvasController, CommonProperties} from '@wdp/common-canvas';
 import '@wdp/common-canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
-import * as palette from './palette.json' ;
+import * as palette from './palette.json';
+import * as properties from './properties.json';
+import * as i18nData from "./en.json";
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+
+import { IntlProvider } from "react-intl";
 
 const PIPELINE_ICON_CLASS = 'ewai-PipelineIcon';
 const PIPELINE_CLASS = 'ewai-PipelineEditor';
@@ -76,8 +80,58 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
 class Canvas extends ReactWidget {
   jupyterFrontEnd: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
-  canvasController: any;
   context: DocumentRegistry.Context;
+
+  constructor(props: any) {
+    super(props);
+    this.jupyterFrontEnd = props.app;
+    this.browserFactory = props.browserFactory;
+    this.context = props.context;
+  }
+
+  render() {
+    return <Pipeline
+      jupyterFrontEnd={this.jupyterFrontEnd}
+      browserFactory={this.browserFactory}
+      widgetContext={this.context}
+    />
+  }
+}
+
+/**
+ * A namespace for Pipeline.
+ */
+namespace Pipeline {
+  /**
+   * The props for Pipeline.
+   */
+  export interface Props {
+    jupyterFrontEnd: JupyterFrontEnd;
+    browserFactory: IFileBrowserFactory;
+    widgetContext: DocumentRegistry.Context;
+  }
+
+  /**
+   * The props for Pipeline.
+   */
+  export interface State {
+    /**
+     * Whether the properties dialog is visible.
+     */
+    showPropertiesDialog: boolean;
+
+    /**
+     * The form contents of the properties dialog.
+     */
+    propertiesInfo: any;
+  }
+}
+
+class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
+  jupyterFrontEnd: JupyterFrontEnd;
+  browserFactory: IFileBrowserFactory;
+  canvasController: any;
+  widgetContext: DocumentRegistry.Context;
   position: number = 10;
 
   constructor(props: any) {
@@ -86,14 +140,20 @@ class Canvas extends ReactWidget {
     this.browserFactory = props.browserFactory;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
+    this.widgetContext = props.widgetContext;
+    this.widgetContext.ready.then( () => {
+      this.canvasController.setPipelineFlow(this.widgetContext.model.toJSON());
+    });
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
-    this.context = props.context;
-    this.context.ready.then( () => {
-      this.canvasController.setPipelineFlow(this.context.model.toJSON());
-    });
+
+    this.state = {showPropertiesDialog: false, propertiesInfo: {}};
+
+    this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
+    this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
+    this.openPropertiesDialog = this.openPropertiesDialog.bind(this);
   }
 
   render() {
@@ -125,20 +185,47 @@ class Canvas extends ReactWidget {
        { action: 'delete', label: 'Delete', enable: true },
        { action: 'arrangeHorizontally', label: 'Arrange Horizontally', enable: true },
        { action: 'arrangeVertically', label: 'Arrange Vertically', enable: true } ];
+
+    const propertiesCallbacks = {
+      applyPropertyChanges: this.applyPropertyChanges,
+      closePropertiesDialog: this.closePropertiesDialog
+    };
+
+    const commProps = this.state.showPropertiesDialog ? <IntlProvider key='IntlProvider2' locale={ 'en' } messages={ i18nData.messages }>
+        <CommonProperties
+          propertiesInfo={this.propertiesInfo}
+          propertiesConfig={{ }}
+          callbacks={propertiesCallbacks}
+        />
+      </IntlProvider> : null;
+
     return (
       <div style={style}>
         <CommonCanvas
-        canvasController={this.canvasController}
-        toolbarMenuActionHandler={this.toolbarMenuActionHandler}
-        contextMenuHandler={this.contextMenuHandler}
-        contextMenuActionHandler={this.contextMenuActionHandler}
-        editActionHandler={this.editActionHandler}
-        toolbarConfig={toolbarConfig}
-        config={canvasConfig}
+          canvasController={this.canvasController}
+          toolbarMenuActionHandler={this.toolbarMenuActionHandler}
+          contextMenuHandler={this.contextMenuHandler}
+          contextMenuActionHandler={this.contextMenuActionHandler}
+          editActionHandler={this.editActionHandler}
+          toolbarConfig={toolbarConfig}
+          config={canvasConfig}
         />
+        {commProps}
       </div>
       );
   }
+
+  propertiesInfo = { 'parameterDef': properties, 'appData': { 'id': '' } };
+
+  applyPropertyChanges(propertySet: any, appData: any) {
+    console.log('Applying changes to properties');
+    this.canvasController.getNode(appData.id).app_data.image = propertySet.selectImageList;
+  };
+
+  closePropertiesDialog() {
+    console.log('Closing properties dialog');
+    this.setState({showPropertiesDialog: false, propertiesInfo: {}});
+  };
 
   contextMenuHandler(source: any, defaultMenu: any) {
     let customMenu = defaultMenu;
@@ -148,6 +235,7 @@ class Canvas extends ReactWidget {
       } else {
         customMenu = customMenu.concat({ action: 'openNotebook', label: 'Open Notebook'});
       }
+      customMenu = customMenu.concat({ action: 'properties', label: 'Properties'});
     }
     return customMenu;
   }
@@ -159,14 +247,30 @@ class Canvas extends ReactWidget {
         let path = this.canvasController.getNode(nodes[i]).app_data.notebook;
         this.jupyterFrontEnd.commands.execute(commandIDs.openDocManager, {path});
       }
+    } else if (action === 'properties' && source.type === 'node') {
+      if (this.state.showPropertiesDialog) {
+        this.closePropertiesDialog();
+      } else {
+        this.openPropertiesDialog(source);
+      }
     }
+  }
+
+  openPropertiesDialog(source: any) {
+    console.log('Opening properties dialog');
+    let node_id = source.targetObject.id;
+    let current_image = this.canvasController.getNode(node_id).app_data.image;
+    let node_props = this.propertiesInfo;
+    node_props.parameterDef.parameters[0].default = current_image;
+    node_props.appData.id = node_id;
+    this.setState({showPropertiesDialog: true, propertiesInfo: node_props});
   }
 
   /*
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any) {
-    this.context.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
   }
 
   handleAdd() {
@@ -191,7 +295,7 @@ class Canvas extends ReactWidget {
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
             data.nodeTemplate.app_data['platform'] = 'kfp';
             data.nodeTemplate.app_data['artifact'] = item.path;
-            data.nodeTemplate.app_data['image'] = 'tensorflow/tensorflow:1.13.2-gpu-py3-jupyter';
+            data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.parameters[0].default;
             this.canvasController.editActionHandler(data);
           }
         }
@@ -266,8 +370,8 @@ class Canvas extends ReactWidget {
   }
 
   handleSave() {
-    this.context.model.fromJSON(this.canvasController.getPipelineFlow());
-    this.context.save();
+    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.widgetContext.save();
   }
 
   handleOpen() {
@@ -289,7 +393,7 @@ class Canvas extends ReactWidget {
 
   handleClear() {
     this.canvasController.clearPipelineFlow();
-    this.context.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
   }
 
   /*
