@@ -88,7 +88,7 @@ export default class Utils {
     // @ts-ignore
     template.pipelines[0].nodes[0].app_data.artifact = artifact;
     // @ts-ignore
-    template.pipelines[0].nodes[0].app_data.image = 'tensorflow/tensorflow:1.13.2-gpu-py3-jupyter';
+    template.pipelines[0].nodes[0].app_data.image = 'tensorflow/tensorflow:1.12.3-py3';
     // @ts-ignore
     template.pipelines[0].nodes[0].app_data.ui_data.label = artifactName;
 
