@@ -10,7 +10,6 @@
 			"id": "{{pipelines.noded.uuid}}",
 			"type": "pipeline_node",
 			"app_data": {
-                "platform": "{{kfp}}",
 				"artifact": "{{artifact}}",
 				"image": "{{image}}",
 				"ui_data": {
@@ -23,6 +22,8 @@
 		}],
 		"app_data": {
 			"ui_data": {
+				"title": "{{title}}",
+				"platform": "{{platform}}",
 				"comments": []
 			}
 		}

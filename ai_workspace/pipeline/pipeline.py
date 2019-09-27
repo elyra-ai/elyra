@@ -18,11 +18,10 @@ import os
 
 class Operation:
 
-    def __init__(self, id, type, title, platform, artifact, image, dependencies=None ):
+    def __init__(self, id, type, title, artifact, image, dependencies=None ):
         self._id = id
         self._type = type
         self._title = title
-        self._platform = platform
         self._artifact = artifact
         self._image = image
         if dependencies:
@@ -41,10 +40,6 @@ class Operation:
     @property
     def title(self):
         return self._title
-
-    @property
-    def platform(self):
-        return self._platform
 
     @property
     def artifact(self):
@@ -71,7 +66,6 @@ class Operation:
             return self.id == other.id and \
                    self.type == other.type  and \
                    self.title == other.title  and \
-                   self.platform == other.platform  and \
                    self.artifact == other.artifact  and \
                    self.image == other.image and \
                    self.dependencies == other.dependencies

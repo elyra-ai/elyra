@@ -11,7 +11,6 @@
         "id": "d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c",
         "type": "pipeline_node",
         "app_data": {
-          "platform": "kfp",
           "artifact": "demo-pipelines/generate-contributions.ipynb",
           "image": "tensorflow/tensorflow:1.13.2-py3-jupyter",
           "ui_data": {
@@ -55,7 +54,6 @@
         "id": "5ddfbd02-2f4e-462b-8349-ddd7ec7afb71",
         "type": "pipeline_node",
         "app_data": {
-          "platform": "kfp",
           "artifact": "demo-pipelines/generate-stats.ipynb",
           "image": "tensorflow/tensorflow:1.13.2-py3-jupyter",
           "ui_data": {
@@ -91,7 +89,6 @@
         "id": "acc4527d-7cc8-4c16-b520-5aa0f50a2e34",
         "type": "pipeline_node",
         "app_data": {
-          "platform": "kfp",
           "artifact": "demo-pipelines/overview.ipynb",
           "image": "tensorflow/tensorflow:1.13.2-py3-jupyter",
           "ui_data": {
@@ -136,6 +133,8 @@
     ],
     "app_data": {
       "ui_data": {
+        "title": "pipeline-title",
+        "platform": "kfp",
         "comments": [
           {
             "id": "22a171e4-f12b-4a6b-9399-f48c81e0906a",

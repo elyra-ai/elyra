@@ -10,7 +10,6 @@
         "id": "{{uuid}}",
         "type": "{{type}}",
         "app_data": {
-            "platform": "{{platform}}",
             "artifact": "{{artifact}}",
             "image": "{{image}}",
             "ui_data": {
@@ -23,7 +22,8 @@
     }],
     "app_data": {
         "ui_data": {
-            "title": "{{title}}"
+            "title": "{{title}}",
+            "platform": "{{platform}}"
         }
     }
   }],

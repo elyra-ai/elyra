@@ -24,7 +24,6 @@ class PipelineParserTestCase(unittest.TestCase):
     valid_operation = Operation(id='{{uuid}}',
                                 type='{{type}}',
                                 title='{{title}}',
-                                platform='{{platform}}',
                                 artifact='{{artifact}}',
                                 image='{{image}}')
 

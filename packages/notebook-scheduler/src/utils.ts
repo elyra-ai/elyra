@@ -86,15 +86,16 @@ export default class Utils {
 
     template.pipelines[0].nodes[0].id = generated_uuid;
     // @ts-ignore
-    template.pipelines[0].nodes[0].app_data.platform = options.platform;
-    // @ts-ignore
     template.pipelines[0].nodes[0].app_data.artifact = artifact;
     // @ts-ignore
     template.pipelines[0].nodes[0].app_data.image = 'tensorflow/tensorflow:1.13.2-gpu-py3-jupyter';
     // @ts-ignore
     template.pipelines[0].nodes[0].app_data.ui_data.label = artifactName;
+
     // @ts-ignore
     template.pipelines[0].app_data.ui_data.title = artifactName;
+    // @ts-ignore
+    template.pipelines[0].app_data.ui_data.platform = options.platform;
 
     return template;
   }

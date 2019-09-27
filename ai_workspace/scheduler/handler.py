@@ -44,8 +44,17 @@ class SchedulerHandler(IPythonHandler):
     def post(self, *args, **kwargs):
         self.log.debug("Pipeline SchedulerHandler now executing post request")
 
-        """Upload endpoint"""
-        runtime_configuration = self.metadata_manager.get('kfp')
+        # parse submitted pipeline definition
+        timestamp = datetime.now().strftime("%m%d%H%M%S")
+        pipeline_definition = self.get_json_body()
+
+        self.log.debug("JSON payload: %s", pipeline_definition)
+
+        pipeline = PipelineParser.parse(pipeline_definition)
+
+        # retrieve associated runtime metadata
+        runtime_type = pipeline.platform
+        runtime_configuration = self.metadata_manager.get(runtime_type)
 
         if not runtime_configuration:
             raise RuntimeError("Runtime metadata not available.")
@@ -59,13 +68,6 @@ class SchedulerHandler(IPythonHandler):
         self.log.info('Runtime configuration: \n {} \n {} \n {} \n {}'
                       .format(api_endpoint, cos_endpoint, cos_username, bucket_name))
 
-        # parse submitted pipeline definition
-        timestamp = datetime.now().strftime("%m%d%H%M%S")
-        pipeline_definition = self.get_json_body()
-
-        self.log.debug("JSON payload: %s", pipeline_definition)
-
-        pipeline = PipelineParser.parse(pipeline_definition)
 
         def cc_pipeline():
 

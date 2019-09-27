@@ -50,7 +50,6 @@ class PipelineParser(LoggingConfigurable):
                     id=node['id'],
                     type=node['type'],
                     title=node['app_data']['ui_data']['label'],
-                    platform=node['app_data']['platform'],
                     artifact=node['app_data']['artifact'],
                     image=node['app_data']['image'],
                     dependencies=links

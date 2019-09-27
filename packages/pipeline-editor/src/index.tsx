@@ -293,7 +293,6 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
-            data.nodeTemplate.app_data['platform'] = 'kfp';
             data.nodeTemplate.app_data['artifact'] = item.path;
             data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.parameters[0].default;
             this.canvasController.editActionHandler(data);
