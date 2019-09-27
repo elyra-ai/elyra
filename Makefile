@@ -27,20 +27,23 @@ help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 clean: ## Make a clean source tree
-	-rm -rf dist
 	-rm -rf build
-	-rm -rf lib
 	-rm -rf *.egg-info
-	-rm -rf node_modules
 	-rm -rf yarn.lock
 	-rm -rf yarn-error.log
-	-lerna run clean
+	-rm -rf $$(find . -name dist)
+	-rm -rf $$(find . -name lib)
+	-rm -rf $$(find . -name node_modules)
+	-rm -rf $$(find . -name tsconfig.tsbuildinfo)
+	-rm -rf $$(find . -name *.lock)
+	-rm -rf $$(find . -name package-lock.json)
 
 build: ## Build distribution
 	-rm -f yarn.lock package-lock.json
 	-python setup.py bdist_wheel
-	-yarn add --dev lerna -W
-	-./node_modules/.bin/lerna run build
+	-yarn
+	-export PATH=$$(pwd)/node_modules/.bin:$PATH
+	-lerna run build
 
 install: build ## Build distribution and install
 	-pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
