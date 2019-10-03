@@ -16,7 +16,9 @@
 from notebook.utils import url_path_join
 
 from .scheduler.handler import SchedulerHandler
+from .metadata.handlers import MainRuntimeHandler, RuntimeHandler
 
+runtime_name_regex = r"(?P<runtime_name>[\w\.\-%]+)"
 
 def _jupyter_server_extension_paths():
     return [{
@@ -29,4 +31,6 @@ def load_jupyter_server_extension(nb_server_app):
     host_pattern = '.*$'
     web_app.add_handlers(host_pattern, [
         (url_path_join(web_app.settings['base_url'], r'/scheduler'), SchedulerHandler),
+        (url_path_join(web_app.settings['base_url'], r'/metadata/runtime'), MainRuntimeHandler),
+        (url_path_join(web_app.settings['base_url'], r'/metadata/runtime/%s' % runtime_name_regex), RuntimeHandler),
     ])

@@ -31,6 +31,7 @@ class Metadata(HasTraits):
     metadata = Dict()
 
     def __init__(self, **kwargs):
+        super(Metadata, self).__init__(**kwargs)
         if 'resource' not in kwargs:
             raise AttributeError('Missing required resource location attribute')
 
@@ -68,7 +69,7 @@ class Metadata(HasTraits):
         return d
 
     def to_json(self):
-        j = json.dumps(self)
+        j = json.dumps(self.to_dict())
 
         return j
 
@@ -173,7 +174,7 @@ class FileMetadataStore(MetadataStore):
     def read(self, name):
         metadata = self._find_metadata_resource(name)
         if metadata is None:
-            logging.warning('Metadata with name {} not found !'.format(name))
+            logging.warning('Metadata with name {} not found!'.format(name))
 
         return metadata
 
@@ -211,6 +212,7 @@ class FileMetadataStore(MetadataStore):
             for f in os.listdir(self.metadata_dir):
                 resource = os.path.join(self.metadata_dir, f)
                 if os.path.splitext(os.path.basename(resource))[0] == name:
+                    # TODO - valiate metadata against its schema before returning
                     return Metadata.from_resource(resource)
 
         # Metadata not found
@@ -222,6 +224,7 @@ class FileMetadataStore(MetadataStore):
             for f in os.listdir(self.metadata_dir):
                 path = os.path.join(self.metadata_dir, f)
                 metadata = Metadata.from_resource(path)
+                # TODO - valiate metadata against its schema before adding to list
                 metadata_list.append(metadata)
 
         return metadata_list
