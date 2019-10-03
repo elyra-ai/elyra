@@ -152,6 +152,18 @@ followed by
 jupyter runtime list
 ```
 
+## Building a Docker Image
+
+Prequisites :  
+* Docker v18.09 Installed or higher.
+* [NPM Configured for IBM Artifactory](#artifactory-npm)  
+* [Pip Configured for IBM Artifactory](#artifactory-pypi)
+
+
+```bash
+make docker-image
+```
+
 ## Pushing and Pulling from IBM Container Registry
 
 Ensure you have the IBM Cloud CLI installed on your system. Install Instructions are [HERE](https://cloud.ibm.com/docs/cli?topic=cloud-cli-getting-started)

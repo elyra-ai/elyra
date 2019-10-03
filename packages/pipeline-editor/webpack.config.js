@@ -1,9 +1,10 @@
 module.exports = {
     entry: "./src/index.tsx",
     output: {
-        filename: "bundle.js",
-        path: __dirname + "/dist"
-    },
+        path: path.resolve(__dirname, "dist"),
+        filename: "index.js",
+        libraryTarget: "commonjs2"
+  },
 
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",

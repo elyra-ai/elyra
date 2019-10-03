@@ -1,68 +1,69 @@
 {
-  "name": "@aiworkspace/pipeline-editor-extension",
-  "version": "0.1.0",
-  "description": "JupyterLab extension - Visual editor to build Notebook pipelines",
-  "keywords": [
-    "jupyter",
-    "jupyterlab",
-    "jupyterlab-extension"
-  ],
-  "homepage": "https://github.ibm.com/ai-workspace/pipeline-editor-extension",
-  "bugs": {
-    "url": "https://github.ibm.com/ai-workspace/pipeline-editor-extension/issues"
-  },
-  "license": "Apache-2.0",
-  "files": [
-    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
-    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
-  ],
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "style": "style/index.css",
-  "repository": {
-    "type": "git",
-    "url": "https://github.ibm.com/ai-workspace/ai-workspace"
-  },
-  "scripts": {
-    "build": "tsc",
-    "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf yarn-error.log && rimraf tsconfig.tsbuildinfo",
-    "prepare": "npm run clean && npm run build",
-    "watch": "tsc -w"
-  },
-  "dependencies": {
-    "@jupyterlab/application": "^1.0.0",
-    "@jupyterlab/apputils-extension": "^1.0.0",
-    "@jupyterlab/docregistry": "^1.0.0",
-    "@jupyterlab/filebrowser": "^1.0.0",
-    "@jupyterlab/filebrowser-extension": "^1.0.0",
-    "@jupyterlab/launcher": "^1.0.0",
-    "@jupyterlab/notebook": "^1.0.0",
-    "@jupyterlab/outputarea": "^1.0.0",
-    "@phosphor/algorithm": "^1.1.3",
-    "@phosphor/coreutils": "^1.3.1",
-    "@phosphor/disposable": "^1.2.0",
-    "@phosphor/widgets": "^1.8.1",
-    "@types/jest": "24.0.15",
-    "@types/node": "^12.0.10",
-    "@wdp/common-canvas": "^6.1.9",
-    "autoprefixer": "^9.6.0",
-    "carbon-components": "^10.3.2",
-    "json-loader": "^0.5.7",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-scripts": "3.0.1",
-    "react-intl": "^2.3.0"
-  },
-  "devDependencies": {
-    "@types/react": "^16.8.23",
-    "@types/react-dom": "^16.8.5",
-    "@types/react-intl": "^2.3.0",
-    "awesome-typescript-loader": "^5.2.1",
-    "rimraf": "^2.6.3",
-    "source-map-loader": "^0.2.4",
-    "typescript": "^3.5.2"
-  },
-  "jupyterlab": {
-    "extension": true
-  }
+    "name": "@aiworkspace/pipeline-editor-extension",
+    "version": "0.1.0",
+    "description": "JupyterLab extension - Visual editor to build Notebook pipelines",
+    "keywords": [
+        "jupyter",
+        "jupyterlab",
+        "jupyterlab-extension"
+    ],
+    "homepage": "https://github.ibm.com/ai-workspace/pipeline-editor-extension",
+    "bugs": {
+        "url": "https://github.ibm.com/ai-workspace/pipeline-editor-extension/issues"
+    },
+    "license": "Apache-2.0",
+    "files": [
+        "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+        "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+    ],
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "style": "style/index.css",
+    "repository": {
+        "type": "git",
+        "url": "https://github.ibm.com/ai-workspace/ai-workspace"
+    },
+    "scripts": {
+        "build": "tsc",
+        "dist": "npm pack .",
+        "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf yarn-error.log && rimraf tsconfig.tsbuildinfo",
+        "prepare": "npm run clean && npm run build ",
+        "watch": "tsc -w"
+    },
+    "dependencies": {
+        "@jupyterlab/application": "^1.0.0",
+        "@jupyterlab/apputils-extension": "^1.0.0",
+        "@jupyterlab/docregistry": "^1.0.0",
+        "@jupyterlab/filebrowser": "^1.0.0",
+        "@jupyterlab/filebrowser-extension": "^1.0.0",
+        "@jupyterlab/launcher": "^1.0.0",
+        "@jupyterlab/notebook": "^1.0.0",
+        "@jupyterlab/outputarea": "^1.0.0",
+        "@phosphor/algorithm": "^1.1.3",
+        "@phosphor/coreutils": "^1.3.1",
+        "@phosphor/disposable": "^1.2.0",
+        "@phosphor/widgets": "^1.8.1",
+        "@types/jest": "24.0.15",
+        "@types/node": "^12.0.10",
+        "@wdp/common-canvas": "^6.1.9",
+        "autoprefixer": "^9.6.0",
+        "carbon-components": "^10.3.2",
+        "json-loader": "^0.5.7",
+        "react": "^16.8.6",
+        "react-dom": "^16.8.6",
+        "react-scripts": "3.0.1",
+        "react-intl": "^2.3.0"
+    },
+    "devDependencies": {
+        "@types/react": "^16.8.23",
+        "@types/react-dom": "^16.8.5",
+        "@types/react-intl": "^2.3.0",
+        "awesome-typescript-loader": "^5.2.1",
+        "rimraf": "^2.6.3",
+        "source-map-loader": "^0.2.4",
+        "typescript": "^3.5.2"
+    },
+    "jupyterlab": {
+        "extension": true
+    }
 }
