@@ -26,7 +26,7 @@ global-exclude *.sh
 # explicit includes
 include README.md
 include LICENSE
-include notebook-scheduler/static/*
+include dist/*.tgz
 
 recursive-include tests *
 recursive-exclude * __pycache__

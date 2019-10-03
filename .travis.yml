@@ -37,19 +37,12 @@ before_install:
 
 install:
   - sudo apt install yarn
-  - pip install jupyterlab enterprise_scheduler kfp
+  - pip install kfp enterprise_scheduler
   - pip install kfp-notebook --upgrade -i https://$ARTIFACTORY_USER:$ARTIFACTORY_PASS@na.artifactory.swg-devops.com/artifactory/api/pypi/dbg-aiworkspace-team-pypi-local/simple
-  - export PATH=$PATH:$(pwd)/node_modules/.bin/
-  # Build the python wheel for the extension
-  - python setup.py bdist_wheel
+  - export PATH=$(pwd)/node_modules/.bin:$PATH
+  - make bdist
   - pip install ./dist/ai_workspace*.whl
   - jupyter serverextension enable --py ai_workspace --sys-prefix
-  # Build js modules
-  - yarn add --dev lerna -W
-  - lerna run clean
-  # Install JS dependencies
-  #- lerna bootstrap
-  - lerna run build
   # Build the extensions under packages/*
   - pushd packages/notebook-scheduler && jlpm install && popd
   - pushd packages/python-runner && jlpm install && popd
@@ -60,10 +53,7 @@ install:
   - pushd packages/python-runner && jupyter labextension link --debug . && popd
 script:
   # Build the python wheel for the extension
-  - make clean
-  - python setup.py bdist_wheel
-
-  - jupyter labextension list
+  - jupyter labextension list && jupyter serverextension list
 #deploy:
 #after_deploy:
 #notifications:

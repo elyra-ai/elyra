@@ -30,10 +30,7 @@ RUN pip install --upgrade jupyterlab notebook && \
 
 USER root
 
-COPY dist/*.whl /etc/ai-workspace/
-COPY dist/aiworkspace-scheduler-extension*.tgz /opt/conda/share/jupyter/lab/extensions/
-COPY dist/aiworkspace-python-runner*.tgz /opt/conda/share/jupyter/lab/extensions/
-COPY dist/aiworkspace-pipeline-editor*.tgz /opt/conda/share/jupyter/lab/extensions/
+COPY *.whl /etc/ai-workspace/
 COPY metadata-runtime-template.json /home/jovyan/.local/share/jupyter/metadata/runtime/
 
 RUN chown -R jovyan: /home/jovyan/.local/share/jupyter
@@ -46,6 +43,8 @@ RUN pip install --upgrade jupyterlab-git && \
     jupyter labextension install @jupyterlab/git --no-build --debug
 
 RUN --mount=type=secret,id=npmsecret,dst=/home/jovyan/.npmrc jupyter lab build --debug
+
+RUN jupyter labextension list && jupyter serverextension list
 
 USER jovyan
 ENTRYPOINT ["/bin/bash", "-c", "cd /opt/work && jupyter lab --debug --no-browser"]

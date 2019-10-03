@@ -43,12 +43,14 @@ clean: ## Make a clean source tree
 # Builds the distribution python wheel that installs the server side extension
 build:
 	-rm -f yarn.lock package-lock.json
-	-python setup.py bdist_wheel
 	-yarn
 	-export PATH=$$(pwd)/node_modules/.bin:$PATH
 	-lerna run build
 
-install: build ## Build distribution and install
+bdist: npm-packages
+	-python setup.py bdist_wheel
+
+install: bdist ## Build distribution and install
 	-pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
 	-pip install --upgrade jupyterlab-git
 	-jupyter serverextension enable --py jupyterlab_git
@@ -59,15 +61,17 @@ install: build ## Build distribution and install
 	-jupyter lab build
 
 npm-packages: build
+	-mkdir dist
 	-$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	-$(call PACKAGE_LAB_EXTENSION,python-runner)
 	-$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 
-docker-image: npm-packages ## Build docker image
-	-cp -r dist etc/docker/
+docker-image: bdist ## Build docker image
+	-cp -r dist/*.whl etc/docker/
 	-DOCKER_BUILDKIT=1 docker build --secret id=pipsecret,src=$(HOME)/.pip/pip.conf \
 	                                --secret id=npmsecret,src=$(HOME)/.npmrc \
-	                                -t $(IMAGE) etc/docker/
+	                                -t $(IMAGE) etc/docker/ \
+	                                --progress plain
 
 define INSTALL_LAB_EXTENSION
 	-cd packages/$1 && jupyter labextension link --no-build --debug .
