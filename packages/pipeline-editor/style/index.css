@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/* Add CSS variables to :root */
+:root {
+  --ewai-icon-pipeline: url('./pipelineIcon.png');
+}
+
 .add .list-item {
 	background-image: url('./add-notebook-node.svg');
 	background-repeat: no-repeat;
@@ -50,10 +55,7 @@
 }
 
 .ewai-PipelineIcon {
-	background-image: url('./pipelineIcon.png');
-	background-repeat: no-repeat;
-    background-position: center;
-    background-size: 30%;
+    background-image: var(--ewai-icon-pipeline);
 }
 
 .ewai-PipelineEditor .properties-modal {

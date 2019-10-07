@@ -20,6 +20,7 @@ import {URLExt} from '@jupyterlab/coreutils';
 import {DocumentRegistry, ABCWidgetFactory, DocumentWidget} from '@jupyterlab/docregistry';
 import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
 import {ILauncher} from '@jupyterlab/launcher';
+import {IMainMenu} from '@jupyterlab/mainmenu';
 import {ServerConnection} from '@jupyterlab/services';
 
 import {toArray} from '@phosphor/algorithm';
@@ -38,7 +39,7 @@ import * as ReactDOM from 'react-dom';
 
 import { IntlProvider } from "react-intl";
 
-const PIPELINE_ICON_CLASS = 'ewai-PipelineIcon';
+const PIPELINE_ICON_CLASS = 'jp-MaterialIcon ewai-PipelineIcon';
 const PIPELINE_CLASS = 'ewai-PipelineEditor';
 const PIPELINE_FACTORY = 'pipelineEditorFactory';
 const PIPELINE = 'pipeline';
@@ -448,13 +449,15 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
 const extension: JupyterFrontEndPlugin<void> = {
   id: PIPELINE,
   autoStart: true,
-  requires: [ICommandPalette, ILauncher, IFileBrowserFactory, ILayoutRestorer],
-
-  activate: (app: JupyterFrontEnd,
-             palette: ICommandPalette,
-             launcher: ILauncher,
-             browserFactory: IFileBrowserFactory,
-             restorer: ILayoutRestorer) => {
+  requires: [ICommandPalette, ILauncher, IFileBrowserFactory, ILayoutRestorer, IMainMenu],
+  activate: (
+    app: JupyterFrontEnd,
+    palette: ICommandPalette,
+    launcher: ILauncher,
+    browserFactory: IFileBrowserFactory,
+    restorer: ILayoutRestorer,
+    menu: IMainMenu
+  ) => {
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
       name: PIPELINE_FACTORY,
@@ -465,7 +468,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline']});
+    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline'], iconClass: PIPELINE_ICON_CLASS});
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
     const tracker = new WidgetTracker<DocumentWidget>({
@@ -495,8 +498,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Add an application command
     const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
     app.commands.addCommand(openPipelineEditorCommand, {
-      label: 'Pipeline Editor',
-      iconClass: PIPELINE_ICON_CLASS,
+      label: args => (args['isPalette'] ? 'New Pipeline Editor' : 'Pipeline Editor'),
+      iconClass:  args => (args['isPalette'] ? '' : PIPELINE_ICON_CLASS),
       execute: () => {
         // Creates blank file, then opens it in a new window
         app.commands.execute(commandIDs.newDocManager, {
@@ -513,7 +516,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     });
     // Add the command to the palette.
-    palette.addItem({command: openPipelineEditorCommand, category: 'Extensions'});
+    palette.addItem({command: openPipelineEditorCommand, args: { isPalette: true }, category: 'Extensions'});
     if (launcher) {
       launcher.add({
         command: openPipelineEditorCommand,
@@ -521,6 +524,11 @@ const extension: JupyterFrontEndPlugin<void> = {
         rank: 3
       });
     }
+    // Add new pipeline to the file menu
+    menu.fileMenu.newMenu.addGroup(
+      [{ command: openPipelineEditorCommand }],
+      30
+    );
   }
  };
  export default extension;
