@@ -17,10 +17,14 @@
 import '../style/index.css';
 
 import {JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer} from '@jupyterlab/application';
-import {IEditorServices} from '@jupyterlab/codeeditor';
+import {CodeEditor, IEditorServices} from '@jupyterlab/codeeditor';
+import {ISettingRegistry} from '@jupyterlab/coreutils';
+import {FileEditor} from '@jupyterlab/fileeditor';
 import {ILauncher} from '@jupyterlab/launcher';
 import {IMainMenu} from '@jupyterlab/mainmenu';
 import {WidgetTracker, ICommandPalette} from '@jupyterlab/apputils';
+
+import {JSONObject} from '@phosphor/coreutils';
 
 import {PythonFileEditorFactory, PythonFileEditor} from "./widget";
 
@@ -42,12 +46,13 @@ const commandIDs = {
 const extension: JupyterFrontEndPlugin<void> = {
   id: PYTHON_EDITOR_NAMESPACE,
   autoStart: true,
-  requires: [IEditorServices, ICommandPalette, ILayoutRestorer, IMainMenu],
-  optional: [ILauncher],
+  requires: [IEditorServices, ICommandPalette, ISettingRegistry],
+  optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
     app: JupyterFrontEnd, 
     editorServices: IEditorServices,
     palette: ICommandPalette,
+    settingRegistry: ISettingRegistry,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
     launcher: ILauncher | null
@@ -63,15 +68,18 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       });
 
-      /*
-       * Track PythonFileEditor widget on page refresh
-      **/
+      const { restored } = app;
 
+      /**
+       * Track PythonFileEditor widget on page refresh
+       */
       const tracker = new WidgetTracker<PythonFileEditor>({
         namespace: PYTHON_EDITOR_NAMESPACE
       });
 
-      if (restorer){
+      let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
+
+      if (restorer) {
         // Handle state restoration
         void restorer.restore(tracker, 
         {
@@ -82,7 +90,56 @@ const extension: JupyterFrontEndPlugin<void> = {
           }),
           name: widget => widget.context.path
         });
-      }  
+      }
+
+      /**
+       * Update the setting values. Adapted from fileeditor-extension.
+       */
+      function updateSettings(settings: ISettingRegistry.ISettings): void {
+        config = {
+          ...CodeEditor.defaultConfig,
+          ...(settings.get('editorConfig').composite as JSONObject)
+        };
+
+        // Trigger a refresh of the rendered commands
+        app.commands.notifyCommandChanged();
+      }
+
+      /**
+       * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
+       */
+      function updateTracker(): void {
+        tracker.forEach(widget => {
+          updateWidget(widget.content);
+        });
+      }
+
+      /**
+       * Update the settings of a widget. Adapted from fileeditor-extension.
+       */
+      function updateWidget(widget: FileEditor): void {
+        const editor = widget.editor;
+        Object.keys(config).forEach((keyStr: string) => {
+          let key = keyStr as keyof CodeEditor.IConfig;
+          editor.setOption(key, config[key]);
+        });
+      }
+
+      // Fetch the initial state of the settings. Adapted from fileeditor-extension.
+      Promise.all([settingRegistry.load('@jupyterlab/fileeditor-extension:plugin'), restored])
+        .then(([settings]) => {
+          updateSettings(settings);
+          updateTracker();
+          settings.changed.connect(() => {
+            updateSettings(settings);
+            updateTracker();
+          });
+        })
+        .catch((reason: Error) => {
+          console.error(reason.message);
+          updateTracker();
+        });
+
 
       app.docRegistry.addWidgetFactory(factory);  
 
@@ -93,11 +150,17 @@ const extension: JupyterFrontEndPlugin<void> = {
         widget.context.pathChanged.connect(() => {
           void tracker.save(widget);
         });
+        updateWidget(widget.content);
       });
 
-      /*
+      // Handle the settings of new widgets. Adapted from fileeditor-extension.
+      tracker.widgetAdded.connect((sender, widget) => {
+        updateWidget(widget.content);
+      });
+
+      /**
        * Create new python file from launcher and file menu
-      **/
+       */
 
       // Add a python launcher
       if (launcher) {
@@ -114,6 +177,41 @@ const extension: JupyterFrontEndPlugin<void> = {
           [{ command: commandIDs.createNewPython }],
           30
         );
+
+        // Add undo/redo hooks to the edit menu. Adapted from fileeditor-extension.
+        menu.editMenu.undoers.add({
+          tracker,
+          undo: (widget: any) => {
+            widget.content.editor.undo();
+          },
+          redo: (widget: any) => {
+            widget.content.editor.redo();
+          }
+        });
+
+        // Add editor view options. Adapted from fileeditor-extension.
+        menu.viewMenu.editorViewers.add({
+          tracker,
+          toggleLineNumbers: (widget: any) => {
+            const lineNumbers = !widget.content.editor.getOption('lineNumbers');
+            widget.content.editor.setOption('lineNumbers', lineNumbers);
+          },
+          toggleWordWrap: (widget: any) => {
+            const oldValue = widget.content.editor.getOption('lineWrap');
+            const newValue = oldValue === 'off' ? 'on' : 'off';
+            widget.content.editor.setOption('lineWrap', newValue);
+          },
+          toggleMatchBrackets: (widget: any) => {
+            const matchBrackets = !widget.content.editor.getOption('matchBrackets');
+            widget.content.editor.setOption('matchBrackets', matchBrackets);
+          },
+          lineNumbersToggled: (widget: any) =>
+            widget.content.editor.getOption('lineNumbers'),
+          wordWrapToggled: (widget: any) =>
+            widget.content.editor.getOption('lineWrap') !== 'off',
+          matchBracketsToggled: (widget: any) =>
+            widget.content.editor.getOption('matchBrackets')
+        });
       }
 
       // Function to create a new untitled python file, given the current working directory
