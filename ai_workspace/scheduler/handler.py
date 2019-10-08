@@ -203,6 +203,16 @@ class SchedulerHandler(IPythonHandler):
         return minio_client
 
     def __upload_artifacts_to_object_store(self, config, artifact, archive_artifact):
+
+        def tar_filter(tarinfo):
+            """Filter files from the generated archive"""
+            if tarinfo.type == tarfile.DIRTYPE:
+                # ignore hidden directories (e.g. ipynb checkpoints and/or trash contents)
+                if tarinfo.name.startswith('.'):
+                    return None
+
+            return tarinfo
+
         client = self.__initialize_object_store(config)
 
         full_artifact_path = os.path.join(os.getcwd(), artifact)
@@ -211,7 +221,7 @@ class SchedulerHandler(IPythonHandler):
 
         with tempfile.TemporaryDirectory() as archive_temp_dir:
             with tarfile.open(archive_temp_dir + archive_artifact, "w:gz") as tar:
-                tar.add(full_artifact_path, arcname="")
+                tar.add(full_artifact_path, arcname="", filter=tar_filter)
 
             self.log.debug("Creating temp directory for archive TAR : %s", archive_temp_dir)
             self.log.info("TAR archive %s created", archive_artifact)
