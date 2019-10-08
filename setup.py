@@ -40,7 +40,9 @@ setup(
         'ipywidgets',
         'jupyterlab>=1.0.0,<2.0.0',
         'nbconvert',
-        'notebook>=6',
+        'notebook>=6'
+        'traitlets>=4.3.2',
+        'jsonschema',
         'requests>=2.9.1,<3.0',
     ],
     include_package_data=True,
