@@ -74,7 +74,7 @@ docker-image: bdist ## Build docker image
 	                                --progress plain
 
 define INSTALL_LAB_EXTENSION
-	-cd packages/$1 && jupyter labextension install --no-build *$1*
+	-jupyter labextension install --no-build dist/*$1*
 endef
 
 define PACKAGE_LAB_EXTENSION
