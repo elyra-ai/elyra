@@ -330,42 +330,29 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
       console.log('Submitting pipeline to -> ' + url);
       ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
-      .then(response => {
-        if (response.status === 404) {
-            showDialog({
-              title: "Error submitting pipeline !",
-              body: "Service endpoint '"+ url +"'not found",
+        .then((response: any) => {
+          console.log(response);
+          if (response.status === 404) {
+            return showDialog({
+              title: 'Error submitting pipeline',
+              body: 'Pipeline scheduler service endpoint not available',
               buttons: [Dialog.okButton()]
             });
-        } else if (response.status !== 200) {
-          return response.json().then(data => {
+          } else if (response.status === 200) {
+            let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] + ' succeeded';
             showDialog({
-              title: 'Error submitting Notebook !',
-              body: data.message,
+              title: dialogTitle,
+              body: '',
               buttons: [Dialog.okButton()]
-            })
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        if( data ) {
-          let dialogTitle: string = 'Job submission to ' + result.value;
-          let dialogBody: string = '';
-          if (data['status'] == 'ok') {
-            dialogTitle =  dialogTitle + ' succeeded !';
-            dialogBody = 'Check details on submitted jobs at : <br> <a href=' + data['url'].replace('/&', '&') + ' target="_blank">Console & Job Status</a>';
+            });
           } else {
-            dialogTitle =  dialogTitle + ' failed !';
-            dialogBody = data['message'];
+            showDialog({
+              title: 'Error submitting pipeline',
+              body: 'More details might be available in the JupyterLab console logs',
+              buttons: [Dialog.okButton()]
+            });
           }
-          showDialog({
-            title: dialogTitle,
-            body: dialogBody,
-            buttons: [Dialog.okButton()]
-          })
-        }
-      });
+        });
     });
   }
 

@@ -22,7 +22,6 @@ import {ServerConnection} from "@jupyterlab/services";
 import {JSONObject, JSONValue} from "@phosphor/coreutils";
 import {PanelLayout, Widget} from '@phosphor/widgets';
 import {IDisposable} from "@phosphor/disposable";
-import * as React from 'react';
 
 import Utils from './utils'
 
@@ -84,7 +83,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
       // prepare notebook submission details
       let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions> result.value;
       let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions)
-      console.log(pipeline)
+      console.log(pipeline);
 
       // use ServerConnection utility to make calls to Jupyter Based services
       // which in this case is the scheduler extension installed by this package
@@ -94,51 +93,31 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
 
       console.log('Submitting pipeline to -> ' + url);
       ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
-        .then(response => {
+      .then((response: any) => {
+        console.log('>>>');
+        console.log(response);
         if (response.status === 404) {
-            return showDialog({
-              title: "Error submitting notebook !",
-              body: "Service endpoint '"+ url +"'not found",
-              buttons: [Dialog.okButton()]
-            });
-        } else if (response.status !== 200) {
-            return response.json().then(data => {
-              showDialog({
-                title: "Error submitting Notebook !",
-                body: data.message,
-                buttons: [Dialog.okButton()]
-              })
-            });
-          }
-          console.log('>>>');
-          console.log(response);
-          return response.json();
-        })
-        .then(data => {
-          if( data ) {
-            console.log('>>>');
-            console.log(data);
-            let dialogTitle: string = 'Job submission to ' + result.value.platform;
-            if (data['status'] == 'ok') {
-              let dialogLink: React.ReactElement<any> = React.createElement('a',{href: data['url'].replace('/&', '&'), target:"_blank"}, 'Console & Job Status');
-              let dialogBody: React.ReactElement<any> = React.createElement('p',null,'Check details on submitted jobs at ',dialogLink);
-              dialogTitle =  dialogTitle + ' succeeded !';
-              showDialog({
-                title: dialogTitle,
-                body: dialogBody,
-                buttons: [Dialog.okButton()]
-              });
-            } else {
-              dialogTitle =  dialogTitle + ' failed !';
-              showDialog({
-                title: dialogTitle,
-                body: data['message'],
-                buttons: [Dialog.okButton()]
-              });
-            }
-          }
-        });
+          return showDialog({
+            title: 'Error submitting notebook',
+            body: 'Notebook scheduler service endpoint not available',
+            buttons: [Dialog.okButton()]
+          });
+        } else if (response.status === 200) {
+          let dialogTitle: string = 'Job submission to ' + result.value.platform + ' succeeded';
+          showDialog({
+            title: dialogTitle,
+            body: '',
+            buttons: [Dialog.okButton()]
+          });
+        } else {
+          showDialog({
+            title: "Error submitting Notebook",
+            body: 'More details might be available in the JupyterLab console logs',
+            buttons: [Dialog.okButton()]
+          })
+        }
       });
+    });
   };
 
   createNew(panel: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): IDisposable {
