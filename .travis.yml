@@ -54,6 +54,7 @@ install:
 script:
   # Build the python wheel for the extension
   - jupyter labextension list && jupyter serverextension list
+  - make test
 #deploy:
 #after_deploy:
 #notifications:

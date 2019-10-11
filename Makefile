@@ -40,6 +40,9 @@ clean: ## Make a clean source tree
 	-rm -rf $$(find . -name *.lock)
 	-rm -rf $$(find . -name package-lock.json)
 
+test: ## Run unit tests
+	-nosetests -v
+
 # Builds the distribution python wheel that installs the server side extension
 build:
 	-rm -f yarn.lock package-lock.json
