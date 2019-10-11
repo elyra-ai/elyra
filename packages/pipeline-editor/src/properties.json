@@ -3,12 +3,15 @@
     {
       "id": "selectImageList",
       "enum": [
-        "tensorflow/tensorflow:1.12.3-py3",
-        "tensorflow/tensorflow:1.12.3-gpu-py3",
+        "tensorflow/tensorflow:1.13.2-py3",
+        "tensorflow/tensorflow:1.13.2-gpu-py3",
+        "tensorflow/tensorflow:2.0.0-py3",
+        "tensorflow/tensorflow:2.0.0-gpu-py3",
         "pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime",
+        "pytorch/pytorch:1.2-cuda10.0-cudnn7-devel",
         "amancevice/pandas:0.25.0-jupyter"
       ],
-      "default": "tensorflow/tensorflow:1.12.3-py3"
+      "default": "tensorflow/tensorflow:1.13.2-py3"
     }
   ],
   "uihints": {
@@ -24,9 +27,12 @@
     ]
   },
   "resources": {
-    "selectImageList.tensorflow/tensorflow:1.12.3-py3.label": "Tensorflow",
-    "selectImageList.tensorflow/tensorflow:1.12.3-gpu-py3.label": "Tensorflow GPU",
-    "selectImageList.pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime.label": "Pytorch",
+    "selectImageList.tensorflow/tensorflow:1.13.2-py3.label": "Tensorflow 1.13.2",
+    "selectImageList.tensorflow/tensorflow:1.13.2-gpu-py3.label": "Tensorflow 1.13.2 w/ GPU",
+    "selectImageList.tensorflow/tensorflow:2.0.0-py3.label": "Tensorflow 2.0",
+    "selectImageList.tensorflow/tensorflow:2.0.0-gpu-py3.label": "Tensorflow 2.0 w/ GPU",
+    "selectImageList.pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime.label": "Pytorch 1.2 w/ CUDA-runtime",
+    "selectImageList.pytorch/pytorch:1.2-cuda10.0-cudnn7-devel.label": "Pytorch 1.2 w/ CUDA-devel ",
     "selectImageList.amancevice/pandas:0.25.0-jupyter.label": "Pandas"
   }
 }
