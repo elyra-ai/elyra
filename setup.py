@@ -25,12 +25,12 @@ setup(
     name="ai-workspace",
     url="https://github.ibm.com/ai-workspace/ai-workspace",
     author="CODAIT",
-    version="0.0.1",
+    version="0.2.0",
     packages=find_packages(),
     data_files=[('etc/jupyter/jupyter_notebook_config.d', ['jupyter-config/jupyter_notebook_config.d/ai_workspace.json']),
-                ('share/jupyter/lab/extensions', ['dist/aiworkspace-notebook-scheduler-extension-0.1.0.tgz',
-                                                  'dist/aiworkspace-pipeline-editor-extension-0.1.0.tgz',
-                                                  'dist/aiworkspace-python-runner-extension-0.1.0.tgz'])
+                ('share/jupyter/lab/extensions', ['dist/aiworkspace-notebook-scheduler-extension-0.2.0.tgz',
+                                                  'dist/aiworkspace-pipeline-editor-extension-0.2.0.tgz',
+                                                  'dist/aiworkspace-python-runner-extension-0.2.0.tgz'])
                 ],
     install_requires=[
         "jupyter_core>=4.0,<5.0",
