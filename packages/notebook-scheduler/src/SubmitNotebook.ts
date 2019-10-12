@@ -68,56 +68,60 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
   readonly app: JupyterFrontEnd;
 
   showWidget = () => {
+    // use ServerConnection utility to make calls to Jupyter Based services
+    // which in this case are the in the extension installed by this package
+    let settings = ServerConnection.makeSettings();
+    let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
     let envVars: string[] = Utils.getEnvVars(this.panel.content.model.toString());
 
-    showDialog({
-      title: 'Submit notebook',
-      body: new SubmitNotebook(envVars),
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    }).then( result => {
-      if( result.value == null) {
-        // When Cancel is clicked on the dialog, just return
-        return;
-      }
+    ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings).then(res => res.json())
+      .then(runtimes => {
+        return showDialog({
+          title: 'Submit notebook',
+          body: new SubmitNotebook(envVars, runtimes),
+          buttons: [Dialog.cancelButton(), Dialog.okButton()]
+        }).then(result => {
+          if (result.value == null) {
+            // When Cancel is clicked on the dialog, just return
+            return;
+          }
 
-      // prepare notebook submission details
-      let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions> result.value;
-      let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions)
-      console.log(pipeline);
+          // prepare notebook submission details
+          let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions>result.value;
+          let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions)
+          console.log(pipeline);
 
-      // use ServerConnection utility to make calls to Jupyter Based services
-      // which in this case is the scheduler extension installed by this package
-      let settings = ServerConnection.makeSettings();
-      let url = URLExt.join(settings.baseUrl, 'scheduler');
-      let requestBody = JSON.stringify(pipeline);
+          let url = URLExt.join(settings.baseUrl, 'scheduler');
+          let requestBody = JSON.stringify(pipeline);
 
-      console.log('Submitting pipeline to -> ' + url);
-      ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
-      .then((response: any) => {
-        console.log('>>>');
-        console.log(response);
-        if (response.status === 404) {
-          return showDialog({
-            title: 'Error submitting notebook',
-            body: 'Notebook scheduler service endpoint not available',
-            buttons: [Dialog.okButton()]
-          });
-        } else if (response.status === 200) {
-          let dialogTitle: string = 'Job submission to ' + result.value.platform + ' succeeded';
-          showDialog({
-            title: dialogTitle,
-            body: '',
-            buttons: [Dialog.okButton()]
-          });
-        } else {
-          showDialog({
-            title: "Error submitting Notebook",
-            body: 'More details might be available in the JupyterLab console logs',
-            buttons: [Dialog.okButton()]
-          })
-        }
+          console.log('Submitting pipeline to -> ' + url);
+          ServerConnection.makeRequest(url, {method: 'POST', body: requestBody}, settings)
+            .then((response: any) => {
+              console.log('>>>');
+              console.log(response);
+              if (response.status === 404) {
+                return showDialog({
+                  title: 'Error submitting notebook',
+                  body: 'Notebook scheduler service endpoint not available',
+                  buttons: [Dialog.okButton()]
+                });
+              } else if (response.status === 200) {
+                let dialogTitle: string = 'Job submission to ' + result.value.platform + ' succeeded';
+                return showDialog({
+                  title: dialogTitle,
+                  body: '',
+                  buttons: [Dialog.okButton()]
+                });
+              } else {
+                return showDialog({
+                  title: "Error submitting Notebook",
+                  body: 'More details might be available in the JupyterLab console logs',
+                  buttons: [Dialog.okButton()]
+                })
+              }
+            });
+        });
       });
-    });
   };
 
   createNew(panel: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): IDisposable {
@@ -148,13 +152,17 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
 export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmitNotebookConfiguration>  {
   private _htmlDialogElement: HTMLElement;
   _envVars: string[];
+  _runtimes: any;
 
-  constructor(envVars: string[]) {
+  constructor(envVars: string[], runtimes: any) {
     super();
 
     this._envVars = envVars;
+    this._runtimes = runtimes;
 
     this._htmlDialogElement = this.renderHtml();
+    // Set default platform to kfp, since list is dynamically generated
+    (this._htmlDialogElement.getElementsByClassName("ewai-form-platform")[0] as HTMLSelectElement).value = "kfp";
 
     let layout = (this.layout = new PanelLayout());
 
@@ -173,6 +181,11 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     //var td_colspan4 = '<td colspan=4>'; //'<td style="padding: 1px;" colspan=4>';
 
     let htmlContent = document.createElement('div');
+    let platform_options = '';
+
+    for (let key in this._runtimes) {
+      platform_options = platform_options + `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
+    }
 
     var content = ''
       +'<table id="table-submit-dialog" class="ewai-table"><tbody>'
@@ -181,7 +194,9 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       + td_colspan2
       +'<label for="platform">Platform:</label>'
       +'<br/>'
-      +'<select id="platform"><option value="kfp" selected>Kubeflow Pipelines</option></select>'
+      +'<select id="platform" class="ewai-form-platform">'
+      + platform_options
+      +'</select>'
       +'</td>'
       + td_colspan2
       +'<label for="framework">Deep Learning Framework:</label>'

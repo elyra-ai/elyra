@@ -84,7 +84,7 @@ class PipelineParser(LoggingConfigurable):
         if 'app_data' in pipeline.keys():
             if 'ui_data' in pipeline['app_data'].keys():
                 if 'platform' in pipeline['app_data']['ui_data'].keys():
-                    title = pipeline['app_data']['ui_data']['platform']
+                    platform = pipeline['app_data']['ui_data']['platform']
 
         return platform
 

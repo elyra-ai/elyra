@@ -35,7 +35,7 @@ import * as palette from './palette.json';
 import * as properties from './properties.json';
 import * as i18nData from "./en.json";
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+// import * as ReactDOM from 'react-dom';
 
 import { IntlProvider } from "react-intl";
 
@@ -60,18 +60,44 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
     super(props);
 
     let layout = (this.layout = new PanelLayout());
-    let htmlContent = document.createElement('div');
-    ReactDOM.render(
-    	(<input
-      	type='text'
-      	id='pipeline_name'
-      	name='pipeline_name'
-      	placeholder='Pipeline Name'/>), htmlContent);
+    let htmlContent = this.getHtml(props);
+    // Set default platform to kfp, since list is dynamically generated
+    (htmlContent.getElementsByClassName("ewai-form-platform")[0] as HTMLSelectElement).value = "kfp";
 
     layout.addWidget(new Widget( {node: htmlContent} ));
   }
+
   getValue() {
-  	return {'pipeline_name': (document.getElementById('pipeline_name') as HTMLInputElement).value };
+  	return {
+  	  'pipeline_name': (document.getElementById('pipeline_name') as HTMLInputElement).value,
+  	  'platform': (document.getElementById('platform') as HTMLInputElement).value
+  	};
+  }
+
+  getHtml(props: any) {
+    let htmlContent = document.createElement('div');
+    let br = '<br/>';
+    let platform_options = '';
+    let runtimes = props['runtimes'];
+
+    for (let key in runtimes) {
+      platform_options = platform_options + `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
+    }
+
+    let content = ''
+      + '<label for="pipeline_name">Pipeline Name:</label>'
+      + br
+      + '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>'
+      + br + br
+      + '<label for="platform">Platform:</label>'
+      + br
+      + '<select id="platform" name="platform" class="ewai-form-platform">'
+      + platform_options
+      + '</select>';
+
+    htmlContent.innerHTML = content;
+
+    return htmlContent;
   }
  }
 
@@ -314,56 +340,61 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   }
 
   handleRun() {
-    // request name to publish pipeline
-    showDialog({
-      body: new PipelineDialog({})
-    }).then( result => {
-      if( result.value == null) {
-        // When Cancel is clicked on the dialog, just return
-        return;
-      }
+    // use ServerConnection utility to make calls to Jupyter Based services
+    // which in this case are the in the extension installed by this package
+    let settings = ServerConnection.makeSettings();
+    let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
 
-      // prepare notebook submission details
-      console.log('Pipeline definition:')
-      console.log(this.canvasController.getPipelineFlow());
-
-      let pipelineFlow = this.canvasController.getPipelineFlow();
-      pipelineFlow.pipelines[0]['app_data']['ui_data']['title'] = result.value.pipeline_name;
-      pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] = 'kfp';
-
-      let requestBody = JSON.stringify(pipelineFlow);
-
-      // use ServerConnection utility to make calls to Jupyter Based services
-      // which in this case is the scheduler extension installed by this package
-      let settings = ServerConnection.makeSettings();
-      let url = URLExt.join(settings.baseUrl, 'scheduler');
-
-      console.log('Submitting pipeline to -> ' + url);
-      ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
-        .then((response: any) => {
-          console.log(response);
-          if (response.status === 404) {
-            return showDialog({
-              title: 'Error submitting pipeline',
-              body: 'Pipeline scheduler service endpoint not available',
-              buttons: [Dialog.okButton()]
-            });
-          } else if (response.status === 200) {
-            let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] + ' succeeded';
-            showDialog({
-              title: dialogTitle,
-              body: '',
-              buttons: [Dialog.okButton()]
-            });
-          } else {
-            showDialog({
-              title: 'Error submitting pipeline',
-              body: 'More details might be available in the JupyterLab console logs',
-              buttons: [Dialog.okButton()]
-            });
+    ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings).then(res => res.json())
+      .then(runtimes => {
+        return showDialog({
+          title: 'Run pipeline',
+          body: new PipelineDialog({"runtimes": runtimes}),
+          buttons: [Dialog.cancelButton(), Dialog.okButton()]
+        }).then( result => {
+          if( result.value == null) {
+            // When Cancel is clicked on the dialog, just return
+            return;
           }
+
+          // prepare pipeline submission details
+          console.log('Pipeline definition:');
+          console.log(this.canvasController.getPipelineFlow());
+
+          let pipelineFlow = this.canvasController.getPipelineFlow();
+          pipelineFlow.pipelines[0]['app_data']['ui_data']['title'] = result.value.pipeline_name;
+          pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] = result.value.platform;
+
+          let requestBody = JSON.stringify(pipelineFlow);
+          let url = URLExt.join(settings.baseUrl, 'scheduler');
+
+          console.log('Submitting pipeline to -> ' + url);
+          ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
+            .then((response: any) => {
+              console.log('>>>');
+              console.log(response);
+              if (response.status === 404) {
+                return showDialog({
+                  title: 'Error submitting pipeline',
+                  body: 'Pipeline scheduler service endpoint not available',
+                  buttons: [Dialog.okButton()]
+                });
+              } else if (response.status === 200) {
+                let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] + ' succeeded';
+                return showDialog({
+                  title: dialogTitle,
+                  buttons: [Dialog.okButton()]
+                });
+              } else {
+                return showDialog({
+                  title: 'Error submitting pipeline',
+                  body: 'More details might be available in the JupyterLab console logs',
+                  buttons: [Dialog.okButton()]
+                });
+              }
+            });
         });
-    });
+      });
   }
 
   handleSave() {
