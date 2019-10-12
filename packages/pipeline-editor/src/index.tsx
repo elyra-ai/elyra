@@ -163,7 +163,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   constructor(props: any) {
     super(props);
-    this.jupyterFrontEnd = props.app;
+    this.jupyterFrontEnd = props.jupyterFrontEnd;
     this.browserFactory = props.browserFactory;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
