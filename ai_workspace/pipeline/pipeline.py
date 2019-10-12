@@ -18,12 +18,14 @@ import os
 
 class Operation:
 
-    def __init__(self, id, type, title, artifact, image, dependencies=None ):
+    def __init__(self, id, type, title, artifact, image, outputs, inputs=[], dependencies=None ):
         self._id = id
         self._type = type
         self._title = title
         self._artifact = artifact
         self._image = image
+        self._outputs = outputs
+        self._inputs = inputs
         if dependencies:
             self._dependencies = dependencies
         else:
@@ -58,6 +60,18 @@ class Operation:
         return self._image
 
     @property
+    def outputs(self):
+        return self._outputs
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    @inputs.setter
+    def inputs(self, value):
+        self._inputs = value
+
+    @property
     def dependencies(self):
         return self._dependencies
 
@@ -68,6 +82,8 @@ class Operation:
                    self.title == other.title  and \
                    self.artifact == other.artifact  and \
                    self.image == other.image and \
+                   self.outputs == other.outputs and \
+                   self.inputs == other.inputs and \
                    self.dependencies == other.dependencies
 
 

@@ -20,6 +20,7 @@ import tarfile
 import tempfile
 
 from datetime import datetime
+
 from kubernetes.client.models import V1EnvVar
 from notebook.base.handlers import IPythonHandler
 from notebook.pipeline import NotebookOp
@@ -75,6 +76,13 @@ class SchedulerHandler(IPythonHandler):
             notebook_ops = {}
             tars_to_upload = {}
 
+            # Preprocess the output/input artifacts
+            for pipeline_child_operation in pipeline.operations.values():
+                for dependency in pipeline_child_operation.dependencies:
+                    pipeline_parent_operation = pipeline.operations[dependency]
+                    if pipeline_parent_operation.outputs:
+                        pipeline_child_operation.inputs = pipeline_child_operation.inputs + pipeline_parent_operation.outputs
+
             for operation in pipeline.operations.values():
                 operation_work_dir = os.path.dirname(operation.artifact)
                 operation_artifact_archive = operation_work_dir + '-' + timestamp + ".tar.gz"
@@ -91,12 +99,16 @@ class SchedulerHandler(IPythonHandler):
                                "dependencies : %s \n "
                                "path of workspace : %s \n "
                                "artifact archive : %s \n "
+                               "inputs : %s \n "
+                               "outputs : %s \n "
                                "docker image : %s \n ",
                                operation.id,
                                operation.title,
                                operation.dependencies,
                                operation.artifact,
                                operation_artifact_archive,
+                               operation.inputs,
+                               operation.outputs,
                                operation.image)
 
                 # create pipeline operation
@@ -105,6 +117,8 @@ class SchedulerHandler(IPythonHandler):
                                          cos_endpoint=cos_endpoint,
                                          cos_bucket=bucket_name,
                                          cos_pull_archive=operation_artifact_archive,
+                                         pipeline_outputs=self.__artifact_list_to_str(operation.outputs),
+                                         pipeline_inputs=self.__artifact_list_to_str(operation.inputs),
                                          image=operation.image)
 
                 notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
@@ -125,7 +139,7 @@ class SchedulerHandler(IPythonHandler):
             for pipeline_operation in pipeline.operations.values():
                 op = notebook_ops[pipeline_operation.id]
                 for dependency in pipeline_operation.dependencies:
-                    dependency_op = notebook_ops[dependency]
+                    dependency_op = notebook_ops[dependency]  # Parent Operation
                     op.after(dependency_op)
 
             self.log.info("Pipeline dependencies are set")
@@ -172,6 +186,12 @@ class SchedulerHandler(IPythonHandler):
         msg = json.dumps({"status": "error",
                           "message": error_message})
         self.send_message(msg)
+
+    def __artifact_list_to_str(self, pipeline_array):
+        if not pipeline_array:
+            return "None"
+        else:
+            return ','.join(pipeline_array)
 
     def __initialize_object_store(self, config):
 

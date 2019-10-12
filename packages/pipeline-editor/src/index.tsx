@@ -218,9 +218,24 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   propertiesInfo = { 'parameterDef': properties, 'appData': { 'id': '' } };
 
+  openPropertiesDialog(source: any) {
+    console.log('Opening properties dialog');
+    let node_id = source.targetObject.id;
+    let app_data = this.canvasController.getNode(node_id).app_data;
+
+    let node_props = this.propertiesInfo;
+    node_props.parameterDef.current_parameters.dockerImage = app_data.image;
+    node_props.parameterDef.current_parameters.outputFiles = app_data.outputs;
+    node_props.appData.id = node_id;
+
+    this.setState({showPropertiesDialog: true, propertiesInfo: node_props});
+  }
+
   applyPropertyChanges(propertySet: any, appData: any) {
     console.log('Applying changes to properties');
-    this.canvasController.getNode(appData.id).app_data.image = propertySet.selectImageList;
+    let app_data = this.canvasController.getNode(appData.id).app_data;
+    app_data.image = propertySet.dockerImage;
+    app_data.outputs = propertySet.outputFiles;
   };
 
   closePropertiesDialog() {
@@ -257,16 +272,6 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     }
   }
 
-  openPropertiesDialog(source: any) {
-    console.log('Opening properties dialog');
-    let node_id = source.targetObject.id;
-    let current_image = this.canvasController.getNode(node_id).app_data.image;
-    let node_props = this.propertiesInfo;
-    node_props.parameterDef.parameters[0].default = current_image;
-    node_props.appData.id = node_id;
-    this.setState({showPropertiesDialog: true, propertiesInfo: node_props});
-  }
-
   /*
    * Handles creating new nodes in the canvas
    */
@@ -295,7 +300,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
             data.nodeTemplate.app_data['artifact'] = item.path;
-            data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.parameters[0].default;
+            data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.current_parameters.dockerImage;
             this.canvasController.editActionHandler(data);
           }
         }

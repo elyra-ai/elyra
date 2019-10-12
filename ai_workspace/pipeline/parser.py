@@ -52,6 +52,7 @@ class PipelineParser(LoggingConfigurable):
                     title=node['app_data']['ui_data']['label'],
                     artifact=node['app_data']['artifact'],
                     image=node['app_data']['image'],
+                    outputs=node['app_data'].get('outputs') or [],
                     dependencies=links
                 )
                 pipeline_object.operations[operation.id] = operation
