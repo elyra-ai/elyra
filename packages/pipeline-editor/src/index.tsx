@@ -224,9 +224,11 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     let app_data = this.canvasController.getNode(node_id).app_data;
 
     let node_props = this.propertiesInfo;
-    node_props.parameterDef.current_parameters.dockerImage = app_data.image;
-    node_props.parameterDef.current_parameters.outputFiles = app_data.outputs;
     node_props.appData.id = node_id;
+
+    node_props.parameterDef.current_parameters.image = app_data.image;
+    node_props.parameterDef.current_parameters.outputs = app_data.outputs;
+    node_props.parameterDef.current_parameters.vars = app_data.vars;
 
     this.setState({showPropertiesDialog: true, propertiesInfo: node_props});
   }
@@ -234,8 +236,10 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   applyPropertyChanges(propertySet: any, appData: any) {
     console.log('Applying changes to properties');
     let app_data = this.canvasController.getNode(appData.id).app_data;
-    app_data.image = propertySet.dockerImage;
-    app_data.outputs = propertySet.outputFiles;
+
+    app_data.image = propertySet.image;
+    app_data.outputs = propertySet.outputs;
+    app_data.vars = propertySet.vars;
   };
 
   closePropertiesDialog() {
@@ -300,7 +304,8 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
             data.nodeTemplate.app_data['artifact'] = item.path;
-            data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.current_parameters.dockerImage;
+            data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.current_parameters.image;
+
             this.canvasController.editActionHandler(data);
           }
         }

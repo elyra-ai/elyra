@@ -1,11 +1,12 @@
 {
   "current_parameters": {
-    "dockerImage": "tensorflow/tensorflow:1.13.2-py3",
-    "outputFiles": []
+    "image": "tensorflow/tensorflow:1.12.3-py3",
+    "outputs": [],
+    "vars": []
   },
   "parameters": [
     {
-      "id": "dockerImage",
+      "id": "image",
       "enum": [
         "tensorflow/tensorflow:1.12.3-py3",
         "tensorflow/tensorflow:1.12.3-gpu-py3",
@@ -17,7 +18,11 @@
       ]
     },
     {
-      "id": "outputFiles",
+      "id": "outputs",
+      "type": "array[string]"
+    },
+    {
+      "id": "vars",
       "type": "array[string]"
     }
   ],
@@ -25,27 +30,33 @@
     "id": "nodeProperties",
     "parameter_info": [
       {
-        "parameter_ref": "dockerImage",
+        "parameter_ref": "image",
         "control": "oneofselect",
         "label": {
           "default": "Docker Image"
         }
       },
       {
-        "parameter_ref": "outputFiles",
+        "parameter_ref": "outputs",
         "label": {
           "default": "Output Files"
+        }
+      },
+      {
+        "parameter_ref": "vars",
+        "label": {
+          "default": "Env Vars"
         }
       }
     ]
   },
   "resources": {
-    "dockerImage.tensorflow/tensorflow:1.12.3-py3.label": "Tensorflow 1.12.3",
-    "dockerImage.tensorflow/tensorflow:1.12.3-gpu-py3.label": "Tensorflow 1.12.3 w/ GPU",
-    "dockerImage.tensorflow/tensorflow:2.0.0-py3.label": "Tensorflow 2.0",
-    "dockerImage.tensorflow/tensorflow:2.0.0-gpu-py3.label": "Tensorflow 2.0 w/ GPU",
-    "dockerImage.pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime.label": "Pytorch 1.2 w/ CUDA-runtime",
-    "dockerImage.pytorch/pytorch:1.2-cuda10.0-cudnn7-devel.label": "Pytorch 1.2 w/ CUDA-devel ",
-    "dockerImage.amancevice/pandas:0.25.0-jupyter.label": "Pandas"
+    "image.tensorflow/tensorflow:1.12.3-py3.label": "Tensorflow 1.12.3",
+    "image.tensorflow/tensorflow:1.12.3-gpu-py3.label": "Tensorflow 1.12.3 w/ GPU",
+    "image.tensorflow/tensorflow:2.0.0-py3.label": "Tensorflow 2.0",
+    "image.tensorflow/tensorflow:2.0.0-gpu-py3.label": "Tensorflow 2.0 w/ GPU",
+    "image.pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime.label": "Pytorch 1.2 w/ CUDA-runtime",
+    "image.pytorch/pytorch:1.2-cuda10.0-cudnn7-devel.label": "Pytorch 1.2 w/ CUDA-devel",
+    "image.amancevice/pandas:0.25.0-jupyter.label": "Pandas"
   }
 }

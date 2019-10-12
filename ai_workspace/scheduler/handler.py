@@ -124,6 +124,12 @@ class SchedulerHandler(IPythonHandler):
                 notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
                 notebook_op.container.add_env_variable(V1EnvVar(name='AWS_SECRET_ACCESS_KEY', value=cos_password))
 
+                # Set ENV variables
+                if operation.vars:
+                    for env_var in operation.vars:
+                        result = [x.strip() for x in env_var.split('=')]
+                        notebook_op.container.add_env_variable(V1EnvVar(name=result[0], value=result[1]))
+
                 notebook_ops[operation.id] = notebook_op
 
                 self.log.info("NotebookOp Created for Component %s \n", operation.id)
