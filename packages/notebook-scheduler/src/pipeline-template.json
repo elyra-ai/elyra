@@ -12,6 +12,8 @@
 			"app_data": {
 				"artifact": "{{artifact}}",
 				"image": "{{image}}",
+				"outputs": ["file"],
+				"vars": ["VAR=value"],
 				"ui_data": {
 					"label": "{{title}}",
 					"x_pos": 75,
