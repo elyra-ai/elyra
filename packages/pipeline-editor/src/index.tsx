@@ -486,6 +486,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     restorer: ILayoutRestorer,
     menu: IMainMenu
   ) => {
+    console.log('AI Workspace - pipeline-editor extension is activated!');
+
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
       name: PIPELINE_FACTORY,
