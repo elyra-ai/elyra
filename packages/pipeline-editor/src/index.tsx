@@ -105,20 +105,20 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
  * Class for Common Canvas React Component
  */
 class Canvas extends ReactWidget {
-  jupyterFrontEnd: JupyterFrontEnd;
+  app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
   context: DocumentRegistry.Context;
 
   constructor(props: any) {
     super(props);
-    this.jupyterFrontEnd = props.app;
+    this.app = props.app;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
   }
 
   render() {
     return <Pipeline
-      jupyterFrontEnd={this.jupyterFrontEnd}
+      app={this.app}
       browserFactory={this.browserFactory}
       widgetContext={this.context}
     />
@@ -133,7 +133,7 @@ namespace Pipeline {
    * The props for Pipeline.
    */
   export interface Props {
-    jupyterFrontEnd: JupyterFrontEnd;
+    app: JupyterFrontEnd;
     browserFactory: IFileBrowserFactory;
     widgetContext: DocumentRegistry.Context;
   }
@@ -155,7 +155,7 @@ namespace Pipeline {
 }
 
 class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
-  jupyterFrontEnd: JupyterFrontEnd;
+  app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
@@ -163,7 +163,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   constructor(props: any) {
     super(props);
-    this.jupyterFrontEnd = props.jupyterFrontEnd;
+    this.app = props.app;
     this.browserFactory = props.browserFactory;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
@@ -291,7 +291,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       let nodes = source.selectedObjectIds;
       for (let i = 0; i < nodes.length; i++) {
         let path = this.canvasController.getNode(nodes[i]).app_data.artifact;
-        this.jupyterFrontEnd.commands.execute(commandIDs.openDocManager, {path});
+        this.app.commands.execute(commandIDs.openDocManager, {path});
       }
     } else if (action === 'properties' && source.type === 'node') {
       if (this.state.showPropertiesDialog) {
@@ -408,7 +408,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
         // if the selected item is a file
         if (item.type != 'directory') {
           console.log('Opening ==> ' + item.path );
-          this.jupyterFrontEnd.commands.execute(commandIDs.openDocManager, { path: item.path });
+          this.app.commands.execute(commandIDs.openDocManager, { path: item.path });
         }
       }
     )
@@ -416,7 +416,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   handleNew() {
     // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name.
-    this.jupyterFrontEnd.commands.execute(commandIDs.openPipelineEditor);
+    this.app.commands.execute(commandIDs.openPipelineEditor);
   }
 
   handleClear() {
