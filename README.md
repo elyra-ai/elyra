@@ -22,19 +22,32 @@ Enterprise Workspace for AI aims to do for AI model development, what the
 Eclipse IDE did for Java in the early 2000s. It extends the JupyterLab Notebook
 platform with an Enterprise AI centric approach.
 
-![Enterprise Workspace for AI](docs/source/images/ai-workspaces.png)
+![Enterprise Workspace for AI](docs/source/images/ai-workspace.png)
 
-It provides **Enhanced Python Support** where Python scripts can be developed and
-executed. It also leverages the **Distributed Runtime Support** to enable running
-these scripts in remote environments.
-
-![Enhanced Python Support](docs/source/images/python-runner.png)
 
 An **AI Pipeline** visual editor is also available and can be used to chain notebooks
 together. Currently the only supported pipeline runtime is **Kubeflow Pipelines**,
 but others can be easily added.
 
 ![Pipeline Editor](docs/source/images/pipeline-editor.png)
+
+The pipeline visual editor also enables detailed customization of your pipeline, enabling
+users to choose which docker image to use when executing your notebook, setup environment
+variables required to properly run your notebook, as well as configuring dependency files 
+that needs to be flown to child notebooks.
+
+![Pipeline Editor - Node Properties](docs/source/images/pipeline-editor-properties.png)
+
+It provides **Enhanced Python Support** where Python scripts can be developed and
+executed. It also leverages the **Hybrid Runtime Support** to enable running
+these scripts either locally or in remote environments.
+
+![Enhanced Python Support](docs/source/images/python-runner.png)
+
+Native Integration with **Git and GitHub** enables seamless versioning for your Notebooks and
+Python Scripts.
+
+![Git Integration](docs/source/images/git.png)
 
 A metada service provides the ability to configure runtimes, data sources and other
 additional configurations required to tie all these components together and easily
