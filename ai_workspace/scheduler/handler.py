@@ -85,6 +85,10 @@ class SchedulerHandler(IPythonHandler):
 
             for operation in pipeline.operations.values():
                 operation_work_dir = os.path.dirname(operation.artifact)
+
+                if not operation_work_dir:
+                    operation_work_dir = "ai-pipeline"
+
                 operation_artifact_archive = operation_work_dir + '-' + timestamp + ".tar.gz"
 
                 # Create one tar archive for each notebook work directory.
