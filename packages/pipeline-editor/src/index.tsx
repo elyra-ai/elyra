@@ -41,7 +41,7 @@ import { IntlProvider } from "react-intl";
 
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon ewai-PipelineIcon';
 const PIPELINE_CLASS = 'ewai-PipelineEditor';
-const PIPELINE_FACTORY = 'pipelineEditorFactory';
+const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'pipeline-editor-extension';
 
@@ -313,7 +313,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
       item => {
         // if the selected item is a file
-        if (item.type != 'directory') {
+        if (item.type == 'notebook') {
           //add each selected notebook
           console.log('Adding ==> ' + item.path );
 
@@ -325,7 +325,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
               'offsetX': 75 + this.position,
               'offsetY': 85 + this.position,
               'nodeTemplate': this.canvasController.convertNodeTemplate(nodeTemplate)
-            }
+            };
 
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
@@ -463,7 +463,7 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       app: this.app,
       browserFactory: this.browserFactory,
       context: context
-    }
+    };
     const content = new Canvas(props);
     const widget = new DocumentWidget({ content, context, node: document.createElement('div') });
     widget.addClass(PIPELINE_CLASS);
