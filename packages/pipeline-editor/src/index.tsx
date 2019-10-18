@@ -24,6 +24,7 @@ import {IMainMenu} from '@jupyterlab/mainmenu';
 import {ServerConnection} from '@jupyterlab/services';
 
 import {toArray} from '@phosphor/algorithm';
+import {IDragEvent} from '@phosphor/dragdrop';
 import {Widget, PanelLayout} from '@phosphor/widgets';
 
 import {CommonCanvas, CanvasController, CommonProperties} from '@wdp/common-canvas';
@@ -35,7 +36,6 @@ import * as palette from './palette.json';
 import * as properties from './properties.json';
 import * as i18nData from "./en.json";
 import * as React from 'react';
-// import * as ReactDOM from 'react-dom';
 
 import { IntlProvider } from "react-intl";
 
@@ -51,7 +51,7 @@ const commandIDs = {
   newDocManager : 'docmanager:new-untitled'
 };
 
-/*
+/**
  * Class for dialog that pops up for pipeline submission
  */
 class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
@@ -101,7 +101,7 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
   }
  }
 
-/*
+/**
  * Class for Common Canvas React Component
  */
 class Canvas extends ReactWidget {
@@ -160,6 +160,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
   position: number = 10;
+  node: React.RefObject<HTMLDivElement>;
 
   constructor(props: any) {
     super(props);
@@ -181,6 +182,9 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
     this.openPropertiesDialog = this.openPropertiesDialog.bind(this);
+
+    this.node = React.createRef();
+    this.handleEvent = this.handleEvent.bind(this);
   }
 
   render() {
@@ -227,7 +231,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       </IntlProvider> : null;
 
     return (
-      <div style={style}>
+      <div style={style} ref={this.node}>
         <CommonCanvas
           canvasController={this.canvasController}
           toolbarMenuActionHandler={this.toolbarMenuActionHandler}
@@ -424,7 +428,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
   }
 
-  /*
+  /**
    * Handles submitting pipeline runs
    */
   toolbarMenuActionHandler(action: any, source: any) {
@@ -441,6 +445,54 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       this.handleNew();
     } else if (action == 'clear') {
       this.handleClear();
+    }
+  }
+
+  componentDidMount(): void {
+    let node = this.node.current!;
+    node.addEventListener('dragenter', this.handleEvent);
+    node.addEventListener('dragover', this.handleEvent);
+    node.addEventListener('p-dragover', this.handleEvent);
+    node.addEventListener('p-drop', this.handleEvent);
+  }
+
+  componentWillUnmount(): void {
+    let node = this.node.current!;
+    node.removeEventListener('p-drop', this.handleEvent);
+    node.removeEventListener('p-dragover', this.handleEvent);
+    node.removeEventListener('dragover', this.handleEvent);
+    node.removeEventListener('dragenter', this.handleEvent);
+  }
+
+  /**
+   * Handle the DOM events.
+   *
+   * @param event - The DOM event.
+   */
+  handleEvent(event: Event): void {
+    switch (event.type) {
+      case 'dragenter':
+        console.log('dragenter');
+        event.preventDefault();
+        break;
+      case 'dragover':
+        console.log('dragover');
+        event.preventDefault();
+        break;
+      case 'p-dragover':
+        console.log('p-dragover');
+        event.preventDefault();
+        event.stopPropagation();
+        (event as IDragEvent).dropAction = (event as IDragEvent).proposedAction;
+        break;
+      case 'p-drop':
+        console.log('p-drop');
+        event.preventDefault();
+        event.stopPropagation();
+        this.handleAdd();
+        break;
+      default:
+        break;
     }
   }
 }
