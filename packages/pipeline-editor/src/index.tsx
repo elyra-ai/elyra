@@ -314,6 +314,8 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   }
 
   handleAdd() {
+    let failedAdd = 0;
+
     toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
       item => {
         // if the selected item is a file
@@ -338,9 +340,19 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
             this.canvasController.editActionHandler(data);
           }
+        } else {
+          failedAdd++;
         }
       }
     )
+
+    if (failedAdd) {
+      return showDialog({
+        title: 'Unsupported File(s)',
+        body: 'Currently only notebook files can be added to a pipeline',
+        buttons: [Dialog.okButton()]
+      });
+    }
   }
 
   handleRun() {
