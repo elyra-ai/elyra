@@ -55,19 +55,19 @@ bdist: npm-packages
 
 install: bdist ## Build distribution and install
 	-pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
-	-pip install --upgrade jupyterlab-git
-	-jupyter serverextension enable --py jupyterlab_git
 	-$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	-$(call INSTALL_LAB_EXTENSION,python-runner)
 	-$(call INSTALL_LAB_EXTENSION,pipeline-editor)
-	-jupyter labextension install @jupyterlab/git --no-build --debug
 	-jupyter lab build
+	-jupyter serverextension list
+	-jupyter labextension list
 
 npm-packages: build
 	-mkdir dist
 	-$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	-$(call PACKAGE_LAB_EXTENSION,python-runner)
 	-$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
+	-cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
 
 docker-image: bdist ## Build docker image
 	-cp -r dist/*.whl etc/docker/

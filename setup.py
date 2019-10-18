@@ -28,9 +28,11 @@ setup(
     version="0.2.0",
     packages=find_packages(),
     data_files=[('etc/jupyter/jupyter_notebook_config.d', ['jupyter-config/jupyter_notebook_config.d/ai_workspace.json']),
+                ('etc/jupyter/jupyter_notebook_config.d', ['jupyter-config/jupyter_notebook_config.d/jupyterlab_git.json']),
                 ('share/jupyter/lab/extensions', ['dist/aiworkspace-notebook-scheduler-extension-0.2.0.tgz',
                                                   'dist/aiworkspace-pipeline-editor-extension-0.2.0.tgz',
-                                                  'dist/aiworkspace-python-runner-extension-0.2.0.tgz'])
+                                                  'dist/aiworkspace-python-runner-extension-0.2.0.tgz',
+                                                  'dist/git-0.8.2.tgz'])
                 ],
     install_requires=[
         "jupyter_core>=4.0,<5.0",
@@ -39,6 +41,7 @@ setup(
         "minio",
         'ipywidgets',
         'jupyterlab>=1.0.0,<2.0.0',
+        'jupyterlab-git',
         'nbconvert',
         'notebook>=6'
         'traitlets>=4.3.2',
