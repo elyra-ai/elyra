@@ -129,7 +129,6 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
 
     // Create the toolbar button
     let submitNotebookButton = new ToolbarButton({
-      iconClassName: 'fa fa-send',
       label: 'Submit Notebook ...',
       onClick: this.showWidget,
       tooltip: 'Submit Notebook ...'
