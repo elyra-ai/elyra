@@ -53,6 +53,7 @@ class PipelineParser(LoggingConfigurable):
                     artifact=node['app_data']['artifact'],
                     image=node['app_data']['image'],
                     vars=node['app_data'].get('vars') or [],
+                    file_dependencies=node['app_data'].get('dependencies') or [],
                     outputs=node['app_data'].get('outputs') or [],
                     dependencies=links
                 )

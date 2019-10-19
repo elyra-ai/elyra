@@ -2,7 +2,8 @@
   "current_parameters": {
     "image": "tensorflow/tensorflow:1.12.3-py3",
     "outputs": [],
-    "vars": []
+    "vars": [],
+    "dependencies": []
   },
   "parameters": [
     {
@@ -24,6 +25,10 @@
     {
       "id": "vars",
       "type": "array[string]"
+    },
+    {
+      "id": "dependencies",
+      "type": "array[string]"
     }
   ],
   "uihints": {
@@ -40,12 +45,27 @@
         "parameter_ref": "outputs",
         "label": {
           "default": "Output Files"
+        },
+        "place_holder_text": {
+          "default": "One filename per line"
         }
       },
       {
         "parameter_ref": "vars",
         "label": {
           "default": "Env Vars"
+        },
+        "place_holder_text": {
+          "default": "One var per line in the format ENV_VAR=value"
+        }
+      },
+      {
+        "parameter_ref": "dependencies",
+        "label": {
+          "default": "File Dependencies"
+        },
+        "place_holder_text": {
+          "default": "One filename or extension wildcard (eg. *.py) per line"
         }
       }
     ]

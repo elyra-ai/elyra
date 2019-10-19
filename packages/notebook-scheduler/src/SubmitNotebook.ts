@@ -36,7 +36,7 @@ export interface ISubmitNotebookConfiguration extends JSONObject {
   //cpus: number,
   //gpus: number,
   //memory: string,
-  //dependencies: string,
+  dependencies: string[],
 
   env: { [index: string]: string }
 }
@@ -174,9 +174,9 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
    */
   renderHtml() {
     var tr = '<tr>'; //'<tr style="padding: 1px;">';
-    //var td = '<td>'; //'<td style="padding: 1px;">';
+    var td = '<td>'; //'<td style="padding: 1px;">';
     var td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
-    //var td_colspan3 = '<td colspan=3>'; //'<td style="padding: 1px;" colspan=3>';
+    var td_colspan3 = '<td colspan=3>'; //'<td style="padding: 1px;" colspan=3>';
     //var td_colspan4 = '<td colspan=4>'; //'<td style="padding: 1px;" colspan=4>';
 
     let htmlContent = document.createElement('div');
@@ -224,18 +224,18 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       // +'</td>'
       // +'</tr>'
 
-      // + tr
-      // + td
-      // +'<br/>'
-      // +'<input type="checkbox" id="dependency_include" name="dependency_include" value="true" size="20"/> Include dependencies<br/>'
-      // +'</td>'
-      //
-      // + td_colspan3
-      // +'<br/>'
-      // +'<input type="text" id="dependencies" name="dependencies" placeholder="*.py" value="*.py" size="20"/>'
-      // +'</td>'
-      //
-      // +'</tr>'
+      + tr
+      + td
+      +'<br/>'
+      +'<input type="checkbox" id="dependency_include" name="dependency_include" value="true" size="20"/> Include dependencies<br/>'
+      +'</td>'
+
+      + td_colspan3
+      +'<br/>'
+      +'<input type="text" id="dependencies" name="dependencies" placeholder="*.py" value="*.py" size="20"/>'
+      +'</td>'
+
+      +'</tr>'
 
       + this.getEnvHtml()
 
@@ -281,10 +281,10 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
 
   getValue(): ISubmitNotebookConfiguration {
 
-    //let dependency_list = '';
-    //if ((<HTMLInputElement> document.getElementById('dependency_include')).value == "true") {
-    //  dependency_list = (<HTMLInputElement>document.getElementById('dependencies')).value
-    //}
+    let dependency_list: string[] = [];
+    if ((<HTMLInputElement> document.getElementById('dependency_include')).value == "true") {
+     dependency_list = (<HTMLInputElement>document.getElementById('dependencies')).value.split(',')
+    }
 
     let envVars: { [index: string]: string } = {};
 
@@ -301,7 +301,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       //cpus: Number((<HTMLInputElement>document.getElementById('cpus')).value),
       //gpus: Number((<HTMLInputElement>document.getElementById('gpus')).value),
       //memory: (<HTMLInputElement>document.getElementById('memory')).value,
-      //dependencies: dependency_list,
+      dependencies: dependency_list,
 
       env: envVars,
     };

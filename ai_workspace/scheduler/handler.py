@@ -69,12 +69,15 @@ class SchedulerHandler(IPythonHandler):
         self.log.info('Runtime configuration: \n {} \n {} \n {} \n {}'
                       .format(api_endpoint, cos_endpoint, cos_username, bucket_name))
 
+        def get_artifact_archive(operation):
+            artifact_name = os.path.basename(operation.artifact)
+            (name, ext) = os.path.splitext(artifact_name)
+            return name + '-' + operation.id + '-' + timestamp + ".tar.gz"
 
         def cc_pipeline():
 
             # Create dictionary that maps component Id to its ContainerOp instance
             notebook_ops = {}
-            tars_to_upload = {}
 
             # Preprocess the output/input artifacts
             for pipeline_child_operation in pipeline.operations.values():
@@ -84,23 +87,13 @@ class SchedulerHandler(IPythonHandler):
                         pipeline_child_operation.inputs = pipeline_child_operation.inputs + pipeline_parent_operation.outputs
 
             for operation in pipeline.operations.values():
-                operation_work_dir = os.path.dirname(operation.artifact)
-
-                if not operation_work_dir:
-                    operation_work_dir = "ai-pipeline"
-
-                operation_artifact_archive = operation_work_dir + '-' + timestamp + ".tar.gz"
-
-                # Create one tar archive for each notebook work directory.
-                # When multiple operations use notebooks from same work directory,
-                # just reuse the tar archive since the notebook will be in the archive
-                if operation_work_dir not in tars_to_upload:
-                    tars_to_upload[operation_work_dir] = operation_artifact_archive
+                operation_artifact_archive = get_artifact_archive(operation)
 
                 self.log.debug("Creating pipeline component :\n "
                                "componentID : %s \n "
                                "name : %s \n "
                                "dependencies : %s \n "
+                               "file dependencies : %s \n "
                                "path of workspace : %s \n "
                                "artifact archive : %s \n "
                                "inputs : %s \n "
@@ -109,6 +102,7 @@ class SchedulerHandler(IPythonHandler):
                                operation.id,
                                operation.title,
                                operation.dependencies,
+                               operation.file_dependencies,
                                operation.artifact,
                                operation_artifact_archive,
                                operation.inputs,
@@ -140,8 +134,9 @@ class SchedulerHandler(IPythonHandler):
 
             # upload operation related artifacts to object store
             try:
-                for artifact_path, artifact_filename in tars_to_upload.items():
-                    self.__upload_artifacts_to_object_store(runtime_configuration, artifact_path, artifact_filename)
+                for operation in pipeline.operations.values():
+                    archive_artifact = get_artifact_archive(operation)
+                    self.__upload_artifacts_to_object_store(runtime_configuration, operation, archive_artifact)
             except ResponseError:
                 self.log.error("Error uploading artifacts to object storage", exc_info=True)
 
@@ -232,7 +227,7 @@ class SchedulerHandler(IPythonHandler):
 
         return minio_client
 
-    def __upload_artifacts_to_object_store(self, config, artifact, archive_artifact):
+    def __upload_artifacts_to_object_store(self, config, operation, archive_artifact):
 
         def tar_filter(tarinfo):
             """Filter files from the generated archive"""
@@ -240,12 +235,38 @@ class SchedulerHandler(IPythonHandler):
                 # ignore hidden directories (e.g. ipynb checkpoints and/or trash contents)
                 if tarinfo.name.startswith('.'):
                     return None
+                # always return the base directory (empty string) otherwise tar will be empty
+                elif not tarinfo.name:
+                    return tarinfo
+                # TODO: Add prop to toggle whether to include contents of subdirectories (currently disabled)
+                else:
+                    return None
 
-            return tarinfo
+            if '*' in operation.file_dependencies:
+                self.log.debug(tarinfo.name + " added to " + archive_artifact)
+                return tarinfo
+
+            if tarinfo.name == os.path.basename(operation.artifact):
+                self.log.debug(tarinfo.name + " added to " + archive_artifact)
+                return tarinfo
+
+            for dependency in operation.file_dependencies:
+                if dependency.startswith('*'):
+                    # handle check for extension wildcard
+                    if tarinfo.name.endswith(dependency.replace('*.', '.')):
+                        self.log.debug(tarinfo.name + " added to " + archive_artifact)
+                        return tarinfo
+                else:
+                    # handle check for specific file
+                    if tarinfo.name == dependency:
+                        self.log.debug(tarinfo.name + " added to " + archive_artifact)
+                        return tarinfo
+
+            return None
 
         client = self.__initialize_object_store(config)
 
-        full_artifact_path = os.path.join(os.getcwd(), artifact)
+        full_artifact_path = os.path.join(os.getcwd(), os.path.dirname(operation.artifact))
 
         self.log.debug("Creating TAR archive %s with contents from %s", archive_artifact, full_artifact_path)
 
