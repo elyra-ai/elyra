@@ -18,21 +18,18 @@ import os
 
 class Operation:
 
-    def __init__(self, id, type, title, artifact, image, vars, file_dependencies, recursive_dependencies, outputs, inputs=[], dependencies=None ):
+    def __init__(self, id, type, title, artifact, image, vars=None, file_dependencies=None, recursive_dependencies=False, outputs=None, inputs=None, dependencies=None ):
         self._id = id
         self._type = type
         self._title = title
         self._artifact = artifact
         self._image = image
-        self._vars = vars
-        self._file_dependencies = file_dependencies
+        self._vars = self.__initialize_empty_array_if_none(vars)
+        self._file_dependencies = self.__initialize_empty_array_if_none(file_dependencies)
         self._recursive_dependencies = recursive_dependencies
-        self._outputs = outputs
-        self._inputs = inputs
-        if dependencies:
-            self._dependencies = dependencies
-        else:
-            self._dependencies = []
+        self._outputs = self.__initialize_empty_array_if_none(outputs)
+        self._inputs = self.__initialize_empty_array_if_none(inputs)
+        self._dependencies = self.__initialize_empty_array_if_none(dependencies)
 
     @property
     def id(self):
@@ -103,6 +100,13 @@ class Operation:
                    self.outputs == other.outputs and \
                    self.inputs == other.inputs and \
                    self.dependencies == other.dependencies
+
+    @staticmethod
+    def __initialize_empty_array_if_none(value):
+        if value:
+            return value
+        else:
+            return []
 
 
 class Pipeline:
