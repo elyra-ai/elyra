@@ -41,7 +41,7 @@ clean: ## Make a clean source tree
 	-rm -rf $$(find . -name package-lock.json)
 
 test: ## Run unit tests
-	-nosetests -v
+	nosetests -v
 
 # Builds the distribution python wheel that installs the server side extension
 build:
