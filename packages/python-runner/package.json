@@ -1,6 +1,6 @@
 {
   "name": "@aiworkspace/python-runner-extension",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "JupyterLab extension - Run python files using a kernel runtime",
   "keywords": [
     "jupyter",
