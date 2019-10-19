@@ -24,6 +24,7 @@ import {PanelLayout, Widget} from '@phosphor/widgets';
 import {IDisposable} from "@phosphor/disposable";
 
 import Utils from './utils'
+import * as React from "react";
 
 /**
  * Details about notebook submission configuration, including
@@ -105,20 +106,25 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
                   body: 'Notebook scheduler service endpoint not available',
                   buttons: [Dialog.okButton()]
                 });
-              } else if (response.status === 200) {
-                let dialogTitle: string = 'Job submission to ' + result.value.platform + ' succeeded';
-                return showDialog({
-                  title: dialogTitle,
-                  body: '',
-                  buttons: [Dialog.okButton()]
-                });
-              } else {
+              } else if (response.status !== 200) {
                 return showDialog({
                   title: "Error submitting Notebook",
                   body: 'More details might be available in the JupyterLab console logs',
                   buttons: [Dialog.okButton()]
-                })
+                });
               }
+              response.json().then((data: any) => {
+                console.log('>>>');
+                console.log(data);
+                let dialogTitle: string = 'Job submission to ' + result.value.platform + ' succeeded';
+                let dialogLink: React.ReactElement<any> = React.createElement('a', { href: data.url, target: "_blank" }, 'Run Details');
+                let dialogBody: React.ReactElement<any> = React.createElement('p', null, 'Check the status of your run at ', dialogLink);
+                return showDialog({
+                  title: dialogTitle,
+                  body: dialogBody,
+                  buttons: [Dialog.okButton()]
+                });
+              });
             });
         });
       });

@@ -169,11 +169,12 @@ class SchedulerHandler(IPythonHandler):
 
             self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
-        client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
+        run = client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
                             job_name=timestamp,
                             pipeline_id=kfp_pipeline.id)
 
         self.log.info("Starting Kubeflow Pipeline Run...")
+        self.send_success_message("pipeline successfully submitted", api_endpoint + "/#/runs/details/" + run.id)
 
     def send_message(self, message):
         self.write(message)

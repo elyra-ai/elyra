@@ -397,19 +397,24 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
                   body: 'Pipeline scheduler service endpoint not available',
                   buttons: [Dialog.okButton()]
                 });
-              } else if (response.status === 200) {
-                let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] + ' succeeded';
-                return showDialog({
-                  title: dialogTitle,
-                  buttons: [Dialog.okButton()]
-                });
-              } else {
+              } else if (response.status !== 200) {
                 return showDialog({
                   title: 'Error submitting pipeline',
                   body: 'More details might be available in the JupyterLab console logs',
                   buttons: [Dialog.okButton()]
                 });
               }
+              response.json().then((data: any) => {
+                console.log('>>>');
+                console.log(data);
+                let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] + ' succeeded';
+                let dialogBody = <span>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a></span>;
+                return showDialog({
+                  title: dialogTitle,
+                  body: dialogBody,
+                  buttons: [Dialog.okButton()]
+                });
+              });
             });
         });
       });
