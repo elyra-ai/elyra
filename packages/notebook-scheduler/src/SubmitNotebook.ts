@@ -39,7 +39,7 @@ export interface ISubmitNotebookConfiguration extends JSONObject {
   //memory: string,
   dependencies: string[],
 
-  env: { [index: string]: string }
+  env: string[]
 }
 
 /**
@@ -292,13 +292,13 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
      dependency_list = (<HTMLInputElement>document.getElementById('dependencies')).value.split(',')
     }
 
-    let envVars: { [index: string]: string } = {};
+    let envVars: string[] = [];
 
     let envElements = document.getElementsByClassName('envVar');
 
     for (let i = 0; i < envElements.length; i++) {
       let index: number  = parseInt(envElements[i].id.match(/\d+/)[0], 10);
-      envVars[this._envVars[index]] = (<HTMLInputElement>envElements[i]).value;
+      envVars.push(`${this._envVars[index]}=${(<HTMLInputElement>envElements[i]).value}`);
     }
 
     let returnData: ISubmitNotebookConfiguration = {

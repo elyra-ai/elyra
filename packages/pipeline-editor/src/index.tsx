@@ -445,6 +445,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   handleClear() {
     this.canvasController.clearPipelineFlow();
     this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.position = 10;
   }
 
   /**
