@@ -19,9 +19,9 @@ import os
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError
-from jupyter_core.paths import jupyter_data_dir, jupyter_path, SYSTEM_JUPYTER_PATH
-from traitlets import HasTraits, List, Unicode, Dict, Set, Bool, Type, log
-from traitlets.config import LoggingConfigurable, SingletonConfigurable
+from jupyter_core.paths import jupyter_data_dir
+from traitlets import HasTraits, List, Unicode, Dict, Type, log
+from traitlets.config import SingletonConfigurable
 
 
 class Metadata(HasTraits):
@@ -67,7 +67,7 @@ class Metadata(HasTraits):
         return j
 
 
-class MetadataManager(LoggingConfigurable):
+class MetadataManager(SingletonConfigurable):
     metadata_class = Type(Metadata, config=True,
         help="""The metadata class.  This is configurable to allow
         subclassing of the MetadataManager for customized behavior.
@@ -156,8 +156,7 @@ class FileMetadataStore(MetadataStore):
 
     def __init__(self, namespace, **kwargs):
         super(FileMetadataStore, self).__init__(namespace, **kwargs)
-        self.data_dir = kwargs.get('data_dir', jupyter_data_dir())
-        self.metadata_dir = kwargs.get('metadata_dir', os.path.join(self.data_dir, 'metadata/' + self.namespace))
+        self.metadata_dir = os.path.join(jupyter_data_dir(), 'metadata', self.namespace)
         self.schema_mgr = SchemaManager.instance()
 
     @property
@@ -241,7 +240,7 @@ class FileMetadataStore(MetadataStore):
            if 'name' is provided, the single file is loaded and returned, else
            all files ending in '.json' are loaded and returned in a list.
         """
-        resources = None
+        resources = []
         if os.path.exists(self.metadata_dir):
             for f in os.listdir(self.metadata_dir):
                 path = os.path.join(self.metadata_dir, f)
@@ -256,8 +255,6 @@ class FileMetadataStore(MetadataStore):
                         except Exception:
                             pass  # Ignore ValidationError and others when loading all resources
                         if metadata is not None:
-                            if resources is None:
-                                resources = []
                             resources.append(metadata)
 
         if name:  # If we're looking for a single metadata and we're here, then its not found

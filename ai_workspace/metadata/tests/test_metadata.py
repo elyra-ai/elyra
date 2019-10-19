@@ -17,104 +17,53 @@ import copy
 import io
 import json
 import os
+import shutil
 import time
 import tempfile
 import unittest
+
+from traitlets.config import Config
+from notebook.tests.launchnotebook import NotebookTestBase
 
 from jsonschema import ValidationError
 from logging import StreamHandler
 
 from ai_workspace.metadata.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager
 
+from .test_utils import test_schema_json, valid_metadata_json, \
+    invalid_metadata_json, another_metadata_json, create_json_file
+
 StringIO = io.StringIO
 
-test_schema_json = {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Test schema for runtime metadata",
-    "properties": {
-        "schema_name": {
-            "type": "string",
-            "pattern": "^[a-z][a-z,-,_,0-9]*[a-z,0-9]$",
-            "minLength": 1
-        },
-        "name": {
-            "description": "The canonical name of the metadata",
-            "type": "string"
-        },
-        "display_name": {
-            "description": "The display name of the metadata",
-            "type": "string",
-            "pattern": "^[a-z][a-z,-,_, ,0-9]*[a-z,0-9]$"
-        },
-        "metadata": {
-            "description": "Additional data specific to this metadata",
-            "type": "object",
-            "properties": {
-                "api_endpoint": {
-                    "description": "The endpoint corresponding to this metadata item",
-                    "type": "string",
-                    "format": "uri"
-                },
-                "foo": {
-                    "type": "number",
-                    "minimum": 1,
-                    "maximum": 10
-                }
-            },
-            "required": ["api_endpoint"]
-        }
-    },
-    "required": ["schema_name", "display_name"]
-}
 
-valid_metadata_json = {
-    'schema_name': 'test_schema',
-    'display_name': 'valid runtime',
-    'metadata': {
-        'api_endpoint': 'http://localhost:31823/v1/models?version=2017-02-13',
-        'foo': 8
-    }
-}
+class MetadataTestBase(NotebookTestBase):
+    """Test Metadata REST API"""
+    config = Config({'NotebookApp': {"nbserver_extensions": {"ai_workspace": True}}})
 
-# This metadata doesn't include 'schema_name'.  Will need to adjust should we decide
-# to make schema required.
-another_metadata_json = {
-    'display_name': 'another runtime',
-    'metadata': {
-        'api_endpoint': 'http://localhost:8081/'
-    }
-}
+    def setUp(self):
+        super(MetadataTestBase, self).setUp()
 
-invalid_metadata_json = {
-    'schema_name': 'test_schema',
-    'display_name': 'invalid runtime',
-    'metadata': {
-        'api_endpoint_missing': 'http://localhost:8081/'
-    }
-}
+        self.metadata_dir = os.path.join(self.data_dir, 'metadata', 'runtime')
+
+        create_json_file(self.metadata_dir, 'test_schema.schema', test_schema_json)
+        create_json_file(self.metadata_dir, 'valid.json', valid_metadata_json)
+        create_json_file(self.metadata_dir, 'another.json', another_metadata_json)
+        create_json_file(self.metadata_dir, 'invalid.json', invalid_metadata_json)
+
+    def tearDown(self):
+        super(MetadataTestBase, self).tearDown()
+        # Clear singletons, otherwise they'll reference a metadata dir that
+        # doesn't exist - breaking the "next" test.
+        MetadataManager.clear_instance()
 
 
-def _create_json_file(location, file_name, content):
-    resource = os.path.join(location, file_name)
-    with open(resource, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(content))
+class MetadataManagerTestCase(MetadataTestBase):
+    """Test Metadata REST API"""
+    config = Config({'NotebookApp': {"nbserver_extensions": {"ai_workspace": True}}})
 
-
-class MetadataManagerTestCase(unittest.TestCase):
-    def setUp(self) -> None:
-        # create temporary data directory for storing metadata
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.metadata_dir = self.temp_dir.name
-        self.addCleanup(self.temp_dir.cleanup)
-
-        _create_json_file(self.metadata_dir, 'test_schema.schema', test_schema_json)
-        _create_json_file(self.metadata_dir, 'valid.json', valid_metadata_json)
-        _create_json_file(self.metadata_dir, 'another.json', another_metadata_json)
-        _create_json_file(self.metadata_dir, 'invalid.json', invalid_metadata_json)
-
-        self.filestore_manager = FileMetadataStore(namespace='runtime', metadata_dir=self.metadata_dir)
-        self.metadata_manager = \
-            MetadataManager(namespace="runtime", store=self.filestore_manager)
+    def setUp(self):
+        super(MetadataManagerTestCase, self).setUp()
+        self.metadata_manager = MetadataManager.instance(namespace="runtime")
 
     def test_list_metadata_summary(self):
         metadata_summary_list = self.metadata_manager.get_all_metadata_summary()
@@ -123,6 +72,18 @@ class MetadataManagerTestCase(unittest.TestCase):
     def test_list_all_metadata(self):
         metadata_list = self.metadata_manager.get_all()
         self.assertEqual(len(metadata_list), 2)
+
+    def test_list_metadata_summary_none(self):
+        # Delete the metadata dir and attempt listing metadata
+        shutil.rmtree(self.metadata_dir)
+        metadata_summary_list = self.metadata_manager.get_all_metadata_summary()
+        self.assertEqual(len(metadata_summary_list), 0)
+
+    def test_list_all_metadata_none(self):
+        # Delete the metadata dir and attempt listing metadata
+        shutil.rmtree(self.metadata_dir)
+        metadata_list = self.metadata_manager.get_all()
+        self.assertEqual(len(metadata_list), 0)
 
     def test_add_invalid_metadata(self):
         # Attempt with non Metadata instance
@@ -140,7 +101,7 @@ class MetadataManagerTestCase(unittest.TestCase):
 
         capture = StringIO()
         handler = StreamHandler(capture)
-        self.filestore_manager.log.addHandler(handler)
+        self.metadata_manager.log.addHandler(handler)
 
         # Ensure save produces result of None and logging indicates validation error and file removal
         metadata_name = 'save_invalid'
@@ -181,7 +142,7 @@ class MetadataManagerTestCase(unittest.TestCase):
 
     def test_remove_invalid_metadata(self):
         # Ensure invalid metadata file isn't validated and is removed.
-        _create_json_file(self.metadata_dir, 'remove_invalid.json', invalid_metadata_json)
+        create_json_file(self.metadata_dir, 'remove_invalid.json', invalid_metadata_json)
         metadata_name = 'remove_invalid'
         resource = self.metadata_manager.remove(metadata_name)
         metadata_file = os.path.join(self.metadata_dir, 'remove_invalid.json')
@@ -206,18 +167,10 @@ class MetadataManagerTestCase(unittest.TestCase):
             self.metadata_manager.get(metadata_name)
 
 
-class MetadataFileStoreTestCase(unittest.TestCase):
+class MetadataFileStoreTestCase(MetadataTestBase):
+
     def setUp(self):
-        # create temporary data directory for storing metadata
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.metadata_dir = self.temp_dir.name
-        self.addCleanup(self.temp_dir.cleanup)
-
-        _create_json_file(self.metadata_dir, 'test_schema.schema', test_schema_json)
-        _create_json_file(self.metadata_dir, 'valid.json', valid_metadata_json)
-        _create_json_file(self.metadata_dir, 'another.json', another_metadata_json)
-        _create_json_file(self.metadata_dir, 'invalid.json', invalid_metadata_json)
-
+        super(MetadataFileStoreTestCase, self).setUp()
         self.metadata_file_store = FileMetadataStore(namespace='runtime', metadata_dir=self.metadata_dir)
 
     def test_list_metadata_summary(self):
@@ -227,6 +180,18 @@ class MetadataFileStoreTestCase(unittest.TestCase):
     def test_list_all_metadata(self):
         metadata_list = self.metadata_file_store.get_all()
         self.assertEqual(len(metadata_list), 2)
+
+    def test_list_metadata_summary_none(self):
+        # Delete the metadata dir and attempt listing metadata
+        shutil.rmtree(self.metadata_dir)
+        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary()
+        self.assertEqual(len(metadata_summary_list), 0)
+
+    def test_list_all_metadata_none(self):
+        # Delete the metadata dir and attempt listing metadata
+        shutil.rmtree(self.metadata_dir)
+        metadata_list = self.metadata_file_store.get_all()
+        self.assertEqual(len(metadata_list), 0)
 
     def test_read_valid_metadata_by_name(self):
         metadata_name = 'valid'
@@ -243,6 +208,7 @@ class MetadataFileStoreTestCase(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.metadata_file_store.read(metadata_name)
 
+
 class SchemaManagerTestCase(unittest.TestCase):
     def setUp(self) -> None:
         # create temporary data directory for storing metadata
@@ -250,7 +216,7 @@ class SchemaManagerTestCase(unittest.TestCase):
         self.metadata_dir = self.temp_dir.name
         self.addCleanup(self.temp_dir.cleanup)
 
-        _create_json_file(self.metadata_dir, 'test_schema.schema', test_schema_json)
+        create_json_file(self.metadata_dir, 'test_schema.schema', test_schema_json)
 
         self.schema_manager = SchemaManager.instance()
 
@@ -277,7 +243,7 @@ class SchemaManagerTestCase(unittest.TestCase):
         time.sleep(1.0)  # need to delay so epoch is different
         modified_schema = copy.deepcopy(test_schema_json)
         modified_schema['properties']['metadata']['properties']['bar'] = {"type": "string", "minLength": 5}
-        _create_json_file(self.metadata_dir, 'test_schema.schema', modified_schema)
+        create_json_file(self.metadata_dir, 'test_schema.schema', modified_schema)
 
         epoch = self._get_epoch("test_schema")
         is_stale = self.schema_manager.is_schema_stale("foo", "test_schema", epoch)

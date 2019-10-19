@@ -28,13 +28,11 @@ from minio import Minio
 from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists
 from tornado import web
 from urllib.parse import urlparse
-from ai_workspace.metadata import MetadataManager, FileMetadataStore
-from ai_workspace.pipeline import Pipeline, Operation, PipelineParser
+from ai_workspace.metadata import MetadataManager
+from ai_workspace.pipeline import PipelineParser
 
 
 class SchedulerHandler(IPythonHandler):
-    metadata_manager = MetadataManager(namespace="runtime",
-                                       store=FileMetadataStore(namespace='runtime'))
 
     """REST-ish method calls to execute pipelines as batch jobs"""
     def get(self):
@@ -56,7 +54,7 @@ class SchedulerHandler(IPythonHandler):
         # retrieve associated runtime metadata
         runtime_type = pipeline.platform
         try:
-            runtime_configuration = self.metadata_manager.get(runtime_type)
+            runtime_configuration = MetadataManager.instance(namespace="runtime").get(runtime_type)
         except (ValidationError, KeyError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:

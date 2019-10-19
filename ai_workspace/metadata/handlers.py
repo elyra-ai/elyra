@@ -22,13 +22,13 @@ from .metadata import MetadataManager
 
 class MainRuntimeHandler(APIHandler):
     """Handler for all runtime configurations. """
-    metadata_manager = MetadataManager(namespace="runtime")
 
     @web.authenticated
     @gen.coroutine
     def get(self):
+        metadata_manager = MetadataManager.instance(namespace="runtime")
         try:
-            runtimes = yield maybe_future(self.metadata_manager.get_all())
+            runtimes = yield maybe_future(metadata_manager.get_all())
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
@@ -39,14 +39,14 @@ class MainRuntimeHandler(APIHandler):
 
 class RuntimeHandler(APIHandler):
     """Handler for specific runtime configurations. """
-    metadata_manager = MetadataManager(namespace="runtime")
 
     @web.authenticated
     @gen.coroutine
     def get(self, runtime_name):
         runtime_name = url_unescape(runtime_name)
+        metadata_manager = MetadataManager.instance(namespace="runtime")
         try:
-            runtime = yield maybe_future(self.metadata_manager.get(runtime_name))
+            runtime = yield maybe_future(metadata_manager.get(runtime_name))
         except (ValidationError, KeyError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
