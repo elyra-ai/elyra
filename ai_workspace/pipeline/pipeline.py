@@ -18,7 +18,7 @@ import os
 
 class Operation:
 
-    def __init__(self, id, type, title, artifact, image, vars, file_dependencies, outputs, inputs=[], dependencies=None ):
+    def __init__(self, id, type, title, artifact, image, vars, file_dependencies, recursive_dependencies, outputs, inputs=[], dependencies=None ):
         self._id = id
         self._type = type
         self._title = title
@@ -26,6 +26,7 @@ class Operation:
         self._image = image
         self._vars = vars
         self._file_dependencies = file_dependencies
+        self._recursive_dependencies = recursive_dependencies
         self._outputs = outputs
         self._inputs = inputs
         if dependencies:
@@ -70,6 +71,10 @@ class Operation:
         return self._file_dependencies
 
     @property
+    def recursive_dependencies(self):
+        return self._recursive_dependencies
+
+    @property
     def outputs(self):
         return self._outputs
 
@@ -94,6 +99,7 @@ class Operation:
                    self.image == other.image and \
                    self.vars == other.vars and \
                    self.file_dependencies == other.file_dependencies and \
+                   self.recursive_dependencies == other.recursive_dependencies and \
                    self.outputs == other.outputs and \
                    self.inputs == other.inputs and \
                    self.dependencies == other.dependencies

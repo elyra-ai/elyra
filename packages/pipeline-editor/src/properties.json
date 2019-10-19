@@ -3,7 +3,8 @@
     "image": "tensorflow/tensorflow:1.12.3-py3",
     "outputs": [],
     "vars": [],
-    "dependencies": []
+    "dependencies": [],
+    "recursive_dependencies": false
   },
   "parameters": [
     {
@@ -29,6 +30,10 @@
     {
       "id": "dependencies",
       "type": "array[string]"
+    },
+    {
+      "id": "recursive_dependencies",
+      "type": "boolean"
     }
   ],
   "uihints": {
@@ -66,6 +71,12 @@
         },
         "place_holder_text": {
           "default": "One filename or extension wildcard (eg. *.py) per line"
+        }
+      },
+      {
+        "parameter_ref": "recursive_dependencies",
+        "label": {
+          "default": "Include subdirectories in dependencies (may increase submission time)"
         }
       }
     ]

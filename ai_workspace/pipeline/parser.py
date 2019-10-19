@@ -54,6 +54,7 @@ class PipelineParser(LoggingConfigurable):
                     image=node['app_data']['image'],
                     vars=node['app_data'].get('vars') or [],
                     file_dependencies=node['app_data'].get('dependencies') or [],
+                    recursive_dependencies=node['app_data'].get('recursive_dependencies') or False,
                     outputs=node['app_data'].get('outputs') or [],
                     dependencies=links
                 )

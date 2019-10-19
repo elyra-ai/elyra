@@ -96,6 +96,7 @@ class SchedulerHandler(IPythonHandler):
                                "name : %s \n "
                                "dependencies : %s \n "
                                "file dependencies : %s \n "
+                               "dependencies include subdirectories : %s \n "
                                "path of workspace : %s \n "
                                "artifact archive : %s \n "
                                "inputs : %s \n "
@@ -105,6 +106,7 @@ class SchedulerHandler(IPythonHandler):
                                operation.title,
                                operation.dependencies,
                                operation.file_dependencies,
+                               operation.recursive_dependencies,
                                operation.artifact,
                                operation_artifact_archive,
                                operation.inputs,
@@ -236,12 +238,14 @@ class SchedulerHandler(IPythonHandler):
             """Filter files from the generated archive"""
             if tarinfo.type == tarfile.DIRTYPE:
                 # ignore hidden directories (e.g. ipynb checkpoints and/or trash contents)
-                if tarinfo.name.startswith('.'):
+                if any(dir.startswith('.') for dir in tarinfo.name.split('/')):
                     return None
                 # always return the base directory (empty string) otherwise tar will be empty
                 elif not tarinfo.name:
                     return tarinfo
-                # TODO: Add prop to toggle whether to include contents of subdirectories (currently disabled)
+                # only include subdirectories if enabled in common properties
+                elif operation.recursive_dependencies:
+                    return tarinfo
                 else:
                     return None
 

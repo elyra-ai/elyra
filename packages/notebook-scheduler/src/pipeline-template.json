@@ -15,6 +15,7 @@
 				"outputs": [],
 				"vars": [],
 				"dependencies": [],
+				"recursive_dependencies": false,
 				"ui_data": {
 					"label": "{{title}}",
 					"x_pos": 75,

@@ -260,6 +260,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     node_props.parameterDef.current_parameters.outputs = app_data.outputs;
     node_props.parameterDef.current_parameters.vars = app_data.vars;
     node_props.parameterDef.current_parameters.dependencies = app_data.dependencies;
+    node_props.parameterDef.current_parameters.recursive_dependencies = app_data.recursive_dependencies;
 
     this.setState({showPropertiesDialog: true, propertiesInfo: node_props});
   }
@@ -272,6 +273,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     app_data.outputs = propertySet.outputs;
     app_data.vars = propertySet.vars;
     app_data.dependencies = propertySet.dependencies;
+    app_data.recursive_dependencies = propertySet.recursive_dependencies;
   };
 
   closePropertiesDialog() {
