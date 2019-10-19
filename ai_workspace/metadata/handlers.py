@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
+from jsonschema import ValidationError
 from tornado import web, gen
 from notebook.base.handlers import APIHandler
-from notebook.utils import maybe_future, url_path_join, url_unescape
-from .metadata import MetadataManager, FileMetadataStore
+from notebook.utils import maybe_future, url_unescape
+from .metadata import MetadataManager
 
 
 class MainRuntimeHandler(APIHandler):
@@ -27,7 +27,11 @@ class MainRuntimeHandler(APIHandler):
     @web.authenticated
     @gen.coroutine
     def get(self):
-        runtimes = yield maybe_future(self.metadata_manager.get_all())
+        try:
+            runtimes = yield maybe_future(self.metadata_manager.get_all())
+        except Exception as ex:
+            raise web.HTTPError(500, repr(ex))
+
         json_runtimes = {r.name : r.to_dict() for r in runtimes}
         self.set_header("Content-Type", 'application/json')
         self.finish(json_runtimes)
@@ -41,9 +45,12 @@ class RuntimeHandler(APIHandler):
     @gen.coroutine
     def get(self, runtime_name):
         runtime_name = url_unescape(runtime_name)
-        runtime = yield maybe_future(self.metadata_manager.get(runtime_name))
-        if runtime is None:
-            raise web.HTTPError(404, u"Metadata runtime '{}' not found!".format(runtime_name))
+        try:
+            runtime = yield maybe_future(self.metadata_manager.get(runtime_name))
+        except (ValidationError, KeyError) as err:
+            raise web.HTTPError(404, str(err))
+        except Exception as ex:
+            raise web.HTTPError(500, repr(ex))
 
         self.set_header("Content-Type", 'application/json')
         self.finish(runtime.to_dict())

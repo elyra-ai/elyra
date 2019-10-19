@@ -20,15 +20,15 @@ import tarfile
 import tempfile
 
 from datetime import datetime
-
+from jsonschema import ValidationError
 from kubernetes.client.models import V1EnvVar
 from notebook.base.handlers import IPythonHandler
 from notebook.pipeline import NotebookOp
 from minio import Minio
 from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists
+from tornado import web
 from urllib.parse import urlparse
-
-from ai_workspace.metadata import Metadata, MetadataManager, FileMetadataStore
+from ai_workspace.metadata import MetadataManager, FileMetadataStore
 from ai_workspace.pipeline import Pipeline, Operation, PipelineParser
 
 
@@ -55,10 +55,12 @@ class SchedulerHandler(IPythonHandler):
 
         # retrieve associated runtime metadata
         runtime_type = pipeline.platform
-        runtime_configuration = self.metadata_manager.get(runtime_type)
-
-        if not runtime_configuration:
-            raise RuntimeError("Runtime metadata not available.")
+        try:
+            runtime_configuration = self.metadata_manager.get(runtime_type)
+        except (ValidationError, KeyError) as err:
+            raise web.HTTPError(404, str(err))
+        except Exception as ex:
+            raise web.HTTPError(500, repr(ex))
 
         api_endpoint = runtime_configuration.metadata['api_endpoint']
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']

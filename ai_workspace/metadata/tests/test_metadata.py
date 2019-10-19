@@ -21,9 +21,10 @@ import time
 import tempfile
 import unittest
 
+from jsonschema import ValidationError
 from logging import StreamHandler
 
-from ai_workspace.metadata.metadata import MetadataManager, FileMetadataStore, SchemaManager
+from ai_workspace.metadata.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager
 
 StringIO = io.StringIO
 
@@ -98,20 +99,6 @@ def _create_json_file(location, file_name, content):
     with open(resource, 'w', encoding='utf-8') as f:
         f.write(json.dumps(content))
 
-# class MetadataTestCase(unittest.TestCase):
-#     valid_metadata_resource =  os.path.join('', 'metadata/runtime/a.json')
-#     invalid_metadata_resource = os.path.join('', 'metadata/runtime/invalid.json')
-#
-#     def test_instantiate_from_resource(self):
-#         metadata = Metadata.from_resource(MetadataTestCase.valid_metadata_resource)
-#         self.assertEqual(metadata.name, "a")
-#         self.assertEqual(metadata.display_name, "FfDL")
-#         self.assertIsNotNone(metadata.metadata['api_endpoint'])
-#
-#     def test_instantiate_from_invalid_resource(self):
-#         metadata = Metadata.from_resource(MetadataTestCase.invalid_metadata_resource)
-#         self.assertIsNone(metadata)
-
 
 class MetadataManagerTestCase(unittest.TestCase):
     def setUp(self) -> None:
@@ -137,28 +124,86 @@ class MetadataManagerTestCase(unittest.TestCase):
         metadata_list = self.metadata_manager.get_all()
         self.assertEqual(len(metadata_list), 2)
 
-    def test_read_valid_metadata_by_name(self):
-        metadata_name = 'valid'
-        some_metadata = self.metadata_manager.get(metadata_name)
-        self.assertEqual(some_metadata.name, metadata_name)
+    def test_add_invalid_metadata(self):
+        # Attempt with non Metadata instance
+        with self.assertRaises(TypeError):
+            self.metadata_manager.add(invalid_metadata_json)
 
-    def test_read_invalid_metadata_by_name(self):
+        # and invalid parameters
+        with self.assertRaises(ValueError):
+            self.metadata_manager.add(None, invalid_metadata_json)
+
+        with self.assertRaises(ValueError):
+            self.metadata_manager.add("foo", None)
+
+        metadata = Metadata(**invalid_metadata_json)
+
         capture = StringIO()
         handler = StreamHandler(capture)
         self.filestore_manager.log.addHandler(handler)
 
-        metadata_name = 'invalid'
-        some_metadata = self.metadata_manager.get(metadata_name)
-
-        self.assertIsNone(some_metadata)
-
+        # Ensure save produces result of None and logging indicates validation error and file removal
+        metadata_name = 'save_invalid'
+        resource = self.metadata_manager.add(metadata_name, metadata)
+        self.assertIsNone(resource)
         captured = capture.getvalue()
         self.assertIn("Schema validation failed", captured)
+        self.assertIn("Removing metadata resource", captured)
+        # Ensure file was not created
+        metadata_file = os.path.join(self.metadata_dir, 'save_invalid.json')
+        self.assertFalse(os.path.exists(metadata_file))
+
+    def test_add_remove_valid_metadata(self):
+        metadata_name = 'valid_add_remove'
+
+        metadata = Metadata(**valid_metadata_json)
+
+        resource = self.metadata_manager.add(metadata_name, metadata)
+        self.assertIsNotNone(resource)
+
+        # Ensure file was created
+        metadata_file = os.path.join(self.metadata_dir, 'valid_add_remove.json')
+        self.assertTrue(os.path.exists(metadata_file))
+
+        with open(metadata_file, 'r', encoding='utf-8') as f:
+            valid_add = json.loads(f.read())
+            self.assertNotIn("resource", valid_add)
+            self.assertNotIn("name", valid_add)
+            self.assertIn("display_name", valid_add)
+            self.assertEquals(valid_add['display_name'], "valid runtime")
+            self.assertIn("schema_name", valid_add)
+            self.assertEquals(valid_add['schema_name'], "test_schema")
+
+        resource = self.metadata_manager.remove(metadata_name)
+
+        self.assertFalse(os.path.exists(metadata_file))
+        self.assertEqual(resource, metadata_file)
+
+    def test_remove_invalid_metadata(self):
+        # Ensure invalid metadata file isn't validated and is removed.
+        _create_json_file(self.metadata_dir, 'remove_invalid.json', invalid_metadata_json)
+        metadata_name = 'remove_invalid'
+        resource = self.metadata_manager.remove(metadata_name)
+        metadata_file = os.path.join(self.metadata_dir, 'remove_invalid.json')
+        self.assertFalse(os.path.exists(metadata_file))
+        self.assertEqual(resource, metadata_file)
+
+    def test_read_valid_metadata_by_name(self):
+        metadata_name = 'valid'
+        some_metadata = self.metadata_manager.get(metadata_name)
+        self.assertEqual(some_metadata.name, metadata_name)
+        self.assertEqual(some_metadata.schema_name, "test_schema")
+        self.assertIn(self.metadata_dir, some_metadata.resource)
+
+    def test_read_invalid_metadata_by_name(self):
+        metadata_name = 'invalid'
+        with self.assertRaises(ValidationError):
+            self.metadata_manager.get(metadata_name)
 
     def test_read_missing_metadata_by_name(self):
         metadata_name = 'missing'
-        some_metadata = self.metadata_manager.get(metadata_name)
-        self.assertIsNone(some_metadata)
+        with self.assertRaises(KeyError):
+            self.metadata_manager.get(metadata_name)
 
 
 class MetadataFileStoreTestCase(unittest.TestCase):
@@ -190,14 +235,13 @@ class MetadataFileStoreTestCase(unittest.TestCase):
 
     def test_read_invalid_metadata_by_name(self):
         metadata_name = 'invalid'
-        some_metadata = self.metadata_file_store.read(metadata_name)
-        self.assertIsNone(some_metadata)
+        with self.assertRaises(ValidationError):
+            self.metadata_file_store.read(metadata_name)
 
     def test_read_missing_metadata_by_name(self):
         metadata_name = 'missing'
-        some_metadata = self.metadata_file_store.read(metadata_name)
-        self.assertIsNone(some_metadata)
-
+        with self.assertRaises(KeyError):
+            self.metadata_file_store.read(metadata_name)
 
 class SchemaManagerTestCase(unittest.TestCase):
     def setUp(self) -> None:
