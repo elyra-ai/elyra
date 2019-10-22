@@ -51,6 +51,8 @@ class SchedulerHandler(IPythonHandler):
 
         pipeline = PipelineParser.parse(pipeline_definition)
 
+        pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
+
         # retrieve associated runtime metadata
         runtime_type = pipeline.platform
         try:
@@ -72,7 +74,7 @@ class SchedulerHandler(IPythonHandler):
         def get_artifact_archive(operation):
             artifact_name = os.path.basename(operation.artifact)
             (name, ext) = os.path.splitext(artifact_name)
-            return name + '-' + operation.id + '-' + timestamp + ".tar.gz"
+            return name + '-' + operation.id + ".tar.gz"
 
         def cc_pipeline():
 
@@ -116,6 +118,7 @@ class SchedulerHandler(IPythonHandler):
                                          notebook=operation.artifact_name,
                                          cos_endpoint=cos_endpoint,
                                          cos_bucket=bucket_name,
+                                         cos_directory=pipeline_name,
                                          cos_pull_archive=operation_artifact_archive,
                                          pipeline_outputs=self.__artifact_list_to_str(operation.outputs),
                                          pipeline_inputs=self.__artifact_list_to_str(operation.inputs),
@@ -138,7 +141,7 @@ class SchedulerHandler(IPythonHandler):
             try:
                 for operation in pipeline.operations.values():
                     archive_artifact = get_artifact_archive(operation)
-                    self.__upload_artifacts_to_object_store(runtime_configuration, operation, archive_artifact)
+                    self.__upload_artifacts_to_object_store(runtime_configuration, operation, archive_artifact, pipeline_name)
             except ResponseError:
                 self.log.error("Error uploading artifacts to object storage", exc_info=True)
 
@@ -150,8 +153,6 @@ class SchedulerHandler(IPythonHandler):
                     op.after(dependency_op)
 
             self.log.info("Pipeline dependencies are set")
-
-        pipeline_name = pipeline.title + '-' + timestamp
 
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = temp_dir+'/'+pipeline_name+'.tar.gz'
@@ -230,7 +231,7 @@ class SchedulerHandler(IPythonHandler):
 
         return minio_client
 
-    def __upload_artifacts_to_object_store(self, config, operation, archive_artifact):
+    def __upload_artifacts_to_object_store(self, config, operation, archive_artifact, pipeline_name):
 
         def tar_filter(tarinfo):
             """Filter files from the generated archive"""
@@ -283,7 +284,7 @@ class SchedulerHandler(IPythonHandler):
             self.log.info("TAR archive %s created", archive_artifact)
 
             client.fput_object(bucket_name=config.metadata['cos_bucket'],
-                                     object_name=archive_artifact,
+                                     object_name=pipeline_name + '/' + archive_artifact,
                                      file_path=archive_temp_dir + archive_artifact)
 
             self.log.debug("TAR archive %s pushed to bucket : %s ", archive_artifact, config.metadata['cos_bucket'])
