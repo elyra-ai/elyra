@@ -365,61 +365,93 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     let settings = ServerConnection.makeSettings();
     let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
 
-    ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings).then(res => res.json())
-      .then(runtimes => {
-        return showDialog({
-          title: 'Run pipeline',
-          body: new PipelineDialog({"runtimes": runtimes}),
-          buttons: [Dialog.cancelButton(), Dialog.okButton()]
-        }).then( result => {
-          if( result.value == null) {
-            // When Cancel is clicked on the dialog, just return
-            return;
+    let handleError = (response: any) => {
+      let res_body = response['message'] ? response['message'] : '';
+      res_body = response['reason'] ? res_body + ': ' + response['reason'] : res_body;
+
+      let default_body = 'More details might be available in the JupyterLab console logs';
+
+      return showDialog({
+        title: 'Error submitting pipeline',
+        body: res_body ? <p>{res_body}<br/>{default_body}</p> : <p>{default_body}</p>,
+        buttons: [Dialog.okButton()]
+      });
+    };
+
+    let handle404 = () => {
+      return showDialog({
+        title: 'Error submitting pipeline',
+        body: 'AI workspace service endpoint not available',
+        buttons: [Dialog.okButton()]
+      });
+    };
+
+    ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings)
+      .then((runtime_response: any) => {
+        console.log('>>>');
+        console.log(runtime_response);
+        // handle 404 if ai workspace server extension is not found
+        if (runtime_response.status === 404) {
+          return handle404();
+        }
+
+        runtime_response.json().then((runtime_result: any) => {
+          console.log('>>>');
+          console.log(runtime_result);
+          if (runtime_response.status !== 200) {
+            return handleError(runtime_result);
           }
 
-          // prepare pipeline submission details
-          console.log('Pipeline definition:');
-          console.log(this.canvasController.getPipelineFlow());
+          return showDialog({
+            title: 'Run pipeline',
+            body: new PipelineDialog({"runtimes": runtime_result}),
+            buttons: [Dialog.cancelButton(), Dialog.okButton()]
+          }).then( result => {
+            if( result.value == null) {
+              // When Cancel is clicked on the dialog, just return
+              return;
+            }
 
-          let pipelineFlow = this.canvasController.getPipelineFlow();
-          pipelineFlow.pipelines[0]['app_data']['ui_data']['title'] = result.value.pipeline_name;
-          pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] = result.value.platform;
+            // prepare pipeline submission details
+            console.log('Pipeline definition:');
+            console.log(this.canvasController.getPipelineFlow());
 
-          let requestBody = JSON.stringify(pipelineFlow);
-          let url = URLExt.join(settings.baseUrl, 'scheduler');
+            let pipelineFlow = this.canvasController.getPipelineFlow();
+            pipelineFlow.pipelines[0]['app_data']['ui_data']['title'] = result.value.pipeline_name;
+            pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] = result.value.platform;
 
-          console.log('Submitting pipeline to -> ' + url);
-          ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
-            .then((response: any) => {
-              console.log('>>>');
-              console.log(response);
-              if (response.status === 404) {
-                return showDialog({
-                  title: 'Error submitting pipeline',
-                  body: 'Pipeline scheduler service endpoint not available',
-                  buttons: [Dialog.okButton()]
-                });
-              } else if (response.status !== 200) {
-                return showDialog({
-                  title: 'Error submitting pipeline',
-                  body: 'More details might be available in the JupyterLab console logs',
-                  buttons: [Dialog.okButton()]
-                });
-              }
-              response.json().then((data: any) => {
+            let requestBody = JSON.stringify(pipelineFlow);
+            let url = URLExt.join(settings.baseUrl, 'scheduler');
+
+            console.log('Submitting pipeline to -> ' + url);
+            ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
+              .then((scheduler_response: any) => {
                 console.log('>>>');
-                console.log(data);
-                let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] + ' succeeded';
-                let dialogBody = <span>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a></span>;
-                return showDialog({
-                  title: dialogTitle,
-                  body: dialogBody,
-                  buttons: [Dialog.okButton()]
+                console.log(scheduler_response);
+                // handle 404 if ai workspace server extension is not found
+                if (scheduler_response.status === 404) {
+                  return handle404();
+                }
+
+                scheduler_response.json().then((data: any) => {
+                  console.log('>>>');
+                  console.log(data);
+                  if (scheduler_response.status !== 200) {
+                    return handleError(data);
+                  }
+
+                  let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] + ' succeeded';
+                  let dialogBody = <p>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a></p>;
+                  return showDialog({
+                    title: dialogTitle,
+                    body: dialogBody,
+                    buttons: [Dialog.okButton()]
+                  });
                 });
               });
-            });
+          });
         });
-      });
+    });
   }
 
   handleSave() {

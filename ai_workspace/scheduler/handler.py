@@ -22,7 +22,7 @@ import tempfile
 from datetime import datetime
 from jsonschema import ValidationError
 from kubernetes.client.models import V1EnvVar
-from notebook.base.handlers import IPythonHandler
+from notebook.base.handlers import APIHandler
 from notebook.pipeline import NotebookOp
 from minio import Minio
 from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists
@@ -32,7 +32,7 @@ from ai_workspace.metadata import MetadataManager
 from ai_workspace.pipeline import PipelineParser
 
 
-class SchedulerHandler(IPythonHandler):
+class SchedulerHandler(APIHandler):
 
     """REST-ish method calls to execute pipelines as batch jobs"""
     def get(self):
@@ -144,6 +144,7 @@ class SchedulerHandler(IPythonHandler):
                     self.__upload_artifacts_to_object_store(runtime_configuration, operation, archive_artifact, pipeline_name)
             except ResponseError:
                 self.log.error("Error uploading artifacts to object storage", exc_info=True)
+                raise
 
             # Process dependencies after all the operations have been created
             for pipeline_operation in pipeline.operations.values():
@@ -161,7 +162,11 @@ class SchedulerHandler(IPythonHandler):
             self.log.debug("Creating temp directory %s", temp_dir)
 
             # Compile the new pipeline
-            kfp.compiler.Compiler().compile(cc_pipeline,pipeline_path)
+            try:
+                kfp.compiler.Compiler().compile(cc_pipeline, pipeline_path)
+            except Exception as ex:
+                raise web.HTTPError(500, repr(ex))
+
 
             self.log.info("Kubeflow Pipeline successfully compiled!")
             self.log.debug("Kubeflow Pipeline compiled pipeline placed into %s", pipeline_path)

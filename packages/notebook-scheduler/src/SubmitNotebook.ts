@@ -75,57 +75,92 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
     let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
     let envVars: string[] = Utils.getEnvVars(this.panel.content.model.toString());
 
-    ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings).then(res => res.json())
-      .then(runtimes => {
-        return showDialog({
-          title: 'Submit notebook',
-          body: new SubmitNotebook(envVars, runtimes),
-          buttons: [Dialog.cancelButton(), Dialog.okButton()]
-        }).then(result => {
-          if (result.value == null) {
-            // When Cancel is clicked on the dialog, just return
-            return;
+    let handleError = (response: any) => {
+      let res_body = response['message'] ? response['message'] : '';
+      res_body = response['reason'] ? res_body + ': ' + response['reason'] : res_body;
+
+      let default_body = 'More details might be available in the JupyterLab console logs';
+
+      let br: React.ReactElement<any> = React.createElement('br');
+      let dialogBody: React.ReactElement<any> = React.createElement('p', null, res_body, br, default_body);
+
+      return showDialog({
+        title: "Error submitting notebook",
+        body: res_body ? dialogBody : default_body,
+        buttons: [Dialog.okButton()]
+      });
+    };
+
+    let handle404 = () => {
+      return showDialog({
+        title: 'Error submitting notebook',
+        body: 'AI workspace service endpoint not available',
+        buttons: [Dialog.okButton()]
+      });
+    };
+
+    ServerConnection.makeRequest(runtime_url, {method: 'GET'}, settings)
+      .then((runtime_response: any) => {
+        console.log('>>>');
+        console.log(runtime_response);
+        // handle 404 if ai workspace server extension is not found
+        if (runtime_response.status === 404) {
+          return handle404();
+        }
+
+        runtime_response.json().then((runtime_result: any) => {
+          console.log('>>>');
+          console.log(runtime_result);
+          if (runtime_response.status !== 200) {
+            return handleError(runtime_result);
           }
 
-          // prepare notebook submission details
-          let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions>result.value;
-          let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions)
-          console.log(pipeline);
+          return showDialog({
+            title: 'Submit notebook',
+            body: new SubmitNotebook(envVars, runtime_result),
+            buttons: [Dialog.cancelButton(), Dialog.okButton()]
+          }).then(result => {
+            if (result.value == null) {
+              // When Cancel is clicked on the dialog, just return
+              return;
+            }
 
-          let url = URLExt.join(settings.baseUrl, 'scheduler');
-          let requestBody = JSON.stringify(pipeline);
+            // prepare notebook submission details
+            let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions>result.value;
+            let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions)
+            console.log(pipeline);
 
-          console.log('Submitting pipeline to -> ' + url);
-          ServerConnection.makeRequest(url, {method: 'POST', body: requestBody}, settings)
-            .then((response: any) => {
-              console.log('>>>');
-              console.log(response);
-              if (response.status === 404) {
-                return showDialog({
-                  title: 'Error submitting notebook',
-                  body: 'Notebook scheduler service endpoint not available',
-                  buttons: [Dialog.okButton()]
-                });
-              } else if (response.status !== 200) {
-                return showDialog({
-                  title: "Error submitting Notebook",
-                  body: 'More details might be available in the JupyterLab console logs',
-                  buttons: [Dialog.okButton()]
-                });
-              }
-              response.json().then((data: any) => {
+            let url = URLExt.join(settings.baseUrl, 'scheduler');
+            let requestBody = JSON.stringify(pipeline);
+
+            console.log('Submitting pipeline to -> ' + url);
+            ServerConnection.makeRequest(url, {method: 'POST', body: requestBody}, settings)
+              .then((scheduler_response: any) => {
                 console.log('>>>');
-                console.log(data);
-                let dialogTitle: string = 'Job submission to ' + result.value.platform + ' succeeded';
-                let dialogLink: React.ReactElement<any> = React.createElement('a', { href: data.url, target: "_blank" }, 'Run Details');
-                let dialogBody: React.ReactElement<any> = React.createElement('p', null, 'Check the status of your run at ', dialogLink);
-                return showDialog({
-                  title: dialogTitle,
-                  body: dialogBody,
-                  buttons: [Dialog.okButton()]
+                console.log(scheduler_response);
+                // handle 404 if ai workspace server extension is not found
+                if (scheduler_response.status === 404) {
+                  return handle404();
+                }
+
+                scheduler_response.json().then((data: any) => {
+                  console.log('>>>');
+                  console.log(data);
+                  if (scheduler_response.status !== 200) {
+                    return handleError(data);
+                  }
+
+                  let dialogTitle: string = 'Job submission to ' + result.value.platform + ' succeeded';
+                  let dialogLink: React.ReactElement<any> = React.createElement('a', { href: data.url,  target: "_blank" }, 'Run Details');
+                  let dialogBody: React.ReactElement<any> = React.createElement('p', null, 'Check the status of your run at ', dialogLink);
+                  return showDialog({
+                    title: dialogTitle,
+                    body: dialogBody,
+                    buttons: [Dialog.okButton()]
+                  });
                 });
               });
-            });
+          });
         });
       });
   };
