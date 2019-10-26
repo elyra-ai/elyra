@@ -28,21 +28,16 @@ ENV NBGITPULLER_APP=lab
 RUN pip install --upgrade jupyterlab notebook && \
     jupyter serverextension enable --py jupyterlab --sys-prefix
 
+RUN mkdir -p /home/jovyan/.local/share/jupyter/metadata/runtime
+
 USER root
 
 COPY *.whl /etc/ai-workspace/
-COPY metadata-runtime-template.json /home/jovyan/.local/share/jupyter/metadata/runtime/
+RUN pip install /etc/ai-workspace/*.whl
 
-RUN chown -R jovyan: /home/jovyan/.local/share/jupyter
 RUN mkdir -p /opt/work && chmod 777 /opt/work
 
-RUN --mount=type=secret,id=pipsecret,dst=/home/jovyan/.pip/pip.conf pip install /etc/ai-workspace/*.whl
-
-RUN pip install --upgrade jupyterlab-git && \
-    jupyter serverextension enable --py jupyterlab_git && \
-    jupyter labextension install @jupyterlab/git --no-build --debug
-
-RUN --mount=type=secret,id=npmsecret,dst=/home/jovyan/.npmrc jupyter lab build --debug
+RUN jupyter lab build --debug
 
 RUN jupyter labextension list && jupyter serverextension list
 

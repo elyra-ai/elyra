@@ -45,7 +45,7 @@
         "@phosphor/widgets": "^1.8.1",
         "@types/jest": "24.0.15",
         "@types/node": "^12.0.10",
-        "@wdp/common-canvas": "^6.1.9",
+        "@ai-workspace/canvas": "^6.1.23",
         "autoprefixer": "^9.6.0",
         "carbon-components": "^10.3.2",
         "json-loader": "^0.5.7",

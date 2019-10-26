@@ -27,8 +27,8 @@ import {toArray} from '@phosphor/algorithm';
 import {IDragEvent} from '@phosphor/dragdrop';
 import {Widget, PanelLayout} from '@phosphor/widgets';
 
-import {CommonCanvas, CanvasController, CommonProperties} from '@wdp/common-canvas';
-import '@wdp/common-canvas/dist/common-canvas.min.css';
+import {CommonCanvas, CanvasController, CommonProperties} from '@ai-workspace/canvas';
+import '@ai-workspace/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 

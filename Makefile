@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help clean build install clean-docker
+.PHONY: help clean build install clean-docker docker-image
 
 SHELL:=/bin/bash
 
@@ -47,8 +47,7 @@ test: ## Run unit tests
 build:
 	-rm -f yarn.lock package-lock.json
 	-yarn
-	-export PATH=$$(pwd)/node_modules/.bin:$PATH
-	-lerna run build
+	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
 bdist: npm-packages
 	-python setup.py bdist_wheel
@@ -58,7 +57,7 @@ install: bdist ## Build distribution and install
 	-$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	-$(call INSTALL_LAB_EXTENSION,python-runner)
 	-$(call INSTALL_LAB_EXTENSION,pipeline-editor)
-	-jupyter lab build
+	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && jupyter lab build
 	-jupyter serverextension list
 	-jupyter labextension list
 
@@ -71,15 +70,12 @@ npm-packages: build
 
 docker-image: bdist ## Build docker image
 	-cp -r dist/*.whl etc/docker/
-	-DOCKER_BUILDKIT=1 docker build --secret id=pipsecret,src=$(HOME)/.pip/pip.conf \
-	                                --secret id=npmsecret,src=$(HOME)/.npmrc \
-	                                -t $(IMAGE) etc/docker/ \
-	                                --progress plain
+	-DOCKER_BUILDKIT=1 docker build -t $(IMAGE) etc/docker/ --progress plain
 
 define INSTALL_LAB_EXTENSION
-	-cd packages/$1 && jupyter labextension link --no-build --debug .
+	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && jupyter labextension link --no-build --debug .
 endef
 
 define PACKAGE_LAB_EXTENSION
-	-cd packages/$1 && npm run dist && mv *.tgz ../../dist
+	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && npm run dist && mv *.tgz ../../dist
 endef

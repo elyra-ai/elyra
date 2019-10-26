@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-declare module '@wdp/common-canvas';
+declare module '@ai-workspace/canvas';
