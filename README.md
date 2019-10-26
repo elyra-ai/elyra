@@ -16,13 +16,13 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# Enterprise Workspace for AI
+# AI Workspace
 
-Enterprise Workspace for AI aims to do for AI model development, what the
+AI Workspace aims to do for AI model development, what the
 Eclipse IDE did for Java in the early 2000s. It extends the JupyterLab Notebook
 platform with an Enterprise AI centric approach.
 
-![Enterprise Workspace for AI](docs/source/images/ai-workspace.png)
+![AI Workspace](docs/source/images/ai-workspace.png)
 
 
 An **AI Pipeline** visual editor is also available and can be used to chain notebooks
@@ -49,73 +49,93 @@ Python Scripts.
 
 ![Git Integration](docs/source/images/git.png)
 
-A metada service provides the ability to configure runtimes, data sources and other
+A metadata service provides the ability to configure runtimes, data sources and other
 additional configurations required to tie all these components together and easily
 enable portability of the workspace.
 
-## Build and Configurations
+## Installation
+AI Workspace can be installed via PyPi or via Docker 
 
-### Configuring IBM internal repositories
+### Prerequisites :
+* [NodeJS](https://nodejs.org/en/)
+* Python 3.X
+* [AI Workspace Metadata Runtime](#configuring-runtime-metadata)
+##### Optional :
+* [Anaconda](https://www.anaconda.com/distribution/) 
+* [Docker](https://docs.docker.com/install//) - If using the docker image
 
-#### Artifactory NPM
+To Install AI Workspace:
 
-1. Login to
-        [AI-WORKSPACE ARTIFACTORY](https://na.artifactory.swg-devops.com/artifactory/webapp/#/home)
-2. Click on upper right corner on your email
-3. Click on the gear to generate your API Key
-4. On your MacMook run  
-
-       npm config set registry https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
-5. and
-       curl -u [email]:[api-key] https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/
-6. Run following and copy output to clipboard
-
-       curl -u [email]:[api-key] https://na.artifactory.swg-devops.com/artifactory/api/npm/auth >> ~/.npmrc
-
-After all these commands, your ```~/.npmrc``` file should look like
-
+via PyPi:
 ```bash
-registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/wcp-wdp-npm-virtual/
-_auth=XXXXXXXXXXXXXXXXXXXXXX
-always-auth=true
-email=XXXXXXXX@us.ibm.com
+pip install ai-workspace && jupyter lab build
+```
+via Docker:
+```bash
+ docker run -it -p 8888:8888 -v [LOCAL METADATA RUNTIME DIR]:/home/jovyan/.local/share/jupyter/metadata/runtime 
+                             -v [LOCAL NOTEBOOK DIR]:/opt/work ai-workspace/ai-workspace:dev 
 ```
 
-#### Artifactory PyPi
+## Runtime Configuration
 
-Create a pipy configuration file ```~/.pip/pip.conf``` with the following content:
+### Prerequisites
+* A Kubeflow Pipelines Endpoint
+* IBM Cloud Object Storage or other S3 Based Object Store (Optional)
 
-```bash
-[global]
-index-url = https://pypi.org/simple/
-extra-index-url = https://[email]:[api-key]@na.artifactory.swg-devops.com/artifactory/api/pypi/dbg-aiworkspace-team-pypi-local/simple
+### Configuring Runtime Metadata
+**AI Pipelines** requires configuring a pipeline runtime to enable its full potential. 
+AI Pipelines currently only supports `Kubeflow Pipelines` with plans to expand to support other runtimes
+in the future.
+
+- Navigate to your local Jupyter Data directory. If not known, it can be discovered by issuing a ```jupyter --data-dir```
+command on your terminal.
+- Create a `metadata/runtime` directory, then in that directory create a new file named `kfp.json` with the following content:
+- The full path to the file should be `[JUPYTER DATA DIR]/metadata/runtime/kfp.json`
+```
+{
+  "display_name": "Kubeflow Pipeline",
+  "metadata": {
+    "api_endpoint": "http://[hostname]:[port]/pipeline",
+    "cos_endpoint": "http://[hostname]:[port]",
+    "cos_username": "[username]",
+    "cos_password": "[password]",
+    "cos_bucket": "[bucket name]"
+  }
+}
 ```
 
-Note that ```[email]``` should be replaced by your encoded IBM e-mail address (e.g. %40 encodes @) and
-```[api-key]``` should be replaced by the artifactory API Key found on your Artifactory profile page
-and generated in the [Artifactory NPM step](README.md#Artifactory-NPM).
-
-### Installing Node.js
-
-Many Jupyter projects, including JupyterLab, require Node.js to build locally.
-
-To install Node.js download and run the latest installer file from the [Node.js website](https://nodejs.org/en/) and follow the on screen instructions.
-
-### Installing npm build packages
-
-A few npm packages are required for properly building the AI Workspace project:
-
+- To validate your new configuration, run:
 ```bash
-npm config set scripts-prepend-node-path auto
-npm install -g yarn
+jupyter runtime list
 ```
 
+`AI Workspace` depends on its `Metadata Runtime` to determine how to communicate with your KubeFlow Pipelines
+Server and with your chosen Object Store to store artifacts.   
 
+|Parameter   | Description  | Example |
+|:---:|:------|:---:|
+|api_endpoint| The KubeFlow Pipelines API Endpoint you wish to run your Pipeline. |  `https://kubernetes-service.ibm.com/pipeline`   |
+|cos_endpoint| This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a kubernetes cluster (Minio), you can use the kubernetes local DNS address.   | `minio-service.kubeflow:9000` |
+|cos_username| Username used to access the Object Store. SEE NOTE. | `minio` |
+|cos_password| Password used to access the Object Store. SEE NOTE. | `minio123` |
+|cos_bucket|   Name of the bucket you want your artifacts in. If the bucket doesn't exist, it will be created| `test_bucket` |
+
+NOTE: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-hmac) 
+and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
+Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.
+
+## Development Workflow
 ### Building
 
-This extension is divided in two parts, a backend Jupyter Notebook backend extension,
-and a JupyterLab UI extension. Use the make command below to build and install all 
-required components. 
+`AI Workspace` is divided in two parts, a collection of Jupyter Notebook backend extensions,
+and their respective JupyterLab UI extensions. Our JupyterLab extensions are located in our `packages`
+directory. 
+
+#### Requirements
+
+* [Yarn](https://yarnpkg.com/lang/en/docs/install) 
+
+#### Installation
 
 ```bash
 make clean install
@@ -131,126 +151,58 @@ You can check that the JupyterLab extension was successful installed with:
 jupyter labextension list
 ```
 
-## Runtime Configuration
-
-### Configuring Runtime Metadata
-
-The **AI Pipelines** requires configuring a pipeline runtime to enable its full potential.
-There is a shared **Kubeflow Pipeline** test system that the team uses for test and demo
-purposes, and to configure your system to use it, follow the steps below:
-
-- Navigate to your local Jupyter config folder that can be discovered by issuing the a ```jupyter --data-dir```
-command on your terminal.
-- In metadata/runtime folder, create a new file named **kfp.json** 
-with the following content:
-```
-{
-  "display_name": "Kubeflow Pipeline",
-  "metadata": {
-    "api_endpoint": "http://weakish1.fyre.ibm.com:32488/pipeline",
-    "cos_endpoint": "http://weakish1.fyre.ibm.com:30427",
-    "cos_username": "minio",
-    "cos_password": "minio123",
-    "cos_bucket": "<<<ENTER A VALID BUCKET NAME>>>"
-  }
-}
-```
-
-- To validate your new configuration, run:
-```bash
-make clean install
-```
-followed by
-```bash
-jupyter runtime list
-```
-
 ## Building a Docker Image
 
 Prequisites :  
-* Docker v18.09 Installed or higher.
-* [NPM Configured for IBM Artifactory](#artifactory-npm)  
-* [Pip Configured for IBM Artifactory](#artifactory-pypi)
-
+* Docker v18.09 Installed or higher
 
 ```bash
 make docker-image
 ```
 
-## Pushing and Pulling from IBM Container Registry
+## Using the AI Workspace Pipeline Editor
 
-Ensure you have the IBM Cloud CLI installed on your system. Install Instructions are [HERE](https://cloud.ibm.com/docs/cli?topic=cloud-cli-getting-started)
+<img src="https://github.com/ai-workspace/community/blob/master/resources/github-homepage/AIW-1.gif" width="800">  
+  
+* In the Jupyter Lab Launcher, click the `Pipeline Editor` Icon to create a new pipeline.
+* On left side of the screen, navigate to your file browser, you should see a list of notebooks available.
+* Drag each notebook, each representing a step in your pipeline to the canvas. Repeat until all notebooks
+needed for the pipeline are present.
+* Define your notebook execution order by connecting them together to form a graph.
 
-Login with your IBM id and make sure to select the Developer Advocate Account:
-```bash
-ibmcloud login --sso
-```
-Set your region and login to the registry:
-```bash
-ibmcloud cr region-set us-south
-ibmcloud cr login
-```
+<img src="https://github.com/ai-workspace/community/blob/master/resources/github-homepage/AIW-2.gif" width="800">  
 
-### Pushing
-Rename the image you want then push to the following docker schema:
-```bash
-docker tag [local image to push] us.icr.io/tommychaopingli/[local image to push]
-docker push  us.icr.io/tommychaopingli/[local image to push]
-
-Example:
-docker tag akchin/ai-workspace:test us.icr.io/tommychaopingli/ai-workspace:test
-```
-NOTE: We are using the `tommychaopingli` namespace because the account quota is maxed out for namespaces.
-### Pulling
-
-```bash
-docker pull us.icr.io/tommychaopingli/[image to pull]
-
-Example:
-docker pull us.icr.io/tommychaopingli/ai-workspace:test
-```
-
-## KFP Notebook Python Package
-
-[KFP Notebook Github](https://github.ibm.com/ai-workspace/kfp-notebook)  
-[KFP Notebook Python Package](https://na.artifactory.swg-devops.com/artifactory/webapp/#/artifacts/browse/tree/General/dbg-aiworkspace-team-pypi-local)
-
-`KFP Notebook` is an NotebookOp that enables running notebooks as part of a Kubeflow Pipeline. AI Workspace uses this package to 
-construct each of the components in a pipeline created in the `pipeline editor` and configures each with the 
-information it needs to run each operation (Notebook Name, Dependencies, Object Storage Credentials, etc). 
-KFP Notebook currently only supports S3 Object Storage and uses the Minio S3 Client.
-
-### Metadata Configuration and Runtime
-[Configure your Metadata Runtime](#runtime-configuration)  
-KFP Notebook depends on the `Metadata Runtime` in AI Workspace to determine how to communicate with your KubeFlow Pipelines
-Server and with your chosen Object Store to store artifacts.   
+* Define the properties for each node / notebook in your pipeline
 
 |Parameter   | Description  | Example |
 |:---:|:------|:---:|
-|api_endpoint| The KubeFlow Pipelines API Endpoint you wish to run your Pipeline. |  `https://kubernetes-service.ibm.com/pipeline`   |
-|cos_endpoint| This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a kubernetes cluster (Minio), you can use the kubernetes local DNS address.   | `minio-service.kubeflow:9000` |
-|cos_username| Username used to access the Object Store. SEE NOTE. | `minio` |
-|cos_password| Password used to access the Object Store. SEE NOTE. | `minio123` |
-|cos_bucket|   Name of the bucket you want your artifacts in. If the bucket doesn't exist, it will be created| `test_bucket` |
+|Docker Image| The docker image you want to use to run your notebook |  `TensorFlow 2.0`   |
+|Output Files|  A list of files generated by the notebook, inside the image, to be passed as inputs to the next step of the pipeline.  One file per line.  | `contributions.csv` |
+|Env Vars| A list of Environmental variables to be set inside in the container.  One variable per line. |  `GITHUB_TOKEN = sometokentobeused` |
+|File Dependencies|  A list of files to be passed from the `LOCAL` working environment into each respective step of the pipeline. Files should be in the same directory as the notebook it is associated with. One file per line. | `dependent-script.py` |
 
-NOTE: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-hmac) 
-and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
-Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.
+<img src="https://github.com/ai-workspace/community/blob/master/resources/github-homepage/AIW-3.gif" width="800">  
 
-### Integration with KubeFlow Pipelines
-The `KFP Notebook` package contains a NotebookOp class that extends KubeFlow Pipeline's ContainerOp DSL. Allowing us 
-to outfit any user provided image with the necessary frameworks to run a Jupyter Notebook. 
-#### Storage  
-`KFP Notebook` currently supports two Object Storage modes, Hybrid and Kubernetes.  
-`Hybrid Mode` - AI Workspace is running locally on the user's workstation and is using a remote KubeFlow deployment to run their workloads.  
-`Kubernetes Mode` - AI Workspace is running in a pod in a Kubernetes cluster.  
-In `Hybrid Mode`, user credentials (username and password) are pulled from your local `metadata runtime` to be set as environmental
-variables in the container image. 
-In `Kubernetes Mode`, user credentials will be pulled from a Kubernetes `secrets` object and set as environmental variables in the
-container image. 
+* Click on the `RUN` Icon and give your pipeline a name.
+* Hit `OK` to start your pipeline. 
+* Use the link provided in the response to your experiment in Kubeflow. By default, AI Workspace will create the pipeline template for you as well as start an experiment and run.
+## Using the Python Runner
+<img src="https://github.com/ai-workspace/community/blob/master/resources/github-homepage/AIW-4.gif" width="800">  
+  
+* In the Jupyter Lab Launcher, click the `Python File` Icon to create a new Python Script.
+* When used in conjunction with `Jupyter Enterprise Gateway` the dropdown will be populated with more kernel options, 
+allowing users to run their scripts with remote kernels with more specialized resources.
+* To run your script locally, select the `python3` option in the dropdown menu, and click the `Run` Icon.
 
-### Kubernetes Secrets Configuration
-When running in a pure Kubernetes environment (i.e. `Kubernetes Mode`), secrets are stored on the Kubernetes cluster
-itself so users will need to [Create and Manage Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/).
+## Integration with Jupyter Enterprise Gateway  
 
+AI workspace integrates easily with `Jupyter Enterprise Gateway` allowing users to deploy remote kernels for more 
+resource intensive development. Simply include the `--gateway-url` when starting `AI Workspace`
 
+```bash
+jupyter lab -gateway-url=http://<GATEWAY_HOST>:<PORT>
+```
+
+[Jupyter Enterprise Gateway Github](https://github.com/jupyter/enterprise_gateway)  
+
+[More Details](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html#using-a-gateway-server-for-kernel-management)
