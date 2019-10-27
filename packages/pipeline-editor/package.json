@@ -7,9 +7,9 @@
         "jupyterlab",
         "jupyterlab-extension"
     ],
-    "homepage": "https://github.ibm.com/ai-workspace/pipeline-editor-extension",
+    "homepage": "https://github.com/ai-workspace/ai-workspace",
     "bugs": {
-        "url": "https://github.ibm.com/ai-workspace/pipeline-editor-extension/issues"
+        "url": "https://github.com/ai-workspace/ai-workspace/issues"
     },
     "license": "Apache-2.0",
     "files": [
@@ -21,7 +21,7 @@
     "style": "style/index.css",
     "repository": {
         "type": "git",
-        "url": "https://github.ibm.com/ai-workspace/ai-workspace"
+        "url": "https://github.com/ai-workspace/ai-workspace"
     },
     "scripts": {
         "build": "tsc",

@@ -23,7 +23,7 @@ except:
 
 setup(
     name="ai-workspace",
-    url="https://github.ibm.com/ai-workspace/ai-workspace",
+    url="https://github.com/ai-workspace/ai-workspace",
     author="CODAIT",
     version="0.3.0",
     packages=find_packages(),
