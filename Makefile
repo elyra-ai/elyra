@@ -29,53 +29,51 @@ help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 clean: ## Make a clean source tree
-	-rm -rf build
-	-rm -rf *.egg-info
-	-rm -rf yarn-error.log
-	-rm -rf $$(find . -name dist)
-	-rm -rf $$(find . -name *.tgz)
-	-rm -rf $$(find . -name lib)
-	-rm -rf $$(find . -name node_modules)
-	-rm -rf $$(find . -name tsconfig.tsbuildinfo)
-	-rm -rf $$(find . -name *.lock)
-	-rm -rf $$(find . -name package-lock.json)
+	rm -rf build *.egg-info yarn-error.log
+	rm -rf $$(find . -name dist)
+	rm -rf $$(find . -name *.tgz)
+	rm -rf $$(find . -name lib)
+	rm -rf $$(find . -name node_modules)
+	rm -rf $$(find . -name tsconfig.tsbuildinfo)
+	rm -rf $$(find . -name *.lock)
+	rm -rf $$(find . -name package-lock.json)
 
 test: ## Run unit tests
 	nosetests -v
 
-# Builds the distribution python wheel that installs the server side extension
+# Builds AI Workspace to make ready for packaging/installation
 build:
-	-rm -f yarn.lock package-lock.json
-	-yarn
-	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
+	rm -f yarn.lock package-lock.json
+	yarn
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
 bdist: npm-packages
-	-python setup.py bdist_wheel
+	python setup.py bdist_wheel
 
 install: bdist ## Build distribution and install
-	-pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
-	-$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
-	-$(call INSTALL_LAB_EXTENSION,python-runner)
-	-$(call INSTALL_LAB_EXTENSION,pipeline-editor)
-	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && jupyter lab build
-	-jupyter serverextension list
-	-jupyter labextension list
+	pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
+	$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
+	$(call INSTALL_LAB_EXTENSION,python-runner)
+	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && jupyter lab build
+	jupyter serverextension list
+	jupyter labextension list
 
 npm-packages: build
-	-mkdir dist
-	-$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
-	-$(call PACKAGE_LAB_EXTENSION,python-runner)
-	-$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
-	-cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
+	mkdir dist
+	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
+	$(call PACKAGE_LAB_EXTENSION,python-runner)
+	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
+	cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
 
 docker-image: bdist ## Build docker image
-	-cp -r dist/*.whl etc/docker/
-	-DOCKER_BUILDKIT=1 docker build -t $(IMAGE) etc/docker/ --progress plain
+	cp -r dist/*.whl etc/docker/
+	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) etc/docker/ --progress plain
 
 define INSTALL_LAB_EXTENSION
-	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && jupyter labextension link --no-build --debug .
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && jupyter labextension link --no-build --debug .
 endef
 
 define PACKAGE_LAB_EXTENSION
-	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && npm run dist && mv *.tgz ../../dist
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && npm run dist && mv *.tgz ../../dist
 endef
