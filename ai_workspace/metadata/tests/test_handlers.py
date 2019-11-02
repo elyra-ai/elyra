@@ -24,16 +24,17 @@ from .test_utils import test_schema_json, valid_metadata_json, \
     invalid_metadata_json, another_metadata_json, create_json_file
 
 
-class MetadataAPI(object):
+class MetadataRestAPI(object):
     """Wrapper for kernel REST API requests"""
-    def __init__(self, request, base_url, headers):
+    def __init__(self, request, namespace, base_url, headers):
         self.request = request
+        self.namespace = namespace
         self.base_url = base_url
         self.headers = headers
 
     def _req(self, verb, path, body=None):
         response = self.request(verb,
-                url_path_join('metadata/runtime', path), data=body)
+                url_path_join('metadata', self.namespace, path), data=body)
 
         if 400 <= response.status_code < 600:
             try:
@@ -56,33 +57,44 @@ class MetadataHandlerTest(NotebookTestBase):
     config = Config({'NotebookApp': {"nbserver_extensions": {"ai_workspace": True}}})
 
     def setUp(self):
-        self.metadata_dir = os.path.join(self.data_dir, 'metadata', 'runtime')
+        self.runtime_dir = os.path.join(self.data_dir, 'metadata', 'runtime')
 
-        create_json_file(self.metadata_dir, 'test_schema.schema', test_schema_json)
-        create_json_file(self.metadata_dir, 'valid.json', valid_metadata_json)
-        create_json_file(self.metadata_dir, 'another.json', another_metadata_json)
-        create_json_file(self.metadata_dir, 'invalid.json', invalid_metadata_json)
+        create_json_file(self.runtime_dir, 'test_schema.schema', test_schema_json)
+        create_json_file(self.runtime_dir, 'valid.json', valid_metadata_json)
+        create_json_file(self.runtime_dir, 'another.json', another_metadata_json)
+        create_json_file(self.runtime_dir, 'invalid.json', invalid_metadata_json)
 
-        self.metadata_api = MetadataAPI(self.request,
-                                        base_url=self.base_url(),
-                                        headers=self.auth_headers(),)
+        self.runtime_api = MetadataRestAPI(self.request,
+                                           namespace='runtime',
+                                           base_url=self.base_url(),
+                                           headers=self.auth_headers(), )
+
+        self.bogus_namespace_api = MetadataRestAPI(self.request,
+                                                   namespace='bogus',
+                                                   base_url=self.base_url(),
+                                                   headers=self.auth_headers(), )
 
     def tearDown(self):
         pass
 
+    def test_bogus_namespace(self):
+        # Validate missing is not found
+        with assert_http_error(404, "Metadata 'missing' in namespace 'bogus' was not found!"):
+            self.bogus_namespace_api.get('missing')
+
     def test_missing_runtime(self):
         # Validate missing is not found
         with assert_http_error(404, "Metadata 'missing' in namespace 'runtime' was not found!"):
-            self.metadata_api.get('missing')
+            self.runtime_api.get('missing')
 
     def test_invalid_runtime(self):
         # Validate invalid throws 404 with validation message
         with assert_http_error(404, "Schema validation failed for metadata 'invalid'"):
-            self.metadata_api.get('invalid')
+            self.runtime_api.get('invalid')
 
     def test_valid_runtime(self):
         # Ensure valid metadata can be found
-        r = self.metadata_api.get('valid')
+        r = self.runtime_api.get('valid')
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
         self.assertTrue('schema_name' in metadata)
@@ -90,7 +102,7 @@ class MetadataHandlerTest(NotebookTestBase):
 
     def test_get_runtimes(self):
         # Ensure all valid metadata can be found
-        r = self.metadata_api.get_all()
+        r = self.runtime_api.get_all()
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
         assert isinstance(metadata, dict)
@@ -100,9 +112,9 @@ class MetadataHandlerTest(NotebookTestBase):
 
     def test_get_runtimes_none(self):
         # Delete the metadata dir and attempt listing metadata
-        shutil.rmtree(self.metadata_dir)
+        shutil.rmtree(self.runtime_dir)
 
-        r = self.metadata_api.get_all()
+        r = self.runtime_api.get_all()
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
         assert isinstance(metadata, dict)

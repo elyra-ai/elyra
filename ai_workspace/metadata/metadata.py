@@ -21,7 +21,7 @@ from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError
 from jupyter_core.paths import jupyter_data_dir
 from traitlets import HasTraits, List, Unicode, Dict, Type, log
-from traitlets.config import SingletonConfigurable
+from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 
 class Metadata(HasTraits):
@@ -67,7 +67,7 @@ class Metadata(HasTraits):
         return j
 
 
-class MetadataManager(SingletonConfigurable):
+class MetadataManager(LoggingConfigurable):
     metadata_class = Type(Metadata, config=True,
         help="""The metadata class.  This is configurable to allow
         subclassing of the MetadataManager for customized behavior.
