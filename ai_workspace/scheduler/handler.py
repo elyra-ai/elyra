@@ -288,6 +288,10 @@ class SchedulerHandler(APIHandler):
             self.log.debug("Creating temp directory for archive TAR : %s", archive_temp_dir)
             self.log.info("TAR archive %s created", archive_artifact)
 
+            if os.path.getsize(archive_temp_dir + archive_artifact) > 102400000:
+                self.log.info("WARNING : The tar archive %s is over 100MB and may take additional time to upload",
+                              archive_artifact+".tar.gz")
+
             client.fput_object(bucket_name=config.metadata['cos_bucket'],
                                      object_name=pipeline_name + '/' + archive_artifact,
                                      file_path=archive_temp_dir + archive_artifact)
