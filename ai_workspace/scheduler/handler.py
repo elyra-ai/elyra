@@ -275,6 +275,8 @@ class SchedulerHandler(APIHandler):
 
             return None
 
+        aiw_max_upload_size_mb = 100  # max archive size allowed before warning messages start to appear
+
         client = self.__initialize_object_store(config)
 
         full_artifact_path = os.path.join(os.getcwd(), os.path.dirname(operation.artifact))
@@ -288,9 +290,9 @@ class SchedulerHandler(APIHandler):
             self.log.debug("Creating temp directory for archive TAR : %s", archive_temp_dir)
             self.log.info("TAR archive %s created", archive_artifact)
 
-            if os.path.getsize(archive_temp_dir + archive_artifact) > 102400000:
-                self.log.info("WARNING : The tar archive %s is over 100MB and may take additional time to upload",
-                              archive_artifact+".tar.gz")
+            if os.path.getsize(archive_temp_dir + archive_artifact) > aiw_max_upload_size_mb * 1024.0**2:
+                self.log.warn("The tar archive %s is over %s MB and may take additional time to upload",
+                              archive_artifact + ".tar.gz", aiw_max_upload_size_mb)
 
             client.fput_object(bucket_name=config.metadata['cos_bucket'],
                                      object_name=pipeline_name + '/' + archive_artifact,
