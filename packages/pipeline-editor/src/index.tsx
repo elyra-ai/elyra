@@ -541,21 +541,17 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   handleEvent(event: Event): void {
     switch (event.type) {
       case 'dragenter':
-        console.log('dragenter');
         event.preventDefault();
         break;
       case 'dragover':
-        console.log('dragover');
         event.preventDefault();
         break;
       case 'p-dragover':
-        console.log('p-dragover');
         event.preventDefault();
         event.stopPropagation();
         (event as IDragEvent).dropAction = (event as IDragEvent).proposedAction;
         break;
       case 'p-drop':
-        console.log('p-drop');
         event.preventDefault();
         event.stopPropagation();
         this.handleAdd((event as IDragEvent).offsetX, (event as IDragEvent).offsetY);
