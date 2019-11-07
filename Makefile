@@ -72,6 +72,10 @@ docker-image: bdist ## Build docker image
 	-cp -r dist/*.whl etc/docker/
 	-DOCKER_BUILDKIT=1 docker build -t $(IMAGE) etc/docker/ --progress plain
 
+dev-serverext:
+	python setup.py bdist_wheel --dev
+	pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
+
 define INSTALL_LAB_EXTENSION
 	-export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && jupyter labextension link --no-build --debug .
 endef

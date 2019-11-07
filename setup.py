@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import os
+import sys
+from glob import glob
 from setuptools import setup, find_packages
 
 try:
@@ -21,19 +23,22 @@ try:
 except:
     long_desc = ''
 
-setup(
+here = os.path.abspath(os.path.dirname(__file__))
+
+version_ns = {}
+with open(os.path.join(here, 'ai_workspace', '_version.py')) as f:
+    exec(f.read(), {}, version_ns)
+
+npm_packages_path = "./dist/*.tgz"
+auto_extension_path = "./jupyter-config/jupyter_notebook_config.d/*.json"
+
+setup_args = dict(
     name="ai-workspace",
     url="https://github.com/ai-workspace/ai-workspace",
     author="CODAIT",
-    version="0.3.0",
+    version=version_ns['__version__'],
+    data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_extension_path))],
     packages=find_packages(),
-    data_files=[('etc/jupyter/jupyter_notebook_config.d', ['jupyter-config/jupyter_notebook_config.d/ai_workspace.json']),
-                ('etc/jupyter/jupyter_notebook_config.d', ['jupyter-config/jupyter_notebook_config.d/jupyterlab_git.json']),
-                ('share/jupyter/lab/extensions', ['dist/aiworkspace-notebook-scheduler-extension-0.3.0.tgz',
-                                                  'dist/aiworkspace-pipeline-editor-extension-0.3.0.tgz',
-                                                  'dist/aiworkspace-python-runner-extension-0.3.0.tgz',
-                                                  'dist/git-0.8.2.tgz'])
-                ],
     install_requires=[
         "jupyter_core>=4.0,<5.0",
         "kfp",
@@ -49,7 +54,7 @@ setup(
         'requests>=2.9.1,<3.0',
     ],
     include_package_data=True,
-    description="Enterprise Workspace for AI",
+    description="AI Workspace",
     long_description=long_desc,
     entry_points={
         'console_scripts': [
@@ -57,3 +62,11 @@ setup(
         ],
     },
 )
+
+if "--dev" not in sys.argv:
+    setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
+else:
+    sys.argv.remove("--dev")
+
+if __name__ == '__main__':
+    setup(**setup_args)
