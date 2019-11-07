@@ -317,8 +317,17 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
   }
 
-  handleAdd() {
+  handleAdd(x?: number, y?: number) {
     let failedAdd = 0;
+    let position = 0;
+    let missingXY = !(x && y);
+
+    // if either x or y is undefined use the default coordinates
+    if (missingXY) {
+      position = this.position;
+      x = 75;
+      y = 85;
+    }
 
     toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
       item => {
@@ -327,13 +336,12 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
           //add each selected notebook
           console.log('Adding ==> ' + item.path );
 
-          this.position += 20;
           const nodeTemplate = this.canvasController.getPaletteNode('execute-notebook-node');
           if (nodeTemplate) {
             const data = {
               'editType': 'createNode',
-              'offsetX': 75 + this.position,
-              'offsetY': 85 + this.position,
+              'offsetX': x + position,
+              'offsetY': y + position,
               'nodeTemplate': this.canvasController.convertNodeTemplate(nodeTemplate)
             };
 
@@ -343,12 +351,19 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
             data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.current_parameters.image;
 
             this.canvasController.editActionHandler(data);
+
+            position += 20;
           }
         } else {
           failedAdd++;
         }
       }
-    )
+    );
+
+    // update position if the default coordinates were used
+    if (missingXY) {
+      this.position = position;
+    }
 
     if (failedAdd) {
       return showDialog({
@@ -543,7 +558,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
         console.log('p-drop');
         event.preventDefault();
         event.stopPropagation();
-        this.handleAdd();
+        this.handleAdd((event as IDragEvent).offsetX, (event as IDragEvent).offsetY);
         break;
       default:
         break;
