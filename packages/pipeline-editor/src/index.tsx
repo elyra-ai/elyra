@@ -492,9 +492,17 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   }
 
   handleClear() {
-    this.canvasController.clearPipelineFlow();
-    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
-    this.position = 10;
+    return showDialog({
+      title: 'Clear Pipeline?',
+      body: 'Are you sure you want to clear? You can not undo this.',
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
+    }).then( result => {
+      if (result.button.accept) {
+        this.canvasController.clearPipelineFlow();
+        this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+        this.position = 10;
+      }
+    });
   }
 
   /**
