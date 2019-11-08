@@ -20,37 +20,39 @@ from notebook.utils import maybe_future, url_unescape
 from .metadata import MetadataManager
 
 
-class MainRuntimeHandler(APIHandler):
+class MetadataHandler(APIHandler):
     """Handler for all runtime configurations. """
 
     @web.authenticated
     @gen.coroutine
-    def get(self):
-        metadata_manager = MetadataManager.instance(namespace="runtime")
+    def get(self, namespace):
+        namespace = url_unescape(namespace)
+        metadata_manager = MetadataManager(namespace=namespace)
         try:
-            runtimes = yield maybe_future(metadata_manager.get_all())
+            metadata = yield maybe_future(metadata_manager.get_all())
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
-        json_runtimes = {r.name : r.to_dict() for r in runtimes}
+        json_metadata = {r.name : r.to_dict() for r in metadata}
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_runtimes)
+        self.finish(json_metadata)
 
 
-class RuntimeHandler(APIHandler):
+class MetadataNamespaceHandler(APIHandler):
     """Handler for specific runtime configurations. """
 
     @web.authenticated
     @gen.coroutine
-    def get(self, runtime_name):
-        runtime_name = url_unescape(runtime_name)
-        metadata_manager = MetadataManager.instance(namespace="runtime")
+    def get(self, namespace, target):
+        namespace = url_unescape(namespace)
+        target = url_unescape(target)
+        metadata_manager = MetadataManager(namespace=namespace)
         try:
-            runtime = yield maybe_future(metadata_manager.get(runtime_name))
+            metadata = yield maybe_future(metadata_manager.get(target))
         except (ValidationError, KeyError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
         self.set_header("Content-Type", 'application/json')
-        self.finish(runtime.to_dict())
+        self.finish(metadata.to_dict())

@@ -50,12 +50,6 @@ class MetadataTestBase(NotebookTestBase):
         create_json_file(self.metadata_dir, 'another.json', another_metadata_json)
         create_json_file(self.metadata_dir, 'invalid.json', invalid_metadata_json)
 
-    def tearDown(self):
-        super(MetadataTestBase, self).tearDown()
-        # Clear singletons, otherwise they'll reference a metadata dir that
-        # doesn't exist - breaking the "next" test.
-        MetadataManager.clear_instance()
-
 
 class MetadataManagerTestCase(MetadataTestBase):
     """Test Metadata REST API"""
@@ -63,7 +57,7 @@ class MetadataManagerTestCase(MetadataTestBase):
 
     def setUp(self):
         super(MetadataManagerTestCase, self).setUp()
-        self.metadata_manager = MetadataManager.instance(namespace="runtime")
+        self.metadata_manager = MetadataManager(namespace="runtime")
 
     def test_list_metadata_summary(self):
         metadata_summary_list = self.metadata_manager.get_all_metadata_summary()
