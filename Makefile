@@ -59,6 +59,10 @@ install: bdist ## Build distribution and install
 	jupyter serverextension list
 	jupyter labextension list
 
+install-backend: ## Build and install backend
+	python setup.py bdist_wheel --dev
+	pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
+
 npm-packages: build
 	mkdir dist
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
