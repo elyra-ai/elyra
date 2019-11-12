@@ -21,6 +21,7 @@ import {DocumentRegistry, ABCWidgetFactory, DocumentWidget} from '@jupyterlab/do
 import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
 import {ILauncher} from '@jupyterlab/launcher';
 import {IMainMenu} from '@jupyterlab/mainmenu';
+import {NotebookPanel} from "@jupyterlab/notebook";
 import {ServerConnection} from '@jupyterlab/services';
 
 import {toArray} from '@phosphor/algorithm';
@@ -31,6 +32,8 @@ import {CommonCanvas, CanvasController, CommonProperties} from '@ai-workspace/ca
 import '@ai-workspace/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
+
+import Utils from './utils'
 
 import * as palette from './palette.json';
 import * as properties from './properties.json';
@@ -329,7 +332,9 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       y = 85;
     }
 
-    toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
+    let fileBrowser = this.browserFactory.defaultBrowser;
+
+    toArray(fileBrowser.selectedItems()).map(
       item => {
         // if the selected item is a file
         if (item.type == 'notebook') {
@@ -345,10 +350,18 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
               'nodeTemplate': this.canvasController.convertNodeTemplate(nodeTemplate)
             };
 
+            // create a notebook widget to get a string with the node content then dispose of it
+            let notebookWidget = fileBrowser.model.manager.open(item.path);
+            let notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
+            notebookWidget.dispose();
+
+            let vars = Utils.getEnvVars(notebookStr).map(str => str + '=');
+
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
             data.nodeTemplate.app_data['artifact'] = item.path;
             data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.current_parameters.image;
+            data.nodeTemplate.app_data['vars'] = vars;
 
             this.canvasController.editActionHandler(data);
 
