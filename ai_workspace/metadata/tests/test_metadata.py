@@ -30,8 +30,7 @@ from logging import StreamHandler
 
 from ai_workspace.metadata.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager
 
-from .test_utils import test_schema_json, valid_metadata_json, \
-    invalid_metadata_json, another_metadata_json, create_json_file
+from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
 
 StringIO = io.StringIO
 
@@ -45,7 +44,6 @@ class MetadataTestBase(NotebookTestBase):
 
         self.metadata_dir = os.path.join(self.data_dir, 'metadata', 'runtime')
 
-        create_json_file(self.metadata_dir, 'test_schema.schema', test_schema_json)
         create_json_file(self.metadata_dir, 'valid.json', valid_metadata_json)
         create_json_file(self.metadata_dir, 'another.json', another_metadata_json)
         create_json_file(self.metadata_dir, 'invalid.json', invalid_metadata_json)
@@ -66,6 +64,12 @@ class MetadataManagerTestCase(MetadataTestBase):
     def test_list_all_metadata(self):
         metadata_list = self.metadata_manager.get_all()
         self.assertEqual(len(metadata_list), 2)
+        # Ensure name is getting derived from resource and not from contents
+        for metadata in metadata_list:
+            if metadata.display_name == "another runtime":
+                self.assertTrue(metadata.name == "another")
+            else:
+                self.assertTrue(metadata.name == "valid")
 
     def test_list_metadata_summary_none(self):
         # Delete the metadata dir and attempt listing metadata
@@ -127,7 +131,7 @@ class MetadataManagerTestCase(MetadataTestBase):
             self.assertIn("display_name", valid_add)
             self.assertEquals(valid_add['display_name'], "valid runtime")
             self.assertIn("schema_name", valid_add)
-            self.assertEquals(valid_add['schema_name'], "test_schema")
+            self.assertEquals(valid_add['schema_name'], "test")
 
         resource = self.metadata_manager.remove(metadata_name)
 
@@ -147,7 +151,7 @@ class MetadataManagerTestCase(MetadataTestBase):
         metadata_name = 'valid'
         some_metadata = self.metadata_manager.get(metadata_name)
         self.assertEqual(some_metadata.name, metadata_name)
-        self.assertEqual(some_metadata.schema_name, "test_schema")
+        self.assertEqual(some_metadata.schema_name, "test")
         self.assertIn(self.metadata_dir, some_metadata.resource)
 
     def test_read_invalid_metadata_by_name(self):
@@ -209,77 +213,59 @@ class SchemaManagerTestCase(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.metadata_dir = self.temp_dir.name
         self.addCleanup(self.temp_dir.cleanup)
-
-        create_json_file(self.metadata_dir, 'test_schema.schema', test_schema_json)
-
+        self.test_schema_json = SchemaManagerTestCase._get_schema('test')
         self.schema_manager = SchemaManager.instance()
 
-    def _get_epoch(self, schema_name):
-        epoch = 0
-        schema_file = os.path.join(self.metadata_dir, schema_name + '.schema')
-        if os.path.exists(schema_file):
-            epoch = int(os.path.getmtime(schema_file))
-        return epoch
+    @staticmethod
+    def _get_schema(schema_name):
+        schema_json = None
+        schema_file = os.path.join(os.path.dirname(__file__), '..', 'schemas', schema_name + '.json')
+        if not os.path.exists(schema_file):
+            raise ValidationError("Metadata schema file '{}' is missing!".format(schema_file))
 
-    def test_is_stale_schema(self):
-        self.schema_manager.remove_all()
+        with io.open(schema_file, 'r', encoding='utf-8') as f:
+            schema_json = json.load(f)
 
-        epoch = self._get_epoch("test_schema")
-        is_stale = self.schema_manager.is_schema_stale("foo", "test_schema", epoch)
-        self.assertTrue(is_stale)
+        return schema_json
 
-        self.schema_manager.add_schema("foo", "test_schema", test_schema_json, epoch)
-
-        is_stale = self.schema_manager.is_schema_stale("foo", "test_schema", epoch)
-        self.assertFalse(is_stale)
-
-        # extend the schema...and confirm current schema is stale
-        time.sleep(1.0)  # need to delay so epoch is different
-        modified_schema = copy.deepcopy(test_schema_json)
-        modified_schema['properties']['metadata']['properties']['bar'] = {"type": "string", "minLength": 5}
-        create_json_file(self.metadata_dir, 'test_schema.schema', modified_schema)
-
-        epoch = self._get_epoch("test_schema")
-        is_stale = self.schema_manager.is_schema_stale("foo", "test_schema", epoch)
-        self.assertTrue(is_stale)
 
     def test_manage_schema(self):
         self.schema_manager.remove_all()
 
-        self.schema_manager.add_schema("foo", "test_schema", test_schema_json, 111)
-        self.schema_manager.add_schema("bar", "test_schema", test_schema_json, 111)
-        self.schema_manager.add_schema("baz", "test_schema", test_schema_json, 111)
+        self.schema_manager.add_schema("foo", "test", self.test_schema_json)
+        self.schema_manager.add_schema("bar", "test", self.test_schema_json)
+        self.schema_manager.add_schema("baz", "test", self.test_schema_json)
 
-        foo_schema = self.schema_manager.get_schema("foo", "test_schema")
+        foo_schema = self.schema_manager.get_schema("foo", "test")
         self.assertIsNotNone(foo_schema)
-        self.assertEqual(foo_schema, test_schema_json)
+        self.assertEqual(foo_schema, self.test_schema_json)
 
-        baz_schema = self.schema_manager.get_schema("baz", "test_schema")
+        baz_schema = self.schema_manager.get_schema("baz", "test")
         self.assertIsNotNone(baz_schema)
-        self.assertEqual(baz_schema, test_schema_json)
+        self.assertEqual(baz_schema, self.test_schema_json)
 
-        bar_schema = self.schema_manager.get_schema("bar", "test_schema")
+        bar_schema = self.schema_manager.get_schema("bar", "test")
         self.assertIsNotNone(baz_schema)
-        self.assertEqual(bar_schema, test_schema_json)
+        self.assertEqual(bar_schema, self.test_schema_json)
 
         # extend the schema... add and ensure update exists...
         modified_schema = copy.deepcopy(bar_schema)
         modified_schema['properties']['metadata']['properties']['bar'] = {"type": "string", "minLength": 5}
 
-        self.schema_manager.add_schema("bar", "test_schema", modified_schema, 112)
-        bar_schema = self.schema_manager.get_schema("bar", "test_schema")
+        self.schema_manager.add_schema("bar", "test", modified_schema)
+        bar_schema = self.schema_manager.get_schema("bar", "test")
         self.assertIsNotNone(bar_schema)
-        self.assertNotEqual(bar_schema, test_schema_json)
+        self.assertNotEqual(bar_schema, self.test_schema_json)
         self.assertEqual(bar_schema, modified_schema)
 
-        self.schema_manager.remove_schema("bar", "test_schema")
-        bar_schema = self.schema_manager.get_schema("bar", "test_schema")
+        self.schema_manager.remove_schema("bar", "test")
+        bar_schema = self.schema_manager.get_schema("bar", "test")
         self.assertIsNone(bar_schema)
 
         self.schema_manager.remove_all()
-        foo_schema = self.schema_manager.get_schema("foo", "test_schema")
+        foo_schema = self.schema_manager.get_schema("foo", "test")
         self.assertIsNone(foo_schema)
-        baz_schema = self.schema_manager.get_schema("baz", "test_schema")
+        baz_schema = self.schema_manager.get_schema("baz", "test")
         self.assertIsNone(baz_schema)
 
 
