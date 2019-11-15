@@ -31,6 +31,7 @@
         "watch": "tsc -w"
     },
     "dependencies": {
+        "@aiworkspace/application": "^0.3.0",
         "@jupyterlab/application": "^1.0.0",
         "@jupyterlab/apputils-extension": "^1.0.0",
         "@jupyterlab/docregistry": "^1.0.0",
