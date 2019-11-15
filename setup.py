@@ -53,6 +53,9 @@ setup_args = dict(
         'jsonschema',
         'requests>=2.9.1,<3.0',
     ],
+    tests_require = [
+        'pytest', 'pytest-console-scripts',
+    ],
     include_package_data=True,
     description="AI Workspace",
     long_description=long_desc,
