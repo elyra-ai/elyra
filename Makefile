@@ -70,6 +70,7 @@ install-backend: ## Build and install backend
 
 npm-packages: build
 	mkdir dist
+	$(call PACKAGE_LAB_EXTENSION,application)
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)

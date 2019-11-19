@@ -15,9 +15,9 @@
  */
 
 /**
- * A utilities class for static functions.
+ * A utilities class for parsing notebook files.
  */
-export default class Utils {
+export class NotebookParser {
 
   /**
    * Takes in a notebook and finds all env vars accessed in it.
