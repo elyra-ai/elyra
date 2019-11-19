@@ -17,48 +17,8 @@ import errno
 import json
 import os
 
-
-test_schema_json = {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Test schema for runtime metadata",
-    "properties": {
-        "schema_name": {
-            "type": "string",
-            "pattern": "^[a-z][a-z,-,_,0-9]*[a-z,0-9]$",
-            "minLength": 1
-        },
-        "name": {
-            "description": "The canonical name of the metadata",
-            "type": "string"
-        },
-        "display_name": {
-            "description": "The display name of the metadata",
-            "type": "string",
-            "pattern": "^[a-z][a-z,-,_, ,0-9]*[a-z,0-9]$"
-        },
-        "metadata": {
-            "description": "Additional data specific to this metadata",
-            "type": "object",
-            "properties": {
-                "api_endpoint": {
-                    "description": "The endpoint corresponding to this metadata item",
-                    "type": "string",
-                    "format": "uri"
-                },
-                "foo": {
-                    "type": "number",
-                    "minimum": 1,
-                    "maximum": 10
-                }
-            },
-            "required": ["api_endpoint"]
-        }
-    },
-    "required": ["schema_name", "display_name"]
-}
-
 valid_metadata_json = {
-    'schema_name': 'test_schema',
+    'schema_name': 'test',
     'display_name': 'valid runtime',
     'metadata': {
         'api_endpoint': 'http://localhost:31823/v1/models?version=2017-02-13',
@@ -66,18 +26,18 @@ valid_metadata_json = {
     }
 }
 
-# This metadata doesn't include 'schema_name'.  Will need to adjust should we decide
-# to make schema required.
 another_metadata_json = {
-    'display_name': 'another runtime',
+    'schema_name': 'test',
+    'name': 'another_foo',
+    'display_name': 'Another Runtime (2)',
     'metadata': {
         'api_endpoint': 'http://localhost:8081/'
     }
 }
 
 invalid_metadata_json = {
-    'schema_name': 'test_schema',
-    'display_name': 'invalid runtime',
+    'schema_name': 'test',
+    'display_name': 'Invalid Runtime',
     'metadata': {
         'api_endpoint_missing': 'http://localhost:8081/'
     }

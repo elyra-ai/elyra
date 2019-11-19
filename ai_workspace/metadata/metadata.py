@@ -23,13 +23,15 @@ from jupyter_core.paths import jupyter_data_dir
 from traitlets import HasTraits, List, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
+DEFAULT_SCHEMA_NAME = 'kfp'
+
 
 class Metadata(HasTraits):
     name = None
-    schema_name = None
     resource = None
     display_name = Unicode()
     metadata = Dict()
+    schema_name = Unicode()
 
     def __init__(self, **kwargs):
         super(Metadata, self).__init__(**kwargs)
@@ -38,21 +40,15 @@ class Metadata(HasTraits):
             raise AttributeError("Missing required 'display_name' attribute")
 
         self.display_name = kwargs.get('display_name')
-
+        self.schema_name = kwargs.get('schema_name') or DEFAULT_SCHEMA_NAME
         self.metadata = kwargs.get('metadata', Dict())
-
         self.name = kwargs.get('name')
-
-        self.schema_name = kwargs.get('schema_name')
-
         self.resource = kwargs.get('resource')
 
     def to_dict(self, trim=False):
         # Exclude name, resource only if trim is True since we don't want to persist that information.
         # Only include schema_name if it has a value (regardless of trim).
-        d = dict(display_name=self.display_name, metadata=self.metadata)
-        if self.schema_name:
-            d['schema_name'] = self.schema_name
+        d = dict(display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
         if not trim:
             if self.name:
                 d['name'] = self.name
@@ -139,16 +135,17 @@ class MetadataStore(ABC):
     def remove(self, name):
         pass
 
-    def validate(self, name, schema_name, schema, metadata):
+    # FIXME - we should rework this area so that its more a function of the processor provider
+    # since its the provider that knows what is 'valid' or not.  Same goes for _get_schema() below.
+    def validate(self, name, schema, metadata):
         """Ensure metadata is valid based on its schema.  If invalid, ValidationError will be raised. """
 
         try:
             validate(instance=metadata, schema=schema)
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
-            msg = "Schema validation failed for metadata '{}' using schema_name '{}' " \
-                  "in namespace '{}' with error: {}".\
-                format(name, schema_name, self.namespace, str(ve).partition('\n')[0])
+            msg = "Schema validation failed for metadata '{}' in namespace '{}' with error: {}".\
+                format(name, self.namespace, str(ve).partition('\n')[0])
             raise ValidationError(msg)
 
 
@@ -262,20 +259,19 @@ class FileMetadataStore(MetadataStore):
 
         return resources
 
-    def _get_schema(self, schema_name, dir):
-        """Loads the schema based on the directory and schema_name and returns the loaded json."""
-        schema_file = os.path.join(dir, schema_name + '.schema')
-        if not os.path.exists(schema_file):
-            raise ValidationError("Metadata schema file '{}' is missing!".
-                          format(schema_file))
-
-        epoch = int(os.path.getmtime(schema_file))
-        if self.schema_mgr.is_schema_stale(self.namespace, schema_name, epoch):
-            with io.open(schema_file, 'r', encoding='utf-8') as f:
-                schema_json = json.load(f)
-            self.schema_mgr.add_schema(self.namespace, schema_name, schema_json, epoch)
+    def _get_schema(self, schema_name):
+        """Loads the schema based on the schema_name and returns the loaded schema json."""
 
         schema_json = self.schema_mgr.get_schema(self.namespace, schema_name)
+        if schema_json is None:
+            schema_file = os.path.join(os.path.dirname(__file__), 'schemas', schema_name + '.json')
+            if not os.path.exists(schema_file):
+                raise ValidationError("Metadata schema file '{}' is missing!".format(schema_file))
+
+            with io.open(schema_file, 'r', encoding='utf-8') as f:
+                schema_json = json.load(f)
+            self.schema_mgr.add_schema(self.namespace, schema_name, schema_json)
+
         return schema_json
 
     def _load_from_resource(self, resource, validate_metadata=True):
@@ -283,21 +279,17 @@ class FileMetadataStore(MetadataStore):
         with io.open(resource, 'r', encoding='utf-8') as f:
             metadata_json = json.load(f)
 
+        # Always take name from resource so resources can be copied w/o having to change content
         name = os.path.splitext(os.path.basename(resource))[0]
-        schema_name = metadata_json.get('schema_name')
-        if schema_name is None or not validate_metadata:
-            # Schema name is not required - but preferred - so issue warning if validation is requested
-            if validate_metadata:
-                self.log.warn("Metadata resource '{}' is missing 'schema_name' - no validation will be performed".
-                              format(resource))
-        else:
-            schema = self._get_schema(schema_name, os.path.dirname(resource))
+
+        if validate_metadata:
+            schema = self._get_schema(metadata_json['schema_name'])
             if schema:
-                self.validate(name, schema_name, schema, metadata_json)
+                self.validate(name, schema, metadata_json)
 
         metadata = Metadata(name=name,
                             display_name=metadata_json['display_name'],
-                            schema_name=schema_name,
+                            schema_name=metadata_json['schema_name'],
                             resource=resource,
                             metadata=metadata_json['metadata'])
         return metadata
@@ -312,8 +304,7 @@ class SchemaManager(SingletonConfigurable):
        with the entry.
     """
 
-    schemas = {}        # Dict of namespace & schema name to schema content
-    schema_epochs = {}  # Dict of namespace & schema name to content epoch
+    schemas = {}        # Dict of namespace & schema_name to schema content
 
     @staticmethod
     def _get_key(namespace, schema_name):
@@ -322,29 +313,16 @@ class SchemaManager(SingletonConfigurable):
     def get_schema(self, namespace, schema_name):
         return self.schemas.get(SchemaManager._get_key(namespace, schema_name))
 
-    def add_schema(self, namespace, schema_name, schema, epoch):
-        """Adds (updates) schema to set of stored schemas and registers last epoch. """
+    def add_schema(self, namespace, schema_name, schema):
+        """Adds (updates) schema to set of stored schemas. """
         key = SchemaManager._get_key(namespace, schema_name)
         self.schemas[key] = schema
-        self.schema_epochs[key] = epoch
-
-    def is_schema_stale(self, namespace, schema_name, epoch):
-        """Returns True if the schema associated with namespace & schema_name is out of
-           stale or if schema is not found; False otherwise.
-        """
-        schema_epoch = self.schema_epochs.get(SchemaManager._get_key(namespace, schema_name), 0)
-        if epoch != schema_epoch:
-            return True
-
-        return False
 
     def remove_all(self):
         """Primarily used for testing, this method removes all items across all namespaces. """
-        self.schema_epochs.clear()
         self.schemas.clear()
 
     def remove_schema(self, namespace, schema_name):
         """Removes the schema entry associated with namespace & schema_name. """
         key = SchemaManager._get_key(namespace, schema_name)
-        self.schema_epochs.pop(key)
         self.schemas.pop(key)

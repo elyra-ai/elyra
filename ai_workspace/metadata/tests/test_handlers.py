@@ -20,8 +20,7 @@ from traitlets.config import Config
 from notebook.utils import url_path_join
 from notebook.tests.launchnotebook import NotebookTestBase, assert_http_error
 
-from .test_utils import test_schema_json, valid_metadata_json, \
-    invalid_metadata_json, another_metadata_json, create_json_file
+from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
 
 
 class MetadataRestAPI(object):
@@ -59,7 +58,6 @@ class MetadataHandlerTest(NotebookTestBase):
     def setUp(self):
         self.runtime_dir = os.path.join(self.data_dir, 'metadata', 'runtime')
 
-        create_json_file(self.runtime_dir, 'test_schema.schema', test_schema_json)
         create_json_file(self.runtime_dir, 'valid.json', valid_metadata_json)
         create_json_file(self.runtime_dir, 'another.json', another_metadata_json)
         create_json_file(self.runtime_dir, 'invalid.json', invalid_metadata_json)

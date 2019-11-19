@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Test schema for runtime testing",
+    "name": "test",
+    "properties": {
+        "schema_name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
+            "minLength": 1
+        },
+        "name": {
+            "description": "The canonical name of the metadata",
+            "type": "string"
+        },
+        "display_name": {
+            "description": "The display name of the metadata",
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+        },
+        "metadata": {
+            "description": "Additional data specific to this metadata",
+            "type": "object",
+            "properties": {
+                "api_endpoint": {
+                    "description": "The endpoint corresponding to this metadata item",
+                    "type": "string",
+                    "format": "uri"
+                },
+                "foo": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 10
+                }
+            },
+            "required": ["api_endpoint"]
+        }
+    },
+    "required": ["schema_name", "display_name"]
+}
