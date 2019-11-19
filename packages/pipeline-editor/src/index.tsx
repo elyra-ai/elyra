@@ -29,11 +29,10 @@ import {IDragEvent} from '@phosphor/dragdrop';
 import {Widget, PanelLayout} from '@phosphor/widgets';
 
 import {CommonCanvas, CanvasController, CommonProperties} from '@ai-workspace/canvas';
+import {NotebookParser} from "@aiworkspace/application";
 import '@ai-workspace/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
-
-import Utils from './utils'
 
 import * as palette from './palette.json';
 import * as properties from './properties.json';
@@ -355,7 +354,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
             let notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
             notebookWidget.dispose();
 
-            let vars = Utils.getEnvVars(notebookStr).map(str => str + '=');
+            let vars = NotebookParser.getEnvVars(notebookStr).map(str => str + '=');
 
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');

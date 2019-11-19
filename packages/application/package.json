@@ -1,24 +1,18 @@
 {
-  "name": "@aiworkspace/notebook-scheduler-extension",
+  "name": "@aiworkspace/application",
   "version": "0.3.0",
-  "description": "JupyterLab extension - Enable submitting notebooks as batch jobs on external runtimes",
+  "description": "JupyterLab - Widgets and utilities for use in ai workspace",
   "keywords": [
     "jupyter",
-    "jupyterlab",
-    "jupyterlab-extension"
+    "jupyterlab"
   ],
   "homepage": "https://github.com/ai-workspace/ai-workspace",
   "bugs": {
     "url": "https://github.com/ai-workspace/ai-workspace/issues"
   },
   "license": "Apache-2.0",
-  "files": [
-    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
-    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
-  ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "style": "style/index.css",
   "repository": {
     "type": "git",
     "url": "https://github.com/ai-workspace/ai-workspace"
@@ -30,23 +24,9 @@
     "prepare": "npm run clean && npm run build",
     "watch": "tsc -w"
   },
-  "dependencies": {
-    "@aiworkspace/application": "^0.3.0",
-    "@jupyterlab/application": "^1.0.0",
-    "@jupyterlab/apputils": "^1.0.0",
-    "@jupyterlab/docregistry": "^1.0.0",
-    "@jupyterlab/notebook": "^1.0.0",
-    "@phosphor/disposable": "^1.1.2",
-    "@phosphor/widgets": "^1.8.0",
-    "json-loader": "^0.5.7",
-    "uuid": "^3.3.3"
-  },
   "devDependencies": {
     "rimraf": "^2.6.3",
     "typescript": "~3.5.2"
-  },
-  "jupyterlab": {
-    "extension": true
   },
   "publishConfig": {
     "registry": "https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/"

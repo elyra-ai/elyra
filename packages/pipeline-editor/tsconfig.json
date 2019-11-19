@@ -10,5 +10,10 @@
     ]
   },
   "include": ["src/*","src/*/*"],
-  "files": ["src/palette.json", "src/properties.json", "src/en.json"]
+  "files": ["src/palette.json", "src/properties.json", "src/en.json"],
+  "references": [
+    {
+      "path": "../application"
+    }
+  ]
 }
