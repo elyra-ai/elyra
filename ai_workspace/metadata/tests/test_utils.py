@@ -29,7 +29,7 @@ valid_metadata_json = {
 another_metadata_json = {
     'schema_name': 'test',
     'name': 'another_foo',
-    'display_name': 'another runtime',
+    'display_name': 'Another Runtime (2)',
     'metadata': {
         'api_endpoint': 'http://localhost:8081/'
     }
@@ -37,7 +37,7 @@ another_metadata_json = {
 
 invalid_metadata_json = {
     'schema_name': 'test',
-    'display_name': 'invalid runtime',
+    'display_name': 'Invalid Runtime',
     'metadata': {
         'api_endpoint_missing': 'http://localhost:8081/'
     }

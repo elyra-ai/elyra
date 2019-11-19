@@ -66,7 +66,7 @@ class MetadataManagerTestCase(MetadataTestBase):
         self.assertEqual(len(metadata_list), 2)
         # Ensure name is getting derived from resource and not from contents
         for metadata in metadata_list:
-            if metadata.display_name == "another runtime":
+            if metadata.display_name == "Another Runtime (2)":
                 self.assertTrue(metadata.name == "another")
             else:
                 self.assertTrue(metadata.name == "valid")
@@ -129,9 +129,9 @@ class MetadataManagerTestCase(MetadataTestBase):
             self.assertNotIn("resource", valid_add)
             self.assertNotIn("name", valid_add)
             self.assertIn("display_name", valid_add)
-            self.assertEquals(valid_add['display_name'], "valid runtime")
+            self.assertEqual(valid_add['display_name'], "valid runtime")
             self.assertIn("schema_name", valid_add)
-            self.assertEquals(valid_add['schema_name'], "test")
+            self.assertEqual(valid_add['schema_name'], "test")
 
         resource = self.metadata_manager.remove(metadata_name)
 
@@ -227,7 +227,6 @@ class SchemaManagerTestCase(unittest.TestCase):
             schema_json = json.load(f)
 
         return schema_json
-
 
     def test_manage_schema(self):
         self.schema_manager.remove_all()

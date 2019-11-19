@@ -5,7 +5,7 @@
     "properties": {
         "schema_name": {
             "type": "string",
-            "pattern": "^[a-z][a-z,-,_,0-9]*[a-z,0-9]$",
+            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
             "minLength": 1
         },
         "name": {
@@ -15,7 +15,7 @@
         "display_name": {
             "description": "The display name of the metadata",
             "type": "string",
-            "pattern": "^[a-z][a-z,-,_, ,0-9]*[a-z,0-9]$"
+            "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
         },
         "metadata": {
             "description": "Additional data specific to this metadata",
