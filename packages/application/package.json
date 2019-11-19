@@ -1,0 +1,34 @@
+{
+  "name": "@aiworkspace/application",
+  "version": "0.3.0",
+  "description": "JupyterLab - Widgets and utilities for use in ai workspace",
+  "keywords": [
+    "jupyter",
+    "jupyterlab"
+  ],
+  "homepage": "https://github.com/ai-workspace/ai-workspace",
+  "bugs": {
+    "url": "https://github.com/ai-workspace/ai-workspace/issues"
+  },
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ai-workspace/ai-workspace"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dist": "npm pack .",
+    "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf yarn-error.log && rimraf tsconfig.tsbuildinfo",
+    "prepare": "npm run clean && npm run build",
+    "watch": "tsc -w"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.3",
+    "typescript": "~3.5.2"
+  },
+  "publishConfig": {
+    "registry": "https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/"
+  }
+}
