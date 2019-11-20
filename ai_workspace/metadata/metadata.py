@@ -57,7 +57,7 @@ class Metadata(HasTraits):
         return d
 
     def to_json(self, trim=False):
-        j = json.dumps(self.to_dict(trim=trim))
+        j = json.dumps(self.to_dict(trim=trim), indent=2)
 
         return j
 
