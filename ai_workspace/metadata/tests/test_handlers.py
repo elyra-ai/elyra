@@ -96,7 +96,7 @@ class MetadataHandlerTest(NotebookTestBase):
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
         self.assertTrue('schema_name' in metadata)
-        self.assertEquals(metadata['display_name'], 'valid runtime')
+        self.assertEqual(metadata['display_name'], 'valid runtime')
 
     def test_get_runtimes(self):
         # Ensure all valid metadata can be found
@@ -104,7 +104,7 @@ class MetadataHandlerTest(NotebookTestBase):
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
         assert isinstance(metadata, dict)
-        self.assertEquals(len(metadata), 2)
+        self.assertEqual(len(metadata), 2)
         self.assertIn('another', metadata.keys())
         self.assertIn('valid', metadata.keys())
 
@@ -116,4 +116,4 @@ class MetadataHandlerTest(NotebookTestBase):
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
         assert isinstance(metadata, dict)
-        self.assertEquals(len(metadata), 0)
+        self.assertEqual(len(metadata), 0)

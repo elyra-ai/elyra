@@ -16,6 +16,7 @@
 import io
 import json
 import os
+import re
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError
@@ -30,12 +31,10 @@ class Metadata(HasTraits):
     name = None
     resource = None
     display_name = Unicode()
-    metadata = Dict()
     schema_name = Unicode()
+    metadata = Dict()
 
     def __init__(self, **kwargs):
-        super(Metadata, self).__init__(**kwargs)
-
         if 'display_name' not in kwargs:
             raise AttributeError("Missing required 'display_name' attribute")
 
@@ -58,7 +57,7 @@ class Metadata(HasTraits):
         return d
 
     def to_json(self, trim=False):
-        j = json.dumps(self.to_dict(trim=trim))
+        j = json.dumps(self.to_dict(trim=trim), indent=2)
 
         return j
 
@@ -144,17 +143,21 @@ class MetadataStore(ABC):
             validate(instance=metadata, schema=schema)
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
-            msg = "Schema validation failed for metadata '{}' in namespace '{}' with error: {}".\
-                format(name, self.namespace, str(ve).partition('\n')[0])
-            raise ValidationError(msg)
+            msg = "Schema validation failed for metadata '{}' in namespace '{}' with error: {}"
+            first_line = str(ve).partition('\n')[0]
+            # Log full message, raise with only first line of message.
+            self.log.error(msg.format(name, self.namespace, str(ve)))
+            raise ValidationError(msg.format(name, self.namespace, first_line))
 
 
 class FileMetadataStore(MetadataStore):
 
     def __init__(self, namespace, **kwargs):
         super(FileMetadataStore, self).__init__(namespace, **kwargs)
-        self.metadata_dir = os.path.join(jupyter_data_dir(), 'metadata', self.namespace)
         self.schema_mgr = SchemaManager.instance()
+        self.metadata_dir = os.path.join(jupyter_data_dir(), 'metadata', self.namespace)
+        if not os.path.exists(self.metadata_dir):
+            os.makedirs(self.metadata_dir, mode=0o700, exist_ok=True)
 
     @property
     def get_metadata_location(self):
@@ -183,13 +186,18 @@ class FileMetadataStore(MetadataStore):
 
     def save(self, name, metadata, replace=True):
         if not name:
-            raise ValueError('Name of metadata was not provided')
+            raise ValueError('Name of metadata was not provided.')
+
+        match = re.search("^[a-z][a-z,-,_,0-9]*[a-z,0-9]$", name)
+        if match is None:
+            raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
+                             "embedded hyphens ('-') and underscores ('_').")
 
         if not metadata:
-            raise ValueError('Metadata was not provided')
+            raise ValueError("An instance of class 'Metadata' was not provided.")
 
         if not isinstance(metadata, Metadata):
-            raise TypeError('metadata is not an instance of Metadata')
+            raise TypeError("'metadata' is not an instance of class 'Metadata'.")
 
         metadata_resource_name = '{}.json'.format(name)
         resource = os.path.join(self.metadata_dir, metadata_resource_name)
@@ -198,7 +206,7 @@ class FileMetadataStore(MetadataStore):
             if replace:
                 os.remove(resource)
             else:
-                self.log.info("Metadata resource '{}' already exists. Use the replace flag to overwrite.".format(resource))
+                self.log.error("Metadata resource '{}' already exists. Use the replace flag to overwrite.".format(resource))
                 return None
 
         with io.open(resource, 'w', encoding='utf-8') as f:

@@ -8,10 +8,6 @@
             "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
             "minLength": 1
         },
-        "name": {
-            "description": "The canonical name of the metadata",
-            "type": "string"
-        },
         "display_name": {
             "description": "The display name of the metadata",
             "type": "string",

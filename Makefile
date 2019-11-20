@@ -39,7 +39,7 @@ clean: ## Make a clean source tree
 	rm -rf $$(find . -name package-lock.json)
 
 test: ## Run unit tests
-	nosetests -v
+	pytest -v ai_workspace
 
 # Builds AI Workspace to make ready for packaging/installation
 build:

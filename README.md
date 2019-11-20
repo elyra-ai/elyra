@@ -87,26 +87,38 @@ via Docker:
 AI Pipelines currently only supports `Kubeflow Pipelines` with plans to expand to support other runtimes
 in the future.
 
-- Navigate to your local Jupyter Data directory. If not known, it can be discovered by issuing a ```jupyter --data-dir```
+To configure runtime metadata for `Kubeflow Pipelines` use the `jupyter runtime install kfp` command providing appropriate options.  This command will create a json file in your local Jupyter Data directory under its `metadata/runtime` subdirectories.  If not known, the Jupyter Data directory can be discovered by issuing a ```jupyter --data-dir```
 command on your terminal.
-- Create a `metadata/runtime` directory, then in that directory create a new file named `kfp.json` with the following content:
-- The full path to the file should be `[JUPYTER DATA DIR]/metadata/runtime/kfp.json`
+
+Here's an example invocation of `jupyter runtime install kfp` to create runtime metadata for use by `Kubeflow Pipelines` corresponding to the example values in the table below. Following its invocation, a file containing the runtime metadata can be found in `[JUPYTER DATA DIR]/metadata/runtime/my_kfp.json`.
+```bash
+jupyter runtime install kfp --name=my_kfp --display_name="My Kubeflow Pipeline Runtime" --api_endpoint=https://kubernetes-service.ibm.com/pipeline --cos_endpoint=minio-service.kubeflow:9000 --cos_username=minio --cos_password=minio123 --cos_bucket=test_bucket
 ```
+This produces the following content in `my_kfp.json`:
+```json
 {
-  "display_name": "Kubeflow Pipeline",
-  "metadata": {
-    "api_endpoint": "http://[hostname]:[port]/pipeline",
-    "cos_endpoint": "http://[hostname]:[port]",
-    "cos_username": "[username]",
-    "cos_password": "[password]",
-    "cos_bucket": "[bucket name]"
-  }
+    "display_name": "My Kubeflow Pipeline Runtime",
+    "schema_name": "kfp",
+    "metadata": {
+        "api_endpoint": "https://kubernetes-service.ibm.com/pipeline",
+        "cos_endpoint": "minio-service.kubeflow:9000",
+        "cos_bucket": "test_bucket",
+        "cos_username": "minio",
+        "cos_password": "minio123"
+    }
 }
 ```
-
-- To validate your new configuration, run:
+To validate your new configuration is available, run:
 ```bash
 jupyter runtime list
+
+Available metadata for external runtimes:
+  my_kfp    /Users/jdoe/Library/Jupyter/metadata/runtime/my_kfp.json
+```
+
+Existing runtime metadata configurations can be removed via `jupyter runtime remove --name=[runtime]`:
+```bash
+jupyter runtime remove --name=my_kfp
 ```
 
 `AI Workspace` depends on its `Metadata Runtime` to determine how to communicate with your KubeFlow Pipelines
