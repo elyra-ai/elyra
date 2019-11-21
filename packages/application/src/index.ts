@@ -15,3 +15,4 @@
  */
 
 export * from './parsing';
+export * from './pipeline';

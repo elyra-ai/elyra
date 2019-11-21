@@ -31,13 +31,13 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@aiworkspace/application": "^0.3.0",
     "@jupyterlab/application": "^1.0.0",
     "@jupyterlab/apputils": "^1.0.0",
     "@jupyterlab/docregistry": "^1.0.0",
     "@jupyterlab/notebook": "^1.0.0",
     "@phosphor/disposable": "^1.1.2",
     "@phosphor/widgets": "^1.8.0",
+    "@aiworkspace/application": "^0.3.0",
     "json-loader": "^0.5.7",
     "uuid": "^3.3.3"
   },
