@@ -56,7 +56,7 @@ class SchedulerHandler(APIHandler):
         # retrieve associated runtime metadata
         runtime_type = pipeline.platform
         try:
-            runtime_configuration = MetadataManager.instance(namespace="runtime").get(runtime_type)
+            runtime_configuration = MetadataManager(namespace="runtime").get(runtime_type)
         except (ValidationError, KeyError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
