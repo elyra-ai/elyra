@@ -30,7 +30,7 @@ import {Widget, PanelLayout} from '@phosphor/widgets';
 
 import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {NotebookParser} from "@aiworkspace/application";
+import {NotebookParser, SubmissionHanlder} from "@aiworkspace/application";
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
@@ -392,37 +392,16 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     let settings = ServerConnection.makeSettings();
     let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
 
-    let handleError = (response: any) => {
-      let res_body = response['message'] ? response['message'] : '';
-      res_body = response['reason'] ? res_body + ': ' + response['reason'] : res_body;
-
-      let default_body = 'More details might be available in the JupyterLab console logs';
-
-      return showDialog({
-        title: 'Error submitting pipeline',
-        body: res_body ? <p>{res_body}<br/>{default_body}</p> : <p>{default_body}</p>,
-        buttons: [Dialog.okButton()]
-      });
-    };
-
-    let handle404 = () => {
-      return showDialog({
-        title: 'Error submitting pipeline',
-        body: 'Elyra service endpoint not available',
-        buttons: [Dialog.okButton()]
-      });
-    };
-
     ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings)
       .then((runtime_response: any) => {
         // handle 404 if Elyra server extension is not found
         if (runtime_response.status === 404) {
-          return handle404();
+          return SubmissionHanlder.handle404('pipeline');
         }
 
         runtime_response.json().then((runtime_result: any) => {
           if (runtime_response.status !== 200) {
-            return handleError(runtime_result);
+            return SubmissionHanlder.handleError(runtime_result, 'pipeline');
           }
 
           return showDialog({
@@ -447,30 +426,8 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
             pipelineFlow.pipelines[0]['app_data']['runtime-config'] = result.value.runtime_config;
 
             let requestBody = JSON.stringify(pipelineFlow);
-            let url = URLExt.join(settings.baseUrl, 'scheduler');
 
-            console.log('Submitting pipeline to -> ' + url);
-            ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
-              .then((scheduler_response: any) => {
-                // handle 404 if Elyra server extension is not found
-                if (scheduler_response.status === 404) {
-                  return handle404();
-                }
-
-                scheduler_response.json().then((data: any) => {
-                  if (scheduler_response.status !== 200) {
-                    return handleError(data);
-                  }
-
-                  let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['runtime'] + ' succeeded';
-                  let dialogBody = <p>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a></p>;
-                  return showDialog({
-                    title: dialogTitle,
-                    body: dialogBody,
-                    buttons: [Dialog.okButton()]
-                  });
-                });
-              });
+            SubmissionHanlder.submitPipeline(requestBody, pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'], 'pipeline');
           });
         });
     });

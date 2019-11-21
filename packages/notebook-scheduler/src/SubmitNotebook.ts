@@ -23,10 +23,9 @@ import {JSONObject, JSONValue} from "@phosphor/coreutils";
 import {PanelLayout, Widget} from '@phosphor/widgets';
 import {IDisposable} from "@phosphor/disposable";
 
-import {NotebookParser} from "@aiworkspace/application";
+import {NotebookParser, SubmissionHanlder} from "@aiworkspace/application";
 
 import Utils from './utils'
-import * as React from "react";
 
 /**
  * Details about notebook submission configuration, including
@@ -77,40 +76,16 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
     let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
     let envVars: string[] = NotebookParser.getEnvVars(this.panel.content.model.toString());
 
-    let handleError = (response: any) => {
-      let res_body = response['message'] ? response['message'] : '';
-      res_body = response['reason'] ? res_body + ': ' + response['reason'] : res_body;
-
-      let default_body = 'More details might be available in the JupyterLab console logs';
-
-      let br: React.ReactElement<any> = React.createElement('br');
-      let dialogBody: React.ReactElement<any> = React.createElement('p', null, res_body, br, default_body);
-
-      return showDialog({
-        title: "Error submitting notebook",
-        body: res_body ? dialogBody : default_body,
-        buttons: [Dialog.okButton()]
-      });
-    };
-
-    let handle404 = () => {
-      return showDialog({
-        title: 'Error submitting notebook',
-        body: 'Elyra service endpoint not available',
-        buttons: [Dialog.okButton()]
-      });
-    };
-
     ServerConnection.makeRequest(runtime_url, {method: 'GET'}, settings)
       .then((runtime_response: any) => {
         // handle 404 if elyra server extension is not found
         if (runtime_response.status === 404) {
-          return handle404();
+          return SubmissionHanlder.handle404('notebook');
         }
 
         runtime_response.json().then((runtime_result: any) => {
           if (runtime_response.status !== 200) {
-            return handleError(runtime_result);
+            return SubmissionHanlder.handleError(runtime_result, 'notebook');
           }
 
           return showDialog({
@@ -125,35 +100,12 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
 
             // prepare notebook submission details
             let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions>result.value;
-            let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions)
+            let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions);
             console.log(pipeline);
 
-            let url = URLExt.join(settings.baseUrl, 'scheduler');
             let requestBody = JSON.stringify(pipeline);
 
-            console.log('Submitting pipeline to -> ' + url);
-            ServerConnection.makeRequest(url, {method: 'POST', body: requestBody}, settings)
-              .then((scheduler_response: any) => {
-                // handle 404 if elyra server extension is not found
-                if (scheduler_response.status === 404) {
-                  return handle404();
-                }
-
-                scheduler_response.json().then((data: any) => {
-                  if (scheduler_response.status !== 200) {
-                    return handleError(data);
-                  }
-
-                  let dialogTitle: string = 'Job submission to ' + result.value.runtime_config + ' succeeded';
-                  let dialogLink: React.ReactElement<any> = React.createElement('a', { href: data.url,  target: "_blank" }, 'Run Details');
-                  let dialogBody: React.ReactElement<any> = React.createElement('p', null, 'Check the status of your run at ', dialogLink);
-                  return showDialog({
-                    title: dialogTitle,
-                    body: dialogBody,
-                    buttons: [Dialog.okButton()]
-                  });
-                });
-              });
+            SubmissionHanlder.submitPipeline(requestBody, result.value.platform, 'notebook');
           });
         });
       });
