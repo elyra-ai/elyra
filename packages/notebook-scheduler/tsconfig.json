@@ -5,10 +5,5 @@
     "rootDir": "src"
   },
   "include": ["src/*","src/*/*"],
-  "files": ["src/pipeline-template.json"],
-  "references": [
-    {
-      "path": "../application"
-    }
-  ]
+  "files": ["src/pipeline-template.json"]
 }

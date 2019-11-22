@@ -23,8 +23,6 @@ import {JSONObject, JSONValue} from "@phosphor/coreutils";
 import {PanelLayout, Widget} from '@phosphor/widgets';
 import {IDisposable} from "@phosphor/disposable";
 
-import {NotebookParser} from "@aiworkspace/application";
-
 import Utils from './utils'
 import * as React from "react";
 
@@ -75,7 +73,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
     // which in this case are the in the extension installed by this package
     let settings = ServerConnection.makeSettings();
     let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
-    let envVars: string[] = NotebookParser.getEnvVars(this.panel.content.model.toString());
+    let envVars: string[] = Utils.getEnvVars(this.panel.content.model.toString());
 
     let handleError = (response: any) => {
       let res_body = response['message'] ? response['message'] : '';
