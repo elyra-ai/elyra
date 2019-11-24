@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import sys
-import importlib
+import entrypoints
 from abc import ABC, abstractmethod
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
@@ -23,20 +22,27 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     __processors = {}
 
     def __init__(self):
-        # Register all known processors
-        for processorType in PipelineProcessor.__subclasses__():
-            # instantiate an actual instance of the processor
-            processor = processorType()
-            processor_type = processor.type
-            self.log.info('Registering processor "{}" with type -> {}'.format(processorType.__name__, processor_type))
-            self.__processors[processor_type] = processor
+        # Register all known processors based on entrypoint configuration
+        for processor in entrypoints.get_group_all('ai_workspace.pipeline.processors'):
+            try:
+                # instantiate an actual instance of the processor
+                processor_instance = processor.load()() #Load an instance
+                processor_type = processor_instance.type
+                self.log.info('Registering processor "{}" with type -> {}'.format(processor, processor_type))
+                self.__processors[processor_type] = processor_instance
+            except:
+                # log and ignore initialization errors
+                self.log.error('Error registering processor "{}"'.format(processor))
 
     def add_processor(self, processor):
         self.log.debug('Registering processor {}'.format(processor.type))
         self.__processors[processor.type] = processor
 
-    def get_processor(self, type):
-        return self.__processors[type]
+    def get_processor(self, processor_type):
+        if  processor_type in self.__processors.keys():
+            return self.__processors[processor_type]
+        else:
+            return None
 
 
 class PipelineProcessorManager(SingletonConfigurable):
