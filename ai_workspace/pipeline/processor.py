@@ -1,0 +1,68 @@
+#
+# Copyright 2018-2019 IBM Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+import sys
+import importlib
+from abc import ABC, abstractmethod
+from traitlets.config import SingletonConfigurable, LoggingConfigurable
+
+
+class PipelineProcessorRegistry(SingletonConfigurable):
+    __processors = {}
+
+    def __init__(self):
+        # Register all known processors
+        for processorType in PipelineProcessor.__subclasses__():
+            # instantiate an actual instance of the processor
+            processor = processorType()
+            processor_type = processor.type
+            self.log.info('Registering processor "{}" with type -> {}'.format(processorType.__name__, processor_type))
+            self.__processors[processor_type] = processor
+
+    def add_processor(self, processor):
+        self.log.debug('Registering processor {}'.format(processor.type))
+        self.__processors[processor.type] = processor
+
+    def get_processor(self, type):
+        return self.__processors[type]
+
+
+class PipelineProcessorManager(SingletonConfigurable):
+    @staticmethod
+    def process(pipeline):
+        registry = PipelineProcessorRegistry()
+
+        # TODO update pipeline json to flow runtime type
+        processor_type = 'kfp'
+        processor = registry.get_processor(processor_type)
+
+        if not processor:
+            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.plataform))
+
+        return processor.process(pipeline)
+
+
+class PipelineProcessor(LoggingConfigurable): # ABC
+
+    @property
+    @abstractmethod
+    def type(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def process(self, pipeline):
+        raise NotImplementedError()
+
+
