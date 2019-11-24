@@ -130,8 +130,12 @@ class SchedulerHandler(APIHandler):
                 # Set ENV variables
                 if operation.vars:
                     for env_var in operation.vars:
-                        result = [x.strip() for x in env_var.split('=')]
-                        notebook_op.container.add_env_variable(V1EnvVar(name=result[0], value=result[1]))
+                        # Strip any of these special characters from both key and value
+                        # Splits on the first occurrence of '='
+                        result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
+                        # Should be non empty key with a value
+                        if len(result) is 2 and result[0] is not '':
+                            notebook_op.container.add_env_variable(V1EnvVar(name=result[0], value=result[1]))
 
                 notebook_ops[operation.id] = notebook_op
 
