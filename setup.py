@@ -52,6 +52,7 @@ setup_args = dict(
         'traitlets>=4.3.2',
         'jsonschema',
         'requests>=2.9.1,<3.0',
+        'entrypoints>=0.3',
     ],
     tests_require = [
         'pytest', 'pytest-console-scripts',
@@ -63,6 +64,9 @@ setup_args = dict(
         'console_scripts': [
             'jupyter-runtime = ai_workspace.metadata.runtime:RuntimeMetadataApp.launch_instance',
         ],
+        'ai_workspace.pipeline.processors': [
+            'kfp = ai_workspace.pipeline.processor_kfp:KfpPipelineProcessor'
+        ]
     },
 )
 
