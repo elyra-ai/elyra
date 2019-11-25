@@ -28,7 +28,7 @@ from notebook.tests.launchnotebook import NotebookTestBase
 from jsonschema import ValidationError
 from logging import StreamHandler
 
-from ai_workspace.metadata.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager
+from elyra.metadata.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager
 
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
 
@@ -37,7 +37,7 @@ StringIO = io.StringIO
 
 class MetadataTestBase(NotebookTestBase):
     """Test Metadata REST API"""
-    config = Config({'NotebookApp': {"nbserver_extensions": {"ai_workspace": True}}})
+    config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
 
     def setUp(self):
         super(MetadataTestBase, self).setUp()
@@ -51,7 +51,7 @@ class MetadataTestBase(NotebookTestBase):
 
 class MetadataManagerTestCase(MetadataTestBase):
     """Test Metadata REST API"""
-    config = Config({'NotebookApp': {"nbserver_extensions": {"ai_workspace": True}}})
+    config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
 
     def setUp(self):
         super(MetadataManagerTestCase, self).setUp()

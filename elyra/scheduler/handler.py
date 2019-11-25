@@ -16,7 +16,7 @@
 import json
 
 from notebook.base.handlers import APIHandler
-from ai_workspace.pipeline import PipelineParser, PipelineProcessorManager
+from elyra.pipeline import PipelineParser, PipelineProcessorManager
 
 
 class SchedulerHandler(APIHandler):

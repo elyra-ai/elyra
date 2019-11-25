@@ -57,7 +57,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     menu: IMainMenu | null,
     launcher: ILauncher | null
     ) => {
-      console.log('AI Workspace - python-runner extension is activated!');
+      console.log('Elyra - python-runner extension is activated!');
 
       const factory = new PythonFileEditorFactory({
         editorServices,

@@ -16,27 +16,32 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# AI Workspace
+# Elyra
 
-AI Workspace aims to do for AI model development, what the
-Eclipse IDE did for Java in the early 2000s. It extends the JupyterLab Notebook
-platform with an Enterprise AI centric approach.
+Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
-![AI Workspace](docs/source/images/ai-workspace.png)
+Elyra currently includes:
+* Notebook Pipelines visual editor
+* Ability to run notebook as batch jobs
+* Hybrid runtime support (based on Jupyter Enterprise gateway)
+* Python Script execution capabilities within the editor
+* Notebook versioning based on git integration
+* Reusable Configuration for runtimes
 
+![Elyra](docs/source/images/ai-workspace.png)
 
-An **AI Pipeline** visual editor is also available and can be used to chain notebooks
+A **Notebook Pipeline** visual editor is also available and can be used to chain notebooks
 together. Currently the only supported pipeline runtime is **Kubeflow Pipelines**,
 but others can be easily added.
 
-![Pipeline Editor](docs/source/images/pipeline-editor.png)
+![Notebook Pipeline Editor](docs/source/images/pipeline-editor.png)
 
 The pipeline visual editor also enables detailed customization of your pipeline, enabling
 users to choose which docker image to use when executing your notebook, setup environment
 variables required to properly run your notebook, as well as configuring dependency files 
 that needs to be flown to child notebooks.
 
-![Pipeline Editor - Node Properties](docs/source/images/pipeline-editor-properties.png)
+![Notebook Pipeline Editor - Node Properties](docs/source/images/pipeline-editor-properties.png)
 
 It provides **Enhanced Python Support** where Python scripts can be developed and
 executed. It also leverages the **Hybrid Runtime Support** to enable running
@@ -54,26 +59,26 @@ additional configurations required to tie all these components together and easi
 enable portability of the workspace.
 
 ## Installation
-AI Workspace can be installed via PyPi or via Docker 
+Elyra can be installed via PyPi or via Docker
 
 ### Prerequisites :
 * [NodeJS](https://nodejs.org/en/)
 * Python 3.X
-* [AI Workspace Metadata Runtime](#configuring-runtime-metadata)
+* [Elyra Metadata Runtime](#configuring-runtime-metadata)
 ##### Optional :
 * [Anaconda](https://www.anaconda.com/distribution/) 
 * [Docker](https://docs.docker.com/install//) - If using the docker image
 
-To Install AI Workspace:
+To Install Elyra:
 
 via PyPi:
 ```bash
-pip install ai-workspace && jupyter lab build
+pip install elyra && jupyter lab build
 ```
 via Docker:
 ```bash
  docker run -it -p 8888:8888 -v [LOCAL METADATA RUNTIME DIR]:/home/jovyan/.local/share/jupyter/metadata/runtime 
-                             -v [LOCAL NOTEBOOK DIR]:/opt/work ai-workspace/ai-workspace:dev 
+                             -v [LOCAL NOTEBOOK DIR]:/opt/work elyra/elyra:dev
 ```
 
 ## Runtime Configuration
@@ -121,7 +126,7 @@ Existing runtime metadata configurations can be removed via `jupyter runtime rem
 jupyter runtime remove --name=my_kfp
 ```
 
-`AI Workspace` depends on its `Metadata Runtime` to determine how to communicate with your KubeFlow Pipelines
+`Elyra` depends on its `Metadata Runtime` to determine how to communicate with your KubeFlow Pipelines
 Server and with your chosen Object Store to store artifacts.   
 
 |Parameter   | Description  | Example |
@@ -139,7 +144,7 @@ Your `access_key_id` and `secret_access_key` will be used as your `cos_username`
 ## Development Workflow
 ### Building
 
-`AI Workspace` is divided in two parts, a collection of Jupyter Notebook backend extensions,
+`Elyra` is divided in two parts, a collection of Jupyter Notebook backend extensions,
 and their respective JupyterLab UI extensions. Our JupyterLab extensions are located in our `packages`
 directory. 
 
@@ -172,9 +177,9 @@ Prequisites :
 make docker-image
 ```
 
-## Using the AI Workspace Pipeline Editor
+## Using the Elyra Pipeline Editor
 
-<img src="https://github.com/ai-workspace/community/blob/master/resources/github-homepage/AIW-1.gif" width="800">  
+<img src="https://github.com/elyra-ai/community/blob/master/resources/github-homepage/AIW-1.gif" width="800">
   
 * In the Jupyter Lab Launcher, click the `Pipeline Editor` Icon to create a new pipeline.
 * On left side of the screen, navigate to your file browser, you should see a list of notebooks available.
@@ -182,7 +187,7 @@ make docker-image
 needed for the pipeline are present.
 * Define your notebook execution order by connecting them together to form a graph.
 
-<img src="https://github.com/ai-workspace/community/blob/master/resources/github-homepage/AIW-2.gif" width="800">  
+<img src="https://github.com/elyra-ai/community/blob/master/resources/github-homepage/AIW-2.gif" width="800">
 
 * Define the properties for each node / notebook in your pipeline
 
@@ -193,13 +198,13 @@ needed for the pipeline are present.
 |Env Vars| A list of Environmental variables to be set inside in the container.  One variable per line. |  `GITHUB_TOKEN = sometokentobeused` |
 |File Dependencies|  A list of files to be passed from the `LOCAL` working environment into each respective step of the pipeline. Files should be in the same directory as the notebook it is associated with. One file per line. | `dependent-script.py` |
 
-<img src="https://github.com/ai-workspace/community/blob/master/resources/github-homepage/AIW-3.gif" width="800">  
+<img src="https://github.com/elyra-ai/community/blob/master/resources/github-homepage/AIW-3.gif" width="800">
 
 * Click on the `RUN` Icon and give your pipeline a name.
 * Hit `OK` to start your pipeline. 
-* Use the link provided in the response to your experiment in Kubeflow. By default, AI Workspace will create the pipeline template for you as well as start an experiment and run.
+* Use the link provided in the response to your experiment in Kubeflow. By default, Elyra will create the pipeline template for you as well as start an experiment and run.
 ## Using the Python Runner
-<img src="https://github.com/ai-workspace/community/blob/master/resources/github-homepage/AIW-4.gif" width="800">  
+<img src="https://github.com/elyra-ai/community/blob/master/resources/github-homepage/AIW-4.gif" width="800">
   
 * In the Jupyter Lab Launcher, click the `Python File` Icon to create a new Python Script.
 * When used in conjunction with `Jupyter Enterprise Gateway` the dropdown will be populated with more kernel options, 
@@ -208,8 +213,8 @@ allowing users to run their scripts with remote kernels with more specialized re
 
 ## Integration with Jupyter Enterprise Gateway  
 
-AI workspace integrates easily with `Jupyter Enterprise Gateway` allowing users to deploy remote kernels for more 
-resource intensive development. Simply include the `--gateway-url` when starting `AI Workspace`
+Elyra integrates easily with `Jupyter Enterprise Gateway` allowing users to deploy remote kernels for more
+resource intensive development. Simply include the `--gateway-url` when starting `Elyra`
 
 ```bash
 jupyter lab -gateway-url=http://<GATEWAY_HOST>:<PORT>

@@ -34,7 +34,7 @@ export const ewai_extension: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     restorer: ILayoutRestorer
   ): void => {
-    console.log('AI Workspace - notebook-scheduler extension is activated!');
+    console.log('Elyra - notebook-scheduler extension is activated!');
 
     // Extension initialization code
     let buttonExtension = new SubmitNotebookButtonExtension(app);

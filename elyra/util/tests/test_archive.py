@@ -21,7 +21,7 @@ import tempfile
 
 from datetime import datetime
 
-from ai_workspace.util import create_temp_archive
+from elyra.util import create_temp_archive
 
 
 class ArchiveTestCase(unittest.TestCase):
