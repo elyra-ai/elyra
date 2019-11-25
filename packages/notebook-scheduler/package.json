@@ -1,6 +1,6 @@
 {
   "name": "@aiworkspace/notebook-scheduler-extension",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "JupyterLab extension - Enable submitting notebooks as batch jobs on external runtimes",
   "keywords": [
     "jupyter",
