@@ -17,7 +17,7 @@ import os
 import unittest
 import json
 
-from ai_workspace.pipeline import PipelineParser, Pipeline, Operation
+from elyra.pipeline import PipelineParser, Pipeline, Operation
 
 
 class PipelineParserTestCase(unittest.TestCase):

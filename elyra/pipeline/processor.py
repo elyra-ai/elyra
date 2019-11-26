@@ -23,7 +23,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
 
     def __init__(self):
         # Register all known processors based on entrypoint configuration
-        for processor in entrypoints.get_group_all('ai_workspace.pipeline.processors'):
+        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
             try:
                 # instantiate an actual instance of the processor
                 processor_instance = processor.load()() #Load an instance

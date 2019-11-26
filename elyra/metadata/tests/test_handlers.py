@@ -53,7 +53,7 @@ class MetadataRestAPI(object):
 
 class MetadataHandlerTest(NotebookTestBase):
     """Test Metadata REST API"""
-    config = Config({'NotebookApp': {"nbserver_extensions": {"ai_workspace": True}}})
+    config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
 
     def setUp(self):
         self.runtime_dir = os.path.join(self.data_dir, 'metadata', 'runtime')

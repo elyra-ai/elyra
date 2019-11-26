@@ -19,9 +19,9 @@ import json
 import unittest
 import unittest.mock as mock
 
-from ai_workspace.metadata import Metadata
-from ai_workspace.pipeline import PipelineParser, PipelineProcessorManager, Pipeline, Operation
-from ai_workspace.pipeline import KfpPipelineProcessor
+from elyra.metadata import Metadata
+from elyra.pipeline import PipelineParser, PipelineProcessorManager, Pipeline, Operation
+from elyra.pipeline import KfpPipelineProcessor
 
 
 def mock_get_metadata(arg, **kwargs):
@@ -42,7 +42,7 @@ def mock_get_metadata(arg, **kwargs):
 
 class PipelineRuntimeTestCase(unittest.TestCase):
 
-    @mock.patch('ai_workspace.pipeline.processor_kfp.KfpPipelineProcessor._get_runtime_configuration',
+    @mock.patch('elyra.pipeline.processor_kfp.KfpPipelineProcessor._get_runtime_configuration',
                 mock_get_metadata)
     def test_process_valid_pipeline(self):
         pipeline_definition = self.read_pipeline_resource('pipeline.json')

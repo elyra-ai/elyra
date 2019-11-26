@@ -26,15 +26,15 @@ except:
 here = os.path.abspath(os.path.dirname(__file__))
 
 version_ns = {}
-with open(os.path.join(here, 'ai_workspace', '_version.py')) as f:
+with open(os.path.join(here, 'elyra', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 npm_packages_path = "./dist/*.tgz"
 auto_extension_path = "./jupyter-config/jupyter_notebook_config.d/*.json"
 
 setup_args = dict(
-    name="ai-workspace",
-    url="https://github.com/ai-workspace/ai-workspace",
+    name="elyra",
+    url="https://github.com/elyra-ai/elyra",
     author="CODAIT",
     version=version_ns['__version__'],
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_extension_path))],
@@ -58,14 +58,14 @@ setup_args = dict(
         'pytest', 'pytest-console-scripts',
     ],
     include_package_data=True,
-    description="AI Workspace",
+    description="Elyra",
     long_description=long_desc,
     entry_points={
         'console_scripts': [
-            'jupyter-runtime = ai_workspace.metadata.runtime:RuntimeMetadataApp.launch_instance',
+            'jupyter-runtime = elyra.metadata.runtime:RuntimeMetadataApp.launch_instance',
         ],
-        'ai_workspace.pipeline.processors': [
-            'kfp = ai_workspace.pipeline.processor_kfp:KfpPipelineProcessor'
+        'elyra.pipeline.processors': [
+            'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'
         ]
     },
 )

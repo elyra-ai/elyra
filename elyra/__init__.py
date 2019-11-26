@@ -24,7 +24,7 @@ target_regex = r"(?P<target>[\w\.\-]+)"
 
 def _jupyter_server_extension_paths():
     return [{
-        "module": "ai_workspace"
+        "module": "elyra"
     }]
 
 

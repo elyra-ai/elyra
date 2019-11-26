@@ -1,5 +1,5 @@
 {
-    "name": "@aiworkspace/pipeline-editor-extension",
+    "name": "@elyra/pipeline-editor-extension",
     "version": "0.4.0",
     "description": "JupyterLab extension - Visual editor to build Notebook pipelines",
     "keywords": [
@@ -7,9 +7,9 @@
         "jupyterlab",
         "jupyterlab-extension"
     ],
-    "homepage": "https://github.com/ai-workspace/ai-workspace",
+    "homepage": "https://github.com/elyra-ai/elyra",
     "bugs": {
-        "url": "https://github.com/ai-workspace/ai-workspace/issues"
+        "url": "https://github.com/elyra-ai/elyra/issues"
     },
     "license": "Apache-2.0",
     "files": [
@@ -21,7 +21,7 @@
     "style": "style/index.css",
     "repository": {
         "type": "git",
-        "url": "https://github.com/ai-workspace/ai-workspace"
+        "url": "https://github.com/elyra-ai/elyra"
     },
     "scripts": {
         "build": "tsc",
@@ -45,7 +45,7 @@
         "@phosphor/widgets": "^1.8.1",
         "@types/jest": "24.0.15",
         "@types/node": "^12.0.10",
-        "@ai-workspace/canvas": "^6.1.23",
+        "@elyra/canvas": "^6.1.23",
         "autoprefixer": "^9.6.0",
         "carbon-components": "^10.3.2",
         "json-loader": "^0.5.7",

@@ -1,7 +1,7 @@
 {
   "NotebookApp": {
     "nbserver_extensions": {
-      "ai_workspace": true
+      "elyra": true
     }
   }
 }

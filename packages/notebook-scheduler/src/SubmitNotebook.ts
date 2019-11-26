@@ -94,23 +94,19 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
     let handle404 = () => {
       return showDialog({
         title: 'Error submitting notebook',
-        body: 'AI workspace service endpoint not available',
+        body: 'Elyra service endpoint not available',
         buttons: [Dialog.okButton()]
       });
     };
 
     ServerConnection.makeRequest(runtime_url, {method: 'GET'}, settings)
       .then((runtime_response: any) => {
-        console.log('>>>');
-        console.log(runtime_response);
-        // handle 404 if ai workspace server extension is not found
+        // handle 404 if elyra server extension is not found
         if (runtime_response.status === 404) {
           return handle404();
         }
 
         runtime_response.json().then((runtime_result: any) => {
-          console.log('>>>');
-          console.log(runtime_result);
           if (runtime_response.status !== 200) {
             return handleError(runtime_result);
           }
@@ -136,16 +132,12 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
             console.log('Submitting pipeline to -> ' + url);
             ServerConnection.makeRequest(url, {method: 'POST', body: requestBody}, settings)
               .then((scheduler_response: any) => {
-                console.log('>>>');
-                console.log(scheduler_response);
-                // handle 404 if ai workspace server extension is not found
+                // handle 404 if elyra server extension is not found
                 if (scheduler_response.status === 404) {
                   return handle404();
                 }
 
                 scheduler_response.json().then((data: any) => {
-                  console.log('>>>');
-                  console.log(data);
                   if (scheduler_response.status !== 200) {
                     return handleError(data);
                   }

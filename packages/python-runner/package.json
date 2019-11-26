@@ -1,5 +1,5 @@
 {
-  "name": "@aiworkspace/python-runner-extension",
+  "name": "@elyra/python-runner-extension",
   "version": "0.4.0",
   "description": "JupyterLab extension - Run python files using a kernel runtime",
   "keywords": [
@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/ai-workspace/ai-workspace",
+  "homepage": "https://github.com/elyra-ai/elyra",
   "bugs": {
-    "url": "https://github.com/ai-workspace/ai-workspace/issues"
+    "url": "https://github.com/elyra-ai/elyra/issues"
   },
   "license": "Apache-2.0",
   "files": [
@@ -21,7 +21,7 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ai-workspace/ai-workspace"
+    "url": "https://github.com/elyra-ai/elyra/"
   },
   "scripts": {
     "build": "tsc",

@@ -24,7 +24,7 @@ from jupyter_core.application import (
     JupyterApp, base_flags, base_aliases
 )
 from traitlets import Instance, Dict, Unicode, Bool, List
-from ai_workspace._version import __version__
+from elyra._version import __version__
 
 
 SUPPORTED_TYPES = ['kfp']

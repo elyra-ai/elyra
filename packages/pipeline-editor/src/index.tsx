@@ -28,8 +28,8 @@ import {toArray} from '@phosphor/algorithm';
 import {IDragEvent} from '@phosphor/dragdrop';
 import {Widget, PanelLayout} from '@phosphor/widgets';
 
-import {CommonCanvas, CanvasController, CommonProperties} from '@ai-workspace/canvas';
-import '@ai-workspace/canvas/dist/common-canvas.min.css';
+import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
+import '@elyra/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
@@ -409,23 +409,19 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     let handle404 = () => {
       return showDialog({
         title: 'Error submitting pipeline',
-        body: 'AI workspace service endpoint not available',
+        body: 'Elyra service endpoint not available',
         buttons: [Dialog.okButton()]
       });
     };
 
     ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings)
       .then((runtime_response: any) => {
-        console.log('>>>');
-        console.log(runtime_response);
-        // handle 404 if ai workspace server extension is not found
+        // handle 404 if Elyra server extension is not found
         if (runtime_response.status === 404) {
           return handle404();
         }
 
         runtime_response.json().then((runtime_result: any) => {
-          console.log('>>>');
-          console.log(runtime_result);
           if (runtime_response.status !== 200) {
             return handleError(runtime_result);
           }
@@ -454,16 +450,12 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
             console.log('Submitting pipeline to -> ' + url);
             ServerConnection.makeRequest(url, { method: 'POST', body: requestBody }, settings)
               .then((scheduler_response: any) => {
-                console.log('>>>');
-                console.log(scheduler_response);
-                // handle 404 if ai workspace server extension is not found
+                // handle 404 if Elyra server extension is not found
                 if (scheduler_response.status === 404) {
                   return handle404();
                 }
 
                 scheduler_response.json().then((data: any) => {
-                  console.log('>>>');
-                  console.log(data);
                   if (scheduler_response.status !== 200) {
                     return handleError(data);
                   }
@@ -624,7 +616,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     restorer: ILayoutRestorer,
     menu: IMainMenu
   ) => {
-    console.log('AI Workspace - pipeline-editor extension is activated!');
+    console.log('Elyra - pipeline-editor extension is activated!');
 
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
