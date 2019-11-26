@@ -22,10 +22,10 @@ import tempfile
 
 from datetime import datetime
 
-from ai_workspace.metadata import MetadataManager
-from ai_workspace.pipeline import PipelineProcessor, PipelineProcessorRegistry
-from ai_workspace.util.archive import create_temp_archive
-from ai_workspace.util.cos import CosClient
+from elyra.metadata import MetadataManager
+from elyra.pipeline import PipelineProcessor, PipelineProcessorRegistry
+from elyra.util.archive import create_temp_archive
+from elyra.util.cos import CosClient
 from kubernetes.client.models import V1EnvVar
 from notebook.pipeline import NotebookOp
 

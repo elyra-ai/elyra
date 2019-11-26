@@ -21,7 +21,7 @@ import tempfile
 
 def create_project_temp_dir():
     temp_dir = tempfile.gettempdir()
-    project_temp_dir = os.path.join(temp_dir, 'ai-workspace')
+    project_temp_dir = os.path.join(temp_dir, 'elyra')
     if not os.path.exists(project_temp_dir):
         os.mkdir(project_temp_dir)
     return project_temp_dir

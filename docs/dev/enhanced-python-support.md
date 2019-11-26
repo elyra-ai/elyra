@@ -15,9 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 {% endcomment %}
 -->
-# AI Workspace - Enhanced Python Support
+# Elyra - Enhanced Python Support
 
-AI Workspace provides **Enhanced Python Support** where Python scripts can be developed and
+Elyra provides **Enhanced Python Support** where Python scripts can be developed and
 executed. It also leverages the **Distributed Runtime Support** to enable running
 these scripts in remote environments.
 
@@ -29,7 +29,7 @@ users to select from the available `Python Kernels` and run.
 
 ## Python Editor related components
 
-AI Workspace python editor is based on the JupyterLab editor which is currently based on CodeMirror. 
+Elyra python editor is based on the JupyterLab editor which is currently based on CodeMirror.
 
 <img src="../source/images/python-runner-components.png" alt="Python Editor Components" width="50%" height="50%">
 

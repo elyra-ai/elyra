@@ -41,7 +41,7 @@ script:
 
 after_script:
   - echo "Travis exited with ${TRAVIS_TEST_RESULT}"
-  - cat /home/travis/build/ai-workspace/ai-workspace/*.log
-  - cat /home/travis/build/ai-workspace/ai-workspace/packages/enterprise_scheduler_extension/*.log
-  - cat /home/travis/build/ai-workspace/ai-workspace/packages/pipeline-editor/*.log
-  - cat /home/travis/build/ai-workspace/ai-workspace/packages/python-runner/*.log
+  - cat /home/travis/build/elyra/elyra/*.log
+  - cat /home/travis/build/elyra/elyra/packages/notebook_scheduler_extension/*.log
+  - cat /home/travis/build/elyra/elyra/packages/pipeline-editor/*.log
+  - cat /home/travis/build/elyra/elyra/packages/python-runner/*.log

@@ -32,8 +32,8 @@ RUN mkdir -p /home/jovyan/.local/share/jupyter/metadata/runtime
 
 USER root
 
-COPY *.whl /etc/ai-workspace/
-RUN pip install /etc/ai-workspace/*.whl
+COPY *.whl /etc/elyra/
+RUN pip install /etc/elyra/*.whl
 
 RUN mkdir -p /opt/work && chmod 777 /opt/work
 

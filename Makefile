@@ -22,7 +22,7 @@ VERSION:=0.0.1
 
 TAG:=dev
 
-IMAGE=ai-workspace/ai-workspace:$(TAG)
+IMAGE=elyra/elyra:$(TAG)
 
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -39,9 +39,9 @@ clean: ## Make a clean source tree
 	rm -rf $$(find . -name package-lock.json)
 
 test: ## Run unit tests
-	pytest -v ai_workspace
+	pytest -v elyra
 
-# Builds AI Workspace to make ready for packaging/installation
+# Builds Elyra to make ready for packaging/installation
 build:
 	rm -f yarn.lock package-lock.json
 	yarn
@@ -51,7 +51,7 @@ bdist: npm-packages
 	python setup.py bdist_wheel
 
 install: bdist ## Build distribution and install
-	pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
+	pip install --upgrade dist/elyra-*-py3-none-any.whl
 	$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	$(call INSTALL_LAB_EXTENSION,python-runner)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
@@ -61,7 +61,7 @@ install: bdist ## Build distribution and install
 
 install-backend: ## Build and install backend
 	python setup.py bdist_wheel --dev
-	pip install --upgrade dist/ai_workspace-*-py3-none-any.whl
+	pip install --upgrade dist/elyra-*-py3-none-any.whl
 
 npm-packages: build
 	mkdir dist

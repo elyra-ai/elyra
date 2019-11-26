@@ -15,10 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 {% endcomment %}
 -->
-# Logging in Enterprise Workspace for AI
+# Logging in Elyra
 
-This document will go over how to properly log messages in AI Workspace
-
+This section will go over how to properly log messages in Elyra
 
 ## Pipelines Extension Logging
 
@@ -70,7 +69,7 @@ The log output will be color coded, legend as follows:
 | ERROR     | Red   |
 | CRITICAL  | Magenta |
 
-#### Setting the Log Level in AI Workspace
+#### Setting the Log Level in Elyra
 The default Log Level is set to INFO. If you need to increase log verbosity, you can start Jupyterlab with 
 the `--debug` option for example:  
 ```

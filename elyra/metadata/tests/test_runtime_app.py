@@ -8,8 +8,8 @@ import os
 import pytest
 import shutil
 from tempfile import mkdtemp
-from ai_workspace.metadata.metadata import MetadataManager
-from ai_workspace.metadata.runtime import Runtime
+from elyra.metadata.metadata import MetadataManager
+from elyra.metadata.runtime import Runtime
 from .test_utils import create_json_file, valid_metadata_json, another_metadata_json, invalid_metadata_json
 
 

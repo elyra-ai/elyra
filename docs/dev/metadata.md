@@ -16,15 +16,15 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# AI Workspace Metadata Services
+# Elyra Metadata Services
 
-While building Enterprise extensions for the AI Workspace project we identified that there
+While building Enterprise extensions for the Elyra project we identified that there
 is very often a requirement to integrate with external runtimes, data sources, and other 
 components hosted in remote locations or that need additional metadata in order to connect
 to these external components. 
 
 The **Metadata Service** provides a generic service that can be used to store metadata
-that can be easily integrated with AI Workspaces backend and/or frontend components. 
+that can be easily integrated with Elyra backend and/or frontend components.
 
 ![Metadata Services](../source/images/metadata-components.png)
 
