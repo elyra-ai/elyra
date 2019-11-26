@@ -56,9 +56,11 @@ class ListRuntimes(Application, AppUtilMixin):
     metadata_manager = Instance(MetadataManager)
 
     json_output = Bool(False, help='Output runtime name and location as machine-readable json.', config=True)
+    valid_only = Bool(False, help='Only display valid runtime metadata.', config=True)
 
     flags = {'json': ({'ListRuntimes': {'json_output': True}},
-                      "output runtime name and location as machine-readable json."),
+                      "Output runtime name and location as machine-readable json."),
+             'valid-only': ({'ListRuntimes': {'valid_only': True}}, "Only display valid runtime metadata."),
              'debug': base_flags['debug'],
              }
 
@@ -66,7 +68,8 @@ class ListRuntimes(Application, AppUtilMixin):
         return MetadataManager(namespace=self.metadata_namespace)
 
     def start(self):
-        runtimes = self.metadata_manager.get_all_metadata_summary()
+        include_invalid = not self.valid_only
+        runtimes = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
 
         if not runtimes:
             print("No metadata available for external runtimes at : '{}'"
@@ -74,19 +77,25 @@ class ListRuntimes(Application, AppUtilMixin):
             return
 
         if self.json_output:
-            print(json.dumps({'runtime': runtimes}, indent=2))
+            [print('Runtime: {} {}\n{}'.format(rt.name,
+                                            "**INVALID**" if rt.reason and len(rt.reason) > 0 else "",
+                                            rt.to_json()))
+             for rt in runtimes]
         else:
             sorted_runtimes = sorted(runtimes, key=lambda runtime: runtime.name)
             # pad to width of longest runtime name
-            name_len = 0
+            max_name_len = 0
+            max_resource_len = 0
             for runtime in sorted_runtimes:
-                current_name_len = len(runtime.name)
-                if current_name_len > name_len:
-                    name_len = current_name_len
+                max_name_len = max(len(runtime.name), max_name_len)
+                max_resource_len = max(len(runtime.resource), max_resource_len)
 
             print("Available metadata for external runtimes:")
             for runtime in sorted_runtimes:
-                print("  %s    %s" % (runtime.name.ljust(name_len), runtime.resource))
+                invalid = ""
+                if runtime.reason and len(runtime.reason) > 0:
+                    invalid = "**INVALID** ({})".format(runtime.reason)
+                print("  %s  %s  %s" % (runtime.name.ljust(max_name_len), runtime.resource.ljust(max_resource_len), invalid))
 
 
 class RemoveRuntime(Application, AppUtilMixin):

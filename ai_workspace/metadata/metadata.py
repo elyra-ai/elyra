@@ -33,6 +33,7 @@ class Metadata(HasTraits):
     display_name = Unicode()
     schema_name = Unicode()
     metadata = Dict()
+    reason = None
 
     def __init__(self, **kwargs):
         if 'display_name' not in kwargs:
@@ -43,9 +44,10 @@ class Metadata(HasTraits):
         self.metadata = kwargs.get('metadata', Dict())
         self.name = kwargs.get('name')
         self.resource = kwargs.get('resource')
+        self.reason = kwargs.get('reason')
 
     def to_dict(self, trim=False):
-        # Exclude name, resource only if trim is True since we don't want to persist that information.
+        # Exclude name, resource, and reason only if trim is True since we don't want to persist that information.
         # Only include schema_name if it has a value (regardless of trim).
         d = dict(display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
         if not trim:
@@ -53,6 +55,8 @@ class Metadata(HasTraits):
                 d['name'] = self.name
             if self.resource:
                 d['resource'] = self.resource
+            if self.reason:
+                d['reason'] = self.reason
 
         return d
 
@@ -89,8 +93,8 @@ class MetadataManager(LoggingConfigurable):
     def get_metadata_location(self):
         return self.metadata_store.get_metadata_location
 
-    def get_all_metadata_summary(self):
-        return self.metadata_store.get_all_metadata_summary()
+    def get_all_metadata_summary(self, include_invalid=False):
+        return self.metadata_store.get_all_metadata_summary(include_invalid=include_invalid)
 
     def get_all(self):
         return self.metadata_store.get_all()
@@ -163,8 +167,8 @@ class FileMetadataStore(MetadataStore):
     def get_metadata_location(self):
         return self.metadata_dir
 
-    def get_all_metadata_summary(self):
-        metadata_list = self._load_metadata_resources()
+    def get_all_metadata_summary(self, include_invalid=False):
+        metadata_list = self._load_metadata_resources(include_invalid=include_invalid)
         metadata_summary = {}
         for metadata in metadata_list:
             metadata_summary.update(
@@ -240,7 +244,7 @@ class FileMetadataStore(MetadataStore):
         resource = os.path.join(self.metadata_dir, metadata_resource_name)
         return resource
 
-    def _load_metadata_resources(self, name=None, validate_metadata=True):
+    def _load_metadata_resources(self, name=None, validate_metadata=True, include_invalid=False):
         """Loads metadata files with .json suffix and return requested items.
            if 'name' is provided, the single file is loaded and returned, else
            all files ending in '.json' are loaded and returned in a list.
@@ -256,7 +260,8 @@ class FileMetadataStore(MetadataStore):
                     else:
                         metadata = None
                         try:
-                            metadata = self._load_from_resource(path, validate_metadata=validate_metadata)
+                            metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
+                                                                include_invalid=include_invalid)
                         except Exception:
                             pass  # Ignore ValidationError and others when loading all resources
                         if metadata is not None:
@@ -282,7 +287,7 @@ class FileMetadataStore(MetadataStore):
 
         return schema_json
 
-    def _load_from_resource(self, resource, validate_metadata=True):
+    def _load_from_resource(self, resource, validate_metadata=True, include_invalid=False):
         # This is always called with an existing resource (path) so no need to check existence.
         with io.open(resource, 'r', encoding='utf-8') as f:
             metadata_json = json.load(f)
@@ -290,16 +295,24 @@ class FileMetadataStore(MetadataStore):
         # Always take name from resource so resources can be copied w/o having to change content
         name = os.path.splitext(os.path.basename(resource))[0]
 
+        reason = None
         if validate_metadata:
             schema = self._get_schema(metadata_json['schema_name'])
             if schema:
-                self.validate(name, schema, metadata_json)
+                try:
+                    self.validate(name, schema, metadata_json)
+                except ValidationError as ve:
+                    if include_invalid:
+                        reason = ve.__class__.__name__
+                    else:
+                        raise ve
 
         metadata = Metadata(name=name,
                             display_name=metadata_json['display_name'],
                             schema_name=metadata_json['schema_name'],
                             resource=resource,
-                            metadata=metadata_json['metadata'])
+                            metadata=metadata_json['metadata'],
+                            reason=reason)
         return metadata
 
 
