@@ -58,8 +58,10 @@ class MetadataManagerTestCase(MetadataTestBase):
         self.metadata_manager = MetadataManager(namespace="runtime")
 
     def test_list_metadata_summary(self):
-        metadata_summary_list = self.metadata_manager.get_all_metadata_summary()
+        metadata_summary_list = self.metadata_manager.get_all_metadata_summary(include_invalid=False)
         self.assertEqual(len(metadata_summary_list), 2)
+        metadata_summary_list = self.metadata_manager.get_all_metadata_summary(include_invalid=True)
+        self.assertEqual(len(metadata_summary_list), 3)
 
     def test_list_all_metadata(self):
         metadata_list = self.metadata_manager.get_all()
@@ -172,8 +174,10 @@ class MetadataFileStoreTestCase(MetadataTestBase):
         self.metadata_file_store = FileMetadataStore(namespace='runtime', metadata_dir=self.metadata_dir)
 
     def test_list_metadata_summary(self):
-        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary()
+        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=False)
         self.assertEqual(len(metadata_summary_list), 2)
+        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=True)
+        self.assertEqual(len(metadata_summary_list), 3)
 
     def test_list_all_metadata(self):
         metadata_list = self.metadata_file_store.get_all()
@@ -182,7 +186,7 @@ class MetadataFileStoreTestCase(MetadataTestBase):
     def test_list_metadata_summary_none(self):
         # Delete the metadata dir and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
-        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary()
+        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=True)
         self.assertEqual(len(metadata_summary_list), 0)
 
     def test_list_all_metadata_none(self):

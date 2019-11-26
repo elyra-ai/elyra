@@ -10,7 +10,7 @@ import shutil
 from tempfile import mkdtemp
 from ai_workspace.metadata.metadata import MetadataManager
 from ai_workspace.metadata.runtime import Runtime
-from .test_utils import valid_metadata_json, another_metadata_json
+from .test_utils import create_json_file, valid_metadata_json, another_metadata_json, invalid_metadata_json
 
 
 @pytest.fixture()
@@ -202,8 +202,23 @@ def test_list_runtimes(script_runner, mock_runtime_dir):
     # Remove the '2' runtimes and reconfirm smaller set
     metadata_manager.remove('valid2')
     metadata_manager.remove('another2')
+    # Include an invalid file as well
+    metadata_dir = os.path.join(mock_runtime_dir, 'metadata', 'runtime')
+    create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
 
     ret = script_runner.run('jupyter-runtime', 'list')
+    assert ret.success
+    lines = ret.stdout.split('\n')
+    assert len(lines) == 5  # always 2 more than the actual runtime count
+    assert lines[0] == "Available metadata for external runtimes:"
+    line_elements = [line.split() for line in lines[1:4]]
+    assert line_elements[0][0] == "another"
+    assert line_elements[1][0] == "invalid"
+    assert line_elements[1][2] == "**INVALID**"
+    assert line_elements[1][3] == "(ValidationError)"
+    assert line_elements[2][0] == "valid"
+
+    ret = script_runner.run('jupyter-runtime', 'list', '--valid-only')
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 4  # always 2 more than the actual runtime count
@@ -211,7 +226,6 @@ def test_list_runtimes(script_runner, mock_runtime_dir):
     line_elements = [line.split() for line in lines[1:3]]
     assert line_elements[0][0] == "another"
     assert line_elements[1][0] == "valid"
-    assert ret.stderr == ''
 
 
 def test_remove_bad_argument(script_runner):
