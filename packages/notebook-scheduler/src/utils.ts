@@ -91,8 +91,9 @@ export default class Utils {
     template.pipelines[0].nodes[0].app_data.dependencies = options.dependencies;
     template.pipelines[0].nodes[0].app_data.ui_data.label = artifactName;
 
-    template.pipelines[0].app_data.ui_data.title = artifactName;
-    template.pipelines[0].app_data.ui_data.platform = options.platform;
+    template.pipelines[0].app_data.title = artifactName;
+    template.pipelines[0].app_data.runtime = 'kfp';
+    template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
 
     return template;
   }
