@@ -25,8 +25,8 @@ import '../style/index.css';
  * be executed in a remote runtime
  */
 
-export const ewai_extension: JupyterFrontEndPlugin<void> = {
-  id: 'ewai-extension',
+export const notebook_scheduler_extension: JupyterFrontEndPlugin<void> = {
+  id: 'elyra-notebook_scheduler_extension',
   requires: [ICommandPalette, ILayoutRestorer],
   autoStart: true,
   activate: (
@@ -47,4 +47,4 @@ export const ewai_extension: JupyterFrontEndPlugin<void> = {
   }
 };
 
-export default ewai_extension;
+export default notebook_scheduler_extension;
