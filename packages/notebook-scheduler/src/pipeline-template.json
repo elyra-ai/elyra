@@ -8,7 +8,7 @@
 		"id": "{{primary_pipeline_uuid}}",
 		"nodes": [{
 			"id": "{{pipelines.noded.uuid}}",
-			"type": "pipeline_node",
+			"type": "execution_node",
 			"app_data": {
 				"artifact": "{{artifact}}",
 				"image": "{{image}}",
@@ -25,9 +25,10 @@
 			}
 		}],
 		"app_data": {
+			"title": "{{title}}",
+			"runtime": "{{rutime}}",
+			"runtime-config": "{{runtime-config}}",
 			"ui_data": {
-				"title": "{{title}}",
-				"platform": "{{platform}}",
 				"comments": []
 			}
 		}

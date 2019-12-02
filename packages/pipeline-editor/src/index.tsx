@@ -64,8 +64,8 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
 
     let layout = (this.layout = new PanelLayout());
     let htmlContent = this.getHtml(props);
-    // Set default platform to kfp, since list is dynamically generated
-    (htmlContent.getElementsByClassName("ewai-form-platform")[0] as HTMLSelectElement).value = "kfp";
+    // Set default runtime to kfp, since list is dynamically generated
+    (htmlContent.getElementsByClassName("ewai-form-runtime-config")[0] as HTMLSelectElement).value = "kfp";
 
     layout.addWidget(new Widget( {node: htmlContent} ));
   }
@@ -73,18 +73,18 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
   getValue() {
   	return {
   	  'pipeline_name': (document.getElementById('pipeline_name') as HTMLInputElement).value,
-  	  'platform': (document.getElementById('platform') as HTMLInputElement).value
+  	  'runtime_config': (document.getElementById('runtime_config') as HTMLInputElement).value
   	};
   }
 
   getHtml(props: any) {
     let htmlContent = document.createElement('div');
     let br = '<br/>';
-    let platform_options = '';
+    let runtime_options = '';
     let runtimes = props['runtimes'];
 
     for (let key in runtimes) {
-      platform_options = platform_options + `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
+      runtime_options = runtime_options + `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
     }
 
     let content = ''
@@ -92,10 +92,10 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
       + br
       + '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>'
       + br + br
-      + '<label for="platform">Platform:</label>'
+      + '<label for="runtime_config">Runtime Config:</label>'
       + br
-      + '<select id="platform" name="platform" class="ewai-form-platform">'
-      + platform_options
+      + '<select id="runtime_config" name="runtime_config" class="ewai-form-runtime-config">'
+      + runtime_options
       + '</select>';
 
     htmlContent.innerHTML = content;
@@ -441,8 +441,10 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
             console.log(this.canvasController.getPipelineFlow());
 
             let pipelineFlow = this.canvasController.getPipelineFlow();
-            pipelineFlow.pipelines[0]['app_data']['ui_data']['title'] = result.value.pipeline_name;
-            pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] = result.value.platform;
+            pipelineFlow.pipelines[0]['app_data']['title'] = result.value.pipeline_name;
+            // TODO: Be more flexible and remove hardcoded runtime type
+            pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+            pipelineFlow.pipelines[0]['app_data']['runtime-config'] = result.value.runtime_config;
 
             let requestBody = JSON.stringify(pipelineFlow);
             let url = URLExt.join(settings.baseUrl, 'scheduler');
@@ -460,7 +462,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
                     return handleError(data);
                   }
 
-                  let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'] + ' succeeded';
+                  let dialogTitle: string = 'Job submission to ' + pipelineFlow.pipelines[0]['app_data']['runtime'] + ' succeeded';
                   let dialogBody = <p>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a></p>;
                   return showDialog({
                     title: dialogTitle,

@@ -21,9 +21,11 @@
         }
     }],
     "app_data": {
+      "title": "{{title}}",
+      "runtime": "{{runtime}}",
+      "runtime-config": "{{runtime-config}}",
         "ui_data": {
-            "title": "{{title}}",
-            "platform": "{{platform}}"
+          "comments": []
         }
     }
   }],
