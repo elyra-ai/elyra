@@ -8,7 +8,7 @@
 		"id": "f757f14a-4494-46b5-bb27-aeaa8a065477",
 		"nodes": [{
 			"id": "db9f3f5b-b2e3-4824-aadd-c1c6bf652534",
-			"type": "pipeline_node",
+			"type": "execution_node",
 			"app_data": {
 				"artifact": "/Users/lresende/opensource/jupyter/jupyter-notebooks/ai-workspace-pipelines/generate-contributions.ipynb",
 				"image": "tensorflow/tensorflow:2.0.0-py3",
@@ -48,7 +48,7 @@
 			}]
 		}, {
 			"id": "f6584209-6f22-434f-9820-41327b6c749d",
-			"type": "pipeline_node",
+			"type": "execution_node",
 			"app_data": {
 				"artifact": "/Users/lresende/opensource/jupyter/jupyter-notebooks/ai-workspace-pipelines/generate-stats.ipynb",
 				"image": "tensorflow/tensorflow:2.0.0-py3",
@@ -80,7 +80,7 @@
 			}]
 		}, {
 			"id": "079c0e12-eb5f-4fcc-983b-09e011869fee",
-			"type": "pipeline_node",
+			"type": "execution_node",
 			"app_data": {
 				"artifact": "/Users/lresende/opensource/jupyter/jupyter-notebooks/ai-workspace-pipelines/overview.ipynb",
 				"image": "tensorflow/tensorflow:1.12.3-py3",
@@ -116,9 +116,10 @@
 			}]
 		}],
 		"app_data": {
+			"title": "integration-test",
+			"runtime": "kfp",
+			"runtime-config": "kfp-yukked1",
 			"ui_data": {
-				"title": "integration-test",
-				"platform": "kfp-yukked1",
 				"comments": []
 			}
 		},

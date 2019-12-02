@@ -9,7 +9,7 @@
     "nodes": [
       {
         "id": "d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c",
-        "type": "pipeline_node",
+        "type": "execution_node",
         "app_data": {
           "artifact": "demo-pipelines/generate-contributions.ipynb",
           "image": "tensorflow/tensorflow:1.12.3-py3",
@@ -52,7 +52,7 @@
       },
       {
         "id": "5ddfbd02-2f4e-462b-8349-ddd7ec7afb71",
-        "type": "pipeline_node",
+        "type": "execution_node",
         "app_data": {
           "artifact": "demo-pipelines/generate-stats.ipynb",
           "image": "tensorflow/tensorflow:1.12.3-py3",
@@ -87,7 +87,7 @@
       },
       {
         "id": "acc4527d-7cc8-4c16-b520-5aa0f50a2e34",
-        "type": "pipeline_node",
+        "type": "execution_node",
         "app_data": {
           "artifact": "demo-pipelines/overview.ipynb",
           "image": "tensorflow/tensorflow:1.12.3-py3",
@@ -132,9 +132,10 @@
       }
     ],
     "app_data": {
+      "title": "pipeline-title",
+      "runtime": "kfp",
+      "runtime-config": "kfp-yukked1",
       "ui_data": {
-        "title": "pipeline-title",
-        "platform": "kfp",
         "comments": [
           {
             "id": "22a171e4-f12b-4a6b-9399-f48c81e0906a",
