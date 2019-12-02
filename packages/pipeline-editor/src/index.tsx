@@ -429,7 +429,8 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
           return showDialog({
             title: 'Run pipeline',
             body: new PipelineDialog({"runtimes": runtime_result}),
-            buttons: [Dialog.cancelButton(), Dialog.okButton()]
+            buttons: [Dialog.cancelButton(), Dialog.okButton()],
+            focusNodeSelector: '#pipeline_name'
           }).then( result => {
             if( result.value == null) {
               // When Cancel is clicked on the dialog, just return
