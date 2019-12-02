@@ -194,7 +194,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
 
     this._htmlDialogElement = this.renderHtml();
     // Set default config to kfp, since list is dynamically generated
-    (this._htmlDialogElement.getElementsByClassName("ewai-form-runtime-config")[0] as HTMLSelectElement).value = "kfp";
+    (this._htmlDialogElement.getElementsByClassName("elyra-form-runtime-config")[0] as HTMLSelectElement).value = "kfp";
 
     let layout = (this.layout = new PanelLayout());
 
@@ -220,13 +220,13 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     }
 
     var content = ''
-      +'<table id="table-submit-dialog" class="ewai-table"><tbody>'
+      +'<table id="table-submit-dialog" class="elyra-table"><tbody>'
 
       + tr
       + td_colspan2
       +'<label for="runtime_config">Runtime Config:</label>'
       +'<br/>'
-      +'<select id="runtime_config" class="ewai-form-runtime-config">'
+      +'<select id="runtime_config" class="elyra-form-runtime-config">'
       + runtime_options
       +'</select>'
       +'</td>'

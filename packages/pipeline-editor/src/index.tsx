@@ -42,8 +42,8 @@ import * as React from 'react';
 
 import { IntlProvider } from "react-intl";
 
-const PIPELINE_ICON_CLASS = 'jp-MaterialIcon ewai-PipelineIcon';
-const PIPELINE_CLASS = 'ewai-PipelineEditor';
+const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
+const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'pipeline-editor-extension';
@@ -65,7 +65,7 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
     let layout = (this.layout = new PanelLayout());
     let htmlContent = this.getHtml(props);
     // Set default runtime to kfp, since list is dynamically generated
-    (htmlContent.getElementsByClassName("ewai-form-runtime-config")[0] as HTMLSelectElement).value = "kfp";
+    (htmlContent.getElementsByClassName("elyra-form-runtime-config")[0] as HTMLSelectElement).value = "kfp";
 
     layout.addWidget(new Widget( {node: htmlContent} ));
   }
@@ -94,7 +94,7 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
       + br + br
       + '<label for="runtime_config">Runtime Config:</label>'
       + br
-      + '<select id="runtime_config" name="runtime_config" class="ewai-form-runtime-config">'
+      + '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">'
       + runtime_options
       + '</select>';
 
