@@ -111,10 +111,11 @@ class Operation:
 
 class Pipeline:
 
-    def __init__(self, id, title, platform):
+    def __init__(self, id, title, runtime, runtime_config):
         self._id = id
         self._title = title
-        self._platform = platform
+        self._runtime = runtime
+        self._runtime_config = runtime_config
         self._operations = {}
 
     @property
@@ -126,8 +127,12 @@ class Pipeline:
         return self._title
 
     @property
-    def platform(self):
-        return self._platform
+    def runtime(self):
+        return self._runtime
+
+    @property
+    def runtime_config(self):
+        return self._runtime_config
 
     @property
     def operations(self):
@@ -136,5 +141,6 @@ class Pipeline:
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
             return self.title == other.title and \
-                   self.platform == other.platform and \
+                   self.runtime_type == other.runtime_type and \
+                   self.runtime_config == other.runtime_config and \
                    self.operations == other.operations

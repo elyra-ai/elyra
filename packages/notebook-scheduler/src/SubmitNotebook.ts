@@ -28,11 +28,11 @@ import * as React from "react";
 
 /**
  * Details about notebook submission configuration, including
- * details about the remote platform and any other
+ * details about the remote runtime and any other
  * user details required to access/start the job
  */
 export interface ISubmitNotebookConfiguration extends JSONObject {
-  platform: string,
+  runtime_config: string,
   framework: string,
   //cpus: number,
   //gpus: number,
@@ -142,7 +142,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
                     return handleError(data);
                   }
 
-                  let dialogTitle: string = 'Job submission to ' + result.value.platform + ' succeeded';
+                  let dialogTitle: string = 'Job submission to ' + result.value.runtime_config + ' succeeded';
                   let dialogLink: React.ReactElement<any> = React.createElement('a', { href: data.url,  target: "_blank" }, 'Run Details');
                   let dialogBody: React.ReactElement<any> = React.createElement('p', null, 'Check the status of your run at ', dialogLink);
                   return showDialog({
@@ -193,8 +193,8 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     this._runtimes = runtimes;
 
     this._htmlDialogElement = this.renderHtml();
-    // Set default platform to kfp, since list is dynamically generated
-    (this._htmlDialogElement.getElementsByClassName("ewai-form-platform")[0] as HTMLSelectElement).value = "kfp";
+    // Set default config to kfp, since list is dynamically generated
+    (this._htmlDialogElement.getElementsByClassName("ewai-form-runtime-config")[0] as HTMLSelectElement).value = "kfp";
 
     let layout = (this.layout = new PanelLayout());
 
@@ -213,10 +213,10 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     //var td_colspan4 = '<td colspan=4>'; //'<td style="padding: 1px;" colspan=4>';
 
     let htmlContent = document.createElement('div');
-    let platform_options = '';
+    let runtime_options = '';
 
     for (let key in this._runtimes) {
-      platform_options = platform_options + `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
+      runtime_options = runtime_options + `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
     }
 
     var content = ''
@@ -224,10 +224,10 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
 
       + tr
       + td_colspan2
-      +'<label for="platform">Platform:</label>'
+      +'<label for="runtime_config">Runtime Config:</label>'
       +'<br/>'
-      +'<select id="platform" class="ewai-form-platform">'
-      + platform_options
+      +'<select id="runtime_config" class="ewai-form-runtime-config">'
+      + runtime_options
       +'</select>'
       +'</td>'
       + td_colspan2
@@ -329,7 +329,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     }
 
     let returnData: ISubmitNotebookConfiguration = {
-      platform: (<HTMLSelectElement> document.getElementById('platform')).value,
+      runtime_config: (<HTMLSelectElement> document.getElementById('runtime_config')).value,
       framework: (<HTMLSelectElement> document.getElementById('framework')).value,
       //cpus: Number((<HTMLInputElement>document.getElementById('cpus')).value),
       //gpus: Number((<HTMLInputElement>document.getElementById('gpus')).value),

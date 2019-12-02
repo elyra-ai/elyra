@@ -22,7 +22,7 @@ import {SubmitNotebookButtonExtension} from "./SubmitNotebook";
 import '../style/index.css';
 /**
  * A JupyterLab extension to submit notebooks to
- * be executed in a remote platform
+ * be executed in a remote runtime
  */
 
 export const ewai_extension: JupyterFrontEndPlugin<void> = {

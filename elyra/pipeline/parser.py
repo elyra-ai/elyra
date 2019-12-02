@@ -38,7 +38,8 @@ class PipelineParser(LoggingConfigurable):
 
         pipeline_object = Pipeline(pipeline['id'],
                                    __class__._read_pipeline_title(pipeline),
-                                   __class__._read_pipeline_platform(pipeline))
+                                   __class__._read_pipeline_runtime(pipeline),
+                                   __class__._read_pipeline_runtime_config(pipeline))
 
         for node in pipeline['nodes']:
             # parse links as dependencies
@@ -74,21 +75,29 @@ class PipelineParser(LoggingConfigurable):
     def _read_pipeline_title(pipeline) -> str:
         title = 'untitled'
         if 'app_data' in pipeline.keys():
-            if 'ui_data' in pipeline['app_data'].keys():
-                if 'title' in pipeline['app_data']['ui_data'].keys():
-                    title = pipeline['app_data']['ui_data']['title']
+            if 'title' in pipeline['app_data'].keys():
+                title = pipeline['app_data']['title']
 
         return title
 
     @staticmethod
-    def _read_pipeline_platform(pipeline) -> str:
-        platform = 'kfp'
+    def _read_pipeline_runtime(pipeline) -> str:
+        # default runtime type
+        runtime = 'kfp'
         if 'app_data' in pipeline.keys():
-            if 'ui_data' in pipeline['app_data'].keys():
-                if 'platform' in pipeline['app_data']['ui_data'].keys():
-                    platform = pipeline['app_data']['ui_data']['platform']
+            if 'runtime' in pipeline['app_data'].keys():
+                runtime = pipeline['app_data']['runtime']
 
-        return platform
+        return runtime
+
+    @staticmethod
+    def _read_pipeline_runtime_config(pipeline) -> str:
+        runtime_config = None
+        if 'app_data' in pipeline.keys():
+            if 'runtime-config' in pipeline['app_data'].keys():
+                runtime_config = pipeline['app_data']['runtime-config']
+
+        return runtime_config
 
     @staticmethod
     def _read_pipeline_operation_dependencies(node) -> str:

@@ -68,6 +68,15 @@ class PipelineParserTestCase(unittest.TestCase):
 
         self.assertEqual(len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].dependencies), 2)
 
+    def test_parse_pipeline_global_attributes(self):
+        pipeline_definition = self.read_pipeline_resource('pipeline_valid.json')
+
+        pipeline = PipelineParser.parse(pipeline_definition)
+
+        self.assertEqual(pipeline.title, '{{title}}')
+        self.assertEqual(pipeline.runtime, '{{runtime}}')
+        self.assertEqual(pipeline.runtime_config, '{{runtime-config}}')
+
     @staticmethod
     def read_pipeline_resource(pipeline_filename):
         root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
