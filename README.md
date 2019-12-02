@@ -30,8 +30,20 @@ Elyra currently includes:
 
 ![Elyra](docs/source/images/ai-workspace.png)
 
-A **Notebook Pipeline** visual editor is also available and can be used to chain notebooks
-together. Currently the only supported pipeline runtime is **Kubeflow Pipelines**,
+
+#### Notebook Pipelines visual editor
+
+Building an AI pipeline for a model is hard, breaking down and modularizing a pipeline is harder.
+A typical machine/deep learning pipeline begins as a series of preprocessing steps followed by
+experimentation/optimization and finally deployment. Each of these steps represent a challenge in
+implementation, execution, scheduling and operation when bringing deep learning models from
+development to production.
+
+Elyra provides a **Notebook Pipeline visual editor** for building Notebook-based AI pipelines,
+simplifying the conversion of multiple notebooks into batch jobs or workflow.
+
+Currently the only supported pipeline runtime is
+[**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/),
 but others can be easily added.
 
 ![Notebook Pipeline Editor](docs/source/images/pipeline-editor.png)
@@ -43,20 +55,43 @@ that needs to be flown to child notebooks.
 
 ![Notebook Pipeline Editor - Node Properties](docs/source/images/pipeline-editor-properties.png)
 
-It provides **Enhanced Python Support** where Python scripts can be developed and
+#### Ability to run notebook as batch jobs
+
+Elyra also extends the notebook UI to simplify the submission of a single notebook as a batch job
+
+![Submit Notebook as batch jobs](docs/source/images/submit-notebook-batch-job.gif)
+
+#### Hybrid runtime support
+
+Elyra leverages the work that we’ve done with Jupyter Enterprise Gateway to enable Jupyter Notebooks
+to share resources across distributed clusters such as Apache Spark, Kubernetes, OpenShift, and the like. 
+
+It simplifies the task of running the notebooks interactively on cloud machines, improving productivity
+by leveraging the power of cloud-based resources that enable the use of specialized hardware such as GPUs and TPUs. 
+
+#### Python script execution support
+
+Elyra provides **Enhanced Python Support** where Python scripts can be developed and
 executed. It also leverages the **Hybrid Runtime Support** to enable running
 these scripts either locally or in remote environments.
 
 ![Enhanced Python Support](docs/source/images/python-runner.png)
 
-Native Integration with **Git and GitHub** enables seamless versioning for your Notebooks and
-Python Scripts.
+#### Notebook versioning based on git integration
+
+The integrated support for git repositories simplify tracking changes, allowing rollback to working versions
+of the code, backups and, most importantly, sharing among team members - fostering productivity by
+enabling a collaborative working environment.
 
 ![Git Integration](docs/source/images/git.png)
 
-A metadata service provides the ability to configure runtimes, data sources and other
-additional configurations required to tie all these components together and easily
-enable portability of the workspace.
+#### Reusable Configuration for runtimes
+
+Elyra introduces a 'shared configuration service' that simplify workspace configuration management,
+enabling things like information around accessing external runtimes to be configured once and shared
+across multiple components.  
+
+----
 
 ## Installation
 Elyra can be installed via PyPi or via Docker
@@ -97,7 +132,13 @@ command on your terminal.
 
 Here's an example invocation of `jupyter runtime install kfp` to create runtime metadata for use by `Kubeflow Pipelines` corresponding to the example values in the table below. Following its invocation, a file containing the runtime metadata can be found in `[JUPYTER DATA DIR]/metadata/runtime/my_kfp.json`.
 ```bash
-jupyter runtime install kfp --name=my_kfp --display_name="My Kubeflow Pipeline Runtime" --api_endpoint=https://kubernetes-service.ibm.com/pipeline --cos_endpoint=minio-service.kubeflow:9000 --cos_username=minio --cos_password=minio123 --cos_bucket=test_bucket
+jupyter runtime install kfp --name=my_kfp \
+       --display_name="My Kubeflow Pipeline Runtime" \
+       --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+       --cos_endpoint=minio-service.kubeflow:9000 \
+       --cos_username=minio \
+       --cos_password=minio123 \
+       --cos_bucket=test_bucket
 ```
 This produces the following content in `my_kfp.json`:
 ```json
@@ -176,50 +217,3 @@ Prequisites :
 ```bash
 make docker-image
 ```
-
-## Using the Elyra Pipeline Editor
-
-<img src="https://github.com/elyra-ai/community/blob/master/resources/github-homepage/AIW-1.gif" width="800">
-  
-* In the Jupyter Lab Launcher, click the `Pipeline Editor` Icon to create a new pipeline.
-* On left side of the screen, navigate to your file browser, you should see a list of notebooks available.
-* Drag each notebook, each representing a step in your pipeline to the canvas. Repeat until all notebooks
-needed for the pipeline are present.
-* Define your notebook execution order by connecting them together to form a graph.
-
-<img src="https://github.com/elyra-ai/community/blob/master/resources/github-homepage/AIW-2.gif" width="800">
-
-* Define the properties for each node / notebook in your pipeline
-
-|Parameter   | Description  | Example |
-|:---:|:------|:---:|
-|Docker Image| The docker image you want to use to run your notebook |  `TensorFlow 2.0`   |
-|Output Files|  A list of files generated by the notebook, inside the image, to be passed as inputs to the next step of the pipeline.  One file per line.  | `contributions.csv` |
-|Env Vars| A list of Environmental variables to be set inside in the container.  One variable per line. |  `GITHUB_TOKEN = sometokentobeused` |
-|File Dependencies|  A list of files to be passed from the `LOCAL` working environment into each respective step of the pipeline. Files should be in the same directory as the notebook it is associated with. One file per line. | `dependent-script.py` |
-
-<img src="https://github.com/elyra-ai/community/blob/master/resources/github-homepage/AIW-3.gif" width="800">
-
-* Click on the `RUN` Icon and give your pipeline a name.
-* Hit `OK` to start your pipeline. 
-* Use the link provided in the response to your experiment in Kubeflow. By default, Elyra will create the pipeline template for you as well as start an experiment and run.
-## Using the Python Runner
-<img src="https://github.com/elyra-ai/community/blob/master/resources/github-homepage/AIW-4.gif" width="800">
-  
-* In the Jupyter Lab Launcher, click the `Python File` Icon to create a new Python Script.
-* When used in conjunction with `Jupyter Enterprise Gateway` the dropdown will be populated with more kernel options, 
-allowing users to run their scripts with remote kernels with more specialized resources.
-* To run your script locally, select the `python3` option in the dropdown menu, and click the `Run` Icon.
-
-## Integration with Jupyter Enterprise Gateway  
-
-Elyra integrates easily with `Jupyter Enterprise Gateway` allowing users to deploy remote kernels for more
-resource intensive development. Simply include the `--gateway-url` when starting `Elyra`
-
-```bash
-jupyter lab -gateway-url=http://<GATEWAY_HOST>:<PORT>
-```
-
-[Jupyter Enterprise Gateway Github](https://github.com/jupyter/enterprise_gateway)  
-
-[More Details](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html#using-a-gateway-server-for-kernel-management)
