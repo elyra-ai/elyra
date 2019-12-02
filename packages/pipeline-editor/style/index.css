@@ -16,7 +16,7 @@
 
 /* Add CSS variables to :root */
 :root {
-  --ewai-icon-pipeline: url('./pipelineIcon.png');
+  --elyra-icon-pipeline: url('./pipelineIcon.png');
 }
 
 .add .list-item {
@@ -54,19 +54,19 @@
     background-size: 40%;
 }
 
-.ewai-PipelineIcon {
-    background-image: var(--ewai-icon-pipeline);
+.elyra-PipelineIcon {
+    background-image: var(--elyra-icon-pipeline);
 }
 
-.ewai-PipelineEditor .properties-modal {
+.elyra-PipelineEditor .properties-modal {
     position: absolute;
 }
 
-.ewai-PipelineEditor .bx--modal-content {
+.elyra-PipelineEditor .bx--modal-content {
     padding: 0;
 }
 
-.ewai-PipelineEditor .properties-modal button.bx--btn {
+.elyra-PipelineEditor .properties-modal button.bx--btn {
     -webkit-box-flex: 0;
     -ms-flex: 0;
     flex: 0;
