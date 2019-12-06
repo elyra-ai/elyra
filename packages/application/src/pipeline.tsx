@@ -38,12 +38,12 @@ export class SubmissionHanlder {
   static handle404(submissionType: string) {
     return showDialog({
       title: 'Error submitting ' + submissionType,
-      body: 'AI workspace service endpoint not available',
+      body: 'Elyra service endpoint not available',
       buttons: [Dialog.okButton()]
     });
   }
 
-  static submitPipeline(requestBody: string, platform: string, submissionType: string) {
+  static submitPipeline(requestBody: string, runtime_config: string, submissionType: string) {
     let settings = ServerConnection.makeSettings();
     let url = URLExt.join(settings.baseUrl, 'scheduler');
     console.log('Submitting pipeline to -> ' + url);
@@ -56,7 +56,7 @@ export class SubmissionHanlder {
         waitDialog.resolve();
         console.log('>>>');
         console.log(scheduler_response);
-        // handle 404 if ai workspace server extension is not found
+        // handle 404 if elyra server extension is not found
         if (scheduler_response.status === 404) {
           return this.handle404(submissionType);
         }
@@ -68,7 +68,7 @@ export class SubmissionHanlder {
             return this.handleError(data, submissionType);
           }
 
-          let dialogTitle: string = 'Job submission to ' + platform + ' succeeded';
+          let dialogTitle: string = 'Job submission to ' + runtime_config + ' succeeded';
           let dialogBody = <p>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a>
           </p>;
           return showDialog({
