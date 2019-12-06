@@ -44,6 +44,7 @@ test: ## Run unit tests
 # Builds Elyra to make ready for packaging/installation
 build:
 	rm -f yarn.lock package-lock.json
+	yarn cache clean
 	yarn
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
@@ -52,10 +53,12 @@ bdist: npm-packages
 
 install: bdist ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
+	$(call UNLINK_LAB_EXTENSION,application)
 	$(call UNINSTALL_LAB_EXTENSION,notebook-scheduler-extension)
 	$(call UNINSTALL_LAB_EXTENSION,python-runner-extension)
 	$(call UNINSTALL_LAB_EXTENSION,pipeline-editor-extension)
 	jupyter lab clean
+	$(call LINK_LAB_EXTENSION,application)
 	$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	$(call INSTALL_LAB_EXTENSION,python-runner)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
@@ -78,6 +81,14 @@ npm-packages: build
 docker-image: bdist ## Build docker image
 	cp -r dist/*.whl etc/docker/
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) etc/docker/ --progress plain
+
+define UNLINK_LAB_EXTENSION
+	- jupyter labextension unlink --no-build @elyra/$1
+endef
+
+define LINK_LAB_EXTENSION
+	cd packages/$1 && jupyter labextension link --no-build .
+endef
 
 define UNINSTALL_LAB_EXTENSION
 	- jupyter labextension uninstall --no-build @elyra/$1

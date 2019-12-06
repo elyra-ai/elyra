@@ -30,7 +30,7 @@ import {Widget, PanelLayout} from '@phosphor/widgets';
 
 import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {NotebookParser, SubmissionHanlder} from "@aiworkspace/application";
+import {NotebookParser, SubmissionHanlder} from "@elyra/application";
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
@@ -394,7 +394,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
     ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings)
       .then((runtime_response: any) => {
-        // handle 404 if Elyra server extension is not found
+        // handle 404 if elyra server extension is not found
         if (runtime_response.status === 404) {
           return SubmissionHanlder.handle404('pipeline');
         }
@@ -427,7 +427,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
             let requestBody = JSON.stringify(pipelineFlow);
 
-            SubmissionHanlder.submitPipeline(requestBody, pipelineFlow.pipelines[0]['app_data']['ui_data']['platform'], 'pipeline');
+            SubmissionHanlder.submitPipeline(requestBody, result.value.runtime_config, 'pipeline');
           });
         });
     });

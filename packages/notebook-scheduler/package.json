@@ -37,7 +37,7 @@
     "@jupyterlab/notebook": "^1.0.0",
     "@phosphor/disposable": "^1.1.2",
     "@phosphor/widgets": "^1.8.0",
-    "@aiworkspace/application": "^0.3.0",
+    "@elyra/application": "^0.4.0",
     "json-loader": "^0.5.7",
     "uuid": "^3.3.3"
   },
