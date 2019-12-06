@@ -23,7 +23,7 @@ import {JSONObject, JSONValue} from "@phosphor/coreutils";
 import {PanelLayout, Widget} from '@phosphor/widgets';
 import {IDisposable} from "@phosphor/disposable";
 
-import {NotebookParser, SubmissionHanlder} from "@aiworkspace/application";
+import {NotebookParser, SubmissionHanlder} from "@elyra/application";
 
 import Utils from './utils'
 
@@ -105,7 +105,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
 
             let requestBody = JSON.stringify(pipeline);
 
-            SubmissionHanlder.submitPipeline(requestBody, result.value.platform, 'notebook');
+            SubmissionHanlder.submitPipeline(requestBody, result.value.runtime_config, 'notebook');
           });
         });
       });
