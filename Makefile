@@ -52,10 +52,14 @@ bdist: npm-packages
 
 install: bdist ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
+	$(call UNINSTALL_LAB_EXTENSION,notebook-scheduler-extension)
+	$(call UNINSTALL_LAB_EXTENSION,python-runner-extension)
+	$(call UNINSTALL_LAB_EXTENSION,pipeline-editor-extension)
+	jupyter lab clean
 	$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	$(call INSTALL_LAB_EXTENSION,python-runner)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
-	export PATH=$$(pwd)/node_modules/.bin:$$PATH && jupyter lab build
+	jupyter lab build
 	jupyter serverextension list
 	jupyter labextension list
 
@@ -74,8 +78,12 @@ docker-image: bdist ## Build docker image
 	cp -r dist/*.whl etc/docker/
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) etc/docker/ --progress plain
 
+define UNINSTALL_LAB_EXTENSION
+	- jupyter labextension uninstall --no-build @elyra/$1
+endef
+
 define INSTALL_LAB_EXTENSION
-	export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && jupyter labextension link --no-build --debug .
+	jupyter labextension install --no-build dist/*$1*
 endef
 
 define PACKAGE_LAB_EXTENSION
