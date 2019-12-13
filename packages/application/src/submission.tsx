@@ -43,27 +43,56 @@ export class SubmissionHanlder {
     });
   }
 
-  static submitPipeline(requestBody: string, runtime_config: string, submissionType: string) {
+  static getRuntimes(submissionType: string, dialogCallback: (runtimes: any) => void) {
+    // use ServerConnection utility to make calls to Jupyter Based services
+    // which in this case are the in the extension installed by this package
+    let settings = ServerConnection.makeSettings();
+    let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
+
+    ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings)
+      .then((runtime_response: any) => {
+        // handle 404 if elyra server extension is not found
+        if (runtime_response.status === 404) {
+          return this.handle404(submissionType);
+        }
+
+        runtime_response.json().then((runtime_result: any) => {
+          if (runtime_response.status !== 200) {
+            return this.handleError(runtime_result, submissionType);
+          }
+
+          return dialogCallback(runtime_result);
+        });
+    });
+  }
+
+  static submitPipeline(pipeline: any, runtime_config: string, submissionType: string) {
     let settings = ServerConnection.makeSettings();
     let url = URLExt.join(settings.baseUrl, 'scheduler');
+    let requestBody = JSON.stringify(pipeline);
+
+    console.log('Pipeline definition:');
+    console.log(pipeline);
     console.log('Submitting pipeline to -> ' + url);
 
-    let waitDialog = new Dialog({ title: 'Submitting pipeline...', buttons: [] });
+    // Note: a button is required to resolve the dialog below
+    let waitDialog = new Dialog({
+      title: 'Submitting pipeline...',
+      body: 'This may take some time',
+      buttons: [Dialog.okButton()]
+    });
     waitDialog.launch();
 
     ServerConnection.makeRequest(url, {method: 'POST', body: requestBody}, settings)
       .then((scheduler_response: any) => {
         waitDialog.resolve();
-        console.log('>>>');
-        console.log(scheduler_response);
+
         // handle 404 if elyra server extension is not found
         if (scheduler_response.status === 404) {
           return this.handle404(submissionType);
         }
 
         scheduler_response.json().then((data: any) => {
-          console.log('>>>');
-          console.log(data);
           if (scheduler_response.status !== 200) {
             return this.handleError(data, submissionType);
           }
