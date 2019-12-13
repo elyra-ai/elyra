@@ -16,13 +16,11 @@
 
 import {JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer} from '@jupyterlab/application';
 import {ICommandPalette, showDialog, Dialog, ReactWidget, WidgetTracker} from '@jupyterlab/apputils';
-import {URLExt} from '@jupyterlab/coreutils';
 import {DocumentRegistry, ABCWidgetFactory, DocumentWidget} from '@jupyterlab/docregistry';
 import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
 import {ILauncher} from '@jupyterlab/launcher';
 import {IMainMenu} from '@jupyterlab/mainmenu';
 import {NotebookPanel} from "@jupyterlab/notebook";
-import {ServerConnection} from '@jupyterlab/services';
 
 import {toArray} from '@phosphor/algorithm';
 import {IDragEvent} from '@phosphor/dragdrop';
@@ -387,50 +385,28 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   }
 
   handleRun() {
-    // use ServerConnection utility to make calls to Jupyter Based services
-    // which in this case are the in the extension installed by this package
-    let settings = ServerConnection.makeSettings();
-    let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
-
-    ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings)
-      .then((runtime_response: any) => {
-        // handle 404 if elyra server extension is not found
-        if (runtime_response.status === 404) {
-          return SubmissionHanlder.handle404('pipeline');
+    SubmissionHanlder.getRuntimes('pipeline', (runtimes: any) =>
+      showDialog({
+        title: 'Run pipeline',
+        body: new PipelineDialog({"runtimes": runtimes}),
+        buttons: [Dialog.cancelButton(), Dialog.okButton()],
+        focusNodeSelector: '#pipeline_name'
+      }).then( result => {
+        if( result.value == null) {
+          // When Cancel is clicked on the dialog, just return
+          return;
         }
 
-        runtime_response.json().then((runtime_result: any) => {
-          if (runtime_response.status !== 200) {
-            return SubmissionHanlder.handleError(runtime_result, 'pipeline');
-          }
+        // prepare pipeline submission details
+        let pipelineFlow = this.canvasController.getPipelineFlow();
+        pipelineFlow.pipelines[0]['app_data']['title'] = result.value.pipeline_name;
+        // TODO: Be more flexible and remove hardcoded runtime type
+        pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+        pipelineFlow.pipelines[0]['app_data']['runtime-config'] = result.value.runtime_config;
 
-          return showDialog({
-            title: 'Run pipeline',
-            body: new PipelineDialog({"runtimes": runtime_result}),
-            buttons: [Dialog.cancelButton(), Dialog.okButton()],
-            focusNodeSelector: '#pipeline_name'
-          }).then( result => {
-            if( result.value == null) {
-              // When Cancel is clicked on the dialog, just return
-              return;
-            }
-
-            // prepare pipeline submission details
-            console.log('Pipeline definition:');
-            console.log(this.canvasController.getPipelineFlow());
-
-            let pipelineFlow = this.canvasController.getPipelineFlow();
-            pipelineFlow.pipelines[0]['app_data']['title'] = result.value.pipeline_name;
-            // TODO: Be more flexible and remove hardcoded runtime type
-            pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-            pipelineFlow.pipelines[0]['app_data']['runtime-config'] = result.value.runtime_config;
-
-            let requestBody = JSON.stringify(pipelineFlow);
-
-            SubmissionHanlder.submitPipeline(requestBody, result.value.runtime_config, 'pipeline');
-          });
-        });
-    });
+        SubmissionHanlder.submitPipeline(pipelineFlow, result.value.runtime_config, 'pipeline');
+      })
+    );
   }
 
   handleSave() {

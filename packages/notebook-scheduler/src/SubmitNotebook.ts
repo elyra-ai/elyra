@@ -17,8 +17,6 @@ import {Dialog, showDialog, ToolbarButton} from "@jupyterlab/apputils";
 import {DocumentRegistry} from "@jupyterlab/docregistry";
 import {INotebookModel, NotebookPanel} from "@jupyterlab/notebook";
 import {JupyterFrontEnd} from "@jupyterlab/application";
-import {URLExt} from "@jupyterlab/coreutils";
-import {ServerConnection} from "@jupyterlab/services";
 import {JSONObject, JSONValue} from "@phosphor/coreutils";
 import {PanelLayout, Widget} from '@phosphor/widgets';
 import {IDisposable} from "@phosphor/disposable";
@@ -70,45 +68,26 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
   readonly app: JupyterFrontEnd;
 
   showWidget = () => {
-    // use ServerConnection utility to make calls to Jupyter Based services
-    // which in this case are the in the extension installed by this package
-    let settings = ServerConnection.makeSettings();
-    let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
     let envVars: string[] = NotebookParser.getEnvVars(this.panel.content.model.toString());
 
-    ServerConnection.makeRequest(runtime_url, {method: 'GET'}, settings)
-      .then((runtime_response: any) => {
-        // handle 404 if elyra server extension is not found
-        if (runtime_response.status === 404) {
-          return SubmissionHanlder.handle404('notebook');
+    SubmissionHanlder.getRuntimes('pipeline', (runtimes: any) =>
+      showDialog({
+        title: 'Submit notebook',
+        body: new SubmitNotebook(envVars, runtimes),
+        buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      }).then(result => {
+        if (result.value == null) {
+          // When Cancel is clicked on the dialog, just return
+          return;
         }
 
-        runtime_response.json().then((runtime_result: any) => {
-          if (runtime_response.status !== 200) {
-            return SubmissionHanlder.handleError(runtime_result, 'notebook');
-          }
+        // prepare notebook submission details
+        let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions>result.value;
+        let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions);
 
-          return showDialog({
-            title: 'Submit notebook',
-            body: new SubmitNotebook(envVars, runtime_result),
-            buttons: [Dialog.cancelButton(), Dialog.okButton()]
-          }).then(result => {
-            if (result.value == null) {
-              // When Cancel is clicked on the dialog, just return
-              return;
-            }
-
-            // prepare notebook submission details
-            let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions>result.value;
-            let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions);
-            console.log(pipeline);
-
-            let requestBody = JSON.stringify(pipeline);
-
-            SubmissionHanlder.submitPipeline(requestBody, result.value.runtime_config, 'notebook');
-          });
-        });
-      });
+        SubmissionHanlder.submitPipeline(pipeline, result.value.runtime_config, 'notebook');
+      })
+    );
   };
 
   createNew(panel: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): IDisposable {
@@ -214,7 +193,7 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       + tr
       + td
       +'<br/>'
-      +'<input type="checkbox" id="dependency_include" name="dependency_include" value="true" size="20"/> Include dependencies<br/>'
+      +'<input type="checkbox" id="dependency_include" name="dependency_include" size="20" checked /> Include dependencies<br/>'
       +'</td>'
 
       + td_colspan3
@@ -269,8 +248,8 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
   getValue(): ISubmitNotebookConfiguration {
 
     let dependency_list: string[] = [];
-    if ((<HTMLInputElement> document.getElementById('dependency_include')).value == "true") {
-     dependency_list = (<HTMLInputElement>document.getElementById('dependencies')).value.split(',')
+    if ((<HTMLInputElement> document.getElementById('dependency_include')).checked) {
+      dependency_list = (<HTMLInputElement>document.getElementById('dependencies')).value.split(',')
     }
 
     let envVars: string[] = [];
