@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { JSONObject, JSONValue } from '@lumino/coreutils';
+import { Widget } from '@lumino/widgets';
+import { IDisposable } from '@lumino/disposable';
+
 import {
   FrontendServices,
   NotebookParser,

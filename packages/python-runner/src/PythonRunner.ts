@@ -14,23 +14,31 @@
  * limitations under the License.
  */
 
-import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { Kernel } from '@jupyterlab/services';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
+import {
+  Kernel,
+  KernelManager,
+  KernelSpec,
+  KernelSpecManager
+} from '@jupyterlab/services';
 
 /**
  * Class: An enhanced Python Script Editor that enables developing and running the script
  */
 export class PythonRunner {
-  kernel: Kernel.IKernel;
+  kernelSpecManager: KernelSpecManager;
+  kernelManager: KernelManager;
+  kernel: Kernel.IKernelConnection;
   model: CodeEditor.IModel;
-  kernelSettings: Kernel.IOptions;
   disableRun: Function;
 
   /**
    * Construct a new runner.
    */
   constructor(model: CodeEditor.IModel, disableRun: Function) {
+    this.kernelSpecManager = new KernelSpecManager();
+    this.kernelManager = new KernelManager();
     this.kernel = null;
     this.model = model;
     this.disableRun = disableRun;
@@ -49,7 +57,7 @@ export class PythonRunner {
    * Function: Starts a python kernel and executes code from file editor.
    */
   runPython = async (
-    kernelSettings: Kernel.IOptions,
+    kernelName: string,
     handleKernelMsg: Function
   ): Promise<any> => {
     if (!this.kernel) {
@@ -58,7 +66,7 @@ export class PythonRunner {
       const code: string = model.value.text;
 
       try {
-        this.kernel = await this.startKernel(kernelSettings);
+        this.kernel = await this.kernelManager.startNew({ name: kernelName });
       } catch (e) {
         return this.errorDialog(
           'Could not start kernel environment to execute script.'
@@ -120,16 +128,19 @@ export class PythonRunner {
   /**
    * Function: Gets available kernel specs.
    */
-  getKernelSpecs = async (): Promise<Kernel.ISpecModels> => {
-    const kernelSpecs = await Kernel.getSpecs();
+  getKernelSpecs = async (): Promise<KernelSpec.ISpecModels> => {
+    await this.kernelSpecManager.ready;
+    const kernelSpecs = await this.kernelSpecManager.specs;
     return kernelSpecs;
   };
 
   /**
    * Function: Starts new kernel.
    */
-  startKernel = async (options: Kernel.IOptions): Promise<Kernel.IKernel> => {
-    return Kernel.startNew(options);
+  startKernel = async (
+    options: Kernel.IKernelOptions
+  ): Promise<Kernel.IKernelConnection> => {
+    return this.kernelManager.startNew(options);
   };
 
   /**

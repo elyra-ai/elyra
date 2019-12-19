@@ -1,4 +1,4 @@
-name: Elyra Tests (1.x)
+name: Elyra Tests (2.x)
 on:
   push:
     branches: '*'

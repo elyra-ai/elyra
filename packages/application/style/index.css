@@ -14,45 +14,27 @@
  * limitations under the License.
  */
 
-/* Add CSS variables to :root */
-:root {
-  --elyra-logo: url('./codait-piebrainlogo-jupyter-color.svg');
-  --up-arrow: url('./up-arrow-icon.svg');
-  --down-arrow: url('./down-arrow-icon.svg');
-}
-
-#jp-MainLogo.jp-JupyterIcon {
-  background-image: var(--elyra-logo);
-  background-size: 20px;
-  margin-left: 5px;
-  margin-right: 5px;
-}
-
 .elyra-pipelineSubmission-messageDisplay {
   max-width: 500px;
+  padding-bottom: 5px;
 }
 
 .elyra-pipelineSubmission-errDisplayButton {
   margin-right: 10px;
   vertical-align: text-bottom;
+  background-color: white;
   background-repeat: no-repeat;
   border: none;
 }
 
 .elyra-pipelineSubmission-errDisplayButton:hover {
-  background-color: #f0f0f0;
+  background-color: var(--jp-layout-color2);
 }
 
 button.elyra-pipelineSubmission-errDisplayButton {
   height: 20px;
-}
-
-.elyra-pipelineSubmission-errDisplayButton-down {
-  background-image: var(--down-arrow);
-}
-
-.elyra-pipelineSubmission-errDisplayButton-up {
-  background-image: var(--up-arrow);
+  width: 20px;
+  padding: 0;
 }
 
 .elyra-pipelineSubmission-error-visible {

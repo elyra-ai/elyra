@@ -38,10 +38,10 @@
     "lerna": "^3.16.4",
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
-    "rimraf": "^2.6.3",
+    "rimraf": "~3.0.0",
     "start-server-and-test": "1.7.9",
     "ts-loader": "^6.2.1",
-    "typescript": "~3.5.2",
+    "typescript": "~3.7.3",
     "webpack": "^4.42.0"
   },
   "resolutions": {
