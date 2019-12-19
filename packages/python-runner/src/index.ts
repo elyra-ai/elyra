@@ -22,7 +22,7 @@ import {
   ILayoutRestorer
 } from '@jupyterlab/application';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { ISettingRegistry } from '@jupyterlab/coreutils';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -36,7 +36,7 @@ import {
 
 import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
 
-import { JSONObject } from '@phosphor/coreutils';
+import { JSONObject } from '@lumino/coreutils';
 
 import { PythonFileEditorFactory, PythonFileEditor } from './widget';
 

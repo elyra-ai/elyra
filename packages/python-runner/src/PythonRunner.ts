@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { Kernel } from '@jupyterlab/services';
+import {
+  Kernel,
+  KernelManager,
+  KernelSpec,
+  KernelSpecManager
+} from '@jupyterlab/services';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 
@@ -22,15 +27,17 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
  * Class: An enhanced Python Script Editor that enables developing and running the script
  */
 export class PythonRunner {
-  kernel: Kernel.IKernel;
+  kernelSpecManager: KernelSpecManager;
+  kernelManager: KernelManager;
+  kernel: Kernel.IKernelConnection;
   model: CodeEditor.IModel;
-  kernelSettings: Kernel.IOptions;
 
   /**
    * Construct a new runner.
    */
   constructor(model: CodeEditor.IModel) {
-    this.kernel = null;
+    this.kernelSpecManager = new KernelSpecManager();
+    this.kernelManager = new KernelManager();
     this.model = model;
   }
 
@@ -38,7 +45,7 @@ export class PythonRunner {
    * Function: Starts a python kernel and executes code from file editor.
    */
   runPython = async (
-    kernelSettings: Kernel.IOptions,
+    kernelName: string,
     handleKernelMsg: Function
   ): Promise<any> => {
     if (!this.kernel) {
@@ -46,7 +53,7 @@ export class PythonRunner {
       const code: string = model.value.text;
 
       try {
-        this.kernel = await this.startKernel(kernelSettings);
+        this.kernel = await this.kernelManager.startNew({ name: kernelName });
       } catch (e) {
         return showDialog({
           title: 'Error',
@@ -60,14 +67,6 @@ export class PythonRunner {
         return showDialog({
           title: 'Error',
           body: 'Could not start kernel environment to execute script.',
-          buttons: [Dialog.okButton()]
-        });
-      } else if (!this.kernel.ready) {
-        // kernel started, but something is not right and
-        // the kernel is not ready
-        return showDialog({
-          title: 'Error',
-          body: 'Kernel environment not ready to execute script.',
           buttons: [Dialog.okButton()]
         });
       }
@@ -113,16 +112,19 @@ export class PythonRunner {
   /**
    * Function: Gets available kernel specs.
    */
-  getKernelSpecs = async (): Promise<Kernel.ISpecModels> => {
-    const kernelSpecs = await Kernel.getSpecs();
+  getKernelSpecs = async (): Promise<KernelSpec.ISpecModels> => {
+    await this.kernelSpecManager.ready;
+    const kernelSpecs = await this.kernelSpecManager.specs;
     return kernelSpecs;
   };
 
   /**
    * Function: Starts new kernel.
    */
-  startKernel = async (options: Kernel.IOptions): Promise<Kernel.IKernel> => {
-    return Kernel.startNew(options);
+  startKernel = async (
+    options: Kernel.IKernelOptions
+  ): Promise<Kernel.IKernelConnection> => {
+    return this.kernelManager.startNew(options);
   };
 
   /**
