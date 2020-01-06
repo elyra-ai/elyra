@@ -20,7 +20,7 @@ import {ServerConnection} from '@jupyterlab/services';
 
 import * as React from "react";
 
-export class SubmissionHanlder {
+export class SubmissionHandler {
 
   static handleError(response: any, submissionType: string) {
     let res_body = response['message'] ? response['message'] : '';
@@ -43,69 +43,60 @@ export class SubmissionHanlder {
     });
   }
 
-  static getRuntimes(submissionType: string, dialogCallback: (runtimes: any) => void) {
+  static makeGetRequest(requestExt: string, submissionType: string, dialogCallback: (results: any) => void) {
+    this.makeServerRequest(requestExt,{ method: 'GET' }, submissionType, dialogCallback);
+  }
+
+  static makePostRequest(requestExt: string, requestBody: any, submissionType: string, dialogCallback: (results: any) => void) {
+    this.makeServerRequest(requestExt,{ method: 'POST', body: requestBody }, submissionType, dialogCallback);
+  }
+
+  static makeServerRequest(requestExt: string, requestOptions: any, submissionType: string, dialogCallback: (results: any) => void) {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are the in the extension installed by this package
     let settings = ServerConnection.makeSettings();
-    let runtime_url = URLExt.join(settings.baseUrl, 'metadata/runtime');
+    let requestUrl = URLExt.join(settings.baseUrl, requestExt);
 
-    ServerConnection.makeRequest(runtime_url, { method: 'GET' }, settings)
-      .then((runtime_response: any) => {
-        // handle 404 if elyra server extension is not found
-        if (runtime_response.status === 404) {
-          return this.handle404(submissionType);
-        }
-
-        runtime_response.json().then((runtime_result: any) => {
-          if (runtime_response.status !== 200) {
-            return this.handleError(runtime_result, submissionType);
-          }
-
-          return dialogCallback(runtime_result);
-        });
-    });
-  }
-
-  static submitPipeline(pipeline: any, runtime_config: string, submissionType: string) {
-    let settings = ServerConnection.makeSettings();
-    let url = URLExt.join(settings.baseUrl, 'scheduler');
-    let requestBody = JSON.stringify(pipeline);
-
-    console.log('Pipeline definition:');
-    console.log(pipeline);
-    console.log('Submitting pipeline to -> ' + url);
+    console.log('Submitting a ' + requestOptions.method + ' request to ' + requestUrl);
 
     // Note: a button is required to resolve the dialog below
     let waitDialog = new Dialog({
-      title: 'Submitting pipeline...',
+      title: 'Submitting request...',
       body: 'This may take some time',
       buttons: [Dialog.okButton()]
     });
     waitDialog.launch();
 
-    ServerConnection.makeRequest(url, {method: 'POST', body: requestBody}, settings)
-      .then((scheduler_response: any) => {
-        waitDialog.resolve();
+    ServerConnection.makeRequest(requestUrl, requestOptions, settings).then((response: any) => {
+      waitDialog.resolve();
 
-        // handle 404 if elyra server extension is not found
-        if (scheduler_response.status === 404) {
-          return this.handle404(submissionType);
+      // handle 404 if elyra server extension is not found
+      if (response.status === 404) {
+        return this.handle404(submissionType);
+      }
+
+      response.json().then((result: any) => {
+        if (response.status !== 200) {
+          return this.handleError(result, submissionType);
         }
 
-        scheduler_response.json().then((data: any) => {
-          if (scheduler_response.status !== 200) {
-            return this.handleError(data, submissionType);
-          }
-
-          let dialogTitle: string = 'Job submission to ' + runtime_config + ' succeeded';
-          let dialogBody = <p>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a>
-          </p>;
-          return showDialog({
-            title: dialogTitle,
-            body: dialogBody,
-            buttons: [Dialog.okButton()]
-          });
-        });
+        return dialogCallback(result);
       });
+    });
+  }
+
+  static submitPipeline(pipeline: any, runtime_config: string, submissionType: string) {
+    console.log('Pipeline definition:');
+    console.log(pipeline);
+
+    this.makePostRequest('scheduler', JSON.stringify(pipeline), submissionType, (data: any) => {
+      let dialogTitle: string = 'Job submission to ' + runtime_config + ' succeeded';
+      let dialogBody = <p>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a></p>;
+      return showDialog({
+        title: dialogTitle,
+        body: dialogBody,
+        buttons: [Dialog.okButton()]
+      });
+    });
   }
 }

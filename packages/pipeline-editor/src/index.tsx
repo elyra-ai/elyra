@@ -28,7 +28,7 @@ import {Widget, PanelLayout} from '@phosphor/widgets';
 
 import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {NotebookParser, SubmissionHanlder} from "@elyra/application";
+import {NotebookParser, SubmissionHandler} from "@elyra/application";
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
@@ -385,7 +385,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   }
 
   handleRun() {
-    SubmissionHanlder.getRuntimes('pipeline', (runtimes: any) =>
+    SubmissionHandler.makeGetRequest('metadata/runtime', 'pipeline', (runtimes: any) =>
       showDialog({
         title: 'Run pipeline',
         body: new PipelineDialog({"runtimes": runtimes}),
@@ -404,7 +404,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
         pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
         pipelineFlow.pipelines[0]['app_data']['runtime-config'] = result.value.runtime_config;
 
-        SubmissionHanlder.submitPipeline(pipelineFlow, result.value.runtime_config, 'pipeline');
+        SubmissionHandler.submitPipeline(pipelineFlow, result.value.runtime_config, 'pipeline');
       })
     );
   }
