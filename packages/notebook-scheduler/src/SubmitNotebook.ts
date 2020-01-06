@@ -21,7 +21,7 @@ import {JSONObject, JSONValue} from "@phosphor/coreutils";
 import {PanelLayout, Widget} from '@phosphor/widgets';
 import {IDisposable} from "@phosphor/disposable";
 
-import {NotebookParser, SubmissionHanlder} from "@elyra/application";
+import {NotebookParser, SubmissionHandler} from "@elyra/application";
 
 import Utils from './utils'
 
@@ -70,7 +70,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
   showWidget = () => {
     let envVars: string[] = NotebookParser.getEnvVars(this.panel.content.model.toString());
 
-    SubmissionHanlder.getRuntimes('pipeline', (runtimes: any) =>
+    SubmissionHandler.makeGetRequest('metadata/runtime', 'pipeline', (runtimes: any) =>
       showDialog({
         title: 'Submit notebook',
         body: new SubmitNotebook(envVars, runtimes),
@@ -85,7 +85,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
         let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions>result.value;
         let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions);
 
-        SubmissionHanlder.submitPipeline(pipeline, result.value.runtime_config, 'notebook');
+        SubmissionHandler.submitPipeline(pipeline, result.value.runtime_config, 'notebook');
       })
     );
   };
