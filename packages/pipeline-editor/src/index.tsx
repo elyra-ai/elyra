@@ -22,9 +22,9 @@ import {ILauncher} from '@jupyterlab/launcher';
 import {IMainMenu} from '@jupyterlab/mainmenu';
 import {NotebookPanel} from "@jupyterlab/notebook";
 
-import {toArray} from '@phosphor/algorithm';
-import {IDragEvent} from '@phosphor/dragdrop';
-import {Widget, PanelLayout} from '@phosphor/widgets';
+import {toArray} from '@lumino/algorithm';
+import {IDragEvent} from '@lumino/dragdrop';
+import {Widget, PanelLayout} from '@lumino/widgets';
 
 import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';

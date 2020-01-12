@@ -25,7 +25,7 @@ import {HTMLSelect} from '@jupyterlab/ui-components';
 import {Kernel} from '@jupyterlab/services';
 import {OutputArea, OutputAreaModel, OutputPrompt} from '@jupyterlab/outputarea';
 import {RenderMimeRegistry,standardRendererFactories as initialFactories} from '@jupyterlab/rendermime';
-import {BoxLayout, PanelLayout, Widget, DockPanel, TabBar} from '@phosphor/widgets';
+import {BoxLayout, PanelLayout, Widget, DockPanel, TabBar} from '@lumino/widgets';
 
 import {PythonRunner} from './PythonRunner';
 

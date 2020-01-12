@@ -45,7 +45,7 @@ setup_args = dict(
         "kfp-notebook>=0.2.0",
         "minio",
         'ipywidgets',
-        'jupyterlab>=1.0.0,<2.0.0',
+        'jupyterlab>=2.0.0',
         'jupyterlab-git',
         'nbconvert',
         'notebook>=6'

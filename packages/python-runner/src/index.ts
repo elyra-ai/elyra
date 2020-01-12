@@ -24,7 +24,7 @@ import {ILauncher} from '@jupyterlab/launcher';
 import {IMainMenu} from '@jupyterlab/mainmenu';
 import {WidgetTracker, ICommandPalette} from '@jupyterlab/apputils';
 
-import {JSONObject} from '@phosphor/coreutils';
+import {JSONObject} from '@lumino/coreutils';
 
 import {PythonFileEditorFactory, PythonFileEditor} from "./widget";
 
@@ -49,7 +49,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   requires: [IEditorServices, ICommandPalette, ISettingRegistry],
   optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
-    app: JupyterFrontEnd, 
+    app: JupyterFrontEnd,
     editorServices: IEditorServices,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
@@ -81,12 +81,12 @@ const extension: JupyterFrontEndPlugin<void> = {
 
       if (restorer) {
         // Handle state restoration
-        void restorer.restore(tracker, 
+        void restorer.restore(tracker,
         {
           command: commandIDs.openDocManager,
-          args: widget => ({ 
-            path: widget.context.path, 
-            factory: PYTHON_FACTORY 
+          args: widget => ({
+            path: widget.context.path,
+            factory: PYTHON_FACTORY
           }),
           name: widget => widget.context.path
         });
@@ -141,7 +141,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         });
 
 
-      app.docRegistry.addWidgetFactory(factory);  
+      app.docRegistry.addWidgetFactory(factory);
 
       factory.widgetCreated.connect((sender, widget) => {
         void tracker.add(widget);
@@ -228,7 +228,7 @@ const extension: JupyterFrontEndPlugin<void> = {
             });
           });
       };
-  
+
       // Add a command to create new Python file
       app.commands.addCommand(commandIDs.createNewPython, {
         label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
@@ -240,10 +240,10 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       });
 
-      palette.addItem({ 
+      palette.addItem({
         command: commandIDs.createNewPython,
         args: { isPalette: true },
-        category: 'Python Editor' 
+        category: 'Python Editor'
       });
     }
 };
