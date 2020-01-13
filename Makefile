@@ -44,6 +44,7 @@ test: ## Run unit tests
 # Builds Elyra to make ready for packaging/installation
 build:
 	rm -f yarn.lock package-lock.json
+	yarn cache clean
 	yarn
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
