@@ -9,8 +9,8 @@
   },
   "devDependencies": {
     "lerna": "^3.16.4",
-    "rimraf": "^2.6.3",
-    "typescript": "~3.5.2"
+    "rimraf": "~3.0.0",
+    "typescript": "~3.7.3"
   },
   "resolutions": {
     "react": "~16.8.6",

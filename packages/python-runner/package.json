@@ -43,8 +43,8 @@
     "@lumino/widgets": "~1.9.7"
   },
   "devDependencies": {
-    "rimraf": "^2.6.3",
-    "typescript": "~3.5.2"
+    "rimraf": "~3.0.0",
+    "typescript": "~3.7.3"
   },
   "jupyterlab": {
     "extension": true

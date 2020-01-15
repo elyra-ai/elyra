@@ -42,8 +42,8 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "rimraf": "^2.6.3",
-    "typescript": "~3.5.2"
+    "rimraf": "~3.0.0",
+    "typescript": "~3.7.3"
   },
   "publishConfig": {
     "registry": "https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/"

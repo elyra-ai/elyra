@@ -29,7 +29,7 @@
     "watch": "tsc -w"
   },
   "devDependencies": {
-    "rimraf": "^2.6.3",
-    "typescript": "~3.5.2"
+    "rimraf": "~3.0.0",
+    "typescript": "~3.7.3"
   }
 }
