@@ -15,7 +15,8 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "target": "es2017",
-    "strictNullChecks": true,
+    "strict": true,
+    "strictNullChecks": false,
     "types": []
   }
 }
