@@ -18,7 +18,7 @@ import '../style/index.css';
 
 import {JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer} from '@jupyterlab/application';
 import {CodeEditor, IEditorServices} from '@jupyterlab/codeeditor';
-import {ISettingRegistry} from '@jupyterlab/coreutils';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import {FileEditor} from '@jupyterlab/fileeditor';
 import {ILauncher} from '@jupyterlab/launcher';
 import {IMainMenu} from '@jupyterlab/mainmenu';
