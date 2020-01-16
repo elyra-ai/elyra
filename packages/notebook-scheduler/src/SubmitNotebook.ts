@@ -17,8 +17,6 @@ import {Dialog, showDialog, ToolbarButton} from "@jupyterlab/apputils";
 import {DocumentRegistry} from "@jupyterlab/docregistry";
 import {INotebookModel, NotebookPanel} from "@jupyterlab/notebook";
 import {JupyterFrontEnd} from "@jupyterlab/application";
-import {URLExt} from "@jupyterlab/coreutils";
-import {ServerConnection} from "@jupyterlab/services";
 import {JSONObject, JSONValue} from "@lumino/coreutils";
 import {PanelLayout, Widget} from '@lumino/widgets';
 import {IDisposable} from "@lumino/disposable";
@@ -70,7 +68,10 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
   readonly app: JupyterFrontEnd;
 
   showWidget = () => {
-    let envVars: string[] = NotebookParser.getEnvVars(this.panel.content.model.toString());
+
+    // @ts-ignore
+    let envVars = NotebookParser.getEnvVars(this.panel.content.model.toString());
+
 
     SubmissionHandler.makeGetRequest('metadata/runtime', 'pipeline', (runtimes: any) =>
       showDialog({
