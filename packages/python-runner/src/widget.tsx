@@ -69,7 +69,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
-      iconClassName: SAVE_ICON_CLASS,
+      iconClass: SAVE_ICON_CLASS,
       onClick: this.saveFile,
       tooltip: 'Save file contents'
     });
@@ -77,13 +77,13 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     const dropDown = new CellTypeSwitcher(this.runner, this.updateSelectedKernel);
 
     const runButton = new ToolbarButton({
-      iconClassName: RUN_ICON_CLASS,
+      iconClass: RUN_ICON_CLASS,
       onClick: this.runPython,
       tooltip: 'Run'
     });
 
     const stopButton = new ToolbarButton({
-      iconClassName: STOP_ICON_CLASS,
+      iconClass: STOP_ICON_CLASS,
       onClick: this.runner.shutDownKernel,
       tooltip: 'Stop'
     });
