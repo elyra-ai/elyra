@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Kernel, KernelManager, KernelSpecAPI } from '@jupyterlab/services';
+import {Kernel, KernelManager, KernelSpecManager } from '@jupyterlab/services';
 import {CodeEditor} from '@jupyterlab/codeeditor';
 import {Dialog, showDialog} from "@jupyterlab/apputils";
 
@@ -22,6 +22,7 @@ import {Dialog, showDialog} from "@jupyterlab/apputils";
  * Class: An enhanced Python Script Editor that enables developing and running the script
  */
 export class PythonRunner {
+    kernelSpecManager: KernelSpecManager;
     kernelManager: KernelManager;
     kernel : Kernel.IKernelConnection;
     model: CodeEditor.IModel;
@@ -31,6 +32,7 @@ export class PythonRunner {
    * Construct a new runner.
    */
     constructor(model: CodeEditor.IModel){
+        this.kernelSpecManager = new KernelSpecManager();
         this.kernelManager = new KernelManager();
         this.model = model;
     }
@@ -45,6 +47,7 @@ export class PythonRunner {
 
 
         try {
+          await this.kernelManager.ready;
           this.kernel = await this.kernelManager.startNew(kernelSettings);
         } catch (e) {
           return showDialog({
@@ -109,13 +112,14 @@ export class PythonRunner {
           }
         }
       }
-    }
+    };
 
   /**
    * Function: Gets available kernel specs.
    */
     getKernelSpecs = async () => {
-      const kernelSpecs = await KernelSpecAPI.getSpecs();
+      await this.kernelSpecManager.ready;
+      const kernelSpecs = await this.kernelSpecManager.specs;
       return kernelSpecs;
     };
 
