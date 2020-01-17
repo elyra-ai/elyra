@@ -54,7 +54,7 @@ const commandIDs = {
 /**
  * Class for dialog that pops up for pipeline submission
  */
-class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
+class PipelineDialog extends Widget {
 
   constructor(props: any) {
     super(props);
@@ -388,7 +388,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     SubmissionHandler.makeGetRequest('metadata/runtime', 'pipeline', (runtimes: any) =>
       showDialog({
         title: 'Run pipeline',
-        body: new PipelineDialog({"runtimes": runtimes}),
+        body: new PipelineDialog({"runtimes": runtimes}) as unknown as Dialog.IBodyWidget<any>,
         buttons: [Dialog.cancelButton(), Dialog.okButton()],
         focusNodeSelector: '#pipeline_name'
       }).then( result => {
