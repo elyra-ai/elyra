@@ -40,7 +40,7 @@ export class PythonRunner {
     /**
      * Function: Starts a python kernel and executes code from file editor.
      */
-    runPython = async (kernelSettings: Kernel.IKernelOptions, handleKernelMsg: Function) => {
+    runPython = async (kernelName: string, handleKernelMsg: Function) => {
       if (!this.kernel) {
         const model = this.model;
         const code: string = model.value.text;
@@ -48,7 +48,7 @@ export class PythonRunner {
 
         try {
           await this.kernelManager.ready;
-          this.kernel = await this.kernelManager.startNew(kernelSettings);
+          this.kernel = await this.kernelManager.startNew({ name: kernelName });
         } catch (e) {
           return showDialog({
             title: 'Error',

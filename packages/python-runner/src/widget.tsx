@@ -22,7 +22,7 @@ import {ABCWidgetFactory, DocumentRegistry, DocumentWidget} from '@jupyterlab/do
 import {CodeEditor, IEditorServices} from '@jupyterlab/codeeditor';
 import {ToolbarButton, ReactWidget, showDialog, Dialog} from '@jupyterlab/apputils';
 import {HTMLSelect} from '@jupyterlab/ui-components';
-import {Kernel, KernelSpec} from '@jupyterlab/services';
+import {KernelSpec} from '@jupyterlab/services';
 import {OutputArea, OutputAreaModel, OutputPrompt} from '@jupyterlab/outputarea';
 import {RenderMimeRegistry,standardRendererFactories as initialFactories} from '@jupyterlab/rendermime';
 import {BoxLayout, PanelLayout, Widget, DockPanel, TabBar} from '@lumino/widgets';
@@ -49,7 +49,7 @@ const SAVE_ICON_CLASS = 'jp-SaveIcon';
  */
 export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistry.ICodeModel> {
   private runner: PythonRunner;
-  private kernelSettings: Kernel.IKernelOptions;
+  private kernelName: string;
   private dockPanel: DockPanel;
   private outputAreaWidget: OutputArea;
   private model: any;
@@ -63,7 +63,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     this.model = this.content.model;
     this.runner = new PythonRunner(this.model);
     // @ts-ignore
-    this.kernelSettings = {name: null};
+    this.kernelName = null;
 
     // Add python icon to main tab
     this.title.iconClass = PYTHON_ICON_CLASS;
@@ -117,7 +117,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     this.outputAreaWidget = new OutputArea({ rendermime: renderMimeRegistry, model });
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
 
-    const layout = this.layout as BoxLayout;
+    const layout = this.layout as unknown as BoxLayout;
     // TODO: Investigate SplitLayout instead of BoxLayout, for layout resizing functionality
     // const layout = this.layout as SplitLayout;
     layout.addWidget(this.dockPanel);
@@ -127,7 +127,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
    * Function: Updates kernel settings as per drop down selection.
    */
   private updateSelectedKernel = (selection: string) => {
-    this.kernelSettings.name = selection;
+    this.kernelName = selection;
   };
 
   /**
@@ -136,7 +136,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
   private runPython = async () => {
     this.resetOutputArea();
     this.displayOutputArea();
-    this.runner.runPython(this.kernelSettings, this.handleKernelMsg);
+    this.runner.runPython(this.kernelName, this.handleKernelMsg);
   };
 
   /**
