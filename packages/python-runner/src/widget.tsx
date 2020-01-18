@@ -175,7 +175,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     // TODO: Set layout height to be flexible
     BoxLayout.setStretch(this.dockPanel, 1);
 
-    if ( !this.hasOutputTab() ){
+    if ( this.dockPanel.isEmpty ){
       // Add a tab to dockPanel
       this.dockPanel.addWidget(this.outputAreaWidget, { mode: 'split-bottom' });
 
@@ -183,7 +183,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
       outputTab.id = 'tab-python-editor-output';
       outputTab.currentTitle.label = 'Python Console Output';
       outputTab.currentTitle.closable = true;
-      this.addCollapseButton();
+      outputTab.disposed.connect((sender, args) => { this.resetOutputArea(); }, this);
     }
   };
 
@@ -239,23 +239,6 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
    */
   private updatePromptText = (kernelStatusFlag: string) => {
     this.getOutputAreaPromptWidget().node.innerText = '[' + kernelStatusFlag + ']:';
-  };
-
-  /**
-   * Function: Returns a boolean representing if the DockPanel instance has a TabBar.
-   */
-  private hasOutputTab = () => {
-    return Object.entries(this.dockPanel.tabBars()).length !== 0;
-  }
-
-  //  TODO: Add collapse button to tab
-  private addCollapseButton = () => {
-    // Commented code below swaps close icon to collapse icon. We want both.
-    // const tabBar = this.dockPanel.tabBars().next();
-    // let closeIconElem = tabBar.contentNode.getElementsByClassName('p-TabBar-tabCloseIcon')[0];
-    // if (closeIconElem){
-    //   closeIconElem.classList.add(COLLAPSE_ICON_CLASS);
-    // }
   };
 
   /**
