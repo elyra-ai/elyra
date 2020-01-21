@@ -64,15 +64,6 @@ export class PythonRunner {
             body: 'Could not start kernel environment to execute script.',
             buttons: [Dialog.okButton()]
           });
-          // } else if ( ! this.kernel. ) {
-          //   // kernel started, but something is not right and
-          //   // the kernel is not ready
-          //   return showDialog({
-          //     title: 'Error',
-          //     body: 'Kernel environment not ready to execute script.',
-          //     buttons: [Dialog.okButton()]
-          //   });
-          // }
 
           const future = this.kernel.requestExecute({code});
 
