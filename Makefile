@@ -55,13 +55,13 @@ install: bdist ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 	$(call UNLINK_LAB_EXTENSION,application)
 	$(call UNINSTALL_LAB_EXTENSION,notebook-scheduler-extension)
-	$(call UNINSTALL_LAB_EXTENSION,python-runner-extension)
 	$(call UNINSTALL_LAB_EXTENSION,pipeline-editor-extension)
+	$(call UNINSTALL_LAB_EXTENSION,python-runner-extension)
 	jupyter lab clean
 	$(call LINK_LAB_EXTENSION,application)
 	$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
-	$(call INSTALL_LAB_EXTENSION,python-runner)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
+	$(call INSTALL_LAB_EXTENSION,python-runner)
 	jupyter lab build
 	jupyter serverextension list
 	jupyter labextension list
@@ -74,9 +74,10 @@ npm-packages: build
 	mkdir dist
 	$(call PACKAGE_LAB_EXTENSION,application)
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
-	$(call PACKAGE_LAB_EXTENSION,python-runner)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
+	$(call PACKAGE_LAB_EXTENSION,python-runner)
 	cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
+	cd dist && curl -O $$(npm view @jupyterlab/toc dist.tarball --userconfig=./npm_config) && cd -
 
 docker-image: bdist ## Build docker image
 	cp -r dist/*.whl etc/docker/
