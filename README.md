@@ -26,6 +26,7 @@ Elyra currently includes:
 * Hybrid runtime support (based on Jupyter Enterprise gateway)
 * Python Script execution capabilities within the editor
 * Notebook versioning based on git integration
+* Notebook navigation using auto-generated **Table of Contents**
 * Reusable Configuration for runtimes
 
 ![Elyra](docs/source/images/ai-workspace.png)
@@ -84,6 +85,13 @@ of the code, backups and, most importantly, sharing among team members - fosteri
 enabling a collaborative working environment.
 
 ![Git Integration](docs/source/images/git.png)
+
+#### Notebook navigation using auto-generated **Table of Contents**
+
+The enhanced notebook navigation looks into **markdown** titles, subtitles, etc to auto-generate
+a Notebook **Table of Contents** and provide enhanced navigation capabilities. 
+
+![Notebook Table of Contents](docs/source/images/notebook-toc.png)
 
 #### Reusable Configuration for runtimes
 
