@@ -21,11 +21,11 @@ import {FileEditor} from '@jupyterlab/fileeditor';
 import {ABCWidgetFactory, DocumentRegistry, DocumentWidget} from '@jupyterlab/docregistry';
 import {CodeEditor, IEditorServices} from '@jupyterlab/codeeditor';
 import {ToolbarButton, ReactWidget, showDialog, Dialog} from '@jupyterlab/apputils';
-import {HTMLSelect} from '@jupyterlab/ui-components';
+import {DockPanelSvg, HTMLSelect, TabBarSvg} from '@jupyterlab/ui-components';
 import {KernelSpec} from '@jupyterlab/services';
 import {OutputArea, OutputAreaModel, OutputPrompt} from '@jupyterlab/outputarea';
 import {RenderMimeRegistry,standardRendererFactories as initialFactories} from '@jupyterlab/rendermime';
-import {BoxLayout, PanelLayout, Widget, DockPanel, TabBar} from '@lumino/widgets';
+import {BoxLayout, PanelLayout, Widget} from '@lumino/widgets';
 
 import {PythonRunner} from './PythonRunner';
 
@@ -50,7 +50,7 @@ const SAVE_ICON_CLASS = 'jp-SaveIcon';
 export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistry.ICodeModel> {
   private runner: PythonRunner;
   private kernelName: string;
-  private dockPanel: DockPanel;
+  private dockPanel: DockPanelSvg;
   private outputAreaWidget: OutputArea;
   private model: any;
 
@@ -105,7 +105,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
    */
   private createOutputAreaWidget = () => {
     // Add dockpanel wrapper for output area
-    this.dockPanel = new DockPanel();
+    this.dockPanel = new DockPanelSvg();
     Widget.attach(this.dockPanel, document.body);
     window.addEventListener('resize', () => {
       this.dockPanel.fit();
@@ -116,6 +116,8 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     const renderMimeRegistry = new RenderMimeRegistry({ initialFactories });
     this.outputAreaWidget = new OutputArea({ rendermime: renderMimeRegistry, model });
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
+    this.outputAreaWidget.title.label = 'Python Console Output';
+    this.outputAreaWidget.title.closable = true;
 
     const layout = this.layout as unknown as BoxLayout;
     // TODO: Investigate SplitLayout instead of BoxLayout, for layout resizing functionality
@@ -180,10 +182,8 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
       // Add a tab to dockPanel
       this.dockPanel.addWidget(this.outputAreaWidget, { mode: 'split-bottom' });
 
-      let outputTab: TabBar<Widget> = this.dockPanel.tabBars().next();
+      let outputTab: TabBarSvg<Widget> = this.dockPanel.tabBars().next();
       outputTab.id = 'tab-python-editor-output';
-      outputTab.currentTitle.label = 'Python Console Output';
-      outputTab.currentTitle.closable = true;
       outputTab.disposed.connect((sender, args) => { this.resetOutputArea(); }, this);
     }
   };
