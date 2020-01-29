@@ -91,9 +91,9 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     // Populate toolbar with button widgets
     const toolbar = this.toolbar;
     toolbar.addItem('save', saveButton);
-    toolbar.addItem('select', dropDown);
     toolbar.addItem('run', runButton);
     toolbar.addItem('stop', stopButton);
+    toolbar.addItem('select', dropDown);
 
     // Create output area widget
     this.createOutputAreaWidget();
@@ -344,6 +344,9 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
         React.createElement(HTMLSelect, {
           className: DROPDOWN_CLASS,
           onChange: this.handleSelection.bind(this),
+          iconProps: {
+            icon: <span className="jp-MaterialIcon jp-DownCaretIcon bp3-icon" />
+          },
           defaultValue: this.state.kernelSpecs.default
         }, this.kernelOptionElems) :
         React.createElement('span', null, 'Fetching kernel specs...')
