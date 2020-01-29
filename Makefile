@@ -61,11 +61,13 @@ bdist: lint npm-packages
 install: bdist ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 	$(call UNLINK_LAB_EXTENSION,application)
+	$(call UNINSTALL_LAB_EXTENSION,code-snippet)
 	$(call UNINSTALL_LAB_EXTENSION,notebook-scheduler-extension)
 	$(call UNINSTALL_LAB_EXTENSION,pipeline-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,python-runner-extension)
 	jupyter lab clean
 	$(call LINK_LAB_EXTENSION,application)
+	$(call INSTALL_LAB_EXTENSION,code-snippet)
 	$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,python-runner)
@@ -80,6 +82,7 @@ install-backend: ## Build and install backend
 npm-packages: prepare
 	mkdir dist
 	$(call PACKAGE_LAB_EXTENSION,application)
+	$(call PACKAGE_LAB_EXTENSION,code-snippet)
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
