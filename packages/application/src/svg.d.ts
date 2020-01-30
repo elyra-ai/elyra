@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
-export * from './parsing';
-export * from './submission';
-export * from './icons';
+declare module '*.svg' {
+  const image: string;
+  export default image;
+}

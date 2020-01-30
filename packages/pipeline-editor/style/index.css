@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-/* Add CSS variables to :root */
-:root {
-  --elyra-icon-pipeline: url('./pipelineIcon.png');
-}
-
 .add .list-item {
 	background-image: url('./add-notebook-node.svg');
 	background-repeat: no-repeat;
@@ -52,10 +47,6 @@
 	background-repeat: no-repeat;
     background-position: center;
     background-size: 40%;
-}
-
-.elyra-PipelineIcon {
-    background-image: var(--elyra-icon-pipeline);
 }
 
 .elyra-PipelineEditor .properties-modal {

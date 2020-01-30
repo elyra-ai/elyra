@@ -345,9 +345,6 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
         React.createElement(HTMLSelect, {
           className: DROPDOWN_CLASS,
           onChange: this.handleSelection.bind(this),
-          iconProps: {
-            icon: <span className="jp-MaterialIcon jp-DownCaretIcon bp3-icon" />
-          },
           defaultValue: this.state.kernelSpecs.default
         }, this.kernelOptionElems) :
         React.createElement('span', null, 'Fetching kernel specs...')

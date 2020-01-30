@@ -28,7 +28,7 @@ import {Widget, PanelLayout} from '@lumino/widgets';
 
 import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {NotebookParser, SubmissionHandler} from "@elyra/application";
+import {NotebookParser, SubmissionHandler, elyraIcon} from "@elyra/application";
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
@@ -39,7 +39,7 @@ import * as React from 'react';
 
 import { IntlProvider } from "react-intl";
 
-const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
+const PIPELINE_ICON_CLASS = 'jp-ElyraIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
@@ -50,6 +50,7 @@ const commandIDs = {
   openDocManager : 'docmanager:open',
   newDocManager : 'docmanager:new-untitled'
 };
+
 
 /**
  * Class for dialog that pops up for pipeline submission
@@ -563,7 +564,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline'], iconClass: PIPELINE_ICON_CLASS});
+    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline'], iconRenderer: elyraIcon});
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
     const tracker = new WidgetTracker<DocumentWidget>({
