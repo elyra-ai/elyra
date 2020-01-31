@@ -72,6 +72,7 @@ setup_args = dict(
     entry_points={
         'console_scripts': [
             'jupyter-runtimes = elyra.metadata.runtime:RuntimeMetadataApp.launch_instance',
+            'jupyter-code-snippets = elyra.metadata.code_snippet:CodeSnippetMetadataApp.launch_instance',
         ],
         'elyra.pipeline.processors': [
             'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'
