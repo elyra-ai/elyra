@@ -40,7 +40,7 @@ const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
 // const COLLAPSE_ICON_CLASS = 'elyra-PythonEditor-CollapseIcon';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
-const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown';
+const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const SAVE_ICON_CLASS = 'jp-SaveIcon';
 
