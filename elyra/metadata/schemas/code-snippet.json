@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Schema for Code Snippet metadata",
+    "name": "code-snippet",
+    "properties": {
+        "schema_name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
+            "minLength": 1
+        },
+        "display_name": {
+            "description": "The display name of the metadata",
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+        },
+        "metadata": {
+            "description": "Additional data specific to this metadata",
+            "type": "object",
+            "properties": {
+                "language": {
+                    "description": "Code snippet implementation language",
+                    "type": "string"
+                },
+                "code": {
+                    "type": "array"
+                }
+            },
+            "required": ["language","code"]
+        }
+    },
+    "required": ["schema_name", "display_name"]
+}
