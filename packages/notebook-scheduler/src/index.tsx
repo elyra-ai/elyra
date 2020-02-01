@@ -18,15 +18,21 @@ import {ICommandPalette} from "@jupyterlab/apputils";
 
 import {SubmitNotebookButtonExtension} from "./SubmitNotebook";
 
-
 import '../style/index.css';
+
+const NOTEBOOK_SCHEDULER_NAMESPACE = 'elyra-notebook_scheduler_extension';
+
+const commandIDs = {
+  submitNotebook : 'notebook:submit',
+};
+
 /**
  * A JupyterLab extension to submit notebooks to
  * be executed in a remote runtime
  */
 
 export const notebook_scheduler_extension: JupyterFrontEndPlugin<void> = {
-  id: 'elyra-notebook_scheduler_extension',
+  id: NOTEBOOK_SCHEDULER_NAMESPACE,
   requires: [ICommandPalette, ILayoutRestorer],
   autoStart: true,
   activate: (
@@ -41,7 +47,7 @@ export const notebook_scheduler_extension: JupyterFrontEndPlugin<void> = {
     app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
     app.contextMenu.addItem({
       selector: '.jp-Notebook',
-      command: 'notebook:submit',
+      command: commandIDs.submitNotebook,
       rank: -0.5
     });
   }
