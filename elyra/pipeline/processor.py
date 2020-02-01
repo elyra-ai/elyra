@@ -50,8 +50,7 @@ class PipelineProcessorManager(SingletonConfigurable):
     def process(pipeline):
         registry = PipelineProcessorRegistry()
 
-        # TODO update pipeline json to flow runtime type
-        processor_type = 'kfp'
+        processor_type = pipeline.runtime
         processor = registry.get_processor(processor_type)
 
         if not processor:
