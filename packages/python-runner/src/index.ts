@@ -31,7 +31,7 @@ import {PythonFileEditorFactory, PythonFileEditor} from "./widget";
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const PYTHON_FACTORY = 'PyEditor';
 const PYTHON = 'python';
-const PYTHON_EDITOR_NAMESPACE = 'python-runner-extension';
+const PYTHON_EDITOR_NAMESPACE = 'elyra-python-runner-extension';
 
 const commandIDs = {
   createNewPython : 'pyeditor:create-new-python-file',
