@@ -41,7 +41,6 @@ class KfpPipelineProcessor(PipelineProcessor):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
 
-        # TODO update pipeline json to flow runtime type
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
 
         api_endpoint = runtime_configuration.metadata['api_endpoint']

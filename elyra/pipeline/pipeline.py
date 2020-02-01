@@ -128,10 +128,16 @@ class Pipeline:
 
     @property
     def runtime(self):
+        """
+        Describe the runtime type where the pipeline will be executed
+        """
         return self._runtime
 
     @property
     def runtime_config(self):
+        """
+        Describe the runtime configuration that should be used to submit the pipeline to execution
+        """
         return self._runtime_config
 
     @property
