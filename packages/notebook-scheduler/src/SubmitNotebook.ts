@@ -18,7 +18,7 @@ import {DocumentRegistry} from "@jupyterlab/docregistry";
 import {INotebookModel, NotebookPanel} from "@jupyterlab/notebook";
 import {JupyterFrontEnd} from "@jupyterlab/application";
 import {JSONObject, JSONValue} from "@phosphor/coreutils";
-import {PanelLayout, Widget} from '@phosphor/widgets';
+import {Widget} from '@phosphor/widgets';
 import {IDisposable} from "@phosphor/disposable";
 
 import {NotebookParser, SubmissionHandler} from "@elyra/application";
@@ -115,7 +115,6 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
  * notebook for execution
  */
 export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmitNotebookConfiguration>  {
-  private _htmlDialogElement: HTMLElement;
   _envVars: string[];
   _runtimes: any;
 
@@ -125,13 +124,9 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     this._envVars = envVars;
     this._runtimes = runtimes;
 
-    this._htmlDialogElement = this.renderHtml();
-    // Set default config to kfp, since list is dynamically generated
-    (this._htmlDialogElement.getElementsByClassName("elyra-form-runtime-config")[0] as HTMLSelectElement).value = "kfp";
+    this.node.appendChild(this.renderHtml());
+    (this.node.getElementsByClassName("elyra-form-runtime-config")[0] as HTMLSelectElement).value = "";
 
-    let layout = (this.layout = new PanelLayout());
-
-    layout.addWidget(new Widget( {node: <HTMLElement> this._htmlDialogElement.firstElementChild }))
   }
 
   /**
