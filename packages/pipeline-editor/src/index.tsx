@@ -43,7 +43,7 @@ const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
-const PIPELINE_EDITOR_NAMESPACE = 'pipeline-editor-extension';
+const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
 
 const commandIDs = {
   openPipelineEditor : 'pipeline-editor:open',
