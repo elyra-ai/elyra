@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2019 IBM Corporation
+# Copyright 2018-2020 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ from elyra._version import __version__
 
 
 class CodeSnippet(Metadata):
-    namespace = 'code-snippet'
+    namespace = 'code-snippets'
 
 
 class AppUtilMixin:
@@ -49,7 +49,7 @@ class ListCodeSnippets(Application, AppUtilMixin):
     version = __version__
     description = """List code snippet metadata."""
 
-    metadata_namespace = "code-snippet"
+    metadata_namespace = CodeSnippet.namespace
     metadata_manager = Instance(MetadataManager)
 
     json_output = Bool(False, help='Output runtime name and location as machine-readable json.', config=True)
@@ -99,7 +99,7 @@ class RemoveCodeSnippets(Application, AppUtilMixin):
     version = __version__
     description = """Remove external runtime metadata."""
 
-    metadata_namespace = "runtime"
+    metadata_namespace = CodeSnippet.namespace
     metadata_manager = Instance(MetadataManager)
 
     name = Unicode(None, config=True, allow_none=True,
