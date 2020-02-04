@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 IBM Corporation
+ * Copyright 2018-2020 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ import '../style/index.css';
 import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
 import {ICommandPalette} from '@jupyterlab/apputils';
 
-import {CodeSnippetWidget} from "./code-snippet";
+import {CodeSnippetWidget} from "./CodeSnippetWidget";
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
 
 /**
- * Initialization data for the python-editor-extension extension.
+ * Initialization data for the code-snippet extension.
  */
 export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
   id: CODE_SNIPPET_EXTENSION_ID,
