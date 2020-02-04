@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {JLIcon} from '@jupyterlab/ui-components';
+import {LabIcon} from '@jupyterlab/ui-components';
 
 import elyraSvg from '../style/codait-piebrainlogo-jupyter-color.svg';
 
-export const elyraIcon = new JLIcon({ name: 'elyra', svgstr: elyraSvg });
+export const elyraIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elyraSvg });

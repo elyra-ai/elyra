@@ -564,7 +564,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline'], iconRenderer: elyraIcon});
+    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline'], icon: elyraIcon});
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
     const tracker = new WidgetTracker<DocumentWidget>({
