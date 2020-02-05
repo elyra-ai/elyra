@@ -470,14 +470,16 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     let node = this.node.current!;
     node.addEventListener('dragenter', this.handleEvent);
     node.addEventListener('dragover', this.handleEvent);
-    node.addEventListener('p-dragover', this.handleEvent);
-    node.addEventListener('p-drop', this.handleEvent);
+    node.addEventListener('lm-dragenter', this.handleEvent);
+    node.addEventListener('lm-dragover', this.handleEvent);
+    node.addEventListener('lm-drop', this.handleEvent);
   }
 
   componentWillUnmount(): void {
     let node = this.node.current!;
-    node.removeEventListener('p-drop', this.handleEvent);
-    node.removeEventListener('p-dragover', this.handleEvent);
+    node.removeEventListener('lm-drop', this.handleEvent);
+    node.removeEventListener('lm-dragover', this.handleEvent);
+    node.removeEventListener('lm-dragenter', this.handleEvent);
     node.removeEventListener('dragover', this.handleEvent);
     node.removeEventListener('dragenter', this.handleEvent);
   }
@@ -495,12 +497,15 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       case 'dragover':
         event.preventDefault();
         break;
-      case 'p-dragover':
+      case 'lm-dragenter':
+        event.preventDefault();
+        break;
+      case 'lm-dragover':
         event.preventDefault();
         event.stopPropagation();
         (event as IDragEvent).dropAction = (event as IDragEvent).proposedAction;
         break;
-      case 'p-drop':
+      case 'lm-drop':
         event.preventDefault();
         event.stopPropagation();
         this.handleAdd((event as IDragEvent).offsetX, (event as IDragEvent).offsetY);
