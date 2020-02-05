@@ -21,6 +21,7 @@ import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
 import {ILauncher} from '@jupyterlab/launcher';
 import {IMainMenu} from '@jupyterlab/mainmenu';
 import {NotebookPanel} from "@jupyterlab/notebook";
+import {notebookIcon} from '@jupyterlab/ui-components';
 
 import {toArray} from '@lumino/algorithm';
 import {IDragEvent} from '@lumino/dragdrop';
@@ -357,6 +358,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
             data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
             data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
+            data.nodeTemplate.image = 'data:image/svg+xml;utf8,' + encodeURIComponent(notebookIcon.svgstr);
             data.nodeTemplate.app_data['artifact'] = item.path;
             data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.current_parameters.image;
             data.nodeTemplate.app_data['vars'] = vars;
