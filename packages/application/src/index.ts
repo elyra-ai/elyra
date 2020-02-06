@@ -14,6 +14,45 @@
  * limitations under the License.
  */
 
+import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
+import {IMainMenu} from "@jupyterlab/mainmenu";
+
+import {elyraIcon} from "./icons";
+
+/**
+ * Initialization data for the application extension.
+ */
+const extension: JupyterFrontEndPlugin<void> = {
+  id: 'elyra-application',
+  autoStart: true,
+  requires: [IMainMenu],
+  activate: (app: JupyterFrontEnd) => {
+    console.log('Elyra - application extension is activated!');
+
+    // Find the MainLogo widget in the shell and replace it with the Elyra Logo
+    let widgets = app.shell.widgets('top');
+    let widget = widgets.next();
+
+    while (widget !== undefined) {
+      if (widget.id === 'jp-MainLogo') {
+        elyraIcon.element({
+          container: widget.node,
+          justify: 'center',
+          margin: '2px 5px 2px 5px',
+          height: 'auto',
+          width: '20px'
+        });
+        break;
+      }
+
+      widget = widgets.next();
+      console.log(widget);
+    }
+  }
+};
+
 export * from './parsing';
 export * from './submission';
 export * from './icons';
+
+export default extension;
