@@ -37,7 +37,6 @@ const OUTPUT_AREA_CLASS = 'elyra-PythonEditor-OutputArea';
 const OUTPUT_AREA_ERROR_CLASS = 'elyra-PythonEditor-OutputArea-error';
 const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
-// const COLLAPSE_ICON_CLASS = 'elyra-PythonEditor-CollapseIcon';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
