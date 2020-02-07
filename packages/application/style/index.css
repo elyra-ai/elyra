@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+/* Add CSS variables to :root */
+:root {
+  --elyra-logo: url('./codait-piebrainlogo-jupyter-color.svg');
+}
 
-export * from './parsing';
-export * from './submission';
+#jp-MainLogo.jp-JupyterIcon {
+    background-image: var(--elyra-logo);
+    background-size: 20px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
