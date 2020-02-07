@@ -388,7 +388,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     SubmissionHandler.makeGetRequest('metadata/runtimes', 'pipeline', (response: any) =>
       showDialog({
         title: 'Run pipeline',
-        body: new PipelineDialog({"runtimes": response}),
+        body: new PipelineDialog({"runtimes": response.runtimes}),
         buttons: [Dialog.cancelButton(), Dialog.okButton()],
         focusNodeSelector: '#pipeline_name'
       }).then( result => {
