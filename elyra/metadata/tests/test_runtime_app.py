@@ -187,7 +187,7 @@ def test_list_help_all(script_runner):
 
 
 def test_list_runtimes(script_runner, mock_runtime_dir):
-    metadata_manager = MetadataManager(namespace="runtime")
+    metadata_manager = MetadataManager(namespace=Runtime.namespace)
 
     valid = Runtime(**valid_metadata_json)
     resource = metadata_manager.add('valid', valid)
@@ -269,7 +269,7 @@ def test_remove_missing(script_runner):
 
 
 def test_remove_runtime(script_runner, mock_runtime_dir):
-    metadata_manager = MetadataManager(namespace="runtime")
+    metadata_manager = MetadataManager(namespace=Runtime.namespace)
 
     valid = Runtime(**valid_metadata_json)
     resource = metadata_manager.add('valid', valid)
