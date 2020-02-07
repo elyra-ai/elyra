@@ -31,7 +31,7 @@ SUPPORTED_TYPES = ['kfp']
 
 
 class Runtime(Metadata):
-    namespace = 'runtime'
+    namespace = 'runtimes'
 
 
 class AppUtilMixin:
@@ -52,7 +52,7 @@ class ListRuntimes(Application, AppUtilMixin):
     version = __version__
     description = """List installed external runtime metadata."""
 
-    metadata_namespace = "runtime"
+    metadata_namespace = Runtime.namespace
     metadata_manager = Instance(MetadataManager)
 
     json_output = Bool(False, help='Output runtime name and location as machine-readable json.', config=True)
@@ -102,7 +102,7 @@ class RemoveRuntime(Application, AppUtilMixin):
     version = __version__
     description = """Remove external runtime metadata."""
 
-    metadata_namespace = "runtime"
+    metadata_namespace = Runtime.namespace
     metadata_manager = Instance(MetadataManager)
 
     name = Unicode(None, config=True, allow_none=True,
@@ -157,7 +157,7 @@ class Kfp(Application, AppUtilMixin):
     cos_password = Unicode(None, config=True, allow_none=True,  # FIXME - password!
                            help="The COS user password corresponding to this kfp runtime.")
 
-    metadata_namespace = "runtime"
+    metadata_namespace = Runtime.namespace
     metadata_manager = Instance(MetadataManager)
 
     def _metadata_manager_default(self):
@@ -266,7 +266,7 @@ class InstallRuntime(Application):
 
 class RuntimeMetadataApp(Application):
     version = __version__
-    name = "jupyter runtime"
+    name = "jupyter runtimes"
     description = """Manage Jupyter metadata for external runtimes."""
 
     subcommands = Dict({

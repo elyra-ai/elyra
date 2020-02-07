@@ -116,8 +116,8 @@ GET /metadata/<type>/<name>
 ### Metadata APIs
 
 ```
-metadata_manager = MetadataManager(namespace="runtime",
-                                   store=FileMetadataStore(namespace='runtime'))
+metadata_manager = MetadataManager(namespace="runtimes",
+                                   store=FileMetadataStore(namespace='runtimes'))
 
 runtime_configuration = self.metadata_manager.get('kfp')
 
