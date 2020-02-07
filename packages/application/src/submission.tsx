@@ -89,7 +89,7 @@ export class SubmissionHandler {
     console.log('Pipeline definition:');
     console.log(pipeline);
 
-    this.makePostRequest('scheduler', JSON.stringify(pipeline), submissionType, (data: any) => {
+    this.makePostRequest('api/scheduler', JSON.stringify(pipeline), submissionType, (data: any) => {
       let dialogTitle: string = 'Job submission to ' + runtime_config + ' succeeded';
       let dialogBody = <p>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a></p>;
       return showDialog({

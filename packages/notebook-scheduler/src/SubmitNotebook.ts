@@ -70,7 +70,7 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
   showWidget = () => {
     let envVars: string[] = NotebookParser.getEnvVars(this.panel.content.model.toString());
 
-    SubmissionHandler.makeGetRequest('metadata/runtimes', 'pipeline', (response: any) =>
+    SubmissionHandler.makeGetRequest('api/metadata/runtimes', 'pipeline', (response: any) =>
       showDialog({
         title: 'Submit notebook',
         body: new SubmitNotebook(envVars, response.runtimes),
