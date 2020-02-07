@@ -21,7 +21,7 @@ from .metadata import MetadataManager
 
 
 class MetadataHandler(APIHandler):
-    """Handler for all runtime configurations. """
+    """Handler for metadata configurations collection. """
 
     @web.authenticated
     @gen.coroutine
@@ -33,13 +33,14 @@ class MetadataHandler(APIHandler):
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
-        json_metadata = {r.name : r.to_dict() for r in metadata}
+        metadata_model = {}
+        metadata_model[namespace] = {r.name : r.to_dict() for r in metadata}
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_metadata)
+        self.finish(metadata_model)
 
 
 class MetadataNamespaceHandler(APIHandler):
-    """Handler for specific runtime configurations. """
+    """Handler for metadata configuration specific resource (e.g. a runtime element). """
 
     @web.authenticated
     @gen.coroutine
@@ -48,6 +49,7 @@ class MetadataNamespaceHandler(APIHandler):
         target = url_unescape(target)
         metadata_manager = MetadataManager(namespace=namespace)
         try:
+
             metadata = yield maybe_future(metadata_manager.get(target))
         except (ValidationError, KeyError) as err:
             raise web.HTTPError(404, str(err))
