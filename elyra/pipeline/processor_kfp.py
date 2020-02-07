@@ -23,6 +23,7 @@ import tempfile
 from datetime import datetime
 
 from elyra.metadata import MetadataManager
+from elyra.metadata.runtime import Runtime
 from elyra.pipeline import PipelineProcessor, PipelineProcessorRegistry
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
@@ -197,7 +198,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         :return: metadata in json format
         """
         try:
-            runtime_configuration = MetadataManager(namespace="runtime").get(name)
+            runtime_configuration = MetadataManager(namespace=Runtime.namespace).get(name)
             return runtime_configuration
         except BaseException as err:
             self.log.error('Error retrieving runtime configuration for {}'.format(name),

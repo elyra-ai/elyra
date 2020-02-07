@@ -29,6 +29,7 @@ from jsonschema import ValidationError
 from logging import StreamHandler
 
 from elyra.metadata.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager
+from elyra.metadata.runtime import Runtime
 
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
 
@@ -55,7 +56,7 @@ class MetadataManagerTestCase(MetadataTestBase):
 
     def setUp(self):
         super(MetadataManagerTestCase, self).setUp()
-        self.metadata_manager = MetadataManager(namespace="runtime")
+        self.metadata_manager = MetadataManager(namespace=Runtime.namespace)
 
     def test_list_metadata_summary(self):
         metadata_summary_list = self.metadata_manager.get_all_metadata_summary(include_invalid=False)

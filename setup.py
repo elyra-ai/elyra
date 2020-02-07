@@ -61,7 +61,7 @@ setup_args = dict(
     long_description=long_desc,
     entry_points={
         'console_scripts': [
-            'jupyter-runtime = elyra.metadata.runtime:RuntimeMetadataApp.launch_instance',
+            'jupyter-runtimes = elyra.metadata.runtime:RuntimeMetadataApp.launch_instance',
         ],
         'elyra.pipeline.processors': [
             'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'
