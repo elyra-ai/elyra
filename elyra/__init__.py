@@ -32,8 +32,8 @@ def load_jupyter_server_extension(nb_server_app):
     web_app = nb_server_app.web_app
     host_pattern = '.*$'
     web_app.add_handlers(host_pattern, [
-        (url_path_join(web_app.settings['base_url'], r'/scheduler'), SchedulerHandler),
-        (url_path_join(web_app.settings['base_url'], r'/metadata/%s' % (namespace_regex)), MetadataHandler),
-        (url_path_join(web_app.settings['base_url'], r'/metadata/%s/%s' % (namespace_regex,target_regex)), MetadataNamespaceHandler),
+        (url_path_join(web_app.settings['base_url'], r'/api/scheduler'), SchedulerHandler),
+        (url_path_join(web_app.settings['base_url'], r'/api/metadata/%s' % (namespace_regex)), MetadataHandler),
+        (url_path_join(web_app.settings['base_url'], r'/api/metadata/%s/%s' % (namespace_regex,target_regex)), MetadataNamespaceHandler),
     ])
 
