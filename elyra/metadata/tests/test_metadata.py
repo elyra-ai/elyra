@@ -43,7 +43,7 @@ class MetadataTestBase(NotebookTestBase):
     def setUp(self):
         super(MetadataTestBase, self).setUp()
 
-        self.metadata_dir = os.path.join(self.data_dir, 'metadata', 'runtime')
+        self.metadata_dir = os.path.join(self.data_dir, 'metadata', 'runtimes')
 
         create_json_file(self.metadata_dir, 'valid.json', valid_metadata_json)
         create_json_file(self.metadata_dir, 'another.json', another_metadata_json)
@@ -172,7 +172,7 @@ class MetadataFileStoreTestCase(MetadataTestBase):
 
     def setUp(self):
         super(MetadataFileStoreTestCase, self).setUp()
-        self.metadata_file_store = FileMetadataStore(namespace='runtime', metadata_dir=self.metadata_dir)
+        self.metadata_file_store = FileMetadataStore(namespace='runtimes', metadata_dir=self.metadata_dir)
 
     def test_list_metadata_summary(self):
         metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=False)
