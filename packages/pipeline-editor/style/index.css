@@ -16,7 +16,7 @@
 
 /* Add CSS variables to :root */
 :root {
-  --elyra-icon-pipeline: url('./pipelineIcon.png');
+  --elyra-icon-pipeline: url('./pipeline-flow.svg');
 }
 
 .add .list-item {
