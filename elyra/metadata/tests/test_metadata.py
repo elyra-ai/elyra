@@ -87,32 +87,40 @@ class MetadataManagerTestCase(MetadataTestBase):
         self.assertEqual(len(metadata_list), 0)
 
     def test_add_invalid_metadata(self):
+
+        # Use a local metadata mgr because we want to reference a bad namespace to ensure
+        # directory metadata/invalid is not created.
+        metadata_manager = MetadataManager(namespace='invalid')
+
         # Attempt with non Metadata instance
         with self.assertRaises(TypeError):
-            self.metadata_manager.add(invalid_metadata_json)
+            metadata_manager.add(invalid_metadata_json)
 
         # and invalid parameters
         with self.assertRaises(ValueError):
-            self.metadata_manager.add(None, invalid_metadata_json)
+            metadata_manager.add(None, invalid_metadata_json)
 
         with self.assertRaises(ValueError):
-            self.metadata_manager.add("foo", None)
+            metadata_manager.add("foo", None)
 
         metadata = Metadata(**invalid_metadata_json)
 
         capture = StringIO()
         handler = StreamHandler(capture)
-        self.metadata_manager.log.addHandler(handler)
+        metadata_manager.log.addHandler(handler)
 
         # Ensure save produces result of None and logging indicates validation error and file removal
         metadata_name = 'save_invalid'
-        resource = self.metadata_manager.add(metadata_name, metadata)
+        resource = metadata_manager.add(metadata_name, metadata)
         self.assertIsNone(resource)
         captured = capture.getvalue()
         self.assertIn("Schema validation failed", captured)
         self.assertIn("Removing metadata resource", captured)
-        # Ensure file was not created
-        metadata_file = os.path.join(self.metadata_dir, 'save_invalid.json')
+        # Ensure file was not created.  Since this was the first instance of 'invalid', then
+        # also ensure that directory 'metadata/invalid' was not created.
+        invalid_metadata_dir = os.path.join(self.data_dir, 'metadata', 'invalid')
+        self.assertFalse(os.path.exists(invalid_metadata_dir))
+        metadata_file = os.path.join(invalid_metadata_dir, 'save_invalid.json')
         self.assertFalse(os.path.exists(metadata_file))
 
     def test_add_remove_valid_metadata(self):

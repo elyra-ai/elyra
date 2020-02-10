@@ -17,6 +17,7 @@ import io
 import json
 import os
 import re
+import shutil
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError
@@ -160,8 +161,6 @@ class FileMetadataStore(MetadataStore):
         super(FileMetadataStore, self).__init__(namespace, **kwargs)
         self.schema_mgr = SchemaManager.instance()
         self.metadata_dir = os.path.join(jupyter_data_dir(), 'metadata', self.namespace)
-        if not os.path.exists(self.metadata_dir):
-            os.makedirs(self.metadata_dir, mode=0o700, exist_ok=True)
 
     @property
     def get_metadata_location(self):
@@ -213,15 +212,28 @@ class FileMetadataStore(MetadataStore):
                 self.log.error("Metadata resource '{}' already exists. Use the replace flag to overwrite.".format(resource))
                 return None
 
-        with io.open(resource, 'w', encoding='utf-8') as f:
-            f.write(metadata.to_json(trim=True))  # Only persist necessary items
+        created_namespace_dir = False
+        if not os.path.exists(self.metadata_dir):  # If the namespaced directory is not present, create it and note it.
+            os.makedirs(self.metadata_dir, mode=0o700, exist_ok=True)
+            created_namespace_dir = True
+
+        try:
+            with io.open(resource, 'w', encoding='utf-8') as f:
+                f.write(metadata.to_json(trim=True))  # Only persist necessary items
+        except Exception:
+            if created_namespace_dir:
+                shutil.rmtree(self.metadata_dir)
 
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
             self._load_from_resource(resource)
         except ValidationError as ve:
             self.log.error(str(ve) + "\nRemoving metadata resource '{}'.".format(resource))
-            os.remove(resource)
+            # If we just created the directory, include that during cleanup
+            if created_namespace_dir:
+                shutil.rmtree(self.metadata_dir)
+            else:
+                os.remove(resource)
             resource = None
 
         return resource

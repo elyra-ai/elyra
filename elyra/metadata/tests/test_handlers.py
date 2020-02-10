@@ -57,6 +57,7 @@ class MetadataHandlerTest(NotebookTestBase):
 
     def setUp(self):
         self.runtime_dir = os.path.join(self.data_dir, 'metadata', 'runtimes')
+        self.bogus_dir = os.path.join(self.data_dir, 'metadata', 'bogus')
 
         create_json_file(self.runtime_dir, 'valid.json', valid_metadata_json)
         create_json_file(self.runtime_dir, 'another.json', another_metadata_json)
@@ -79,6 +80,8 @@ class MetadataHandlerTest(NotebookTestBase):
         # Validate missing is not found
         with assert_http_error(404, "Metadata 'missing' in namespace 'bogus' was not found!"):
             self.bogus_namespace_api.get('missing')
+
+        self.assertFalse(os.path.exists(self.bogus_dir))
 
     def test_missing_runtime(self):
         # Validate missing is not found
