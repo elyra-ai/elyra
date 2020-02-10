@@ -29,7 +29,7 @@ import {Widget, PanelLayout} from '@lumino/widgets';
 
 import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {NotebookParser, SubmissionHandler, elyraIcon} from "@elyra/application";
+import {NotebookParser, SubmissionHandler, pipelineIcon} from "@elyra/application";
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
@@ -40,7 +40,7 @@ import * as React from 'react';
 
 import { IntlProvider } from "react-intl";
 
-const PIPELINE_ICON_CLASS = 'jp-ElyraIcon elyra-PipelineIcon';
+const PIPELINE_ICON_CLASS = 'jp-PipelineIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
@@ -571,7 +571,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline'], icon: elyraIcon});
+    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline'], icon: pipelineIcon});
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
     const tracker = new WidgetTracker<DocumentWidget>({

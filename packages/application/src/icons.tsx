@@ -17,5 +17,7 @@
 import {LabIcon} from '@jupyterlab/ui-components';
 
 import elyraSvg from '../style/codait-piebrainlogo-jupyter-color.svg';
+import pipelineSvg from '../style/pipeline-flow.svg';
 
 export const elyraIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elyraSvg });
+export const pipelineIcon = new LabIcon({ name: 'elyra:pipeline', svgstr: pipelineSvg });
