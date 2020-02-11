@@ -40,28 +40,28 @@ def mock_runtime_dir():
 
 
 def test_no_opts(script_runner):
-    ret = script_runner.run('jupyter-runtime')
+    ret = script_runner.run('jupyter-runtimes')
     assert ret.success is False
     assert ret.stdout.startswith("No subcommand specified.")
     assert ret.stderr == ''
 
 
 def test_bad_subcommand(script_runner):
-    ret = script_runner.run('jupyter', 'runtime', 'bogus-subcommand')
+    ret = script_runner.run('jupyter', 'runtimes', 'bogus-subcommand')
     assert ret.success is False
     assert ret.stdout.startswith("No subcommand specified.")
     assert ret.stderr == ''
 
 
 def test_install_bad_argument(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'install', '--bogus-argument')
+    ret = script_runner.run('jupyter-runtimes', 'install', '--bogus-argument')
     assert ret.success is False
     assert ret.stdout.startswith("Install runtime metadata for pipeline processors.")
     assert "[InstallRuntime] CRITICAL | Unrecognized flag: \'--bogus-argument\'" in ret.stderr
 
 
 def test_install_bad_runtime(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'install', 'bogus-runtime')
+    ret = script_runner.run('jupyter-runtimes', 'install', 'bogus-runtime')
     assert ret.success is False
     assert ret.stdout.startswith("No subcommand specified. Must specify one of:")
     assert "Install runtime metadata for Kubeflow pipelines." in ret.stdout
@@ -69,14 +69,14 @@ def test_install_bad_runtime(script_runner):
 
 
 def test_kfp_help_all(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'install', 'kfp', '--help-all')
+    ret = script_runner.run('jupyter-runtimes', 'install', 'kfp', '--help-all')
     assert ret.success
     assert ret.stdout.startswith("Install runtime metadata for Kubeflow pipelines.")
     assert ret.stderr == ''
 
 
 def test_kfp_name_violation(script_runner, mock_runtime_dir):
-    ret = script_runner.run('jupyter-runtime', 'install', 'kfp',
+    ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=Foo', '--display_name="Foo Baz"',
                             '--api_endpoint=http://wackwach', '--cos_endpoint=http://zackzach',
                             '--cos_bucket=cos_chuckit')
@@ -86,7 +86,7 @@ def test_kfp_name_violation(script_runner, mock_runtime_dir):
 
 
 def test_kfp_schema_violation(script_runner, mock_runtime_dir):
-    ret = script_runner.run('jupyter-runtime', 'install', 'kfp',
+    ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=foo', '--display_name="Foo Baz"',
                             '--api_endpoint=http://wackwach', '--cos_endpoint=http://zackzach',
                             '--cos_bucket=cos_CHUCKIT')
@@ -96,12 +96,12 @@ def test_kfp_schema_violation(script_runner, mock_runtime_dir):
 
 
 def test_create_kfp_runtime(script_runner, mock_runtime_dir):
-    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'runtime', 'foo.json')
+    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'runtimes', 'foo.json')
     # Cleanup from any potential previous failures
     if os.path.exists(expected_file):
         os.remove(expected_file)
 
-    ret = script_runner.run('jupyter-runtime', 'install', 'kfp',
+    ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=foo', '--display_name="Foo Baz"',
                             '--api_endpoint=http://acme.api:9999', '--cos_endpoint=http://acme.cos:9999',
                             '--cos_bucket=cos_bucket',
@@ -111,7 +111,7 @@ def test_create_kfp_runtime(script_runner, mock_runtime_dir):
     assert ret.stdout.startswith("Metadata for kfp runtime 'foo' has been written to")
     assert ret.stderr == ''
 
-    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'runtime'))
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'runtimes'))
     assert os.path.isfile(expected_file)
 
     with open(expected_file, "r") as fd:
@@ -124,12 +124,12 @@ def test_create_kfp_runtime(script_runner, mock_runtime_dir):
 
 
 def test_replace_kfp_runtime(script_runner, mock_runtime_dir):
-    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'runtime', 'bar.json')
+    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'runtimes', 'bar.json')
     # Cleanup from any potential previous failures
     if os.path.exists(expected_file):
         os.remove(expected_file)
 
-    ret = script_runner.run('jupyter-runtime', 'install', 'kfp',
+    ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=bar', '--display_name="Foo Bar"',
                             '--api_endpoint=http://acme.api:9999', '--cos_endpoint=http://acme.cos:9999',
                             '--cos_bucket=cos_bucket',
@@ -140,7 +140,7 @@ def test_replace_kfp_runtime(script_runner, mock_runtime_dir):
     assert ret.stderr == ''
 
     # Now try to replace w/o --replace flag (exception expected)...
-    ret = script_runner.run('jupyter-runtime', 'install', 'kfp',
+    ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=bar', '--display_name="Foo Barf"',
                             '--api_endpoint=http://acme.api:1111', '--cos_endpoint=http://acme.cos:1111',
                             '--cos_bucket=cos_bucket',
@@ -150,7 +150,7 @@ def test_replace_kfp_runtime(script_runner, mock_runtime_dir):
     assert "already exists. Use the replace flag to overwrite" in ret.stderr
 
     # And repeat with --replace, then confirm updates
-    ret = script_runner.run('jupyter-runtime', 'install', 'kfp', '--replace',
+    ret = script_runner.run('jupyter-runtimes', 'install', 'kfp', '--replace',
                             '--name=bar', '--display_name="Foo Barf"',
                             '--api_endpoint=http://acme.api:1111', '--cos_endpoint=http://acme.cos:1111',
                             '--cos_bucket=cos_bucket',
@@ -160,7 +160,7 @@ def test_replace_kfp_runtime(script_runner, mock_runtime_dir):
     assert ret.stdout.startswith("Metadata for kfp runtime 'bar' has been written to")
     assert ret.stderr == ''
 
-    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'runtime'))
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'runtimes'))
     assert os.path.isfile(expected_file)
 
     with open(expected_file, "r") as fd:
@@ -173,14 +173,14 @@ def test_replace_kfp_runtime(script_runner, mock_runtime_dir):
 
 
 def test_list_bad_argument(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'list', '--bogus-argument')
+    ret = script_runner.run('jupyter-runtimes', 'list', '--bogus-argument')
     assert ret.success is False
     assert ret.stdout.startswith("List installed external runtime metadata.")
     assert "[ListRuntimes] CRITICAL | Unrecognized flag: \'--bogus-argument\'" in ret.stderr
 
 
 def test_list_help_all(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'list', '--help-all')
+    ret = script_runner.run('jupyter-runtimes', 'list', '--help-all')
     assert ret.success
     assert ret.stdout.startswith("List installed external runtime metadata.")
     assert ret.stderr == ''
@@ -200,7 +200,7 @@ def test_list_runtimes(script_runner, mock_runtime_dir):
     resource = metadata_manager.add('another2', another)
     assert resource is not None
 
-    ret = script_runner.run('jupyter-runtime', 'list')
+    ret = script_runner.run('jupyter-runtimes', 'list')
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 6  # always 2 more than the actual runtime count
@@ -216,10 +216,10 @@ def test_list_runtimes(script_runner, mock_runtime_dir):
     metadata_manager.remove('valid2')
     metadata_manager.remove('another2')
     # Include an invalid file as well
-    metadata_dir = os.path.join(mock_runtime_dir, 'metadata', 'runtime')
+    metadata_dir = os.path.join(mock_runtime_dir, 'metadata', 'runtimes')
     create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
 
-    ret = script_runner.run('jupyter-runtime', 'list')
+    ret = script_runner.run('jupyter-runtimes', 'list')
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 5  # always 2 more than the actual runtime count
@@ -231,7 +231,7 @@ def test_list_runtimes(script_runner, mock_runtime_dir):
     assert line_elements[1][3] == "(ValidationError)"
     assert line_elements[2][0] == "valid"
 
-    ret = script_runner.run('jupyter-runtime', 'list', '--valid-only')
+    ret = script_runner.run('jupyter-runtimes', 'list', '--valid-only')
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 4  # always 2 more than the actual runtime count
@@ -242,30 +242,30 @@ def test_list_runtimes(script_runner, mock_runtime_dir):
 
 
 def test_remove_bad_argument(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'remove', '--bogus-argument')
+    ret = script_runner.run('jupyter-runtimes', 'remove', '--bogus-argument')
     assert ret.success is False
     assert ret.stdout.startswith("Remove external runtime metadata.")
     assert "[RemoveRuntime] CRITICAL | Unrecognized flag: \'--bogus-argument\'" in ret.stderr
 
 
 def test_remove_bad_param(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'remove', 'bogus-param')
+    ret = script_runner.run('jupyter-runtimes', 'remove', 'bogus-param')
     assert ret.success is False
     assert ret.stdout.startswith("\nRemove external runtime metadata.")
     assert "'name' is a required parameter." in ret.stderr
 
 
 def test_remove_help_all(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'remove', '--help-all')
+    ret = script_runner.run('jupyter-runtimes', 'remove', '--help-all')
     assert ret.success
     assert ret.stdout.startswith("Remove external runtime metadata.")
     assert ret.stderr == ''
 
 
 def test_remove_missing(script_runner):
-    ret = script_runner.run('jupyter-runtime', 'remove', '--name=missing')
+    ret = script_runner.run('jupyter-runtimes', 'remove', '--name=missing')
     assert ret.success
-    assert ret.stderr == "[RemoveRuntime] WARNING | Metadata 'missing' in namespace 'runtime' was not found!\n"
+    assert ret.stderr == "[RemoveRuntime] WARNING | Metadata 'missing' in namespace 'runtimes' was not found!\n"
 
 
 def test_remove_runtime(script_runner, mock_runtime_dir):
@@ -282,10 +282,10 @@ def test_remove_runtime(script_runner, mock_runtime_dir):
     resource = metadata_manager.add('another2', another)
     assert resource is not None
 
-    ret = script_runner.run('jupyter-runtime', 'remove', '--name=valid')
+    ret = script_runner.run('jupyter-runtimes', 'remove', '--name=valid')
     assert ret.success
 
-    ret = script_runner.run('jupyter-runtime', 'remove', '--name=another')
+    ret = script_runner.run('jupyter-runtimes', 'remove', '--name=another')
     assert ret.success
 
     runtimes = metadata_manager.get_all_metadata_summary()
