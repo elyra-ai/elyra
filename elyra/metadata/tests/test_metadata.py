@@ -75,14 +75,22 @@ class MetadataManagerTestCase(MetadataTestBase):
                 self.assertTrue(metadata.name == "valid")
 
     def test_list_metadata_summary_none(self):
-        # Delete the metadata dir and attempt listing metadata
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
+        assert self.metadata_manager.namespace_exists() == False
+        os.makedirs(self.metadata_dir)
+        assert self.metadata_manager.namespace_exists()
+
         metadata_summary_list = self.metadata_manager.get_all_metadata_summary()
         self.assertEqual(len(metadata_summary_list), 0)
 
     def test_list_all_metadata_none(self):
-        # Delete the metadata dir and attempt listing metadata
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
+        assert self.metadata_manager.namespace_exists() == False
+        os.makedirs(self.metadata_dir)
+        assert self.metadata_manager.namespace_exists()
+
         metadata_list = self.metadata_manager.get_all()
         self.assertEqual(len(metadata_list), 0)
 
@@ -193,14 +201,22 @@ class MetadataFileStoreTestCase(MetadataTestBase):
         self.assertEqual(len(metadata_list), 2)
 
     def test_list_metadata_summary_none(self):
-        # Delete the metadata dir and attempt listing metadata
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
+        assert self.metadata_file_store.namespace_exists() == False
+        os.makedirs(self.metadata_dir)
+        assert self.metadata_file_store.namespace_exists()
+
         metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=True)
         self.assertEqual(len(metadata_summary_list), 0)
 
     def test_list_all_metadata_none(self):
-        # Delete the metadata dir and attempt listing metadata
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
+        assert self.metadata_file_store.namespace_exists() == False
+        os.makedirs(self.metadata_dir)
+        assert self.metadata_file_store.namespace_exists()
+
         metadata_list = self.metadata_file_store.get_all()
         self.assertEqual(len(metadata_list), 0)
 

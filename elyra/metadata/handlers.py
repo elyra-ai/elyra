@@ -30,6 +30,8 @@ class MetadataHandler(APIHandler):
         metadata_manager = MetadataManager(namespace=namespace)
         try:
             metadata = yield maybe_future(metadata_manager.get_all())
+        except (ValidationError, KeyError) as err:
+            raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
