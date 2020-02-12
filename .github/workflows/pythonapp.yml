@@ -22,6 +22,7 @@ jobs:
         python --version
         node --version
         npm --version
+        pip --version
     - name: Create npm configuration for authentication
       run: |
         echo "@elyra-ai:registry=https://npm.pkg.github.com/" >> ~/.npmrc
@@ -29,9 +30,11 @@ jobs:
         echo "always-auth=true" >> ~/.npmrc
         echo "prefix=~/.npm-global" >> ~/.npmrc
         mkdir -p ~/.npm-global
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip wheel
+    - name: Install NPM dependencies
+      run: |
         sudo apt install yarn
         npm install -g lerna@3.19.0
         npm install -g rimraf@3.0.0
@@ -47,9 +50,9 @@ jobs:
     - name: Build
       run: |
         make install
-    - name: Collect logs
-      if: always()
-      - run: cat /tmp/jupyterlab-debug-*.log
+#    - name: Collect logs
+#      if: always()
+#      - run: cat /tmp/jupyterlab-debug-*.log
     - name: Test with pytest
       run: |
         pip install pytest pytest-console-scripts
