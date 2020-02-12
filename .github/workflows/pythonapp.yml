@@ -28,6 +28,7 @@ jobs:
         echo "@elyra-ai:registry=https://npm.pkg.github.com/" >> ~/.npmrc
         echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_PERSONAL_TOKEN }}" >> ~/.npmrc
         echo "always-auth=true" >> ~/.npmrc
+        echo "scripts-prepend-node-path=true" >> ~/.npmrc
         echo "prefix=~/.npm-global" >> ~/.npmrc
         mkdir -p ~/.npm-global
     - name: Install Python dependencies
@@ -46,11 +47,15 @@ jobs:
         npm install -g yarn@1.21.0
     - name: Patch jupyterlab
       run: |
-        mkdir -p /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
+        yarn cache clean
+        yarn
         pushd .
-        make build
+        mkdir -p /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
         cd /home/runner/work/elyra/elyra/packages/application
-        npm pack .
+        echo ">>> run build <<<"
+        npm run build
+        echo ">>> run dist <<<"
+        npm run dist
         ls /home/runner/work/elyra/elyra/packages/application
         popd
 #    - name: Lint with flake8
