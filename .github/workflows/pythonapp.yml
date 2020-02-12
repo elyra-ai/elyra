@@ -47,17 +47,18 @@ jobs:
         npm install -g yarn@1.21.0
     - name: Patch jupyterlab
       run: |
+        export PATH=~/.npm-global/bin:$PATH
         yarn cache clean
         yarn
         pushd .
         mkdir -p /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
-        cd /home/runner/work/elyra/elyra/packages/application
-        echo ">>> run build <<<"
-        npm run build
-        echo ">>> run dist <<<"
-        npm run dist
+        echo ">>> make build <<<"
+        make build
         ls /home/runner/work/elyra/elyra/packages/application
         popd
+#       echo ">>> npm pack . <<<"
+#       cd /home/runner/work/elyra/elyra/packages/application && npm pack .
+
 #    - name: Lint with flake8
 #      run: |
 #        pip install flake8
