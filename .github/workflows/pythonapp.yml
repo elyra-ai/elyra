@@ -47,6 +47,7 @@ jobs:
     - name: Build
       run: |
         make install
+        cat /tmp/jupyterlab-debug-*.log
     - name: Test with pytest
       run: |
         pip install pytest pytest-console-scripts
