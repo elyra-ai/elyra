@@ -35,7 +35,6 @@ jobs:
         python -m pip install --upgrade pip wheel notebook jupyterlab
     - name: Display jupyter env information
       run: |
-        jupyter lab build
         jupyter serverextension list
         jupyter labextension list
     - name: Install NPM dependencies
