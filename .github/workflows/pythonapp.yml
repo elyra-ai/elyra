@@ -46,8 +46,10 @@ jobs:
 #        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Build
       run: |
-        make clean install
-        cat /tmp/jupyterlab-debug-*.log
+        make install
+    - name: Collect logs
+      if: always()
+      - run: cat /tmp/jupyterlab-debug-*.log
     - name: Test with pytest
       run: |
         pip install pytest pytest-console-scripts
