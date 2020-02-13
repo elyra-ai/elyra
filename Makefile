@@ -49,7 +49,7 @@ prepare:
 	rm -f yarn.lock package-lock.json
 	yarn cache clean
 	yarn
-	export PATH=$$(pwd)/node_modules/bin:$$PATH && lerna run build
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
 bdist: lint npm-packages
 	python setup.py bdist_wheel
