@@ -55,10 +55,8 @@ jobs:
         echo ">>> make build <<<"
         make build
         cd /home/runner/work/elyra/elyra/packages/application && npm pack .
-        ls /home/runner/work/elyra/elyra/packages/application
+        cp /home/runner/work/elyra/elyra/packages/application/elyra-application-*.tgz /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
         popd
-#       echo ">>> npm pack . <<<"
-#       cd /home/runner/work/elyra/elyra/packages/application && npm pack .
 
 #    - name: Lint with flake8
 #      run: |
