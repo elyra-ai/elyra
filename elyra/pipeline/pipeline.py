@@ -18,7 +18,8 @@ import os
 
 class Operation:
 
-    def __init__(self, id, type, title, artifact, image, vars=None, file_dependencies=None, recursive_dependencies=False, outputs=None, inputs=None, dependencies=None ):
+    def __init__(self, id, type, title, artifact, image, vars=None, file_dependencies=None,
+                 recursive_dependencies=False, outputs=None, inputs=None, dependencies=None):
         self._id = id
         self._type = type
         self._title = title
@@ -90,16 +91,16 @@ class Operation:
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
             return self.id == other.id and \
-                   self.type == other.type  and \
-                   self.title == other.title  and \
-                   self.artifact == other.artifact  and \
-                   self.image == other.image and \
-                   self.vars == other.vars and \
-                   self.file_dependencies == other.file_dependencies and \
-                   self.recursive_dependencies == other.recursive_dependencies and \
-                   self.outputs == other.outputs and \
-                   self.inputs == other.inputs and \
-                   self.dependencies == other.dependencies
+                self.type == other.type and \
+                self.title == other.title and \
+                self.artifact == other.artifact and \
+                self.image == other.image and \
+                self.vars == other.vars and \
+                self.file_dependencies == other.file_dependencies and \
+                self.recursive_dependencies == other.recursive_dependencies and \
+                self.outputs == other.outputs and \
+                self.inputs == other.inputs and \
+                self.dependencies == other.dependencies
 
     @staticmethod
     def __initialize_empty_array_if_none(value):
@@ -147,6 +148,6 @@ class Pipeline:
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
             return self.title == other.title and \
-                   self.runtime_type == other.runtime_type and \
-                   self.runtime_config == other.runtime_config and \
-                   self.operations == other.operations
+                self.runtime_type == other.runtime_type and \
+                self.runtime_config == other.runtime_config and \
+                self.operations == other.operations

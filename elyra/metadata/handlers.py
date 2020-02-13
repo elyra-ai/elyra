@@ -34,7 +34,7 @@ class MetadataHandler(APIHandler):
             raise web.HTTPError(500, repr(ex))
 
         metadata_model = {}
-        metadata_model[namespace] = {r.name : r.to_dict() for r in metadata}
+        metadata_model[namespace] = {r.name: r.to_dict() for r in metadata}
         self.set_header("Content-Type", 'application/json')
         self.finish(metadata_model)
 

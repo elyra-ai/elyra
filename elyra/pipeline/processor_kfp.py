@@ -14,17 +14,15 @@
 # limitations under the License.
 #
 
-import json
 import kfp
 import os
-import tarfile
 import tempfile
 
 from datetime import datetime
 
 from elyra.metadata import MetadataManager
 from elyra.metadata.runtime import Runtime
-from elyra.pipeline import PipelineProcessor, PipelineProcessorRegistry
+from elyra.pipeline import PipelineProcessor
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from kubernetes.client.models import V1EnvVar
@@ -61,7 +59,8 @@ class KfpPipelineProcessor(PipelineProcessor):
                 for dependency in pipeline_child_operation.dependencies:
                     pipeline_parent_operation = pipeline.operations[dependency]
                     if pipeline_parent_operation.outputs:
-                        pipeline_child_operation.inputs = pipeline_child_operation.inputs + pipeline_parent_operation.outputs
+                        pipeline_child_operation.inputs = \
+                            pipeline_child_operation.inputs + pipeline_parent_operation.outputs
 
             for operation in pipeline.operations.values():
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
@@ -109,7 +108,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                         # Splits on the first occurrence of '='
                         result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
                         # Should be non empty key with a value
-                        if len(result) is 2 and result[0] is not '':
+                        if len(result) == 2 and result[0] != '':
                             notebook_op.container.add_env_variable(V1EnvVar(name=result[0], value=result[1]))
 
                 notebook_ops[operation.id] = notebook_op
@@ -120,7 +119,9 @@ class KfpPipelineProcessor(PipelineProcessor):
                 try:
                     dependency_archive_path = self._generate_dependency_archive(operation)
                     cos_client = CosClient(config=runtime_configuration)
-                    cos_client.upload_file_to_dir(dir=cos_directory, file_name=operation_artifact_archive, file_path=dependency_archive_path)
+                    cos_client.upload_file_to_dir(dir=cos_directory,
+                                                  file_name=operation_artifact_archive,
+                                                  file_path=dependency_archive_path)
                 except BaseException:
                     self.log.error("Error uploading artifacts to object storage.", exc_info=True)
                     raise
@@ -203,4 +204,4 @@ class KfpPipelineProcessor(PipelineProcessor):
         except BaseException as err:
             self.log.error('Error retrieving runtime configuration for {}'.format(name),
                            exc_info=True)
-            raise RuntimeError('Error retrieving runtime configuration for {}', err )
+            raise RuntimeError('Error retrieving runtime configuration for {}', err)
