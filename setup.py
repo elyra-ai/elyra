@@ -47,7 +47,7 @@ setup_args = dict(
         'jupyterlab>=1.0.0,<2.0.0',
         'jupyterlab-git',
         'nbconvert>=5.6.1',
-        'notebook>=6'
+        'notebook>=6',
         'traitlets>=4.3.2',
         'jsonschema>=3.2.0',
         'requests>=2.9.1,<3.0',
