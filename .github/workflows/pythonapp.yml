@@ -49,3 +49,6 @@ jobs:
       run: |
         pip install pytest pytest-console-scripts
         pytest
+    - name: Collect logs
+      if: failure()
+      run: cat /tmp/jupyterlab-debug-*.log
