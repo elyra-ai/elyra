@@ -17,7 +17,7 @@ import os
 import unittest
 import json
 
-from elyra.pipeline import PipelineParser, Pipeline, Operation
+from elyra.pipeline import PipelineParser, Operation
 
 
 class PipelineParserTestCase(unittest.TestCase):
@@ -41,7 +41,7 @@ class PipelineParserTestCase(unittest.TestCase):
     def test_parse_invalid_pipeline(self):
         pipeline_definition = self.read_pipeline_resource('pipeline_invalid.json')
 
-        pipeline = PipelineParser.parse(pipeline_definition)
+        PipelineParser.parse(pipeline_definition)
 
     def test_parse_multinode_pipeline(self):
         pipeline_definition = self.read_pipeline_resource('pipeline_3_node_sample.json')
@@ -86,5 +86,3 @@ class PipelineParserTestCase(unittest.TestCase):
             pipeline_json = json.load(f)
 
         return pipeline_json
-
-

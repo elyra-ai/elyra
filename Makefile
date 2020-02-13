@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help clean build install clean-docker docker-image
+.PHONY: help clean prepare install clean-docker docker-image
 
 SHELL:=/bin/bash
 
@@ -38,17 +38,20 @@ clean: ## Make a clean source tree
 	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
 
-test: ## Run unit tests
+test: lint ## Run unit tests
 	pytest -v elyra
 
-# Builds Elyra to make ready for packaging/installation
-build:
+lint: ## Lint python files
+	flake8 elyra
+
+# Prepares Elyra for build/packaging/installation
+prepare:
 	rm -f yarn.lock package-lock.json
 	yarn cache clean
 	yarn
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
-bdist: npm-packages
+bdist: lint npm-packages
 	python setup.py bdist_wheel
 
 install: bdist ## Build distribution and install
@@ -70,7 +73,7 @@ install-backend: ## Build and install backend
 	python setup.py bdist_wheel --dev
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 
-npm-packages: build
+npm-packages: prepare
 	mkdir dist
 	$(call PACKAGE_LAB_EXTENSION,application)
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)

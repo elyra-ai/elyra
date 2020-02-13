@@ -13,17 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import io
-import json
-import os
 
 from .metadata import Metadata, MetadataManager
 
 from traitlets.config.application import Application
-from jupyter_core.application import (
-    JupyterApp, base_flags, base_aliases
-)
-from traitlets import Instance, Dict, Unicode, Bool, List
+from jupyter_core.application import base_flags
+from traitlets import Instance, Dict, Unicode, Bool
 from elyra._version import __version__
 
 
@@ -77,9 +72,8 @@ class ListRuntimes(Application, AppUtilMixin):
             return
 
         if self.json_output:
-            [print('Runtime: {} {}\n{}'.format(rt.name,
-                                            "**INVALID**" if rt.reason and len(rt.reason) > 0 else "",
-                                            rt.to_json()))
+            [print('Runtime: {} {}\n{}'.
+                   format(rt.name, "**INVALID**" if rt.reason and len(rt.reason) > 0 else "", rt.to_json()))
              for rt in runtimes]
         else:
             sorted_runtimes = sorted(runtimes, key=lambda runtime: runtime.name)
@@ -95,7 +89,9 @@ class ListRuntimes(Application, AppUtilMixin):
                 invalid = ""
                 if runtime.reason and len(runtime.reason) > 0:
                     invalid = "**INVALID** ({})".format(runtime.reason)
-                print("  %s  %s  %s" % (runtime.name.ljust(max_name_len), runtime.resource.ljust(max_resource_len), invalid))
+                print("  %s  %s  %s" % (runtime.name.ljust(max_name_len),
+                                        runtime.resource.ljust(max_resource_len),
+                                        invalid))
 
 
 class RemoveRuntime(Application, AppUtilMixin):
@@ -108,20 +104,18 @@ class RemoveRuntime(Application, AppUtilMixin):
     name = Unicode(None, config=True, allow_none=True,
                    help="The name of the runtime metadata to remove.")
 
-
     aliases = {
         'name': 'RemoveRuntime.name',
     }
 
-    flags = {'debug': base_flags['debug'],}
+    flags = {'debug': base_flags['debug']}
 
     def _metadata_manager_default(self):
         return MetadataManager(namespace=self.metadata_namespace)
 
     def start(self):
         self._validate_parameters()
-
-        resource = self.metadata_manager.remove(self.name)
+        self.metadata_manager.remove(self.name)
 
     def _validate_parameters(self):
         self._confirm_required("name", self.name)
@@ -255,7 +249,7 @@ class InstallRuntime(Application):
 
     def start(self):
         if self.subapp is None:
-            print("No subcommand specified. Must specify one of: %s"% list(self.subcommands))
+            print("No subcommand specified. Must specify one of: %s" % list(self.subcommands))
             print()
             self.print_description()
             self.print_subcommands()
@@ -280,7 +274,7 @@ class RuntimeMetadataApp(Application):
 
     def start(self):
         if self.subapp is None:
-            print("No subcommand specified. Must specify one of: %s"% list(self.subcommands))
+            print("No subcommand specified. Must specify one of: %s" % list(self.subcommands))
             print()
             self.print_description()
             self.print_subcommands()
@@ -291,5 +285,3 @@ class RuntimeMetadataApp(Application):
 
 if __name__ == '__main__':
     RuntimeMetadataApp.launch_instance()
-
-

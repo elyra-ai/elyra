@@ -20,8 +20,7 @@ import unittest
 import unittest.mock as mock
 
 from elyra.metadata import Metadata
-from elyra.pipeline import PipelineParser, PipelineProcessorManager, Pipeline, Operation
-from elyra.pipeline import KfpPipelineProcessor
+from elyra.pipeline import PipelineParser, PipelineProcessorManager
 
 
 def mock_get_metadata(arg, **kwargs):
@@ -48,7 +47,7 @@ class PipelineRuntimeTestCase(unittest.TestCase):
         pipeline_definition = self.read_pipeline_resource('pipeline.json')
 
         pipeline = PipelineParser.parse(pipeline_definition)
-        response = PipelineProcessorManager.process(pipeline)
+        PipelineProcessorManager.process(pipeline)
 
     @staticmethod
     def read_pipeline_resource(pipeline_filename):

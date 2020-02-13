@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2019 IBM Corporation
+# Copyright 2018-2020 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,13 +32,12 @@ class MetadataRestAPI(object):
         self.headers = headers
 
     def _req(self, verb, path, body=None):
-        response = self.request(verb,
-                url_path_join('metadata', self.namespace, path), data=body)
+        response = self.request(verb, url_path_join('api', 'metadata', self.namespace, path), data=body)
 
         if 400 <= response.status_code < 600:
             try:
                 response.reason = response.json()['message']
-            except:
+            except Exception:
                 pass
         response.raise_for_status()
 
@@ -56,14 +55,14 @@ class MetadataHandlerTest(NotebookTestBase):
     config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
 
     def setUp(self):
-        self.runtime_dir = os.path.join(self.data_dir, 'metadata', 'runtime')
+        self.runtime_dir = os.path.join(self.data_dir, 'metadata', 'runtimes')
 
         create_json_file(self.runtime_dir, 'valid.json', valid_metadata_json)
         create_json_file(self.runtime_dir, 'another.json', another_metadata_json)
         create_json_file(self.runtime_dir, 'invalid.json', invalid_metadata_json)
 
         self.runtime_api = MetadataRestAPI(self.request,
-                                           namespace='runtime',
+                                           namespace='runtimes',
                                            base_url=self.base_url(),
                                            headers=self.auth_headers(), )
 
@@ -82,7 +81,7 @@ class MetadataHandlerTest(NotebookTestBase):
 
     def test_missing_runtime(self):
         # Validate missing is not found
-        with assert_http_error(404, "Metadata 'missing' in namespace 'runtime' was not found!"):
+        with assert_http_error(404, "Metadata 'missing' in namespace 'runtimes' was not found!"):
             self.runtime_api.get('missing')
 
     def test_invalid_runtime(self):
@@ -104,9 +103,11 @@ class MetadataHandlerTest(NotebookTestBase):
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
         assert isinstance(metadata, dict)
-        self.assertEqual(len(metadata), 2)
-        self.assertIn('another', metadata.keys())
-        self.assertIn('valid', metadata.keys())
+        self.assertEqual(len(metadata), 1)
+        runtimes = metadata['runtimes']
+        self.assertEqual(len(runtimes), 2)
+        self.assertIn('another', runtimes.keys())
+        self.assertIn('valid', runtimes.keys())
 
     def test_get_runtimes_none(self):
         # Delete the metadata dir and attempt listing metadata
@@ -116,4 +117,6 @@ class MetadataHandlerTest(NotebookTestBase):
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
         assert isinstance(metadata, dict)
-        self.assertEqual(len(metadata), 0)
+        self.assertEqual(len(metadata), 1)
+        runtimes = metadata['runtimes']
+        self.assertEqual(len(runtimes), 0)
