@@ -543,6 +543,7 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     const content = new Canvas(props);
     const widget = new DocumentWidget({ content, context, node: document.createElement('div') });
     widget.addClass(PIPELINE_CLASS);
+    widget.title.iconClass = PIPELINE_ICON_CLASS;
     return widget;
   }
 }
