@@ -77,8 +77,8 @@ npm-packages: build
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
-	cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
-	cd dist && curl -O $$(npm view @jupyterlab/toc dist.tarball --userconfig=./npm_config) && cd -
+#	cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
+#	cd dist && curl -O $$(npm view @jupyterlab/toc dist.tarball --userconfig=./npm_config) && cd -
 
 docker-image: bdist ## Build docker image
 	cp -r dist/*.whl etc/docker/
