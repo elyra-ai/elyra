@@ -33,7 +33,8 @@ jobs:
         mkdir -p ~/.npm-global
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip wheel notebook jupyterlab
+        python -m pip install --upgrade pip wheel notebook
+        python -m pip install --upgrade jupyterlab==2.0.0rc0
     - name: Install NPM dependencies
       run: |
         sudo apt install yarn
