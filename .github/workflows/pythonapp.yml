@@ -54,6 +54,7 @@ jobs:
         mkdir -p /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
         echo ">>> make build <<<"
         make build
+        cd /home/runner/work/elyra/elyra/packages/application && npm pack .
         ls /home/runner/work/elyra/elyra/packages/application
         popd
 #       echo ">>> npm pack . <<<"
