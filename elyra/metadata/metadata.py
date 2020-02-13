@@ -21,7 +21,7 @@ import re
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError
 from jupyter_core.paths import jupyter_data_dir
-from traitlets import HasTraits, List, Unicode, Dict, Type, log
+from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 DEFAULT_SCHEMA_NAME = 'kfp'
@@ -68,10 +68,8 @@ class Metadata(HasTraits):
 
 class MetadataManager(LoggingConfigurable):
     metadata_class = Type(Metadata, config=True,
-        help="""The metadata class.  This is configurable to allow
-        subclassing of the MetadataManager for customized behavior.
-        """
-    )
+                          help="""The metadata class.  This is configurable to allow subclassing of
+                          the MetadataManager for customized behavior.""")
 
     def __init__(self, namespace, store=None, **kwargs):
         """
@@ -210,7 +208,8 @@ class FileMetadataStore(MetadataStore):
             if replace:
                 os.remove(resource)
             else:
-                self.log.error("Metadata resource '{}' already exists. Use the replace flag to overwrite.".format(resource))
+                self.log.error("Metadata resource '{}' already exists. Use the replace flag to overwrite.".
+                               format(resource))
                 return None
 
         with io.open(resource, 'w', encoding='utf-8') as f:

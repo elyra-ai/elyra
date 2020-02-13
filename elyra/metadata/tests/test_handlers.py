@@ -32,13 +32,12 @@ class MetadataRestAPI(object):
         self.headers = headers
 
     def _req(self, verb, path, body=None):
-        response = self.request(verb,
-                url_path_join('api', 'metadata', self.namespace, path), data=body)
+        response = self.request(verb, url_path_join('api', 'metadata', self.namespace, path), data=body)
 
         if 400 <= response.status_code < 600:
             try:
                 response.reason = response.json()['message']
-            except:
+            except Exception:
                 pass
         response.raise_for_status()
 
@@ -121,4 +120,3 @@ class MetadataHandlerTest(NotebookTestBase):
         self.assertEqual(len(metadata), 1)
         runtimes = metadata['runtimes']
         self.assertEqual(len(runtimes), 0)
-

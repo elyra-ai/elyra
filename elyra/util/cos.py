@@ -46,9 +46,9 @@ class CosClient(LoggingConfigurable):
 
         # Initialize minioClient with an endpoint and access/secret keys.
         self.client = Minio(endpoint=self.endpoint.netloc,
-                                  access_key=self.access_key,
-                                  secret_key=self.secret_key,
-                                  secure=False)
+                            access_key=self.access_key,
+                            secret_key=self.secret_key,
+                            secure=False)
 
         # Make a bucket with the make_bucket API call.
         try:
@@ -93,7 +93,7 @@ class CosClient(LoggingConfigurable):
         """
         self.upload_file(os.path.join(dir, file_name), file_path)
 
-    def download_file(self, file_name, file_path ):
+    def download_file(self, file_name, file_path):
         """
         Downloads and saves the object as a file in the local filesystem.
         :param file_name: Name of the file object in object storage
@@ -103,12 +103,12 @@ class CosClient(LoggingConfigurable):
         try:
             self.client.fget_object(bucket_name=self.bucket,
                                     object_name=file_name,
-                                    file_path= file_path)
+                                    file_path=file_path)
         except BaseException:
             self.log.error('Error reading file {} from bucket {}'.format(file_name, self.bucket), exc_info=True)
             raise
 
-    def download_file_from_dir(self, dir, file_name, file_path ):
+    def download_file_from_dir(self, dir, file_name, file_path):
         """
         Downloads and saves the object as a file in the local filesystem.
         :param dir: the directory where the file is located
@@ -118,4 +118,3 @@ class CosClient(LoggingConfigurable):
         """
 
         self.download_file(os.path.join(dir, file_name), file_path)
-

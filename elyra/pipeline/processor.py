@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import entrypoints
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 
@@ -26,11 +26,11 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
             try:
                 # instantiate an actual instance of the processor
-                processor_instance = processor.load()() #Load an instance
+                processor_instance = processor.load()()  # Load an instance
                 processor_type = processor_instance.type
                 self.log.info('Registering processor "{}" with type -> {}'.format(processor, processor_type))
                 self.__processors[processor_type] = processor_instance
-            except:
+            except Exception:
                 # log and ignore initialization errors
                 self.log.error('Error registering processor "{}"'.format(processor))
 
@@ -39,7 +39,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         self.__processors[processor.type] = processor
 
     def get_processor(self, processor_type):
-        if  processor_type in self.__processors.keys():
+        if processor_type in self.__processors.keys():
             return self.__processors[processor_type]
         else:
             return None
@@ -59,7 +59,7 @@ class PipelineProcessorManager(SingletonConfigurable):
         return processor.process(pipeline)
 
 
-class PipelineProcessor(LoggingConfigurable): # ABC
+class PipelineProcessor(LoggingConfigurable):  # ABC
 
     @property
     @abstractmethod
@@ -69,5 +69,3 @@ class PipelineProcessor(LoggingConfigurable): # ABC
     @abstractmethod
     def process(self, pipeline):
         raise NotImplementedError()
-
-
