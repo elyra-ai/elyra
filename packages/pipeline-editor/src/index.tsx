@@ -27,8 +27,8 @@ import {toArray} from '@lumino/algorithm';
 import {IDragEvent} from '@lumino/dragdrop';
 import {Widget, PanelLayout} from '@lumino/widgets';
 
-import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
-import '@elyra/canvas/dist/common-canvas.min.css';
+import {CommonCanvas, CanvasController, CommonProperties} from '@elyra-ai/canvas';
+import '@elyra-ai/canvas/dist/common-canvas.min.css';
 import {NotebookParser, SubmissionHandler, pipelineIcon} from "@elyra/application";
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';

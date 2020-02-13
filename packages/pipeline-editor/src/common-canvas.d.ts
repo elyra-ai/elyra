@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-declare module '@elyra/canvas';
+declare module '@elyra-ai/canvas';
