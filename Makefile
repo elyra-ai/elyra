@@ -62,7 +62,8 @@ install: bdist ## Build distribution and install
 	$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,python-runner)
-	jupyter lab build
+	#jupyter lab build
+	jupyter lab build --dev-build=False --minimize=False
 	jupyter serverextension list
 	jupyter labextension list
 
