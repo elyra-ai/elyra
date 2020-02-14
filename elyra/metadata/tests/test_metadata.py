@@ -74,44 +74,60 @@ class MetadataManagerTestCase(MetadataTestBase):
                 self.assertTrue(metadata.name == "valid")
 
     def test_list_metadata_summary_none(self):
-        # Delete the metadata dir and attempt listing metadata
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
+        assert self.metadata_manager.namespace_exists() == False
+        os.makedirs(self.metadata_dir)
+        assert self.metadata_manager.namespace_exists()
+
         metadata_summary_list = self.metadata_manager.get_all_metadata_summary()
         self.assertEqual(len(metadata_summary_list), 0)
 
     def test_list_all_metadata_none(self):
-        # Delete the metadata dir and attempt listing metadata
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
+        assert self.metadata_manager.namespace_exists() == False
+        os.makedirs(self.metadata_dir)
+        assert self.metadata_manager.namespace_exists()
+
         metadata_list = self.metadata_manager.get_all()
         self.assertEqual(len(metadata_list), 0)
 
     def test_add_invalid_metadata(self):
+
+        # Use a local metadata mgr because we want to reference a bad namespace to ensure
+        # directory metadata/invalid is not created.
+        metadata_manager = MetadataManager(namespace='invalid')
+
         # Attempt with non Metadata instance
         with self.assertRaises(TypeError):
-            self.metadata_manager.add(invalid_metadata_json)
+            metadata_manager.add(invalid_metadata_json)
 
         # and invalid parameters
         with self.assertRaises(ValueError):
-            self.metadata_manager.add(None, invalid_metadata_json)
+            metadata_manager.add(None, invalid_metadata_json)
 
         with self.assertRaises(ValueError):
-            self.metadata_manager.add("foo", None)
+            metadata_manager.add("foo", None)
 
         metadata = Metadata(**invalid_metadata_json)
 
         capture = StringIO()
         handler = StreamHandler(capture)
-        self.metadata_manager.log.addHandler(handler)
+        metadata_manager.log.addHandler(handler)
 
         # Ensure save produces result of None and logging indicates validation error and file removal
         metadata_name = 'save_invalid'
-        resource = self.metadata_manager.add(metadata_name, metadata)
+        resource = metadata_manager.add(metadata_name, metadata)
         self.assertIsNone(resource)
         captured = capture.getvalue()
         self.assertIn("Schema validation failed", captured)
         self.assertIn("Removing metadata resource", captured)
-        # Ensure file was not created
-        metadata_file = os.path.join(self.metadata_dir, 'save_invalid.json')
+        # Ensure file was not created.  Since this was the first instance of 'invalid', then
+        # also ensure that directory 'metadata/invalid' was not created.
+        invalid_metadata_dir = os.path.join(self.data_dir, 'metadata', 'invalid')
+        self.assertFalse(os.path.exists(invalid_metadata_dir))
+        metadata_file = os.path.join(invalid_metadata_dir, 'save_invalid.json')
         self.assertFalse(os.path.exists(metadata_file))
 
     def test_add_remove_valid_metadata(self):
@@ -184,14 +200,22 @@ class MetadataFileStoreTestCase(MetadataTestBase):
         self.assertEqual(len(metadata_list), 2)
 
     def test_list_metadata_summary_none(self):
-        # Delete the metadata dir and attempt listing metadata
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
+        assert self.metadata_file_store.namespace_exists() == False
+        os.makedirs(self.metadata_dir)
+        assert self.metadata_file_store.namespace_exists()
+
         metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=True)
         self.assertEqual(len(metadata_summary_list), 0)
 
     def test_list_all_metadata_none(self):
-        # Delete the metadata dir and attempt listing metadata
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
+        assert self.metadata_file_store.namespace_exists() == False
+        os.makedirs(self.metadata_dir)
+        assert self.metadata_file_store.namespace_exists()
+
         metadata_list = self.metadata_file_store.get_all()
         self.assertEqual(len(metadata_list), 0)
 
