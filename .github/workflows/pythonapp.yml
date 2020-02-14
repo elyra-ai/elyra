@@ -1,4 +1,4 @@
-name: Elyra Tests
+name: Elyra Tests (1.x)
 
 on: [push]
 
