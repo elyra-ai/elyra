@@ -17,44 +17,20 @@
 import {SubmissionHandler} from "@elyra/application";
 
 export interface ICodeSnippet {
-    /*
-    {
-      "bloh": {
-        "display_name": "blah",
-        "metadata": {
-          "language": "python",
-          "code": [
-            "def create_project_temp_dir():",
-            "   temp_dir = tempfile.gettempdir()",
-            "   project_temp_dir = os.path.join(temp_dir, 'elyra')",
-            "   if not os.path.exists(project_temp_dir):",
-            "     os.mkdir(project_temp_dir)",
-            "   return project_temp_dir"
-          ]
-        },
-        "schema_name": "code-snippet",
-        "name": "bloh",
-        "resource": "/Users/lresende/Library/Jupyter/metadata/code-snippet/bloh.json"
-      }
-    }*/
-
     name: string;
     displayName: string;
     language: string;
     code: string[];
 }
 
-
 export class CodeSnippetManager {
     readonly codeSnippetEndpoint = 'api/metadata/code-snippets';
-
-    constructor() {
-
-    }
+    constructor() {}
 
     async findAll(): Promise<ICodeSnippet[]> {
-        let allCodeSnippets: ICodeSnippet[] = [];
-        SubmissionHandler.makeGetRequest(this.codeSnippetEndpoint, 'code-snippets', (response: any) => {
+        const getCodeSnippets: Promise<ICodeSnippet[]> = new Promise((resolve, reject) => {
+            let allCodeSnippets: ICodeSnippet[] = [];
+            SubmissionHandler.makeGetRequest(this.codeSnippetEndpoint, 'code-snippets', (response: any) => {
             const codeSnippetsResponse = response['code-snippets'];
 
             for(let codeSnippetKey in codeSnippetsResponse) {
@@ -67,10 +43,15 @@ export class CodeSnippetManager {
                 };
                 allCodeSnippets.push(codeSnippet);
             }
+            resolve(allCodeSnippets);
+            });
         });
-        return allCodeSnippets;
+        const codeSnippets = await getCodeSnippets;
+        
+        return codeSnippets;
     }
 
+    // TODO: Test this function
     async findByLanguage(language: string): Promise<ICodeSnippet[]> {
         let allCodeSnippets : ICodeSnippet[] = await this.findAll();
         let codeSnippetsByLanguage : ICodeSnippet[] = [];
