@@ -34,10 +34,6 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip wheel notebook jupyterlab
-    - name: Display jupyter env information
-      run: |
-        jupyter serverextension list
-        jupyter labextension list
     - name: Install NPM dependencies
       run: |
         sudo apt install yarn
@@ -45,36 +41,29 @@ jobs:
         npm install -g rimraf@3.0.0
         npm install -g typescript@3.7.3
         npm install -g yarn@1.21.0
-    - name: Patch jupyterlab
-      run: |
-        export PATH=~/.npm-global/bin:$PATH
-        yarn cache clean
-        yarn
-        pushd .
-        mkdir -p /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
-        echo ">>> make build <<<"
-        make build
-        cd /home/runner/work/elyra/elyra/packages/application && npm pack .
-        cd /home/runner/work/elyra/elyra/packages/application && jupyter labextension install elyra-application-*.tgz
-        popd
+#    - name: Patch jupyterlab
+#      run: |
+#        export PATH=~/.npm-global/bin:$PATH
+#        yarn cache clean
+#        yarn
+#        pushd .
+#        mkdir -p /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
+#        echo ">>> make build <<<"
+#        make build
+#        cd /home/runner/work/elyra/elyra/packages/application && npm pack .
+#        cd /home/runner/work/elyra/elyra/packages/application && jupyter labextension install elyra-application-*.tgz
+#        popd
 
 #        cp /home/runner/work/elyra/elyra/packages/application/elyra-application-*.tgz /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
 
-#    - name: Lint with flake8
-#      run: |
-#        pip install flake8
-#        # stop the build if there are Python syntax errors or undefined names
-#        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-#        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-#        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Build
       run: |
         export PATH=~/.npm-global/bin:$PATH
         make install
-#    - name: Collect logs
-#      if: always()
-#      - run: cat /tmp/jupyterlab-debug-*.log
     - name: Test with pytest
       run: |
         pip install pytest pytest-console-scripts
         pytest
+    - name: Collect logs
+      if: failure()
+      run: cat /tmp/jupyterlab-debug-*.log
