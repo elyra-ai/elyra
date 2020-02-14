@@ -16,15 +16,13 @@
 
 
 import React from 'react';
-import * as ReactDOM from 'react-dom';
+// import * as ReactDOM from 'react-dom';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { Message } from '@phosphor/messaging';
-import {Widget} from '@phosphor/widgets';
-
 import '../style/index.css';
-import {CodeSnippetManager} from "./CodeSnippet";
+import {CodeSnippetManager, ICodeSnippet} from "./CodeSnippet";
+import { ReactWidget } from '@jupyterlab/apputils';
 
 /**
  * A widget for code-snippet.
@@ -33,60 +31,47 @@ import {CodeSnippetManager} from "./CodeSnippet";
 class CodeSnippetTable extends React.Component<{}, any> {
     constructor(props: any) {
         super(props);
-
-        let codeSnippetManager = new CodeSnippetManager();
-        let codeSnippets = codeSnippetManager.findAll();
-        codeSnippets = codeSnippets;
-
-        this.state = { //state is by default an object
-         students: [
-            { id: 1, name: 'Wasif', age: 21, email: 'wasif@email.com' },
-            { id: 2, name: 'Ali', age: 19, email: 'ali@email.com' },
-            { id: 3, name: 'Saad', age: 16, email: 'saad@email.com' },
-            { id: 4, name: 'Asad', age: 25, email: 'asad@email.com' }
-         ]
-      }
+        this.state = {codeSnippets:[]};
     }
 
+    async fetchData(): Promise<ICodeSnippet[]> {
+      const codeSnippetManager = new CodeSnippetManager();
+      const codeSnippets:ICodeSnippet[] = await codeSnippetManager.findAll();
+      return codeSnippets;
+    }
 
     renderTableRows() {
-        /*
-        {
-          "bloh": {
-            "display_name": "blah",
-            "metadata": {
-              "language": "python",
-              "code": [
-                "def create_project_temp_dir():",
-                "   temp_dir = tempfile.gettempdir()",
-                "   project_temp_dir = os.path.join(temp_dir, 'elyra')",
-                "   if not os.path.exists(project_temp_dir):",
-                "     os.mkdir(project_temp_dir)",
-                "   return project_temp_dir"
-              ]
-            },
-            "schema_name": "code-snippet",
-            "name": "bloh",
-            "resource": "/Users/lresende/Library/Jupyter/metadata/code-snippet/bloh.json"
-          }
-        }*/
-      return this.state.students.map((student:any, index: number) => {
-         const { id, name, age, email } = student //destructuring
-         return (
-            <tr key={id}>
-               <td>{id}</td>
-               <td>{name}</td>
-               <td>{age}</td>
-               <td>{email}</td>
+
+      // TODO: Design and implement a nicer output table
+      const tableRowElems:Array<JSX.Element> = [];
+      
+      this.state.codeSnippets.map((codeSnippet:any, index: number) => {
+
+        const tableRowCellElems:Array<JSX.Element> = [];
+        for (let prop in codeSnippet) {
+          tableRowCellElems.push(<td key={prop}>{prop}: {codeSnippet[prop] }</td>);
+        }
+
+        tableRowElems.push(
+           <tr key={codeSnippet.name}>
+              {tableRowCellElems}
             </tr>
-         )
-      })
+        );
+      });
+    return <>{tableRowElems}</>;
+    }
+
+    componentDidMount() {      
+      this.fetchData().then((codeSnippets:ICodeSnippet[] ) => {
+        // set this.state in order to trigger new render
+        this.setState({codeSnippets: codeSnippets});
+      });
     }
 
     render()  {
       return (
          <div>
-            <table id='students'>
+            <table id='codeSnippets'>
                <tbody>
                   {this.renderTableRows()}
                </tbody>
@@ -96,33 +81,16 @@ class CodeSnippetTable extends React.Component<{}, any> {
     }
 }
 
-export class CodeSnippetWidget extends Widget {
 
-  constructor(/*options: CodeSnippetWidget.IOptions*/) {
-    super();
-    this.update();
+export class CodeSnippetWidget extends ReactWidget {
+  render() {
+    return (
+    <div className="elyra-CodeSnippets">
+      <header>{"Code Snippets"}</header>
+      <CodeSnippetTable/>
+    </div>
+    );
   }
-
-  /**
-   * Callback invoked upon an update request.
-   *
-   * @param msg - message
-   */
-  protected onUpdateRequest(msg: Message): void {
-
-      let title = "Code Snippets";
-
-      let tableContentGenerator = new CodeSnippetTable(null);
-      let jsx = (
-          <div className="elyra-CodeSnippets">
-            <header>{title}</header>
-            {tableContentGenerator.render()}
-          </div>
-      );
-
-      ReactDOM.render(jsx, this.node);
-  }
-
 }
 
 /**
@@ -142,21 +110,6 @@ export namespace CodeSnippetWidget {
      * Application rendered MIME type.
      */
     rendermime: IRenderMimeRegistry;
-  }
-
-  /**
-   * Interface describing the current widget.
-   */
-  export interface ICurrentWidget<W extends Widget = Widget> {
-    /**
-     * Current widget.
-     */
-    widget: W;
-
-    /**
-     * Code Snippet generator for the current widget.
-     */
-    // generator: Registry.IGenerator<W>;
   }
 }
 
