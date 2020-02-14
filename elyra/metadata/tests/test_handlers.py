@@ -56,6 +56,7 @@ class MetadataHandlerTest(NotebookTestBase):
 
     def setUp(self):
         self.runtime_dir = os.path.join(self.data_dir, 'metadata', 'runtimes')
+        self.bogus_dir = os.path.join(self.data_dir, 'metadata', 'bogus')
 
         create_json_file(self.runtime_dir, 'valid.json', valid_metadata_json)
         create_json_file(self.runtime_dir, 'another.json', another_metadata_json)
@@ -76,8 +77,10 @@ class MetadataHandlerTest(NotebookTestBase):
 
     def test_bogus_namespace(self):
         # Validate missing is not found
-        with assert_http_error(404, "Metadata 'missing' in namespace 'bogus' was not found!"):
+        with assert_http_error(404, "Namespace 'bogus' was not found!"):
             self.bogus_namespace_api.get('missing')
+
+        self.assertFalse(os.path.exists(self.bogus_dir))
 
     def test_missing_runtime(self):
         # Validate missing is not found
@@ -109,10 +112,14 @@ class MetadataHandlerTest(NotebookTestBase):
         self.assertIn('another', runtimes.keys())
         self.assertIn('valid', runtimes.keys())
 
-    def test_get_runtimes_none(self):
-        # Delete the metadata dir and attempt listing metadata
+    def test_get_runtimes_empty(self):
+        # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.runtime_dir)
+        with assert_http_error(404, "Namespace 'runtimes' was not found!"):
+            r = self.runtime_api.get_all()
 
+        # Now create empty namespace
+        os.makedirs(self.runtime_dir)
         r = self.runtime_api.get_all()
         self.assertEqual(r.status_code, 200)
         metadata = r.json()
