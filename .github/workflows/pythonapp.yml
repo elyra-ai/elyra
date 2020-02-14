@@ -41,21 +41,6 @@ jobs:
         npm install -g rimraf@3.0.0
         npm install -g typescript@3.7.3
         npm install -g yarn@1.21.0
-#    - name: Patch jupyterlab
-#      run: |
-#        export PATH=~/.npm-global/bin:$PATH
-#        yarn cache clean
-#        yarn
-#        pushd .
-#        mkdir -p /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
-#        echo ">>> make build <<<"
-#        make build
-#        cd /home/runner/work/elyra/elyra/packages/application && npm pack .
-#        cd /home/runner/work/elyra/elyra/packages/application && jupyter labextension install elyra-application-*.tgz
-#        popd
-
-#        cp /home/runner/work/elyra/elyra/packages/application/elyra-application-*.tgz /opt/hostedtoolcache/Python/3.7.6/x64/share/jupyter/lab/staging/linked_packages
-
     - name: Build
       run: |
         export PATH=~/.npm-global/bin:$PATH
