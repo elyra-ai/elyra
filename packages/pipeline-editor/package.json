@@ -45,7 +45,7 @@
         "@phosphor/widgets": "^1.8.1",
         "@types/jest": "24.0.15",
         "@types/node": "^12.0.10",
-        "@elyra/canvas": "^6.1.23",
+        "@elyra-ai/canvas": "^6.1.23",
         "@elyra/application": "^0.4.0",
         "autoprefixer": "^9.6.0",
         "carbon-components": "^10.3.2",
