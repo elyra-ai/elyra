@@ -76,7 +76,7 @@ class MetadataManagerTestCase(MetadataTestBase):
     def test_list_metadata_summary_none(self):
         # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
-        assert self.metadata_manager.namespace_exists() == False
+        assert self.metadata_manager.namespace_exists() is False
         os.makedirs(self.metadata_dir)
         assert self.metadata_manager.namespace_exists()
 
@@ -86,7 +86,7 @@ class MetadataManagerTestCase(MetadataTestBase):
     def test_list_all_metadata_none(self):
         # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
-        assert self.metadata_manager.namespace_exists() == False
+        assert self.metadata_manager.namespace_exists() is False
         os.makedirs(self.metadata_dir)
         assert self.metadata_manager.namespace_exists()
 
@@ -202,7 +202,7 @@ class MetadataFileStoreTestCase(MetadataTestBase):
     def test_list_metadata_summary_none(self):
         # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
-        assert self.metadata_file_store.namespace_exists() == False
+        assert self.metadata_file_store.namespace_exists() is False
         os.makedirs(self.metadata_dir)
         assert self.metadata_file_store.namespace_exists()
 
@@ -212,7 +212,7 @@ class MetadataFileStoreTestCase(MetadataTestBase):
     def test_list_all_metadata_none(self):
         # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_dir)
-        assert self.metadata_file_store.namespace_exists() == False
+        assert self.metadata_file_store.namespace_exists() is False
         os.makedirs(self.metadata_dir)
         assert self.metadata_file_store.namespace_exists()
 
