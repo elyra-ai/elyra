@@ -287,7 +287,7 @@ class FileMetadataStore(MetadataStore):
                             pass  # Ignore ValidationError and others when loading all resources
                         if metadata is not None:
                             resources.append(metadata)
-        else: # namespace doesn't exist, treat as KeyError
+        else:  # namespace doesn't exist, treat as KeyError
             raise KeyError("Namespace '{}' was not found!".format(self.namespace))
 
         if name:  # If we're looking for a single metadata and we're here, then its not found
