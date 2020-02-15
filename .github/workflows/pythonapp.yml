@@ -1,18 +1,27 @@
 name: Elyra Tests (1.x)
-
-on: [push]
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches: '*'
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [ '3.6', '3.7', '3.8' ]
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python 3.7
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: ${{ matrix.python-version }}
+        architecture: 'x64'
     - name: Set up Node
       uses: actions/setup-node@v1
       with:
