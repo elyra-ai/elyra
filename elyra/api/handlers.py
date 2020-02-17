@@ -1,8 +1,7 @@
-import json
 import os
 
 from notebook.base.handlers import APIHandler
-from tornado import gen, web
+from tornado import web
 
 
 class BaseSpecHandler(web.StaticFileHandler, APIHandler):
