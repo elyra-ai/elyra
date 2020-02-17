@@ -386,7 +386,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     if (failedAdd) {
       return showDialog({
         title: 'Unsupported File(s)',
-        body: 'Currently only notebook files can be added to a pipeline',
+        body: 'Only selected notebook files can be added to a pipeline',
         buttons: [Dialog.okButton()]
       });
     }
