@@ -18,23 +18,37 @@ import logging
 from .pipeline import Pipeline, Operation
 from traitlets.config import LoggingConfigurable
 
+DEFAULT_RUNTIME = "kfp"
+
 
 class PipelineParser(LoggingConfigurable):
 
     @staticmethod
-    def parse(pipeline) -> Pipeline:
+    def parse(pipeline_definition) -> Pipeline:
 
         # The pipeline blueprint enables defining multiple pipelines
         # in one pipeline json file. For now we only support processing
         # one (primary) pipeline.
-        primary_pipeline_id = pipeline['primary_pipeline']
-        for p in pipeline['pipelines']:
+
+        # Check for required values.  We require a primary_pipeline, a set of pipelines, and
+        # nodes within the primary pipeline (checked below).
+        if 'primary_pipeline' not in pipeline_definition:
+            raise SyntaxError("Required field: 'primary_pipeline' not found.")
+        if 'pipelines' not in pipeline_definition:
+            raise SyntaxError("Required field: 'pipelines' not found.")
+
+        pipeline = None
+        primary_pipeline_id = pipeline_definition['primary_pipeline']
+        for p in pipeline_definition['pipelines']:
             pipeline_id = p['id']
             if pipeline_id == primary_pipeline_id:
                 pipeline = p
 
         if not pipeline:
-            raise RuntimeError('Primary pipeline not found.')
+            raise SyntaxError("Primary pipeline '{}' not found.".format(primary_pipeline_id))
+
+        if 'nodes' not in pipeline or len(pipeline['nodes']) == 0:
+            raise SyntaxError("At least one node must exist in primary pipeline.")
 
         pipeline_object = Pipeline(pipeline['id'],
                                    __class__._read_pipeline_title(pipeline),
@@ -60,8 +74,8 @@ class PipelineParser(LoggingConfigurable):
                     dependencies=links
                 )
                 pipeline_object.operations[operation.id] = operation
-            except BaseException as e:
-                raise AttributeError('Invalid pipeline format: Missing field {}'.format(e))
+            except Exception as e:
+                raise SyntaxError("Invalid pipeline format: Missing field {}".format(e))
 
         return pipeline_object
 
@@ -83,7 +97,7 @@ class PipelineParser(LoggingConfigurable):
     @staticmethod
     def _read_pipeline_runtime(pipeline) -> str:
         # default runtime type
-        runtime = 'kfp'
+        runtime = DEFAULT_RUNTIME
         if 'app_data' in pipeline.keys():
             if 'runtime' in pipeline['app_data'].keys():
                 runtime = pipeline['app_data']['runtime']
@@ -100,7 +114,7 @@ class PipelineParser(LoggingConfigurable):
         return runtime_config
 
     @staticmethod
-    def _read_pipeline_operation_dependencies(node) -> str:
+    def _read_pipeline_operation_dependencies(node) -> list:
         dependencies = []
         if 'inputs' in node.keys():
             if 'links' in node['inputs'][0].keys():

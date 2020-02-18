@@ -34,11 +34,13 @@ class SchedulerHandler(APIHandler):
 
         self.log.debug("JSON payload: %s", pipeline_definition)
 
-        pipeline = PipelineParser.parse(pipeline_definition)
-
-        run_url = PipelineProcessorManager.process(pipeline)
-
-        self.send_success_message("pipeline successfully submitted", run_url)
+        try:
+            pipeline = PipelineParser.parse(pipeline_definition)
+            run_url = PipelineProcessorManager.process(pipeline)
+        except Exception as e:
+            self.send_error_message(500, "Pipeline submission failed with the following error: {}".format(str(e)))
+        else:
+            self.send_success_message("Pipeline successfully submitted", run_url)
 
     def send_message(self, message):
         self.write(message)
