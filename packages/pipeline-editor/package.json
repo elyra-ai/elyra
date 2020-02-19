@@ -48,7 +48,7 @@
         "@elyra-ai/canvas": "^6.1.23",
         "@elyra/application": "^0.4.0",
         "autoprefixer": "^9.6.0",
-        "carbon-components": "^10.3.2",
+        "carbon-components": "~10.8.1",
         "json-loader": "^0.5.7",
         "react": "^16.8.6",
         "react-dom": "^16.8.6",
