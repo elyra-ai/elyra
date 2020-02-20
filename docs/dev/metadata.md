@@ -42,10 +42,10 @@ The root directory for metadata is relative to the 'Jupyter Data directory' (e.g
 And each type of metadata is then stored in a child directory, which internally is
 called `namespace`. 
 
-As an example `runtime` is the namespace for the following metadata type:
+As an example `runtimes` is the namespace for the following metadata type:
 
 ```
-/Users/xxx/Library/Jupyter/metadata/runtime
+/Users/xxx/Library/Jupyter/metadata/runtimes
 ```
 
 And the contents of this folder includes:
@@ -57,11 +57,11 @@ For example, the following contains runtime metadata for two runtimes, airflow a
 where each runtime type has 1 or 2 runtimes defined, respectively.
 
 ```
-/Users/xxx/Library/Jupyter/metadata/runtime/airflow.schema
-/Users/xxx/Library/Jupyter/metadata/runtime/kfp.schema
-/Users/xxx/Library/Jupyter/metadata/runtime/airflow-cloud.json
-/Users/xxx/Library/Jupyter/metadata/runtime/kfp-fyre.json
-/Users/xxx/Library/Jupyter/metadata/runtime/kfp-qa.json
+/Users/xxx/Library/Jupyter/metadata/runtimes/airflow.schema
+/Users/xxx/Library/Jupyter/metadata/runtimes/kfp.schema
+/Users/xxx/Library/Jupyter/metadata/runtimes/airflow-cloud.json
+/Users/xxx/Library/Jupyter/metadata/runtimes/kfp-fyre.json
+/Users/xxx/Library/Jupyter/metadata/runtimes/kfp-qa.json
 ```
 
 And each metadata file looks like:
@@ -86,14 +86,14 @@ And each metadata file looks like:
 Users can easily manipulate metadata via the Client API
 
 ```
-jupyter runtime list
+jupyter runtimes list
 ```
 
 ```
 Available metadata for external runtimes:
-  kfp-fyre       /Users/lresende/Library/Jupyter/metadata/runtime/kfp-fyre.json
-  kfp-qa         /Users/lresende/Library/Jupyter/metadata/runtime/kfp-qa.json
-  airflow-cloud  /Users/lresende/Library/Jupyter/metadata/runtime/airflow-cloud.json
+  kfp-fyre       /Users/lresende/Library/Jupyter/metadata/runtimes/kfp-fyre.json
+  kfp-qa         /Users/lresende/Library/Jupyter/metadata/runtimes/kfp-qa.json
+  airflow-cloud  /Users/lresende/Library/Jupyter/metadata/runtimes/airflow-cloud.json
 ```
 
 ### Metadata Service REST API
