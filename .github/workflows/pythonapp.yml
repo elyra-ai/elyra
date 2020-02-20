@@ -1,8 +1,7 @@
 name: Elyra Tests (1.x)
 on:
   push:
-    branches:
-    - master
+    branches: '*'
   pull_request:
     branches: '*'
 
