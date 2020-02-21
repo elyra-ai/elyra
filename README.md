@@ -43,7 +43,7 @@ development to production.
 Elyra provides a **Notebook Pipeline visual editor** for building Notebook-based AI pipelines,
 simplifying the conversion of multiple notebooks into batch jobs or workflow.
 
-Currently the only supported pipeline runtime is
+Currently, the only supported pipeline runtime is
 [**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/),
 but others can be easily added.
 
@@ -120,7 +120,7 @@ pip install elyra && jupyter lab build
 ```
 via Docker:
 ```bash
- docker run -it -p 8888:8888 -v [LOCAL METADATA RUNTIME DIR]:/home/jovyan/.local/share/jupyter/metadata/runtime 
+ docker run -it -p 8888:8888 -v [LOCAL METADATA RUNTIME DIR]:/home/jovyan/.local/share/jupyter/metadata/runtimes
                              -v [LOCAL NOTEBOOK DIR]:/opt/work elyra/elyra:dev
 ```
 
@@ -135,12 +135,12 @@ via Docker:
 AI Pipelines currently only supports `Kubeflow Pipelines` with plans to expand to support other runtimes
 in the future.
 
-To configure runtime metadata for `Kubeflow Pipelines` use the `jupyter runtime install kfp` command providing appropriate options.  This command will create a json file in your local Jupyter Data directory under its `metadata/runtime` subdirectories.  If not known, the Jupyter Data directory can be discovered by issuing a ```jupyter --data-dir```
+To configure runtime metadata for `Kubeflow Pipelines` use the `jupyter runtimes install kfp` command providing appropriate options.  This command will create a json file in your local Jupyter Data directory under its `metadata/runtimes` subdirectories.  If not known, the Jupyter Data directory can be discovered by issuing a ```jupyter --data-dir```
 command on your terminal.
 
-Here's an example invocation of `jupyter runtime install kfp` to create runtime metadata for use by `Kubeflow Pipelines` corresponding to the example values in the table below. Following its invocation, a file containing the runtime metadata can be found in `[JUPYTER DATA DIR]/metadata/runtime/my_kfp.json`.
+Here's an example invocation of `jupyter runtimes install kfp` to create runtime metadata for use by `Kubeflow Pipelines` corresponding to the example values in the table below. Following its invocation, a file containing the runtime metadata can be found in `[JUPYTER DATA DIR]/metadata/runtimes/my_kfp.json`.
 ```bash
-jupyter runtime install kfp --name=my_kfp \
+jupyter runtimes install kfp --name=my_kfp \
        --display_name="My Kubeflow Pipeline Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --cos_endpoint=minio-service.kubeflow:9000 \
@@ -164,15 +164,15 @@ This produces the following content in `my_kfp.json`:
 ```
 To validate your new configuration is available, run:
 ```bash
-jupyter runtime list
+jupyter runtimes list
 
 Available metadata for external runtimes:
-  my_kfp    /Users/jdoe/Library/Jupyter/metadata/runtime/my_kfp.json
+  my_kfp    /Users/jdoe/Library/Jupyter/metadata/runtimes/my_kfp.json
 ```
 
-Existing runtime metadata configurations can be removed via `jupyter runtime remove --name=[runtime]`:
+Existing runtime metadata configurations can be removed via `jupyter runtimes remove --name=[runtime]`:
 ```bash
-jupyter runtime remove --name=my_kfp
+jupyter runtimes remove --name=my_kfp
 ```
 
 `Elyra` depends on its `Metadata Runtime` to determine how to communicate with your KubeFlow Pipelines
