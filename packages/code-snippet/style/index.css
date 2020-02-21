@@ -17,3 +17,62 @@
 .elyra-codeSnippet-icon {
    background-image: url('./code-snippet.svg')
 }
+
+.elyra-downArrow-icon {
+   background-image: url('./down-arrow-icon.svg');
+   background-size: 90%;
+   width: 20px;
+   height: 20px;
+}
+
+.elyra-upArrow-icon {
+   background-image: url('./up-arrow-icon.svg');
+   background-size: 90%;
+   width: 20px;
+   height: 20px;
+}
+
+.elyra-copy-icon {
+   background-image: url('./copy-icon.svg');
+   background-size: 75%;
+   width: 15px;
+   height: 15px;
+}
+
+.elyra-add-icon {
+   background-image: url('./add-icon.svg');
+   background-size: 18px;
+   width: 15px;
+   height: 15px;
+}
+
+.elyra-codeSnippetsHeader{
+    font-weight: bold;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+}
+
+.elyra-codeSnippet-tableRow{
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.elyra-codeSnippet-rowButton{
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    padding-right: 15px;
+}
+
+.elyra-codeSnippet-codeDisplay-visible{
+    height: 80px;
+    width: 300px;
+    overflow-x: auto;
+    overflow-y: auto;
+    display: block;
+}
+
+.elyra-codeSnippet-codeDisplay-hidden{
+    display: none;
+}
