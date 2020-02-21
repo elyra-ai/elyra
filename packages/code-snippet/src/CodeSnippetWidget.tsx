@@ -25,6 +25,21 @@ import {CodeSnippetManager, ICodeSnippet} from "./CodeSnippet";
 import { ReactWidget } from '@jupyterlab/apputils';
 
 /**
+ * The CSS class added to code snippet widget.
+ */
+const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
+const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
+const CODE_SNIPPETS_TABLE_ROW_CLASS = 'elyra-codeSnippet-tableRow';
+const ROW_BUTTON_CLASS = 'elyra-codeSnippet-rowButton';
+const CODE_DISPLAY_VISIBLE_CLASS = 'elyra-codeSnippet-codeDisplay-visible';
+const CODE_DISPLAY_HIDDEN_CLASS = 'elyra-codeSnippet-codeDisplay-hidden';
+
+const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
+const UP_ICON_CLASS = 'elyra-upArrow-icon';
+const COPY_ICON_CLASS = 'elyra-copy-icon';
+const INSERT_ICON_CLASS = 'elyra-add-icon';
+
+/**
  * A widget for code-snippet.
  */
 
@@ -41,30 +56,86 @@ class CodeSnippetTable extends React.Component<{}, any> {
     }
 
     renderTableRows() {
+       return this.buildCodeSnippetNameList();
+    }
 
-      // TODO: Design and implement a nicer output table
+    // TODO: Implement it as a reusable react component, flex containers/divs instead of table
+    buildCodeSnippetNameList():Array<JSX.Element> {
       const tableRowElems:Array<JSX.Element> = [];
-      
+
       this.state.codeSnippets.map((codeSnippet:any, index: number) => {
 
         const tableRowCellElems:Array<JSX.Element> = [];
-        for (let prop in codeSnippet) {
-          tableRowCellElems.push(<td key={prop}>{prop}: {codeSnippet[prop] }</td>);
+
+        // Add expand button
+        const visibleCodeSnippets = this.state.visibleCodeSnippets;
+        let displayButtonClass = ROW_BUTTON_CLASS;
+        if (visibleCodeSnippets[codeSnippet.name]){
+            displayButtonClass = displayButtonClass + ' ' + UP_ICON_CLASS;
+        }
+        else{
+            displayButtonClass = displayButtonClass + ' ' + DOWN_ICON_CLASS;
         }
 
+        tableRowCellElems.push(<td key='showCodeButton'>
+                                <div><button className={displayButtonClass}
+                                             onClick={ () => {this.updateCodeDisplayState(codeSnippet.name);} }></button></div></td>);
+
+        // Add display name
+        tableRowCellElems.push(<td key={codeSnippet.displayName}
+                                   onClick={ () => {this.updateCodeDisplayState(codeSnippet.name);} }>
+                                   {'[' + codeSnippet.language + ']'} {codeSnippet.displayName}</td>);
+
+        // Add copy button
+        // TODO: implement copy to clipboard command
+        tableRowCellElems.push(<td key='copyButton'>
+                                <div><button className={ROW_BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
+                                             onClick={ () => {console.log('COPY BUTTON CLICKED');} }></button></div></td>);
+
+        // Add insert button
+        // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
+        tableRowCellElems.push(<td key='insertButton'>
+                                <div><button className={ROW_BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
+                                             onClick={ () => {console.log('INSERT CODE BUTTON CLICKED');} }></button></div></td>);
+
+
         tableRowElems.push(
-           <tr key={codeSnippet.name}>
+           <tr key={codeSnippet.name} className={CODE_SNIPPETS_TABLE_ROW_CLASS}>
               {tableRowCellElems}
-            </tr>
-        );
+            </tr>);
+
+        // TODO: Use code mirror to display code
+        tableRowElems.push(
+            <tr key={codeSnippet.name + 'codeBox'}>
+                <td className={visibleCodeSnippets[codeSnippet.name] ? CODE_DISPLAY_VISIBLE_CLASS : CODE_DISPLAY_HIDDEN_CLASS}>{codeSnippet.code.join('\n')}</td></tr>);
       });
-    return <>{tableRowElems}</>;
+    return tableRowElems;
+    }
+
+    updateCodeDisplayState (name:string) {
+        let visibleCodeSnippets = this.state.visibleCodeSnippets;
+
+        // Switch boolean flag on visible code snippet
+        visibleCodeSnippets[name] = !visibleCodeSnippets[name];
+        this.setState({ codeSnippets: this.state.codeSnippets,
+                        visibleCodeSnippets: visibleCodeSnippets });
     }
 
     componentDidMount() {      
       this.fetchData().then((codeSnippets:ICodeSnippet[] ) => {
-        // set this.state in order to trigger new render
-        this.setState({codeSnippets: codeSnippets});
+       // Make object to keep track of open code snippets in UI
+        let visibleCodeSnippets:{[k: string]: boolean} = {};
+
+        if (!this.state.visibleCodeSnippets){
+            codeSnippets.map((codeSnippet:any, index: number) => {
+                visibleCodeSnippets[codeSnippet.name] = false;
+            });
+        }else{
+            visibleCodeSnippets = this.state.visibleCodeSnippets;
+        }
+
+        this.setState({codeSnippets: codeSnippets,
+                       visibleCodeSnippets: visibleCodeSnippets});
       });
     }
 
@@ -85,10 +156,10 @@ class CodeSnippetTable extends React.Component<{}, any> {
 export class CodeSnippetWidget extends ReactWidget {
   render() {
     return (
-    <div className="elyra-CodeSnippets">
-      <header>{"Code Snippets"}</header>
-      <CodeSnippetTable/>
-    </div>
+        <div className={CODE_SNIPPETS_CLASS}>
+          <header className={CODE_SNIPPETS_HEADER_CLASS}>{"</> Code Snippets"}</header>
+          <CodeSnippetTable/>
+        </div>
     );
   }
 }
