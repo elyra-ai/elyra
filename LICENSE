@@ -205,7 +205,8 @@ This product bundles various third-party components under other open source lice
 This section summarizes those components and their licenses.
 ------------------------------------------------------------------------------------
 
-JupyterLab Git extension (dist/git-*.tgz)
+JupyterLab Git extension (dist/git-*.tgz) and
+Jupyter_Server PyTest utilities (elyra/metadata/tests/conftest.py)
 
 BSD 3-Clause License
 

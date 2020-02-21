@@ -14,8 +14,11 @@
 # limitations under the License.
 #
 import errno
+import io
 import json
 import os
+
+from jsonschema import ValidationError
 
 valid_metadata_json = {
     'schema_name': 'test',
@@ -54,3 +57,14 @@ def create_json_file(location, file_name, content):
     resource = os.path.join(location, file_name)
     with open(resource, 'w', encoding='utf-8') as f:
         f.write(json.dumps(content))
+
+
+def get_schema(schema_name):
+    schema_file = os.path.join(os.path.dirname(__file__), '..', 'schemas', schema_name + '.json')
+    if not os.path.exists(schema_file):
+        raise ValidationError("Metadata schema file '{}' is missing!".format(schema_file))
+
+    with io.open(schema_file, 'r', encoding='utf-8') as f:
+        schema_json = json.load(f)
+
+    return schema_json

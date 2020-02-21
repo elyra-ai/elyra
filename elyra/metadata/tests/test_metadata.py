@@ -18,283 +18,242 @@ import io
 import json
 import os
 import shutil
-import tempfile
-import unittest
-
-from traitlets.config import Config
-from notebook.tests.launchnotebook import NotebookTestBase
+import pytest
 
 from jsonschema import ValidationError
 from logging import StreamHandler
 
-from elyra.metadata.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager
-from elyra.metadata.runtime import Runtime
+from elyra.metadata.metadata import Metadata, MetadataManager
 
-from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
-
-StringIO = io.StringIO
+from .test_utils import valid_metadata_json, invalid_metadata_json, create_json_file, get_schema
 
 
-class MetadataTestBase(NotebookTestBase):
-    """Test Metadata REST API"""
-    config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
+# ########################## MetadataManager Tests ###########################
+def test_manager_add_invalid(data_dir):
+    # Use a local metadata mgr because we want to reference a bad namespace to ensure
+    # directory metadata/invalid is not created.
+    metadata_manager = MetadataManager(namespace='invalid')
 
-    def setUp(self):
-        super(MetadataTestBase, self).setUp()
+    # Attempt with non Metadata instance
+    with pytest.raises(TypeError):
+        metadata_manager.add(invalid_metadata_json)
 
-        self.metadata_dir = os.path.join(self.data_dir, 'metadata', 'runtimes')
+    # and invalid parameters
+    with pytest.raises(ValueError):
+        metadata_manager.add(None, invalid_metadata_json)
 
-        create_json_file(self.metadata_dir, 'valid.json', valid_metadata_json)
-        create_json_file(self.metadata_dir, 'another.json', another_metadata_json)
-        create_json_file(self.metadata_dir, 'invalid.json', invalid_metadata_json)
+    with pytest.raises(ValueError):
+        metadata_manager.add("foo", None)
 
+    metadata = Metadata(**invalid_metadata_json)
 
-class MetadataManagerTestCase(MetadataTestBase):
-    """Test Metadata REST API"""
-    config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
+    capture = io.StringIO()
+    handler = StreamHandler(capture)
+    metadata_manager.log.addHandler(handler)
 
-    def setUp(self):
-        super(MetadataManagerTestCase, self).setUp()
-        self.metadata_manager = MetadataManager(namespace=Runtime.namespace)
-
-    def test_list_metadata_summary(self):
-        metadata_summary_list = self.metadata_manager.get_all_metadata_summary(include_invalid=False)
-        self.assertEqual(len(metadata_summary_list), 2)
-        metadata_summary_list = self.metadata_manager.get_all_metadata_summary(include_invalid=True)
-        self.assertEqual(len(metadata_summary_list), 3)
-
-    def test_list_all_metadata(self):
-        metadata_list = self.metadata_manager.get_all()
-        self.assertEqual(len(metadata_list), 2)
-        # Ensure name is getting derived from resource and not from contents
-        for metadata in metadata_list:
-            if metadata.display_name == "Another Runtime (2)":
-                self.assertTrue(metadata.name == "another")
-            else:
-                self.assertTrue(metadata.name == "valid")
-
-    def test_list_metadata_summary_none(self):
-        # Delete the metadata dir contents and attempt listing metadata
-        shutil.rmtree(self.metadata_dir)
-        assert self.metadata_manager.namespace_exists() is False
-        os.makedirs(self.metadata_dir)
-        assert self.metadata_manager.namespace_exists()
-
-        metadata_summary_list = self.metadata_manager.get_all_metadata_summary()
-        self.assertEqual(len(metadata_summary_list), 0)
-
-    def test_list_all_metadata_none(self):
-        # Delete the metadata dir contents and attempt listing metadata
-        shutil.rmtree(self.metadata_dir)
-        assert self.metadata_manager.namespace_exists() is False
-        os.makedirs(self.metadata_dir)
-        assert self.metadata_manager.namespace_exists()
-
-        metadata_list = self.metadata_manager.get_all()
-        self.assertEqual(len(metadata_list), 0)
-
-    def test_add_invalid_metadata(self):
-
-        # Use a local metadata mgr because we want to reference a bad namespace to ensure
-        # directory metadata/invalid is not created.
-        metadata_manager = MetadataManager(namespace='invalid')
-
-        # Attempt with non Metadata instance
-        with self.assertRaises(TypeError):
-            metadata_manager.add(invalid_metadata_json)
-
-        # and invalid parameters
-        with self.assertRaises(ValueError):
-            metadata_manager.add(None, invalid_metadata_json)
-
-        with self.assertRaises(ValueError):
-            metadata_manager.add("foo", None)
-
-        metadata = Metadata(**invalid_metadata_json)
-
-        capture = StringIO()
-        handler = StreamHandler(capture)
-        metadata_manager.log.addHandler(handler)
-
-        # Ensure save produces result of None and logging indicates validation error and file removal
-        metadata_name = 'save_invalid'
-        resource = metadata_manager.add(metadata_name, metadata)
-        self.assertIsNone(resource)
-        captured = capture.getvalue()
-        self.assertIn("Schema validation failed", captured)
-        self.assertIn("Removing metadata resource", captured)
-        # Ensure file was not created.  Since this was the first instance of 'invalid', then
-        # also ensure that directory 'metadata/invalid' was not created.
-        invalid_metadata_dir = os.path.join(self.data_dir, 'metadata', 'invalid')
-        self.assertFalse(os.path.exists(invalid_metadata_dir))
-        metadata_file = os.path.join(invalid_metadata_dir, 'save_invalid.json')
-        self.assertFalse(os.path.exists(metadata_file))
-
-    def test_add_remove_valid_metadata(self):
-        metadata_name = 'valid_add_remove'
-
-        metadata = Metadata(**valid_metadata_json)
-
-        resource = self.metadata_manager.add(metadata_name, metadata)
-        self.assertIsNotNone(resource)
-
-        # Ensure file was created
-        metadata_file = os.path.join(self.metadata_dir, 'valid_add_remove.json')
-        self.assertTrue(os.path.exists(metadata_file))
-
-        with open(metadata_file, 'r', encoding='utf-8') as f:
-            valid_add = json.loads(f.read())
-            self.assertNotIn("resource", valid_add)
-            self.assertNotIn("name", valid_add)
-            self.assertIn("display_name", valid_add)
-            self.assertEqual(valid_add['display_name'], "valid runtime")
-            self.assertIn("schema_name", valid_add)
-            self.assertEqual(valid_add['schema_name'], "test")
-
-        resource = self.metadata_manager.remove(metadata_name)
-
-        self.assertFalse(os.path.exists(metadata_file))
-        self.assertEqual(resource, metadata_file)
-
-    def test_remove_invalid_metadata(self):
-        # Ensure invalid metadata file isn't validated and is removed.
-        create_json_file(self.metadata_dir, 'remove_invalid.json', invalid_metadata_json)
-        metadata_name = 'remove_invalid'
-        resource = self.metadata_manager.remove(metadata_name)
-        metadata_file = os.path.join(self.metadata_dir, 'remove_invalid.json')
-        self.assertFalse(os.path.exists(metadata_file))
-        self.assertEqual(resource, metadata_file)
-
-    def test_read_valid_metadata_by_name(self):
-        metadata_name = 'valid'
-        some_metadata = self.metadata_manager.get(metadata_name)
-        self.assertEqual(some_metadata.name, metadata_name)
-        self.assertEqual(some_metadata.schema_name, "test")
-        self.assertIn(self.metadata_dir, some_metadata.resource)
-
-    def test_read_invalid_metadata_by_name(self):
-        metadata_name = 'invalid'
-        with self.assertRaises(ValidationError):
-            self.metadata_manager.get(metadata_name)
-
-    def test_read_missing_metadata_by_name(self):
-        metadata_name = 'missing'
-        with self.assertRaises(KeyError):
-            self.metadata_manager.get(metadata_name)
+    # Ensure save produces result of None and logging indicates validation error and file removal
+    metadata_name = 'save_invalid'
+    resource = metadata_manager.add(metadata_name, metadata)
+    assert resource is None
+    captured = capture.getvalue()
+    assert "Schema validation failed" in captured
+    assert "Removing metadata resource" in captured
+    # Ensure file was not created.  Since this was the first instance of 'invalid', then
+    # also ensure that directory 'metadata/invalid' was not created.
+    invalid_metadata_dir = os.path.join(data_dir, 'metadata', 'invalid')
+    assert not os.path.exists(invalid_metadata_dir)
+    metadata_file = os.path.join(invalid_metadata_dir, 'save_invalid.json')
+    assert not os.path.exists(metadata_file)
 
 
-class MetadataFileStoreTestCase(MetadataTestBase):
-
-    def setUp(self):
-        super(MetadataFileStoreTestCase, self).setUp()
-        self.metadata_file_store = FileMetadataStore(namespace='runtimes', metadata_dir=self.metadata_dir)
-
-    def test_list_metadata_summary(self):
-        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=False)
-        self.assertEqual(len(metadata_summary_list), 2)
-        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=True)
-        self.assertEqual(len(metadata_summary_list), 3)
-
-    def test_list_all_metadata(self):
-        metadata_list = self.metadata_file_store.get_all()
-        self.assertEqual(len(metadata_list), 2)
-
-    def test_list_metadata_summary_none(self):
-        # Delete the metadata dir contents and attempt listing metadata
-        shutil.rmtree(self.metadata_dir)
-        assert self.metadata_file_store.namespace_exists() is False
-        os.makedirs(self.metadata_dir)
-        assert self.metadata_file_store.namespace_exists()
-
-        metadata_summary_list = self.metadata_file_store.get_all_metadata_summary(include_invalid=True)
-        self.assertEqual(len(metadata_summary_list), 0)
-
-    def test_list_all_metadata_none(self):
-        # Delete the metadata dir contents and attempt listing metadata
-        shutil.rmtree(self.metadata_dir)
-        assert self.metadata_file_store.namespace_exists() is False
-        os.makedirs(self.metadata_dir)
-        assert self.metadata_file_store.namespace_exists()
-
-        metadata_list = self.metadata_file_store.get_all()
-        self.assertEqual(len(metadata_list), 0)
-
-    def test_read_valid_metadata_by_name(self):
-        metadata_name = 'valid'
-        some_metadata = self.metadata_file_store.read(metadata_name)
-        self.assertEqual(some_metadata.name, metadata_name)
-
-    def test_read_invalid_metadata_by_name(self):
-        metadata_name = 'invalid'
-        with self.assertRaises(ValidationError):
-            self.metadata_file_store.read(metadata_name)
-
-    def test_read_missing_metadata_by_name(self):
-        metadata_name = 'missing'
-        with self.assertRaises(KeyError):
-            self.metadata_file_store.read(metadata_name)
+def test_manager_list_summary(runtimes_manager):
+    metadata_summary_list = runtimes_manager.get_all_metadata_summary(include_invalid=False)
+    assert len(metadata_summary_list) == 2
+    metadata_summary_list = runtimes_manager.get_all_metadata_summary(include_invalid=True)
+    assert len(metadata_summary_list) == 3
 
 
-class SchemaManagerTestCase(unittest.TestCase):
-    def setUp(self) -> None:
-        # create temporary data directory for storing metadata
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.metadata_dir = self.temp_dir.name
-        self.addCleanup(self.temp_dir.cleanup)
-        self.test_schema_json = SchemaManagerTestCase._get_schema('test')
-        self.schema_manager = SchemaManager.instance()
-
-    @staticmethod
-    def _get_schema(schema_name):
-        schema_json = None
-        schema_file = os.path.join(os.path.dirname(__file__), '..', 'schemas', schema_name + '.json')
-        if not os.path.exists(schema_file):
-            raise ValidationError("Metadata schema file '{}' is missing!".format(schema_file))
-
-        with io.open(schema_file, 'r', encoding='utf-8') as f:
-            schema_json = json.load(f)
-
-        return schema_json
-
-    def test_manage_schema(self):
-        self.schema_manager.remove_all()
-
-        self.schema_manager.add_schema("foo", "test", self.test_schema_json)
-        self.schema_manager.add_schema("bar", "test", self.test_schema_json)
-        self.schema_manager.add_schema("baz", "test", self.test_schema_json)
-
-        foo_schema = self.schema_manager.get_schema("foo", "test")
-        self.assertIsNotNone(foo_schema)
-        self.assertEqual(foo_schema, self.test_schema_json)
-
-        baz_schema = self.schema_manager.get_schema("baz", "test")
-        self.assertIsNotNone(baz_schema)
-        self.assertEqual(baz_schema, self.test_schema_json)
-
-        bar_schema = self.schema_manager.get_schema("bar", "test")
-        self.assertIsNotNone(baz_schema)
-        self.assertEqual(bar_schema, self.test_schema_json)
-
-        # extend the schema... add and ensure update exists...
-        modified_schema = copy.deepcopy(bar_schema)
-        modified_schema['properties']['metadata']['properties']['bar'] = {"type": "string", "minLength": 5}
-
-        self.schema_manager.add_schema("bar", "test", modified_schema)
-        bar_schema = self.schema_manager.get_schema("bar", "test")
-        self.assertIsNotNone(bar_schema)
-        self.assertNotEqual(bar_schema, self.test_schema_json)
-        self.assertEqual(bar_schema, modified_schema)
-
-        self.schema_manager.remove_schema("bar", "test")
-        bar_schema = self.schema_manager.get_schema("bar", "test")
-        self.assertIsNone(bar_schema)
-
-        self.schema_manager.remove_all()
-        foo_schema = self.schema_manager.get_schema("foo", "test")
-        self.assertIsNone(foo_schema)
-        baz_schema = self.schema_manager.get_schema("baz", "test")
-        self.assertIsNone(baz_schema)
+def test_manager_list_all(runtimes_manager):
+    metadata_list = runtimes_manager.get_all()
+    assert len(metadata_list) == 2
+    # Ensure name is getting derived from resource and not from contents
+    for metadata in metadata_list:
+        if metadata.display_name == "Another Runtime (2)":
+            assert metadata.name == "another"
+        else:
+            assert metadata.name == "valid"
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_manager_list_summary_none(runtimes_manager, metadata_runtimes_dir):
+    # Delete the metadata dir contents and attempt listing metadata
+    shutil.rmtree(metadata_runtimes_dir)
+    assert runtimes_manager.namespace_exists() is False
+    os.makedirs(metadata_runtimes_dir)
+    assert runtimes_manager.namespace_exists()
+
+    metadata_summary_list = runtimes_manager.get_all_metadata_summary()
+    assert len(metadata_summary_list) == 0
+
+
+def test_manager_list_all_none(runtimes_manager, metadata_runtimes_dir):
+    # Delete the metadata dir contents and attempt listing metadata
+    shutil.rmtree(metadata_runtimes_dir)
+    assert runtimes_manager.namespace_exists() is False
+    os.makedirs(metadata_runtimes_dir)
+    assert runtimes_manager.namespace_exists()
+
+    metadata_list = runtimes_manager.get_all()
+    assert len(metadata_list) == 0
+
+
+def test_manager_add_remove_valid(runtimes_manager, metadata_runtimes_dir):
+    metadata_name = 'valid_add_remove'
+
+    metadata = Metadata(**valid_metadata_json)
+
+    resource = runtimes_manager.add(metadata_name, metadata)
+    assert resource is not None
+
+    # Ensure file was created
+    metadata_file = os.path.join(metadata_runtimes_dir, 'valid_add_remove.json')
+    assert os.path.exists(metadata_file)
+
+    with open(metadata_file, 'r', encoding='utf-8') as f:
+        valid_add = json.loads(f.read())
+        assert "resource" not in valid_add
+        assert "name" not in valid_add
+        assert "display_name" in valid_add
+        assert valid_add['display_name'] == "valid runtime"
+        assert "schema_name" in valid_add
+        assert valid_add['schema_name'] == "test"
+
+    resource = runtimes_manager.remove(metadata_name)
+
+    assert not os.path.exists(metadata_file)
+    assert resource == metadata_file
+
+
+def test_manager_remove_invalid(runtimes_manager, metadata_runtimes_dir):
+    # Ensure invalid metadata file isn't validated and is removed.
+    create_json_file(metadata_runtimes_dir, 'remove_invalid.json', invalid_metadata_json)
+    metadata_name = 'remove_invalid'
+    resource = runtimes_manager.remove(metadata_name)
+    metadata_file = os.path.join(metadata_runtimes_dir, 'remove_invalid.json')
+    assert not os.path.exists(metadata_file)
+    assert resource == metadata_file
+
+
+def test_manager_read_valid_by_name(runtimes_manager, metadata_runtimes_dir):
+    metadata_name = 'valid'
+    some_metadata = runtimes_manager.get(metadata_name)
+    assert some_metadata.name == metadata_name
+    assert some_metadata.schema_name == "test"
+    assert str(metadata_runtimes_dir) in some_metadata.resource
+
+
+def test_manager_read_invalid_by_name(runtimes_manager):
+    metadata_name = 'invalid'
+    with pytest.raises(ValidationError):
+        runtimes_manager.get(metadata_name)
+
+
+def test_manager_read_missing_by_name(runtimes_manager):
+    metadata_name = 'missing'
+    with pytest.raises(KeyError):
+        runtimes_manager.get(metadata_name)
+
+
+# ########################## FileMetadataStore Tests ###########################
+def test_filestore_list_summary(filestore):
+    metadata_summary_list = filestore.get_all_metadata_summary(include_invalid=False)
+    assert len(metadata_summary_list) == 2
+    metadata_summary_list = filestore.get_all_metadata_summary(include_invalid=True)
+    assert len(metadata_summary_list) == 3
+
+
+def test_filestore_list_all(filestore):
+    metadata_list = filestore.get_all()
+    assert len(metadata_list) == 2
+
+
+def test_filestore_list_summary_none(filestore, metadata_runtimes_dir):
+    # Delete the metadata dir contents and attempt listing metadata
+    shutil.rmtree(metadata_runtimes_dir)
+    assert filestore.namespace_exists() is False
+    os.makedirs(metadata_runtimes_dir)
+    assert filestore.namespace_exists()
+
+    metadata_summary_list = filestore.get_all_metadata_summary(include_invalid=True)
+    assert len(metadata_summary_list) == 0
+
+
+def test_filestore_list_all_none(filestore, metadata_runtimes_dir):
+    # Delete the metadata dir contents and attempt listing metadata
+    shutil.rmtree(metadata_runtimes_dir)
+    assert filestore.namespace_exists() is False
+    os.makedirs(metadata_runtimes_dir)
+    assert filestore.namespace_exists()
+
+    metadata_list = filestore.get_all()
+    assert len(metadata_list) == 0
+
+
+def test_filestore_read_valid_by_name(filestore):
+    metadata_name = 'valid'
+    some_metadata = filestore.read(metadata_name)
+    assert some_metadata.name == metadata_name
+
+
+def test_filestore_read_invalid_by_name(filestore):
+    metadata_name = 'invalid'
+    with pytest.raises(ValidationError):
+        filestore.read(metadata_name)
+
+
+def test_filestore_read_missing_by_name(filestore):
+    metadata_name = 'missing'
+    with pytest.raises(KeyError):
+        filestore.read(metadata_name)
+
+
+# ########################## SchemaManager Tests ###########################
+def test_schema_manager_all(schema_manager):
+    schema_manager.remove_all()
+
+    test_schema_json = get_schema('test')
+
+    schema_manager.add_schema("foo", "test", test_schema_json)
+    schema_manager.add_schema("bar", "test", test_schema_json)
+    schema_manager.add_schema("baz", "test", test_schema_json)
+
+    foo_schema = schema_manager.get_schema("foo", "test")
+    assert foo_schema is not None
+    assert foo_schema == test_schema_json
+
+    baz_schema = schema_manager.get_schema("baz", "test")
+    assert baz_schema is not None
+    assert baz_schema == test_schema_json
+
+    bar_schema = schema_manager.get_schema("bar", "test")
+    assert baz_schema is not None
+    assert bar_schema == test_schema_json
+
+    # extend the schema... add and ensure update exists...
+    modified_schema = copy.deepcopy(bar_schema)
+    modified_schema['properties']['metadata']['properties']['bar'] = {"type": "string", "minLength": 5}
+
+    schema_manager.add_schema("bar", "test", modified_schema)
+    bar_schema = schema_manager.get_schema("bar", "test")
+    assert bar_schema is not None
+    assert bar_schema != test_schema_json
+    assert bar_schema == modified_schema
+
+    schema_manager.remove_schema("bar", "test")
+    bar_schema = schema_manager.get_schema("bar", "test")
+    assert bar_schema is None
+
+    schema_manager.remove_all()
+    foo_schema = schema_manager.get_schema("foo", "test")
+    assert foo_schema is None
+    baz_schema = schema_manager.get_schema("baz", "test")
+    assert baz_schema is None
