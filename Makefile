@@ -37,6 +37,7 @@ clean: ## Make a clean source tree
 	rm -rf $$(find . -name tsconfig.tsbuildinfo)
 	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
+	rm -rf $$(find . -name .pytest_cache)
 
 test: lint ## Run unit tests
 	pytest -v elyra
