@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help clean prepare install clean-docker docker-image
+.PHONY: help clean prepare install clean-docker docker-image test_dependencies
 
 SHELL:=/bin/bash
 
@@ -41,7 +41,10 @@ clean: ## Make a clean source tree
 test: lint ## Run unit tests
 	pytest -v elyra
 
-lint: ## Lint python files
+test_dependencies:
+	@pip install -q -r test_requirements.txt
+
+lint: test_dependencies ## Lint python files
 	flake8 elyra
 
 # Prepares Elyra for build/packaging/installation
