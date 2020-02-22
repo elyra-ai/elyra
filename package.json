@@ -7,7 +7,20 @@
       "packages/*"
     ]
   },
+  "scripts": {
+    "lint": "yarn && yarn run prettier && yarn run eslint",
+    "lint:check": "yarn run prettier:check && yarn run eslint:check",
+    "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts,.tsx",
+    "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx",
+    "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
+    "prettier:check": "prettier --ignore-path .gitignore --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\""
+  },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.14.0",
+    "@typescript-eslint/parser": "^2.14.0",
+    "eslint": "^6.5.0",
+    "eslint-config-prettier": "^6.9.0",
+    "prettier": "^1.19.1",
     "lerna": "^3.16.4",
     "rimraf": "^2.6.3",
     "typescript": "~3.5.2"
