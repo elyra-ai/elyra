@@ -27,8 +27,8 @@ import {toArray} from '@phosphor/algorithm';
 import {IDragEvent} from '@phosphor/dragdrop';
 import {Widget, PanelLayout} from '@phosphor/widgets';
 
-import {CommonCanvas, CanvasController, CommonProperties} from '@elyra-ai/canvas';
-import '@elyra-ai/canvas/dist/common-canvas.min.css';
+import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
+import '@elyra/canvas/dist/common-canvas.min.css';
 import {NotebookParser, SubmissionHandler} from "@elyra/application";
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';

@@ -33,8 +33,9 @@ jobs:
         pip --version
     - name: Create npm configuration for authentication
       run: |
-        echo "@elyra-ai:registry=https://npm.pkg.github.com/" >> ~/.npmrc
-        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_PERSONAL_TOKEN }}" >> ~/.npmrc
+        echo "@elyra:registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/" >> ~/.npmrc
+        echo "email=${{ secrets.ARTIFACTORY_PERSONAL_USER }}" >> ~/.npmrc
+        echo "_auth=${{ secrets.ARTIFACTORY_PERSONAL_TOKEN }}" >> ~/.npmrc
         echo "always-auth=true" >> ~/.npmrc
         echo "scripts-prepend-node-path=true" >> ~/.npmrc
         echo "prefix=~/.npm-global" >> ~/.npmrc
