@@ -42,7 +42,7 @@ setup_args = dict(
     install_requires=[
         "jupyter_core>=4.0,<5.0",
         "kfp==0.2.0",
-        "kfp-notebook>=0.4.0",
+        "kfp-notebook>=0.5.0",
         "minio>=5.0.7",
         'jupyterlab>=1.0.0,<2.0.0',
         'jupyterlab-git',
