@@ -34,9 +34,12 @@ auto_extension_path = "./jupyter-config/jupyter_notebook_config.d/*.json"
 
 setup_args = dict(
     name="elyra",
-    url="https://github.com/elyra-ai/elyra",
-    author="CODAIT",
     version=version_ns['__version__'],
+    url="https://github.com/elyra-ai/elyra",
+    description="Elyra provides AI Centric extensions to JupyterLab",
+    long_description=long_desc,
+    author="Elyra Maintainers",
+    license="Apache License Version 2.0",
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_extension_path))],
     packages=find_packages(),
     install_requires=[
@@ -54,8 +57,18 @@ setup_args = dict(
         'entrypoints>=0.3',
     ],
     include_package_data=True,
-    description="Elyra",
-    long_description=long_desc,
+    classifiers=(
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ),
     entry_points={
         'console_scripts': [
             'jupyter-runtimes = elyra.metadata.runtime:RuntimeMetadataApp.launch_instance',
