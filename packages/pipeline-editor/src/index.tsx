@@ -202,8 +202,6 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       paletteInitialState: false
     };
     const toolbarConfig = [
-       { action: 'add', label: 'Add Notebook to Pipeline', enable: true, iconEnabled: '/'},
-       { divider: true },
        { action: 'run', label: 'Run Pipeline', enable: true },
        { divider: true },
        { action: 'save', label: 'Save Pipeline', enable: true },
@@ -458,9 +456,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
    */
   toolbarMenuActionHandler(action: any, source: any) {
   	console.log('Handling action: ' + action);
-  	if(action == 'add') { // When adding a new node to the pipeline
-  	  this.handleAdd();
-    } else if (action == 'run') { // When executing the pipeline
+  	if (action == 'run') { // When executing the pipeline
   	  this.handleRun();
 	  } else if (action == 'save') {
       this.handleSave();
