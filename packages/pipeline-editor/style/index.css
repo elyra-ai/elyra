@@ -19,12 +19,6 @@
   --elyra-icon-pipeline: url('./pipeline-flow.svg');
 }
 
-.add .list-item {
-	background-image: url('./add-notebook-node.svg');
-	background-repeat: no-repeat;
-    background-position: center;
-    background-size: 30%;
-}
 
 .save .list-item {
 	background-image: url('./save-pipeline.svg');
