@@ -53,10 +53,6 @@ setup_args = dict(
         'requests>=2.9.1,<3.0',
         'entrypoints>=0.3',
     ],
-    extra_require={
-        'test': ['pytest', 'pytest-tornasync', 'pytest-console-scripts'],
-        'dev': ['flake8'],
-    },
     include_package_data=True,
     description="Elyra",
     long_description=long_desc,
