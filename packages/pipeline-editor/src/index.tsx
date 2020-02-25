@@ -196,8 +196,14 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   render() {
     const style = { height: '100%' };
+    const emptyCanvasContent = 
+      (<div> 
+        <div className="dragdrop"/> 
+        <h1> Start your new pipeline by dragging files from the file browser pane. </h1> 
+      </div>);
     const canvasConfig = {
       enableInternalObjectModel: true,
+      emptyCanvasContent: emptyCanvasContent,
       enablePaletteLayout: 'Modal',
       paletteInitialState: false
     };
