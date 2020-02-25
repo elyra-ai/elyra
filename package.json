@@ -8,8 +8,6 @@
     ]
   },
   "scripts": {
-    "lint": "yarn && yarn run prettier && yarn run eslint",
-    "lint:check": "yarn run prettier:check && yarn run eslint:check",
     "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts,.tsx",
     "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
