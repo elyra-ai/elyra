@@ -121,14 +121,14 @@ export class PythonRunner {
   /**
    * Function: Starts new kernel.
    */
-  startKernel = async (options: Kernel.IOptions): Promise<Kernal.IKernel> => {
+  startKernel = async (options: Kernel.IOptions): Promise<Kernel.IKernel> => {
     return Kernel.startNew(options);
   };
 
   /**
    * Function: Shuts down kernel.
    */
-  shutDownKernel = async (): void => {
+  shutDownKernel = async (): Promise<void> => {
     if (this.kernel) {
       const name = this.kernel.name;
 

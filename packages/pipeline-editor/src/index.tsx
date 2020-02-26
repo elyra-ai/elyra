@@ -223,7 +223,7 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
     this.handleEvent = this.handleEvent.bind(this);
   }
 
-  render(): HTMLElement {
+  render(): any {
     const style = { height: '100%' };
     const emptyCanvasContent = (
       <div>

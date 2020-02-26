@@ -164,7 +164,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Clears existing output area and runs python code from file editor.
    */
-  private runPython = async (): void => {
+  private runPython = async (): Promise<void> => {
     this.resetOutputArea();
     this.displayOutputArea();
     this.runner.runPython(this.kernelSettings, this.handleKernelMsg);
@@ -183,7 +183,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Call back function passed to runner, that handles messages coming from the kernel.
    */
-  private handleKernelMsg = async (msg: any): void => {
+  private handleKernelMsg = async (msg: any): Promise<void> => {
     let output = '';
 
     if (msg.status) {
@@ -254,7 +254,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Gets OutputArea child widget, where output and kernel status are displayed.
    */
-  private getOutputAreaChildWidget = (): void => {
+  private getOutputAreaChildWidget = (): Widget => {
     const outputAreaChildLayout = this.outputAreaWidget.layout as PanelLayout;
     return outputAreaChildLayout.widgets[0];
   };
@@ -279,7 +279,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Saves file editor content.
    */
-  private saveFile = (): Promise => {
+  private saveFile = (): Promise<any> => {
     if (this.model.readOnly) {
       return showDialog({
         title: 'Cannot Save',
@@ -334,7 +334,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   /**
    * Function: Gets kernel specs and state.
    */
-  private async getKernelSPecs(): void {
+  private async getKernelSPecs(): Promise<void> {
     const specs: Kernel.ISpecModels = await this.props.runner.getKernelSpecs();
     this.filterPythonKernels(specs);
 

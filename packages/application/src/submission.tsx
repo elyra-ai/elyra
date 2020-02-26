@@ -24,7 +24,7 @@ export class SubmissionHandler {
   static handleError(
     response: any,
     submissionType: string
-  ): Promise<Dialog.IResult> {
+  ): Promise<Dialog.IResult<any>> {
     let res_body = response['message'] ? response['message'] : '';
     res_body = response['reason']
       ? res_body + ': ' + response['reason']
@@ -48,7 +48,7 @@ export class SubmissionHandler {
     });
   }
 
-  static handle404(submissionType: string): Promise<Dialog.IResult> {
+  static handle404(submissionType: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error submitting ' + submissionType,
       body: 'Elyra service endpoint not available',
@@ -60,7 +60,7 @@ export class SubmissionHandler {
     requestExt: string,
     submissionType: string,
     dialogCallback: (results: any) => void
-  ): Promise<Dialog.IResult> {
+  ): void {
     this.makeServerRequest(
       requestExt,
       { method: 'GET' },
@@ -74,7 +74,7 @@ export class SubmissionHandler {
     requestBody: any,
     submissionType: string,
     dialogCallback: (results: any) => void
-  ): Promise<Dialog.IResult> {
+  ): void {
     this.makeServerRequest(
       requestExt,
       { method: 'POST', body: requestBody },
@@ -88,7 +88,7 @@ export class SubmissionHandler {
     requestOptions: any,
     submissionType: string,
     dialogCallback: (results: any) => void
-  ): Promise<Dialog.IResult> {
+  ): void {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are the in the extension installed by this package
     const settings = ServerConnection.makeSettings();
@@ -130,7 +130,7 @@ export class SubmissionHandler {
     pipeline: any,
     runtime_config: string,
     submissionType: string
-  ): Promise<Dialog.IResult> {
+  ): void {
     console.log('Pipeline definition:');
     console.log(pipeline);
 
