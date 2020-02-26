@@ -131,7 +131,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.
    */
-  private createOutputAreaWidget = () => {
+  private createOutputAreaWidget = (): void => {
     // Add dockpanel wrapper for output area
     this.dockPanel = new DockPanel();
     Widget.attach(this.dockPanel, document.body);
@@ -157,14 +157,14 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Updates kernel settings as per drop down selection.
    */
-  private updateSelectedKernel = (selection: string) => {
+  private updateSelectedKernel = (selection: string): void => {
     this.kernelSettings.name = selection;
   };
 
   /**
    * Function: Clears existing output area and runs python code from file editor.
    */
-  private runPython = async () => {
+  private runPython = async (): void => {
     this.resetOutputArea();
     this.displayOutputArea();
     this.runner.runPython(this.kernelSettings, this.handleKernelMsg);
@@ -173,7 +173,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Clears existing output area.
    */
-  private resetOutputArea = () => {
+  private resetOutputArea = (): void => {
     // TODO: hide this.layout(), or set its height to 0
     this.dockPanel.hide();
     this.outputAreaWidget.model.clear();
@@ -183,7 +183,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Call back function passed to runner, that handles messages coming from the kernel.
    */
-  private handleKernelMsg = async (msg: any) => {
+  private handleKernelMsg = async (msg: any): void => {
     let output = '';
 
     if (msg.status) {
@@ -201,7 +201,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Displays output area widget.
    */
-  private displayOutputArea = () => {
+  private displayOutputArea = (): void => {
     this.dockPanel.show();
 
     // TODO: Set layout height to be flexible
@@ -224,7 +224,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Displays kernel status, similar to notebook.
    */
-  private displayKernelStatus = (status: string) => {
+  private displayKernelStatus = (status: string): void => {
     if (status === 'busy') {
       // TODO: Use a character that does not take any space, also not an empty string
       this.displayOutput(' ');
@@ -237,7 +237,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Displays python code in OutputArea widget.
    */
-  private displayOutput = (output: string) => {
+  private displayOutput = (output: string): void => {
     if (output) {
       const options = {
         name: 'stdout',
@@ -254,7 +254,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Gets OutputArea child widget, where output and kernel status are displayed.
    */
-  private getOutputAreaChildWidget = () => {
+  private getOutputAreaChildWidget = (): void => {
     const outputAreaChildLayout = this.outputAreaWidget.layout as PanelLayout;
     return outputAreaChildLayout.widgets[0];
   };
@@ -262,7 +262,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Gets OutputArea prompt widget, where kernel status is displayed.
    */
-  private getOutputAreaPromptWidget = () => {
+  private getOutputAreaPromptWidget = (): OutputPrompt => {
     const outputAreaChildLayout = this.getOutputAreaChildWidget()
       .layout as PanelLayout;
     return outputAreaChildLayout.widgets[0] as OutputPrompt;
@@ -271,7 +271,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Updates OutputArea prompt widget to display kernel status.
    */
-  private updatePromptText = (kernelStatusFlag: string) => {
+  private updatePromptText = (kernelStatusFlag: string): void => {
     this.getOutputAreaPromptWidget().node.innerText =
       '[' + kernelStatusFlag + ']:';
   };
@@ -279,7 +279,7 @@ export class PythonFileEditor extends DocumentWidget<
   /**
    * Function: Saves file editor content.
    */
-  private saveFile = () => {
+  private saveFile = (): Promise => {
     if (this.model.readOnly) {
       return showDialog({
         title: 'Cannot Save',
@@ -334,7 +334,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   /**
    * Function: Gets kernel specs and state.
    */
-  private async getKernelSPecs() {
+  private async getKernelSPecs(): void {
     const specs: Kernel.ISpecModels = await this.props.runner.getKernelSpecs();
     this.filterPythonKernels(specs);
 
@@ -348,7 +348,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   /**
    * Function: Filters for python kernel specs only.
    */
-  private filterPythonKernels = (specs: Kernel.ISpecModels) => {
+  private filterPythonKernels = (specs: Kernel.ISpecModels): void => {
     Object.entries(specs.kernelspecs)
       .filter(entry => entry[1].language !== 'python')
       .forEach(entry => delete specs.kernelspecs[entry[0]]);
@@ -357,7 +357,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   /**
    * Function: Creates drop down options with available python kernel specs.
    */
-  private createOptionElems = (specs: Kernel.ISpecModels) => {
+  private createOptionElems = (specs: Kernel.ISpecModels): void => {
     const kernelNames: string[] = Object.keys(specs.kernelspecs);
     kernelNames.forEach((specName: string, i: number) => {
       const elem = React.createElement(
@@ -372,12 +372,12 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   /**
    * Function: Handles kernel selection from dropdown options.
    */
-  private handleSelection = (event: any) => {
+  private handleSelection = (event: any): void => {
     const selection: string = event.target.value;
     this.updateKernel(selection);
   };
 
-  render() {
+  render(): React.ReactElement {
     return this.state.kernelSpecs
       ? React.createElement(
           HTMLSelect,
@@ -413,7 +413,7 @@ export class CellTypeSwitcher extends ReactWidget {
     this.updateKernel = updateKernel;
   }
 
-  render() {
+  render(): React.ReactElement {
     return (
       <DropDown {...{ runner: this.runner, updateKernel: this.updateKernel }} />
     );

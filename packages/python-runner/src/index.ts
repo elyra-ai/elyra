@@ -222,7 +222,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     // Function to create a new untitled python file, given the current working directory
-    const createNew = (cwd: string, ext = 'py') => {
+    const createNew = (cwd: string, ext = 'py'): Promise<any> => {
       return app.commands
         .execute(commandIDs.newDocManager, {
           path: cwd,

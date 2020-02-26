@@ -87,7 +87,7 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
     layout.addWidget(new Widget({ node: htmlContent }));
   }
 
-  getValue() {
+  getValue(): any {
     return {
       pipeline_name: (document.getElementById(
         'pipeline_name'
@@ -98,7 +98,7 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
     };
   }
 
-  getHtml(props: any) {
+  getHtml(props: any): HTMLElement {
     const htmlContent = document.createElement('div');
     const br = '<br/>';
     let runtime_options = '';
@@ -146,7 +146,7 @@ class Canvas extends ReactWidget {
     this.iconRegistry = props.iconRegistry;
   }
 
-  render() {
+  render(): React.ReactElement {
     return (
       <Pipeline
         app={this.app}
@@ -165,7 +165,7 @@ namespace Pipeline {
   /**
    * The props for Pipeline.
    */
-  export interface Props {
+  export interface IProps {
     app: JupyterFrontEnd;
     browserFactory: IFileBrowserFactory;
     iconRegistry: IIconRegistry;
@@ -175,7 +175,7 @@ namespace Pipeline {
   /**
    * The props for Pipeline.
    */
-  export interface State {
+  export interface IState {
     /**
      * Whether the properties dialog is visible.
      */
@@ -188,7 +188,7 @@ namespace Pipeline {
   }
 }
 
-class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
+class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
   app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
   iconRegistry: IconRegistry;
@@ -223,7 +223,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     this.handleEvent = this.handleEvent.bind(this);
   }
 
-  render() {
+  render(): HTMLElement {
     const style = { height: '100%' };
     const emptyCanvasContent = (
       <div>
@@ -303,7 +303,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   propertiesInfo = { parameterDef: properties, appData: { id: '' } };
 
-  openPropertiesDialog(source: any) {
+  openPropertiesDialog(source: any): void {
     console.log('Opening properties dialog');
     const node_id = source.targetObject.id;
     const app_data = this.canvasController.getNode(node_id).app_data;
@@ -322,7 +322,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     this.setState({ showPropertiesDialog: true, propertiesInfo: node_props });
   }
 
-  applyPropertyChanges(propertySet: any, appData: any) {
+  applyPropertyChanges(propertySet: any, appData: any): void {
     console.log('Applying changes to properties');
     const app_data = this.canvasController.getNode(appData.id).app_data;
 
@@ -333,12 +333,12 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     app_data.recursive_dependencies = propertySet.recursive_dependencies;
   }
 
-  closePropertiesDialog() {
+  closePropertiesDialog(): void {
     console.log('Closing properties dialog');
     this.setState({ showPropertiesDialog: false, propertiesInfo: {} });
   }
 
-  contextMenuHandler(source: any, defaultMenu: any) {
+  contextMenuHandler(source: any, defaultMenu: any): any {
     let customMenu = defaultMenu;
     if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
@@ -360,7 +360,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     return customMenu;
   }
 
-  contextMenuActionHandler(action: any, source: any) {
+  contextMenuActionHandler(action: any, source: any): void {
     if (action === 'openNotebook' && source.type === 'node') {
       const nodes = source.selectedObjectIds;
       for (let i = 0; i < nodes.length; i++) {
@@ -379,11 +379,11 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   /*
    * Handles creating new nodes in the canvas
    */
-  editActionHandler(data: any) {
+  editActionHandler(data: any): void {
     this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
   }
 
-  handleAdd(x?: number, y?: number) {
+  handleAdd(x?: number, y?: number): Promise<any> {
     let failedAdd = 0;
     let position = 0;
     const missingXY = !(x && y);
@@ -425,7 +425,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
             str => str + '='
           );
 
-          data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
+          data.nodeTemplate.label = item.path.replace(/^.*[\\/]/, '');
           data.nodeTemplate.label = data.nodeTemplate.label.replace(
             /\.[^/.]+$/,
             ''
@@ -463,7 +463,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     }
   }
 
-  handleRun() {
+  handleRun(): void {
     SubmissionHandler.makeGetRequest(
       'api/metadata/runtimes',
       'pipeline',
@@ -497,12 +497,12 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     );
   }
 
-  handleSave() {
+  handleSave(): void {
     this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
     this.widgetContext.save();
   }
 
-  handleOpen() {
+  handleOpen(): void {
     toArray(this.browserFactory.defaultBrowser.selectedItems()).map(item => {
       // if the selected item is a file
       if (item.type != 'directory') {
@@ -514,12 +514,12 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     });
   }
 
-  handleNew() {
+  handleNew(): void {
     // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name.
     this.app.commands.execute(commandIDs.openPipelineEditor);
   }
 
-  handleClear() {
+  handleClear(): Promise<any> {
     return showDialog({
       title: 'Clear Pipeline?',
       body: 'Are you sure you want to clear? You can not undo this.',
@@ -538,7 +538,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   /**
    * Handles submitting pipeline runs
    */
-  toolbarMenuActionHandler(action: any, source: any) {
+  toolbarMenuActionHandler(action: any, source: any): void {
     console.log('Handling action: ' + action);
     if (action == 'run') {
       // When executing the pipeline

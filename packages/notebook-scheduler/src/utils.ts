@@ -21,18 +21,18 @@ import { ISubmitNotebookOptions } from './SubmitNotebook';
  * A utilities class for static functions.
  */
 export default class Utils {
-  static getUUID() {
+  static getUUID(): any {
     return uuid4();
   }
 
   static generateNotebookPipeline(
     artifact: string,
     options: ISubmitNotebookOptions
-  ) {
+  ): any {
     const template = pipeline_template;
     const generated_uuid: string = Utils.getUUID();
 
-    const artifactFileName = artifact.replace(/^.*[\\\/]/, '');
+    const artifactFileName = artifact.replace(/^.*[\\/]/, '');
     const artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
 
     template.id = generated_uuid;

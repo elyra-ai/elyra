@@ -40,7 +40,7 @@ export class PythonRunner {
   runPython = async (
     kernelSettings: Kernel.IOptions,
     handleKernelMsg: Function
-  ) => {
+  ): Promise<any> => {
     if (!this.kernel) {
       const model = this.model;
       const code: string = model.value.text;
@@ -74,7 +74,7 @@ export class PythonRunner {
 
       const future = this.kernel.requestExecute({ code });
 
-      future.onIOPub = (msg: any) => {
+      future.onIOPub = (msg: any): void => {
         const msgOutput: any = {};
 
         if (msg.msg_type === 'error') {
@@ -113,7 +113,7 @@ export class PythonRunner {
   /**
    * Function: Gets available kernel specs.
    */
-  getKernelSpecs = async () => {
+  getKernelSpecs = async (): Promise<Kernel.ISpecModels> => {
     const kernelSpecs = await Kernel.getSpecs();
     return kernelSpecs;
   };
@@ -121,14 +121,14 @@ export class PythonRunner {
   /**
    * Function: Starts new kernel.
    */
-  startKernel = async (options: Kernel.IOptions) => {
+  startKernel = async (options: Kernel.IOptions): Promise<Kernal.IKernel> => {
     return Kernel.startNew(options);
   };
 
   /**
    * Function: Shuts down kernel.
    */
-  shutDownKernel = async () => {
+  shutDownKernel = async (): void => {
     if (this.kernel) {
       const name = this.kernel.name;
 

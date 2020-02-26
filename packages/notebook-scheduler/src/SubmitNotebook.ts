@@ -68,7 +68,7 @@ export class SubmitNotebookButtonExtension
 
   readonly app: JupyterFrontEnd;
 
-  showWidget = () => {
+  showWidget = (): void => {
     const envVars: string[] = NotebookParser.getEnvVars(
       this.panel.content.model.toString()
     );
@@ -88,9 +88,7 @@ export class SubmitNotebookButtonExtension
           }
 
           // prepare notebook submission details
-          const notebookOptions: ISubmitNotebookOptions = <
-            ISubmitNotebookOptions
-          >result.value;
+          const notebookOptions: ISubmitNotebookOptions = result.value as ISubmitNotebookOptions;
           const pipeline = Utils.generateNotebookPipeline(
             this.panel.context.path,
             notebookOptions
@@ -153,7 +151,7 @@ export class SubmitNotebook extends Widget
    * Render the dialog widget used to gather configuration information
    * required to submit/run the notebook remotely
    */
-  renderHtml() {
+  renderHtml(): HTMLElement {
     const tr = '<tr>'; //'<tr style="padding: 1px;">';
     const td = '<td>'; //'<td style="padding: 1px;">';
     const td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
@@ -261,11 +259,12 @@ export class SubmitNotebook extends Widget
   getValue(): ISubmitNotebookConfiguration {
     let dependency_list: string[] = [];
     if (
-      (<HTMLInputElement>document.getElementById('dependency_include')).checked
+      (document.getElementById('dependency_include') as HTMLInputElement)
+        .checked
     ) {
-      dependency_list = (<HTMLInputElement>(
-        document.getElementById('dependencies')
-      )).value.split(',');
+      dependency_list = (document.getElementById(
+        'dependencies'
+      ) as HTMLInputElement).value.split(',');
     }
 
     const envVars: string[] = [];
@@ -275,15 +274,15 @@ export class SubmitNotebook extends Widget
     for (let i = 0; i < envElements.length; i++) {
       const index: number = parseInt(envElements[i].id.match(/\d+/)[0], 10);
       envVars.push(
-        `${this._envVars[index]}=${(<HTMLInputElement>envElements[i]).value}`
+        `${this._envVars[index]}=${(envElements[i] as HTMLInputElement).value}`
       );
     }
 
     const returnData: ISubmitNotebookConfiguration = {
-      runtime_config: (<HTMLSelectElement>(
-        document.getElementById('runtime_config')
-      )).value,
-      framework: (<HTMLSelectElement>document.getElementById('framework'))
+      runtime_config: (document.getElementById(
+        'runtime_config'
+      ) as HTMLSelectElement).value,
+      framework: (document.getElementById('framework') as HTMLSelectElement)
         .value,
       //cpus: Number((<HTMLInputElement>document.getElementById('cpus')).value),
       //gpus: Number((<HTMLInputElement>document.getElementById('gpus')).value),

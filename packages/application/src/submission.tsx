@@ -21,7 +21,10 @@ import { ServerConnection } from '@jupyterlab/services';
 import * as React from 'react';
 
 export class SubmissionHandler {
-  static handleError(response: any, submissionType: string) {
+  static handleError(
+    response: any,
+    submissionType: string
+  ): Promise<Dialog.IResult> {
     let res_body = response['message'] ? response['message'] : '';
     res_body = response['reason']
       ? res_body + ': ' + response['reason']
@@ -45,7 +48,7 @@ export class SubmissionHandler {
     });
   }
 
-  static handle404(submissionType: string) {
+  static handle404(submissionType: string): Promise<Dialog.IResult> {
     return showDialog({
       title: 'Error submitting ' + submissionType,
       body: 'Elyra service endpoint not available',
@@ -57,7 +60,7 @@ export class SubmissionHandler {
     requestExt: string,
     submissionType: string,
     dialogCallback: (results: any) => void
-  ) {
+  ): Promise<Dialog.IResult> {
     this.makeServerRequest(
       requestExt,
       { method: 'GET' },
@@ -71,7 +74,7 @@ export class SubmissionHandler {
     requestBody: any,
     submissionType: string,
     dialogCallback: (results: any) => void
-  ) {
+  ): Promise<Dialog.IResult> {
     this.makeServerRequest(
       requestExt,
       { method: 'POST', body: requestBody },
@@ -85,7 +88,7 @@ export class SubmissionHandler {
     requestOptions: any,
     submissionType: string,
     dialogCallback: (results: any) => void
-  ) {
+  ): Promise<Dialog.IResult> {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are the in the extension installed by this package
     const settings = ServerConnection.makeSettings();
@@ -127,7 +130,7 @@ export class SubmissionHandler {
     pipeline: any,
     runtime_config: string,
     submissionType: string
-  ) {
+  ): Promise<Dialog.IResult> {
     console.log('Pipeline definition:');
     console.log(pipeline);
 
@@ -141,7 +144,7 @@ export class SubmissionHandler {
         const dialogBody = (
           <p>
             Check the status of your run at{' '}
-            <a href={data.url} target="_blank">
+            <a href={data.url} target="_blank" rel="noopener noreferrer">
               Run Details
             </a>
           </p>
