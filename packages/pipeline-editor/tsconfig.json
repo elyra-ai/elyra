@@ -5,11 +5,9 @@
     "rootDir": "src",
     "module": "commonjs",
     "target": "es6",
-    "typeRoots": [
-       "./node_modules/@types"
-    ]
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/*","src/*/*"],
+  "include": ["src/*", "src/*/*"],
   "files": ["src/palette.json", "src/properties.json", "src/en.json"],
   "references": [
     {

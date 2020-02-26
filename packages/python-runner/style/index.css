@@ -15,17 +15,17 @@
  */
 
 .elyra-PythonEditor-OutputArea-error {
-    background-color: var(--jp-rendermime-error-background);
+  background-color: var(--jp-rendermime-error-background);
 }
 
 .elyra-PythonEditor-OutputArea-child {
-    border-top: 1px solid var(--jp-border-color2);
-    border-bottom: 1px solid var(--jp-border-color2);
+  border-top: 1px solid var(--jp-border-color2);
+  border-bottom: 1px solid var(--jp-border-color2);
 }
 
 .elyra-PythonEditor-OutputArea-prompt {
-    flex: 0 0 37px;
-    border-right: 1px solid var(--jp-border-color2);
-    padding: unset;
-    text-align: center;
+  flex: 0 0 37px;
+  border-right: 1px solid var(--jp-border-color2);
+  padding: unset;
+  text-align: center;
 }

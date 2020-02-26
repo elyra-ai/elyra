@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ILayoutRestorer, JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
-import {ICommandPalette} from "@jupyterlab/apputils";
+import {
+  ILayoutRestorer,
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin
+} from '@jupyterlab/application';
+import { ICommandPalette } from '@jupyterlab/apputils';
 
-import {SubmitNotebookButtonExtension} from "./SubmitNotebook";
+import { SubmitNotebookButtonExtension } from './SubmitNotebook';
 
 import '../style/index.css';
 
 const NOTEBOOK_SCHEDULER_NAMESPACE = 'elyra-notebook_scheduler_extension';
 
 const commandIDs = {
-  submitNotebook : 'notebook:submit',
+  submitNotebook: 'notebook:submit'
 };
 
 /**

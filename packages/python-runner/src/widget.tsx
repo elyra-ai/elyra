@@ -17,17 +17,39 @@
 import '../style/index.css';
 import React from 'react';
 
-import {FileEditor} from '@jupyterlab/fileeditor';
-import {ABCWidgetFactory, DocumentRegistry, DocumentWidget} from '@jupyterlab/docregistry';
-import {CodeEditor, IEditorServices} from '@jupyterlab/codeeditor';
-import {ToolbarButton, ReactWidget, showDialog, Dialog} from '@jupyterlab/apputils';
-import {HTMLSelect} from '@jupyterlab/ui-components';
-import {Kernel} from '@jupyterlab/services';
-import {OutputArea, OutputAreaModel, OutputPrompt} from '@jupyterlab/outputarea';
-import {RenderMimeRegistry,standardRendererFactories as initialFactories} from '@jupyterlab/rendermime';
-import {BoxLayout, PanelLayout, Widget, DockPanel, TabBar} from '@phosphor/widgets';
+import { FileEditor } from '@jupyterlab/fileeditor';
+import {
+  ABCWidgetFactory,
+  DocumentRegistry,
+  DocumentWidget
+} from '@jupyterlab/docregistry';
+import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+import {
+  ToolbarButton,
+  ReactWidget,
+  showDialog,
+  Dialog
+} from '@jupyterlab/apputils';
+import { HTMLSelect } from '@jupyterlab/ui-components';
+import { Kernel } from '@jupyterlab/services';
+import {
+  OutputArea,
+  OutputAreaModel,
+  OutputPrompt
+} from '@jupyterlab/outputarea';
+import {
+  RenderMimeRegistry,
+  standardRendererFactories as initialFactories
+} from '@jupyterlab/rendermime';
+import {
+  BoxLayout,
+  PanelLayout,
+  Widget,
+  DockPanel,
+  TabBar
+} from '@phosphor/widgets';
 
-import {PythonRunner} from './PythonRunner';
+import { PythonRunner } from './PythonRunner';
 
 /**
  * The CSS class added to widgets.
@@ -46,7 +68,10 @@ const SAVE_ICON_CLASS = 'jp-SaveIcon';
 /**
  * A widget for python editors.
  */
-export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistry.ICodeModel> {
+export class PythonFileEditor extends DocumentWidget<
+  FileEditor,
+  DocumentRegistry.ICodeModel
+> {
   private runner: PythonRunner;
   private kernelSettings: Kernel.IOptions;
   private dockPanel: DockPanel;
@@ -56,12 +81,14 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
   /**
    * Construct a new editor widget.
    */
-  constructor(options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>) {
+  constructor(
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+  ) {
     super(options);
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
     this.model = this.content.model;
     this.runner = new PythonRunner(this.model);
-    this.kernelSettings = {name: null};
+    this.kernelSettings = { name: null };
 
     // Add python icon to main tab
     this.title.iconClass = PYTHON_ICON_CLASS;
@@ -73,7 +100,10 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
       tooltip: 'Save file contents'
     });
 
-    const dropDown = new CellTypeSwitcher(this.runner, this.updateSelectedKernel);
+    const dropDown = new CellTypeSwitcher(
+      this.runner,
+      this.updateSelectedKernel
+    );
 
     const runButton = new ToolbarButton({
       iconClassName: RUN_ICON_CLASS,
@@ -112,7 +142,10 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     // Create output area widget
     const model: OutputAreaModel = new OutputAreaModel();
     const renderMimeRegistry = new RenderMimeRegistry({ initialFactories });
-    this.outputAreaWidget = new OutputArea({ rendermime: renderMimeRegistry, model });
+    this.outputAreaWidget = new OutputArea({
+      rendermime: renderMimeRegistry,
+      model
+    });
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
 
     const layout = this.layout as BoxLayout;
@@ -153,7 +186,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
   private handleKernelMsg = async (msg: any) => {
     let output = '';
 
-    if (msg.status){
+    if (msg.status) {
       this.displayKernelStatus(msg.status);
       return;
     } else if (msg.error) {
@@ -174,7 +207,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
     // TODO: Set layout height to be flexible
     BoxLayout.setStretch(this.dockPanel, 1);
 
-    if ( this.dockPanel.isEmpty ){
+    if (this.dockPanel.isEmpty) {
       // Add a tab to dockPanel
       this.dockPanel.addWidget(this.outputAreaWidget, { mode: 'split-bottom' });
 
@@ -182,7 +215,9 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
       outputTab.id = 'tab-python-editor-output';
       outputTab.currentTitle.label = 'Python Console Output';
       outputTab.currentTitle.closable = true;
-      outputTab.disposed.connect((sender, args) => { this.resetOutputArea(); }, this);
+      outputTab.disposed.connect((sender, args) => {
+        this.resetOutputArea();
+      }, this);
     }
   };
 
@@ -194,8 +229,7 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
       // TODO: Use a character that does not take any space, also not an empty string
       this.displayOutput(' ');
       this.updatePromptText('*');
-    }
-    else if (status === 'idle'){
+    } else if (status === 'idle') {
       this.updatePromptText(' ');
     }
   };
@@ -229,7 +263,8 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
    * Function: Gets OutputArea prompt widget, where kernel status is displayed.
    */
   private getOutputAreaPromptWidget = () => {
-    const outputAreaChildLayout = this.getOutputAreaChildWidget().layout as PanelLayout;
+    const outputAreaChildLayout = this.getOutputAreaChildWidget()
+      .layout as PanelLayout;
     return outputAreaChildLayout.widgets[0] as OutputPrompt;
   };
 
@@ -237,7 +272,8 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
    * Function: Updates OutputArea prompt widget to display kernel status.
    */
   private updatePromptText = (kernelStatusFlag: string) => {
-    this.getOutputAreaPromptWidget().node.innerText = '[' + kernelStatusFlag + ']:';
+    this.getOutputAreaPromptWidget().node.innerText =
+      '[' + kernelStatusFlag + ']:';
   };
 
   /**
@@ -246,9 +282,9 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
   private saveFile = () => {
     if (this.model.readOnly) {
       return showDialog({
-          title: 'Cannot Save',
-          body: 'Document is read-only',
-          buttons: [Dialog.okButton()]
+        title: 'Cannot Save',
+        body: 'Document is read-only',
+        buttons: [Dialog.okButton()]
       });
     }
     void this.context.save();
@@ -268,14 +304,14 @@ export class PythonFileEditor extends DocumentWidget<FileEditor, DocumentRegistr
 class DropDownProps {
   runner: PythonRunner;
   updateKernel: Function;
-};
+}
 
 /**
  * Class: Holds kernel state property.
  */
 class DropDownState {
   kernelSpecs: Kernel.ISpecModels;
-};
+}
 
 /**
  * Class: A toolbar dropdown component populated with available kernel specs.
@@ -289,7 +325,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
    */
   constructor(props: DropDownProps) {
     super(props);
-    this.state = {kernelSpecs: null};
+    this.state = { kernelSpecs: null };
     this.updateKernel = this.props.updateKernel;
     this.kernelOptionElems = [];
     this.getKernelSPecs();
@@ -306,7 +342,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
     this.updateKernel(specs.default);
 
     this.createOptionElems(specs);
-    this.setState({kernelSpecs: specs});
+    this.setState({ kernelSpecs: specs });
   }
 
   /**
@@ -316,18 +352,22 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
     Object.entries(specs.kernelspecs)
       .filter(entry => entry[1].language !== 'python')
       .forEach(entry => delete specs.kernelspecs[entry[0]]);
-  }
+  };
 
   /**
    * Function: Creates drop down options with available python kernel specs.
    */
-  private createOptionElems  = (specs: Kernel.ISpecModels) => {
-    const kernelNames : string[] = Object.keys(specs.kernelspecs);
+  private createOptionElems = (specs: Kernel.ISpecModels) => {
+    const kernelNames: string[] = Object.keys(specs.kernelspecs);
     kernelNames.forEach((specName: string, i: number) => {
-      const elem = React.createElement('option', {key: i, value: specName}, specName);
+      const elem = React.createElement(
+        'option',
+        { key: i, value: specName },
+        specName
+      );
       this.kernelOptionElems.push(elem);
     });
-  }
+  };
 
   /**
    * Function: Handles kernel selection from dropdown options.
@@ -335,21 +375,25 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   private handleSelection = (event: any) => {
     const selection: string = event.target.value;
     this.updateKernel(selection);
-  }
+  };
 
-  render(){
-      return (
-        this.state.kernelSpecs ?
-        React.createElement(HTMLSelect, {
-          className: DROPDOWN_CLASS,
-          onChange: this.handleSelection.bind(this),
-          iconProps: {
-            icon: <span className="jp-MaterialIcon jp-DownCaretIcon bp3-icon" />
+  render() {
+    return this.state.kernelSpecs
+      ? React.createElement(
+          HTMLSelect,
+          {
+            className: DROPDOWN_CLASS,
+            onChange: this.handleSelection.bind(this),
+            iconProps: {
+              icon: (
+                <span className="jp-MaterialIcon jp-DownCaretIcon bp3-icon" />
+              )
+            },
+            defaultValue: this.state.kernelSpecs.default
           },
-          defaultValue: this.state.kernelSpecs.default
-        }, this.kernelOptionElems) :
-        React.createElement('span', null, 'Fetching kernel specs...')
-      );
+          this.kernelOptionElems
+        )
+      : React.createElement('span', null, 'Fetching kernel specs...');
   }
 }
 
@@ -370,14 +414,19 @@ export class CellTypeSwitcher extends ReactWidget {
   }
 
   render() {
-    return (<DropDown {...{runner: this.runner, updateKernel: this.updateKernel}}/>);
+    return (
+      <DropDown {...{ runner: this.runner, updateKernel: this.updateKernel }} />
+    );
   }
 }
 
 /**
  * A widget factory for python editors.
  */
-export class PythonFileEditorFactory extends ABCWidgetFactory<PythonFileEditor, DocumentRegistry.ICodeModel> {
+export class PythonFileEditorFactory extends ABCWidgetFactory<
+  PythonFileEditor,
+  DocumentRegistry.ICodeModel
+> {
   /**
    * Construct a new editor widget factory.
    */
@@ -389,7 +438,9 @@ export class PythonFileEditorFactory extends ABCWidgetFactory<PythonFileEditor, 
   /**
    * Create a new widget given a context.
    */
-  protected createNewWidget(context: DocumentRegistry.CodeContext): PythonFileEditor {
+  protected createNewWidget(
+    context: DocumentRegistry.CodeContext
+  ): PythonFileEditor {
     let func = this._services.factoryService.newDocumentEditor;
     let factory: CodeEditor.Factory = options => {
       return func(options);
@@ -424,4 +475,3 @@ export namespace PythonFileEditorFactory {
     factoryOptions: DocumentRegistry.IWidgetFactoryOptions<PythonFileEditor>;
   }
 }
-

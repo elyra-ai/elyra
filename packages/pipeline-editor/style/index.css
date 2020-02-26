@@ -20,65 +20,65 @@
 }
 
 .dragdrop {
-    background-image: url('./dragdrop.svg');
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 120px;
+  background-image: url('./dragdrop.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 120px;
 }
 
 .empty-canvas h1 {
-    color: #8897a2;
-    size: 20pt;
-    text-align: center;
+  color: #8897a2;
+  size: 20pt;
+  text-align: center;
 }
 
 .save .list-item {
-	background-image: url('./save-pipeline.svg');
-	background-repeat: no-repeat;
-    background-position: center;
-    background-size: 30%;
+  background-image: url('./save-pipeline.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 30%;
 }
 
 .open .list-item {
-	background-image: url('./open-pipeline.svg');
-	background-repeat: no-repeat;
-    background-position: center;
-    background-size: 43%;
+  background-image: url('./open-pipeline.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 43%;
 }
 
 .new .list-item {
-	background-image: url('./new-pipeline.svg');
-	background-repeat: no-repeat;
-    background-position: center;
-    background-size: 30%;
+  background-image: url('./new-pipeline.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 30%;
 }
 
 .clear .list-item {
-	background-image: url('./clear-pipeline.svg');
-	background-repeat: no-repeat;
-    background-position: center;
-    background-size: 40%;
+  background-image: url('./clear-pipeline.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 40%;
 }
 
 .elyra-PipelineIcon {
-    background-image: var(--elyra-icon-pipeline);
+  background-image: var(--elyra-icon-pipeline);
 }
 
 .elyra-PipelineEditor .properties-modal {
-    position: absolute;
+  position: absolute;
 }
 
 .elyra-PipelineEditor .bx--modal-content {
-    padding: 0;
+  padding: 0;
 }
 
 .elyra-PipelineEditor .properties-modal button.bx--btn {
-    -webkit-box-flex: 0;
-    -ms-flex: 0;
-    flex: 0;
-    min-height: 2.5rem;
-    height: 2.5rem;
-    padding: 0 1rem;
-    margin: 0 1rem 0 0;
-    text-align: center;
+  -webkit-box-flex: 0;
+  -ms-flex: 0;
+  flex: 0;
+  min-height: 2.5rem;
+  height: 2.5rem;
+  padding: 0 1rem;
+  margin: 0 1rem 0 0;
+  text-align: center;
 }

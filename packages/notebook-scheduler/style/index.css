@@ -15,69 +15,71 @@
  */
 
 .jp-Dialog-content {
-    max-width: 100vw;
-    max-height: 100vh;
- }
+  max-width: 100vw;
+  max-height: 100vh;
+}
 
 .p-Widget #jp-left-stack {
-    padding-left: 8px;
+  padding-left: 8px;
 }
 
 .p-Widget #jp-right-stack {
-    margin-top: 25px;
-    margin-right: 5px;
+  margin-top: 25px;
+  margin-right: 5px;
 }
 
 .p-Widget a {
-    color: #1970b7;
+  color: #1970b7;
 }
 
 .elyra-table {
-    margin: 1px;
-    padding: 1px;
+  margin: 1px;
+  padding: 1px;
 }
 
-.elyra-table th, tr, td {
-    padding: 2px;
+.elyra-table th,
+tr,
+td {
+  padding: 2px;
 }
 
 .elyra-notebookExperimentWidget {
-    overflow: scroll
+  overflow: scroll;
 }
 
 .elyra-experiments {
-    padding-right: 5px;
+  padding-right: 5px;
 }
 
 .elyra-Table-experiments {
-    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-    width: 100%;
-    background-color: #ffffff;
-    margin-top: 5px;
-    margin-bottom: 10px;
+  font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;
+  width: 100%;
+  background-color: #ffffff;
+  margin-top: 5px;
+  margin-bottom: 10px;
 }
 
 .elyra-Table-experiments tr:hover:nth-child(even) {
-    background-color: #ddd;
+  background-color: #ddd;
 }
 
 .elyra-Table-experiments tr:hover:nth-child(odd) {
-    background-color: #ddd;
+  background-color: #ddd;
 }
 
 .elyra-Table-experiments tr:nth-child(even) {
-    background-color: #f2f2f2;
+  background-color: #f2f2f2;
 }
 
 .elyra-Table-experiments td {
-    font-weight: normal;
-    padding: 10px;
+  font-weight: normal;
+  padding: 10px;
 }
 
 .elyra-Table-experiments thead {
-    color: #495057;
+  color: #495057;
 
-    background-color: #e9ecef;
-    padding-left: 10px;
-    padding-right: 10px;
+  background-color: #e9ecef;
+  padding-left: 10px;
+  padding-right: 10px;
 }

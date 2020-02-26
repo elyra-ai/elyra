@@ -14,31 +14,49 @@
  * limitations under the License.
  */
 
-import {JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer} from '@jupyterlab/application';
-import {ICommandPalette, showDialog, Dialog, ReactWidget, WidgetTracker} from '@jupyterlab/apputils';
-import {DocumentRegistry, ABCWidgetFactory, DocumentWidget} from '@jupyterlab/docregistry';
-import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
-import {ILauncher} from '@jupyterlab/launcher';
-import {IMainMenu} from '@jupyterlab/mainmenu';
-import {NotebookPanel} from "@jupyterlab/notebook";
-import {IconRegistry, IIconRegistry} from '@jupyterlab/ui-components';
+import {
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin,
+  ILayoutRestorer
+} from '@jupyterlab/application';
+import {
+  ICommandPalette,
+  showDialog,
+  Dialog,
+  ReactWidget,
+  WidgetTracker
+} from '@jupyterlab/apputils';
+import {
+  DocumentRegistry,
+  ABCWidgetFactory,
+  DocumentWidget
+} from '@jupyterlab/docregistry';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { ILauncher } from '@jupyterlab/launcher';
+import { IMainMenu } from '@jupyterlab/mainmenu';
+import { NotebookPanel } from '@jupyterlab/notebook';
+import { IconRegistry, IIconRegistry } from '@jupyterlab/ui-components';
 
-import {toArray} from '@phosphor/algorithm';
-import {IDragEvent} from '@phosphor/dragdrop';
-import {Widget, PanelLayout} from '@phosphor/widgets';
+import { toArray } from '@phosphor/algorithm';
+import { IDragEvent } from '@phosphor/dragdrop';
+import { Widget, PanelLayout } from '@phosphor/widgets';
 
-import {CommonCanvas, CanvasController, CommonProperties} from '@elyra/canvas';
+import {
+  CommonCanvas,
+  CanvasController,
+  CommonProperties
+} from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {NotebookParser, SubmissionHandler} from "@elyra/application";
+import { NotebookParser, SubmissionHandler } from '@elyra/application';
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
 import * as palette from './palette.json';
 import * as properties from './properties.json';
-import * as i18nData from "./en.json";
+import * as i18nData from './en.json';
 import * as React from 'react';
 
-import { IntlProvider } from "react-intl";
+import { IntlProvider } from 'react-intl';
 
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -47,32 +65,37 @@ const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
 
 const commandIDs = {
-  openPipelineEditor : 'pipeline-editor:open',
-  openDocManager : 'docmanager:open',
-  newDocManager : 'docmanager:new-untitled'
+  openPipelineEditor: 'pipeline-editor:open',
+  openDocManager: 'docmanager:open',
+  newDocManager: 'docmanager:new-untitled'
 };
 
 /**
  * Class for dialog that pops up for pipeline submission
  */
 class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
-
   constructor(props: any) {
     super(props);
 
     let layout = (this.layout = new PanelLayout());
     let htmlContent = this.getHtml(props);
     // Set default runtime to kfp, since list is dynamically generated
-    (htmlContent.getElementsByClassName("elyra-form-runtime-config")[0] as HTMLSelectElement).value = "kfp";
+    (htmlContent.getElementsByClassName(
+      'elyra-form-runtime-config'
+    )[0] as HTMLSelectElement).value = 'kfp';
 
-    layout.addWidget(new Widget( {node: htmlContent} ));
+    layout.addWidget(new Widget({ node: htmlContent }));
   }
 
   getValue() {
-  	return {
-  	  'pipeline_name': (document.getElementById('pipeline_name') as HTMLInputElement).value,
-  	  'runtime_config': (document.getElementById('runtime_config') as HTMLInputElement).value
-  	};
+    return {
+      pipeline_name: (document.getElementById(
+        'pipeline_name'
+      ) as HTMLInputElement).value,
+      runtime_config: (document.getElementById(
+        'runtime_config'
+      ) as HTMLInputElement).value
+    };
   }
 
   getHtml(props: any) {
@@ -82,25 +105,29 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
     let runtimes = props['runtimes'];
 
     for (let key in runtimes) {
-      runtime_options = runtime_options + `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
+      runtime_options =
+        runtime_options +
+        `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
     }
 
-    let content = ''
-      + '<label for="pipeline_name">Pipeline Name:</label>'
-      + br
-      + '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>'
-      + br + br
-      + '<label for="runtime_config">Runtime Config:</label>'
-      + br
-      + '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">'
-      + runtime_options
-      + '</select>';
+    let content =
+      '' +
+      '<label for="pipeline_name">Pipeline Name:</label>' +
+      br +
+      '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>' +
+      br +
+      br +
+      '<label for="runtime_config">Runtime Config:</label>' +
+      br +
+      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">' +
+      runtime_options +
+      '</select>';
 
     htmlContent.innerHTML = content;
 
     return htmlContent;
   }
- }
+}
 
 /**
  * Class for Common Canvas React Component
@@ -120,12 +147,14 @@ class Canvas extends ReactWidget {
   }
 
   render() {
-    return <Pipeline
-      app={this.app}
-      browserFactory={this.browserFactory}
-      iconRegistry={this.iconRegistry}
-      widgetContext={this.context}
-    />
+    return (
+      <Pipeline
+        app={this.app}
+        browserFactory={this.browserFactory}
+        iconRegistry={this.iconRegistry}
+        widgetContext={this.context}
+      />
+    );
   }
 }
 
@@ -176,7 +205,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
-    this.widgetContext.ready.then( () => {
+    this.widgetContext.ready.then(() => {
       this.canvasController.setPipelineFlow(this.widgetContext.model.toJSON());
     });
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
@@ -184,7 +213,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
 
-    this.state = {showPropertiesDialog: false, propertiesInfo: {}};
+    this.state = { showPropertiesDialog: false, propertiesInfo: {} };
 
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
@@ -196,11 +225,15 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   render() {
     const style = { height: '100%' };
-    const emptyCanvasContent = 
-      (<div> 
-        <div className="dragdrop"/> 
-        <h1> Start your new pipeline by dragging files from the file browser pane. </h1> 
-      </div>);
+    const emptyCanvasContent = (
+      <div>
+        <div className="dragdrop" />
+        <h1>
+          {' '}
+          Start your new pipeline by dragging files from the file browser pane.{' '}
+        </h1>
+      </div>
+    );
     const canvasConfig = {
       enableInternalObjectModel: true,
       emptyCanvasContent: emptyCanvasContent,
@@ -208,38 +241,49 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       paletteInitialState: false
     };
     const toolbarConfig = [
-       { action: 'run', label: 'Run Pipeline', enable: true },
-       { divider: true },
-       { action: 'save', label: 'Save Pipeline', enable: true },
-       { divider: true },
-       // { action: 'open', label: 'Open Pipeline', enable: true },
-       // { divider: true },
-       { action: 'new', label: 'New Pipeline', enable: true },
-       { divider: true },
-       { action: 'clear', label: 'Clear Pipeline', enable: true },
-       { divider: true },
-       { action: 'undo', label: 'Undo', enable: true },
-       { action: 'redo', label: 'Redo', enable: true },
-       { action: 'cut', label: 'Cut', enable: false },
-       { action: 'copy', label: 'Copy', enable: false },
-       { action: 'paste', label: 'Paste', enable: false },
-       { action: 'addComment', label: 'Add Comment', enable: true },
-       { action: 'delete', label: 'Delete', enable: true },
-       { action: 'arrangeHorizontally', label: 'Arrange Horizontally', enable: true },
-       { action: 'arrangeVertically', label: 'Arrange Vertically', enable: true } ];
+      { action: 'run', label: 'Run Pipeline', enable: true },
+      { divider: true },
+      { action: 'save', label: 'Save Pipeline', enable: true },
+      { divider: true },
+      // { action: 'open', label: 'Open Pipeline', enable: true },
+      // { divider: true },
+      { action: 'new', label: 'New Pipeline', enable: true },
+      { divider: true },
+      { action: 'clear', label: 'Clear Pipeline', enable: true },
+      { divider: true },
+      { action: 'undo', label: 'Undo', enable: true },
+      { action: 'redo', label: 'Redo', enable: true },
+      { action: 'cut', label: 'Cut', enable: false },
+      { action: 'copy', label: 'Copy', enable: false },
+      { action: 'paste', label: 'Paste', enable: false },
+      { action: 'addComment', label: 'Add Comment', enable: true },
+      { action: 'delete', label: 'Delete', enable: true },
+      {
+        action: 'arrangeHorizontally',
+        label: 'Arrange Horizontally',
+        enable: true
+      },
+      { action: 'arrangeVertically', label: 'Arrange Vertically', enable: true }
+    ];
 
     const propertiesCallbacks = {
       applyPropertyChanges: this.applyPropertyChanges,
       closePropertiesDialog: this.closePropertiesDialog
     };
 
-    const commProps = this.state.showPropertiesDialog ? <IntlProvider key='IntlProvider2' locale={ 'en' } messages={ i18nData.messages }>
+    const commProps = this.state.showPropertiesDialog ? (
+      <IntlProvider
+        key="IntlProvider2"
+        locale={'en'}
+        messages={i18nData.messages}
+      >
         <CommonProperties
           propertiesInfo={this.propertiesInfo}
-          propertiesConfig={{ }}
+          propertiesConfig={{}}
           callbacks={propertiesCallbacks}
         />
-      </IntlProvider> : null;
+      </IntlProvider>
+    ) : null;
 
     return (
       <div style={style} ref={this.node}>
@@ -254,10 +298,10 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
         />
         {commProps}
       </div>
-      );
+    );
   }
 
-  propertiesInfo = { 'parameterDef': properties, 'appData': { 'id': '' } };
+  propertiesInfo = { parameterDef: properties, appData: { id: '' } };
 
   openPropertiesDialog(source: any) {
     console.log('Opening properties dialog');
@@ -270,10 +314,12 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     node_props.parameterDef.current_parameters.image = app_data.image;
     node_props.parameterDef.current_parameters.outputs = app_data.outputs;
     node_props.parameterDef.current_parameters.vars = app_data.vars;
-    node_props.parameterDef.current_parameters.dependencies = app_data.dependencies;
-    node_props.parameterDef.current_parameters.recursive_dependencies = app_data.recursive_dependencies;
+    node_props.parameterDef.current_parameters.dependencies =
+      app_data.dependencies;
+    node_props.parameterDef.current_parameters.recursive_dependencies =
+      app_data.recursive_dependencies;
 
-    this.setState({showPropertiesDialog: true, propertiesInfo: node_props});
+    this.setState({ showPropertiesDialog: true, propertiesInfo: node_props });
   }
 
   applyPropertyChanges(propertySet: any, appData: any) {
@@ -285,32 +331,41 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     app_data.vars = propertySet.vars;
     app_data.dependencies = propertySet.dependencies;
     app_data.recursive_dependencies = propertySet.recursive_dependencies;
-  };
+  }
 
   closePropertiesDialog() {
     console.log('Closing properties dialog');
-    this.setState({showPropertiesDialog: false, propertiesInfo: {}});
-  };
+    this.setState({ showPropertiesDialog: false, propertiesInfo: {} });
+  }
 
   contextMenuHandler(source: any, defaultMenu: any) {
     let customMenu = defaultMenu;
     if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
-        customMenu = customMenu.concat({ action: 'openNotebook', label: 'Open Notebooks'});
+        customMenu = customMenu.concat({
+          action: 'openNotebook',
+          label: 'Open Notebooks'
+        });
       } else {
-        customMenu = customMenu.concat({ action: 'openNotebook', label: 'Open Notebook'});
+        customMenu = customMenu.concat({
+          action: 'openNotebook',
+          label: 'Open Notebook'
+        });
       }
-      customMenu = customMenu.concat({ action: 'properties', label: 'Properties'});
+      customMenu = customMenu.concat({
+        action: 'properties',
+        label: 'Properties'
+      });
     }
     return customMenu;
   }
 
-  contextMenuActionHandler( action: any, source: any ) {
+  contextMenuActionHandler(action: any, source: any) {
     if (action === 'openNotebook' && source.type === 'node') {
       let nodes = source.selectedObjectIds;
       for (let i = 0; i < nodes.length; i++) {
         let path = this.canvasController.getNode(nodes[i]).app_data.artifact;
-        this.app.commands.execute(commandIDs.openDocManager, {path});
+        this.app.commands.execute(commandIDs.openDocManager, { path });
       }
     } else if (action === 'properties' && source.type === 'node') {
       if (this.state.showPropertiesDialog) {
@@ -342,45 +397,56 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
     let fileBrowser = this.browserFactory.defaultBrowser;
 
-    toArray(fileBrowser.selectedItems()).map(
-      item => {
-        // if the selected item is a file
-        if (item.type == 'notebook') {
-          //add each selected notebook
-          console.log('Adding ==> ' + item.path );
+    toArray(fileBrowser.selectedItems()).map(item => {
+      // if the selected item is a file
+      if (item.type == 'notebook') {
+        //add each selected notebook
+        console.log('Adding ==> ' + item.path);
 
-          const nodeTemplate = this.canvasController.getPaletteNode('execute-notebook-node');
-          if (nodeTemplate) {
-            const data = {
-              'editType': 'createNode',
-              'offsetX': x + position,
-              'offsetY': y + position,
-              'nodeTemplate': this.canvasController.convertNodeTemplate(nodeTemplate)
-            };
+        const nodeTemplate = this.canvasController.getPaletteNode(
+          'execute-notebook-node'
+        );
+        if (nodeTemplate) {
+          const data = {
+            editType: 'createNode',
+            offsetX: x + position,
+            offsetY: y + position,
+            nodeTemplate: this.canvasController.convertNodeTemplate(
+              nodeTemplate
+            )
+          };
 
-            // create a notebook widget to get a string with the node content then dispose of it
-            let notebookWidget = fileBrowser.model.manager.open(item.path);
-            let notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
-            notebookWidget.dispose();
+          // create a notebook widget to get a string with the node content then dispose of it
+          let notebookWidget = fileBrowser.model.manager.open(item.path);
+          let notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
+          notebookWidget.dispose();
 
-            let vars = NotebookParser.getEnvVars(notebookStr).map(str => str + '=');
+          let vars = NotebookParser.getEnvVars(notebookStr).map(
+            str => str + '='
+          );
 
-            data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
-            data.nodeTemplate.label = data.nodeTemplate.label.replace(/\.[^/.]+$/, '');
-            data.nodeTemplate.image = 'data:image/svg+xml;utf8,' + encodeURIComponent(this.iconRegistry.svg('notebook'));
-            data.nodeTemplate.app_data['artifact'] = item.path;
-            data.nodeTemplate.app_data['image'] = this.propertiesInfo.parameterDef.current_parameters.image;
-            data.nodeTemplate.app_data['vars'] = vars;
+          data.nodeTemplate.label = item.path.replace(/^.*[\\\/]/, '');
+          data.nodeTemplate.label = data.nodeTemplate.label.replace(
+            /\.[^/.]+$/,
+            ''
+          );
+          data.nodeTemplate.image =
+            'data:image/svg+xml;utf8,' +
+            encodeURIComponent(this.iconRegistry.svg('notebook'));
+          data.nodeTemplate.app_data['artifact'] = item.path;
+          data.nodeTemplate.app_data[
+            'image'
+          ] = this.propertiesInfo.parameterDef.current_parameters.image;
+          data.nodeTemplate.app_data['vars'] = vars;
 
-            this.canvasController.editActionHandler(data);
+          this.canvasController.editActionHandler(data);
 
-            position += 20;
-          }
-        } else {
-          failedAdd++;
+          position += 20;
         }
+      } else {
+        failedAdd++;
       }
-    );
+    });
 
     // update position if the default coordinates were used
     if (missingXY) {
@@ -390,34 +456,44 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
     if (failedAdd) {
       return showDialog({
         title: 'Unsupported File(s)',
-        body: 'Currently, only selected notebook files can be added to a pipeline',
+        body:
+          'Currently, only selected notebook files can be added to a pipeline',
         buttons: [Dialog.okButton()]
       });
     }
   }
 
   handleRun() {
-    SubmissionHandler.makeGetRequest('api/metadata/runtimes', 'pipeline', (response: any) =>
-      showDialog({
-        title: 'Run pipeline',
-        body: new PipelineDialog({"runtimes": response.runtimes}),
-        buttons: [Dialog.cancelButton(), Dialog.okButton()],
-        focusNodeSelector: '#pipeline_name'
-      }).then( result => {
-        if( result.value == null) {
-          // When Cancel is clicked on the dialog, just return
-          return;
-        }
+    SubmissionHandler.makeGetRequest(
+      'api/metadata/runtimes',
+      'pipeline',
+      (response: any) =>
+        showDialog({
+          title: 'Run pipeline',
+          body: new PipelineDialog({ runtimes: response.runtimes }),
+          buttons: [Dialog.cancelButton(), Dialog.okButton()],
+          focusNodeSelector: '#pipeline_name'
+        }).then(result => {
+          if (result.value == null) {
+            // When Cancel is clicked on the dialog, just return
+            return;
+          }
 
-        // prepare pipeline submission details
-        let pipelineFlow = this.canvasController.getPipelineFlow();
-        pipelineFlow.pipelines[0]['app_data']['title'] = result.value.pipeline_name;
-        // TODO: Be more flexible and remove hardcoded runtime type
-        pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-        pipelineFlow.pipelines[0]['app_data']['runtime-config'] = result.value.runtime_config;
+          // prepare pipeline submission details
+          let pipelineFlow = this.canvasController.getPipelineFlow();
+          pipelineFlow.pipelines[0]['app_data']['title'] =
+            result.value.pipeline_name;
+          // TODO: Be more flexible and remove hardcoded runtime type
+          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+            result.value.runtime_config;
 
-        SubmissionHandler.submitPipeline(pipelineFlow, result.value.runtime_config, 'pipeline');
-      })
+          SubmissionHandler.submitPipeline(
+            pipelineFlow,
+            result.value.runtime_config,
+            'pipeline'
+          );
+        })
     );
   }
 
@@ -427,15 +503,15 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   }
 
   handleOpen() {
-    toArray(this.browserFactory.defaultBrowser.selectedItems()).map(
-      item => {
-        // if the selected item is a file
-        if (item.type != 'directory') {
-          console.log('Opening ==> ' + item.path );
-          this.app.commands.execute(commandIDs.openDocManager, { path: item.path });
-        }
+    toArray(this.browserFactory.defaultBrowser.selectedItems()).map(item => {
+      // if the selected item is a file
+      if (item.type != 'directory') {
+        console.log('Opening ==> ' + item.path);
+        this.app.commands.execute(commandIDs.openDocManager, {
+          path: item.path
+        });
       }
-    )
+    });
   }
 
   handleNew() {
@@ -448,10 +524,12 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       title: 'Clear Pipeline?',
       body: 'Are you sure you want to clear? You can not undo this.',
       buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
-    }).then( result => {
+    }).then(result => {
       if (result.button.accept) {
         this.canvasController.clearPipelineFlow();
-        this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+        this.widgetContext.model.fromJSON(
+          this.canvasController.getPipelineFlow()
+        );
         this.position = 10;
       }
     });
@@ -461,10 +539,11 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
    * Handles submitting pipeline runs
    */
   toolbarMenuActionHandler(action: any, source: any) {
-  	console.log('Handling action: ' + action);
-  	if (action == 'run') { // When executing the pipeline
-  	  this.handleRun();
-	  } else if (action == 'save') {
+    console.log('Handling action: ' + action);
+    if (action == 'run') {
+      // When executing the pipeline
+      this.handleRun();
+    } else if (action == 'save') {
       this.handleSave();
     } else if (action == 'open') {
       this.handleOpen();
@@ -512,7 +591,10 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       case 'p-drop':
         event.preventDefault();
         event.stopPropagation();
-        this.handleAdd((event as IDragEvent).offsetX, (event as IDragEvent).offsetY);
+        this.handleAdd(
+          (event as IDragEvent).offsetX,
+          (event as IDragEvent).offsetY
+        );
         break;
       default:
         break;
@@ -532,9 +614,7 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     this.iconRegistry = options.iconRegistry;
   }
 
-  protected createNewWidget(
-    context: DocumentRegistry.Context
-  ): DocumentWidget {
+  protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
     // Creates a blank widget with a DocumentWidget wrapper
     let props = {
       app: this.app,
@@ -543,7 +623,11 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       context: context
     };
     const content = new Canvas(props);
-    const widget = new DocumentWidget({ content, context, node: document.createElement('div') });
+    const widget = new DocumentWidget({
+      content,
+      context,
+      node: document.createElement('div')
+    });
     widget.addClass(PIPELINE_CLASS);
     widget.title.iconClass = PIPELINE_ICON_CLASS;
     return widget;
@@ -556,7 +640,14 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
 const extension: JupyterFrontEndPlugin<void> = {
   id: PIPELINE,
   autoStart: true,
-  requires: [ICommandPalette, ILauncher, IFileBrowserFactory, ILayoutRestorer, IMainMenu, IIconRegistry],
+  requires: [
+    ICommandPalette,
+    ILauncher,
+    IFileBrowserFactory,
+    ILayoutRestorer,
+    IMainMenu,
+    IIconRegistry
+  ],
   activate: (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
@@ -579,7 +670,11 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({ name: PIPELINE, extensions: ['.pipeline'], iconClass: PIPELINE_ICON_CLASS});
+    app.docRegistry.addFileType({
+      name: PIPELINE,
+      extensions: ['.pipeline'],
+      iconClass: PIPELINE_ICON_CLASS
+    });
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
     const tracker = new WidgetTracker<DocumentWidget>({
@@ -596,8 +691,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // Handle state restoration
-    void restorer.restore(tracker,
-    {
+    void restorer.restore(tracker, {
       command: commandIDs.openDocManager,
       args: widget => ({
         path: widget.context.path,
@@ -609,25 +703,31 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Add an application command
     const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
     app.commands.addCommand(openPipelineEditorCommand, {
-      label: args => (args['isPalette'] ? 'New Pipeline Editor' : 'Pipeline Editor'),
-      iconClass:  args => (args['isPalette'] ? '' : PIPELINE_ICON_CLASS),
+      label: args =>
+        args['isPalette'] ? 'New Pipeline Editor' : 'Pipeline Editor',
+      iconClass: args => (args['isPalette'] ? '' : PIPELINE_ICON_CLASS),
       execute: () => {
         // Creates blank file, then opens it in a new window
-        app.commands.execute(commandIDs.newDocManager, {
-          type: 'file',
-          path: browserFactory.defaultBrowser.model.path,
-          ext: '.pipeline'
-        })
-        .then(model => {
-          return app.commands.execute(commandIDs.openDocManager, {
-            path: model.path,
-            factory: PIPELINE_FACTORY
+        app.commands
+          .execute(commandIDs.newDocManager, {
+            type: 'file',
+            path: browserFactory.defaultBrowser.model.path,
+            ext: '.pipeline'
+          })
+          .then(model => {
+            return app.commands.execute(commandIDs.openDocManager, {
+              path: model.path,
+              factory: PIPELINE_FACTORY
+            });
           });
-        });
       }
     });
     // Add the command to the palette.
-    palette.addItem({command: openPipelineEditorCommand, args: { isPalette: true }, category: 'Extensions'});
+    palette.addItem({
+      command: openPipelineEditorCommand,
+      args: { isPalette: true },
+      category: 'Extensions'
+    });
     if (launcher) {
       launcher.add({
         command: openPipelineEditorCommand,
@@ -641,5 +741,5 @@ const extension: JupyterFrontEndPlugin<void> = {
       30
     );
   }
- };
- export default extension;
+};
+export default extension;

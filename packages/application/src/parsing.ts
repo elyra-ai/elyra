@@ -18,7 +18,6 @@
  * A utilities class for parsing notebook files.
  */
 export class NotebookParser {
-
   /**
    * Takes in a notebook and finds all env vars accessed in it.
    * @param notebookStr Raw notebook JSON in string format
@@ -31,7 +30,10 @@ export class NotebookParser {
 
     for (let cell of notebook['cells']) {
       if (cell['cell_type'] == 'code') {
-        let matchedEnv: string[][] = this.findInCode(cell['source'], match_regex);
+        let matchedEnv: string[][] = this.findInCode(
+          cell['source'],
+          match_regex
+        );
         for (let match of matchedEnv) {
           for (let i = 1; i < match.length; i++) {
             if (match[i]) {
@@ -64,5 +66,4 @@ export class NotebookParser {
 
     return matched;
   }
-
 }
