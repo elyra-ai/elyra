@@ -211,7 +211,7 @@ export class PythonFileEditor extends DocumentWidget<
       // Add a tab to dockPanel
       this.dockPanel.addWidget(this.outputAreaWidget, { mode: 'split-bottom' });
 
-      let outputTab: TabBar<Widget> = this.dockPanel.tabBars().next();
+      const outputTab: TabBar<Widget> = this.dockPanel.tabBars().next();
       outputTab.id = 'tab-python-editor-output';
       outputTab.currentTitle.label = 'Python Console Output';
       outputTab.currentTitle.closable = true;
@@ -239,7 +239,7 @@ export class PythonFileEditor extends DocumentWidget<
    */
   private displayOutput = (output: string) => {
     if (output) {
-      let options = {
+      const options = {
         name: 'stdout',
         output_type: 'stream',
         text: [output]
@@ -318,7 +318,7 @@ class DropDownState {
  */
 class DropDown extends React.Component<DropDownProps, DropDownState> {
   private updateKernel: Function;
-  private kernelOptionElems: Object[];
+  private kernelOptionElems: Record<string, any>[];
 
   /**
    * Construct a new dropdown widget.
@@ -441,8 +441,8 @@ export class PythonFileEditorFactory extends ABCWidgetFactory<
   protected createNewWidget(
     context: DocumentRegistry.CodeContext
   ): PythonFileEditor {
-    let func = this._services.factoryService.newDocumentEditor;
-    let factory: CodeEditor.Factory = options => {
+    const func = this._services.factoryService.newDocumentEditor;
+    const factory: CodeEditor.Factory = options => {
       return func(options);
     };
     const content = new FileEditor({

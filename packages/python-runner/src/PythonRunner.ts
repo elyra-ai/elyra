@@ -75,7 +75,7 @@ export class PythonRunner {
       const future = this.kernel.requestExecute({ code });
 
       future.onIOPub = (msg: any) => {
-        let msgOutput: any = {};
+        const msgOutput: any = {};
 
         if (msg.msg_type === 'error') {
           msgOutput.error = {

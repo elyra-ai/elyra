@@ -123,7 +123,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     function updateWidget(widget: FileEditor): void {
       const editor = widget.editor;
       Object.keys(config).forEach((keyStr: string) => {
-        let key = keyStr as keyof CodeEditor.IConfig;
+        const key = keyStr as keyof CodeEditor.IConfig;
         editor.setOption(key, config[key]);
       });
     }
@@ -222,7 +222,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     // Function to create a new untitled python file, given the current working directory
-    const createNew = (cwd: string, ext: string = 'py') => {
+    const createNew = (cwd: string, ext = 'py') => {
       return app.commands
         .execute(commandIDs.newDocManager, {
           path: cwd,
@@ -243,7 +243,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       caption: 'Create a new python file',
       iconClass: args => (args['isPalette'] ? '' : PYTHON_ICON_CLASS),
       execute: args => {
-        let cwd = args['cwd'];
+        const cwd = args['cwd'];
         return createNew(cwd as string, 'py');
       }
     });

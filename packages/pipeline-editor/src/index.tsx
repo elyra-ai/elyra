@@ -77,8 +77,8 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
   constructor(props: any) {
     super(props);
 
-    let layout = (this.layout = new PanelLayout());
-    let htmlContent = this.getHtml(props);
+    const layout = (this.layout = new PanelLayout());
+    const htmlContent = this.getHtml(props);
     // Set default runtime to kfp, since list is dynamically generated
     (htmlContent.getElementsByClassName(
       'elyra-form-runtime-config'
@@ -99,18 +99,18 @@ class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
   }
 
   getHtml(props: any) {
-    let htmlContent = document.createElement('div');
-    let br = '<br/>';
+    const htmlContent = document.createElement('div');
+    const br = '<br/>';
     let runtime_options = '';
-    let runtimes = props['runtimes'];
+    const runtimes = props['runtimes'];
 
-    for (let key in runtimes) {
+    for (const key in runtimes) {
       runtime_options =
         runtime_options +
         `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
     }
 
-    let content =
+    const content =
       '' +
       '<label for="pipeline_name">Pipeline Name:</label>' +
       br +
@@ -194,7 +194,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   iconRegistry: IconRegistry;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
-  position: number = 10;
+  position = 10;
   node: React.RefObject<HTMLDivElement>;
 
   constructor(props: any) {
@@ -305,10 +305,10 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   openPropertiesDialog(source: any) {
     console.log('Opening properties dialog');
-    let node_id = source.targetObject.id;
-    let app_data = this.canvasController.getNode(node_id).app_data;
+    const node_id = source.targetObject.id;
+    const app_data = this.canvasController.getNode(node_id).app_data;
 
-    let node_props = this.propertiesInfo;
+    const node_props = this.propertiesInfo;
     node_props.appData.id = node_id;
 
     node_props.parameterDef.current_parameters.image = app_data.image;
@@ -324,7 +324,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   applyPropertyChanges(propertySet: any, appData: any) {
     console.log('Applying changes to properties');
-    let app_data = this.canvasController.getNode(appData.id).app_data;
+    const app_data = this.canvasController.getNode(appData.id).app_data;
 
     app_data.image = propertySet.image;
     app_data.outputs = propertySet.outputs;
@@ -362,9 +362,9 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
 
   contextMenuActionHandler(action: any, source: any) {
     if (action === 'openNotebook' && source.type === 'node') {
-      let nodes = source.selectedObjectIds;
+      const nodes = source.selectedObjectIds;
       for (let i = 0; i < nodes.length; i++) {
-        let path = this.canvasController.getNode(nodes[i]).app_data.artifact;
+        const path = this.canvasController.getNode(nodes[i]).app_data.artifact;
         this.app.commands.execute(commandIDs.openDocManager, { path });
       }
     } else if (action === 'properties' && source.type === 'node') {
@@ -386,7 +386,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   handleAdd(x?: number, y?: number) {
     let failedAdd = 0;
     let position = 0;
-    let missingXY = !(x && y);
+    const missingXY = !(x && y);
 
     // if either x or y is undefined use the default coordinates
     if (missingXY) {
@@ -395,7 +395,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
       y = 85;
     }
 
-    let fileBrowser = this.browserFactory.defaultBrowser;
+    const fileBrowser = this.browserFactory.defaultBrowser;
 
     toArray(fileBrowser.selectedItems()).map(item => {
       // if the selected item is a file
@@ -417,11 +417,11 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
           };
 
           // create a notebook widget to get a string with the node content then dispose of it
-          let notebookWidget = fileBrowser.model.manager.open(item.path);
-          let notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
+          const notebookWidget = fileBrowser.model.manager.open(item.path);
+          const notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
           notebookWidget.dispose();
 
-          let vars = NotebookParser.getEnvVars(notebookStr).map(
+          const vars = NotebookParser.getEnvVars(notebookStr).map(
             str => str + '='
           );
 
@@ -480,7 +480,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
           }
 
           // prepare pipeline submission details
-          let pipelineFlow = this.canvasController.getPipelineFlow();
+          const pipelineFlow = this.canvasController.getPipelineFlow();
           pipelineFlow.pipelines[0]['app_data']['title'] =
             result.value.pipeline_name;
           // TODO: Be more flexible and remove hardcoded runtime type
@@ -555,7 +555,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   }
 
   componentDidMount(): void {
-    let node = this.node.current!;
+    const node = this.node.current!;
     node.addEventListener('dragenter', this.handleEvent);
     node.addEventListener('dragover', this.handleEvent);
     node.addEventListener('p-dragover', this.handleEvent);
@@ -563,7 +563,7 @@ class Pipeline extends React.Component<Pipeline.Props, Pipeline.State> {
   }
 
   componentWillUnmount(): void {
-    let node = this.node.current!;
+    const node = this.node.current!;
     node.removeEventListener('p-drop', this.handleEvent);
     node.removeEventListener('p-dragover', this.handleEvent);
     node.removeEventListener('dragover', this.handleEvent);
@@ -616,7 +616,7 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
     // Creates a blank widget with a DocumentWidget wrapper
-    let props = {
+    const props = {
       app: this.app,
       browserFactory: this.browserFactory,
       iconRegistry: this.iconRegistry,

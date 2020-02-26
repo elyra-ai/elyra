@@ -69,7 +69,7 @@ export class SubmitNotebookButtonExtension
   readonly app: JupyterFrontEnd;
 
   showWidget = () => {
-    let envVars: string[] = NotebookParser.getEnvVars(
+    const envVars: string[] = NotebookParser.getEnvVars(
       this.panel.content.model.toString()
     );
 
@@ -88,10 +88,10 @@ export class SubmitNotebookButtonExtension
           }
 
           // prepare notebook submission details
-          let notebookOptions: ISubmitNotebookOptions = <
+          const notebookOptions: ISubmitNotebookOptions = <
             ISubmitNotebookOptions
           >result.value;
-          let pipeline = Utils.generateNotebookPipeline(
+          const pipeline = Utils.generateNotebookPipeline(
             this.panel.context.path,
             notebookOptions
           );
@@ -112,7 +112,7 @@ export class SubmitNotebookButtonExtension
     this.panel = panel;
 
     // Create the toolbar button
-    let submitNotebookButton = new ToolbarButton({
+    const submitNotebookButton = new ToolbarButton({
       label: 'Submit Notebook ...',
       onClick: this.showWidget,
       tooltip: 'Submit Notebook ...'
@@ -154,22 +154,22 @@ export class SubmitNotebook extends Widget
    * required to submit/run the notebook remotely
    */
   renderHtml() {
-    var tr = '<tr>'; //'<tr style="padding: 1px;">';
-    var td = '<td>'; //'<td style="padding: 1px;">';
-    var td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
-    var td_colspan3 = '<td colspan=3>'; //'<td style="padding: 1px;" colspan=3>';
+    const tr = '<tr>'; //'<tr style="padding: 1px;">';
+    const td = '<td>'; //'<td style="padding: 1px;">';
+    const td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
+    const td_colspan3 = '<td colspan=3>'; //'<td style="padding: 1px;" colspan=3>';
     //var td_colspan4 = '<td colspan=4>'; //'<td style="padding: 1px;" colspan=4>';
 
-    let htmlContent = document.createElement('div');
+    const htmlContent = document.createElement('div');
     let runtime_options = '';
 
-    for (let key in this._runtimes) {
+    for (const key in this._runtimes) {
       runtime_options =
         runtime_options +
         `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
     }
 
-    var content =
+    const content =
       '' +
       '<table id="table-submit-dialog" class="elyra-table"><tbody>' +
       tr +
@@ -224,10 +224,10 @@ export class SubmitNotebook extends Widget
   }
 
   getEnvHtml(): string {
-    let tr = '<tr>';
-    let td = '<td>';
-    let td_colspan4 = '<td colspan=4>';
-    let subtitle =
+    const tr = '<tr>';
+    const td = '<td>';
+    const td_colspan4 = '<td colspan=4>';
+    const subtitle =
       '<div style="font-size: var(--jp-ui-font-size3)">Environmental Variables</div>';
 
     if (this._envVars.length > 0) {
@@ -268,18 +268,18 @@ export class SubmitNotebook extends Widget
       )).value.split(',');
     }
 
-    let envVars: string[] = [];
+    const envVars: string[] = [];
 
-    let envElements = document.getElementsByClassName('envVar');
+    const envElements = document.getElementsByClassName('envVar');
 
     for (let i = 0; i < envElements.length; i++) {
-      let index: number = parseInt(envElements[i].id.match(/\d+/)[0], 10);
+      const index: number = parseInt(envElements[i].id.match(/\d+/)[0], 10);
       envVars.push(
         `${this._envVars[index]}=${(<HTMLInputElement>envElements[i]).value}`
       );
     }
 
-    let returnData: ISubmitNotebookConfiguration = {
+    const returnData: ISubmitNotebookConfiguration = {
       runtime_config: (<HTMLSelectElement>(
         document.getElementById('runtime_config')
       )).value,

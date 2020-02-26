@@ -27,7 +27,7 @@ export class SubmissionHandler {
       ? res_body + ': ' + response['reason']
       : res_body;
 
-    let default_body =
+    const default_body =
       'More details might be available in the JupyterLab console logs';
 
     return showDialog({
@@ -88,15 +88,15 @@ export class SubmissionHandler {
   ) {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are the in the extension installed by this package
-    let settings = ServerConnection.makeSettings();
-    let requestUrl = URLExt.join(settings.baseUrl, requestExt);
+    const settings = ServerConnection.makeSettings();
+    const requestUrl = URLExt.join(settings.baseUrl, requestExt);
 
     console.log(
       'Submitting a ' + requestOptions.method + ' request to ' + requestUrl
     );
 
     // Note: a button is required to resolve the dialog below
-    let waitDialog = new Dialog({
+    const waitDialog = new Dialog({
       title: 'Submitting request...',
       body: 'This may take some time',
       buttons: [Dialog.okButton()]
@@ -136,9 +136,9 @@ export class SubmissionHandler {
       JSON.stringify(pipeline),
       submissionType,
       (data: any) => {
-        let dialogTitle: string =
+        const dialogTitle: string =
           'Job submission to ' + runtime_config + ' succeeded';
-        let dialogBody = (
+        const dialogBody = (
           <p>
             Check the status of your run at{' '}
             <a href={data.url} target="_blank">

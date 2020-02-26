@@ -47,7 +47,7 @@ export const notebook_scheduler_extension: JupyterFrontEndPlugin<void> = {
     console.log('Elyra - notebook-scheduler extension is activated!');
 
     // Extension initialization code
-    let buttonExtension = new SubmitNotebookButtonExtension(app);
+    const buttonExtension = new SubmitNotebookButtonExtension(app);
     app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
     app.contextMenu.addItem({
       selector: '.jp-Notebook',

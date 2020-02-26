@@ -29,11 +29,11 @@ export default class Utils {
     artifact: string,
     options: ISubmitNotebookOptions
   ) {
-    let template = pipeline_template;
-    let generated_uuid: string = Utils.getUUID();
+    const template = pipeline_template;
+    const generated_uuid: string = Utils.getUUID();
 
-    let artifactFileName = artifact.replace(/^.*[\\\/]/, '');
-    let artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
+    const artifactFileName = artifact.replace(/^.*[\\\/]/, '');
+    const artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
 
     template.id = generated_uuid;
     template.primary_pipeline = generated_uuid;
