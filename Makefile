@@ -48,7 +48,7 @@ yarn-install:
 test-dependencies: yarn-install
 	@pip install -q -r test_requirements.txt
 
-lint: test_dependencies ## Run linters
+lint: test-dependencies ## Run linters
 	flake8 elyra
 	yarn run prettier
 	yarn run eslint
