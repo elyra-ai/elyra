@@ -26,11 +26,7 @@
     height: 120px;
 }
 
-.empty-canvas {
-    text-align: -webkit-center;
-}
-
-h1 {
+.empty-canvas h1 {
     color: #8897a2;
     size: 20pt;
     text-align: center;
