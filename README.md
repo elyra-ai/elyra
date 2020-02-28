@@ -156,9 +156,9 @@ This produces the following content in `my_kfp.json`:
     "metadata": {
         "api_endpoint": "https://kubernetes-service.ibm.com/pipeline",
         "cos_endpoint": "minio-service.kubeflow:9000",
-        "cos_bucket": "test_bucket",
         "cos_username": "minio",
-        "cos_password": "minio123"
+        "cos_password": "minio123",
+        "cos_bucket": "test_bucket"
     }
 }
 ```

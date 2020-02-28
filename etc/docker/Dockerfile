@@ -24,22 +24,16 @@ RUN pip install setuptools --ignore-installed --upgrade
 
 ENV NBGITPULLER_APP=lab
 
-# Install Lab and NB2KG. Enable NB2KG extension. Lab is enabled by default
-RUN pip install --upgrade jupyterlab notebook && \
-    jupyter serverextension enable --py jupyterlab --sys-prefix
+# Install Lab which is enabled by default
+RUN pip install --upgrade pip jupyterlab notebook
 
-RUN mkdir -p /home/jovyan/.local/share/jupyter/metadata/runtime
+RUN mkdir -p /home/jovyan/.local/share/jupyter/metadata/runtimes
 
-USER root
-
-COPY *.whl /etc/elyra/
-RUN pip install /etc/elyra/*.whl
-
-RUN mkdir -p /opt/work && chmod 777 /opt/work
+COPY *.whl /tmp/elyra/
+RUN pip install /tmp/elyra/*.whl
 
 RUN jupyter lab build --debug
 
 RUN jupyter labextension list && jupyter serverextension list
 
-USER jovyan
-ENTRYPOINT ["/bin/bash", "-c", "cd /opt/work && jupyter lab --debug --no-browser"]
+ENTRYPOINT ["/bin/bash", "-c", "jupyter lab --debug --no-browser"]
