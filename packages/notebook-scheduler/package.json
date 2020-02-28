@@ -31,16 +31,16 @@
     "watch": "tsc -w"
   },
   "dependencies": {
+    "@elyra/application": "^0.6.0-dev",
     "@jupyterlab/application": "^1.0.0",
     "@jupyterlab/apputils": "^1.0.0",
     "@jupyterlab/docregistry": "^1.0.0",
     "@jupyterlab/notebook": "^1.0.0",
     "@phosphor/disposable": "^1.1.2",
     "@phosphor/widgets": "^1.8.0",
-    "@elyra/application": "^0.6.0-dev",
-    "json-loader": "^0.5.7",
+    "@types/uuid": "^3.4.7",
     "uuid": "^3.4.0",
-    "@types/uuid": "^3.4.7"
+    "json-loader": "^0.5.7"
   },
   "devDependencies": {
     "rimraf": "^2.6.3",
