@@ -78,7 +78,7 @@ install-backend: ## Build and install backend
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 
 npm-packages: prepare
-	mkdir dist
+	mkdir -p dist
 	$(call PACKAGE_LAB_EXTENSION,application)
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
@@ -86,9 +86,11 @@ npm-packages: prepare
 	cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
 	cd dist && curl -O $$(npm view @jupyterlab/toc dist.tarball --userconfig=./npm_config) && cd -
 
-docker-image: bdist ## Build docker image
-	cp -r dist/*.whl etc/docker/
-	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) etc/docker/ --progress plain
+docker-image: ## bdist ## Build docker image
+	@mkdir -p build/docker
+	cp etc/docker/Dockerfile build/docker/Dockerfile
+	cp -r dist/*.whl build/docker/
+	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
 
 define UNLINK_LAB_EXTENSION
 	- jupyter labextension unlink --no-build @elyra/$1
