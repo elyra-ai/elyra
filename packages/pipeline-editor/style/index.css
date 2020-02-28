@@ -19,6 +19,18 @@
   --elyra-icon-pipeline: url('./pipeline-flow.svg');
 }
 
+.dragdrop {
+    background-image: url('./dragdrop.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 120px;
+}
+
+.empty-canvas h1 {
+    color: #8897a2;
+    size: 20pt;
+    text-align: center;
+}
 
 .save .list-item {
 	background-image: url('./save-pipeline.svg');
