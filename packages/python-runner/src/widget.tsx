@@ -227,7 +227,7 @@ export class PythonFileEditor extends DocumentWidget<
   private displayKernelStatus = (status: string): void => {
     if (status === 'busy') {
       // TODO: Use a character that does not take any space, also not an empty string
-      this.displayOutput(' ');
+      this.displayOutput('');
       this.updatePromptText('*');
     } else if (status === 'idle') {
       this.updatePromptText(' ');
