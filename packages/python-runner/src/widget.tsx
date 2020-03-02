@@ -238,17 +238,24 @@ export class PythonFileEditor extends DocumentWidget<
    * Function: Displays python code in OutputArea widget.
    */
   private displayOutput = (output: string): void => {
+    const options = {
+      name: 'stdout',
+      output_type: 'stream',
+      text: ['']
+    };
     if (output) {
-      const options = {
-        name: 'stdout',
-        output_type: 'stream',
-        text: [output]
-      };
-      this.outputAreaWidget.model.add(options);
-
-      this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
-      this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
+      options.text = [output];
+    } else {
+      options.text = [' '];
     }
+
+    this.outputAreaWidget.model.add(options);
+    if (!output) {
+      this.outputAreaWidget.model.clear(true);
+    }
+
+    this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
+    this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
   };
 
   /**
