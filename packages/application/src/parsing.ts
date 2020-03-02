@@ -18,21 +18,23 @@
  * A utilities class for parsing notebook files.
  */
 export class NotebookParser {
-
   /**
    * Takes in a notebook and finds all env vars accessed in it.
    * @param notebookStr Raw notebook JSON in string format
    * @returns A string array of the env vars accessed in the given notebook
    */
   static getEnvVars(notebookStr: string): string[] {
-    let envVars: string[] = [];
-    let notebook = JSON.parse(notebookStr);
-    let match_regex = /os\.(?:environ(?:\["([^"]+)|\['([^']+)|\.get\("([^"]+)|\.get\('([^']+))|getenv\("([^"]+)|getenv\('([^']+))/;
+    const envVars: string[] = [];
+    const notebook = JSON.parse(notebookStr);
+    const match_regex = /os\.(?:environ(?:\["([^"]+)|\['([^']+)|\.get\("([^"]+)|\.get\('([^']+))|getenv\("([^"]+)|getenv\('([^']+))/;
 
-    for (let cell of notebook['cells']) {
+    for (const cell of notebook['cells']) {
       if (cell['cell_type'] == 'code') {
-        let matchedEnv: string[][] = this.findInCode(cell['source'], match_regex);
-        for (let match of matchedEnv) {
+        const matchedEnv: string[][] = this.findInCode(
+          cell['source'],
+          match_regex
+        );
+        for (const match of matchedEnv) {
           for (let i = 1; i < match.length; i++) {
             if (match[i]) {
               envVars.push(match[i]);
@@ -52,11 +54,11 @@ export class NotebookParser {
    * @returns A 2d string array containing an array of the matched array results
    */
   static findInCode(code: string, regex: RegExp): string[][] {
-    let matched: string[][] = [];
-    let codeLines = code.split(/\r?\n/);
+    const matched: string[][] = [];
+    const codeLines = code.split(/\r?\n/);
 
-    for (let codeLine of codeLines) {
-      let match = codeLine.match(regex);
+    for (const codeLine of codeLines) {
+      const match = codeLine.match(regex);
       if (match) {
         matched.push(match);
       }
@@ -64,5 +66,4 @@ export class NotebookParser {
 
     return matched;
   }
-
 }

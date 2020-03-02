@@ -20,8 +20,8 @@
 }
 
 #jp-MainLogo.jp-JupyterIcon {
-    background-image: var(--elyra-logo);
-    background-size: 20px;
-    margin-left: 5px;
-    margin-right: 5px;
+  background-image: var(--elyra-logo);
+  background-size: 20px;
+  margin-left: 5px;
+  margin-right: 5px;
 }

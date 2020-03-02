@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Dialog, showDialog, ToolbarButton} from "@jupyterlab/apputils";
-import {DocumentRegistry} from "@jupyterlab/docregistry";
-import {INotebookModel, NotebookPanel} from "@jupyterlab/notebook";
-import {JupyterFrontEnd} from "@jupyterlab/application";
-import {JSONObject, JSONValue} from "@phosphor/coreutils";
-import {Widget} from '@phosphor/widgets';
-import {IDisposable} from "@phosphor/disposable";
+import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { JSONObject, JSONValue } from '@phosphor/coreutils';
+import { Widget } from '@phosphor/widgets';
+import { IDisposable } from '@phosphor/disposable';
 
-import {NotebookParser, SubmissionHandler} from "@elyra/application";
+import { NotebookParser, SubmissionHandler } from '@elyra/application';
 
-import Utils from './utils'
+import Utils from './utils';
 
 /**
  * Details about notebook submission configuration, including
@@ -31,14 +31,14 @@ import Utils from './utils'
  * user details required to access/start the job
  */
 export interface ISubmitNotebookConfiguration extends JSONObject {
-  runtime_config: string,
-  framework: string,
+  runtime_config: string;
+  framework: string;
   //cpus: number,
   //gpus: number,
   //memory: string,
-  dependencies: string[],
+  dependencies: string[];
 
-  env: string[]
+  env: string[];
 }
 
 /**
@@ -46,10 +46,10 @@ export interface ISubmitNotebookConfiguration extends JSONObject {
  * configuration plus the notebook contents that is being submitted
  */
 export interface ISubmitNotebookOptions extends ISubmitNotebookConfiguration {
-  kernelspec: string,
-  notebook_name: string,
-  notebook_path: string,
-  notebook: JSONValue,
+  kernelspec: string;
+  notebook_name: string;
+  notebook_path: string;
+  notebook: JSONValue;
 }
 
 /**
@@ -58,7 +58,8 @@ export interface ISubmitNotebookOptions extends ISubmitNotebookConfiguration {
  *  information about the remote location to where submit the notebook
  *  for execution
  */
-export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
+export class SubmitNotebookButtonExtension
+  implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
   private panel: NotebookPanel;
 
   constructor(app: JupyterFrontEnd) {
@@ -67,34 +68,49 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
 
   readonly app: JupyterFrontEnd;
 
-  showWidget = () => {
-    let envVars: string[] = NotebookParser.getEnvVars(this.panel.content.model.toString());
+  showWidget = (): void => {
+    const envVars: string[] = NotebookParser.getEnvVars(
+      this.panel.content.model.toString()
+    );
 
-    SubmissionHandler.makeGetRequest('api/metadata/runtimes', 'pipeline', (response: any) =>
-      showDialog({
-        title: 'Submit notebook',
-        body: new SubmitNotebook(envVars, response.runtimes),
-        buttons: [Dialog.cancelButton(), Dialog.okButton()]
-      }).then(result => {
-        if (result.value == null) {
-          // When Cancel is clicked on the dialog, just return
-          return;
-        }
+    SubmissionHandler.makeGetRequest(
+      'api/metadata/runtimes',
+      'pipeline',
+      (response: any) =>
+        showDialog({
+          title: 'Submit notebook',
+          body: new SubmitNotebook(envVars, response.runtimes),
+          buttons: [Dialog.cancelButton(), Dialog.okButton()]
+        }).then(result => {
+          if (result.value == null) {
+            // When Cancel is clicked on the dialog, just return
+            return;
+          }
 
-        // prepare notebook submission details
-        let notebookOptions: ISubmitNotebookOptions = <ISubmitNotebookOptions>result.value;
-        let pipeline = Utils.generateNotebookPipeline(this.panel.context.path, notebookOptions);
+          // prepare notebook submission details
+          const notebookOptions: ISubmitNotebookOptions = result.value as ISubmitNotebookOptions;
+          const pipeline = Utils.generateNotebookPipeline(
+            this.panel.context.path,
+            notebookOptions
+          );
 
-        SubmissionHandler.submitPipeline(pipeline, result.value.runtime_config, 'notebook');
-      })
+          SubmissionHandler.submitPipeline(
+            pipeline,
+            result.value.runtime_config,
+            'notebook'
+          );
+        })
     );
   };
 
-  createNew(panel: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): IDisposable {
+  createNew(
+    panel: NotebookPanel,
+    context: DocumentRegistry.IContext<INotebookModel>
+  ): IDisposable {
     this.panel = panel;
 
     // Create the toolbar button
-    let submitNotebookButton = new ToolbarButton({
+    const submitNotebookButton = new ToolbarButton({
       label: 'Submit Notebook ...',
       onClick: this.showWidget,
       tooltip: 'Submit Notebook ...'
@@ -114,7 +130,8 @@ export class SubmitNotebookButtonExtension implements DocumentRegistry.IWidgetEx
  * - Request information about the remote location to where submit the
  * notebook for execution
  */
-export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmitNotebookConfiguration>  {
+export class SubmitNotebook extends Widget
+  implements Dialog.IBodyWidget<ISubmitNotebookConfiguration> {
   _envVars: string[];
   _runtimes: any;
 
@@ -125,46 +142,48 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
     this._runtimes = runtimes;
 
     this.node.appendChild(this.renderHtml());
-    (this.node.getElementsByClassName("elyra-form-runtime-config")[0] as HTMLSelectElement).value = "";
-
+    (this.node.getElementsByClassName(
+      'elyra-form-runtime-config'
+    )[0] as HTMLSelectElement).value = '';
   }
 
   /**
    * Render the dialog widget used to gather configuration information
    * required to submit/run the notebook remotely
    */
-  renderHtml() {
-    var tr = '<tr>'; //'<tr style="padding: 1px;">';
-    var td = '<td>'; //'<td style="padding: 1px;">';
-    var td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
-    var td_colspan3 = '<td colspan=3>'; //'<td style="padding: 1px;" colspan=3>';
+  renderHtml(): HTMLElement {
+    const tr = '<tr>'; //'<tr style="padding: 1px;">';
+    const td = '<td>'; //'<td style="padding: 1px;">';
+    const td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
+    const td_colspan3 = '<td colspan=3>'; //'<td style="padding: 1px;" colspan=3>';
     //var td_colspan4 = '<td colspan=4>'; //'<td style="padding: 1px;" colspan=4>';
 
-    let htmlContent = document.createElement('div');
+    const htmlContent = document.createElement('div');
     let runtime_options = '';
 
-    for (let key in this._runtimes) {
-      runtime_options = runtime_options + `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
+    for (const key in this._runtimes) {
+      runtime_options =
+        runtime_options +
+        `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
     }
 
-    var content = ''
-      +'<table id="table-submit-dialog" class="elyra-table"><tbody>'
-
-      + tr
-      + td_colspan2
-      +'<label for="runtime_config">Runtime Config:</label>'
-      +'<br/>'
-      +'<select id="runtime_config" class="elyra-form-runtime-config">'
-      + runtime_options
-      +'</select>'
-      +'</td>'
-      + td_colspan2
-      +'<label for="framework">Deep Learning Framework:</label>'
-      +'<br/>'
-      +'<select id="framework"><option value="tensorflow" selected>Tensorflow</option><option value="caffe">Caffe</option><option value="pytorch">PyTorch</option><option value="caffe2">Caffe2</option></select>'
-      +'</td>'
-      +'</tr>'
-
+    const content =
+      '' +
+      '<table id="table-submit-dialog" class="elyra-table"><tbody>' +
+      tr +
+      td_colspan2 +
+      '<label for="runtime_config">Runtime Config:</label>' +
+      '<br/>' +
+      '<select id="runtime_config" class="elyra-form-runtime-config">' +
+      runtime_options +
+      '</select>' +
+      '</td>' +
+      td_colspan2 +
+      '<label for="framework">Deep Learning Framework:</label>' +
+      '<br/>' +
+      '<select id="framework"><option value="tensorflow" selected>Tensorflow</option><option value="caffe">Caffe</option><option value="pytorch">PyTorch</option><option value="caffe2">Caffe2</option></select>' +
+      '</td>' +
+      '</tr>' +
       // + tr
       // + td
       // +'<label for="cpus">CPUs:</label>'
@@ -185,48 +204,46 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       // +'</td>'
       // +'</tr>'
 
-      + tr
-      + td
-      +'<br/>'
-      +'<input type="checkbox" id="dependency_include" name="dependency_include" size="20" checked /> Include dependencies<br/>'
-      +'</td>'
-
-      + td_colspan3
-      +'<br/>'
-      +'<input type="text" id="dependencies" name="dependencies" placeholder="*.py" value="*.py" size="20"/>'
-      +'</td>'
-
-      +'</tr>'
-
-      + this.getEnvHtml()
-
-      +'</tbody></table>';
+      tr +
+      td +
+      '<br/>' +
+      '<input type="checkbox" id="dependency_include" name="dependency_include" size="20" checked /> Include dependencies<br/>' +
+      '</td>' +
+      td_colspan3 +
+      '<br/>' +
+      '<input type="text" id="dependencies" name="dependencies" placeholder="*.py" value="*.py" size="20"/>' +
+      '</td>' +
+      '</tr>' +
+      this.getEnvHtml() +
+      '</tbody></table>';
     htmlContent.innerHTML = content;
 
     return htmlContent;
   }
 
   getEnvHtml(): string {
-    let tr = '<tr>';
-    let td = '<td>';
-    let td_colspan4 = '<td colspan=4>';
-    let subtitle = '<div style="font-size: var(--jp-ui-font-size3)">Environmental Variables</div>'
+    const tr = '<tr>';
+    const td = '<td>';
+    const td_colspan4 = '<td colspan=4>';
+    const subtitle =
+      '<div style="font-size: var(--jp-ui-font-size3)">Environmental Variables</div>';
 
     if (this._envVars.length > 0) {
-      let html =  '' + tr + td_colspan4 + '</td>' + '</tr>';
+      let html = '' + tr + td_colspan4 + '</td>' + '</tr>';
       html = html + tr + td_colspan4 + subtitle + '</td>' + '</tr>';
 
       for (let i = 0; i < this._envVars.length; i++) {
-
         if (i % 4 === 0) {
           html = html + tr;
         }
 
-        html = html + td
-          +`<label for="envVar${i}">${this._envVars[i]}:</label>`
-          +'<br/>'
-          +`<input type="text" id="envVar${i}" class="envVar" name="envVar${i}" placeholder="" value="" size="20"/>`
-          +'</td>';
+        html =
+          html +
+          td +
+          `<label for="envVar${i}">${this._envVars[i]}:</label>` +
+          '<br/>' +
+          `<input type="text" id="envVar${i}" class="envVar" name="envVar${i}" placeholder="" value="" size="20"/>` +
+          '</td>';
 
         if (i % 4 === 3) {
           html = html + '</tr>';
@@ -234,37 +251,45 @@ export class SubmitNotebook extends Widget implements Dialog.IBodyWidget<ISubmit
       }
 
       return html;
-
     } else {
       return '';
     }
   }
 
   getValue(): ISubmitNotebookConfiguration {
-
     let dependency_list: string[] = [];
-    if ((<HTMLInputElement> document.getElementById('dependency_include')).checked) {
-      dependency_list = (<HTMLInputElement>document.getElementById('dependencies')).value.split(',')
+    if (
+      (document.getElementById('dependency_include') as HTMLInputElement)
+        .checked
+    ) {
+      dependency_list = (document.getElementById(
+        'dependencies'
+      ) as HTMLInputElement).value.split(',');
     }
 
-    let envVars: string[] = [];
+    const envVars: string[] = [];
 
-    let envElements = document.getElementsByClassName('envVar');
+    const envElements = document.getElementsByClassName('envVar');
 
     for (let i = 0; i < envElements.length; i++) {
-      let index: number  = parseInt(envElements[i].id.match(/\d+/)[0], 10);
-      envVars.push(`${this._envVars[index]}=${(<HTMLInputElement>envElements[i]).value}`);
+      const index: number = parseInt(envElements[i].id.match(/\d+/)[0], 10);
+      envVars.push(
+        `${this._envVars[index]}=${(envElements[i] as HTMLInputElement).value}`
+      );
     }
 
-    let returnData: ISubmitNotebookConfiguration = {
-      runtime_config: (<HTMLSelectElement> document.getElementById('runtime_config')).value,
-      framework: (<HTMLSelectElement> document.getElementById('framework')).value,
+    const returnData: ISubmitNotebookConfiguration = {
+      runtime_config: (document.getElementById(
+        'runtime_config'
+      ) as HTMLSelectElement).value,
+      framework: (document.getElementById('framework') as HTMLSelectElement)
+        .value,
       //cpus: Number((<HTMLInputElement>document.getElementById('cpus')).value),
       //gpus: Number((<HTMLInputElement>document.getElementById('gpus')).value),
       //memory: (<HTMLInputElement>document.getElementById('memory')).value,
       dependencies: dependency_list,
 
-      env: envVars,
+      env: envVars
     };
 
     return returnData;

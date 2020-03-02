@@ -14,28 +14,41 @@
  * limitations under the License.
  */
 
-import {showDialog, Dialog} from '@jupyterlab/apputils';
-import {URLExt} from '@jupyterlab/coreutils';
-import {ServerConnection} from '@jupyterlab/services';
+import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { URLExt } from '@jupyterlab/coreutils';
+import { ServerConnection } from '@jupyterlab/services';
 
-import * as React from "react";
+import * as React from 'react';
 
 export class SubmissionHandler {
-
-  static handleError(response: any, submissionType: string) {
+  static handleError(
+    response: any,
+    submissionType: string
+  ): Promise<Dialog.IResult<any>> {
     let res_body = response['message'] ? response['message'] : '';
-    res_body = response['reason'] ? res_body + ': ' + response['reason'] : res_body;
+    res_body = response['reason']
+      ? res_body + ': ' + response['reason']
+      : res_body;
 
-    let default_body = 'More details might be available in the JupyterLab console logs';
+    const default_body =
+      'More details might be available in the JupyterLab console logs';
 
     return showDialog({
       title: 'Error submitting ' + submissionType,
-      body: res_body ? <p>{res_body}<br/>{default_body}</p> : <p>{default_body}</p>,
+      body: res_body ? (
+        <p>
+          {res_body}
+          <br />
+          {default_body}
+        </p>
+      ) : (
+        <p>{default_body}</p>
+      ),
       buttons: [Dialog.okButton()]
     });
   }
 
-  static handle404(submissionType: string) {
+  static handle404(submissionType: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error submitting ' + submissionType,
       body: 'Elyra service endpoint not available',
@@ -43,60 +56,105 @@ export class SubmissionHandler {
     });
   }
 
-  static makeGetRequest(requestExt: string, submissionType: string, dialogCallback: (results: any) => void) {
-    this.makeServerRequest(requestExt,{ method: 'GET' }, submissionType, dialogCallback);
+  static makeGetRequest(
+    requestExt: string,
+    submissionType: string,
+    dialogCallback: (results: any) => void
+  ): void {
+    this.makeServerRequest(
+      requestExt,
+      { method: 'GET' },
+      submissionType,
+      dialogCallback
+    );
   }
 
-  static makePostRequest(requestExt: string, requestBody: any, submissionType: string, dialogCallback: (results: any) => void) {
-    this.makeServerRequest(requestExt,{ method: 'POST', body: requestBody }, submissionType, dialogCallback);
+  static makePostRequest(
+    requestExt: string,
+    requestBody: any,
+    submissionType: string,
+    dialogCallback: (results: any) => void
+  ): void {
+    this.makeServerRequest(
+      requestExt,
+      { method: 'POST', body: requestBody },
+      submissionType,
+      dialogCallback
+    );
   }
 
-  static makeServerRequest(requestExt: string, requestOptions: any, submissionType: string, dialogCallback: (results: any) => void) {
+  static makeServerRequest(
+    requestExt: string,
+    requestOptions: any,
+    submissionType: string,
+    dialogCallback: (results: any) => void
+  ): void {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are the in the extension installed by this package
-    let settings = ServerConnection.makeSettings();
-    let requestUrl = URLExt.join(settings.baseUrl, requestExt);
+    const settings = ServerConnection.makeSettings();
+    const requestUrl = URLExt.join(settings.baseUrl, requestExt);
 
-    console.log('Submitting a ' + requestOptions.method + ' request to ' + requestUrl);
+    console.log(
+      'Submitting a ' + requestOptions.method + ' request to ' + requestUrl
+    );
 
     // Note: a button is required to resolve the dialog below
-    let waitDialog = new Dialog({
+    const waitDialog = new Dialog({
       title: 'Submitting request...',
       body: 'This may take some time',
       buttons: [Dialog.okButton()]
     });
     waitDialog.launch();
 
-    ServerConnection.makeRequest(requestUrl, requestOptions, settings).then((response: any) => {
-      waitDialog.resolve();
+    ServerConnection.makeRequest(requestUrl, requestOptions, settings).then(
+      (response: any) => {
+        waitDialog.resolve();
 
-      // handle 404 if elyra server extension is not found
-      if (response.status === 404) {
-        return this.handle404(submissionType);
-      }
-
-      response.json().then((result: any) => {
-        if (response.status !== 200) {
-          return this.handleError(result, submissionType);
+        // handle 404 if elyra server extension is not found
+        if (response.status === 404) {
+          return this.handle404(submissionType);
         }
 
-        return dialogCallback(result);
-      });
-    });
+        response.json().then((result: any) => {
+          if (response.status !== 200) {
+            return this.handleError(result, submissionType);
+          }
+
+          return dialogCallback(result);
+        });
+      }
+    );
   }
 
-  static submitPipeline(pipeline: any, runtime_config: string, submissionType: string) {
+  static submitPipeline(
+    pipeline: any,
+    runtime_config: string,
+    submissionType: string
+  ): void {
     console.log('Pipeline definition:');
     console.log(pipeline);
 
-    this.makePostRequest('api/scheduler', JSON.stringify(pipeline), submissionType, (data: any) => {
-      let dialogTitle: string = 'Job submission to ' + runtime_config + ' succeeded';
-      let dialogBody = <p>Check the status of your run at <a href={data.url} target='_blank'>Run Details</a></p>;
-      return showDialog({
-        title: dialogTitle,
-        body: dialogBody,
-        buttons: [Dialog.okButton()]
-      });
-    });
+    this.makePostRequest(
+      'api/scheduler',
+      JSON.stringify(pipeline),
+      submissionType,
+      (data: any) => {
+        const dialogTitle: string =
+          'Job submission to ' + runtime_config + ' succeeded';
+        const dialogBody = (
+          <p>
+            Check the status of your run at{' '}
+            <a href={data.url} target="_blank" rel="noopener noreferrer">
+              Run Details
+            </a>
+          </p>
+        );
+        return showDialog({
+          title: dialogTitle,
+          body: dialogBody,
+          buttons: [Dialog.okButton()]
+        });
+      }
+    );
   }
 }

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help clean prepare install clean-docker docker-image test_dependencies
+.PHONY: help clean yarn-install test-dependencies lint lerna-build npm-packages bdist install test install-backend docker-image
 
 SHELL:=/bin/bash
 
@@ -39,23 +39,33 @@ clean: ## Make a clean source tree
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
 
-test: lint ## Run unit tests
-	pytest -v elyra
-
-test_dependencies:
-	@pip install -q -r test_requirements.txt
-
-lint: test_dependencies ## Lint python files
-	flake8 elyra
-
 # Prepares Elyra for build/packaging/installation
-prepare:
+yarn-install:
 	rm -f yarn.lock package-lock.json
 	yarn cache clean
 	yarn
+
+test-dependencies: yarn-install
+	@pip install -q -r test_requirements.txt
+
+lint: test-dependencies ## Run linters
+	flake8 elyra
+	yarn run prettier
+	yarn run eslint
+
+lerna-build: lint
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
-bdist: lint npm-packages
+npm-packages: lerna-build
+	mkdir -p dist
+	$(call PACKAGE_LAB_EXTENSION,application)
+	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
+	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
+	$(call PACKAGE_LAB_EXTENSION,python-runner)
+	cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
+	cd dist && curl -O $$(npm view @jupyterlab/toc dist.tarball --userconfig=./npm_config) && cd -
+
+bdist: npm-packages
 	python setup.py bdist_wheel
 
 install: bdist ## Build distribution and install
@@ -73,18 +83,12 @@ install: bdist ## Build distribution and install
 	jupyter serverextension list
 	jupyter labextension list
 
+test: lint ## Run unit tests
+	pytest -v elyra
+
 install-backend: ## Build and install backend
 	python setup.py bdist_wheel --dev
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
-
-npm-packages: prepare
-	mkdir -p dist
-	$(call PACKAGE_LAB_EXTENSION,application)
-	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
-	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
-	$(call PACKAGE_LAB_EXTENSION,python-runner)
-	cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
-	cd dist && curl -O $$(npm view @jupyterlab/toc dist.tarball --userconfig=./npm_config) && cd -
 
 docker-image: ## bdist ## Build docker image
 	@mkdir -p build/docker

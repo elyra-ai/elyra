@@ -9,12 +9,8 @@
       "url": "https://jupyter.org"
     }
   },
-  "produces": [
-    "application/json"
-  ],
-  "consumes": [
-    "application/json"
-  ],
+  "produces": ["application/json"],
+  "consumes": ["application/json"],
   "parameters": {
     "namespace": {
       "name": "namespace",
@@ -34,13 +30,9 @@
   "paths": {
     "/api/elyra.yaml": {
       "get": {
-        "produces": [
-          "text/x-yaml"
-        ],
+        "produces": ["text/x-yaml"],
         "summary": "Get API information (yaml)",
-        "tags": [
-          "api"
-        ],
+        "tags": ["api"],
         "responses": {
           "200": {
             "description": "Returns a swagger specification in yaml"
@@ -51,9 +43,7 @@
     "/api/elyra.json": {
       "get": {
         "summary": "Get API information (json)",
-        "tags": [
-          "api"
-        ],
+        "tags": ["api"],
         "responses": {
           "200": {
             "description": "Returns a swagger specification in json"
@@ -69,9 +59,7 @@
       ],
       "get": {
         "summary": "Get metadata for a given namespace",
-        "tags": [
-          "metadata"
-        ],
+        "tags": ["metadata"],
         "responses": {
           "200": {
             "description": "Returns the metadata objects for a given namespace",
@@ -105,9 +93,7 @@
       ],
       "get": {
         "summary": "Get metadata for a given resource in a given namespace",
-        "tags": [
-          "metadata"
-        ],
+        "tags": ["metadata"],
         "responses": {
           "200": {
             "description": "Returns the metadata object for a given resource in a given namespace",
@@ -125,11 +111,7 @@
   "definitions": {
     "NamespaceResource": {
       "description": "The set of properties comprising a namespace resource entity",
-      "required": [
-        "name",
-        "display_name",
-        "schema_name"
-      ],
+      "required": ["name", "display_name", "schema_name"],
       "properties": {
         "name": {
           "type": "string",
