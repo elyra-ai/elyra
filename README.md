@@ -146,7 +146,7 @@ jupyter runtimes install kfp --name=my_kfp \
        --cos_endpoint=minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
-       --cos_bucket=test_bucket
+       --cos_bucket=test-bucket
 ```
 This produces the following content in `my_kfp.json`:
 ```json
@@ -158,10 +158,12 @@ This produces the following content in `my_kfp.json`:
         "cos_endpoint": "minio-service.kubeflow:9000",
         "cos_username": "minio",
         "cos_password": "minio123",
-        "cos_bucket": "test_bucket"
+        "cos_bucket": "test-bucket"
     }
 }
 ```
+NOTE: In case of typing a custom bucket name using minio cloud storage, make sure the bucket name has no underscores
+
 To validate your new configuration is available, run:
 ```bash
 jupyter runtimes list
@@ -184,7 +186,7 @@ Server and with your chosen Object Store to store artifacts.
 |cos_endpoint| This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a kubernetes cluster (Minio), you can use the kubernetes local DNS address.   | `minio-service.kubeflow:9000` |
 |cos_username| Username used to access the Object Store. SEE NOTE. | `minio` |
 |cos_password| Password used to access the Object Store. SEE NOTE. | `minio123` |
-|cos_bucket|   Name of the bucket you want your artifacts in. If the bucket doesn't exist, it will be created| `test_bucket` |
+|cos_bucket|   Name of the bucket you want your artifacts in. If the bucket doesn't exist, it will be created| `test-bucket` |
 
 NOTE: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-hmac) 
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
