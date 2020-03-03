@@ -137,19 +137,19 @@ class Kfp(Application, AppUtilMixin):
                            help="The display name of this kfp runtime. Required.")
 
     api_endpoint = Unicode(None, config=True, allow_none=True,
-                           help="The http url specifying the API endpoint corresponding to this kfp runtime.")
+                           help="The http url specifying the API endpoint corresponding to this kfp runtime. Required.")
 
     cos_endpoint = Unicode(None, config=True, allow_none=True,
-                           help="The http url specifying the COS endpoint corresponding to this kfp runtime.")
-
-    cos_bucket = Unicode(None, config=True, allow_none=True,
-                         help="The COS bucket name corresponding to this kfp runtime.")
+                           help="The http url specifying the COS endpoint corresponding to this kfp runtime. Required.")
 
     cos_username = Unicode(None, config=True, allow_none=True,
-                           help="The COS username corresponding to this kfp runtime.")
+                           help="The COS username corresponding to this kfp runtime. Required.")
 
     cos_password = Unicode(None, config=True, allow_none=True,  # FIXME - password!
-                           help="The COS user password corresponding to this kfp runtime.")
+                           help="The COS user password corresponding to this kfp runtime. Required.")
+
+    cos_bucket = Unicode(None, config=True, allow_none=True,
+                         help="The COS bucket name corresponding to this kfp runtime. Required.")
 
     metadata_namespace = Runtime.namespace
     metadata_manager = Instance(MetadataManager)
@@ -178,12 +178,9 @@ class Kfp(Application, AppUtilMixin):
         metadata = dict(
             api_endpoint=self.api_endpoint,
             cos_endpoint=self.cos_endpoint,
+            cos_username=self.cos_username,
+            cos_password=self.cos_password,
             cos_bucket=self.cos_bucket)
-
-        if self.cos_username:
-            metadata['cos_username'] = self.cos_username
-        if self.cos_password:
-            metadata['cos_password'] = self.cos_password
 
         runtime = Runtime(schema_name=self.schema_name, name=self.name,
                           display_name=self.display_name, metadata=metadata)
@@ -210,6 +207,8 @@ class Kfp(Application, AppUtilMixin):
         self._confirm_required("display_name", self.display_name)
         self._confirm_required("api_endpoint", self.api_endpoint)
         self._confirm_required("cos_endpoint", self.cos_endpoint)
+        self._confirm_required("cos_username", self.cos_username)
+        self._confirm_required("cos_password", self.cos_password)
         self._confirm_required("cos_bucket", self.cos_bucket)
 
 

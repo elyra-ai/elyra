@@ -27,13 +27,6 @@
           "type": "string",
           "format": "uri"
         },
-        "cos_bucket": {
-          "description": "The Cloud Object Storage bucket name",
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9-_.]*[a-z0-9]$",
-          "minLength": 3,
-          "maxLength": 222
-        },
         "cos_username": {
           "description": "The Cloud Object Storage username",
           "type": "string"
@@ -42,9 +35,22 @@
           "description": "The Cloud Object Storage password",
           "type": "string",
           "minLength": 8
+        },
+        "cos_bucket": {
+          "description": "The Cloud Object Storage bucket name",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-.]*[a-z0-9]$",
+          "minLength": 3,
+          "maxLength": 222
         }
       },
-      "required": ["api_endpoint", "cos_endpoint", "cos_bucket"]
+      "required": [
+        "api_endpoint",
+        "cos_endpoint",
+        "cos_username",
+        "cos_password",
+        "cos_bucket"
+      ]
     }
   },
   "required": ["schema_name", "display_name"]
