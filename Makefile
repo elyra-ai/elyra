@@ -62,8 +62,8 @@ npm-packages: lerna-build
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
-	cd dist && curl -O $$(npm view @jupyterlab/git dist.tarball --userconfig=./npm_config) && cd -
-	cd dist && curl -O $$(npm view @jupyterlab/toc dist.tarball --userconfig=./npm_config) && cd -
+	cd dist && curl -O $$(npm view @jupyterlab/git@0.9.0 dist.tarball --userconfig=./npm_config) && cd -
+	cd dist && curl -O $$(npm view @jupyterlab/toc@2.0.0 dist.tarball --userconfig=./npm_config) && cd -
 
 bdist: npm-packages
 	python setup.py bdist_wheel
