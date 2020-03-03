@@ -79,7 +79,8 @@ def test_kfp_name_violation(script_runner, mock_runtime_dir):
     ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=Foo', '--display_name="Foo Baz"',
                             '--api_endpoint=http://wackwach', '--cos_endpoint=http://zackzach',
-                            '--cos_bucket=cos_chuckit')
+                            '--cos_username=cos_username', '--cos_password=cos_password',
+                            '--cos_bucket=cos-bucket')
     assert ret.success is False
     assert "Install runtime metadata for Kubeflow pipelines." in ret.stdout
     assert "Name of metadata must be lowercase alphanumeric" in ret.stderr
@@ -89,10 +90,11 @@ def test_kfp_schema_violation(script_runner, mock_runtime_dir):
     ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=foo', '--display_name="Foo Baz"',
                             '--api_endpoint=http://wackwach', '--cos_endpoint=http://zackzach',
-                            '--cos_bucket=cos_CHUCKIT')
+                            '--cos_username=cos_username', '--cos_password=cos_password',
+                            '--cos_bucket=cos_chuckit')
     assert ret.success is False
     assert "Install runtime metadata for Kubeflow pipelines." in ret.stdout
-    assert "'cos_CHUCKIT' does not match" in ret.stderr
+    assert "'cos_chuckit' does not match" in ret.stderr
 
 
 def test_create_kfp_runtime(script_runner, mock_runtime_dir):
@@ -104,8 +106,8 @@ def test_create_kfp_runtime(script_runner, mock_runtime_dir):
     ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=foo', '--display_name="Foo Baz"',
                             '--api_endpoint=http://acme.api:9999', '--cos_endpoint=http://acme.cos:9999',
-                            '--cos_bucket=cos_bucket',
-                            '--cos_username=cos_username', '--cos_password=cos_password')
+                            '--cos_username=cos_username', '--cos_password=cos_password',
+                            '--cos_bucket=cos-bucket')
 
     assert ret.success
     assert ret.stdout.startswith("Metadata for kfp runtime 'foo' has been written to")
@@ -132,7 +134,7 @@ def test_replace_kfp_runtime(script_runner, mock_runtime_dir):
     ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=bar', '--display_name="Foo Bar"',
                             '--api_endpoint=http://acme.api:9999', '--cos_endpoint=http://acme.cos:9999',
-                            '--cos_bucket=cos_bucket',
+                            '--cos_bucket=cos-bucket',
                             '--cos_username=cos_username', '--cos_password=cos_password')
 
     assert ret.success
@@ -143,7 +145,7 @@ def test_replace_kfp_runtime(script_runner, mock_runtime_dir):
     ret = script_runner.run('jupyter-runtimes', 'install', 'kfp',
                             '--name=bar', '--display_name="Foo Barf"',
                             '--api_endpoint=http://acme.api:1111', '--cos_endpoint=http://acme.cos:1111',
-                            '--cos_bucket=cos_bucket',
+                            '--cos_bucket=cos-bucket',
                             '--cos_username=cos_username', '--cos_password=cos_password')
 
     assert ret.success is False
@@ -153,7 +155,7 @@ def test_replace_kfp_runtime(script_runner, mock_runtime_dir):
     ret = script_runner.run('jupyter-runtimes', 'install', 'kfp', '--replace',
                             '--name=bar', '--display_name="Foo Barf"',
                             '--api_endpoint=http://acme.api:1111', '--cos_endpoint=http://acme.cos:1111',
-                            '--cos_bucket=cos_bucket',
+                            '--cos_bucket=cos-bucket',
                             '--cos_username=cos_username', '--cos_password=cos_password')
 
     assert ret.success
