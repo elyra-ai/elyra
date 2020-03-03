@@ -31,6 +31,8 @@
     "watch": "tsc -w"
   },
   "dependencies": {
+    "@elyra/application": "^0.6.0-dev",
+    "@elyra/canvas": "^6.1.23",
     "@jupyterlab/application": "^1.0.0",
     "@jupyterlab/apputils-extension": "^1.0.0",
     "@jupyterlab/docregistry": "^1.0.0",
@@ -45,15 +47,13 @@
     "@phosphor/widgets": "^1.8.1",
     "@types/jest": "24.0.15",
     "@types/node": "^12.0.10",
-    "@elyra/canvas": "^6.1.23",
-    "@elyra/application": "^0.6.0-dev",
     "autoprefixer": "^9.6.0",
     "carbon-components": "~10.8.1",
     "json-loader": "^0.5.7",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-scripts": "3.0.1",
-    "react-intl": "^2.3.0"
+    "react-intl": "^2.3.0",
+    "react-scripts": "3.0.1"
   },
   "devDependencies": {
     "@types/react": "^16.8.23",
