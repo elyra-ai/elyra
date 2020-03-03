@@ -77,6 +77,7 @@ export class PythonFileEditor extends DocumentWidget<
   private dockPanel: DockPanel;
   private outputAreaWidget: OutputArea;
   private model: any;
+  private firstOutput: boolean;
 
   /**
    * Construct a new editor widget.
@@ -89,6 +90,7 @@ export class PythonFileEditor extends DocumentWidget<
     this.model = this.content.model;
     this.runner = new PythonRunner(this.model);
     this.kernelSettings = { name: null };
+    this.firstOutput = true;
 
     // Add python icon to main tab
     this.title.iconClass = PYTHON_ICON_CLASS;
@@ -227,7 +229,8 @@ export class PythonFileEditor extends DocumentWidget<
   private displayKernelStatus = (status: string): void => {
     if (status === 'busy') {
       // TODO: Use a character that does not take any space, also not an empty string
-      this.displayOutput('');
+      this.firstOutput = true;
+      this.displayOutput(' ');
       this.updatePromptText('*');
     } else if (status === 'idle') {
       this.updatePromptText(' ');
@@ -238,24 +241,23 @@ export class PythonFileEditor extends DocumentWidget<
    * Function: Displays python code in OutputArea widget.
    */
   private displayOutput = (output: string): void => {
-    const options = {
-      name: 'stdout',
-      output_type: 'stream',
-      text: ['']
-    };
     if (output) {
-      options.text = [output];
-    } else {
-      options.text = [' '];
-    }
+      const options = {
+        name: 'stdout',
+        output_type: 'stream',
+        text: [output]
+      };
 
-    this.outputAreaWidget.model.add(options);
-    if (!output) {
-      this.outputAreaWidget.model.clear(true);
-    }
+      this.outputAreaWidget.model.add(options);
+      this.updatePromptText('*');
+      if (this.firstOutput) {
+        this.firstOutput = false;
+        this.outputAreaWidget.model.clear(true);
+      }
 
-    this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
-    this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
+      this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
+      this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
+    }
   };
 
   /**
