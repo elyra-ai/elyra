@@ -28,6 +28,11 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 
+import {
+  createPythonGenerator,
+  ITableOfContentsRegistry
+} from '@jupyterlab/toc';
+
 import { JSONObject } from '@phosphor/coreutils';
 
 import { PythonFileEditorFactory, PythonFileEditor } from './widget';
@@ -57,6 +62,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     editorServices: IEditorServices,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
+    tocRegistry: ITableOfContentsRegistry,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
     launcher: ILauncher | null
@@ -80,6 +86,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     const tracker = new WidgetTracker<PythonFileEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
+
+    const pythonGenerator = createPythonGenerator(tracker);
+    tocRegistry.add(pythonGenerator);
 
     let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
 

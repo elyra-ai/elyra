@@ -39,6 +39,7 @@
     "@jupyterlab/launcher": "^1.0.0",
     "@jupyterlab/mainmenu": "^1.0.0",
     "@jupyterlab/outputarea": "^1.0.0",
+    "@jupyterlab/toc": "^2.0.1",
     "@phosphor/messaging": "^1.2.3",
     "@phosphor/widgets": "^1.8.0"
   },
