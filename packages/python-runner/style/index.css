@@ -29,3 +29,8 @@
   padding: unset;
   text-align: center;
 }
+
+.elyra-PythonEditor-OutputArea-output {
+  padding: var(--jp-code-padding);
+  border: var(--jp-border-width) solid transparent;
+}
