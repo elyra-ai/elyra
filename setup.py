@@ -18,10 +18,10 @@ import sys
 from glob import glob
 from setuptools import setup, find_packages
 
-try:
-    long_desc = open('README.md').read()
-except:
-    long_desc = ''
+long_desc = """
+            Elyra is a set of AI centric extensions to JupyterLab. It aims to help data scientists,
+            machine learning engineers and AI developer’s through the model development life cycle complexities.
+            """
 
 here = os.path.abspath(os.path.dirname(__file__))
 
