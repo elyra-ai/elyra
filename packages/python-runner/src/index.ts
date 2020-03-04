@@ -24,6 +24,7 @@ import {
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { ISettingRegistry } from '@jupyterlab/coreutils';
 import { FileEditor } from '@jupyterlab/fileeditor';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
@@ -61,6 +62,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     ICommandPalette,
     ISettingRegistry,
+    IFileBrowserFactory,
     ITableOfContentsRegistry
   ],
   optional: [ILayoutRestorer, IMainMenu, ILauncher],
@@ -69,6 +71,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     editorServices: IEditorServices,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
+    browserFactory: IFileBrowserFactory,
     tocRegistry: ITableOfContentsRegistry,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
@@ -240,12 +243,12 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     // Function to create a new untitled python file, given the current working directory
-    const createNew = (cwd: string, ext = 'py'): Promise<any> => {
+    const createNew = (): Promise<any> => {
       return app.commands
         .execute(commandIDs.newDocManager, {
-          path: cwd,
+          path: browserFactory.defaultBrowser.model.path,
           type: 'file',
-          ext
+          ext: '.py'
         })
         .then(model => {
           return app.commands.execute(commandIDs.openDocManager, {
@@ -261,8 +264,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       caption: 'Create a new python file',
       iconClass: args => (args['isPalette'] ? '' : PYTHON_ICON_CLASS),
       execute: args => {
-        const cwd = args['cwd'];
-        return createNew(cwd as string, 'py');
+        return createNew();
       }
     });
 
