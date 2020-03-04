@@ -191,6 +191,12 @@ def test_list_help_all(script_runner):
 def test_list_runtimes(script_runner, mock_runtime_dir):
     metadata_manager = MetadataManager(namespace=Runtime.namespace)
 
+    ret = script_runner.run('jupyter-runtimes', 'list')
+    assert ret.success
+    lines = ret.stdout.split('\n')
+    assert len(lines) == 2  # always 2 more than the actual runtime count
+    assert lines[0].startswith("No metadata available for external runtimes")
+
     valid = Runtime(**valid_metadata_json)
     resource = metadata_manager.add('valid', valid)
     assert resource is not None
