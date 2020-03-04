@@ -48,8 +48,5 @@
   },
   "jupyterlab": {
     "extension": true
-  },
-  "publishConfig": {
-    "registry": "https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/"
   }
 }

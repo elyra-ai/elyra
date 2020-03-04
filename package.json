@@ -38,8 +38,5 @@
     "@types/react-dom": "~16.8.5",
     "react-intl": "^2.3.0",
     "@types/react-intl": "^2.3.0"
-  },
-  "publishConfig": {
-    "registry": "https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/"
   }
 }
