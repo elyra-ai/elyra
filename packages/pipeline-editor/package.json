@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@elyra/application": "^0.6.0-dev",
-    "@elyra/canvas": "^6.1.23",
+    "@elyra/canvas": "6.1.23",
     "@jupyterlab/application": "^1.0.0",
     "@jupyterlab/apputils-extension": "^1.0.0",
     "@jupyterlab/docregistry": "^1.0.0",
