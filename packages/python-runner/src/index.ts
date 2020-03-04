@@ -29,9 +29,11 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 
 import {
-  createPythonGenerator,
-  ITableOfContentsRegistry
+  ITableOfContentsRegistry,
+  TableOfContentsRegistry
 } from '@jupyterlab/toc';
+
+import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
 
 import { JSONObject } from '@phosphor/coreutils';
 
@@ -88,7 +90,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     const pythonGenerator = createPythonGenerator(tracker);
-    tocRegistry.add(pythonGenerator);
+    tocRegistry.add(
+      (pythonGenerator as unknown) as TableOfContentsRegistry.IGenerator
+    );
 
     let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
 
