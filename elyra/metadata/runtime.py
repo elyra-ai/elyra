@@ -64,10 +64,13 @@ class ListRuntimes(Application, AppUtilMixin):
 
     def start(self):
         include_invalid = not self.valid_only
-        runtimes = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
+        try:
+            runtimes = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
+        except KeyError:
+            runtimes = None
 
         if not runtimes:
-            print("No metadata available for external runtimes at : '{}'"
+            print("No metadata available for external runtimes at: '{}'"
                   .format(self.metadata_manager.get_metadata_location))
             return
 
