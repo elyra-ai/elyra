@@ -58,6 +58,7 @@ const PYTHON_FILE_EDITOR_CLASS = 'elyra-PythonEditor';
 const OUTPUT_AREA_CLASS = 'elyra-PythonEditor-OutputArea';
 const OUTPUT_AREA_ERROR_CLASS = 'elyra-PythonEditor-OutputArea-error';
 const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
+const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
@@ -77,6 +78,7 @@ export class PythonFileEditor extends DocumentWidget<
   private dockPanel: DockPanel;
   private outputAreaWidget: OutputArea;
   private model: any;
+  private emptyOutput: boolean;
 
   /**
    * Construct a new editor widget.
@@ -89,6 +91,7 @@ export class PythonFileEditor extends DocumentWidget<
     this.model = this.content.model;
     this.runner = new PythonRunner(this.model);
     this.kernelSettings = { name: null };
+    this.emptyOutput = true;
 
     // Add python icon to main tab
     this.title.iconClass = PYTHON_ICON_CLASS;
@@ -227,6 +230,7 @@ export class PythonFileEditor extends DocumentWidget<
   private displayKernelStatus = (status: string): void => {
     if (status === 'busy') {
       // TODO: Use a character that does not take any space, also not an empty string
+      this.emptyOutput = true;
       this.displayOutput(' ');
       this.updatePromptText('*');
     } else if (status === 'idle') {
@@ -244,9 +248,18 @@ export class PythonFileEditor extends DocumentWidget<
         output_type: 'stream',
         text: [output]
       };
+
       this.outputAreaWidget.model.add(options);
+      this.updatePromptText('*');
+      // Stream output doesn't instantiate correctly without an initial output string
+      if (this.emptyOutput) {
+        this.emptyOutput = false;
+        // Clear will wait until the first output from the kernel to clear the initial string
+        this.outputAreaWidget.model.clear(true);
+      }
 
       this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
+      this.getOutputAreaOutputWidget().addClass(OUTPUT_AREA_OUTPUT_CLASS);
       this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
     }
   };
@@ -257,6 +270,15 @@ export class PythonFileEditor extends DocumentWidget<
   private getOutputAreaChildWidget = (): Widget => {
     const outputAreaChildLayout = this.outputAreaWidget.layout as PanelLayout;
     return outputAreaChildLayout.widgets[0];
+  };
+
+  /**
+   * Function: Gets OutputArea prompt widget, where kernel status is displayed.
+   */
+  private getOutputAreaOutputWidget = (): Widget => {
+    const outputAreaChildLayout = this.getOutputAreaChildWidget()
+      .layout as PanelLayout;
+    return outputAreaChildLayout.widgets[1];
   };
 
   /**
