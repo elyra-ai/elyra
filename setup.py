@@ -47,7 +47,7 @@ setup_args = dict(
         "kfp==0.2.2",
         "urllib3==1.24",
         "kfp-notebook>=0.6.1",
-        "kfp-server-api==0.1.37",
+        "kfp-server-api==0.1.18.3",
         "minio>=5.0.7",
         'jupyterlab>=1.0.0,<2.0.0',
         'jupyterlab-git',
