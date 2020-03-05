@@ -28,6 +28,13 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 
+import {
+  ITableOfContentsRegistry,
+  TableOfContentsRegistry
+} from '@jupyterlab/toc';
+
+import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
+
 import { JSONObject } from '@phosphor/coreutils';
 
 import { PythonFileEditorFactory, PythonFileEditor } from './widget';
@@ -50,13 +57,19 @@ const commandIDs = {
 const extension: JupyterFrontEndPlugin<void> = {
   id: PYTHON_EDITOR_NAMESPACE,
   autoStart: true,
-  requires: [IEditorServices, ICommandPalette, ISettingRegistry],
+  requires: [
+    IEditorServices,
+    ICommandPalette,
+    ISettingRegistry,
+    ITableOfContentsRegistry
+  ],
   optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
     app: JupyterFrontEnd,
     editorServices: IEditorServices,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
+    tocRegistry: ITableOfContentsRegistry,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
     launcher: ILauncher | null
@@ -80,6 +93,11 @@ const extension: JupyterFrontEndPlugin<void> = {
     const tracker = new WidgetTracker<PythonFileEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
+
+    const pythonGenerator = createPythonGenerator(tracker);
+    tocRegistry.add(
+      (pythonGenerator as unknown) as TableOfContentsRegistry.IGenerator
+    );
 
     let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
 
