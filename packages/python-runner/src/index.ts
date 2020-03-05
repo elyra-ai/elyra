@@ -243,10 +243,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     // Function to create a new untitled python file, given the current working directory
-    const createNew = (): Promise<any> => {
+    const createNew = (cwd: string): Promise<any> => {
       return app.commands
         .execute(commandIDs.newDocManager, {
-          path: browserFactory.defaultBrowser.model.path,
+          path: cwd,
           type: 'file',
           ext: '.py'
         })
@@ -264,7 +264,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       caption: 'Create a new python file',
       iconClass: args => (args['isPalette'] ? '' : PYTHON_ICON_CLASS),
       execute: args => {
-        return createNew();
+        const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
+        return createNew(cwd as string);
       }
     });
 
