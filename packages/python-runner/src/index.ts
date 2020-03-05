@@ -57,7 +57,12 @@ const commandIDs = {
 const extension: JupyterFrontEndPlugin<void> = {
   id: PYTHON_EDITOR_NAMESPACE,
   autoStart: true,
-  requires: [IEditorServices, ICommandPalette, ISettingRegistry],
+  requires: [
+    IEditorServices,
+    ICommandPalette,
+    ISettingRegistry,
+    ITableOfContentsRegistry
+  ],
   optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
     app: JupyterFrontEnd,
