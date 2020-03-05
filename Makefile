@@ -45,7 +45,7 @@ yarn-install:
 	yarn cache clean
 	yarn
 
-test-dependencies: yarn-install
+test-dependencies:
 	@pip install -q -r test_requirements.txt
 
 lint: test-dependencies ## Run linters
@@ -53,7 +53,7 @@ lint: test-dependencies ## Run linters
 	yarn run prettier
 	yarn run eslint
 
-lerna-build: lint
+lerna-build: yarn-install
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
 npm-packages: lerna-build
@@ -68,7 +68,7 @@ npm-packages: lerna-build
 bdist: npm-packages
 	python setup.py bdist_wheel
 
-install: bdist ## Build distribution and install
+install: bdist lint ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 	$(call UNLINK_LAB_EXTENSION,application)
 	$(call UNINSTALL_LAB_EXTENSION,notebook-scheduler-extension)
