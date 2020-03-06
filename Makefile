@@ -49,9 +49,9 @@ test-dependencies:
 	@pip install -q -r test_requirements.txt
 
 lint: test-dependencies ## Run linters
-	flake8 elyra
 	yarn run prettier
 	yarn run eslint
+	flake8 elyra
 
 lerna-build: yarn-install
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
