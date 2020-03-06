@@ -48,23 +48,10 @@ export class SubmissionHandler {
     });
   }
 
-  static handle404(
-    response: any,
-    submissionType: string
-  ): Promise<Dialog.IResult<any>> {
-    const default_body = 'Elyra service endpoint not available';
-
+  static handle404(submissionType: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error submitting ' + submissionType,
-      body: response['message'] ? (
-        <p>
-          {default_body}
-          <br />
-          {response['message']}
-        </p>
-      ) : (
-        <p>{default_body}</p>
-      ),
+      body: 'Elyra service endpoint not available',
       buttons: [Dialog.okButton()]
     });
   }
@@ -125,20 +112,14 @@ export class SubmissionHandler {
 
         response.json().then(
           (result: any) => {
-            // handle 404 if elyra server extension returns a 404
-            if (response.status === 404) {
-              return this.handle404(result, submissionType);
-            }
-
             if (response.status !== 200) {
               return this.handleError(result, submissionType);
             }
-
             return dialogCallback(result);
           },
           (reason: any) => {
             // handle 404 if elyra server extension is not found
-            return this.handle404({}, submissionType);
+            return this.handle404(submissionType);
           }
         );
       }
