@@ -105,8 +105,8 @@ across multiple components.  
 Elyra can be installed via PyPi or via Docker
 
 ### Prerequisites :
-* [NodeJS](https://nodejs.org/en/)
-* Python 3.X
+* [NodeJS 12+](https://nodejs.org/en/)
+* [Python 3.X](https://www.anaconda.com/distribution/)
 * [Elyra Metadata Runtime](#configuring-runtime-metadata)
 ##### Optional :
 * [Anaconda](https://www.anaconda.com/distribution/) 
