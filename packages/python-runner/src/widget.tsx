@@ -218,6 +218,16 @@ export class PythonFileEditor extends DocumentWidget<
       outputTab.id = 'tab-python-editor-output';
       outputTab.currentTitle.label = 'Python Console Output';
       outputTab.currentTitle.closable = true;
+      const options = {
+        name: 'stdout',
+        output_type: 'stream',
+        text: ['Waiting for kernel to start...']
+      };
+      this.outputAreaWidget.model.add(options);
+      this.updatePromptText(' ');
+      this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
+      this.getOutputAreaOutputWidget().addClass(OUTPUT_AREA_OUTPUT_CLASS);
+      this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
       outputTab.disposed.connect((sender, args) => {
         this.resetOutputArea();
       }, this);
@@ -248,16 +258,18 @@ export class PythonFileEditor extends DocumentWidget<
         output_type: 'stream',
         text: [output]
       };
-
-      this.outputAreaWidget.model.add(options);
-      this.updatePromptText('*');
       // Stream output doesn't instantiate correctly without an initial output string
       if (this.emptyOutput) {
+        // Clears the "Waiting for kernel" message immediately
+        this.outputAreaWidget.model.clear(false);
+        this.outputAreaWidget.model.add(options);
         this.emptyOutput = false;
         // Clear will wait until the first output from the kernel to clear the initial string
         this.outputAreaWidget.model.clear(true);
+      } else {
+        this.outputAreaWidget.model.add(options);
       }
-
+      this.updatePromptText('*');
       this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
       this.getOutputAreaOutputWidget().addClass(OUTPUT_AREA_OUTPUT_CLASS);
       this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
