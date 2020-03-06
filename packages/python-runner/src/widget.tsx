@@ -225,9 +225,7 @@ export class PythonFileEditor extends DocumentWidget<
       };
       this.outputAreaWidget.model.add(options);
       this.updatePromptText(' ');
-      this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
-      this.getOutputAreaOutputWidget().addClass(OUTPUT_AREA_OUTPUT_CLASS);
-      this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
+      this.setOutputAreaClasses();
       outputTab.disposed.connect((sender, args) => {
         this.resetOutputArea();
       }, this);
@@ -270,10 +268,14 @@ export class PythonFileEditor extends DocumentWidget<
         this.outputAreaWidget.model.add(options);
       }
       this.updatePromptText('*');
-      this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
-      this.getOutputAreaOutputWidget().addClass(OUTPUT_AREA_OUTPUT_CLASS);
-      this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
+      this.setOutputAreaClasses();
     }
+  };
+
+  private setOutputAreaClasses = (): void => {
+    this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_CHILD_CLASS);
+    this.getOutputAreaOutputWidget().addClass(OUTPUT_AREA_OUTPUT_CLASS);
+    this.getOutputAreaPromptWidget().addClass(OUTPUT_AREA_PROMPT_CLASS);
   };
 
   /**
