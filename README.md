@@ -102,7 +102,7 @@ across multiple components.  
 ----
 
 ## Installation
-Elyra can be installed via PyPi or via Docker
+Elyra can be installed via PyPi:
 
 ### Prerequisites :
 * [NodeJS 12+](https://nodejs.org/en/)
@@ -112,16 +112,55 @@ Elyra can be installed via PyPi or via Docker
 * [Anaconda](https://www.anaconda.com/distribution/) 
 * [Docker](https://docs.docker.com/install//) - If using the docker image
 
-To Install Elyra:
 
 via PyPi:
 ```bash
 pip install elyra && jupyter lab build
 ```
-via Docker:
+Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
+
+### Verify Installation 
 ```bash
- docker run -it -p 8888:8888 -v [LOCAL METADATA RUNTIME DIR]:/home/jovyan/.local/share/jupyter/metadata/runtimes
-                             -v [LOCAL NOTEBOOK DIR]:/opt/work elyra/elyra:dev
+jupyter serverextension list
+```
+Should output:
+```
+config dir: /usr/local/etc/jupyter
+    elyra  enabled
+    - Validating...
+      elyra  OK
+    jupyterlab  enabled
+    - Validating...
+      jupyterlab 1.2.7 OK
+    jupyterlab_git  enabled
+    - Validating...
+      jupyterlab_git  OK
+    nbdime  enabled
+    - Validating...
+      nbdime 1.1.0 OK
+```
+```bash
+jupyter labextension list
+```
+Should output:
+```
+Known labextensions:
+   app dir: /usr/local/share/jupyter/lab
+        @elyra/application v0.6.1  enabled  OK
+        @elyra/notebook-scheduler-extension v0.6.1  enabled  OK
+        @elyra/pipeline-editor-extension v0.6.1  enabled  OK
+        @elyra/python-runner-extension v0.6.1  enabled  OK
+        @jupyterlab/git v0.9.0  enabled  OK
+        @jupyterlab/toc v2.0.0  enabled  OK
+        nbdime-jupyterlab v1.0.0  enabled  OK
+```
+NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable
+it with `jupyter serverextension enable elyra`
+
+## Starting Elyra
+After verifying Elyra has been installed, start Elyra with:
+```bash
+jupyter lab
 ```
 
 ## Runtime Configuration
@@ -217,13 +256,4 @@ jupyter serverextension list
 You can check that the JupyterLab extension was successful installed with:
 ```bash
 jupyter labextension list
-```
-
-## Building a Docker Image
-
-Prequisites :  
-* Docker v18.09 Installed or higher
-
-```bash
-make docker-image
 ```
