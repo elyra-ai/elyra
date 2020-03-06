@@ -30,8 +30,7 @@ export class SubmissionHandler {
       ? res_body + ': ' + response['reason']
       : res_body;
 
-    const default_body =
-      'More details might be available in the JupyterLab console logs';
+    const default_body = 'Check the JupyterLab log for more details.';
 
     return showDialog({
       title: 'Error submitting ' + submissionType,
@@ -51,7 +50,7 @@ export class SubmissionHandler {
   static handle404(submissionType: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error submitting ' + submissionType,
-      body: 'Elyra service endpoint not available',
+      body: <p>Elyra service endpoint not found.</p>,
       buttons: [Dialog.okButton()]
     });
   }
