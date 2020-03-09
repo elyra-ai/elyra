@@ -19,7 +19,7 @@ limitations under the License.
 
 ## Using the Elyra Pipeline Editor
 
-<img src="https://github.com/elyra/community/blob/master/resources/github-homepage/AIW-1.gif" width="800">
+![Main Page](../source/images/elyra-main-page.png)
 
 * In the Jupyter Lab Launcher, click the `Pipeline Editor` Icon to create a new pipeline.
 * On left side of the screen, navigate to your file browser, you should see a list of notebooks available.
@@ -27,7 +27,7 @@ limitations under the License.
 needed for the pipeline are present.
 * Define your notebook execution order by connecting them together to form a graph.
 
-<img src="https://github.com/elyra/community/blob/master/resources/github-homepage/AIW-2.gif" width="800">
+![Pipeline Editor](../source/images/pipeline-editor.png)
 
 * Define the properties for each node / notebook in your pipeline
 
@@ -38,18 +38,23 @@ needed for the pipeline are present.
 |Env Vars| A list of environment variables to be set inside in the container.  One variable per line. |  `GITHUB_TOKEN = sometokentobeused` |
 |File Dependencies|  A list of files to be passed from the `LOCAL` working environment into each respective step of the pipeline. Files should be in the same directory as the notebook it is associated with. One file per line. | `dependent-script.py` |
 
-<img src="https://github.com/elyra/community/blob/master/resources/github-homepage/AIW-3.gif" width="800">
+![Pipeline Node Properties](../source/images/pipeline-editor-properties.png)
 
 * Click on the `RUN` Icon and give your pipeline a name.
 * Hit `OK` to start your pipeline.
 * Use the link provided in the response to your experiment in Kubeflow. By default, Elyra will create the pipeline template for you as well as start an experiment and run.
-## Using the Python Runner
-<img src="https://github.com/elyra/community/blob/master/resources/github-homepage/AIW-4.gif" width="800">
+
+![Pipeline Flow](../source/images/pipeline-editor.gif)
+
+
+## Python script execution support
 
 * In the Jupyter Lab Launcher, click the `Python File` icon to create a new Python Script.
 * When used in conjunction with `Jupyter Enterprise Gateway`, the dropdown will be populated with more kernel options,
 allowing users to run their scripts with remote kernels with more specialized resources.
 * To run your script locally, select the `python3` option in the dropdown menu, and click the `Run` icon.
+
+![Python script execution support](../source/images/python-runner.gif)
 
 ## Integration with Jupyter Enterprise Gateway
 
