@@ -21,15 +21,15 @@ limitations under the License.
 Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
 Elyra currently includes:
-* Notebook Pipelines visual editor
-* Ability to run notebook as batch jobs
-* Hybrid runtime support (based on Jupyter Enterprise gateway)
-* Python Script execution capabilities within the editor
-* Notebook versioning based on git integration
-* Notebook navigation using auto-generated **Table of Contents**
-* Reusable Configuration for runtimes
+* [Notebook Pipelines visual editor](#notebook-pipelines-visual-editor)
+* [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
+* [Hybrid runtime support](#hybrid-runtime-support)
+* [Python script execution capabilities within the editor](#python-script-execution-support)
+* [Notebook versioning based on git integration](#notebook-versioning-based-on-git-integration)
+* [Notebook navigation using auto-generated **Table of Contents**](#notebook-navigation-using-auto-generated-table-of-contents)
+* [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
 
-![Elyra](docs/source/images/ai-workspace.png)
+![Elyra](docs/source/images/elyra-main-page.png)
 
 
 #### Notebook Pipelines visual editor
@@ -37,8 +37,7 @@ Elyra currently includes:
 Building an AI pipeline for a model is hard, breaking down and modularizing a pipeline is harder.
 A typical machine/deep learning pipeline begins as a series of preprocessing steps followed by
 experimentation/optimization and finally deployment. Each of these steps represent a challenge in
-implementation, execution, scheduling and operation when bringing deep learning models from
-development to production.
+the model development lifecycle.
 
 Elyra provides a **Notebook Pipeline visual editor** for building Notebook-based AI pipelines,
 simplifying the conversion of multiple notebooks into batch jobs or workflow.
@@ -49,14 +48,14 @@ but others can be easily added.
 
 ![Notebook Pipeline Editor](docs/source/images/pipeline-editor.png)
 
-The pipeline visual editor also enables detailed customization of your pipeline, enabling
+The pipeline visual editor also enables detailed customization of your pipeline, allowing
 users to choose which docker image to use when executing your notebook, setup environment
 variables required to properly run your notebook, as well as configuring dependency files 
-that needs to be flown to child notebooks.
+that need to be available to child notebooks.
 
 ![Notebook Pipeline Editor - Node Properties](docs/source/images/pipeline-editor-properties.png)
 
-#### Ability to run notebook as batch jobs
+#### Ability to run a notebook as a batch job
 
 Elyra also extends the notebook UI to simplify the submission of a single notebook as a batch job
 
@@ -64,17 +63,18 @@ Elyra also extends the notebook UI to simplify the submission of a single notebo
 
 #### Hybrid runtime support
 
-Elyra leverages the work that we’ve done with Jupyter Enterprise Gateway to enable Jupyter Notebooks
+Elyra leverages Jupyter Enterprise Gateway to enable Jupyter Notebooks
 to share resources across distributed clusters such as Apache Spark, Kubernetes, OpenShift, and the like. 
 
-It simplifies the task of running the notebooks interactively on cloud machines, improving productivity
-by leveraging the power of cloud-based resources that enable the use of specialized hardware such as GPUs and TPUs. 
+It simplifies the task of running notebooks interactively on cloud machines,
+seamlessly leveraging the power of cloud-based resources such as GPUs and TPUs.  
 
 #### Python script execution support
 
-Elyra provides **Enhanced Python Support** where Python scripts can be developed and
-executed. It also leverages the **Hybrid Runtime Support** to enable running
-these scripts either locally or in remote environments.
+Elyra exposes **Python Scripts** as first-class citizens, introducing the ability to
+create python scripts directly from the workspace launcher, and leveraging the
+**Hybrid Runtime Support** to allow users to locally edit their scripts and execute
+them against local or cloud-based resources seamlessly.
 
 ![Enhanced Python Support](docs/source/images/python-runner.png)
 
@@ -88,15 +88,15 @@ enabling a collaborative working environment.
 
 #### Notebook navigation using auto-generated **Table of Contents**
 
-The enhanced notebook navigation looks into **markdown** titles, subtitles, etc to auto-generate
-a Notebook **Table of Contents** and provide enhanced navigation capabilities. 
+The enhanced notebook navigation recognizes **markdown** titles, subtitles, etc to auto-generate
+a Notebook **Table of Contents** providing enhanced navigation capabilities. 
 
 ![Notebook Table of Contents](docs/source/images/notebook-toc.png)
 
-#### Reusable Configuration for runtimes
+#### Reusable configuration for runtimes
 
-Elyra introduces a 'shared configuration service' that simplify workspace configuration management,
-enabling things like information around accessing external runtimes to be configured once and shared
+Elyra introduces a 'shared configuration service' that simplifies workspace configuration management,
+enabling things like external runtime access details to be configured once and shared
 across multiple components.  
 
 ----
@@ -170,8 +170,8 @@ jupyter lab
 * IBM Cloud Object Storage or other S3 Based Object Store (Optional)
 
 ### Configuring Runtime Metadata
-**AI Pipelines** requires configuring a pipeline runtime to enable its full potential. 
-AI Pipelines currently only supports `Kubeflow Pipelines` with plans to expand to support other runtimes
+**AI Pipelines** require configuring a pipeline runtime to enable its full potential. 
+AI Pipelines currently only support `Kubeflow Pipelines` with plans to expand support for other runtimes
 in the future.
 
 To configure runtime metadata for `Kubeflow Pipelines` use the `jupyter runtimes install kfp` command providing appropriate options.  This command will create a json file in your local Jupyter Data directory under its `metadata/runtimes` subdirectories.  If not known, the Jupyter Data directory can be discovered by issuing a ```jupyter --data-dir```
@@ -216,7 +216,7 @@ Existing runtime metadata configurations can be removed via `jupyter runtimes re
 jupyter runtimes remove --name=my_kfp
 ```
 
-`Elyra` depends on its `Metadata Runtime` to determine how to communicate with your KubeFlow Pipelines
+`Elyra` depends on its runtime metadata to determine how to communicate with your KubeFlow Pipelines
 Server and with your chosen Object Store to store artifacts.   
 
 |Parameter   | Description  | Example |

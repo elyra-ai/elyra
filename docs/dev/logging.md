@@ -22,21 +22,21 @@ This section will go over how to properly log messages in Elyra
 ## Pipelines Extension Logging
 
 ### Python 
-The Kubeflow Pipelines extension uses a custom IPythonhandler to handle interactions with 
-the Notebook server app instance. By extending the IPythonhandler we are able to leverage Tornado logging 
+The Kubeflow Pipelines extension uses a custom IPython handler to handle interactions with 
+the Notebook server instance. By extending the IPython handler we are able to leverage Tornado logging 
 since the Jupyter Notebook server uses Tornado as its web framework. <p>
  
 ##### Pipelines -> IPythonHandler -> Tornado.log -> lib/logging <p>
 
 #### When to add log messages
-Use INFO level for routines(functions), like when handling requests or state changes.<p>
+Use INFO level for routines(functions), like when handling requests or state changes and DEBUG for troubleshooting and diagnostics.<p>
 ```
   def foo (arg):
-    self.log.info("doing something with this %s", arg)
+    self.debug.info("doing something with this %s", arg)
     do something with arg
     self.log.info("Result of arg is ... %s", result)
 ```    
-Use WARNING level when it is important, but not an error, for example, when a user attempts to login with wrong password<p>
+Use WARNING level when it is important, but not an error, for example, when a user attempts to login with an incorrect password<p>
 ```
   def authenticate(username, password):
     if username and password doesn't work:
@@ -56,9 +56,6 @@ Add log messages by inserting statements as follows:<p>
 `self.log.debug("insert debug message", *args, *kwargs)`<p>
 Use the appropriate logging levels when inserting specific messages e.g. log.debug, log.warn etc. <p>
 
-Avoid using the format (Greedy String Formatting) `logger.info("string template {}".format(argument)) `
-whenever possible. Something Something performance hit if too many log messages<p>
-
 The log output will be color coded, legend as follows:
 
 | Log Level | Color | 
@@ -75,11 +72,12 @@ the `--debug` option for example:
 ```
     jupyter lab --debug <other options>
 ```
-if too verbose, you can filter out only the most important messages by directly setting the value
-with `--log-level=` for example:
+If too verbose, you can filter out only the most important messages by directly setting the value
+with `--log-level=` using one of the following `{DEBUG|INFO|WARN|ERROR|CRITICAL}`.  For example:
 ```
-    jupyter lab --log-level=[DEBUG|INFO|WARN|ERROR|CRITICAL] <other options>
+    jupyter lab --log-level=WARN <other options>
 ```
+indicates that only log levels of `WARN` (or higher: `ERROR` and `CRITICAL`) will be logged.
 
 ### TypeScript / JS
 

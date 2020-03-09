@@ -19,12 +19,12 @@ limitations under the License.
 
 Elyra consists of a multi-module project that includes:
 * Backend services implemented as Jupyter Extensions
-* UI Components that extends JupyterLab functionality implemented as JupyterLab Widgets
+* UI Components that extend JupyterLab functionality implemented as JupyterLab Widgets
 
    
 ## Installing Elyra full features
 
-Elyra full installation can be done via pip
+Elyra's full installation can be done via pip
 
 ```
 pip install --upgrade elyra
@@ -34,5 +34,5 @@ Note: Ubuntu and CentOS users may need to use `pip3 install --upgrade elyra`
 When installing via pip the following occurs
 
 * Backend services are deployed as Jupyter Extensions and automatically enabled
-* JupyterLab widgets installed and enabled
-* JupyterLab build is started 
+* JupyterLab widgets are installed and enabled
+* A JupyterLab build is started 
