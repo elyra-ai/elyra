@@ -78,8 +78,8 @@ And each metadata file looks like:
 Because the runtime platform schemas are considered "factory data", the schema files are provided as part of the distribution and are located in the Elyra distribution under `elyra/metadata/schemas`:
 
 ```
-[path to python distributions]/elyra/metadata/runtime/kfp.schema
-[path to python distributions]/elyra/metadata/runtime/airflow.schema
+[path to python distributions]/elyra/metadata/schemas/kfp.json
+[path to python distributions]/elyra/metadata/schemas/airflow.json
 ```
 
 
