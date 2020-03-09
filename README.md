@@ -67,14 +67,15 @@ Elyra also extends the notebook UI to simplify the submission of a single notebo
 Elyra leverages Jupyter Enterprise Gateway to enable Jupyter Notebooks
 to share resources across distributed clusters such as Apache Spark, Kubernetes, OpenShift, and the like. 
 
-It simplifies the task of running notebooks interactively on cloud machines, improving productivity
-by leveraging the power of cloud-based resources that enable the use of specialized hardware such as GPUs and TPUs. 
+It simplifies the task of running notebooks interactively on cloud machines,
+seamlessly leveraging the power of cloud-based resources such as GPUs and TPUs.  
 
 #### Python script execution support
 
-Elyra provides **Enhanced Python Support** where Python scripts can be developed and
-executed. It also leverages the **Hybrid Runtime Support** to enable running
-these scripts either locally or in remote environments.
+Elyra exposes **Python Scripts** as first-class citizens, introducing the ability to
+create python scripts directly from the workspace launcher, and leveraging the
+**Hybrid Runtime Support** to allow users to locally edit their scripts and execute
+them against local or cloud-based resources seamlessly.
 
 ![Enhanced Python Support](docs/source/images/python-runner.png)
 
