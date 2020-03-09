@@ -20,7 +20,7 @@ import re
 import shutil
 
 from abc import ABC, abstractmethod
-from jsonschema import validate, ValidationError
+from jsonschema import validate, ValidationError, draft7_format_checker
 from jupyter_core.paths import jupyter_data_dir
 from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
@@ -150,7 +150,7 @@ class MetadataStore(ABC):
         """Ensure metadata is valid based on its schema.  If invalid, ValidationError will be raised. """
         self.log.debug("Validating metadata resource '{}' against schema '{}'...".format(name, schema_name))
         try:
-            validate(instance=metadata, schema=schema)
+            validate(instance=metadata, schema=schema, format_checker=draft7_format_checker)
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
             msg = "Schema validation failed for metadata '{}' in namespace '{}' with error: {}"
