@@ -29,7 +29,7 @@ Elyra currently includes:
 * [Notebook navigation using auto-generated **Table of Contents**](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
 
-![Elyra](docs/source/images/ai-workspace.png)
+![Elyra](docs/source/images/elyra-main-page.png)
 
 
 #### Notebook Pipelines visual editor
