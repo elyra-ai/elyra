@@ -37,8 +37,7 @@ Elyra currently includes:
 Building an AI pipeline for a model is hard, breaking down and modularizing a pipeline is harder.
 A typical machine/deep learning pipeline begins as a series of preprocessing steps followed by
 experimentation/optimization and finally deployment. Each of these steps represent a challenge in
-implementation, execution, scheduling and operation when bringing deep learning models from
-development to production.
+the model development lifecycle.
 
 Elyra provides a **Notebook Pipeline visual editor** for building Notebook-based AI pipelines,
 simplifying the conversion of multiple notebooks into batch jobs or workflow.
