@@ -18,18 +18,18 @@ limitations under the License.
 # Elyra - Enhanced Python Support
 
 Elyra provides **Enhanced Python Support** where Python scripts can be developed and
-executed. It also leverages the **Distributed Runtime Support** to enable running
+executed. It also leverages the **Hybrid Runtime Support** to enable running
 these scripts in remote environments.
 
 ![Enhanced Python Support](../source/images/python-runner.png)
 
-The execution of the python script leverages the available `Python based Kernerls`. It enables
-users to select from the available `Python Kernels` and run.
+The execution of the python script leverages the available `Python based Kernels`. This enables
+users to run their scripts in different configurations and environments.
 
 
 ## Python Editor related components
 
-Elyra python editor is based on the JupyterLab editor which is currently based on CodeMirror.
+The Elyra python editor is based on the JupyterLab editor which is currently based on CodeMirror.
 
 <img src="../source/images/python-runner-components.png" alt="Python Editor Components" width="50%" height="50%">
 
