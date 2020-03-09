@@ -29,6 +29,7 @@ Elyra's full installation can be done via pip
 ```
 pip install --upgrade elyra
 ```
+Note: Ubuntu and CentOS users may need to use `pip3 install --upgrade elyra`
 
 When installing via pip the following occurs
 

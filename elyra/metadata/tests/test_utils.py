@@ -42,7 +42,7 @@ invalid_metadata_json = {
     'schema_name': 'test',
     'display_name': 'Invalid Runtime',
     'metadata': {
-        'api_endpoint_missing': 'http://localhost:8081/'
+        'api_endpoint': '//localhost:8081/'
     }
 }
 
