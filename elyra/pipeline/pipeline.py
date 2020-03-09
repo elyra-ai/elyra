@@ -16,7 +16,7 @@
 import os
 
 
-class Operation:
+class Operation(object):
 
     def __init__(self, id, type, title, artifact, image, vars=None, file_dependencies=None,
                  recursive_dependencies=False, outputs=None, inputs=None, dependencies=None):
@@ -110,7 +110,7 @@ class Operation:
             return []
 
 
-class Pipeline:
+class Pipeline(object):
 
     def __init__(self, id, title, runtime, runtime_config):
         self._id = id
