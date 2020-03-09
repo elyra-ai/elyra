@@ -21,7 +21,7 @@ from .metadata.handlers import MetadataHandler, MetadataNamespaceHandler
 from .metadata import MetadataManager
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
-resource_regex = r"(?P<target>[\w\.\-]+)"
+resource_regex = r"(?P<resource>[\w\.\-]+)"
 
 def _jupyter_server_extension_paths():
     return [{

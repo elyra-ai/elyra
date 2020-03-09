@@ -146,9 +146,9 @@ class MetadataStore(ABC):
 
     # FIXME - we should rework this area so that its more a function of the processor provider
     # since its the provider that knows what is 'valid' or not.  Same goes for _get_schema() below.
-    def validate(self, name, schema, metadata):
+    def validate(self, name, schema_name, schema, metadata):
         """Ensure metadata is valid based on its schema.  If invalid, ValidationError will be raised. """
-
+        self.log.debug("Validating metadata resource '{}' against schema '{}'...".format(name, schema_name))
         try:
             validate(instance=metadata, schema=schema)
         except ValidationError as ve:
@@ -166,6 +166,7 @@ class FileMetadataStore(MetadataStore):
         super(FileMetadataStore, self).__init__(namespace, **kwargs)
         self.schema_mgr = SchemaManager.instance()
         self.metadata_dir = os.path.join(jupyter_data_dir(), 'metadata', self.namespace)
+        self.log.debug("Namespace '{}' is using metadata directory: {}".format(self.namespace, self.metadata_dir))
 
     @property
     def get_metadata_location(self):
@@ -223,6 +224,7 @@ class FileMetadataStore(MetadataStore):
 
         created_namespace_dir = False
         if not self.namespace_exists():  # If the namespaced directory is not present, create it and note it.
+            self.log.debug("Creating metadata directory: {}".format(self.metadata_dir))
             os.makedirs(self.metadata_dir, mode=0o700, exist_ok=True)
             created_namespace_dir = True
 
@@ -232,6 +234,8 @@ class FileMetadataStore(MetadataStore):
         except Exception:
             if created_namespace_dir:
                 shutil.rmtree(self.metadata_dir)
+        else:
+            self.log.debug("Created metadata resource: {}".format(resource))
 
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
@@ -248,11 +252,11 @@ class FileMetadataStore(MetadataStore):
         return resource
 
     def remove(self, name):
-        self.log.info("Removing Metadata with name '{}' from namespace '{}'.".format(name, self.namespace))
+        self.log.info("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
         try:
             metadata = self._load_metadata_resources(name=name, validate_metadata=False)  # Don't validate on remove
         except KeyError:
-            self.log.warn("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
+            self.log.warning("Metadata resource '{}' in namespace '{}' was not found!".format(name, self.namespace))
             return
 
         resource = self._get_resource(metadata)
@@ -296,7 +300,9 @@ class FileMetadataStore(MetadataStore):
         return resources
 
     def _get_schema(self, schema_name):
-        """Loads the schema based on the schema_name and returns the loaded schema json."""
+        """Loads the schema based on the schema_name and returns the loaded schema json.
+           Throws ValidationError if schema file is not present.
+        """
 
         schema_json = self.schema_mgr.get_schema(self.namespace, schema_name)
         if schema_json is None:
@@ -304,6 +310,7 @@ class FileMetadataStore(MetadataStore):
             if not os.path.exists(schema_file):
                 raise ValidationError("Metadata schema file '{}' is missing!".format(schema_file))
 
+            self.log.debug("Loading metadata schema from: '{}'".format(schema_file))
             with io.open(schema_file, 'r', encoding='utf-8') as f:
                 schema_json = json.load(f)
             self.schema_mgr.add_schema(self.namespace, schema_name, schema_json)
@@ -312,6 +319,7 @@ class FileMetadataStore(MetadataStore):
 
     def _load_from_resource(self, resource, validate_metadata=True, include_invalid=False):
         # This is always called with an existing resource (path) so no need to check existence.
+        self.log.debug("Loading metadata resource from: '{}'".format(resource))
         with io.open(resource, 'r', encoding='utf-8') as f:
             metadata_json = json.load(f)
 
@@ -320,15 +328,18 @@ class FileMetadataStore(MetadataStore):
 
         reason = None
         if validate_metadata:
-            schema = self._get_schema(metadata_json['schema_name'])
-            if schema:
+            schema_name = metadata_json.get('schema_name')
+            if schema_name:
+                schema = self._get_schema(schema_name)  # returns a value or throws
                 try:
-                    self.validate(name, schema, metadata_json)
+                    self.validate(name, schema_name, schema, metadata_json)
                 except ValidationError as ve:
                     if include_invalid:
                         reason = ve.__class__.__name__
                     else:
                         raise ve
+            else:
+                self.log.debug("No schema found in metadata resource '{}' - skipping validation.".format(resource))
 
         metadata = Metadata(name=name,
                             display_name=metadata_json['display_name'],
@@ -355,18 +366,23 @@ class SchemaManager(SingletonConfigurable):
         return namespace + '.' + schema_name
 
     def get_schema(self, namespace, schema_name):
-        return self.schemas.get(SchemaManager._get_key(namespace, schema_name))
+        key = SchemaManager._get_key(namespace, schema_name)
+        self.log.debug("SchemaManager: Fetching schema: '{}'".format(key))
+        return self.schemas.get(key)
 
     def add_schema(self, namespace, schema_name, schema):
         """Adds (updates) schema to set of stored schemas. """
         key = SchemaManager._get_key(namespace, schema_name)
+        self.log.debug("SchemaManager: Adding schema: '{}'".format(key))
         self.schemas[key] = schema
 
     def remove_all(self):
         """Primarily used for testing, this method removes all items across all namespaces. """
+        self.log.debug("SchemaManager: Clearing schemas.")
         self.schemas.clear()
 
     def remove_schema(self, namespace, schema_name):
         """Removes the schema entry associated with namespace & schema_name. """
         key = SchemaManager._get_key(namespace, schema_name)
+        self.log.debug("SchemaManager: Removing schema: '{}'".format(key))
         self.schemas.pop(key)
