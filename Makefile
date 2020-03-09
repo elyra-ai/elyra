@@ -38,6 +38,7 @@ clean: ## Make a clean source tree
 	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
+	rm -rf $$(find . -name __pycache__)
 
 # Prepares Elyra for build/packaging/installation
 yarn-install:
