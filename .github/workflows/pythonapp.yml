@@ -33,19 +33,9 @@ jobs:
         pip --version
     - name: Create npm configuration for authentication
       run: |
-        echo "@elyra:registry=https://na.artifactory.swg-devops.com/artifactory/api/npm/dbg-aiw-npm-virtual/" >> ~/.npmrc
-        echo "email=${{ secrets.ARTIFACTORY_PERSONAL_USER }}" >> ~/.npmrc
-        echo "_auth=${{ secrets.ARTIFACTORY_PERSONAL_TOKEN }}" >> ~/.npmrc
-        echo "always-auth=true" >> ~/.npmrc
         echo "scripts-prepend-node-path=true" >> ~/.npmrc
         echo "prefix=~/.npm-global" >> ~/.npmrc
         mkdir -p ~/.npm-global
-    - name: Create pypi configuration for authentication
-      run: |
-        mkdir -p ~/.pip
-        echo "[global]" >> ~/.pip/pip.conf
-        echo "index-url = https://pypi.org/simple/" >> ~/.pip/pip.conf
-        echo "extra-index-url = https://${{ secrets.ARTIFACTORY_PERSONAL_USER }}:${{ secrets.ARTIFACTORY_PYPI_TOKEN }}@na.artifactory.swg-devops.com/artifactory/api/pypi/dbg-aiworkspace-team-pypi-local/simple" >> ~/.pip/pip.conf
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip wheel notebook jupyterlab
