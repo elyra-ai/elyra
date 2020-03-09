@@ -30,7 +30,7 @@ that can be easily integrated with Elyra backend and/or frontend components.
 
 ## Metadata Services structure using the default file system store
 
-The default implementation for the metadata services store metadata files in file system, grouped
+The default implementation is for the metadata services to store metadata files in the file system, grouped
 by directories based on the type of metadata. 
 
 The root directory for metadata is relative to the 'Jupyter Data directory' (e.g. jupyter --data-dir)
@@ -39,26 +39,21 @@ The root directory for metadata is relative to the 'Jupyter Data directory' (e.g
 /Users/xxx/Library/Jupyter/metadata/
 ```
 
-And each type of metadata is then stored in a child directory, which internally is
-called `namespace`. 
+Each type of metadata is then stored in a child directory, which internally is
+referred to as the `namespace`. 
 
-As an example `runtimes` is the namespace for the following metadata type:
+As an example `runtimes` is the namespace for runtime metadata instances that reside the following directory:
 
 ```
 /Users/xxx/Library/Jupyter/metadata/runtimes
 ```
 
-And the contents of this folder includes:
+The contents of this folder would then include multiple metadata files, each associated with a type or schema corresponding to the desired runtime platform.
 
-* One schema file per type, that defines the schema used to validate the metadata
-* Multiple metadata files associated with a type
-
-For example, the following contains runtime metadata for two runtimes, airflow and kfp, 
+For example, the following contains runtime metadata for two runtime platforms, airflow and kfp, 
 where each runtime type has 1 or 2 runtimes defined, respectively.
 
 ```
-/Users/xxx/Library/Jupyter/metadata/runtimes/airflow.schema
-/Users/xxx/Library/Jupyter/metadata/runtimes/kfp.schema
 /Users/xxx/Library/Jupyter/metadata/runtimes/airflow-cloud.json
 /Users/xxx/Library/Jupyter/metadata/runtimes/kfp-fyre.json
 /Users/xxx/Library/Jupyter/metadata/runtimes/kfp-qa.json
@@ -66,10 +61,10 @@ where each runtime type has 1 or 2 runtimes defined, respectively.
 
 And each metadata file looks like:
 
-```
+```json
 {
   "display_name": "Kubeflow Pipeline - Fyre",
-  "type": "kfp",
+  "schema_name": "kfp",
   "metadata": {
     "api_endpoint": "http://weakish1.fyre.ibm.com:32488/pipeline",
     "cos_endpoint": "http://weakish1.fyre.ibm.com:30427",
@@ -80,12 +75,19 @@ And each metadata file looks like:
 }
 ```
 
+Because the runtime platform schemas are considered "factory data", the schema files are provided as part of the distribution and are located in the Elyra distribution under `elyra/metadata/schemas`:
+
+```
+[path to python distributions]/elyra/metadata/runtime/kfp.schema
+[path to python distributions]/elyra/metadata/runtime/airflow.schema
+```
+
 
 ### Metadata Client API
 
 Users can easily manipulate metadata via the Client API
 
-```
+```bash
 jupyter runtimes list
 ```
 
@@ -98,28 +100,31 @@ Available metadata for external runtimes:
 
 ### Metadata Service REST API
 
-A REST Api is available for easy integration with frontend components:
+A REST API is available for easy integration with frontend components:
 
-Retrieve all metadata for a given type:
+Retrieve all metadata for a given namespace:
 
+```REST
+GET /api/metadata/<namespace>
 ```
-GET /metadata/<type>
-```
 
-Retrieve a given metadata document:
+Retrieve a given metadata resource from a given namespace:
 
-```
-GET /metadata/<type>/<name>
+```REST
+GET /api/metadata/<namespace>/<resource>
 ```
 
 
 ### Metadata APIs
+A Python API is also available for accessing and manipulating metadata.  This is accomplished using the `MetadataManager` along with a corresponding storage class.  The default storage class is `FileMetadataStore`.
 
-```
+```Python
+from elyra.metadata.metadata import MetadataManager, FileMetadataStore
+
 metadata_manager = MetadataManager(namespace="runtimes",
                                    store=FileMetadataStore(namespace='runtimes'))
 
-runtime_configuration = self.metadata_manager.get('kfp')
+runtime_configuration = metadata_manager.get('kfp')
 
 if not runtime_configuration:
     raise RuntimeError("Runtime metadata not available.")
