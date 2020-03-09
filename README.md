@@ -22,7 +22,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
 Elyra currently includes:
 * Notebook Pipelines visual editor
-* Ability to run notebook as batch jobs
+* Ability to run a notebook as a batch job
 * Hybrid runtime support (based on Jupyter Enterprise gateway)
 * Python script execution capabilities within the editor
 * Notebook versioning based on git integration
