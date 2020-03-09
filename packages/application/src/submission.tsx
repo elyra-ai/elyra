@@ -30,8 +30,7 @@ export class SubmissionHandler {
       ? res_body + ': ' + response['reason']
       : res_body;
 
-    const default_body =
-      'More details might be available in the JupyterLab console logs';
+    const default_body = 'Check the JupyterLab log for more details.';
 
     return showDialog({
       title: 'Error submitting ' + submissionType,
@@ -51,7 +50,7 @@ export class SubmissionHandler {
   static handle404(submissionType: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error submitting ' + submissionType,
-      body: 'Elyra service endpoint not available',
+      body: <p>Elyra service endpoint not found.</p>,
       buttons: [Dialog.okButton()]
     });
   }
@@ -110,18 +109,18 @@ export class SubmissionHandler {
       (response: any) => {
         waitDialog.resolve();
 
-        // handle 404 if elyra server extension is not found
-        if (response.status === 404) {
-          return this.handle404(submissionType);
-        }
-
-        response.json().then((result: any) => {
-          if (response.status !== 200) {
-            return this.handleError(result, submissionType);
+        response.json().then(
+          (result: any) => {
+            if (response.status !== 200) {
+              return this.handleError(result, submissionType);
+            }
+            return dialogCallback(result);
+          },
+          (reason: any) => {
+            // handle 404 if elyra server extension is not found
+            return this.handle404(submissionType);
           }
-
-          return dialogCallback(result);
-        });
+        );
       }
     );
   }
