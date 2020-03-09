@@ -42,7 +42,7 @@ The root directory for metadata is relative to the 'Jupyter Data directory' (e.g
 Each type of metadata is then stored in a child directory, which internally is
 referred to as the `namespace`. 
 
-As an example `runtimes` is the namespace for runtime metadata instances that reside the following directory:
+As an example `runtimes` is the namespace for runtime metadata instances that reside in the following directory:
 
 ```
 /Users/xxx/Library/Jupyter/metadata/runtimes

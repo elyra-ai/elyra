@@ -190,9 +190,9 @@ a service discovery mechanism.
 
 ### Registering new pipeline processor
 
-New processors, that properly implement the **Pipeline Processor** service definition can be discovered
+New processors that properly implement the **Pipeline Processor** service definition can be discovered
 by the runtime using **entry_points** defined in the **setup.py** file (either from Elyra or in the package
-where the processor is being packaged):
+where the processor is located):
 
 ```python
     entry_points={
