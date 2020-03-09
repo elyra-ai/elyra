@@ -127,6 +127,14 @@ def test_manager_add_remove_valid(runtimes_manager, metadata_runtimes_dir):
         assert "schema_name" in valid_add
         assert valid_add['schema_name'] == "test"
 
+    # Attempt to create again w/o replace, then replace it.
+    resource = runtimes_manager.add(metadata_name, metadata, replace=False)
+    assert resource is None
+
+    resource = runtimes_manager.add(metadata_name, metadata)
+    assert resource is not None
+
+    # And finally, remove it.
     resource = runtimes_manager.remove(metadata_name)
 
     assert not os.path.exists(metadata_file)
@@ -141,6 +149,13 @@ def test_manager_remove_invalid(runtimes_manager, metadata_runtimes_dir):
     metadata_file = os.path.join(metadata_runtimes_dir, 'remove_invalid.json')
     assert not os.path.exists(metadata_file)
     assert resource == metadata_file
+
+
+def test_manager_remove_missing(runtimes_manager, metadata_runtimes_dir):
+    # Ensure removal of missing metadata file is handled.
+    metadata_name = 'missing'
+    resource = runtimes_manager.remove(metadata_name)
+    assert resource is None
 
 
 def test_manager_read_valid_by_name(runtimes_manager, metadata_runtimes_dir):

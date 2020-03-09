@@ -29,13 +29,14 @@ class MetadataHandler(APIHandler):
         namespace = url_unescape(namespace)
         metadata_manager = MetadataManager(namespace=namespace)
         try:
+            self.log.debug("MetadataHandler: Fetching all metadata resources from namespace '{}'...".format(namespace))
             metadata = yield maybe_future(metadata_manager.get_all())
         except (ValidationError, KeyError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
-        metadata_model = {}
+        metadata_model = dict()
         metadata_model[namespace] = {r.name: r.to_dict() for r in metadata}
         self.set_header("Content-Type", 'application/json')
         self.finish(metadata_model)
@@ -46,13 +47,14 @@ class MetadataNamespaceHandler(APIHandler):
 
     @web.authenticated
     @gen.coroutine
-    def get(self, namespace, target):
+    def get(self, namespace, resource):
         namespace = url_unescape(namespace)
-        target = url_unescape(target)
+        resource = url_unescape(resource)
         metadata_manager = MetadataManager(namespace=namespace)
         try:
-
-            metadata = yield maybe_future(metadata_manager.get(target))
+            self.log.debug("MetadataNamespaceHandler: Fetching metadata resource '{}' from namespace '{}'...".
+                           format(resource, namespace))
+            metadata = yield maybe_future(metadata_manager.get(resource))
         except (ValidationError, KeyError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:

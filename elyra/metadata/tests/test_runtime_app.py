@@ -273,7 +273,8 @@ def test_remove_help_all(script_runner):
 def test_remove_missing(script_runner):
     ret = script_runner.run('jupyter-runtimes', 'remove', '--name=missing')
     assert ret.success
-    assert ret.stderr == "[RemoveRuntime] WARNING | Metadata 'missing' in namespace 'runtimes' was not found!\n"
+    assert ret.stderr == "[RemoveRuntime] WARNING | Metadata resource 'missing' in namespace " \
+                         "'runtimes' was not found!\n"
 
 
 def test_remove_runtime(script_runner, mock_runtime_dir):
