@@ -62,20 +62,19 @@ const extension: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     ICommandPalette,
     ISettingRegistry,
-    IFileBrowserFactory,
-    ITableOfContentsRegistry
+    IFileBrowserFactory
   ],
-  optional: [ILayoutRestorer, IMainMenu, ILauncher],
+  optional: [ILayoutRestorer, IMainMenu, ILauncher, ITableOfContentsRegistry],
   activate: (
     app: JupyterFrontEnd,
     editorServices: IEditorServices,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
     browserFactory: IFileBrowserFactory,
-    tocRegistry: ITableOfContentsRegistry,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
-    launcher: ILauncher | null
+    launcher: ILauncher | null,
+    tocRegistry: ITableOfContentsRegistry | null
   ) => {
     console.log('Elyra - python-runner extension is activated!');
 
@@ -97,10 +96,12 @@ const extension: JupyterFrontEndPlugin<void> = {
       namespace: PYTHON_EDITOR_NAMESPACE
     });
 
-    const pythonGenerator = createPythonGenerator(tracker);
-    tocRegistry.add(
-      (pythonGenerator as unknown) as TableOfContentsRegistry.IGenerator
-    );
+    if (tocRegistry) {
+      const pythonGenerator = createPythonGenerator(tracker);
+      tocRegistry.add(
+        (pythonGenerator as unknown) as TableOfContentsRegistry.IGenerator
+      );
+    }
 
     let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
 
