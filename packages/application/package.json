@@ -1,6 +1,6 @@
 {
   "name": "@elyra/application",
-  "version": "0.7.0",
+  "version": "0.8.0-dev",
   "description": "JupyterLab - Widgets and utilities for use in elyra",
   "keywords": [
     "jupyter",
