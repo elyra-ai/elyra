@@ -1,6 +1,6 @@
 {
   "name": "@elyra/notebook-scheduler-extension",
-  "version": "0.8.0-dev",
+  "version": "0.7.1",
   "description": "JupyterLab extension - Enable submitting notebooks as batch jobs on external runtimes",
   "keywords": [
     "jupyter",
@@ -31,7 +31,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/application": "^0.8.0-dev",
+    "@elyra/application": "^0.7.1",
     "@jupyterlab/application": "^1.0.0",
     "@jupyterlab/apputils": "^1.0.0",
     "@jupyterlab/docregistry": "^1.0.0",
