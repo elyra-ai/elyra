@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-// import { drag } from '@4tw/cypress-drag-drop';
-
 describe('PipelineEditor', () => {
   it('opens jupyterlab', () => {
-    cy.visit('http://localhost:8892?token=test');
+    cy.visit('?token=test');
   });
 
   it('opens launcher with notebook and pipeline abilities', () => {
@@ -36,17 +34,15 @@ describe('PipelineEditor', () => {
     ).click();
   });
 
+  it('saves blank notebook', () => {
+    cy.get('[title="Save the notebook contents and create checkpoint"]:visible').click();
+  });
+
   it('reopens launcher', () => {
     cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click();
   });
 
   it('opens pipeline editor', () => {
     cy.get('.jp-LauncherCard[title="Pipeline Editor"]:visible').click();
-  });
-
-  it('drags and drops a file into the canvas', () => {
-    const untitledNotebook = cy.get('[title="Untitled.ipynb"]');
-    untitledNotebook.scrollIntoView();
-    // untitledNotebook.drag('.common-canvas-drop-div:visible');
   });
 });
