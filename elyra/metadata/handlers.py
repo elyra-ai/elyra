@@ -18,9 +18,10 @@ from tornado import web, gen
 from notebook.base.handlers import APIHandler
 from notebook.utils import maybe_future, url_unescape
 from .metadata import MetadataManager
+from ..util.mixins import ElyraErrorsMixin
 
 
-class MetadataHandler(APIHandler):
+class MetadataHandler(ElyraErrorsMixin, APIHandler):
     """Handler for metadata configurations collection. """
 
     @web.authenticated
@@ -42,7 +43,7 @@ class MetadataHandler(APIHandler):
         self.finish(metadata_model)
 
 
-class MetadataNamespaceHandler(APIHandler):
+class MetadataNamespaceHandler(ElyraErrorsMixin, APIHandler):
     """Handler for metadata configuration specific resource (e.g. a runtime element). """
 
     @web.authenticated

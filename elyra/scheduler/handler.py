@@ -16,10 +16,11 @@
 import json
 
 from notebook.base.handlers import APIHandler
-from elyra.pipeline import PipelineParser, PipelineProcessorManager
+from ..pipeline import PipelineParser, PipelineProcessorManager
+from ..util.mixins import ElyraErrorsMixin
 
 
-class SchedulerHandler(APIHandler):
+class SchedulerHandler(ElyraErrorsMixin, APIHandler):
 
     """REST-ish method calls to execute pipelines as batch jobs"""
     def get(self):
@@ -34,30 +35,15 @@ class SchedulerHandler(APIHandler):
 
         self.log.debug("JSON payload: %s", pipeline_definition)
 
-        try:
-            pipeline = PipelineParser.parse(pipeline_definition)
-            run_url = PipelineProcessorManager.process(pipeline)
-        except Exception as e:
-            self.send_error_message(500, "Pipeline submission failed with the following error: {}".format(str(e)))
-        else:
-            self.send_success_message("Pipeline successfully submitted", run_url)
+        pipeline = PipelineParser.parse(pipeline_definition)
+        run_url = PipelineProcessorManager.process(pipeline)
 
-    def send_message(self, message):
-        self.write(message)
-        self.flush()
-
-    def send_success_message(self, message, job_url):
         self.set_status(200)
-        msg = json.dumps({"status": "ok",
-                          "message": message,
-                          "url": job_url})
-        self.send_message(msg)
-
-    def send_error_message(self, status_code, error_message):
-        self.set_status(status_code)
-        msg = json.dumps({"status": "error",
-                          "message": error_message})
-        self.send_message(msg)
+        json_msg = json.dumps({"status": "ok",
+                               "message": "Pipeline successfully submitted",
+                               "url": run_url})
+        self.write(json_msg)
+        self.flush()
 
     def __artifact_list_to_str(self, pipeline_array):
         if not pipeline_array:
