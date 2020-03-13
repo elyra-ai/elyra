@@ -41,6 +41,9 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip wheel notebook jupyterlab
+    - name: Log current Python dependencies version
+      run: |
+        pip freeze
     - name: Install NPM dependencies
       run: |
         sudo apt install yarn
