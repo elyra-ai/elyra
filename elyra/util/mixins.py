@@ -57,11 +57,11 @@ class ElyraErrorsMixin(object):
             # Get the custom message, if defined
             if isinstance(exception, web.HTTPError):
                 reply['message'] = exception.log_message or message
-            elif isinstance(exception, Exception):
-                reply['message'] = exception.args[0]
-                reply['traceback'] = ''.join(traceback.format_exception(*exc_info))
             else:
-                reply['message'] = "Unknown server error: {}".format(str(exception))
+                if isinstance(exception, Exception):
+                    reply['message'] = exception.args[0]
+                else:
+                    reply['message'] = "{}: {}".format(exception.__class__.__name__, str(exception))
                 reply['traceback'] = ''.join(traceback.format_exception(*exc_info))
 
             # Construct the custom reason, if defined
