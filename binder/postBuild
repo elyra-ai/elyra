@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+
+# Download and install Yarn Package Manager
+wget https://yarnpkg.com/latest.tar.gz
+tar -zvxf latest.tar.gz
+
+# Add to PATH
+export PATH=$(pwd)/yarn-v1.22.4/bin/:$PATH
+
+# Build Elyra Distribution
+make bdist
+
+# Install Elyra Wheel
+pip install dist/*.whl
+
+# Rebuild Jupyter Lab to enable extensions
+jupyter lab build
+
+# Create starting working directory
+mkdir -p /tmp/workspace
