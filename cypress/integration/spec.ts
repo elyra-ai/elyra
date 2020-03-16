@@ -35,7 +35,9 @@ describe('PipelineEditor', () => {
   });
 
   it('saves blank notebook', () => {
-    cy.get('[title="Save the notebook contents and create checkpoint"]:visible').click();
+    cy.get(
+      '[title="Save the notebook contents and create checkpoint"]:visible'
+    ).click();
   });
 
   it('reopens launcher', () => {
