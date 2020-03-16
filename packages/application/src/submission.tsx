@@ -180,13 +180,13 @@ class ErrorDialogContent extends React.Component<IProps, any> {
     this.state = { expanded: false };
   }
 
-  toggleMsgDisplay() {
+  toggleMsgDisplay(): void {
     // Switch expanded flag
     const expanded = !this.state.expanded;
     this.setState({ expanded: expanded });
   }
 
-  render() {
+  render(): React.ReactElement {
     const details = this.props.traceback ? (
       <div>
         <div>
@@ -196,7 +196,7 @@ class ErrorDialogContent extends React.Component<IProps, any> {
               ' ' +
               (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
             }
-            onClick={() => {
+            onClick={(): void => {
               this.toggleMsgDisplay();
             }}
           ></button>
