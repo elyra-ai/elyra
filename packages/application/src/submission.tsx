@@ -187,6 +187,7 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
   render(): React.ReactElement {
     const details = this.props.traceback ? (
       <div>
+        <br />
         <div>
           <button
             className={
@@ -214,7 +215,6 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
     return (
       <div className={MESSAGE_DISPLAY}>
         {this.props.reason + ': ' + this.props.message}
-        <br />
         <br />
         {details}
         <br />
