@@ -86,6 +86,7 @@ install: bdist lint ## Build distribution and install
 
 test: lint ## Run unit tests
 	pytest -v elyra
+	npm test
 
 install-backend: ## Build and install backend
 	python setup.py bdist_wheel --dev
