@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
