@@ -165,14 +165,14 @@ export class SubmissionHandler {
   }
 }
 
-interface IProps {
+interface IErrorDialogProps {
   reason: string;
   message: string;
   traceback: string;
   default_msg: string;
 }
 
-class ErrorDialogContent extends React.Component<IProps, any> {
+class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
   constructor(props: any) {
     super(props);
     this.state = { expanded: false };
