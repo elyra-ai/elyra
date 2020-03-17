@@ -1,4 +1,5 @@
 {
+  "extends": "../tsconfig-base",
   "compilerOptions": {
     "strict": true,
     "baseUrl": "../node_modules",
