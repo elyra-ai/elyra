@@ -47,7 +47,11 @@ import {
   CommonProperties
 } from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import { NotebookParser, SubmissionHandler } from '@elyra/application';
+import {
+  ElyraServices,
+  NotebookParser,
+  SubmissionHandler
+} from '@elyra/application';
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
@@ -301,7 +305,29 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
     );
   }
 
-  propertiesInfo = { parameterDef: properties, appData: { id: '' } };
+  propertiesInfo = {
+    parameterDef: this.addDockerImages(properties),
+    appData: { id: '' }
+  };
+
+  addDockerImages(properties: any): any {
+    console.log(properties);
+    let firstImage = true;
+    const dockerImages = ElyraServices.getDockerImages();
+    const imageEnum = [];
+
+    for (const image in dockerImages) {
+      if (firstImage) {
+        properties.current_parameters.image = image;
+        firstImage = false;
+      }
+      imageEnum.push(image);
+      properties.resources['image.' + image + '.label'] = dockerImages[image];
+    }
+    properties.parameters[0].enum = imageEnum;
+    console.log(properties);
+    return properties;
+  }
 
   openPropertiesDialog(source: any): void {
     console.log('Opening properties dialog');

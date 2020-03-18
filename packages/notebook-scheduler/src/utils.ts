@@ -41,8 +41,7 @@ export default class Utils {
 
     template.pipelines[0].nodes[0].id = generated_uuid;
     template.pipelines[0].nodes[0].app_data.artifact = artifact;
-    template.pipelines[0].nodes[0].app_data.image =
-      'tensorflow/tensorflow:1.12.3-py3';
+    template.pipelines[0].nodes[0].app_data.image = options.framework;
     template.pipelines[0].nodes[0].app_data.vars = options.env;
     template.pipelines[0].nodes[0].app_data.dependencies = options.dependencies;
     template.pipelines[0].nodes[0].app_data.ui_data.label = artifactName;
