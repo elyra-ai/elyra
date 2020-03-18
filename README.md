@@ -18,6 +18,7 @@ limitations under the License.
 
 
 [![PyPI version](https://badge.fury.io/py/elyra.svg)](https://badge.fury.io/py/elyra)
+[![Downloads](https://pepy.tech/badge/elyra/month)](https://pepy.tech/project/jupyterlab/month)
 [![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/)
 
