@@ -16,6 +16,11 @@ limitations under the License.
 {% endcomment %}
 -->
 
+
+[![PyPI version](https://badge.fury.io/py/elyra.svg)](https://badge.fury.io/py/elyra)
+[![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/)
+
 # Elyra
 
 Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
