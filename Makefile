@@ -86,6 +86,8 @@ install: bdist lint ## Build distribution and install
 
 test: lint ## Run unit tests
 	pytest -v elyra
+
+test-ui: lint ## Run frontend tests
 	npm test
 
 install-backend: ## Build and install backend

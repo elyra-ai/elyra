@@ -14,9 +14,9 @@
     "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "prettier:check": "prettier --ignore-path .gitignore --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
-    "test-start-server": "jupyter lab --debug --LabApp.token='test' --no-browser --port-retries=0",
-    "test": "start-server-and-test test-start-server http-get://localhost:8888?token=test cy:run",
-    "test-debug": "start-server-and-test test-start-server http-get://localhost:8888?token=test cy:open"
+    "start-jupyter": "mkdir -p build/cypress-tests && jupyter lab --config=./tests/test-config.py",
+    "test": "start-server-and-test start-jupyter http-get://localhost:8888?token=test cy:run",
+    "test-debug": "start-server-and-test start-jupyter http-get://localhost:8888?token=test cy:open"
   },
   "husky": {
     "hooks": {
@@ -38,7 +38,7 @@
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
     "rimraf": "^2.6.3",
-    "start-server-and-test": "^1.10.9",
+    "start-server-and-test": "1.7.9",
     "ts-loader": "^6.2.1",
     "typescript": "~3.5.2",
     "webpack": "^4.42.0"

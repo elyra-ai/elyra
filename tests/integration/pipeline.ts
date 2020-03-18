@@ -16,7 +16,7 @@
 
 describe('PipelineEditor', () => {
   it('opens jupyterlab', () => {
-    cy.visit('?token=test');
+    cy.visit('?token=test&reset');
   });
 
   it('opens launcher with notebook and pipeline abilities', () => {

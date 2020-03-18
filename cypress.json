@@ -1,8 +1,9 @@
 {
-  "baseUrl": "http://localhost:8888",
+  "baseUrl": "http://localhost:8888/lab",
   "integrationFolder": "./tests/integration",
   "supportFile": false,
   "pluginsFile": "./tests/plugins/index.js",
-  "screenshotsFolder": "./tests/screenshots",
-  "videosFolder": "./tests/videos"
+  "screenshotsFolder": "./build/cypress-tests/screenshots",
+  "videosFolder": "./build/cypress-tests/videos",
+  "fixturesFolder": false
 }
