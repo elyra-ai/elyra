@@ -10,8 +10,8 @@
   "scripts": {
     "cy:open": "npx cypress open",
     "cy:run": "npx cypress run",
-    "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts,.tsx",
-    "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx",
+    "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts,.tsx,.js",
+    "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx,.js",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "prettier:check": "prettier --ignore-path .gitignore --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "start-jupyter": "mkdir -p build/cypress-tests && jupyter lab --config=./tests/test-config.py",
