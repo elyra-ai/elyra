@@ -37,6 +37,7 @@ import {
   OutputAreaModel,
   OutputPrompt
 } from '@jupyterlab/outputarea';
+import { ScrollingWidget } from '@jupyterlab/logconsole';
 import {
   RenderMimeRegistry,
   standardRendererFactories as initialFactories
@@ -77,6 +78,7 @@ export class PythonFileEditor extends DocumentWidget<
   private kernelSettings: Kernel.IOptions;
   private dockPanel: DockPanel;
   private outputAreaWidget: OutputArea;
+  private scrollingWidget: ScrollingWidget<OutputArea>;
   private model: any;
   private emptyOutput: boolean;
 
@@ -212,7 +214,10 @@ export class PythonFileEditor extends DocumentWidget<
 
     if (this.dockPanel.isEmpty) {
       // Add a tab to dockPanel
-      this.dockPanel.addWidget(this.outputAreaWidget, { mode: 'split-bottom' });
+      this.scrollingWidget = new ScrollingWidget({
+        content: this.outputAreaWidget
+      });
+      this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
       const outputTab: TabBar<Widget> = this.dockPanel.tabBars().next();
       outputTab.id = 'tab-python-editor-output';

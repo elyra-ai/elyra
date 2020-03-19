@@ -37,6 +37,7 @@
     "@jupyterlab/docregistry": "^1.0.0",
     "@jupyterlab/fileeditor": "^1.0.0",
     "@jupyterlab/launcher": "^1.0.0",
+    "@jupyterlab/logconsole": "^1.0.0",
     "@jupyterlab/mainmenu": "^1.0.0",
     "@jupyterlab/outputarea": "^1.0.0",
     "@jupyterlab/toc": "^2.0.0",
