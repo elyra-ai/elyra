@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* global module */
 module.exports = {
   mode: 'development',
   // make sure the source maps work
