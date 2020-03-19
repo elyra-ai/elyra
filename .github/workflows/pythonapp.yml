@@ -58,7 +58,6 @@ jobs:
     - name: Test
       run: |
         make test
-        make test-ui
     - name: Collect logs
       if: failure()
       run: cat /tmp/jupyterlab-debug-*.log

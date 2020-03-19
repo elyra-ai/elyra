@@ -49,10 +49,14 @@ yarn-install:
 test-dependencies:
 	@pip install -q -r test_requirements.txt
 
-lint: test-dependencies ## Run linters
+lint-server: test-dependencies
+	flake8 elyra
+
+lint-ui:
 	yarn run prettier
 	yarn run eslint
-	flake8 elyra
+
+lint: lint-ui lint-server ## Run linters
 
 lerna-build: yarn-install
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
@@ -84,11 +88,16 @@ install: bdist lint ## Build distribution and install
 	jupyter serverextension list
 	jupyter labextension list
 
-test: lint ## Run unit tests
+test-server: lint-server ## Run unit tests
 	pytest -v elyra
 
-test-ui: lint ## Run frontend tests
+test-ui: lint-ui ## Run frontend tests
 	npm test
+
+test-ui-debug: lint-ui ## Run frontend tests
+	npm run test-debug
+
+test: test-server test-ui ## Run all tests
 
 install-backend: ## Build and install backend
 	python setup.py bdist_wheel --dev
