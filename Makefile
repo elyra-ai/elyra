@@ -94,7 +94,7 @@ test-server: lint-server ## Run unit tests
 test-ui: lint-ui ## Run frontend tests
 	npm test
 
-test-ui-debug: lint-ui ## Run frontend tests
+test-ui-debug: lint-ui
 	npm run test-debug
 
 test: test-server test-ui ## Run all tests
