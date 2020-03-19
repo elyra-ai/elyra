@@ -214,9 +214,24 @@ export class PythonFileEditor extends DocumentWidget<
 
     if (this.dockPanel.isEmpty) {
       // Add a tab to dockPanel
-      this.scrollingWidget = new ScrollingWidget({
+      const scrollingWidget = new ScrollingWidget({
         content: this.outputAreaWidget
       });
+      this.scrollingWidget = scrollingWidget;
+      const scrollUpButton = document.createElement('button');
+      const scrollDownButton = document.createElement('button');
+      scrollUpButton.className = 'elyra-PythonEditor-scrollTop';
+      scrollUpButton.innerHTML = '↑';
+      scrollDownButton.className = 'elyra-PythonEditor-scrollBottom';
+      scrollDownButton.innerHTML = '↓';
+      scrollUpButton.onclick = function() {
+        scrollingWidget.node.scrollTop = 0;
+      };
+      scrollDownButton.onclick = function() {
+        scrollingWidget.node.scrollTop = scrollingWidget.node.scrollHeight;
+      };
+      this.dockPanel.node.appendChild(scrollUpButton);
+      this.dockPanel.node.appendChild(scrollDownButton);
       this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
       const outputTab: TabBar<Widget> = this.dockPanel.tabBars().next();

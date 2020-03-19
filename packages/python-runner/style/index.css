@@ -34,3 +34,21 @@
   padding: var(--jp-code-padding);
   border: var(--jp-border-width) solid transparent;
 }
+
+.elyra-PythonEditor-scrollTop {
+  position: absolute;
+  top: 30px;
+  right: 10px;
+  z-index: 1;
+  font-size: 20px;
+  border-radius: 0px 10px 10px 0px;
+}
+
+.elyra-PythonEditor-scrollBottom {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  z-index: 1;
+  font-size: 20px;
+  border-radius: 10px 0px 0px 10px;
+}
