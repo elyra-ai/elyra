@@ -14,54 +14,60 @@
  * limitations under the License.
  */
 
-import {SubmissionHandler} from "@elyra/application";
+import { SubmissionHandler } from '@elyra/application';
 
 export interface ICodeSnippet {
-    name: string;
-    displayName: string;
-    language: string;
-    code: string[];
+  name: string;
+  displayName: string;
+  language: string;
+  code: string[];
 }
 
 export class CodeSnippetManager {
-    readonly codeSnippetEndpoint = 'api/metadata/code-snippets';
-    constructor() {}
+  readonly codeSnippetEndpoint = 'api/metadata/code-snippets';
+  //   constructor() {}
 
-    async findAll(): Promise<ICodeSnippet[]> {
-        const getCodeSnippets: Promise<ICodeSnippet[]> = new Promise((resolve, reject) => {
-            let allCodeSnippets: ICodeSnippet[] = [];
-            SubmissionHandler.makeGetRequest(this.codeSnippetEndpoint, 'code-snippets', (response: any) => {
+  async findAll(): Promise<ICodeSnippet[]> {
+    const getCodeSnippets: Promise<ICodeSnippet[]> = new Promise(
+      (resolve, reject) => {
+        const allCodeSnippets: ICodeSnippet[] = [];
+        SubmissionHandler.makeGetRequest(
+          this.codeSnippetEndpoint,
+          'code-snippets',
+          (response: any) => {
             const codeSnippetsResponse = response['code-snippets'];
 
-            for(let codeSnippetKey in codeSnippetsResponse) {
-                let jsonCodeSnippet = (codeSnippetsResponse[codeSnippetKey]);
-                const codeSnippet: ICodeSnippet = {
-                    name: jsonCodeSnippet.name,
-                    displayName: jsonCodeSnippet.display_name,
-                    language: jsonCodeSnippet.metadata.language,
-                    code: jsonCodeSnippet.metadata.code
-                };
-                allCodeSnippets.push(codeSnippet);
+            for (const codeSnippetKey in codeSnippetsResponse) {
+              const jsonCodeSnippet = codeSnippetsResponse[codeSnippetKey];
+              const codeSnippet: ICodeSnippet = {
+                name: jsonCodeSnippet.name,
+                displayName: jsonCodeSnippet.display_name,
+                language: jsonCodeSnippet.metadata.language,
+                code: jsonCodeSnippet.metadata.code
+              };
+              allCodeSnippets.push(codeSnippet);
             }
             resolve(allCodeSnippets);
-            });
-        });
-        const codeSnippets = await getCodeSnippets;
-        
-        return codeSnippets;
+          }
+        );
+      }
+    );
+    const codeSnippets = await getCodeSnippets;
+
+    return codeSnippets;
+  }
+
+  // TODO: Test this function
+  async findByLanguage(language: string): Promise<ICodeSnippet[]> {
+    const allCodeSnippets: ICodeSnippet[] = await this.findAll();
+    const codeSnippetsByLanguage: ICodeSnippet[] = [];
+
+    for (const codeSnippet of allCodeSnippets) {
+      if (codeSnippet.language === language) {
+        codeSnippetsByLanguage.push(codeSnippet);
+      }
     }
 
-    // TODO: Test this function
-    async findByLanguage(language: string): Promise<ICodeSnippet[]> {
-        let allCodeSnippets : ICodeSnippet[] = await this.findAll();
-        let codeSnippetsByLanguage : ICodeSnippet[] = [];
-
-        for (let codeSnippet of allCodeSnippets) {
-            if (codeSnippet.language === language) {
-                codeSnippetsByLanguage.push(codeSnippet);
-            }
-        }
-
-        return codeSnippetsByLanguage;
-    }
+    return codeSnippetsByLanguage;
+  }
 }

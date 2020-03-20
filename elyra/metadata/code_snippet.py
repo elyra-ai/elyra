@@ -26,7 +26,7 @@ class CodeSnippet(Metadata):
     namespace = 'code-snippets'
 
 
-class AppUtilMixin:
+class AppUtilMixin(object):
 
     def _log_and_exit(self, msg, exit_status=1, display_help=False):
         self.log.error(msg)

@@ -16,10 +16,13 @@
 
 import '../style/index.css';
 
-import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
-import {ICommandPalette} from '@jupyterlab/apputils';
+import {
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin
+} from '@jupyterlab/application';
+import { ICommandPalette } from '@jupyterlab/apputils';
 
-import {CodeSnippetWidget} from "./CodeSnippetWidget";
+import { CodeSnippetWidget } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
 
@@ -30,23 +33,19 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
   id: CODE_SNIPPET_EXTENSION_ID,
   autoStart: true,
   requires: [ICommandPalette],
-  activate: (
-    app: JupyterFrontEnd,
-    palette: ICommandPalette
-    ) => {
-      console.log('Elyra - code-snippet extension is activated!');
+  activate: (app: JupyterFrontEnd, palette: ICommandPalette) => {
+    console.log('Elyra - code-snippet extension is activated!');
 
-      let codeSnippetWidget = new CodeSnippetWidget();
-      codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
-      codeSnippetWidget.title.iconClass = 'jp-SideBar-tabIcon elyra-codeSnippet-icon';
-      codeSnippetWidget.title.caption = 'Code Snippet';
+    const codeSnippetWidget = new CodeSnippetWidget();
+    codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
+    codeSnippetWidget.title.iconClass =
+      'jp-SideBar-tabIcon elyra-codeSnippet-icon';
+    codeSnippetWidget.title.caption = 'Code Snippet';
 
-      // Rank has been chosen somewhat arbitrarily to give priority to the running
-      // sessions widget in the sidebar.
-      app.shell.add(codeSnippetWidget, 'left', { rank: 900 });
-
-    }
+    // Rank has been chosen somewhat arbitrarily to give priority to the running
+    // sessions widget in the sidebar.
+    app.shell.add(codeSnippetWidget, 'left', { rank: 900 });
+  }
 };
 
 export default code_snippet_extension;
-

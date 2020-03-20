@@ -104,7 +104,9 @@ export class SubmissionHandler {
     const settings = ServerConnection.makeSettings();
     const requestUrl = URLExt.join(settings.baseUrl, requestExt);
 
-    console.log('Submitting a ' + requestOptions.method + ' request to ' + requestUrl);
+    console.log(
+      'Submitting a ' + requestOptions.method + ' request to ' + requestUrl
+    );
 
     // Note: a button is required to resolve the dialog below
     const waitDialog = new Dialog({
