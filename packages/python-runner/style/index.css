@@ -21,6 +21,7 @@
 .elyra-PythonEditor-OutputArea-child {
   border-top: 1px solid var(--jp-border-color2);
   border-bottom: 1px solid var(--jp-border-color2);
+  margin-right: 64px;
 }
 
 .elyra-PythonEditor-OutputArea-prompt {
@@ -33,36 +34,45 @@
 .elyra-PythonEditor-OutputArea-output {
   padding: var(--jp-code-padding);
   border: var(--jp-border-width) solid transparent;
+  /*margin-right: 64px;*/
 }
 
 .elyra-PythonEditor-scrollTop {
   position: absolute;
-  top: 30px;
-  right: 40px;
+  top: 33px;
+  right: 21px;
   z-index: 1;
-  font-size: 20px;
-  border-radius: 10px 0px 0px 10px;
-  background-color: #e3e3e3;
+  background-image: url('./up-arrow-icon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent;
   width: 30px;
   height: 30px;
-  font: var(--jp-cell-prompt-font-family);
-  border-color: #a3a3a3;
-  border-width: 1px;
+  border-width: 0px;
   border-style: solid;
+  border-radius: 5px;
 }
 
 .elyra-PythonEditor-scrollBottom {
   position: absolute;
-  top: 30px;
-  right: 10px;
+  top: 62px;
+  right: 21px;
   z-index: 1;
-  font-size: 20px;
-  border-radius: 0px 10px 10px 0px;
-  background-color: #e3e3e3;
+  background-image: url('./down-arrow-icon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent;
   width: 30px;
   height: 30px;
-  font: var(--jp-cell-prompt-font-family);
-  border-color: #a3a3a3;
-  border-width: 1px;
+  border-width: 0px;
   border-style: solid;
+  border-radius: 5px;
+}
+
+button.elyra-PythonEditor-scrollTop:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+button.elyra-PythonEditor-scrollBottom:hover {
+  background-color: var(--jp-layout-color2);
 }
