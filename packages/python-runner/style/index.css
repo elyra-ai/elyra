@@ -38,17 +38,31 @@
 .elyra-PythonEditor-scrollTop {
   position: absolute;
   top: 30px;
-  right: 10px;
+  right: 40px;
   z-index: 1;
   font-size: 20px;
-  border-radius: 0px 10px 10px 0px;
+  border-radius: 10px 0px 0px 10px;
+  background-color: #e3e3e3;
+  width: 30px;
+  height: 30px;
+  font: var(--jp-cell-prompt-font-family);
+  border-color: #a3a3a3;
+  border-width: 1px;
+  border-style: solid;
 }
 
 .elyra-PythonEditor-scrollBottom {
   position: absolute;
   top: 30px;
-  right: 40px;
+  right: 10px;
   z-index: 1;
   font-size: 20px;
-  border-radius: 10px 0px 0px 10px;
+  border-radius: 0px 10px 10px 0px;
+  background-color: #e3e3e3;
+  width: 30px;
+  height: 30px;
+  font: var(--jp-cell-prompt-font-family);
+  border-color: #a3a3a3;
+  border-width: 1px;
+  border-style: solid;
 }
