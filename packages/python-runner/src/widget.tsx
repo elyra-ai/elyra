@@ -37,6 +37,7 @@ import {
   OutputAreaModel,
   OutputPrompt
 } from '@jupyterlab/outputarea';
+import { ScrollingWidget } from '@jupyterlab/logconsole';
 import {
   RenderMimeRegistry,
   standardRendererFactories as initialFactories
@@ -77,6 +78,7 @@ export class PythonFileEditor extends DocumentWidget<
   private kernelSettings: Kernel.IOptions;
   private dockPanel: DockPanel;
   private outputAreaWidget: OutputArea;
+  private scrollingWidget: ScrollingWidget<OutputArea>;
   private model: any;
   private emptyOutput: boolean;
 
@@ -201,6 +203,25 @@ export class PythonFileEditor extends DocumentWidget<
     this.displayOutput(output);
   };
 
+  private createScrollButtons = (
+    scrollingWidget: ScrollingWidget<OutputArea>
+  ): void => {
+    const scrollUpButton = document.createElement('button');
+    const scrollDownButton = document.createElement('button');
+    scrollUpButton.className = 'elyra-PythonEditor-scrollTop';
+    scrollUpButton.innerHTML = '&uarr;';
+    scrollDownButton.className = 'elyra-PythonEditor-scrollBottom';
+    scrollDownButton.innerHTML = '&darr;';
+    scrollUpButton.onclick = function(): void {
+      scrollingWidget.node.scrollTop = 0;
+    };
+    scrollDownButton.onclick = function(): void {
+      scrollingWidget.node.scrollTop = scrollingWidget.node.scrollHeight;
+    };
+    this.dockPanel.node.appendChild(scrollUpButton);
+    this.dockPanel.node.appendChild(scrollDownButton);
+  };
+
   /**
    * Function: Displays output area widget.
    */
@@ -212,7 +233,11 @@ export class PythonFileEditor extends DocumentWidget<
 
     if (this.dockPanel.isEmpty) {
       // Add a tab to dockPanel
-      this.dockPanel.addWidget(this.outputAreaWidget, { mode: 'split-bottom' });
+      this.scrollingWidget = new ScrollingWidget({
+        content: this.outputAreaWidget
+      });
+      this.createScrollButtons(this.scrollingWidget);
+      this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
       const outputTab: TabBar<Widget> = this.dockPanel.tabBars().next();
       outputTab.id = 'tab-python-editor-output';

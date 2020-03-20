@@ -49,10 +49,14 @@ yarn-install:
 test-dependencies:
 	@pip install -q -r test_requirements.txt
 
-lint: test-dependencies ## Run linters
+lint-server: test-dependencies
+	flake8 elyra
+
+lint-ui:
 	yarn run prettier
 	yarn run eslint
-	flake8 elyra
+
+lint: lint-ui lint-server ## Run linters
 
 lerna-build: yarn-install
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
@@ -63,8 +67,8 @@ npm-packages: lerna-build
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
-	cd dist && curl -O $$(npm view @jupyterlab/git@0.9.0 dist.tarball --userconfig=./npm_config) && cd -
-	cd dist && curl -O $$(npm view @jupyterlab/toc@2.0.0 dist.tarball --userconfig=./npm_config) && cd -
+	cd dist && curl -o jupyterlab-git-0.9.0.tgz $$(npm view @jupyterlab/git@0.9.0 dist.tarball) && cd -
+	cd dist && curl -o jupyterlab-toc-2.0.0.tgz $$(npm view @jupyterlab/toc@2.0.0 dist.tarball) && cd -
 
 bdist: npm-packages
 	python setup.py bdist_wheel
@@ -84,8 +88,16 @@ install: bdist lint ## Build distribution and install
 	jupyter serverextension list
 	jupyter labextension list
 
-test: lint ## Run unit tests
+test-server: lint-server ## Run unit tests
 	pytest -v elyra
+
+test-ui: lint-ui ## Run frontend tests
+	npm test
+
+test-ui-debug: lint-ui
+	npm run test-debug
+
+test: test-server test-ui ## Run all tests
 
 install-backend: ## Build and install backend
 	python setup.py bdist_wheel --dev

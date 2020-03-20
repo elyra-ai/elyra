@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* global module, require */
+const wp = require('@cypress/webpack-preprocessor');
 
-import '../style/index.css';
+module.exports = on => {
+  const options = {
+    webpackOptions: require('../webpack.config')
+  };
 
-export * from './parsing';
-export * from './services';
-export * from './submission';
+  on('file:preprocessor', wp(options));
+};

@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright 2018-2020 IBM Corporation
 #
@@ -13,6 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+set -euo pipefail
 
-registry=https://registry.npmjs.org/
-always-auth=false
+# Download and install Yarn Package Manager
+wget https://yarnpkg.com/latest.tar.gz
+tar -zvxf latest.tar.gz && rm -rf latest.tar.gz
+
+# Add to PATH
+export PATH=$(pwd)/yarn-v1.22.4/bin/:$PATH
+
+# Build Elyra Distribution
+make bdist
+
+# Install Elyra Wheel
+pip install dist/*.whl
+
+# Rebuild Jupyter Lab to enable extensions
+jupyter lab build

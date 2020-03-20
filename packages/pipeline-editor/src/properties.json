@@ -1,6 +1,6 @@
 {
   "current_parameters": {
-    "image": "tensorflow/tensorflow:1.12.3-py3",
+    "image": "",
     "outputs": [],
     "vars": [],
     "dependencies": [],
@@ -9,15 +9,7 @@
   "parameters": [
     {
       "id": "image",
-      "enum": [
-        "tensorflow/tensorflow:1.12.3-py3",
-        "tensorflow/tensorflow:1.12.3-gpu-py3",
-        "tensorflow/tensorflow:2.0.0-py3",
-        "tensorflow/tensorflow:2.0.0-gpu-py3",
-        "pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime",
-        "pytorch/pytorch:1.2-cuda10.0-cudnn7-devel",
-        "amancevice/pandas:0.25.0-jupyter"
-      ]
+      "enum": []
     },
     {
       "id": "outputs",
@@ -81,13 +73,5 @@
       }
     ]
   },
-  "resources": {
-    "image.tensorflow/tensorflow:1.12.3-py3.label": "Tensorflow 1.12.3",
-    "image.tensorflow/tensorflow:1.12.3-gpu-py3.label": "Tensorflow 1.12.3 w/ GPU",
-    "image.tensorflow/tensorflow:2.0.0-py3.label": "Tensorflow 2.0",
-    "image.tensorflow/tensorflow:2.0.0-gpu-py3.label": "Tensorflow 2.0 w/ GPU",
-    "image.pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime.label": "Pytorch 1.2 w/ CUDA-runtime",
-    "image.pytorch/pytorch:1.2-cuda10.0-cudnn7-devel.label": "Pytorch 1.2 w/ CUDA-devel",
-    "image.amancevice/pandas:0.25.0-jupyter.label": "Pandas"
-  }
+  "resources": {}
 }
