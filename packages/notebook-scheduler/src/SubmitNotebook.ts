@@ -21,7 +21,11 @@ import { JSONObject, JSONValue } from '@phosphor/coreutils';
 import { Widget } from '@phosphor/widgets';
 import { IDisposable } from '@phosphor/disposable';
 
-import { NotebookParser, SubmissionHandler } from '@elyra/application';
+import {
+  FrontendServices,
+  NotebookParser,
+  SubmissionHandler
+} from '@elyra/application';
 
 import Utils from './utils';
 
@@ -167,6 +171,23 @@ export class SubmitNotebook extends Widget
         `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
     }
 
+    const dockerImages = FrontendServices.getDockerImages();
+    let defaultImage = 'selected';
+    let imageSelect = '<select id="framework">';
+    for (const image in dockerImages) {
+      imageSelect =
+        imageSelect +
+        '<option value="' +
+        image +
+        '" ' +
+        defaultImage +
+        '>' +
+        dockerImages[image] +
+        '</option>';
+      defaultImage = '';
+    }
+    imageSelect = imageSelect + '</select>';
+
     const content =
       '' +
       '<table id="table-submit-dialog" class="elyra-table"><tbody>' +
@@ -181,7 +202,7 @@ export class SubmitNotebook extends Widget
       td_colspan2 +
       '<label for="framework">Deep Learning Framework:</label>' +
       '<br/>' +
-      '<select id="framework"><option value="tensorflow" selected>Tensorflow</option><option value="caffe">Caffe</option><option value="pytorch">PyTorch</option><option value="caffe2">Caffe2</option></select>' +
+      imageSelect +
       '</td>' +
       '</tr>' +
       // + tr
