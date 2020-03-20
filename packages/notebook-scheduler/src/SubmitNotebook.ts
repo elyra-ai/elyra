@@ -22,7 +22,7 @@ import { Widget } from '@phosphor/widgets';
 import { IDisposable } from '@phosphor/disposable';
 
 import {
-  ElyraServices,
+  FrontendServices,
   NotebookParser,
   SubmissionHandler
 } from '@elyra/application';
@@ -171,7 +171,7 @@ export class SubmitNotebook extends Widget
         `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
     }
 
-    const dockerImages = ElyraServices.getDockerImages();
+    const dockerImages = FrontendServices.getDockerImages();
     let defaultImage = 'selected';
     let imageSelect = '<select id="framework">';
     for (const image in dockerImages) {

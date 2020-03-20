@@ -29,7 +29,7 @@ const dockerImages: { [key: string]: string } = {
 /**
  * A utilities class for various elyra services.
  */
-export class ElyraServices {
+export class FrontendServices {
   static getDockerImages(): { [key: string]: string } {
     return dockerImages;
   }

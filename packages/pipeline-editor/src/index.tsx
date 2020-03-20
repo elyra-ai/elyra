@@ -48,7 +48,7 @@ import {
 } from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
 import {
-  ElyraServices,
+  FrontendServices,
   NotebookParser,
   SubmissionHandler
 } from '@elyra/application';
@@ -313,7 +313,7 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
   addDockerImages(properties: any): any {
     console.log(properties);
     let firstImage = true;
-    const dockerImages = ElyraServices.getDockerImages();
+    const dockerImages = FrontendServices.getDockerImages();
     const imageEnum = [];
 
     for (const image in dockerImages) {
