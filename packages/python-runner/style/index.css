@@ -21,7 +21,6 @@
 .elyra-PythonEditor-OutputArea-child {
   border-top: 1px solid var(--jp-border-color2);
   border-bottom: 1px solid var(--jp-border-color2);
-  margin-right: 64px;
 }
 
 .elyra-PythonEditor-OutputArea-prompt {
@@ -34,6 +33,7 @@
 .elyra-PythonEditor-OutputArea-output {
   padding: var(--jp-code-padding);
   border: var(--jp-border-width) solid transparent;
+  margin-right: 64px;
 }
 
 .elyra-PythonEditor-scrollTop {
