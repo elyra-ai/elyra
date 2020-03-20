@@ -209,9 +209,7 @@ export class PythonFileEditor extends DocumentWidget<
     const scrollUpButton = document.createElement('button');
     const scrollDownButton = document.createElement('button');
     scrollUpButton.className = 'elyra-PythonEditor-scrollTop';
-    // scrollUpButton.innerHTML = '&uarr;';
     scrollDownButton.className = 'elyra-PythonEditor-scrollBottom';
-    // scrollDownButton.innerHTML = '&darr;';
     scrollUpButton.onclick = function(): void {
       scrollingWidget.node.scrollTop = 0;
     };

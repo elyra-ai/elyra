@@ -34,7 +34,6 @@
 .elyra-PythonEditor-OutputArea-output {
   padding: var(--jp-code-padding);
   border: var(--jp-border-width) solid transparent;
-  /*margin-right: 64px;*/
 }
 
 .elyra-PythonEditor-scrollTop {
