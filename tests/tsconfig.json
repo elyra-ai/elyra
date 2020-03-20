@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig-base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "../node_modules",
+    "target": "es2017",
+    "lib": ["es2017", "dom"],
+    "types": ["cypress"]
+  },
+  "include": ["**/*.ts", "*.ts"]
+}
