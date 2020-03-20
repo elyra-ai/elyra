@@ -44,7 +44,7 @@
   background-image: url('./up-arrow-icon.svg');
   background-repeat: no-repeat;
   background-position: center;
-  background-color: transparent;
+  background-color: white;
   width: 30px;
   height: 30px;
   border-width: 0px;
@@ -60,7 +60,7 @@
   background-image: url('./down-arrow-icon.svg');
   background-repeat: no-repeat;
   background-position: center;
-  background-color: transparent;
+  background-color: white;
   width: 30px;
   height: 30px;
   border-width: 0px;
