@@ -17,10 +17,10 @@ import json
 
 from notebook.base.handlers import APIHandler
 from ..pipeline import PipelineParser, PipelineProcessorManager
-from ..util.mixins import ElyraErrorsMixin
+from ..util.http import HttpErrorMixin
 
 
-class SchedulerHandler(ElyraErrorsMixin, APIHandler):
+class SchedulerHandler(HttpErrorMixin, APIHandler):
 
     """REST-ish method calls to execute pipelines as batch jobs"""
     def get(self):

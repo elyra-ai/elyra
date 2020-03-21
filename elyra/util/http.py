@@ -22,7 +22,7 @@ from http.client import responses
 from tornado import web
 
 
-class ElyraErrorsMixin(object):
+class HttpErrorMixin(object):
     """Mixes `write_error` into tornado.web.RequestHandlers to respond with
        JSON-formatted errors.
     """
