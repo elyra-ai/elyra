@@ -153,11 +153,11 @@ class MetadataStore(ABC):
             validate(instance=metadata, schema=schema, format_checker=draft7_format_checker)
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
-            msg = "Schema validation failed for metadata '{}' in namespace '{}' with error: {}"
             first_line = str(ve).partition('\n')[0]
-            # Log full message, raise with only first line of message.
-            self.log.error(msg.format(name, self.namespace, str(ve)))
-            raise ValidationError(msg.format(name, self.namespace, first_line))
+            msg = "Schema validation failed for metadata '{}' in namespace '{}' with error: {}.".\
+                format(name, self.namespace, first_line)
+            self.log.error(msg)
+            raise ValidationError(msg)
 
 
 class FileMetadataStore(MetadataStore):
@@ -292,7 +292,7 @@ class FileMetadataStore(MetadataStore):
                         if metadata is not None:
                             resources.append(metadata)
         else:  # namespace doesn't exist, treat as KeyError
-            raise KeyError("Namespace '{}' was not found!".format(self.namespace))
+            raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
 
         if name:  # If we're looking for a single metadata and we're here, then its not found
             raise KeyError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))

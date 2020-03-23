@@ -134,6 +134,7 @@ def schema_manager():
     yield schema_manager
     SchemaManager.clear_instance()
 
+
 # FIXME - this is not tested.  Revisit once transition to jupyter_server occurs
 @pytest.fixture
 def init_elyra(configurable_serverapp, argv):
