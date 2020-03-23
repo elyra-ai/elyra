@@ -145,7 +145,7 @@ class KfpPipelineProcessor(PipelineProcessor):
             # Compile the new pipeline
             try:
                 kfp.compiler.Compiler().compile(cc_pipeline, pipeline_path)
-            except MaxRetryError as connex:
+            except MaxRetryError:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} at {}'.
