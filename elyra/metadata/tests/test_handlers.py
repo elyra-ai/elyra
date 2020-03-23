@@ -90,7 +90,7 @@ class MetadataHandlerTest(NotebookTestBase):
         r = fetch(self.request, 'api', 'metadata', 'runtimes',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "Namespace 'runtimes' was not found!" in r.text
+        assert "Metadata namespace 'runtimes' was not found!" in r.text
 
         # Now create empty namespace
         os.makedirs(self.metadata_runtimes_dir)
