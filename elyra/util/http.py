@@ -18,6 +18,7 @@
 import json
 import traceback
 
+from datetime import datetime
 from http.client import responses
 from tornado import web
 
@@ -51,6 +52,7 @@ class HttpErrorMixin(object):
         reply = {
             'reason': reason,
             'message': message,
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         if exc_info:
             exception = exc_info[1]

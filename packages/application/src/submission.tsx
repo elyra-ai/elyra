@@ -34,8 +34,11 @@ export class SubmissionHandler {
   ): Promise<Dialog.IResult<any>> {
     const reason = response.reason ? response.reason : '';
     const message = response.message ? response.message : '';
+    const timestamp = response.timestamp ? response.timestamp : '';
     const traceback = response.traceback ? response.traceback : '';
-    const default_body = 'Check the JupyterLab log for more details.';
+    const default_body = response.timestamp
+      ? 'Check the JupyterLab log for more details at ' + response.timestamp
+      : 'Check the JupyterLab log for more details';
 
     return showDialog({
       title: 'Error submitting ' + submissionType,
@@ -44,6 +47,7 @@ export class SubmissionHandler {
           <ErrorDialogContent
             reason={reason}
             message={message}
+            timestamp={timestamp}
             traceback={traceback}
             default_msg={default_body}
           />
@@ -168,6 +172,7 @@ export class SubmissionHandler {
 interface IErrorDialogProps {
   reason: string;
   message: string;
+  timestamp: string;
   traceback: string;
   default_msg: string;
 }
@@ -175,7 +180,6 @@ interface IErrorDialogProps {
 class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
   constructor(props: any) {
     super(props);
-    console.log(props);
     this.state = { expanded: false };
   }
 
