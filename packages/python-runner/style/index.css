@@ -41,7 +41,7 @@
   top: 33px;
   right: 21px;
   z-index: 1;
-  background-image: url('./up-arrow-icon.svg');
+  background-image: var(--up-arrow);
   background-repeat: no-repeat;
   background-position: center;
   background-color: white;
@@ -57,7 +57,7 @@
   top: 62px;
   right: 21px;
   z-index: 1;
-  background-image: url('./down-arrow-icon.svg');
+  background-image: var(--down-arrow);
   background-repeat: no-repeat;
   background-position: center;
   background-color: white;
