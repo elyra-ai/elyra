@@ -44,7 +44,7 @@ class MetadataHandlerTest(NotebookTestBase):
         r = fetch(self.request, 'api', 'metadata', 'bogus', 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "Namespace 'bogus' was not found!" in r.text
+        assert "Metadata namespace 'bogus' was not found!" in r.text
         assert not os.path.exists(self.metadata_bogus_dir)
 
     def test_missing_runtime(self):
