@@ -292,7 +292,7 @@ class FileMetadataStore(MetadataStore):
                         if metadata is not None:
                             resources.append(metadata)
         else:  # namespace doesn't exist, treat as KeyError
-            raise KeyError("Metadata Namespace '{}' was not found!".format(self.namespace))
+            raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
 
         if name:  # If we're looking for a single metadata and we're here, then its not found
             raise KeyError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
