@@ -175,6 +175,7 @@ interface IErrorDialogProps {
 class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
   constructor(props: any) {
     super(props);
+    console.log(props);
     this.state = { expanded: false };
   }
 

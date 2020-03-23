@@ -27,6 +27,7 @@ from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from kubernetes.client.models import V1EnvVar
 from notebook.pipeline import NotebookOp
+from urllib3.exceptions import MaxRetryError
 
 
 class KfpPipelineProcessor(PipelineProcessor):
@@ -144,12 +145,11 @@ class KfpPipelineProcessor(PipelineProcessor):
             # Compile the new pipeline
             try:
                 kfp.compiler.Compiler().compile(cc_pipeline, pipeline_path)
+            except MaxRetryError as connex:
+                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
             except Exception as ex:
-                if "urllib3.connection.HTTPConnection" in str(ex.reason):
-                    raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
-                else:
-                    raise RuntimeError('Error compiling pipeline {} at {}'.
-                                       format(pipeline_name, pipeline_path), str(ex))
+                raise RuntimeError('Error compiling pipeline {} at {}'.
+                                   format(pipeline_name, pipeline_path), str(ex))
 
             self.log.info("Kubeflow Pipeline successfully compiled.")
             self.log.debug("Kubeflow Pipeline available at %s", pipeline_path)
