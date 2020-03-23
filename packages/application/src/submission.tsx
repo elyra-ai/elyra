@@ -215,7 +215,7 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
 
     return (
       <div className={MESSAGE_DISPLAY}>
-        {this.props.reason + ': ' + this.props.message}
+        {this.props.message}
         <br />
         {details}
         <br />
