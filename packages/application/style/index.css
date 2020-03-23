@@ -25,3 +25,41 @@
   margin-left: 5px;
   margin-right: 5px;
 }
+
+.elyra-pipelineSubmission-messageDisplay {
+  max-width: 500px;
+}
+
+.elyra-pipelineSubmission-errDisplayButton {
+  margin-right: 10px;
+  vertical-align: text-bottom;
+  background-repeat: no-repeat;
+  border: none;
+}
+
+.elyra-pipelineSubmission-errDisplayButton:hover {
+  background-color: #f0f0f0;
+}
+
+button.elyra-pipelineSubmission-errDisplayButton {
+  height: 20px;
+}
+
+.elyra-pipelineSubmission-errDisplayButton-down {
+  background-image: url('./down-arrow-icon.svg');
+}
+
+.elyra-pipelineSubmission-errDisplayButton-up {
+  background-image: url('./up-arrow-icon.svg');
+}
+
+.elyra-pipelineSubmission-error-visible {
+  display: block;
+  height: 120px;
+  overflow: auto;
+  border: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+}
+
+.elyra-pipelineSubmission-error-hidden {
+  display: none;
+}

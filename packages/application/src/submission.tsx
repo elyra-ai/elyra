@@ -20,29 +20,40 @@ import { ServerConnection } from '@jupyterlab/services';
 
 import * as React from 'react';
 
+const MESSAGE_DISPLAY = 'elyra-pipelineSubmission-messageDisplay';
+const ERROR_DISPLAY_BUTTON = 'elyra-pipelineSubmission-errDisplayButton';
+const DOWN_ICON_CLASS = 'elyra-pipelineSubmission-errDisplayButton-down';
+const UP_ICON_CLASS = 'elyra-pipelineSubmission-errDisplayButton-up';
+const ERROR_DETAILS_VISIBLE = 'elyra-pipelineSubmission-error-visible';
+const ERROR_DETAILS_HIDDEN = 'elyra-pipelineSubmission-error-hidden';
+
 export class SubmissionHandler {
   static handleError(
     response: any,
     submissionType: string
   ): Promise<Dialog.IResult<any>> {
-    let res_body = response['message'] ? response['message'] : '';
-    res_body = response['reason']
-      ? res_body + ': ' + response['reason']
-      : res_body;
-
-    const default_body = 'Check the JupyterLab log for more details.';
+    const reason = response.reason ? response.reason : '';
+    const message = response.message ? response.message : '';
+    const timestamp = response.timestamp ? response.timestamp : '';
+    const traceback = response.traceback ? response.traceback : '';
+    const default_body = response.timestamp
+      ? 'Check the JupyterLab log for more details at ' + response.timestamp
+      : 'Check the JupyterLab log for more details';
 
     return showDialog({
       title: 'Error submitting ' + submissionType,
-      body: res_body ? (
-        <p>
-          {res_body}
-          <br />
-          {default_body}
-        </p>
-      ) : (
-        <p>{default_body}</p>
-      ),
+      body:
+        reason || message ? (
+          <ErrorDialogContent
+            reason={reason}
+            message={message}
+            timestamp={timestamp}
+            traceback={traceback}
+            default_msg={default_body}
+          />
+        ) : (
+          <p>{default_body}</p>
+        ),
       buttons: [Dialog.okButton()]
     });
   }
@@ -154,6 +165,66 @@ export class SubmissionHandler {
           buttons: [Dialog.okButton()]
         });
       }
+    );
+  }
+}
+
+interface IErrorDialogProps {
+  reason: string;
+  message: string;
+  timestamp: string;
+  traceback: string;
+  default_msg: string;
+}
+
+class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
+  constructor(props: any) {
+    super(props);
+    this.state = { expanded: false };
+  }
+
+  toggleMsgDisplay(): void {
+    // Switch expanded flag
+    const expanded = !this.state.expanded;
+    this.setState({ expanded: expanded });
+  }
+
+  render(): React.ReactElement {
+    const details = this.props.traceback ? (
+      <div>
+        <br />
+        <div>
+          <button
+            className={
+              ERROR_DISPLAY_BUTTON +
+              ' ' +
+              (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
+            }
+            onClick={(): void => {
+              this.toggleMsgDisplay();
+            }}
+          ></button>
+          {'Error details: '}
+        </div>
+        <br />
+        <div
+          className={
+            this.state.expanded ? ERROR_DETAILS_VISIBLE : ERROR_DETAILS_HIDDEN
+          }
+        >
+          {this.props.traceback}
+        </div>
+      </div>
+    ) : null;
+
+    return (
+      <div className={MESSAGE_DISPLAY}>
+        {this.props.message}
+        <br />
+        {details}
+        <br />
+        <div>{this.props.default_msg}</div>
+      </div>
     );
   }
 }
