@@ -17,6 +17,8 @@
 /* Add CSS variables to :root */
 :root {
   --elyra-logo: url('./codait-piebrainlogo-jupyter-color.svg');
+  --up-arrow: url('./up-arrow-icon.svg');
+  --down-arrow: url('./down-arrow-icon.svg');
 }
 
 #jp-MainLogo.jp-JupyterIcon {
@@ -46,11 +48,11 @@ button.elyra-pipelineSubmission-errDisplayButton {
 }
 
 .elyra-pipelineSubmission-errDisplayButton-down {
-  background-image: url('./down-arrow-icon.svg');
+  background-image: var(--down-arrow);
 }
 
 .elyra-pipelineSubmission-errDisplayButton-up {
-  background-image: url('./up-arrow-icon.svg');
+  background-image: var(--up-arrow);
 }
 
 .elyra-pipelineSubmission-error-visible {
