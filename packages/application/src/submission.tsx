@@ -211,15 +211,18 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
           {this.props.traceback}
         </div>
       </div>
-    ) : null;
+    ) : (
+      <div>
+        <br />
+        {this.props.default_msg}
+      </div>
+    );
 
     return (
       <div className={MESSAGE_DISPLAY}>
         {this.props.message}
         <br />
         {details}
-        <br />
-        <div>{this.props.default_msg}</div>
       </div>
     );
   }
