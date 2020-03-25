@@ -37,14 +37,14 @@
 }
 
 .elyra-copy-icon {
-  background-image: url('./copy-icon.svg');
+  background-image: var(--jp-icon-copy);
   background-size: 75%;
   width: 15px;
   height: 15px;
 }
 
 .elyra-add-icon {
-  background-image: url('./add-icon.svg');
+  background-image: var(--jp-icon-add);
   background-size: 18px;
   width: 15px;
   height: 15px;
