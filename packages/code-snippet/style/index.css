@@ -62,6 +62,14 @@
   padding-bottom: 5px;
 }
 
+.elyra-codeSnippet-name {
+  padding-bottom: 5px;
+}
+
+.elyra-codeSnippet-name:hover {
+  background-color: #f5f5f5;
+}
+
 .elyra-codeSnippet-rowButton {
   background-repeat: no-repeat;
   background-position: center;

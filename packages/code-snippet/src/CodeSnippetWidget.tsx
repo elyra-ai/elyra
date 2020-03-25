@@ -32,6 +32,7 @@ const CODE_SNIPPETS_TABLE_ROW_CLASS = 'elyra-codeSnippet-tableRow';
 const ROW_BUTTON_CLASS = 'elyra-codeSnippet-rowButton';
 const CODE_DISPLAY_VISIBLE_CLASS = 'elyra-codeSnippet-codeDisplay-visible';
 const CODE_DISPLAY_HIDDEN_CLASS = 'elyra-codeSnippet-codeDisplay-hidden';
+const CODE_SNIPPETS_NAME_CLASS = 'elyra-codeSnippet-name';
 
 const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
 const UP_ICON_CLASS = 'elyra-upArrow-icon';
@@ -91,6 +92,7 @@ class CodeSnippetTable extends React.Component<{}, any> {
       tableRowCellElems.push(
         <td
           key={codeSnippet.displayName}
+          className={CODE_SNIPPETS_NAME_CLASS}
           onClick={(): void => {
             this.updateCodeDisplayState(codeSnippet.name);
           }}
