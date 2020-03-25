@@ -25,7 +25,6 @@ export interface ICodeSnippet {
 
 export class CodeSnippetManager {
   readonly codeSnippetEndpoint = 'api/metadata/code-snippets';
-  //   constructor() {}
 
   async findAll(): Promise<ICodeSnippet[]> {
     const getCodeSnippets: Promise<ICodeSnippet[]> = new Promise(

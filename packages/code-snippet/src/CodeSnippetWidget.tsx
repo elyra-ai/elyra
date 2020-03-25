@@ -15,13 +15,13 @@
  */
 
 import React from 'react';
-// import * as ReactDOM from 'react-dom';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import '../style/index.css';
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
 import { ReactWidget } from '@jupyterlab/apputils';
+import { ExpandableComponent } from './ExpandableComponent';
 
 /**
  * The CSS class added to code snippet widget.
@@ -30,12 +30,12 @@ const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_TABLE_ROW_CLASS = 'elyra-codeSnippet-tableRow';
 const ROW_BUTTON_CLASS = 'elyra-codeSnippet-rowButton';
-const CODE_DISPLAY_VISIBLE_CLASS = 'elyra-codeSnippet-codeDisplay-visible';
-const CODE_DISPLAY_HIDDEN_CLASS = 'elyra-codeSnippet-codeDisplay-hidden';
-const CODE_SNIPPETS_NAME_CLASS = 'elyra-codeSnippet-name';
+// const CODE_DISPLAY_VISIBLE_CLASS = 'elyra-codeSnippet-codeDisplay-visible';
+// const CODE_DISPLAY_HIDDEN_CLASS = 'elyra-codeSnippet-codeDisplay-hidden';
+// const CODE_SNIPPETS_NAME_CLASS = 'elyra-codeSnippet-name';
 
-const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
-const UP_ICON_CLASS = 'elyra-upArrow-icon';
+// const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
+// const UP_ICON_CLASS = 'elyra-upArrow-icon';
 const COPY_ICON_CLASS = 'elyra-copy-icon';
 const INSERT_ICON_CLASS = 'elyra-add-icon';
 
@@ -61,97 +61,110 @@ class CodeSnippetTable extends React.Component<{}, any> {
 
   // TODO: Implement it as a reusable react component, flex containers/divs instead of table
   buildCodeSnippetNameList(): Array<JSX.Element> {
-    const tableRowElems: Array<JSX.Element> = [];
+    const tableRowElems: Array<JSX.Element> = this.state.codeSnippets.map(
+      (codeSnippet: any, index: number) => {
+        const tableRowCellElems: Array<JSX.Element> = [];
 
-    this.state.codeSnippets.map((codeSnippet: any, index: number) => {
-      const tableRowCellElems: Array<JSX.Element> = [];
+        //       // Add expand button
+        //       const visibleCodeSnippets = this.state.visibleCodeSnippets;
+        //       let displayButtonClass = ROW_BUTTON_CLASS;
+        //       if (visibleCodeSnippets[codeSnippet.name]) {
+        //         displayButtonClass = displayButtonClass + ' ' + UP_ICON_CLASS;
+        //       } else {
+        //         displayButtonClass = displayButtonClass + ' ' + DOWN_ICON_CLASS;
+        //       }
+        //
+        //       tableRowCellElems.push(
+        //         <td key="showCodeButton">
+        //           <div>
+        //             <button
+        //               className={displayButtonClass}
+        //               onClick={(): void => {
+        //                 this.updateCodeDisplayState(codeSnippet.name);
+        //               }}
+        //             ></button>
+        //           </div>
+        //         </td>
+        //       );
 
-      // Add expand button
-      const visibleCodeSnippets = this.state.visibleCodeSnippets;
-      let displayButtonClass = ROW_BUTTON_CLASS;
-      if (visibleCodeSnippets[codeSnippet.name]) {
-        displayButtonClass = displayButtonClass + ' ' + UP_ICON_CLASS;
-      } else {
-        displayButtonClass = displayButtonClass + ' ' + DOWN_ICON_CLASS;
-      }
+        //       // Add display name
+        //       tableRowCellElems.push(
+        //         <td
+        //           key={codeSnippet.displayName}
+        //           className={CODE_SNIPPETS_NAME_CLASS}
+        //           onClick={(): void => {
+        //             this.updateCodeDisplayState(codeSnippet.name);
+        //           }}
+        //         >
+        //           {'[' + codeSnippet.language + ']'} {codeSnippet.displayName}
+        //         </td>
+        //       );
 
-      tableRowCellElems.push(
-        <td key="showCodeButton">
-          <div>
-            <button
-              className={displayButtonClass}
-              onClick={(): void => {
-                this.updateCodeDisplayState(codeSnippet.name);
-              }}
-            ></button>
-          </div>
-        </td>
-      );
+        // NEW: Add reusable ExpandableComponent
+        const displayName =
+          '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
 
-      // Add display name
-      tableRowCellElems.push(
-        <td
-          key={codeSnippet.displayName}
-          className={CODE_SNIPPETS_NAME_CLASS}
-          onClick={(): void => {
-            this.updateCodeDisplayState(codeSnippet.name);
-          }}
-        >
-          {'[' + codeSnippet.language + ']'} {codeSnippet.displayName}
-        </td>
-      );
-
-      // Add copy button
-      // TODO: implement copy to clipboard command
-      tableRowCellElems.push(
-        <td key="copyButton">
-          <div>
-            <button
-              className={ROW_BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
-              onClick={(): void => {
-                console.log('COPY BUTTON CLICKED');
-              }}
-            ></button>
-          </div>
-        </td>
-      );
-
-      // Add insert button
-      // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
-      tableRowCellElems.push(
-        <td key="insertButton">
-          <div>
-            <button
-              className={ROW_BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
-              onClick={(): void => {
-                console.log('INSERT CODE BUTTON CLICKED');
-              }}
-            ></button>
-          </div>
-        </td>
-      );
-
-      tableRowElems.push(
-        <tr key={codeSnippet.name} className={CODE_SNIPPETS_TABLE_ROW_CLASS}>
-          {tableRowCellElems}
-        </tr>
-      );
-
-      // TODO: Use code mirror to display code
-      tableRowElems.push(
-        <tr key={codeSnippet.name + 'codeBox'}>
-          <td
-            className={
-              visibleCodeSnippets[codeSnippet.name]
-                ? CODE_DISPLAY_VISIBLE_CLASS
-                : CODE_DISPLAY_HIDDEN_CLASS
-            }
-          >
-            {codeSnippet.code.join('\n')}
+        tableRowCellElems.push(
+          <td key={codeSnippet.displayName}>
+            <ExpandableComponent displayName={displayName}>
+              <div>{codeSnippet.code.join('\n')}</div>
+            </ExpandableComponent>
           </td>
-        </tr>
-      );
-    });
+        );
+
+        // Add copy button
+        // TODO: implement copy to clipboard command
+        tableRowCellElems.push(
+          <td key="copyButton">
+            <div>
+              <button
+                className={ROW_BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
+                onClick={(): void => {
+                  console.log('COPY BUTTON CLICKED');
+                }}
+              ></button>
+            </div>
+          </td>
+        );
+
+        // Add insert button
+        // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
+        tableRowCellElems.push(
+          <td key="insertButton">
+            <div>
+              <button
+                className={ROW_BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
+                onClick={(): void => {
+                  console.log('INSERT CODE BUTTON CLICKED');
+                }}
+              ></button>
+            </div>
+          </td>
+        );
+
+        return (
+          <tr key={codeSnippet.name} className={CODE_SNIPPETS_TABLE_ROW_CLASS}>
+            {tableRowCellElems}
+          </tr>
+        );
+      }
+    );
+
+    // TODO: Use code mirror to display code
+    //       tableRowElems.push(
+    //         <tr key={codeSnippet.name + 'codeBox'}>
+    //           <td
+    //             className={
+    //               visibleCodeSnippets[codeSnippet.name]
+    //                 ? CODE_DISPLAY_VISIBLE_CLASS
+    //                 : CODE_DISPLAY_HIDDEN_CLASS
+    //             }
+    //           >
+    //             {codeSnippet.code.join('\n')}
+    //           </td>
+    //         </tr>
+    //       );
+
     return tableRowElems;
   }
 
