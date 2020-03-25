@@ -23,14 +23,14 @@
 }
 
 .elyra-downArrow-icon {
-  background-image: url('./down-arrow-icon.svg');
+  background-image: url('../../application/style/down-arrow-icon.svg');
   background-size: 90%;
   width: 20px;
   height: 20px;
 }
 
 .elyra-upArrow-icon {
-  background-image: url('./up-arrow-icon.svg');
+  background-image: url('../../application/style/up-arrow-icon.svg');
   background-size: 90%;
   width: 20px;
   height: 20px;
