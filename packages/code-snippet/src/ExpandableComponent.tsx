@@ -21,17 +21,10 @@ import '../style/index.css';
  * The CSS class added to code snippet widget.
  */
 
-// TODO: USE CLASS NAMES BELOW
-// const DETAILS_VISIBLE_CLASS = 'elyra-expandableContainer-details-visible';
-// const DETAILS_HIDDEN_CLASS = 'elyra-expandableContainer-details-hidden';
-// const DISPLAY_NAME_CLASS = 'elyra-expandableContainer-name';
-// const BUTTON_CLASS = 'elyra-expandableContainer-button';
-
-const CODE_DISPLAY_VISIBLE_CLASS = 'elyra-codeSnippet-codeDisplay-visible';
-const CODE_DISPLAY_HIDDEN_CLASS = 'elyra-codeSnippet-codeDisplay-hidden';
-const CODE_SNIPPETS_NAME_CLASS = 'elyra-codeSnippet-name';
-const ROW_BUTTON_CLASS = 'elyra-codeSnippet-rowButton';
-
+const DETAILS_VISIBLE_CLASS = 'elyra-expandableContainer-details-visible';
+const DETAILS_HIDDEN_CLASS = 'elyra-expandableContainer-details-hidden';
+const DISPLAY_NAME_CLASS = 'elyra-expandableContainer-name';
+const BUTTON_CLASS = 'elyra-button';
 const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
 const UP_ICON_CLASS = 'elyra-upArrow-icon';
 
@@ -64,7 +57,7 @@ export class ExpandableComponent extends React.Component<
           <span>
             <button
               className={
-                ROW_BUTTON_CLASS +
+                BUTTON_CLASS +
                 ' ' +
                 (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
               }
@@ -74,7 +67,7 @@ export class ExpandableComponent extends React.Component<
             ></button>
           </span>
           <span
-            className={CODE_SNIPPETS_NAME_CLASS}
+            className={DISPLAY_NAME_CLASS}
             onClick={(): void => {
               this.toggleDetailsDisplay();
             }}
@@ -84,9 +77,7 @@ export class ExpandableComponent extends React.Component<
         </div>
         <div
           className={
-            this.state.expanded
-              ? CODE_DISPLAY_VISIBLE_CLASS
-              : CODE_DISPLAY_HIDDEN_CLASS
+            this.state.expanded ? DETAILS_VISIBLE_CLASS : DETAILS_HIDDEN_CLASS
           }
         >
           {this.props.children ? this.props.children : null}

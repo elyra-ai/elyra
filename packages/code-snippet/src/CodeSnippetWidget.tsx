@@ -29,13 +29,7 @@ import { ExpandableComponent } from './ExpandableComponent';
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_TABLE_ROW_CLASS = 'elyra-codeSnippet-tableRow';
-const ROW_BUTTON_CLASS = 'elyra-codeSnippet-rowButton';
-// const CODE_DISPLAY_VISIBLE_CLASS = 'elyra-codeSnippet-codeDisplay-visible';
-// const CODE_DISPLAY_HIDDEN_CLASS = 'elyra-codeSnippet-codeDisplay-hidden';
-// const CODE_SNIPPETS_NAME_CLASS = 'elyra-codeSnippet-name';
-
-// const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
-// const UP_ICON_CLASS = 'elyra-upArrow-icon';
+const BUTTON_CLASS = 'elyra-button';
 const COPY_ICON_CLASS = 'elyra-copy-icon';
 const INSERT_ICON_CLASS = 'elyra-add-icon';
 
@@ -59,7 +53,7 @@ class CodeSnippetTable extends React.Component<{}, any> {
     return this.buildCodeSnippetNameList();
   }
 
-  // TODO: Implement it as a reusable react component, flex containers/divs instead of table
+  // TODO: Implement flex containers/divs instead of table
   buildCodeSnippetNameList(): Array<JSX.Element> {
     const tableRowElems: Array<JSX.Element> = this.state.codeSnippets.map(
       (codeSnippet: any, index: number) => {
@@ -67,7 +61,7 @@ class CodeSnippetTable extends React.Component<{}, any> {
 
         //       // Add expand button
         //       const visibleCodeSnippets = this.state.visibleCodeSnippets;
-        //       let displayButtonClass = ROW_BUTTON_CLASS;
+        //       let displayButtonClass = BUTTON_CLASS;
         //       if (visibleCodeSnippets[codeSnippet.name]) {
         //         displayButtonClass = displayButtonClass + ' ' + UP_ICON_CLASS;
         //       } else {
@@ -104,6 +98,7 @@ class CodeSnippetTable extends React.Component<{}, any> {
         const displayName =
           '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
 
+        // TODO: Use code mirror to display code
         tableRowCellElems.push(
           <td key={codeSnippet.displayName}>
             <ExpandableComponent displayName={displayName}>
@@ -118,7 +113,7 @@ class CodeSnippetTable extends React.Component<{}, any> {
           <td key="copyButton">
             <div>
               <button
-                className={ROW_BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
+                className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
                 onClick={(): void => {
                   console.log('COPY BUTTON CLICKED');
                 }}
@@ -133,7 +128,7 @@ class CodeSnippetTable extends React.Component<{}, any> {
           <td key="insertButton">
             <div>
               <button
-                className={ROW_BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
+                className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
                 onClick={(): void => {
                   console.log('INSERT CODE BUTTON CLICKED');
                 }}
@@ -150,7 +145,6 @@ class CodeSnippetTable extends React.Component<{}, any> {
       }
     );
 
-    // TODO: Use code mirror to display code
     //       tableRowElems.push(
     //         <tr key={codeSnippet.name + 'codeBox'}>
     //           <td

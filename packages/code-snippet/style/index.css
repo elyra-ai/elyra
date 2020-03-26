@@ -62,22 +62,22 @@
   padding-bottom: 5px;
 }
 
-.elyra-codeSnippet-name {
+.elyra-expandableContainer-name {
   padding-bottom: 5px;
 }
 
-.elyra-codeSnippet-name:hover {
+.elyra-expandableContainer-name:hover {
   background-color: #f5f5f5;
 }
 
-.elyra-codeSnippet-rowButton {
+.elyra-button {
   background-repeat: no-repeat;
   background-position: center;
   border: none;
   padding-right: 15px;
 }
 
-.elyra-codeSnippet-codeDisplay-visible {
+.elyra-expandableContainer-details-visible {
   height: 80px;
   width: 300px;
   overflow-x: auto;
@@ -85,6 +85,6 @@
   display: block;
 }
 
-.elyra-codeSnippet-codeDisplay-hidden {
+.elyra-expandableContainer-details-hidden {
   display: none;
 }
