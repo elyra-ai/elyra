@@ -57,7 +57,9 @@
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }
 
-.elyra-codeSnippet-tableRow {
+.elyra-codeSnippet-item {
+  display: inline-flex;
+  align-items: flex-start;
   padding-top: 5px;
   padding-bottom: 5px;
 }

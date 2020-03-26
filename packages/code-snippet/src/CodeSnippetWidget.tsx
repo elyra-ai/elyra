@@ -28,7 +28,7 @@ import { ExpandableComponent } from './ExpandableComponent';
  */
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
-const CODE_SNIPPETS_TABLE_ROW_CLASS = 'elyra-codeSnippet-tableRow';
+const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 const BUTTON_CLASS = 'elyra-button';
 const COPY_ICON_CLASS = 'elyra-copy-icon';
 const INSERT_ICON_CLASS = 'elyra-add-icon';
@@ -49,69 +49,24 @@ class CodeSnippetTable extends React.Component<{}, any> {
     return codeSnippets;
   }
 
-  renderTableRows(): Array<JSX.Element> {
-    return this.buildCodeSnippetNameList();
-  }
-
   // TODO: Implement flex containers/divs instead of table
-  buildCodeSnippetNameList(): Array<JSX.Element> {
-    const tableRowElems: Array<JSX.Element> = this.state.codeSnippets.map(
+  // TODO: Use code mirror to display code
+  // TODO: implement copy to clipboard command
+  // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
+  renderCodeSnippetsDisplay(): Array<JSX.Element> {
+    const codeSnippetDisplayList: Array<JSX.Element> = this.state.codeSnippets.map(
       (codeSnippet: any, index: number) => {
-        const tableRowCellElems: Array<JSX.Element> = [];
-
-        //       // Add expand button
-        //       const visibleCodeSnippets = this.state.visibleCodeSnippets;
-        //       let displayButtonClass = BUTTON_CLASS;
-        //       if (visibleCodeSnippets[codeSnippet.name]) {
-        //         displayButtonClass = displayButtonClass + ' ' + UP_ICON_CLASS;
-        //       } else {
-        //         displayButtonClass = displayButtonClass + ' ' + DOWN_ICON_CLASS;
-        //       }
-        //
-        //       tableRowCellElems.push(
-        //         <td key="showCodeButton">
-        //           <div>
-        //             <button
-        //               className={displayButtonClass}
-        //               onClick={(): void => {
-        //                 this.updateCodeDisplayState(codeSnippet.name);
-        //               }}
-        //             ></button>
-        //           </div>
-        //         </td>
-        //       );
-
-        //       // Add display name
-        //       tableRowCellElems.push(
-        //         <td
-        //           key={codeSnippet.displayName}
-        //           className={CODE_SNIPPETS_NAME_CLASS}
-        //           onClick={(): void => {
-        //             this.updateCodeDisplayState(codeSnippet.name);
-        //           }}
-        //         >
-        //           {'[' + codeSnippet.language + ']'} {codeSnippet.displayName}
-        //         </td>
-        //       );
-
-        // NEW: Add reusable ExpandableComponent
         const displayName =
           '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
 
-        // TODO: Use code mirror to display code
-        tableRowCellElems.push(
-          <td key={codeSnippet.displayName}>
-            <ExpandableComponent displayName={displayName}>
-              <div>{codeSnippet.code.join('\n')}</div>
-            </ExpandableComponent>
-          </td>
-        );
-
-        // Add copy button
-        // TODO: implement copy to clipboard command
-        tableRowCellElems.push(
-          <td key="copyButton">
-            <div>
+        return (
+          <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
+            <div key={codeSnippet.displayName}>
+              <ExpandableComponent displayName={displayName}>
+                <div>{codeSnippet.code.join('\n')}</div>
+              </ExpandableComponent>
+            </div>
+            <div key="copyButton">
               <button
                 className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
                 onClick={(): void => {
@@ -119,14 +74,7 @@ class CodeSnippetTable extends React.Component<{}, any> {
                 }}
               ></button>
             </div>
-          </td>
-        );
-
-        // Add insert button
-        // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
-        tableRowCellElems.push(
-          <td key="insertButton">
-            <div>
+            <div key="insertButton">
               <button
                 className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
                 onClick={(): void => {
@@ -134,32 +82,12 @@ class CodeSnippetTable extends React.Component<{}, any> {
                 }}
               ></button>
             </div>
-          </td>
-        );
-
-        return (
-          <tr key={codeSnippet.name} className={CODE_SNIPPETS_TABLE_ROW_CLASS}>
-            {tableRowCellElems}
-          </tr>
+          </div>
         );
       }
     );
 
-    //       tableRowElems.push(
-    //         <tr key={codeSnippet.name + 'codeBox'}>
-    //           <td
-    //             className={
-    //               visibleCodeSnippets[codeSnippet.name]
-    //                 ? CODE_DISPLAY_VISIBLE_CLASS
-    //                 : CODE_DISPLAY_HIDDEN_CLASS
-    //             }
-    //           >
-    //             {codeSnippet.code.join('\n')}
-    //           </td>
-    //         </tr>
-    //       );
-
-    return tableRowElems;
+    return codeSnippetDisplayList;
   }
 
   updateCodeDisplayState(name: string): void {
@@ -196,9 +124,9 @@ class CodeSnippetTable extends React.Component<{}, any> {
   render(): React.ReactElement {
     return (
       <div>
-        <table id="codeSnippets">
-          <tbody>{this.renderTableRows()}</tbody>
-        </table>
+        <div id="codeSnippets">
+          <div>{this.renderCodeSnippetsDisplay()}</div>
+        </div>
       </div>
     );
   }
