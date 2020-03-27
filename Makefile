@@ -67,7 +67,7 @@ npm-packages: lerna-build
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
-	cd dist && curl -o jupyterlab-git-0.9.1.tgz $$(npm view @jupyterlab/git@0.9.1 dist.tarball) && cd -
+	cd dist && curl -o jupyterlab-git-0.10.0.tgz $$(npm view @jupyterlab/git@0.10.0 dist.tarball) && cd -
 	cd dist && curl -o jupyterlab-toc-2.0.0.tgz $$(npm view @jupyterlab/toc@2.0.0 dist.tarball) && cd -
 
 bdist: npm-packages
