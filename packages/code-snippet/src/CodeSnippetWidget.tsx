@@ -32,6 +32,8 @@ const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 const BUTTON_CLASS = 'elyra-button';
 const COPY_ICON_CLASS = 'elyra-copy-icon';
 const INSERT_ICON_CLASS = 'elyra-add-icon';
+const CODE_SNIPPET_NAME_CLASS = 'elyra-codeSnippet-name';
+const CODE_SNIPPET_BUTTONS_WRAPPER_CLASS = 'elyra-codeSnippet-buttons';
 
 /**
  * A widget for code-snippet.
@@ -61,26 +63,31 @@ class CodeSnippetTable extends React.Component<{}, any> {
 
         return (
           <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
-            <div key={codeSnippet.displayName}>
+            <div
+              key={codeSnippet.displayName}
+              className={CODE_SNIPPET_NAME_CLASS}
+            >
               <ExpandableComponent displayName={displayName}>
                 <div>{codeSnippet.code.join('\n')}</div>
               </ExpandableComponent>
             </div>
-            <div key="copyButton">
-              <button
-                className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
-                onClick={(): void => {
-                  console.log('COPY BUTTON CLICKED');
-                }}
-              ></button>
-            </div>
-            <div key="insertButton">
-              <button
-                className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
-                onClick={(): void => {
-                  console.log('INSERT CODE BUTTON CLICKED');
-                }}
-              ></button>
+            <div className={CODE_SNIPPET_BUTTONS_WRAPPER_CLASS}>
+              <div key="copyButton">
+                <button
+                  className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
+                  onClick={(): void => {
+                    console.log('COPY BUTTON CLICKED');
+                  }}
+                ></button>
+              </div>
+              <div key="insertButton">
+                <button
+                  className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
+                  onClick={(): void => {
+                    console.log('INSERT CODE BUTTON CLICKED');
+                  }}
+                ></button>
+              </div>
             </div>
           </div>
         );

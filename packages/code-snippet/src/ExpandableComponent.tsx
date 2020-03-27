@@ -53,28 +53,26 @@ export class ExpandableComponent extends React.Component<
   render(): React.ReactElement {
     return (
       <div>
-        <div>
-          <span>
-            <button
-              className={
-                BUTTON_CLASS +
-                ' ' +
-                (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
-              }
-              onClick={(): void => {
-                this.toggleDetailsDisplay();
-              }}
-            ></button>
-          </span>
-          <span
-            className={DISPLAY_NAME_CLASS}
+        <span>
+          <button
+            className={
+              BUTTON_CLASS +
+              ' ' +
+              (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
+            }
             onClick={(): void => {
               this.toggleDetailsDisplay();
             }}
-          >
-            {this.props.displayName}
-          </span>
-        </div>
+          ></button>
+        </span>
+        <span
+          className={DISPLAY_NAME_CLASS}
+          onClick={(): void => {
+            this.toggleDetailsDisplay();
+          }}
+        >
+          {this.props.displayName}
+        </span>
         <div
           className={
             this.state.expanded ? DETAILS_VISIBLE_CLASS : DETAILS_HIDDEN_CLASS

@@ -59,13 +59,15 @@
 
 .elyra-codeSnippet-item {
   display: inline-flex;
-  align-items: flex-start;
+  width: 100%;
+  justify-content: space-between;
   padding-top: 5px;
   padding-bottom: 5px;
 }
 
 .elyra-expandableContainer-name {
   padding-bottom: 5px;
+  display: inline-flex;
 }
 
 .elyra-expandableContainer-name:hover {
@@ -80,13 +82,24 @@
 }
 
 .elyra-expandableContainer-details-visible {
-  height: 80px;
-  width: 300px;
+  max-height: 100px;
   overflow-x: auto;
   overflow-y: auto;
   display: block;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .elyra-expandableContainer-details-hidden {
   display: none;
+}
+
+.elyra-codeSnippet-buttons {
+  display: inline-flex;
+  align-self: baseline;
+}
+
+.elyra-codeSnippet-name {
+  align-self: baseline;
+  width: 100%;
 }
