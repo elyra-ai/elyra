@@ -25,10 +25,13 @@ class PipelineParser(LoggingConfigurable):
 
     @staticmethod
     def parse(pipeline_definition) -> Pipeline:
-
-        # The pipeline blueprint enables defining multiple pipelines
-        # in one pipeline json file. For now we only support processing
-        # one (primary) pipeline.
+        """
+        The pipeline blueprint enables defining multiple pipelines
+        in one pipeline json file. When SuperNodes are enabled, each
+        super node references another flow/pipeline in the pipeline
+        blueprint. For now, we are not supporting SuperNodes and  we
+        are only support processing one (primary) pipeline.
+        """
 
         # Check for required values.  We require a primary_pipeline, a set of pipelines, and
         # nodes within the primary pipeline (checked below).
@@ -43,6 +46,7 @@ class PipelineParser(LoggingConfigurable):
             pipeline_id = p['id']
             if pipeline_id == primary_pipeline_id:
                 pipeline = p
+                break
 
         if not pipeline:
             raise SyntaxError("Primary pipeline '{}' not found.".format(primary_pipeline_id))
@@ -56,26 +60,28 @@ class PipelineParser(LoggingConfigurable):
                                    __class__._read_pipeline_runtime_config(pipeline))
 
         for node in pipeline['nodes']:
-            # parse links as dependencies
-            links = __class__._read_pipeline_operation_dependencies(node)
+            # ignore parsing super nodes
+            if node['type'] != "super_node":
+                # parse links as dependencies
+                links = __class__._read_pipeline_operation_dependencies(node)
 
-            try:
-                # parse each node as a pipeline operation
-                operation = Operation(
-                    id=node['id'],
-                    type=node['type'],
-                    title=node['app_data']['ui_data']['label'],
-                    artifact=node['app_data']['artifact'],
-                    image=node['app_data']['image'],
-                    vars=node['app_data'].get('vars') or [],
-                    file_dependencies=node['app_data'].get('dependencies') or [],
-                    recursive_dependencies=node['app_data'].get('recursive_dependencies') or False,
-                    outputs=node['app_data'].get('outputs') or [],
-                    dependencies=links
-                )
-                pipeline_object.operations[operation.id] = operation
-            except Exception as e:
-                raise SyntaxError("Invalid pipeline format: Missing field {}".format(e))
+                try:
+                    # parse each node as a pipeline operation
+                    operation = Operation(
+                        id=node['id'],
+                        type=node['type'],
+                        title=node['app_data']['ui_data']['label'],
+                        artifact=node['app_data']['artifact'],
+                        image=node['app_data']['image'],
+                        vars=node['app_data'].get('vars') or [],
+                        file_dependencies=node['app_data'].get('dependencies') or [],
+                        recursive_dependencies=node['app_data'].get('recursive_dependencies') or False,
+                        outputs=node['app_data'].get('outputs') or [],
+                        dependencies=links
+                    )
+                    pipeline_object.operations[operation.id] = operation
+                except Exception as e:
+                    raise SyntaxError("Invalid pipeline format: Missing field {}".format(e))
 
         return pipeline_object
 
