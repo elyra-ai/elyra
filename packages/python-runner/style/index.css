@@ -37,29 +37,18 @@
 }
 
 .elyra-PythonEditor-scrollTop {
-  position: absolute;
   top: 33px;
-  right: 21px;
-  z-index: 1;
-  background-image: var(--up-arrow);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-color: white;
-  width: 30px;
-  height: 30px;
-  border-width: 0px;
-  border-style: solid;
-  border-radius: 5px;
 }
 
 .elyra-PythonEditor-scrollBottom {
-  position: absolute;
   top: 62px;
+}
+
+.elyra-PythonEditor-scrollBottom,
+.elyra-PythonEditor-scrollTop {
+  position: absolute;
   right: 21px;
   z-index: 1;
-  background-image: var(--down-arrow);
-  background-repeat: no-repeat;
-  background-position: center;
   background-color: white;
   width: 30px;
   height: 30px;

@@ -28,6 +28,7 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
+import { pythonIcon } from '@jupyterlab/ui-components';
 
 import {
   ITableOfContentsRegistry,
@@ -40,7 +41,6 @@ import { JSONObject } from '@lumino/coreutils';
 
 import { PythonFileEditorFactory, PythonFileEditor } from './widget';
 
-const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const PYTHON_FACTORY = 'PyEditor';
 const PYTHON = 'python';
 const PYTHON_EDITOR_NAMESPACE = 'elyra-python-runner-extension';
@@ -263,7 +263,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(commandIDs.createNewPython, {
       label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
       caption: 'Create a new python file',
-      iconClass: args => (args['isPalette'] ? '' : PYTHON_ICON_CLASS),
+      icon: args => (args['isPalette'] ? undefined : pythonIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string);

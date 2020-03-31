@@ -30,7 +30,17 @@ import {
   showDialog,
   Dialog
 } from '@jupyterlab/apputils';
-import { DockPanelSvg, HTMLSelect, TabBarSvg } from '@jupyterlab/ui-components';
+import {
+  caretDownEmptyThinIcon,
+  caretUpEmptyThinIcon,
+  DockPanelSvg,
+  HTMLSelect,
+  pythonIcon,
+  runIcon,
+  saveIcon,
+  stopIcon,
+  TabBarSvg
+} from '@jupyterlab/ui-components';
 import { KernelSpec } from '@jupyterlab/services';
 import {
   OutputArea,
@@ -55,11 +65,7 @@ const OUTPUT_AREA_ERROR_CLASS = 'elyra-PythonEditor-OutputArea-error';
 const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
 const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
-const RUN_ICON_CLASS = 'jp-RunIcon';
-const STOP_ICON_CLASS = 'jp-StopIcon';
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
-const PYTHON_ICON_CLASS = 'jp-PythonIcon';
-const SAVE_ICON_CLASS = 'jp-SaveIcon';
 
 /**
  * A widget for python editors.
@@ -90,11 +96,11 @@ export class PythonFileEditor extends DocumentWidget<
     this.emptyOutput = true;
 
     // Add python icon to main tab
-    this.title.iconClass = PYTHON_ICON_CLASS;
+    this.title.icon = pythonIcon;
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
-      iconClass: SAVE_ICON_CLASS,
+      icon: saveIcon,
       onClick: this.saveFile,
       tooltip: 'Save file contents'
     });
@@ -105,13 +111,13 @@ export class PythonFileEditor extends DocumentWidget<
     );
 
     const runButton = new ToolbarButton({
-      iconClass: RUN_ICON_CLASS,
+      icon: runIcon,
       onClick: this.runPython,
       tooltip: 'Run'
     });
 
     const stopButton = new ToolbarButton({
-      iconClass: STOP_ICON_CLASS,
+      icon: stopIcon,
       onClick: this.runner.shutDownKernel,
       tooltip: 'Stop'
     });
@@ -212,6 +218,14 @@ export class PythonFileEditor extends DocumentWidget<
     scrollDownButton.onclick = function(): void {
       scrollingWidget.node.scrollTop = scrollingWidget.node.scrollHeight;
     };
+    caretUpEmptyThinIcon.element({
+      container: scrollUpButton,
+      elementPosition: 'center'
+    });
+    caretDownEmptyThinIcon.element({
+      container: scrollDownButton,
+      elementPosition: 'center'
+    });
     this.dockPanel.node.appendChild(scrollUpButton);
     this.dockPanel.node.appendChild(scrollDownButton);
   };

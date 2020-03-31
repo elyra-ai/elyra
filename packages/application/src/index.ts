@@ -22,6 +22,8 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 
 import { elyraIcon } from './icons';
 
+import '../style/index.css';
+
 /**
  * Initialization data for the application extension.
  */

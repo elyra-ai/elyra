@@ -48,6 +48,7 @@ import {
 } from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
 import {
+  dragDropIcon,
   FrontendServices,
   NotebookParser,
   SubmissionHandler,
@@ -63,7 +64,6 @@ import * as React from 'react';
 
 import { IntlProvider } from 'react-intl';
 
-const PIPELINE_ICON_CLASS = 'jp-PipelineIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
@@ -226,7 +226,7 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
     const style = { height: '100%' };
     const emptyCanvasContent = (
       <div>
-        <div className="dragdrop" />
+        <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
         <h1>
           {' '}
           Start your new pipeline by dragging files from the file browser pane.{' '}
@@ -306,7 +306,6 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
   };
 
   addDockerImages(properties: any): any {
-    console.log(properties);
     let firstImage = true;
     const dockerImages = FrontendServices.getDockerImages();
     const imageEnum = [];
@@ -320,7 +319,6 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
       properties.resources['image.' + image + '.label'] = dockerImages[image];
     }
     properties.parameters[0].enum = imageEnum;
-    console.log(properties);
     return properties;
   }
 
@@ -652,7 +650,6 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       node: document.createElement('div')
     });
     widget.addClass(PIPELINE_CLASS);
-    widget.title.iconClass = PIPELINE_ICON_CLASS;
     widget.title.icon = pipelineIcon;
     return widget;
   }
@@ -726,7 +723,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(openPipelineEditorCommand, {
       label: args =>
         args['isPalette'] ? 'New Pipeline Editor' : 'Pipeline Editor',
-      iconClass: args => (args['isPalette'] ? '' : PIPELINE_ICON_CLASS),
+      icon: args => (args['isPalette'] ? undefined : pipelineIcon),
       execute: () => {
         // Creates blank file, then opens it in a new window
         app.commands
