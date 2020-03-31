@@ -233,7 +233,7 @@ Server and with your chosen Object Store to store artifacts.
 |cos_password| Password used to access the Object Store. SEE NOTE. | `minio123` |
 |cos_bucket|   Name of the bucket you want your artifacts in. If the bucket doesn't exist, it will be created| `test-bucket` |
 
-NOTE: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-hmac) 
+NOTE: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
 Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.
 
