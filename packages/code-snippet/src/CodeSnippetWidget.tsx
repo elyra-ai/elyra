@@ -51,7 +51,6 @@ class CodeSnippetTable extends React.Component<{}, any> {
     return codeSnippets;
   }
 
-  // TODO: Implement flex containers/divs instead of table
   // TODO: Use code mirror to display code
   // TODO: implement copy to clipboard command
   // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
@@ -68,7 +67,7 @@ class CodeSnippetTable extends React.Component<{}, any> {
               className={CODE_SNIPPET_NAME_CLASS}
             >
               <ExpandableComponent displayName={displayName}>
-                <div>{codeSnippet.code.join('\n')}</div>
+                <pre>{codeSnippet.code.join('\n')}</pre>
               </ExpandableComponent>
             </div>
             <div className={CODE_SNIPPET_BUTTONS_WRAPPER_CLASS}>
@@ -97,33 +96,10 @@ class CodeSnippetTable extends React.Component<{}, any> {
     return codeSnippetDisplayList;
   }
 
-  updateCodeDisplayState(name: string): void {
-    const visibleCodeSnippets = this.state.visibleCodeSnippets;
-
-    // Switch boolean flag on visible code snippet
-    visibleCodeSnippets[name] = !visibleCodeSnippets[name];
-    this.setState({
-      codeSnippets: this.state.codeSnippets,
-      visibleCodeSnippets: visibleCodeSnippets
-    });
-  }
-
   componentDidMount(): void {
     this.fetchData().then((codeSnippets: ICodeSnippet[]) => {
-      // Make object to keep track of open code snippets in UI
-      let visibleCodeSnippets: { [k: string]: boolean } = {};
-
-      if (!this.state.visibleCodeSnippets) {
-        codeSnippets.map((codeSnippet: any, index: number) => {
-          visibleCodeSnippets[codeSnippet.name] = false;
-        });
-      } else {
-        visibleCodeSnippets = this.state.visibleCodeSnippets;
-      }
-
       this.setState({
-        codeSnippets: codeSnippets,
-        visibleCodeSnippets: visibleCodeSnippets
+        codeSnippets: codeSnippets
       });
     });
   }
