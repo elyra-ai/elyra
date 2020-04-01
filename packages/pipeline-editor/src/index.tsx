@@ -311,7 +311,6 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
   };
 
   addDockerImages(properties: any): any {
-    console.log(properties);
     let firstImage = true;
     const dockerImages = FrontendServices.getDockerImages();
     const imageEnum = [];
@@ -325,7 +324,6 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
       properties.resources['image.' + image + '.label'] = dockerImages[image];
     }
     properties.parameters[0].enum = imageEnum;
-    console.log(properties);
     return properties;
   }
 
