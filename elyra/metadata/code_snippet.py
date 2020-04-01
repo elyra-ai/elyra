@@ -47,12 +47,12 @@ class ListCodeSnippets(AppUtilMixin, Application):
     metadata_namespace = CodeSnippet.namespace
     metadata_manager = Instance(MetadataManager)
 
-    json_output = Bool(False, help='Output runtime name and location as machine-readable json.', config=True)
-    valid_only = Bool(False, help='Only display valid runtime metadata.', config=True)
+    json_output = Bool(False, help='Output code snippet name and location as machine-readable json.', config=True)
+    valid_only = Bool(False, help='Only display valid code snippet metadata.', config=True)
 
     flags = {'json': ({'ListCodeSnippets': {'json_output': True}},
-                      "Output runtime name and location as machine-readable json."),
-             'valid-only': ({'ListCodeSnippets': {'valid_only': True}}, "Only display valid code-snippets metadata."),
+                      "Output code snippet name and location as machine-readable json."),
+             'valid-only': ({'ListCodeSnippets': {'valid_only': True}}, "Only display valid code snippets metadata."),
              'debug': base_flags['debug'],
              }
 
@@ -72,37 +72,37 @@ class ListCodeSnippets(AppUtilMixin, Application):
             return
 
         if self.json_output:
-            [print('Runtime: {} {}\n{}'
+            [print('Code snippet: {} {}\n{}'
                    .format(rt.name, "**INVALID**" if rt.reason and len(rt.reason) > 0 else "", rt.to_json()))
              for rt in code_snippets]
         else:
-            sorted_runtimes = sorted(code_snippets, key=lambda runtime: runtime.name)
-            # pad to width of longest runtime name
+            code_snippets = sorted(code_snippets, key=lambda code_snippet: code_snippet.name)
+            # pad to width of longest code snippet name
             max_name_len = 0
             max_resource_len = 0
-            for runtime in sorted_runtimes:
-                max_name_len = max(len(runtime.name), max_name_len)
-                max_resource_len = max(len(runtime.resource), max_resource_len)
+            for code in code_snippets:
+                max_name_len = max(len(code.name), max_name_len)
+                max_resource_len = max(len(code.resource), max_resource_len)
 
             print("Available metadata for code snippets:")
-            for runtime in sorted_runtimes:
+            for code in code_snippets:
                 invalid = ""
-                if runtime.reason and len(runtime.reason) > 0:
-                    invalid = "**INVALID** ({})".format(runtime.reason)
-                print("  %s  %s  %s" % (runtime.name.ljust(max_name_len),
-                                        runtime.resource.ljust(max_resource_len),
+                if code.reason and len(code.reason) > 0:
+                    invalid = "**INVALID** ({})".format(code.reason)
+                print("  %s  %s  %s" % (code.name.ljust(max_name_len),
+                                        code.resource.ljust(max_resource_len),
                                         invalid))
 
 
 class RemoveCodeSnippets(AppUtilMixin, Application):
     version = __version__
-    description = """Remove external runtime metadata."""
+    description = """Remove external code-snippet metadata."""
 
     metadata_namespace = CodeSnippet.namespace
     metadata_manager = Instance(MetadataManager)
 
     name = Unicode(None, config=True, allow_none=True,
-                   help="The name of the runtime metadata to remove.")
+                   help="The name of the code-snippet metadata to remove.")
 
     aliases = {
         'name': 'RemoveCodeSnippets.name',
