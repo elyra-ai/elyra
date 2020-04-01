@@ -100,6 +100,20 @@ def test_multinode_pipeline():
     assert len(pipeline.operations) == 3
 
 
+def test_supernode_pipelinen():
+    pipeline_definition = read_pipeline_resource('pipeline_with_supernode.json')
+
+    with pytest.raises(SyntaxError):
+        PipelineParser.parse(pipeline_definition)
+
+
+def test_multiple_pipeline_definition():
+    pipeline_definition = read_pipeline_resource('pipeline_multiple_pipeline_definitions.json')
+
+    with pytest.raises(SyntaxError):
+        PipelineParser.parse(pipeline_definition)
+
+
 def test_pipeline_operations_and_handle_artifact_file_details():
     pipeline_definition = read_pipeline_resource('pipeline_3_node_sample.json')
 
