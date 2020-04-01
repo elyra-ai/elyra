@@ -15,6 +15,7 @@
 #
 
 from .metadata import Metadata, MetadataManager
+from .mixins import AppUtilMixin
 
 from traitlets.config.application import Application
 from jupyter_core.application import base_flags
@@ -29,21 +30,7 @@ class Runtime(Metadata):
     namespace = 'runtimes'
 
 
-class AppUtilMixin(object):
-
-    def _log_and_exit(self, msg, exit_status=1, display_help=False):
-        self.log.error(msg)
-        if display_help:
-            print()
-            self.print_help()
-        self.exit(exit_status)
-
-    def _confirm_required(self, name, value):
-        if value is None or len(value) == 0:
-            self._log_and_exit("'{}' is a required parameter.".format(name), display_help=True)
-
-
-class ListRuntimes(Application, AppUtilMixin):
+class ListRuntimes(AppUtilMixin, Application):
     version = __version__
     description = """List installed external runtime metadata."""
 
@@ -97,7 +84,7 @@ class ListRuntimes(Application, AppUtilMixin):
                                         invalid))
 
 
-class RemoveRuntime(Application, AppUtilMixin):
+class RemoveRuntime(AppUtilMixin, Application):
     version = __version__
     description = """Remove external runtime metadata."""
 
@@ -121,10 +108,10 @@ class RemoveRuntime(Application, AppUtilMixin):
         self.metadata_manager.remove(self.name)
 
     def _validate_parameters(self):
-        self._confirm_required("name", self.name)
+        self.confirm_required("name", self.name)
 
 
-class Kfp(Application, AppUtilMixin):
+class Kfp(AppUtilMixin, Application):
     version = __version__
     description = """Install runtime metadata for Kubeflow pipelines."""
 
@@ -199,23 +186,23 @@ class Kfp(Application, AppUtilMixin):
             print("Metadata for {} runtime '{}' has been written to: {}".format(self.schema_name, self.name, resource))
         else:
             if ex_msg:
-                self._log_and_exit("The following exception occurred while saving metadata '{}' for {} runtime: {}"
-                                   .format(self.name, self.schema_name, ex_msg), display_help=True)
+                self.log_and_exit("The following exception occurred while saving metadata '{}' for {} runtime: {}"
+                                  .format(self.name, self.schema_name, ex_msg), display_help=True)
             else:
-                self._log_and_exit("A failure occurred while saving metadata '{}' for {} runtime.  Check log output."
-                                   .format(self.name, self.schema_name), display_help=True)
+                self.log_and_exit("A failure occurred while saving metadata '{}' for {} runtime.  Check log output."
+                                  .format(self.name, self.schema_name), display_help=True)
 
     def _validate_parameters(self):
-        self._confirm_required("name", self.name)
-        self._confirm_required("display_name", self.display_name)
-        self._confirm_required("api_endpoint", self.api_endpoint)
-        self._confirm_required("cos_endpoint", self.cos_endpoint)
-        self._confirm_required("cos_username", self.cos_username)
-        self._confirm_required("cos_password", self.cos_password)
-        self._confirm_required("cos_bucket", self.cos_bucket)
+        self.confirm_required("name", self.name)
+        self.confirm_required("display_name", self.display_name)
+        self.confirm_required("api_endpoint", self.api_endpoint)
+        self.confirm_required("cos_endpoint", self.cos_endpoint)
+        self.confirm_required("cos_username", self.cos_username)
+        self.confirm_required("cos_password", self.cos_password)
+        self.confirm_required("cos_bucket", self.cos_bucket)
 
 
-class Airflow(Application, AppUtilMixin):
+class Airflow(AppUtilMixin, Application):
     version = __version__
     description = """Install runtime metadata for Airflow pipelines."""
     flags = {}
@@ -234,7 +221,7 @@ class Airflow(Application, AppUtilMixin):
     }
 
     def start(self):
-        self._log_and_exit("Support for airflow pipelines is not implemented at this time.")
+        self.log_and_exit("Support for airflow pipelines is not implemented at this time.")
 
 
 class InstallRuntime(Application):
