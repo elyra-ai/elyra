@@ -63,7 +63,7 @@ class ListCodeSnippets(AppUtilMixin, Application):
         include_invalid = not self.valid_only
         try:
             code_snippets = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
-        except:
+        except KeyError:
             code_snippets = None
 
         if not code_snippets:
