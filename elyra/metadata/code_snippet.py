@@ -40,7 +40,7 @@ class AppUtilMixin(object):
             self._log_and_exit("'{}' is a required parameter.".format(name), display_help=True)
 
 
-class ListCodeSnippets(Application, AppUtilMixin):
+class ListCodeSnippets(AppUtilMixin, Application):
     version = __version__
     description = """List code snippet metadata."""
 
@@ -91,7 +91,7 @@ class ListCodeSnippets(Application, AppUtilMixin):
                                         invalid))
 
 
-class RemoveCodeSnippets(Application, AppUtilMixin):
+class RemoveCodeSnippets(AppUtilMixin, Application):
     version = __version__
     description = """Remove external runtime metadata."""
 
