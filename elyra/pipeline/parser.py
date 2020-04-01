@@ -26,21 +26,21 @@ class PipelineParser(LoggingConfigurable):
     @staticmethod
     def parse(pipeline_definition) -> Pipeline:
         """
-        The pipeline blueprint enables defining multiple pipelines
-        in one pipeline json file. When SuperNodes are enabled, each
-        super node references another flow/pipeline in the pipeline
-        blueprint. For now, we are not supporting SuperNodes and  we
-        are only support processing one (primary) pipeline.
+        The pipeline definition allows for defining multiple pipelines
+        in one json file. When supernodes are used, its node actually
+        references another pipeline in the pipeline definition.
+        For now, we are not supporting supernodes and only the
+        primary pipeline is being processed.
         """
 
         # Check for required values.  We require a primary_pipeline, a set of pipelines, and
         # nodes within the primary pipeline (checked below).
         if 'primary_pipeline' not in pipeline_definition:
-            raise SyntaxError("Required field: 'primary_pipeline' not found.")
+            raise SyntaxError("Invalid pipeline: Could not determine the primary pipeline.")
         if 'pipelines' not in pipeline_definition:
-            raise SyntaxError("Required field: 'pipelines' not found.")
+            raise SyntaxError("Invalid pipeline: Pipeline definition not found.")
         if len(pipeline_definition['pipelines']) > 0:
-            raise SyntaxError("Multiple pipeline blueprints not supported (e.g. SuperNode).")
+            raise SyntaxError("Invalid pipeline: Multiple pipelines is not supported (e.g. Supernode).")
 
         pipeline = None
         primary_pipeline_id = pipeline_definition['primary_pipeline']
@@ -51,10 +51,10 @@ class PipelineParser(LoggingConfigurable):
                 break
 
         if not pipeline:
-            raise SyntaxError("Primary pipeline '{}' not found.".format(primary_pipeline_id))
+            raise SyntaxError("Invalid pipeline: Primary pipeline '{}' not found.".format(primary_pipeline_id))
 
         if 'nodes' not in pipeline or len(pipeline['nodes']) == 0:
-            raise SyntaxError("At least one node must exist in primary pipeline.")
+            raise SyntaxError("Invalid pipeline: At least one node must exist in primary pipeline.")
 
         pipeline_object = Pipeline(pipeline['id'],
                                    __class__._read_pipeline_title(pipeline),
@@ -62,9 +62,9 @@ class PipelineParser(LoggingConfigurable):
                                    __class__._read_pipeline_runtime_config(pipeline))
 
         for node in pipeline['nodes']:
-            # super nodes are not supported
+            # Supernodes are not supported
             if node['type'] == "super_node":
-                raise SyntaxError('Super Node feature not supported')
+                raise SyntaxError('Invalid pipeline: Supernode feature is not supported.')
 
             # parse links as dependencies
             links = __class__._read_pipeline_operation_dependencies(node)
@@ -85,7 +85,7 @@ class PipelineParser(LoggingConfigurable):
                 )
                 pipeline_object.operations[operation.id] = operation
             except Exception as e:
-                raise SyntaxError("Invalid pipeline format: Missing field {}".format(e))
+                raise SyntaxError("Invalid pipeline: Missing field {}".format(e))
 
         return pipeline_object
 
