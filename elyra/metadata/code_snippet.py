@@ -61,7 +61,10 @@ class ListCodeSnippets(AppUtilMixin, Application):
 
     def start(self):
         include_invalid = not self.valid_only
-        code_snippets = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
+        try:
+            code_snippets = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
+        except:
+            code_snippets = None
 
         if not code_snippets:
             print("No metadata available for code snippets at : '{}'"
@@ -118,7 +121,7 @@ class RemoveCodeSnippets(AppUtilMixin, Application):
         self._confirm_required("name", self.name)
 
 
-class CodeSnippetMetadataApp(Application):
+class CodeSnippetMetadataApp(AppUtilMixin, Application):
     version = __version__
     name = "jupyter code snippet"
     description = """Manage Jupyter metadata for code snippets."""
