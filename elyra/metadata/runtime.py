@@ -108,7 +108,7 @@ class RemoveRuntime(AppUtilMixin, Application):
         self.metadata_manager.remove(self.name)
 
     def _validate_parameters(self):
-        self._confirm_required("name", self.name)
+        self.confirm_required("name", self.name)
 
 
 class Kfp(AppUtilMixin, Application):
@@ -186,20 +186,20 @@ class Kfp(AppUtilMixin, Application):
             print("Metadata for {} runtime '{}' has been written to: {}".format(self.schema_name, self.name, resource))
         else:
             if ex_msg:
-                self._log_and_exit("The following exception occurred while saving metadata '{}' for {} runtime: {}"
-                                   .format(self.name, self.schema_name, ex_msg), display_help=True)
+                self.log_and_exit("The following exception occurred while saving metadata '{}' for {} runtime: {}"
+                                  .format(self.name, self.schema_name, ex_msg), display_help=True)
             else:
-                self._log_and_exit("A failure occurred while saving metadata '{}' for {} runtime.  Check log output."
-                                   .format(self.name, self.schema_name), display_help=True)
+                self.log_and_exit("A failure occurred while saving metadata '{}' for {} runtime.  Check log output."
+                                  .format(self.name, self.schema_name), display_help=True)
 
     def _validate_parameters(self):
-        self._confirm_required("name", self.name)
-        self._confirm_required("display_name", self.display_name)
-        self._confirm_required("api_endpoint", self.api_endpoint)
-        self._confirm_required("cos_endpoint", self.cos_endpoint)
-        self._confirm_required("cos_username", self.cos_username)
-        self._confirm_required("cos_password", self.cos_password)
-        self._confirm_required("cos_bucket", self.cos_bucket)
+        self.confirm_required("name", self.name)
+        self.confirm_required("display_name", self.display_name)
+        self.confirm_required("api_endpoint", self.api_endpoint)
+        self.confirm_required("cos_endpoint", self.cos_endpoint)
+        self.confirm_required("cos_username", self.cos_username)
+        self.confirm_required("cos_password", self.cos_password)
+        self.confirm_required("cos_bucket", self.cos_bucket)
 
 
 class Airflow(AppUtilMixin, Application):
@@ -221,7 +221,7 @@ class Airflow(AppUtilMixin, Application):
     }
 
     def start(self):
-        self._log_and_exit("Support for airflow pipelines is not implemented at this time.")
+        self.log_and_exit("Support for airflow pipelines is not implemented at this time.")
 
 
 class InstallRuntime(Application):

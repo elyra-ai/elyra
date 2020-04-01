@@ -17,13 +17,13 @@
 
 class AppUtilMixin(object):
 
-    def _log_and_exit(self, msg, exit_status=1, display_help=False):
+    def log_and_exit(self, msg, exit_status=1, display_help=False):
         self.log.error(msg)
         if display_help:
             print()
             self.print_help()
         self.exit(exit_status)
 
-    def _confirm_required(self, name, value):
+    def confirm_required(self, name, value):
         if value is None or len(value) == 0:
-            self._log_and_exit("'{}' is a required parameter.".format(name), display_help=True)
+            self.log_and_exit("'{}' is a required parameter.".format(name), display_help=True)
