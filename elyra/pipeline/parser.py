@@ -39,7 +39,7 @@ class PipelineParser(LoggingConfigurable):
             raise SyntaxError("Invalid pipeline: Could not determine the primary pipeline.")
         if 'pipelines' not in pipeline_definition:
             raise SyntaxError("Invalid pipeline: Pipeline definition not found.")
-        if len(pipeline_definition['pipelines']) > 0:
+        if len(pipeline_definition['pipelines']) > 1:
             raise SyntaxError("Invalid pipeline: Multiple pipelines is not supported (e.g. Supernode).")
 
         pipeline = None
