@@ -29,7 +29,7 @@
           "type": "array"
         }
       },
-      "required": ["description", "language", "code"]
+      "required": ["language", "code"]
     }
   },
   "required": ["schema_name", "display_name"]
