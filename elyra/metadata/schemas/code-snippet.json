@@ -17,6 +17,10 @@
       "description": "Additional data specific to this Code Snippet",
       "type": "object",
       "properties": {
+        "description": {
+          "description": "Code snippet description",
+          "type": "string"
+        },
         "language": {
           "description": "Code snippet implementation language",
           "type": "string"
@@ -25,7 +29,7 @@
           "type": "array"
         }
       },
-      "required": ["language", "code"]
+      "required": ["description", "language", "code"]
     }
   },
   "required": ["schema_name", "display_name"]
