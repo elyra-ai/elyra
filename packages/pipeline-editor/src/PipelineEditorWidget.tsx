@@ -425,7 +425,11 @@ export class PipelineEditor extends React.Component<
     SubmissionHandler.makeGetRequest(
       'api/metadata/runtimes',
       'pipeline',
-      (response: any) =>
+      (response: any) => {
+        if (Object.keys(response.runtimes).length === 0) {
+          return SubmissionHandler.noMetadataError('runtimes');
+        }
+
         showDialog({
           title: 'Run pipeline',
           body: new PipelineSubmissionDialog({ runtimes: response.runtimes }),
@@ -451,7 +455,8 @@ export class PipelineEditor extends React.Component<
             result.value.runtime_config,
             'pipeline'
           );
-        })
+        });
+      }
     );
   }
 

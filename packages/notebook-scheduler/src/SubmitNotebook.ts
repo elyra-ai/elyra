@@ -81,7 +81,11 @@ export class SubmitNotebookButtonExtension
     SubmissionHandler.makeGetRequest(
       'api/metadata/runtimes',
       'pipeline',
-      (response: any) =>
+      (response: any) => {
+        if (Object.keys(response.runtimes).length === 0) {
+          return SubmissionHandler.noMetadataError('runtimes');
+        }
+
         showDialog({
           title: 'Submit notebook',
           body: new SubmitNotebook(envVars, response.runtimes),
@@ -104,7 +108,8 @@ export class SubmitNotebookButtonExtension
             result.value.runtime_config,
             'notebook'
           );
-        })
+        });
+      }
     );
   };
 
