@@ -20,8 +20,10 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import '../style/index.css';
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
-import { ReactWidget } from '@jupyterlab/apputils';
+import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
 import { ExpandableComponent } from './ExpandableComponent';
+import { Message } from '@phosphor/messaging';
+import { Signal } from '@lumino/signaling';
 
 /**
  * The CSS class added to code snippet widget.
@@ -39,24 +41,16 @@ const CODE_SNIPPET_BUTTONS_WRAPPER_CLASS = 'elyra-codeSnippet-buttons';
  * A widget for code-snippet.
  */
 
-class CodeSnippetTable extends React.Component<{}, any> {
-  constructor(props: any) {
-    super(props);
-    this.state = { codeSnippets: [] };
-  }
-
-  async fetchData(): Promise<ICodeSnippet[]> {
-    const codeSnippetManager = new CodeSnippetManager();
-    const codeSnippets: ICodeSnippet[] = await codeSnippetManager.findAll();
-    return codeSnippets;
-  }
-
+class CodeSnippetTable extends React.Component<
+  { codeSnippets: ICodeSnippet[] },
+  {}
+> {
   // TODO: Use code mirror to display code
   // TODO: implement copy to clipboard command
   // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
   renderCodeSnippetsDisplay(): Array<JSX.Element> {
-    const codeSnippetDisplayList: Array<JSX.Element> = this.state.codeSnippets.map(
-      (codeSnippet: any, index: number) => {
+    const codeSnippetDisplayList: Array<JSX.Element> = this.props.codeSnippets.map(
+      (codeSnippet: ICodeSnippet, index: number) => {
         const displayName =
           '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
 
@@ -96,14 +90,6 @@ class CodeSnippetTable extends React.Component<{}, any> {
     return codeSnippetDisplayList;
   }
 
-  componentDidMount(): void {
-    this.fetchData().then((codeSnippets: ICodeSnippet[]) => {
-      this.setState({
-        codeSnippets: codeSnippets
-      });
-    });
-  }
-
   render(): React.ReactElement {
     return (
       <div>
@@ -116,13 +102,33 @@ class CodeSnippetTable extends React.Component<{}, any> {
 }
 
 export class CodeSnippetWidget extends ReactWidget {
+  // A signal to tell CodeSnippetTable component to render the list of code snippets
+  private renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
+
+  // Request code snippets from server
+  async fetchData(): Promise<ICodeSnippet[]> {
+    const codeSnippetManager = new CodeSnippetManager();
+    return await codeSnippetManager.findAll();
+  }
+
+  // Triggered when the widget button on side palette is clicked
+  onAfterShow(msg: Message): void {
+    this.fetchData().then((codeSnippets: ICodeSnippet[]) => {
+      this.renderCodeSnippetsSignal.emit(codeSnippets);
+    });
+  }
+
   render(): React.ReactElement {
     return (
       <div className={CODE_SNIPPETS_CLASS}>
         <header className={CODE_SNIPPETS_HEADER_CLASS}>
           {'</> Code Snippets'}
         </header>
-        <CodeSnippetTable />
+        <UseSignal signal={this.renderCodeSnippetsSignal} initialArgs={[]}>
+          {(_, codeSnippets): React.ReactElement => (
+            <CodeSnippetTable codeSnippets={codeSnippets} />
+          )}
+        </UseSignal>
       </div>
     );
   }
