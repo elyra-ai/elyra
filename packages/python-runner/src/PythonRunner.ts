@@ -18,22 +18,34 @@ import { Kernel } from '@jupyterlab/services';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 
+const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
+
 /**
  * Class: An enhanced Python Script Editor that enables developing and running the script
  */
 export class PythonRunner {
+  id: string;
   kernel: Kernel.IKernel;
   model: CodeEditor.IModel;
   kernelSettings: Kernel.IOptions;
+  startingKernel: boolean;
 
   /**
    * Construct a new runner.
    */
-  constructor(model: CodeEditor.IModel) {
+  constructor(model: CodeEditor.IModel, id: string) {
+    this.id = id;
     this.kernel = null;
     this.model = model;
+    this.startingKernel = false;
   }
 
+  startKernelLock(lock: boolean): void {
+    this.startingKernel = lock;
+    (document.querySelector(
+      '#' + this.id + ' .' + RUN_BUTTON_CLASS
+    ) as HTMLInputElement).disabled = lock;
+  }
   /**
    * Function: Starts a python kernel and executes code from file editor.
    */
@@ -41,12 +53,14 @@ export class PythonRunner {
     kernelSettings: Kernel.IOptions,
     handleKernelMsg: Function
   ): Promise<any> => {
-    if (!this.kernel) {
+    if (!this.kernel && !this.startingKernel) {
       const model = this.model;
       const code: string = model.value.text;
 
       try {
+        this.startKernelLock(true);
         this.kernel = await this.startKernel(kernelSettings);
+        this.startKernelLock(false);
       } catch (e) {
         return showDialog({
           title: 'Error',
