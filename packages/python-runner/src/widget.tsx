@@ -179,6 +179,7 @@ export class PythonFileEditor extends DocumentWidget<
    * Function: Clears existing output area.
    */
   private resetOutputArea = (): void => {
+    this.runner.shutDownKernel();
     // TODO: hide this.layout(), or set its height to 0
     this.dockPanel.hide();
     this.outputAreaWidget.model.clear();
@@ -241,18 +242,19 @@ export class PythonFileEditor extends DocumentWidget<
       outputTab.id = 'tab-python-editor-output';
       outputTab.currentTitle.label = 'Python Console Output';
       outputTab.currentTitle.closable = true;
-      const options = {
-        name: 'stdout',
-        output_type: 'stream',
-        text: ['Waiting for kernel to start...']
-      };
-      this.outputAreaWidget.model.add(options);
-      this.updatePromptText(' ');
-      this.setOutputAreaClasses();
       outputTab.disposed.connect((sender, args) => {
         this.resetOutputArea();
       }, this);
     }
+
+    const options = {
+      name: 'stdout',
+      output_type: 'stream',
+      text: ['Waiting for kernel to start...']
+    };
+    this.outputAreaWidget.model.add(options);
+    this.updatePromptText(' ');
+    this.setOutputAreaClasses();
   };
 
   /**
