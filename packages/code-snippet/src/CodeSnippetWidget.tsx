@@ -48,53 +48,47 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
   // TODO: Use code mirror to display code
   // TODO: implement copy to clipboard command
   // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
-  renderCodeSnippetsDisplay(): Array<JSX.Element> {
-    const codeSnippetDisplayList: Array<JSX.Element> = this.props.codeSnippets.map(
-      (codeSnippet: ICodeSnippet, index: number) => {
-        const displayName =
-          '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
-
-        return (
-          <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
-            <div
-              key={codeSnippet.displayName}
-              className={CODE_SNIPPET_NAME_CLASS}
-            >
-              <ExpandableComponent displayName={displayName}>
-                <pre>{codeSnippet.code.join('\n')}</pre>
-              </ExpandableComponent>
-            </div>
-            <div className={CODE_SNIPPET_BUTTONS_WRAPPER_CLASS}>
-              <div key="copyButton">
-                <button
-                  className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
-                  onClick={(): void => {
-                    console.log('COPY BUTTON CLICKED');
-                  }}
-                ></button>
-              </div>
-              <div key="insertButton">
-                <button
-                  className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
-                  onClick={(): void => {
-                    console.log('INSERT CODE BUTTON CLICKED');
-                  }}
-                ></button>
-              </div>
-            </div>
-          </div>
-        );
-      }
-    );
-
-    return codeSnippetDisplayList;
-  }
 
   render(): React.ReactElement {
+    const renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
+      const displayName =
+        '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
+
+      return (
+        <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
+          <div
+            key={codeSnippet.displayName}
+            className={CODE_SNIPPET_NAME_CLASS}
+          >
+            <ExpandableComponent displayName={displayName}>
+              <pre>{codeSnippet.code.join('\n')}</pre>
+            </ExpandableComponent>
+          </div>
+          <div className={CODE_SNIPPET_BUTTONS_WRAPPER_CLASS}>
+            <div key="copyButton">
+              <button
+                className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
+                onClick={(): void => {
+                  console.log('COPY BUTTON CLICKED');
+                }}
+              ></button>
+            </div>
+            <div key="insertButton">
+              <button
+                className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
+                onClick={(): void => {
+                  console.log('INSERT CODE BUTTON CLICKED');
+                }}
+              ></button>
+            </div>
+          </div>
+        </div>
+      );
+    };
     return (
       <div>
         <div id="codeSnippets">
-          <div>{this.renderCodeSnippetsDisplay()}</div>
+          <div>{this.props.codeSnippets.map(renderCodeSnippet)}</div>
         </div>
       </div>
     );
