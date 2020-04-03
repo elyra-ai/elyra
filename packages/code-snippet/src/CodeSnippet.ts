@@ -32,7 +32,7 @@ export class CodeSnippetManager {
         const allCodeSnippets: ICodeSnippet[] = [];
         SubmissionHandler.makeGetRequest(
           this.codeSnippetEndpoint,
-          'code-snippets',
+          'code snippets',
           (response: any) => {
             const codeSnippetsResponse = response['code-snippets'];
 
