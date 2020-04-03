@@ -96,13 +96,18 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
 }
 
 export class CodeSnippetWidget extends ReactWidget {
-  // A signal to tell CodeSnippetTable component to render the list of code snippets
-  private renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
+  codeSnippetManager: CodeSnippetManager;
+  renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
+
+  constructor() {
+    super();
+    this.codeSnippetManager = new CodeSnippetManager();
+    this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
+  }
 
   // Request code snippets from server
   async fetchData(): Promise<ICodeSnippet[]> {
-    const codeSnippetManager = new CodeSnippetManager();
-    return await codeSnippetManager.findAll();
+    return await this.codeSnippetManager.findAll();
   }
 
   // Triggered when the widget button on side palette is clicked
