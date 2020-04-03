@@ -23,7 +23,7 @@ import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
 import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
 import { ExpandableComponent } from './ExpandableComponent';
 import { Message } from '@phosphor/messaging';
-import { Signal } from '@lumino/signaling';
+import { Signal } from '@phosphor/signaling';
 
 /**
  * The CSS class added to code snippet widget.
