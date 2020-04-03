@@ -41,9 +41,10 @@ const CODE_SNIPPET_BUTTONS_WRAPPER_CLASS = 'elyra-codeSnippet-buttons';
 /**
  * A widget for code-snippet.
  */
-class CodeSnippetTable extends React.Component<{
+interface ICodeSnippetProps {
   codeSnippets: ICodeSnippet[];
-}> {
+}
+class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
   // TODO: Use code mirror to display code
   // TODO: implement copy to clipboard command
   // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
