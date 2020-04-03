@@ -23,7 +23,7 @@
 }
 
 .elyra-downArrow-icon {
-  background-image: url('../../application/style/down-arrow-icon.svg');
+  background-image: var(--down-arrow);
   background-size: 90%;
   width: 20px;
   height: 20px;
