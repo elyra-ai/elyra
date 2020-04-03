@@ -18,34 +18,33 @@ import { Kernel } from '@jupyterlab/services';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 
-const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
-
 /**
  * Class: An enhanced Python Script Editor that enables developing and running the script
  */
 export class PythonRunner {
-  id: string;
   kernel: Kernel.IKernel;
   model: CodeEditor.IModel;
   kernelSettings: Kernel.IOptions;
-  startingKernel: boolean;
+  disableRun: Function;
 
   /**
    * Construct a new runner.
    */
-  constructor(model: CodeEditor.IModel, id: string) {
-    this.id = id;
+  constructor(model: CodeEditor.IModel, disableRun: Function) {
     this.kernel = null;
     this.model = model;
-    this.startingKernel = false;
+    this.disableRun = disableRun;
   }
 
-  startKernelLock(lock: boolean): void {
-    this.startingKernel = lock;
-    (document.querySelector(
-      '#' + this.id + ' .' + RUN_BUTTON_CLASS
-    ) as HTMLInputElement).disabled = lock;
-  }
+  private errorDialog = (errorMsg: string): Promise<Dialog.IResult<string>> => {
+    this.disableRun(false);
+    return showDialog({
+      title: 'Error',
+      body: errorMsg,
+      buttons: [Dialog.okButton()]
+    });
+  };
+
   /**
    * Function: Starts a python kernel and executes code from file editor.
    */
@@ -53,37 +52,31 @@ export class PythonRunner {
     kernelSettings: Kernel.IOptions,
     handleKernelMsg: Function
   ): Promise<any> => {
-    if (!this.kernel && !this.startingKernel) {
+    if (!this.kernel) {
+      this.disableRun(true);
       const model = this.model;
       const code: string = model.value.text;
 
       try {
-        this.startKernelLock(true);
         this.kernel = await this.startKernel(kernelSettings);
-        this.startKernelLock(false);
       } catch (e) {
-        return showDialog({
-          title: 'Error',
-          body: 'Could not start kernel environment to execute script.',
-          buttons: [Dialog.okButton()]
-        });
+        return this.errorDialog(
+          'Could not start kernel environment to execute script.'
+        );
       }
 
       if (!this.kernel) {
         // kernel didn't get started
-        return showDialog({
-          title: 'Error',
-          body: 'Could not start kernel environment to execute script.',
-          buttons: [Dialog.okButton()]
-        });
+        return this.errorDialog(
+          'Failed to start kernel environment to execute script.'
+        );
       } else if (!this.kernel.ready) {
-        // kernel started, but something is not right and
-        // the kernel is not ready
-        return showDialog({
-          title: 'Error',
-          body: 'Kernel environment not ready to execute script.',
-          buttons: [Dialog.okButton()]
-        });
+        // kernel started, but something is wrong and the kernel is not ready
+        // shut down the kernel to unblock the start of a new kernel
+        this.shutDownKernel();
+        return this.errorDialog(
+          'Kernel environment not ready to execute script.'
+        );
       }
 
       const future = this.kernel.requestExecute({ code });
@@ -149,6 +142,7 @@ export class PythonRunner {
       try {
         const tempKernel = this.kernel;
         this.kernel = null;
+        this.disableRun(false);
         await tempKernel.shutdown();
         console.log(name + ' kernel shut down');
       } catch (e) {
