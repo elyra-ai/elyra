@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
+import '../style/index.css';
 import React from 'react';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import '../style/index.css';
-import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
 import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
-import { ExpandableComponent } from './ExpandableComponent';
 import { Message } from '@phosphor/messaging';
 import { Signal } from '@phosphor/signaling';
+
+import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
+import { ExpandableComponent } from './ExpandableComponent';
 
 /**
  * The CSS class added to code snippet widget.
