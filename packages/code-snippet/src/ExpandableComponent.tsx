@@ -29,15 +29,22 @@ const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
 const UP_ICON_CLASS = 'elyra-upArrow-icon';
 
 /**
- * A React component for expandable containers.
+ * Expandable container props.
  */
 export interface IExpandableComponentProps {
   displayName: string;
 }
 
+export interface IExpandableComponentState {
+  expanded: boolean;
+}
+
+/**
+ * A React component for expandable containers.
+ */
 export class ExpandableComponent extends React.Component<
   IExpandableComponentProps,
-  any
+  IExpandableComponentState
 > {
   constructor(props: any) {
     super(props);
