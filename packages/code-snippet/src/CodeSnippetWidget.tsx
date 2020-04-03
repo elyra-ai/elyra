@@ -41,7 +41,6 @@ const CODE_SNIPPET_BUTTONS_WRAPPER_CLASS = 'elyra-codeSnippet-buttons';
 /**
  * A widget for code-snippet.
  */
-
 class CodeSnippetTable extends React.Component<
   { codeSnippets: ICodeSnippet[] },
   {}
