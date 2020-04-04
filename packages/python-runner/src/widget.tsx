@@ -118,7 +118,6 @@ export class PythonFileEditor extends DocumentWidget<
       iconClassName: RUN_ICON_CLASS,
       onClick: this.runPython,
       tooltip: 'Run'
-      // enabled: false
     });
 
     const stopButton = new ToolbarButton({
