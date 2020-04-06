@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import * as React from 'react';
 import '../style/index.css';
 
-/**
- * The CSS class added to code snippet widget.
- */
+import * as React from 'react';
 
+/**
+ * The CSS class for expandable containers.
+ */
 const DETAILS_VISIBLE_CLASS = 'elyra-expandableContainer-details-visible';
 const DETAILS_HIDDEN_CLASS = 'elyra-expandableContainer-details-hidden';
 const DISPLAY_NAME_CLASS = 'elyra-expandableContainer-name';

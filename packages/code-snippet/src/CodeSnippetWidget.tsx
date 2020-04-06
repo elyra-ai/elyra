@@ -15,13 +15,14 @@
  */
 
 import '../style/index.css';
-import React from 'react';
 
+import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
 import { Message } from '@phosphor/messaging';
 import { Signal } from '@phosphor/signaling';
+
+import React from 'react';
 
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
 import { ExpandableComponent } from './ExpandableComponent';
@@ -39,62 +40,67 @@ const CODE_SNIPPET_NAME_CLASS = 'elyra-codeSnippet-name';
 const CODE_SNIPPET_BUTTONS_WRAPPER_CLASS = 'elyra-codeSnippet-buttons';
 
 /**
- * A widget for code-snippet.
+ * CodeSnippetTable props.
  */
 interface ICodeSnippetProps {
   codeSnippets: ICodeSnippet[];
 }
+
+/**
+ * A React Component for code-snippets display list.
+ */
 class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
   // TODO: Use code mirror to display code
   // TODO: implement copy to clipboard command
   // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
 
-  render(): React.ReactElement {
-    const renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
-      const displayName =
-        '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
+  private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
+    const displayName =
+      '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
 
-      return (
-        <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
-          <div
-            key={codeSnippet.displayName}
-            className={CODE_SNIPPET_NAME_CLASS}
-          >
-            <ExpandableComponent displayName={displayName}>
-              <pre>{codeSnippet.code.join('\n')}</pre>
-            </ExpandableComponent>
+    return (
+      <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
+        <div key={codeSnippet.displayName} className={CODE_SNIPPET_NAME_CLASS}>
+          <ExpandableComponent displayName={displayName}>
+            <pre>{codeSnippet.code.join('\n')}</pre>
+          </ExpandableComponent>
+        </div>
+        <div className={CODE_SNIPPET_BUTTONS_WRAPPER_CLASS}>
+          <div key="copyButton">
+            <button
+              className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
+              onClick={(): void => {
+                console.log('COPY BUTTON CLICKED');
+              }}
+            ></button>
           </div>
-          <div className={CODE_SNIPPET_BUTTONS_WRAPPER_CLASS}>
-            <div key="copyButton">
-              <button
-                className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
-                onClick={(): void => {
-                  console.log('COPY BUTTON CLICKED');
-                }}
-              ></button>
-            </div>
-            <div key="insertButton">
-              <button
-                className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
-                onClick={(): void => {
-                  console.log('INSERT CODE BUTTON CLICKED');
-                }}
-              ></button>
-            </div>
+          <div key="insertButton">
+            <button
+              className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
+              onClick={(): void => {
+                console.log('INSERT CODE BUTTON CLICKED');
+              }}
+            ></button>
           </div>
         </div>
-      );
-    };
+      </div>
+    );
+  };
+
+  render(): React.ReactElement {
     return (
       <div>
         <div id="codeSnippets">
-          <div>{this.props.codeSnippets.map(renderCodeSnippet)}</div>
+          <div>{this.props.codeSnippets.map(this.renderCodeSnippet)}</div>
         </div>
       </div>
     );
   }
 }
 
+/**
+ * A widget for Code Snippets.
+ */
 export class CodeSnippetWidget extends ReactWidget {
   codeSnippetManager: CodeSnippetManager;
   renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
