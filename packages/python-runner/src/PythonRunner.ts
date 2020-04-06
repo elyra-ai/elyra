@@ -50,7 +50,7 @@ export class PythonRunner {
       } catch (e) {
         return showDialog({
           title: 'Error',
-          body: 'Could not start kernel environment to execute script.',
+          body: 'Failure occurred starting kernel environment.',
           buttons: [Dialog.okButton()]
         });
       }
