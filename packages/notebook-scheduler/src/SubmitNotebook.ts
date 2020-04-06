@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
-import { JupyterFrontEnd } from '@jupyterlab/application';
-import { JSONObject, JSONValue } from '@phosphor/coreutils';
-import { Widget } from '@phosphor/widgets';
-import { IDisposable } from '@phosphor/disposable';
-
 import {
   FrontendServices,
   NotebookParser,
   SubmissionHandler
 } from '@elyra/application';
-
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { JSONObject, JSONValue } from '@phosphor/coreutils';
+import { IDisposable } from '@phosphor/disposable';
+import { Widget } from '@phosphor/widgets';
 import Utils from './utils';
 
 /**

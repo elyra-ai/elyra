@@ -15,20 +15,31 @@
  */
 
 import {
+  FrontendServices,
+  NotebookParser,
+  SubmissionHandler
+} from '@elyra/application';
+import {
+  CanvasController,
+  CommonCanvas,
+  CommonProperties
+} from '@elyra/canvas';
+import '@elyra/canvas/dist/common-canvas.min.css';
+import {
+  ILayoutRestorer,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin,
-  ILayoutRestorer
+  JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import {
-  ICommandPalette,
-  showDialog,
   Dialog,
+  ICommandPalette,
   ReactWidget,
+  showDialog,
   WidgetTracker
 } from '@jupyterlab/apputils';
 import {
-  DocumentRegistry,
   ABCWidgetFactory,
+  DocumentRegistry,
   DocumentWidget
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
@@ -36,31 +47,16 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { IconRegistry, IIconRegistry } from '@jupyterlab/ui-components';
-
 import { toArray } from '@phosphor/algorithm';
 import { IDragEvent } from '@phosphor/dragdrop';
-import { Widget, PanelLayout } from '@phosphor/widgets';
-
-import {
-  CommonCanvas,
-  CanvasController,
-  CommonProperties
-} from '@elyra/canvas';
-import '@elyra/canvas/dist/common-canvas.min.css';
-import {
-  FrontendServices,
-  NotebookParser,
-  SubmissionHandler
-} from '@elyra/application';
+import { PanelLayout, Widget } from '@phosphor/widgets';
 import 'carbon-components/css/carbon-components.min.css';
+import * as React from 'react';
+import { IntlProvider } from 'react-intl';
 import '../style/index.css';
-
+import * as i18nData from './en.json';
 import * as palette from './palette.json';
 import * as properties from './properties.json';
-import * as i18nData from './en.json';
-import * as React from 'react';
-
-import { IntlProvider } from 'react-intl';
 
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';

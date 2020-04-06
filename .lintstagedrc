@@ -1,4 +1,7 @@
 {
+  "**/*{.ts,.tsx}": [
+    "organize-imports-cli",
+  ],
   "**/*{.ts,.tsx,.js,.jsx,.css,.json}": [
     "prettier --write",
     "git add"

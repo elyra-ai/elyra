@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
-
 import * as React from 'react';
 
 const MESSAGE_DISPLAY = 'elyra-pipelineSubmission-messageDisplay';

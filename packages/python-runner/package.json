@@ -27,6 +27,7 @@
     "build": "tsc",
     "dist": "npm pack .",
     "clean": "rimraf lib && rimraf node_modules && rimraf yarn.lock && rimraf yarn-error.log && rimraf tsconfig.tsbuildinfo",
+    "organize-imports": "organize-imports-cli tsconfig.json",
     "prepare": "npm run clean && npm run build",
     "watch": "tsc -w"
   },
@@ -45,6 +46,7 @@
     "@phosphor/widgets": "^1.8.0"
   },
   "devDependencies": {
+    "organize-imports-cli": "^0.7.0",
     "rimraf": "^2.6.3",
     "typescript": "~3.5.2"
   },

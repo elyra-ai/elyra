@@ -19,10 +19,8 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
-
-import { SubmitNotebookButtonExtension } from './SubmitNotebook';
-
 import '../style/index.css';
+import { SubmitNotebookButtonExtension } from './SubmitNotebook';
 
 const NOTEBOOK_SCHEDULER_NAMESPACE = 'elyra-notebook_scheduler_extension';
 

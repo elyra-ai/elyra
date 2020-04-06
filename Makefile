@@ -53,6 +53,7 @@ lint-server: test-dependencies
 	flake8 elyra
 
 lint-ui:
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run organize-imports
 	yarn run prettier
 	yarn run eslint
 

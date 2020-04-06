@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
 import {
+  ILayoutRestorer,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin,
-  ILayoutRestorer
+  JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { ICommandPalette, WidgetTracker } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { ISettingRegistry } from '@jupyterlab/coreutils';
-import { FileEditor } from '@jupyterlab/fileeditor';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { FileEditor } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
-
 import {
   ITableOfContentsRegistry,
   TableOfContentsRegistry
 } from '@jupyterlab/toc';
-
 import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
-
 import { JSONObject } from '@phosphor/coreutils';
-
-import { PythonFileEditorFactory, PythonFileEditor } from './widget';
+import '../style/index.css';
+import { PythonFileEditor, PythonFileEditorFactory } from './widget';
 
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const PYTHON_FACTORY = 'PyEditor';
