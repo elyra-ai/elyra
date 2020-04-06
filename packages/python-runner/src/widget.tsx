@@ -61,6 +61,7 @@ const OUTPUT_AREA_ERROR_CLASS = 'elyra-PythonEditor-OutputArea-error';
 const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
 const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
+const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
@@ -81,6 +82,7 @@ export class PythonFileEditor extends DocumentWidget<
   private scrollingWidget: ScrollingWidget<OutputArea>;
   private model: any;
   private emptyOutput: boolean;
+  private runDisabled: boolean;
 
   /**
    * Construct a new editor widget.
@@ -91,9 +93,10 @@ export class PythonFileEditor extends DocumentWidget<
     super(options);
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
     this.model = this.content.model;
-    this.runner = new PythonRunner(this.model);
+    this.runner = new PythonRunner(this.model, this.disableRun);
     this.kernelSettings = { name: null };
     this.emptyOutput = true;
+    this.runDisabled = false;
 
     // Add python icon to main tab
     this.title.iconClass = PYTHON_ICON_CLASS;
@@ -111,6 +114,7 @@ export class PythonFileEditor extends DocumentWidget<
     );
 
     const runButton = new ToolbarButton({
+      className: RUN_BUTTON_CLASS,
       iconClassName: RUN_ICON_CLASS,
       onClick: this.runPython,
       tooltip: 'Run'
@@ -118,7 +122,7 @@ export class PythonFileEditor extends DocumentWidget<
 
     const stopButton = new ToolbarButton({
       iconClassName: STOP_ICON_CLASS,
-      onClick: this.runner.shutDownKernel,
+      onClick: this.stopRun,
       tooltip: 'Stop'
     });
 
@@ -170,16 +174,31 @@ export class PythonFileEditor extends DocumentWidget<
    * Function: Clears existing output area and runs python code from file editor.
    */
   private runPython = async (): Promise<void> => {
-    this.resetOutputArea();
-    this.displayOutputArea();
-    this.runner.runPython(this.kernelSettings, this.handleKernelMsg);
+    if (!this.runDisabled) {
+      this.resetOutputArea();
+      this.displayOutputArea();
+      this.runner.runPython(this.kernelSettings, this.handleKernelMsg);
+    }
+  };
+
+  private stopRun = async (): Promise<void> => {
+    this.runner.shutDownKernel();
+    if (!this.dockPanel.isEmpty) {
+      this.updatePromptText(' ');
+    }
+  };
+
+  private disableRun = (disabled: boolean): void => {
+    this.runDisabled = disabled;
+    (document.querySelector(
+      '#' + this.id + ' .' + RUN_BUTTON_CLASS
+    ) as HTMLInputElement).disabled = disabled;
   };
 
   /**
    * Function: Clears existing output area.
    */
   private resetOutputArea = (): void => {
-    this.runner.shutDownKernel();
     // TODO: hide this.layout(), or set its height to 0
     this.dockPanel.hide();
     this.outputAreaWidget.model.clear();
@@ -243,6 +262,7 @@ export class PythonFileEditor extends DocumentWidget<
       outputTab.currentTitle.label = 'Python Console Output';
       outputTab.currentTitle.closable = true;
       outputTab.disposed.connect((sender, args) => {
+        this.stopRun();
         this.resetOutputArea();
       }, this);
     }
