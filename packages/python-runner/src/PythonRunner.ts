@@ -25,14 +25,25 @@ export class PythonRunner {
   kernel: Kernel.IKernel;
   model: CodeEditor.IModel;
   kernelSettings: Kernel.IOptions;
+  disableRun: Function;
 
   /**
    * Construct a new runner.
    */
-  constructor(model: CodeEditor.IModel) {
+  constructor(model: CodeEditor.IModel, disableRun: Function) {
     this.kernel = null;
     this.model = model;
+    this.disableRun = disableRun;
   }
+
+  private errorDialog = (errorMsg: string): Promise<Dialog.IResult<string>> => {
+    this.disableRun(false);
+    return showDialog({
+      title: 'Error',
+      body: errorMsg,
+      buttons: [Dialog.okButton()]
+    });
+  };
 
   /**
    * Function: Starts a python kernel and executes code from file editor.
@@ -42,34 +53,30 @@ export class PythonRunner {
     handleKernelMsg: Function
   ): Promise<any> => {
     if (!this.kernel) {
+      this.disableRun(true);
       const model = this.model;
       const code: string = model.value.text;
 
       try {
         this.kernel = await this.startKernel(kernelSettings);
       } catch (e) {
-        return showDialog({
-          title: 'Error',
-          body: 'Could not start kernel environment to execute script.',
-          buttons: [Dialog.okButton()]
-        });
+        return this.errorDialog(
+          'Could not start kernel environment to execute script.'
+        );
       }
 
       if (!this.kernel) {
         // kernel didn't get started
-        return showDialog({
-          title: 'Error',
-          body: 'Could not start kernel environment to execute script.',
-          buttons: [Dialog.okButton()]
-        });
+        return this.errorDialog(
+          'Failed to start kernel environment to execute script.'
+        );
       } else if (!this.kernel.ready) {
-        // kernel started, but something is not right and
-        // the kernel is not ready
-        return showDialog({
-          title: 'Error',
-          body: 'Kernel environment not ready to execute script.',
-          buttons: [Dialog.okButton()]
-        });
+        // kernel started, but something is wrong and the kernel is not ready
+        // shut down the kernel to unblock the start of a new kernel
+        this.shutDownKernel();
+        return this.errorDialog(
+          'Kernel environment not ready to execute script.'
+        );
       }
 
       const future = this.kernel.requestExecute({ code });
@@ -135,6 +142,7 @@ export class PythonRunner {
       try {
         const tempKernel = this.kernel;
         this.kernel = null;
+        this.disableRun(false);
         await tempKernel.shutdown();
         console.log(name + ' kernel shut down');
       } catch (e) {

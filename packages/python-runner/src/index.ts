@@ -120,7 +120,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Update the setting values. Adapted from fileeditor-extension.
      */
-    function updateSettings(settings: ISettingRegistry.ISettings): void {
+    const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
         ...CodeEditor.defaultConfig,
         ...(settings.get('editorConfig').composite as JSONObject)
@@ -128,27 +128,27 @@ const extension: JupyterFrontEndPlugin<void> = {
 
       // Trigger a refresh of the rendered commands
       app.commands.notifyCommandChanged();
-    }
+    };
 
     /**
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
      */
-    function updateTracker(): void {
+    const updateTracker = (): void => {
       tracker.forEach(widget => {
         updateWidget(widget.content);
       });
-    }
+    };
 
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    function updateWidget(widget: FileEditor): void {
+    const updateWidget = (widget: FileEditor): void => {
       const editor = widget.editor;
       Object.keys(config).forEach((keyStr: string) => {
         const key = keyStr as keyof CodeEditor.IConfig;
         editor.setOption(key, config[key]);
       });
-    }
+    };
 
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
     Promise.all([

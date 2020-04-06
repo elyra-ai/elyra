@@ -8,6 +8,7 @@
     "plugin:react/recommended"
   ],
   "rules": {
+    "func-style": "error",
     "@typescript-eslint/interface-name-prefix": [
       "error",
       { "prefixWithI": "always" }
