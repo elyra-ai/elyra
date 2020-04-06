@@ -47,6 +47,7 @@ import {
   Widget
 } from '@phosphor/widgets';
 import React from 'react';
+
 import '../style/index.css';
 import { PythonRunner } from './PythonRunner';
 

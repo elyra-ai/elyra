@@ -19,6 +19,7 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
+
 import '../style/index.css';
 import { SubmitNotebookButtonExtension } from './SubmitNotebook';
 

@@ -32,6 +32,7 @@
     "eslint": "^6.5.0",
     "eslint-config-prettier": "^6.9.0",
     "eslint-plugin-header": "^3.0.0",
+    "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-react": "^7.18.3",
     "husky": "^2.3.0",
     "lerna": "^3.16.4",

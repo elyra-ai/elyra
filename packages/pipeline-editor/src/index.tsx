@@ -53,6 +53,7 @@ import { PanelLayout, Widget } from '@phosphor/widgets';
 import 'carbon-components/css/carbon-components.min.css';
 import * as React from 'react';
 import { IntlProvider } from 'react-intl';
+
 import '../style/index.css';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';

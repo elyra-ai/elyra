@@ -25,6 +25,7 @@ import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import { JSONObject, JSONValue } from '@phosphor/coreutils';
 import { IDisposable } from '@phosphor/disposable';
 import { Widget } from '@phosphor/widgets';
+
 import Utils from './utils';
 
 /**

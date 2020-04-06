@@ -32,6 +32,7 @@ import {
 } from '@jupyterlab/toc';
 import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
 import { JSONObject } from '@phosphor/coreutils';
+
 import '../style/index.css';
 import { PythonFileEditor, PythonFileEditorFactory } from './widget';
 
