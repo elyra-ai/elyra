@@ -15,7 +15,6 @@
  */
 
 import '../style/index.css';
-import React from 'react';
 
 import { FileEditor } from '@jupyterlab/fileeditor';
 import {
@@ -24,13 +23,7 @@ import {
   DocumentWidget
 } from '@jupyterlab/docregistry';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import {
-  ToolbarButton,
-  ReactWidget,
-  showDialog,
-  Dialog
-} from '@jupyterlab/apputils';
-import { HTMLSelect } from '@jupyterlab/ui-components';
+import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
 import { Kernel } from '@jupyterlab/services';
 import {
   OutputArea,
@@ -50,6 +43,7 @@ import {
   TabBar
 } from '@phosphor/widgets';
 
+import { KernelDropdown } from './KernelDropdown';
 import { PythonRunner } from './PythonRunner';
 
 /**
@@ -63,7 +57,6 @@ const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
 const RUN_ICON_CLASS = 'jp-RunIcon';
 const STOP_ICON_CLASS = 'jp-StopIcon';
-const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const SAVE_ICON_CLASS = 'jp-SaveIcon';
 
@@ -105,10 +98,7 @@ export class PythonFileEditor extends DocumentWidget<
       tooltip: 'Save file contents'
     });
 
-    const dropDown = new CellTypeSwitcher(
-      this.runner,
-      this.updateSelectedKernel
-    );
+    const dropDown = new KernelDropdown(this.runner, this.updateSelectedKernel);
 
     const runButton = new ToolbarButton({
       iconClassName: RUN_ICON_CLASS,
@@ -357,128 +347,6 @@ export class PythonFileEditor extends DocumentWidget<
     //     }
     // });
   };
-}
-
-/**
- * Class: Holds properties for toolbar dropdown.
- */
-class DropDownProps {
-  runner: PythonRunner;
-  updateKernel: Function;
-}
-
-/**
- * Class: Holds kernel state property.
- */
-class DropDownState {
-  kernelSpecs: Kernel.ISpecModels;
-}
-
-/**
- * Class: A toolbar dropdown component populated with available kernel specs.
- */
-class DropDown extends React.Component<DropDownProps, DropDownState> {
-  private updateKernel: Function;
-  private kernelOptionElems: Record<string, any>[];
-
-  /**
-   * Construct a new dropdown widget.
-   */
-  constructor(props: DropDownProps) {
-    super(props);
-    this.state = { kernelSpecs: null };
-    this.updateKernel = this.props.updateKernel;
-    this.kernelOptionElems = [];
-    this.getKernelSPecs();
-  }
-
-  /**
-   * Function: Gets kernel specs and state.
-   */
-  private async getKernelSPecs(): Promise<void> {
-    const specs: Kernel.ISpecModels = await this.props.runner.getKernelSpecs();
-    this.filterPythonKernels(specs);
-
-    // Set kernel to default
-    this.updateKernel(specs.default);
-
-    this.createOptionElems(specs);
-    this.setState({ kernelSpecs: specs });
-  }
-
-  /**
-   * Function: Filters for python kernel specs only.
-   */
-  private filterPythonKernels = (specs: Kernel.ISpecModels): void => {
-    Object.entries(specs.kernelspecs)
-      .filter(entry => entry[1].language !== 'python')
-      .forEach(entry => delete specs.kernelspecs[entry[0]]);
-  };
-
-  /**
-   * Function: Creates drop down options with available python kernel specs.
-   */
-  private createOptionElems = (specs: Kernel.ISpecModels): void => {
-    const kernelNames: string[] = Object.keys(specs.kernelspecs);
-    kernelNames.forEach((specName: string, i: number) => {
-      const elem = React.createElement(
-        'option',
-        { key: i, value: specName },
-        specName
-      );
-      this.kernelOptionElems.push(elem);
-    });
-  };
-
-  /**
-   * Function: Handles kernel selection from dropdown options.
-   */
-  private handleSelection = (event: any): void => {
-    const selection: string = event.target.value;
-    this.updateKernel(selection);
-  };
-
-  render(): React.ReactElement {
-    return this.state.kernelSpecs
-      ? React.createElement(
-          HTMLSelect,
-          {
-            className: DROPDOWN_CLASS,
-            onChange: this.handleSelection.bind(this),
-            iconProps: {
-              icon: (
-                <span className="jp-MaterialIcon jp-DownCaretIcon bp3-icon" />
-              )
-            },
-            defaultValue: this.state.kernelSpecs.default
-          },
-          this.kernelOptionElems
-        )
-      : React.createElement('span', null, 'Fetching kernel specs...');
-  }
-}
-
-/**
- * Class: A CellTypeSwitcher widget that renders the Dropdown component.
- */
-export class CellTypeSwitcher extends ReactWidget {
-  private runner: PythonRunner;
-  private updateKernel: Function;
-
-  /**
-   * Construct a new CellTypeSwitcher widget.
-   */
-  constructor(runner: PythonRunner, updateKernel: Function) {
-    super();
-    this.runner = runner;
-    this.updateKernel = updateKernel;
-  }
-
-  render(): React.ReactElement {
-    return (
-      <DropDown {...{ runner: this.runner, updateKernel: this.updateKernel }} />
-    );
-  }
 }
 
 /**

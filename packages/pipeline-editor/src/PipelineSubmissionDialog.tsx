@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Widget, PanelLayout } from '@phosphor/widgets';
 import { Dialog } from '@jupyterlab/apputils';
+import { Widget, PanelLayout } from '@phosphor/widgets';
 
 /**
  * Class for dialog that pops up for pipeline submission

@@ -38,7 +38,7 @@ import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
 
 import { JSONObject } from '@phosphor/coreutils';
 
-import { PythonFileEditorFactory, PythonFileEditor } from './widget';
+import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
 
 const PYTHON_ICON_CLASS = 'jp-PythonIcon';
 const PYTHON_FACTORY = 'PyEditor';

@@ -42,8 +42,9 @@ import '@elyra/canvas/dist/common-canvas.min.css';
 
 import 'carbon-components/css/carbon-components.min.css';
 
-import * as palette from './palette.json';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
+
+import * as palette from './palette.json';
 import * as properties from './properties.json';
 import * as i18nData from './en.json';
 import * as React from 'react';
