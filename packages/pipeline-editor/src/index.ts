@@ -25,22 +25,14 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IIconRegistry } from '@jupyterlab/ui-components';
-import { PipelineEditorFactory } from './Pipeline';
+import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 
-import '@elyra/canvas/dist/common-canvas.min.css';
-import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-
-const commandIDs = {
-  openPipelineEditor: 'pipeline-editor:open',
-  openDocManager: 'docmanager:open',
-  newDocManager: 'docmanager:new-untitled'
-};
 
 /**
  * Initialization data for the pipeline-editor-extension extension.

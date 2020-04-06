@@ -27,23 +27,23 @@ import { IconRegistry, IIconRegistry } from '@jupyterlab/ui-components';
 
 import { toArray } from '@phosphor/algorithm';
 import { IDragEvent } from '@phosphor/dragdrop';
-import { Widget, PanelLayout } from '@phosphor/widgets';
 
+import {
+  FrontendServices,
+  NotebookParser,
+  SubmissionHandler
+} from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,
   CommonProperties
 } from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {
-  FrontendServices,
-  NotebookParser,
-  SubmissionHandler
-} from '@elyra/application';
+
 import 'carbon-components/css/carbon-components.min.css';
-import '../style/index.css';
 
 import * as palette from './palette.json';
+import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
 import * as i18nData from './en.json';
 import * as React from 'react';
@@ -53,74 +53,14 @@ import { IntlProvider } from 'react-intl';
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
-const commandIDs = {
+export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
 
 /**
- * Class for dialog that pops up for pipeline submission
- */
-export class PipelineSubmissionDialog extends Widget
-  implements Dialog.IBodyWidget<any> {
-  constructor(props: any) {
-    super(props);
-
-    const layout = (this.layout = new PanelLayout());
-    const htmlContent = this.getHtml(props);
-    // Set default runtime to kfp, since list is dynamically generated
-    (htmlContent.getElementsByClassName(
-      'elyra-form-runtime-config'
-    )[0] as HTMLSelectElement).value = 'kfp';
-
-    layout.addWidget(new Widget({ node: htmlContent }));
-  }
-
-  getValue(): any {
-    return {
-      pipeline_name: (document.getElementById(
-        'pipeline_name'
-      ) as HTMLInputElement).value,
-      runtime_config: (document.getElementById(
-        'runtime_config'
-      ) as HTMLInputElement).value
-    };
-  }
-
-  getHtml(props: any): HTMLElement {
-    const htmlContent = document.createElement('div');
-    const br = '<br/>';
-    let runtime_options = '';
-    const runtimes = props['runtimes'];
-
-    for (const key in runtimes) {
-      runtime_options =
-        runtime_options +
-        `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
-    }
-
-    const content =
-      '' +
-      '<label for="pipeline_name">Pipeline Name:</label>' +
-      br +
-      '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>' +
-      br +
-      br +
-      '<label for="runtime_config">Runtime Config:</label>' +
-      br +
-      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">' +
-      runtime_options +
-      '</select>';
-
-    htmlContent.innerHTML = content;
-
-    return htmlContent;
-  }
-}
-
-/**
- * Class for Common Canvas React Component
+ * Wrapper Class for Common Canvas React Component
  */
 export class PipelineEditorWidget extends ReactWidget {
   app: JupyterFrontEnd;
@@ -151,9 +91,9 @@ export class PipelineEditorWidget extends ReactWidget {
 /**
  * A namespace for Pipeline.
  */
-export namespace Pipeline {
+export namespace PipelineEditor {
   /**
-   * The props for Pipeline.
+   * The props for PipelineEditor.
    */
   export interface IProps {
     app: JupyterFrontEnd;
@@ -163,7 +103,7 @@ export namespace Pipeline {
   }
 
   /**
-   * The props for Pipeline.
+   * The props for PipelineEditor.
    */
   export interface IState {
     /**
@@ -178,9 +118,12 @@ export namespace Pipeline {
   }
 }
 
+/**
+ * Class for Common Canvas React Component
+ */
 export class PipelineEditor extends React.Component<
-  Pipeline.IProps,
-  Pipeline.IState
+  PipelineEditor.IProps,
+  PipelineEditor.IState
 > {
   app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
