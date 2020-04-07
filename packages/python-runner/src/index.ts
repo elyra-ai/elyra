@@ -21,13 +21,13 @@ import {
   JupyterFrontEndPlugin,
   ILayoutRestorer
 } from '@jupyterlab/application';
+import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { ISettingRegistry } from '@jupyterlab/coreutils';
-import { FileEditor } from '@jupyterlab/fileeditor';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { FileEditor } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 
 import {
   ITableOfContentsRegistry,
