@@ -48,7 +48,7 @@ class CosClient(LoggingConfigurable):
         self.client = Minio(endpoint=self.endpoint.netloc,
                             access_key=self.access_key,
                             secret_key=self.secret_key,
-                            secure=False)
+                            secure=self.secure)
 
         # Make a bucket with the make_bucket API call.
         try:
