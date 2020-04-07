@@ -68,7 +68,7 @@ export class SubmissionHandler {
 
   static noMetadataError(metadataName: string): Promise<Dialog.IResult<any>> {
     return showDialog({
-      title: 'Error retrieving metadata',
+      title: 'Could not submit',
       body: <p>No {metadataName} metadata has been configured.</p>,
       buttons: [Dialog.okButton()]
     });
