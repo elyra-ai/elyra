@@ -39,6 +39,13 @@
         " * limitations under the License.",
         " "
       ]
+    ],
+    "import/order": [
+      "error",
+      {
+        "alphabetize": { "order": "asc", "caseInsensitive": true },
+        "newlines-between": "always-and-inside-groups"
+      }
     ]
   },
   "overrides": [
@@ -51,7 +58,7 @@
     }
   ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "header"],
+  "plugins": ["@typescript-eslint", "header", "import"],
   "settings": {
     "react": {
       "version": "detect"

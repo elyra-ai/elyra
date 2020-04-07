@@ -16,25 +16,25 @@
 
 import '../style/index.css';
 
-import { FileEditor } from '@jupyterlab/fileeditor';
+import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
+import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
   ABCWidgetFactory,
   DocumentRegistry,
   DocumentWidget
 } from '@jupyterlab/docregistry';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
-import { Kernel } from '@jupyterlab/services';
+import { FileEditor } from '@jupyterlab/fileeditor';
+import { ScrollingWidget } from '@jupyterlab/logconsole';
 import {
   OutputArea,
   OutputAreaModel,
   OutputPrompt
 } from '@jupyterlab/outputarea';
-import { ScrollingWidget } from '@jupyterlab/logconsole';
 import {
   RenderMimeRegistry,
   standardRendererFactories as initialFactories
 } from '@jupyterlab/rendermime';
+import { Kernel } from '@jupyterlab/services';
 import {
   BoxLayout,
   PanelLayout,

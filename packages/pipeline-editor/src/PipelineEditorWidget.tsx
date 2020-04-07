@@ -40,16 +40,18 @@ import {
 } from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
 
+import '@elyra/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
 
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
-import * as palette from './palette.json';
-import * as properties from './properties.json';
-import * as i18nData from './en.json';
 import * as React from 'react';
 
 import { IntlProvider } from 'react-intl';
+
+import * as i18nData from './en.json';
+import * as palette from './palette.json';
+import * as properties from './properties.json';
 
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
