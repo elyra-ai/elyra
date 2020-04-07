@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Kernel } from '@jupyterlab/services';
-import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { Kernel } from '@jupyterlab/services';
 
 /**
  * Class: An enhanced Python Script Editor that enables developing and running the script

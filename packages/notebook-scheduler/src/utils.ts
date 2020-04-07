@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import uuid4 from 'uuid/v4';
+
 import pipeline_template from './pipeline-template.json';
 import { ISubmitNotebookOptions } from './SubmitNotebook';
 

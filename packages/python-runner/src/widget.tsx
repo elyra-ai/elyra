@@ -15,33 +15,32 @@
  */
 
 import '../style/index.css';
-import React from 'react';
 
-import { FileEditor } from '@jupyterlab/fileeditor';
-import {
-  ABCWidgetFactory,
-  DocumentRegistry,
-  DocumentWidget
-} from '@jupyterlab/docregistry';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
   ToolbarButton,
   ReactWidget,
   showDialog,
   Dialog
 } from '@jupyterlab/apputils';
-import { HTMLSelect } from '@jupyterlab/ui-components';
-import { Kernel } from '@jupyterlab/services';
+import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+import {
+  ABCWidgetFactory,
+  DocumentRegistry,
+  DocumentWidget
+} from '@jupyterlab/docregistry';
+import { FileEditor } from '@jupyterlab/fileeditor';
+import { ScrollingWidget } from '@jupyterlab/logconsole';
 import {
   OutputArea,
   OutputAreaModel,
   OutputPrompt
 } from '@jupyterlab/outputarea';
-import { ScrollingWidget } from '@jupyterlab/logconsole';
 import {
   RenderMimeRegistry,
   standardRendererFactories as initialFactories
 } from '@jupyterlab/rendermime';
+import { Kernel } from '@jupyterlab/services';
+import { HTMLSelect } from '@jupyterlab/ui-components';
 import {
   BoxLayout,
   PanelLayout,
@@ -49,6 +48,8 @@ import {
   DockPanel,
   TabBar
 } from '@phosphor/widgets';
+
+import React from 'react';
 
 import { PythonRunner } from './PythonRunner';
 

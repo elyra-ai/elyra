@@ -15,6 +15,17 @@
  */
 
 import {
+  FrontendServices,
+  NotebookParser,
+  SubmissionHandler
+} from '@elyra/application';
+import {
+  CommonCanvas,
+  CanvasController,
+  CommonProperties
+} from '@elyra/canvas';
+
+import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
   ILayoutRestorer
@@ -41,26 +52,17 @@ import { toArray } from '@phosphor/algorithm';
 import { IDragEvent } from '@phosphor/dragdrop';
 import { Widget, PanelLayout } from '@phosphor/widgets';
 
-import {
-  CommonCanvas,
-  CanvasController,
-  CommonProperties
-} from '@elyra/canvas';
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {
-  FrontendServices,
-  NotebookParser,
-  SubmissionHandler
-} from '@elyra/application';
 import 'carbon-components/css/carbon-components.min.css';
 import '../style/index.css';
 
-import * as palette from './palette.json';
-import * as properties from './properties.json';
-import * as i18nData from './en.json';
 import * as React from 'react';
 
 import { IntlProvider } from 'react-intl';
+
+import * as i18nData from './en.json';
+import * as palette from './palette.json';
+import * as properties from './properties.json';
 
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
