@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import React from 'react';
-
 import { ReactWidget } from '@jupyterlab/apputils';
 import { Kernel } from '@jupyterlab/services';
 import { HTMLSelect } from '@jupyterlab/ui-components';
+import React from 'react';
 
 import { PythonRunner } from './PythonRunner';
 

@@ -25,6 +25,7 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IIconRegistry } from '@jupyterlab/ui-components';
+
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 
 import '../style/index.css';
