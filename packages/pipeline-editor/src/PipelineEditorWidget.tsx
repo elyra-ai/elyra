@@ -24,37 +24,24 @@ import {
   CanvasController,
   CommonProperties
 } from '@elyra/canvas';
-
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin,
-  ILayoutRestorer
-} from '@jupyterlab/application';
-import {
-  ICommandPalette,
-  showDialog,
-  Dialog,
-  ReactWidget,
-  WidgetTracker
-} from '@jupyterlab/apputils';
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {
   DocumentRegistry,
   ABCWidgetFactory,
   DocumentWidget
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
-import { ILauncher } from '@jupyterlab/launcher';
-import { IMainMenu } from '@jupyterlab/mainmenu';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { IconRegistry, IIconRegistry } from '@jupyterlab/ui-components';
 
 import { toArray } from '@phosphor/algorithm';
 import { IDragEvent } from '@phosphor/dragdrop';
-import { Widget, PanelLayout } from '@phosphor/widgets';
+
+import '@elyra/canvas/dist/common-canvas.min.css';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
-import '../style/index.css';
 
 import * as React from 'react';
 
@@ -62,83 +49,22 @@ import { IntlProvider } from 'react-intl';
 
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
+import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
 
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
-const PIPELINE_FACTORY = 'Pipeline Editor';
-const PIPELINE = 'pipeline';
-const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
 
-const commandIDs = {
+export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
 
 /**
- * Class for dialog that pops up for pipeline submission
+ * Wrapper Class for Common Canvas React Component
  */
-class PipelineDialog extends Widget implements Dialog.IBodyWidget<any> {
-  constructor(props: any) {
-    super(props);
-
-    const layout = (this.layout = new PanelLayout());
-    const htmlContent = this.getHtml(props);
-    // Set default runtime to kfp, since list is dynamically generated
-    (htmlContent.getElementsByClassName(
-      'elyra-form-runtime-config'
-    )[0] as HTMLSelectElement).value = 'kfp';
-
-    layout.addWidget(new Widget({ node: htmlContent }));
-  }
-
-  getValue(): any {
-    return {
-      pipeline_name: (document.getElementById(
-        'pipeline_name'
-      ) as HTMLInputElement).value,
-      runtime_config: (document.getElementById(
-        'runtime_config'
-      ) as HTMLInputElement).value
-    };
-  }
-
-  getHtml(props: any): HTMLElement {
-    const htmlContent = document.createElement('div');
-    const br = '<br/>';
-    let runtime_options = '';
-    const runtimes = props['runtimes'];
-
-    for (const key in runtimes) {
-      runtime_options =
-        runtime_options +
-        `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
-    }
-
-    const content =
-      '' +
-      '<label for="pipeline_name">Pipeline Name:</label>' +
-      br +
-      '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>' +
-      br +
-      br +
-      '<label for="runtime_config">Runtime Config:</label>' +
-      br +
-      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">' +
-      runtime_options +
-      '</select>';
-
-    htmlContent.innerHTML = content;
-
-    return htmlContent;
-  }
-}
-
-/**
- * Class for Common Canvas React Component
- */
-class Canvas extends ReactWidget {
+export class PipelineEditorWidget extends ReactWidget {
   app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
   context: DocumentRegistry.Context;
@@ -154,7 +80,7 @@ class Canvas extends ReactWidget {
 
   render(): React.ReactElement {
     return (
-      <Pipeline
+      <PipelineEditor
         app={this.app}
         browserFactory={this.browserFactory}
         iconRegistry={this.iconRegistry}
@@ -167,9 +93,9 @@ class Canvas extends ReactWidget {
 /**
  * A namespace for Pipeline.
  */
-namespace Pipeline {
+export namespace PipelineEditor {
   /**
-   * The props for Pipeline.
+   * The props for PipelineEditor.
    */
   export interface IProps {
     app: JupyterFrontEnd;
@@ -179,7 +105,7 @@ namespace Pipeline {
   }
 
   /**
-   * The props for Pipeline.
+   * The props for PipelineEditor.
    */
   export interface IState {
     /**
@@ -194,7 +120,13 @@ namespace Pipeline {
   }
 }
 
-class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
+/**
+ * Class for Common Canvas React Component
+ */
+export class PipelineEditor extends React.Component<
+  PipelineEditor.IProps,
+  PipelineEditor.IState
+> {
   app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
   iconRegistry: IconRegistry;
@@ -496,7 +428,7 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
       (response: any) =>
         showDialog({
           title: 'Run pipeline',
-          body: new PipelineDialog({ runtimes: response.runtimes }),
+          body: new PipelineSubmissionDialog({ runtimes: response.runtimes }),
           buttons: [Dialog.cancelButton(), Dialog.okButton()],
           focusNodeSelector: '#pipeline_name'
         }).then(result => {
@@ -628,7 +560,7 @@ class Pipeline extends React.Component<Pipeline.IProps, Pipeline.IState> {
   }
 }
 
-class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
+export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
   iconRegistry: IconRegistry;
@@ -648,7 +580,7 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       iconRegistry: this.iconRegistry,
       context: context
     };
-    const content = new Canvas(props);
+    const content = new PipelineEditorWidget(props);
     const widget = new DocumentWidget({
       content,
       context,
@@ -659,113 +591,3 @@ class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     return widget;
   }
 }
-
-/**
- * Initialization data for the pipeline-editor-extension extension.
- */
-const extension: JupyterFrontEndPlugin<void> = {
-  id: PIPELINE,
-  autoStart: true,
-  requires: [
-    ICommandPalette,
-    ILauncher,
-    IFileBrowserFactory,
-    ILayoutRestorer,
-    IMainMenu,
-    IIconRegistry
-  ],
-  activate: (
-    app: JupyterFrontEnd,
-    palette: ICommandPalette,
-    launcher: ILauncher,
-    browserFactory: IFileBrowserFactory,
-    restorer: ILayoutRestorer,
-    menu: IMainMenu,
-    iconRegistry: IIconRegistry
-  ) => {
-    console.log('Elyra - pipeline-editor extension is activated!');
-
-    // Set up new widget Factory for .pipeline files
-    const pipelineEditorFactory = new PipelineEditorFactory({
-      name: PIPELINE_FACTORY,
-      fileTypes: [PIPELINE],
-      defaultFor: [PIPELINE],
-      app: app,
-      browserFactory: browserFactory,
-      iconRegistry: iconRegistry
-    });
-
-    // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({
-      name: PIPELINE,
-      extensions: ['.pipeline'],
-      iconClass: PIPELINE_ICON_CLASS
-    });
-    app.docRegistry.addWidgetFactory(pipelineEditorFactory);
-
-    const tracker = new WidgetTracker<DocumentWidget>({
-      namespace: PIPELINE_EDITOR_NAMESPACE
-    });
-
-    pipelineEditorFactory.widgetCreated.connect((sender, widget) => {
-      void tracker.add(widget);
-
-      // Notify the widget tracker if restore data needs to update
-      widget.context.pathChanged.connect(() => {
-        void tracker.save(widget);
-      });
-    });
-
-    // Handle state restoration
-    void restorer.restore(tracker, {
-      command: commandIDs.openDocManager,
-      args: widget => ({
-        path: widget.context.path,
-        factory: PIPELINE_FACTORY
-      }),
-      name: widget => widget.context.path
-    });
-
-    // Add an application command
-    const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
-    app.commands.addCommand(openPipelineEditorCommand, {
-      label: args =>
-        args['isPalette'] ? 'New Pipeline Editor' : 'Pipeline Editor',
-      iconClass: args => (args['isPalette'] ? '' : PIPELINE_ICON_CLASS),
-      execute: () => {
-        // Creates blank file, then opens it in a new window
-        app.commands
-          .execute(commandIDs.newDocManager, {
-            type: 'file',
-            path: browserFactory.defaultBrowser.model.path,
-            ext: '.pipeline'
-          })
-          .then(model => {
-            return app.commands.execute(commandIDs.openDocManager, {
-              path: model.path,
-              factory: PIPELINE_FACTORY
-            });
-          });
-      }
-    });
-    // Add the command to the palette.
-    palette.addItem({
-      command: openPipelineEditorCommand,
-      args: { isPalette: true },
-      category: 'Extensions'
-    });
-    if (launcher) {
-      launcher.add({
-        command: openPipelineEditorCommand,
-        category: 'Other',
-        rank: 3
-      });
-    }
-    // Add new pipeline to the file menu
-    menu.fileMenu.newMenu.addGroup(
-      [{ command: openPipelineEditorCommand }],
-      30
-    );
-  }
-};
-export default extension;
