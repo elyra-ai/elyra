@@ -25,6 +25,7 @@
   "scripts": {
     "build": "tsc",
     "dist": "npm pack .",
+    "clean": "rimraf lib",
     "prepare": "npm run build",
     "watch": "tsc -w"
   },
