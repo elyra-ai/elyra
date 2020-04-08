@@ -1,6 +1,6 @@
 {
   "name": "@elyra/pipeline-editor-extension",
-  "version": "0.9.0-dev",
+  "version": "0.9.0",
   "description": "JupyterLab extension - Visual editor to build Notebook pipelines",
   "keywords": [
     "jupyter",
@@ -31,7 +31,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/application": "^0.9.0-dev",
+    "@elyra/application": "^0.9.0",
     "@elyra/canvas": "6.1.23",
     "@jupyterlab/application": "^1.0.0",
     "@jupyterlab/apputils-extension": "^1.0.0",
