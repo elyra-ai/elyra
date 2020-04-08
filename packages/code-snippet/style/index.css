@@ -1,0 +1,105 @@
+/*
+ * Copyright 2018-2020 IBM Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.elyra-codeSnippet-icon {
+  background-image: url('./code-snippet.svg');
+}
+
+.p-TabBar-tabIcon.jp-SideBar-tabIcon.elyra-codeSnippet-icon {
+  background-size: 30px;
+}
+
+.elyra-downArrow-icon {
+  background-image: var(--down-arrow);
+  background-size: 90%;
+  width: 20px;
+  height: 20px;
+}
+
+.elyra-upArrow-icon {
+  background-image: var(--up-arrow);
+  background-size: 90%;
+  width: 20px;
+  height: 20px;
+}
+
+.elyra-copy-icon {
+  background-image: var(--jp-icon-copy);
+  background-size: 75%;
+  width: 15px;
+  height: 15px;
+}
+
+.elyra-add-icon {
+  background-image: var(--jp-icon-add);
+  background-size: 18px;
+  width: 15px;
+  height: 15px;
+}
+
+.elyra-codeSnippetsHeader {
+  font-weight: bold;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+}
+
+.elyra-codeSnippet-item {
+  display: inline-flex;
+  width: 100%;
+  justify-content: space-between;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.elyra-expandableContainer-name {
+  padding-bottom: 5px;
+  display: inline-flex;
+}
+
+.elyra-expandableContainer-name:hover {
+  background-color: #f5f5f5;
+}
+
+.elyra-button {
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  padding-right: 15px;
+}
+
+.elyra-expandableContainer-details-visible {
+  max-height: 100px;
+  overflow-x: auto;
+  overflow-y: auto;
+  display: block;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.elyra-expandableContainer-details-hidden {
+  display: none;
+}
+
+.elyra-codeSnippet-buttons {
+  display: inline-flex;
+  align-self: baseline;
+}
+
+.elyra-codeSnippet-name {
+  align-self: baseline;
+  width: 100%;
+}
