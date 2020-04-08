@@ -89,3 +89,5 @@ target/
 
 tsconfig.tsbuildinfo
 node_modules
+
+.vscode/
