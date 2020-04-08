@@ -22,32 +22,46 @@
   background-size: 30px;
 }
 
+.elyra-expandableContainer-button {
+  background-color: transparent;
+  vertical-align: middle;
+}
+
+.elyra-expandableContainer-button:hover {
+  cursor: pointer;
+}
+
 .elyra-downArrow-icon {
   background-image: var(--down-arrow);
-  background-size: 90%;
+  background-size: 18px;
+  padding: 0;
   width: 20px;
-  height: 20px;
 }
 
 .elyra-upArrow-icon {
   background-image: var(--up-arrow);
-  background-size: 90%;
+  background-size: 18px;
+  padding: 0;
   width: 20px;
-  height: 20px;
 }
 
 .elyra-copy-icon {
   background-image: var(--jp-icon-copy);
-  background-size: 75%;
-  width: 15px;
-  height: 15px;
+  background-size: 18px;
+  padding: 0;
+  width: 20px;
 }
 
 .elyra-add-icon {
   background-image: var(--jp-icon-add);
   background-size: 18px;
-  width: 15px;
-  height: 15px;
+  padding: 0;
+  width: 20px;
+}
+
+.elyra-copy-icon:hover,
+.elyra-add-icon:hover {
+  background-color: #ffffff;
 }
 
 .elyra-codeSnippetsHeader {
@@ -58,48 +72,63 @@
 }
 
 .elyra-codeSnippet-item {
-  display: inline-flex;
-  width: 100%;
-  justify-content: space-between;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  border-bottom: 1px solid #eeeeee;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.elyra-expandableContainer-title {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  padding: 0px 4px;
+  height: 36px;
+}
+
+.elyra-expandableContainer-title:hover {
+  background-color: #eeeeee;
 }
 
 .elyra-expandableContainer-name {
-  padding-bottom: 5px;
-  display: inline-flex;
+  flex-grow: 1;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .elyra-expandableContainer-name:hover {
-  background-color: #f5f5f5;
+  cursor: pointer;
 }
 
 .elyra-button {
   background-repeat: no-repeat;
   background-position: center;
   border: none;
-  padding-right: 15px;
+  height: 100%;
 }
 
 .elyra-expandableContainer-details-visible {
-  max-height: 100px;
+  max-height: 125px;
   overflow-x: auto;
   overflow-y: auto;
   display: block;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding: 5px;
+  margin: 5px 5px 5px 0;
+  border: 1px solid #eeeeee;
+  border-radius: 2px;
+  background-color: #f6f8fa;
 }
 
 .elyra-expandableContainer-details-hidden {
   display: none;
 }
 
-.elyra-codeSnippet-buttons {
+.elyra-expandableContainer-action-buttons {
   display: inline-flex;
-  align-self: baseline;
-}
-
-.elyra-codeSnippet-name {
-  align-self: baseline;
-  width: 100%;
+  align-self: flex-end;
+  height: 100%;
 }

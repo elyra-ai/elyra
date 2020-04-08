@@ -27,12 +27,16 @@ const DISPLAY_NAME_CLASS = 'elyra-expandableContainer-name';
 const BUTTON_CLASS = 'elyra-button';
 const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
 const UP_ICON_CLASS = 'elyra-upArrow-icon';
+const ACTION_BUTTON_CLASS = 'elyra-expandableContainer-button';
+const TITLE_CLASS = 'elyra-expandableContainer-title';
+const ACTION_BUTTONS_WRAPPER_CLASS = 'elyra-expandableContainer-action-buttons';
 
 /**
  * Expandable container props.
  */
 export interface IExpandableComponentProps {
   displayName: string;
+  actionButtons: { title: string; iconClass: string; onClick: Function }[];
 }
 
 export interface IExpandableComponentState {
@@ -58,12 +62,16 @@ export class ExpandableComponent extends React.Component<
   }
 
   render(): React.ReactElement {
+    const buttonClasses = [BUTTON_CLASS, ACTION_BUTTON_CLASS].join(' ');
+
     return (
       <div>
-        <span>
+        <div key={this.props.displayName} className={TITLE_CLASS}>
           <button
             className={
               BUTTON_CLASS +
+              ' ' +
+              ACTION_BUTTON_CLASS +
               ' ' +
               (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
             }
@@ -71,15 +79,30 @@ export class ExpandableComponent extends React.Component<
               this.toggleDetailsDisplay();
             }}
           ></button>
-        </span>
-        <span
-          className={DISPLAY_NAME_CLASS}
-          onClick={(): void => {
-            this.toggleDetailsDisplay();
-          }}
-        >
-          {this.props.displayName}
-        </span>
+          <span
+            className={DISPLAY_NAME_CLASS}
+            onClick={(): void => {
+              this.toggleDetailsDisplay();
+            }}
+          >
+            {this.props.displayName}
+          </span>
+
+          <div className={ACTION_BUTTONS_WRAPPER_CLASS}>
+            {this.props.actionButtons.map(btn => {
+              return (
+                <button
+                  key={btn.title}
+                  title={btn.title}
+                  className={buttonClasses + ' ' + btn.iconClass}
+                  onClick={(): void => {
+                    btn.onClick();
+                  }}
+                ></button>
+              );
+            })}
+          </div>
+        </div>
         <div
           className={
             this.state.expanded ? DETAILS_VISIBLE_CLASS : DETAILS_HIDDEN_CLASS
