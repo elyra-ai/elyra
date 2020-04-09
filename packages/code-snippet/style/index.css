@@ -31,36 +31,36 @@
   cursor: pointer;
 }
 
-.elyra-downArrow-icon {
-  background-image: var(--down-arrow);
+.elyra-downArrow-icon,
+.elyra-upArrow-icon {
   background-size: 18px;
   padding: 0;
   width: 20px;
 }
 
+.elyra-downArrow-icon {
+  background-image: var(--down-arrow);
+}
+
 .elyra-upArrow-icon {
   background-image: var(--up-arrow);
-  background-size: 18px;
+}
+
+.elyra-expandableContainer-actionButton {
+  background-size: 15px;
   padding: 0;
   width: 20px;
 }
 
 .elyra-copy-icon {
   background-image: var(--jp-icon-copy);
-  background-size: 15px;
-  padding: 0;
-  width: 20px;
 }
 
 .elyra-add-icon {
   background-image: var(--jp-icon-add);
-  background-size: 15px;
-  padding: 0;
-  width: 20px;
 }
 
-.elyra-copy-icon:hover,
-.elyra-add-icon:hover {
+.elyra-expandableContainer-actionButton:hover {
   background-color: #ffffff;
 }
 
@@ -93,11 +93,11 @@
 
 .elyra-expandableContainer-name {
   flex-grow: 1;
-  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 4px 0 4px 2px;
+  line-height: 28px;
 }
 
 .elyra-expandableContainer-name:hover {

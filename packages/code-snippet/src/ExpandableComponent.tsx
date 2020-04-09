@@ -30,6 +30,7 @@ const UP_ICON_CLASS = 'elyra-upArrow-icon';
 const ACTION_BUTTON_CLASS = 'elyra-expandableContainer-button';
 const TITLE_CLASS = 'elyra-expandableContainer-title';
 const ACTION_BUTTONS_WRAPPER_CLASS = 'elyra-expandableContainer-action-buttons';
+const ACTION_BUTTON_COMMON_CLASS = 'elyra-expandableContainer-actionButton';
 
 /**
  * Expandable container props.
@@ -100,7 +101,13 @@ export class ExpandableComponent extends React.Component<
                 <button
                   key={btn.title}
                   title={btn.title}
-                  className={buttonClasses + ' ' + btn.iconClass}
+                  className={
+                    buttonClasses +
+                    ' ' +
+                    ACTION_BUTTON_COMMON_CLASS +
+                    ' ' +
+                    btn.iconClass
+                  }
                   onClick={(): void => {
                     btn.onClick();
                   }}
