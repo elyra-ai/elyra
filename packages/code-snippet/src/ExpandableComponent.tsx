@@ -76,9 +76,7 @@ export class ExpandableComponent extends React.Component<
         <div key={this.props.displayName} className={TITLE_CLASS}>
           <button
             className={
-              BUTTON_CLASS +
-              ' ' +
-              ACTION_BUTTON_CLASS +
+              buttonClasses +
               ' ' +
               (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
             }
