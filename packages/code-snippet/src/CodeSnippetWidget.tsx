@@ -76,6 +76,7 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
       <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
         <ExpandableComponent
           displayName={displayName}
+          tooltip={codeSnippet.description}
           actionButtons={actionButtons}
         >
           <pre>{codeSnippet.code.join('\n')}</pre>

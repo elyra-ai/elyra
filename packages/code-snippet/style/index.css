@@ -47,14 +47,14 @@
 
 .elyra-copy-icon {
   background-image: var(--jp-icon-copy);
-  background-size: 18px;
+  background-size: 15px;
   padding: 0;
   width: 20px;
 }
 
 .elyra-add-icon {
   background-image: var(--jp-icon-add);
-  background-size: 18px;
+  background-size: 15px;
   padding: 0;
   width: 20px;
 }
@@ -93,11 +93,11 @@
 
 .elyra-expandableContainer-name {
   flex-grow: 1;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 4px 0 4px 2px;
 }
 
 .elyra-expandableContainer-name:hover {

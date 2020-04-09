@@ -34,9 +34,16 @@ const ACTION_BUTTONS_WRAPPER_CLASS = 'elyra-expandableContainer-action-buttons';
 /**
  * Expandable container props.
  */
+export interface IExpandableActionButton {
+  title: string;
+  iconClass: string;
+  onClick: Function;
+}
+
 export interface IExpandableComponentProps {
   displayName: string;
-  actionButtons: { title: string; iconClass: string; onClick: Function }[];
+  tooltip: string;
+  actionButtons: IExpandableActionButton[];
 }
 
 export interface IExpandableComponentState {
@@ -80,6 +87,7 @@ export class ExpandableComponent extends React.Component<
             }}
           ></button>
           <span
+            title={this.props.tooltip}
             className={DISPLAY_NAME_CLASS}
             onClick={(): void => {
               this.toggleDetailsDisplay();
@@ -89,7 +97,7 @@ export class ExpandableComponent extends React.Component<
           </span>
 
           <div className={ACTION_BUTTONS_WRAPPER_CLASS}>
-            {this.props.actionButtons.map(btn => {
+            {this.props.actionButtons.map((btn: IExpandableActionButton) => {
               return (
                 <button
                   key={btn.title}
