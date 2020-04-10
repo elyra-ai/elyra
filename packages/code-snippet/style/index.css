@@ -93,6 +93,7 @@
 
 .elyra-expandableContainer-name {
   flex-grow: 1;
+  font-size: var(--jp-ui-font-size1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
