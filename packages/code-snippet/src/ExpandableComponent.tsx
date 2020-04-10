@@ -24,13 +24,13 @@ import * as React from 'react';
 const DETAILS_VISIBLE_CLASS = 'elyra-expandableContainer-details-visible';
 const DETAILS_HIDDEN_CLASS = 'elyra-expandableContainer-details-hidden';
 const DISPLAY_NAME_CLASS = 'elyra-expandableContainer-name';
-const BUTTON_CLASS = 'elyra-button';
+const ELYRA_BUTTON_CLASS = 'elyra-button';
 const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
 const UP_ICON_CLASS = 'elyra-upArrow-icon';
-const ACTION_BUTTON_CLASS = 'elyra-expandableContainer-button';
+const BUTTON_CLASS = 'elyra-expandableContainer-button';
 const TITLE_CLASS = 'elyra-expandableContainer-title';
 const ACTION_BUTTONS_WRAPPER_CLASS = 'elyra-expandableContainer-action-buttons';
-const ACTION_BUTTON_COMMON_CLASS = 'elyra-expandableContainer-actionButton';
+const ACTION_BUTTON_CLASS = 'elyra-expandableContainer-actionButton';
 
 /**
  * Expandable container props.
@@ -70,7 +70,7 @@ export class ExpandableComponent extends React.Component<
   }
 
   render(): React.ReactElement {
-    const buttonClasses = [BUTTON_CLASS, ACTION_BUTTON_CLASS].join(' ');
+    const buttonClasses = [ELYRA_BUTTON_CLASS, BUTTON_CLASS].join(' ');
 
     return (
       <div>
@@ -104,7 +104,7 @@ export class ExpandableComponent extends React.Component<
                   className={
                     buttonClasses +
                     ' ' +
-                    ACTION_BUTTON_COMMON_CLASS +
+                    ACTION_BUTTON_CLASS +
                     ' ' +
                     btn.iconClass
                   }
