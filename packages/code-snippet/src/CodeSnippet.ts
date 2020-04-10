@@ -19,6 +19,7 @@ import { SubmissionHandler } from '@elyra/application';
 export interface ICodeSnippet {
   name: string;
   displayName: string;
+  description: string;
   language: string;
   code: string[];
 }
@@ -41,6 +42,7 @@ export class CodeSnippetManager {
               const codeSnippet: ICodeSnippet = {
                 name: jsonCodeSnippet.name,
                 displayName: jsonCodeSnippet.display_name,
+                description: jsonCodeSnippet.metadata.description,
                 language: jsonCodeSnippet.metadata.language,
                 code: jsonCodeSnippet.metadata.code
               };

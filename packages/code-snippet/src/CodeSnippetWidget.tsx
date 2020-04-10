@@ -33,11 +33,8 @@ import { ExpandableComponent } from './ExpandableComponent';
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
-const BUTTON_CLASS = 'elyra-button';
 const COPY_ICON_CLASS = 'elyra-copy-icon';
 const INSERT_ICON_CLASS = 'elyra-add-icon';
-const CODE_SNIPPET_NAME_CLASS = 'elyra-codeSnippet-name';
-const CODE_SNIPPET_BUTTONS_WRAPPER_CLASS = 'elyra-codeSnippet-buttons';
 
 /**
  * CodeSnippetTable props.
@@ -58,31 +55,32 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
     const displayName =
       '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
 
+    const actionButtons = [
+      {
+        title: 'Copy',
+        iconClass: COPY_ICON_CLASS,
+        onClick: (): void => {
+          console.log('COPY BUTTON CLICKED');
+        }
+      },
+      {
+        title: 'Insert',
+        iconClass: INSERT_ICON_CLASS,
+        onClick: (): void => {
+          console.log('INSERT CODE BUTTON CLICKED');
+        }
+      }
+    ];
+
     return (
       <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
-        <div key={codeSnippet.displayName} className={CODE_SNIPPET_NAME_CLASS}>
-          <ExpandableComponent displayName={displayName}>
-            <pre>{codeSnippet.code.join('\n')}</pre>
-          </ExpandableComponent>
-        </div>
-        <div className={CODE_SNIPPET_BUTTONS_WRAPPER_CLASS}>
-          <div key="copyButton">
-            <button
-              className={BUTTON_CLASS + ' ' + COPY_ICON_CLASS}
-              onClick={(): void => {
-                console.log('COPY BUTTON CLICKED');
-              }}
-            ></button>
-          </div>
-          <div key="insertButton">
-            <button
-              className={BUTTON_CLASS + ' ' + INSERT_ICON_CLASS}
-              onClick={(): void => {
-                console.log('INSERT CODE BUTTON CLICKED');
-              }}
-            ></button>
-          </div>
-        </div>
+        <ExpandableComponent
+          displayName={displayName}
+          tooltip={codeSnippet.description}
+          actionButtons={actionButtons}
+        >
+          <pre>{codeSnippet.code.join('\n')}</pre>
+        </ExpandableComponent>
       </div>
     );
   };
