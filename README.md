@@ -35,6 +35,7 @@ Elyra currently includes:
 * [Notebook versioning based on git integration](#notebook-versioning-based-on-git-integration)
 * [Notebook navigation using auto-generated **Table of Contents**](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
+* [Add custom Code Snippets - Experimental](#code-snippets)
 
 ![Elyra](docs/source/images/elyra-main-page.png)
 
@@ -106,6 +107,37 @@ Elyra introduces a 'shared configuration service' that simplifies workspace conf
 enabling things like external runtime access details to be configured once and shared
 across multiple components.  
 
+#### Add custom Code Snippets - Experimental
+
+Elyra supports a beta version of **Code Snippet** feature. 
+Allowing users to add custom pieces of code that can be reused can make programming in JupyterLab much more efficient 
+and reduce repetitive work.
+
+![Code Snippets](docs/source/images/code-snippets.png)
+
+Currently, code snippets can be added as json files in your local Jupyter Data directory under `metadata/code-snippets` subdirectory.
+Here is a content sample of a snippet json file:
+```json
+{
+	"schema_name": "code-snippet",
+	"display_name": "is_even",
+	"metadata": {
+		"description": "Check if number is even",
+		"language": "python",
+		"code": [
+			"def is_even(num):",
+			"   return num % 2 == 0"
+		]
+	}
+}
+```
+NOTE: code field content is split by line
+
+The extension then retrieves the data and displays a list of code snippets,
+which can be individually expanded on click for easy access of the code content.
+The snippet can be manually copied from the viewer into the editor.
+
+![Code Snippet Sample](docs/source/images/code-snippet-expanded.png)
 ----
 
 ## Installation
