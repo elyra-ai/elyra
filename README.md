@@ -32,7 +32,7 @@ Elyra currently includes:
 * [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
 * [Hybrid runtime support](#hybrid-runtime-support)
 * [Python script execution capabilities within the editor](#python-script-execution-support)
-* [Reusable Code Snippets (Experimental)](#reusable-code-snippets)
+* [Reusable Code Snippets (Experimental)](#reusable-code-snippets-experimental)
 * [Notebook versioning based on git integration](#notebook-versioning-based-on-git-integration)
 * [Notebook navigation using auto-generated **Table of Contents**](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
@@ -92,31 +92,9 @@ Elyra supports a beta version of the **Code Snippet** feature.
 This allows users to add custom pieces of code that can be reused, making programming in JupyterLab more efficient
 by reducing repetitive work.
 
-![Code Snippets](docs/source/images/code-snippets.png)
+![Code Snippets](docs/source/images/code-snippet-expanded.png)
 
-Currently, code snippets can be added as json files in your local Jupyter Data directory under `metadata/code-snippets` subdirectory.
-Here is a content sample of a snippet json file:
-```json
-{
-	"schema_name": "code-snippet",
-	"display_name": "is_even",
-	"metadata": {
-		"description": "Check if number is even",
-		"language": "python",
-		"code": [
-			"def is_even(num):",
-			"   return num % 2 == 0"
-		]
-	}
-}
-```
-NOTE: code field content is split by line
-
-The extension then retrieves the data and displays a list of code snippets,
-which can be individually expanded on click for easy access of the code content.
-The snippet can be manually copied from the viewer into the editor.
-
-![Code Snippet Sample](docs/source/images/code-snippet-expanded.png)
+For more information on how to configure code snippets metadata see [Elyra Code Snippets](https://github.com/elyra-ai/elyra/blob/master/docs/dev/code-snippets.md)
 
 #### Notebook versioning based on git integration
 

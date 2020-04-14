@@ -22,7 +22,7 @@ The ability to reuse pieces of code allows users to avoid doing repetitive work,
 making the programming workflow much more simple and productive.
 Elyra supports custom code snippets that can be added to the file editor.
 
-![Code Snippet Sample](../source/images/code-snippet-expanded.png)
+![Code Snippets](../source/images/code-snippets.png)
 
 ## Code Snippet data
 This extension uses [Elyra Metadata Service](https://github.com/elyra-ai/elyra/blob/master/docs/dev/metadata.md)
@@ -51,6 +51,9 @@ NOTE: `code` field content must be a string array split by line.
 Once code snippet extension is in use, the application component retrieves the metadata from the server 
 through a REST API, and displays each snippet by `display_name` in the extension UI.
 Each snippet item can then be expanded on click, also displaying the `code` content.
+
+![Code Snippet Sample](../source/images/code-snippet-expanded.png)
+
 Currently, the application does not support full integration of adding the code into the editor by
 clicking the `+` button, although it does allow the user to manually copy the snippet and paste it
 in the editor.
