@@ -40,6 +40,10 @@ class KfpPipelineProcessor(PipelineProcessor):
     def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
+        # pipeline_file_type = pipeline.file_type
+        # pipeline_export = pipeline.export
+        pipeline_export = True
+        pipeline_file_type = ""
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
 
@@ -136,36 +140,36 @@ class KfpPipelineProcessor(PipelineProcessor):
                     dependency_op = notebook_ops[dependency]  # Parent Operation
                     op.after(dependency_op)
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            pipeline_path = temp_dir + '/' + pipeline_name + '.tar.gz'
+        if pipeline_export:
+            # Export to current working dir
+            self._create_pipeline_file(cc_pipeline, pipeline_name, pipeline_file_type, os.getcwd())
+        else:
+            with tempfile.TemporaryDirectory() as temp_dir:
 
-            self.log.info("Pipeline : %s", pipeline_name)
-            self.log.debug("Creating temp directory %s", temp_dir)
+                self.log.info("Pipeline : %s", pipeline_name)
+                self.log.debug("Creating temp directory %s", temp_dir)
 
-            # Compile the new pipeline
-            try:
-                kfp.compiler.Compiler().compile(cc_pipeline, pipeline_path)
-            except MaxRetryError:
-                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
-            except Exception as ex:
-                raise RuntimeError('Error compiling pipeline {} at {}'.
-                                   format(pipeline_name, pipeline_path), str(ex))
+                # Compile the new pipeline
+                pipeline_path = self._create_pipeline_file(cc_pipeline, pipeline_name, pipeline_file_type, temp_dir)
 
-            self.log.info("Kubeflow Pipeline successfully compiled.")
-            self.log.debug("Kubeflow Pipeline available at %s", pipeline_path)
+                self.log.info("Kubeflow Pipeline successfully compiled.")
+                self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
 
-            # Upload the compiled pipeline and create an experiment and run
-            client = kfp.Client(host=api_endpoint)
-            kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
+                # Upload the compiled pipeline and create an experiment and run
+                client = kfp.Client(host=api_endpoint)
+                try:
+                    kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
+                except MaxRetryError:
+                    raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
 
-            self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
+                self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
-            run = client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
-                                      job_name=timestamp,
-                                      pipeline_id=kfp_pipeline.id)
+                run = client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
+                                          job_name=timestamp,
+                                          pipeline_id=kfp_pipeline.id)
 
-            self.log.info("Starting Kubeflow Pipeline Run...")
-            return "{}/#/runs/details/{}".format(api_endpoint, run.id)
+                self.log.info("Starting Kubeflow Pipeline Run...")
+                return "{}/#/runs/details/{}".format(api_endpoint, run.id)
 
         return None
 
@@ -209,3 +213,29 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.error('Error retrieving runtime configuration for {}'.format(name),
                            exc_info=True)
             raise RuntimeError('Error retrieving runtime configuration for {}', err)
+
+    def _create_pipeline_file(self, func, pipeline_name, pipeline_file_ext, file_path):
+        """
+        :param func: Kubeflow pipeline definition function
+        :param pipeline_name: name of the pipeline file
+        :param pipeline_file_ext: type of extension compile as
+        :param file_path: absolute path to output the pipeline file
+        :return: absolute path to location of the pipeline file
+        """
+        if pipeline_file_ext not in ["tar", "tar.gz", "zip", "yaml", "yml", "py"]:
+            self.log.warn("Pipeline file type not recognized...defaulting to tar.gz")
+            pipeline_file_ext = "tar.gz"
+
+        full_path_to_pipeline = file_path + '/' + pipeline_name + '.' + pipeline_file_ext
+
+        if pipeline_file_ext is not "py":
+            try:
+                kfp.compiler.Compiler().compile(func, full_path_to_pipeline)
+            except Exception as ex:
+                raise RuntimeError('Error compiling pipeline {} at {}'.
+                                   format(pipeline_name, file_path), str(ex))
+        else:
+            self.log.info('Creating pipeline definition as a Python file')
+            # to do
+
+        return full_path_to_pipeline
