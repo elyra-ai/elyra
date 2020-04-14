@@ -220,7 +220,7 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
             this.state.expanded ? ERROR_DETAILS_VISIBLE : ERROR_DETAILS_HIDDEN
           }
         >
-          {this.props.traceback}
+          <pre>{this.props.traceback}</pre>
         </div>
       </div>
     ) : null;
