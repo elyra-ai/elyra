@@ -32,10 +32,10 @@ Elyra currently includes:
 * [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
 * [Hybrid runtime support](#hybrid-runtime-support)
 * [Python script execution capabilities within the editor](#python-script-execution-support)
+* [Reusable Code Snippets (Experimental)](#reusable-code-snippets)
 * [Notebook versioning based on git integration](#notebook-versioning-based-on-git-integration)
 * [Notebook navigation using auto-generated **Table of Contents**](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
-* [Add custom Code Snippets - Experimental](#code-snippets)
 
 ![Elyra](docs/source/images/elyra-main-page.png)
 
@@ -86,32 +86,11 @@ them against local or cloud-based resources seamlessly.
 
 ![Enhanced Python Support](docs/source/images/python-runner.png)
 
-#### Notebook versioning based on git integration
+#### Reusable Code Snippets (Experimental)
 
-The integrated support for git repositories simplify tracking changes, allowing rollback to working versions
-of the code, backups and, most importantly, sharing among team members - fostering productivity by
-enabling a collaborative working environment.
-
-![Git Integration](docs/source/images/git.png)
-
-#### Notebook navigation using auto-generated **Table of Contents**
-
-The enhanced notebook navigation recognizes **markdown** titles, subtitles, etc to auto-generate
-a Notebook **Table of Contents** providing enhanced navigation capabilities. 
-
-![Notebook Table of Contents](docs/source/images/notebook-toc.png)
-
-#### Reusable configuration for runtimes
-
-Elyra introduces a 'shared configuration service' that simplifies workspace configuration management,
-enabling things like external runtime access details to be configured once and shared
-across multiple components.  
-
-#### Add custom Code Snippets - Experimental
-
-Elyra supports a beta version of **Code Snippet** feature. 
-Allowing users to add custom pieces of code that can be reused can make programming in JupyterLab much more efficient 
-and reduce repetitive work.
+Elyra supports a beta version of the **Code Snippet** feature. 
+This allows users to add custom pieces of code that can be reused, making programming in JupyterLab more efficient
+by reducing repetitive work.
 
 ![Code Snippets](docs/source/images/code-snippets.png)
 
@@ -138,6 +117,28 @@ which can be individually expanded on click for easy access of the code content.
 The snippet can be manually copied from the viewer into the editor.
 
 ![Code Snippet Sample](docs/source/images/code-snippet-expanded.png)
+
+#### Notebook versioning based on git integration
+
+The integrated support for git repositories simplify tracking changes, allowing rollback to working versions
+of the code, backups and, most importantly, sharing among team members - fostering productivity by
+enabling a collaborative working environment.
+
+![Git Integration](docs/source/images/git.png)
+
+#### Notebook navigation using auto-generated **Table of Contents**
+
+The enhanced notebook navigation recognizes **markdown** titles, subtitles, etc to auto-generate
+a Notebook **Table of Contents** providing enhanced navigation capabilities. 
+
+![Notebook Table of Contents](docs/source/images/notebook-toc.png)
+
+#### Reusable configuration for runtimes
+
+Elyra introduces a 'shared configuration service' that simplifies workspace configuration management,
+enabling things like external runtime access details to be configured once and shared
+across multiple components.  
+
 ----
 
 ## Installation

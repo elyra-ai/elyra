@@ -25,8 +25,11 @@ Elyra supports custom code snippets that can be added to the file editor.
 ![Code Snippet Sample](../source/images/code-snippet-expanded.png)
 
 ## Code Snippet data
-Snippets are stored as json files in `[JUPYTER DATA DIR]/metadata/code-snippets/` 
-and follow a schema defined in [code snippets metadata](https://github.com/elyra-ai/elyra/blob/master/elyra/metadata/schemas/code-snippet.json)
+This extension uses [Elyra Metadata Service](https://github.com/elyra-ai/elyra/blob/master/docs/dev/metadata.md)
+and requires configuring code snippets metadata in order to retrieve and display snippets in the UI.
+To configure metadata for code snippets, locate `[JUPYTER DATA DIR]/metadata/` folder and create the subdirectory `code-snippets/`.
+This is where code snippet json files are stored, following a schema defined in 
+[code snippets metadata](https://github.com/elyra-ai/elyra/blob/master/elyra/metadata/schemas/code-snippet.json)
 
 This is a sample json file:
 ```json
@@ -45,9 +48,9 @@ This is a sample json file:
 ```
 NOTE: `code` field content must be a string array split by line.
 
-Once code snippet extension is in use, the application component retrieves data using **Elyra Metadata Service**
+Once code snippet extension is in use, the application component retrieves the metadata from the server 
 through a REST API, and displays each snippet by `display_name` in the extension UI.
 Each snippet item can then be expanded on click, also displaying the `code` content.
 Currently, the application does not support full integration of adding the code into the editor by
-clicking the `+` button, although it does allow user to manually copy the snippet and paste it
+clicking the `+` button, although it does allow the user to manually copy the snippet and paste it
 in the editor.
