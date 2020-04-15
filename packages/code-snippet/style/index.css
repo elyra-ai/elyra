@@ -64,6 +64,10 @@
   background-color: #ffffff;
 }
 
+.elyra-expandableContainer-actionButton:active {
+  background-color: #eeeeee;
+}
+
 .elyra-codeSnippetsHeader {
   font-weight: bold;
   padding-top: 10px;
