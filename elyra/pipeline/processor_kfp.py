@@ -40,10 +40,11 @@ class KfpPipelineProcessor(PipelineProcessor):
     def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
-        # pipeline_file_type = pipeline.file_type
-        # pipeline_export = pipeline.export
-        pipeline_export = True
         pipeline_file_type = ""
+        self.log.info('Pipeline object: ' + str(pipeline))
+        pipeline_export = pipeline.export
+        if pipeline_export:
+            pipeline_file_type = pipeline.file_type
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
 
@@ -228,7 +229,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         full_path_to_pipeline = file_path + '/' + pipeline_name + '.' + pipeline_file_ext
 
-        if pipeline_file_ext is not "py":
+        if pipeline_file_ext != "py":
             try:
                 kfp.compiler.Compiler().compile(func, full_path_to_pipeline)
             except Exception as ex:
