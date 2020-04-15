@@ -159,14 +159,17 @@ export class SubmissionHandler {
       (data: any) => {
         const dialogTitle: string =
           'Job submission to ' + runtime_config + ' succeeded';
-        const dialogBody = (
-          <p>
-            Check the status of your run at{' '}
-            <a href={data.url} target="_blank" rel="noopener noreferrer">
-              Run Details
-            </a>
-          </p>
-        );
+        let dialogBody = <p></p>;
+        if (!pipeline.pipelines[0]['app_data']['export']) {
+          dialogBody = (
+            <p>
+              Check the status of your run at{' '}
+              <a href={data.url} target="_blank" rel="noopener noreferrer">
+                Run Details
+              </a>
+            </p>
+          );
+        }
         return showDialog({
           title: dialogTitle,
           body: dialogBody,

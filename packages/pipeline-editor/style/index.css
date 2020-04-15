@@ -46,11 +46,19 @@
   background-size: 43%;
 }
 
+.export .list-item {
+  background-image: url('./export-pipeline.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 30%;
+  fill: #3d70b2;
+}
+
 .new .list-item {
   background-image: url('./new-pipeline.svg');
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 30%;
+  background-size: 35%;
 }
 
 .clear .list-item {

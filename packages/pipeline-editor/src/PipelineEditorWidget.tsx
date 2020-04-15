@@ -185,6 +185,8 @@ export class PipelineEditor extends React.Component<
       { divider: true },
       // { action: 'open', label: 'Open Pipeline', enable: true },
       // { divider: true },
+      { action: 'export', label: 'Export Pipeline', enable: true },
+      { divider: true },
       { action: 'new', label: 'New Pipeline', enable: true },
       { divider: true },
       { action: 'clear', label: 'Clear Pipeline', enable: true },
@@ -421,7 +423,15 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  handleExport(): void {
+    this.submitOrExport(true);
+  }
+
   handleRun(): void {
+    this.submitOrExport(false);
+  }
+
+  submitOrExport(exporting: boolean): void {
     SubmissionHandler.makeGetRequest(
       'api/metadata/runtimes',
       'pipeline',
@@ -432,7 +442,10 @@ export class PipelineEditor extends React.Component<
 
         showDialog({
           title: 'Run pipeline',
-          body: new PipelineSubmissionDialog({ runtimes: response.runtimes }),
+          body: new PipelineSubmissionDialog({
+            exporting,
+            runtimes: response.runtimes
+          }),
           buttons: [Dialog.cancelButton(), Dialog.okButton()],
           focusNodeSelector: '#pipeline_name'
         }).then(result => {
@@ -449,6 +462,12 @@ export class PipelineEditor extends React.Component<
           pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
           pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
             result.value.runtime_config;
+
+          if (result.value.filetype) {
+            pipelineFlow.pipelines[0]['app_data']['file_type'] =
+              result.value.filetype.value;
+          }
+          pipelineFlow.pipelines[0]['app_data']['export'] = exporting;
 
           SubmissionHandler.submitPipeline(
             pipelineFlow,
@@ -506,6 +525,8 @@ export class PipelineEditor extends React.Component<
     if (action == 'run') {
       // When executing the pipeline
       this.handleRun();
+    } else if (action == 'export') {
+      this.handleExport();
     } else if (action == 'save') {
       this.handleSave();
     } else if (action == 'open') {

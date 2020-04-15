@@ -42,7 +42,8 @@ export class PipelineSubmissionDialog extends Widget
       ) as HTMLInputElement).value,
       runtime_config: (document.getElementById(
         'runtime_config'
-      ) as HTMLInputElement).value
+      ) as HTMLInputElement).value,
+      filetype: document.getElementById('pipeline_filetype') as HTMLInputElement
     };
   }
 
@@ -50,7 +51,9 @@ export class PipelineSubmissionDialog extends Widget
     const htmlContent = document.createElement('div');
     const br = '<br/>';
     let runtime_options = '';
+    let filetype_options = '';
     const runtimes = props['runtimes'];
+    const filetypes = ['tar', 'tar.gz', 'zip', 'yaml', 'yml', 'py'];
 
     for (const key in runtimes) {
       runtime_options =
@@ -58,7 +61,12 @@ export class PipelineSubmissionDialog extends Widget
         `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
     }
 
-    const content =
+    filetypes.forEach(filetype => {
+      filetype_options =
+        filetype_options + `<option value="${filetype}">${filetype}</option>`;
+    });
+
+    let content =
       '' +
       '<label for="pipeline_name">Pipeline Name:</label>' +
       br +
@@ -70,6 +78,18 @@ export class PipelineSubmissionDialog extends Widget
       '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">' +
       runtime_options +
       '</select>';
+
+    if (props.exporting) {
+      content =
+        content +
+        br +
+        '<label for="pipeline_filetype">Pipeline File Type:</label>' +
+        br +
+        '<select id="pipeline_filetype" name="pipeline_filetype" class="elyra-form-export-filetype">' +
+        filetype_options +
+        '</select>' +
+        br;
+    }
 
     htmlContent.innerHTML = content;
 
