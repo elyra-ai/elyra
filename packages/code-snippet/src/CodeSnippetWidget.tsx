@@ -16,7 +16,7 @@
 
 import '../style/index.css';
 
-import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
+import { ReactWidget, UseSignal, Clipboard } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Message } from '@phosphor/messaging';
@@ -60,7 +60,7 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
         title: 'Copy',
         iconClass: COPY_ICON_CLASS,
         onClick: (): void => {
-          console.log('COPY BUTTON CLICKED');
+          Clipboard.copyToSystem(codeSnippet.code.join('\n'));
         }
       },
       {
@@ -79,7 +79,7 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
           tooltip={codeSnippet.description}
           actionButtons={actionButtons}
         >
-          <pre>{codeSnippet.code.join('\n')}</pre>
+          <textarea defaultValue={codeSnippet.code.join('\n')}></textarea>
         </ExpandableComponent>
       </div>
     );
