@@ -79,7 +79,7 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
           tooltip={codeSnippet.description}
           actionButtons={actionButtons}
         >
-          <pre>{codeSnippet.code.join('\n')}</pre>
+          <textarea>{codeSnippet.code.join('\n')}</textarea>
         </ExpandableComponent>
       </div>
     );

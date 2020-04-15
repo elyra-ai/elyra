@@ -83,6 +83,18 @@
   padding: 0;
 }
 
+.elyra-codeSnippet-item textarea {
+  background-color: inherit;
+  border: none;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
+  min-height: 125px;
+  height: 100%;
+  width: 100%;
+  resize: vertical;
+}
+
 .elyra-expandableContainer-title {
   align-items: center;
   display: flex;
@@ -117,7 +129,6 @@
 }
 
 .elyra-expandableContainer-details-visible {
-  max-height: 125px;
   overflow-x: auto;
   overflow-y: auto;
   display: block;
