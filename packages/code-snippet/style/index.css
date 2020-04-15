@@ -94,6 +94,8 @@
   width: 100%;
   resize: vertical;
   white-space: pre;
+  word-wrap: normal;
+  overflow-x: scroll;
 }
 
 .elyra-expandableContainer-title {
