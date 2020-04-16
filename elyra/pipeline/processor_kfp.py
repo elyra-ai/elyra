@@ -40,139 +40,164 @@ class KfpPipelineProcessor(PipelineProcessor):
     def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
-        pipeline_file_type = ""
-        self.log.info('Pipeline object: ' + str(pipeline))
-        pipeline_export = pipeline.export
-        if pipeline_export:
-            pipeline_file_type = pipeline.file_type
+
+        runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
+        api_endpoint = runtime_configuration.metadata['api_endpoint']
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pipeline_path = temp_dir + '/' + pipeline_name + '.tar.gz'
+
+            self.log.info("Pipeline : %s", pipeline_name)
+            self.log.debug("Creating temp directory %s", temp_dir)
+
+            # Compile the new pipeline
+            try:
+                pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
+                kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
+            except Exception as ex:
+                raise RuntimeError('Error compiling pipeline {} at {}'.
+                                   format(pipeline_name, pipeline_path), str(ex))
+
+            self.log.info("Kubeflow Pipeline successfully compiled.")
+            self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
+
+            # Upload the compiled pipeline and create an experiment and run
+            client = kfp.Client(host=api_endpoint)
+            try:
+                kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
+            except MaxRetryError:
+                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
+
+            self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
+
+            run = client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
+                                      job_name=timestamp,
+                                      pipeline_id=kfp_pipeline.id)
+
+            self.log.info("Starting Kubeflow Pipeline Run...")
+            return "{}/#/runs/details/{}".format(api_endpoint, run.id)
+
+        return None
+
+    def export(self, pipeline):
+        if pipeline.file_type not in ["tgz", "tar.gz", "zip", "yaml", "yml", "py"]:
+            self.log.warn("Pipeline file type not recognized...defaulting to tar.gz")
+            pipeline_file_ext = "tar.gz"
+        else:
+            pipeline_file_ext = pipeline.file_type
+
+        timestamp = datetime.now().strftime("%m%d%H%M%S")
+        pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
+
+        full_path_to_pipeline = os.getcwd() + '/' + pipeline_name + '.' + pipeline_file_ext
+
+        if pipeline_file_ext != "py":
+            try:
+                pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
+                kfp.compiler.Compiler().compile(pipeline_function, full_path_to_pipeline)
+            except Exception as ex:
+                raise RuntimeError('Error compiling pipeline {} at {}'.
+                                   format(pipeline_name, full_path_to_pipeline), str(ex))
+        else:
+            self.log.info('Creating pipeline definition as a Python file')
+
+        return full_path_to_pipeline
+
+    def _cc_pipeline(self, pipeline, pipeline_name):
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
 
-        api_endpoint = runtime_configuration.metadata['api_endpoint']
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata['cos_username']
         cos_password = runtime_configuration.metadata['cos_password']
         cos_directory = pipeline_name
         bucket_name = runtime_configuration.metadata['cos_bucket']
 
-        def cc_pipeline():
+        # Create dictionary that maps component Id to its ContainerOp instance
+        notebook_ops = {}
 
-            # Create dictionary that maps component Id to its ContainerOp instance
-            notebook_ops = {}
+        # Preprocess the output/input artifacts
+        for pipeline_child_operation in pipeline.operations.values():
+            for dependency in pipeline_child_operation.dependencies:
+                pipeline_parent_operation = pipeline.operations[dependency]
+                if pipeline_parent_operation.outputs:
+                    pipeline_child_operation.inputs = \
+                        pipeline_child_operation.inputs + pipeline_parent_operation.outputs
 
-            # Preprocess the output/input artifacts
-            for pipeline_child_operation in pipeline.operations.values():
-                for dependency in pipeline_child_operation.dependencies:
-                    pipeline_parent_operation = pipeline.operations[dependency]
-                    if pipeline_parent_operation.outputs:
-                        pipeline_child_operation.inputs = \
-                            pipeline_child_operation.inputs + pipeline_parent_operation.outputs
+        for operation in pipeline.operations.values():
+            operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-            for operation in pipeline.operations.values():
-                operation_artifact_archive = self._get_dependency_archive_name(operation)
+            self.log.debug("Creating pipeline component :\n "
+                           "componentID : %s \n "
+                           "name : %s \n "
+                           "dependencies : %s \n "
+                           "file dependencies : %s \n "
+                           "dependencies include subdirectories : %s \n "
+                           "path of workspace : %s \n "
+                           "artifact archive : %s \n "
+                           "inputs : %s \n "
+                           "outputs : %s \n "
+                           "docker image : %s \n ",
+                           operation.id,
+                           operation.title,
+                           operation.dependencies,
+                           operation.file_dependencies,
+                           operation.recursive_dependencies,
+                           operation.artifact,
+                           operation_artifact_archive,
+                           operation.inputs,
+                           operation.outputs,
+                           operation.image)
 
-                self.log.debug("Creating pipeline component :\n "
-                               "componentID : %s \n "
-                               "name : %s \n "
-                               "dependencies : %s \n "
-                               "file dependencies : %s \n "
-                               "dependencies include subdirectories : %s \n "
-                               "path of workspace : %s \n "
-                               "artifact archive : %s \n "
-                               "inputs : %s \n "
-                               "outputs : %s \n "
-                               "docker image : %s \n ",
-                               operation.id,
-                               operation.title,
-                               operation.dependencies,
-                               operation.file_dependencies,
-                               operation.recursive_dependencies,
-                               operation.artifact,
-                               operation_artifact_archive,
-                               operation.inputs,
-                               operation.outputs,
-                               operation.image)
+            # create pipeline operation
+            notebook_op = NotebookOp(name=operation.title,
+                                     notebook=operation.artifact_name,
+                                     cos_endpoint=cos_endpoint,
+                                     cos_bucket=bucket_name,
+                                     cos_directory=cos_directory,
+                                     cos_pull_archive=operation_artifact_archive,
+                                     pipeline_outputs=self._artifact_list_to_str(operation.outputs),
+                                     pipeline_inputs=self._artifact_list_to_str(operation.inputs),
+                                     image=operation.image)
 
-                # create pipeline operation
-                notebook_op = NotebookOp(name=operation.title,
-                                         notebook=operation.artifact_name,
-                                         cos_endpoint=cos_endpoint,
-                                         cos_bucket=bucket_name,
-                                         cos_directory=cos_directory,
-                                         cos_pull_archive=operation_artifact_archive,
-                                         pipeline_outputs=self._artifact_list_to_str(operation.outputs),
-                                         pipeline_inputs=self._artifact_list_to_str(operation.inputs),
-                                         image=operation.image)
+            notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
+            notebook_op.container.add_env_variable(V1EnvVar(name='AWS_SECRET_ACCESS_KEY', value=cos_password))
 
-                notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
-                notebook_op.container.add_env_variable(V1EnvVar(name='AWS_SECRET_ACCESS_KEY', value=cos_password))
+            # Set ENV variables
+            if operation.vars:
+                for env_var in operation.vars:
+                    # Strip any of these special characters from both key and value
+                    # Splits on the first occurrence of '='
+                    result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
+                    # Should be non empty key with a value
+                    if len(result) == 2 and result[0] != '':
+                        notebook_op.container.add_env_variable(V1EnvVar(name=result[0], value=result[1]))
 
-                # Set ENV variables
-                if operation.vars:
-                    for env_var in operation.vars:
-                        # Strip any of these special characters from both key and value
-                        # Splits on the first occurrence of '='
-                        result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
-                        # Should be non empty key with a value
-                        if len(result) == 2 and result[0] != '':
-                            notebook_op.container.add_env_variable(V1EnvVar(name=result[0], value=result[1]))
+            notebook_ops[operation.id] = notebook_op
 
-                notebook_ops[operation.id] = notebook_op
+            self.log.info("NotebookOp Created for Component %s \n", operation.id)
 
-                self.log.info("NotebookOp Created for Component %s \n", operation.id)
+            # upload operation dependencies to object store
+            try:
+                dependency_archive_path = self._generate_dependency_archive(operation)
+                cos_client = CosClient(config=runtime_configuration)
+                cos_client.upload_file_to_dir(dir=cos_directory,
+                                              file_name=operation_artifact_archive,
+                                              file_path=dependency_archive_path)
+            except BaseException:
+                self.log.error("Error uploading artifacts to object storage.", exc_info=True)
+                raise
 
-                # upload operation dependencies to object store
-                try:
-                    dependency_archive_path = self._generate_dependency_archive(operation)
-                    cos_client = CosClient(config=runtime_configuration)
-                    cos_client.upload_file_to_dir(dir=cos_directory,
-                                                  file_name=operation_artifact_archive,
-                                                  file_path=dependency_archive_path)
-                except BaseException:
-                    self.log.error("Error uploading artifacts to object storage.", exc_info=True)
-                    raise
+            self.log.info("Pipeline dependencies have been uploaded to object store")
 
-                self.log.info("Pipeline dependencies have been uploaded to object store")
+        # Process dependencies after all the operations have been created
+        for pipeline_operation in pipeline.operations.values():
+            op = notebook_ops[pipeline_operation.id]
+            for dependency in pipeline_operation.dependencies:
+                dependency_op = notebook_ops[dependency]  # Parent Operation
+                op.after(dependency_op)
 
-            # Process dependencies after all the operations have been created
-            for pipeline_operation in pipeline.operations.values():
-                op = notebook_ops[pipeline_operation.id]
-                for dependency in pipeline_operation.dependencies:
-                    dependency_op = notebook_ops[dependency]  # Parent Operation
-                    op.after(dependency_op)
-
-        if pipeline_export:
-            # Export to current working dir
-            self._create_pipeline_file(cc_pipeline, pipeline_name, pipeline_file_type, os.getcwd())
-        else:
-            with tempfile.TemporaryDirectory() as temp_dir:
-
-                self.log.info("Pipeline : %s", pipeline_name)
-                self.log.debug("Creating temp directory %s", temp_dir)
-
-                # Compile the new pipeline
-                pipeline_path = self._create_pipeline_file(cc_pipeline, pipeline_name, pipeline_file_type, temp_dir)
-
-                self.log.info("Kubeflow Pipeline successfully compiled.")
-                self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
-
-                # Upload the compiled pipeline and create an experiment and run
-                client = kfp.Client(host=api_endpoint)
-                try:
-                    kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
-                except MaxRetryError:
-                    raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
-
-                self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
-
-                run = client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
-                                          job_name=timestamp,
-                                          pipeline_id=kfp_pipeline.id)
-
-                self.log.info("Starting Kubeflow Pipeline Run...")
-                return "{}/#/runs/details/{}".format(api_endpoint, run.id)
-
-        return None
+        return notebook_ops
 
     def _artifact_list_to_str(self, pipeline_array):
         if not pipeline_array:
@@ -214,29 +239,3 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.error('Error retrieving runtime configuration for {}'.format(name),
                            exc_info=True)
             raise RuntimeError('Error retrieving runtime configuration for {}', err)
-
-    def _create_pipeline_file(self, func, pipeline_name, pipeline_file_ext, file_path):
-        """
-        :param func: Kubeflow pipeline definition function
-        :param pipeline_name: name of the pipeline file
-        :param pipeline_file_ext: type of extension compile as
-        :param file_path: absolute path to output the pipeline file
-        :return: absolute path to location of the pipeline file
-        """
-        if pipeline_file_ext not in ["tar", "tar.gz", "zip", "yaml", "yml", "py"]:
-            self.log.warn("Pipeline file type not recognized...defaulting to tar.gz")
-            pipeline_file_ext = "tar.gz"
-
-        full_path_to_pipeline = file_path + '/' + pipeline_name + '.' + pipeline_file_ext
-
-        if pipeline_file_ext != "py":
-            try:
-                kfp.compiler.Compiler().compile(func, full_path_to_pipeline)
-            except Exception as ex:
-                raise RuntimeError('Error compiling pipeline {} at {}'.
-                                   format(pipeline_name, file_path), str(ex))
-        else:
-            self.log.info('Creating pipeline definition as a Python file')
-            # to do
-
-        return full_path_to_pipeline
