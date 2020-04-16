@@ -32,6 +32,7 @@ Elyra currently includes:
 * [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
 * [Hybrid runtime support](#hybrid-runtime-support)
 * [Python script execution capabilities within the editor](#python-script-execution-support)
+* [Reusable Code Snippets (Experimental)](#reusable-code-snippets-experimental)
 * [Notebook versioning based on git integration](#notebook-versioning-based-on-git-integration)
 * [Notebook navigation using auto-generated **Table of Contents**](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
@@ -84,6 +85,16 @@ create python scripts directly from the workspace launcher, and leveraging the
 them against local or cloud-based resources seamlessly.
 
 ![Enhanced Python Support](docs/source/images/python-runner.png)
+
+#### Reusable Code Snippets (Experimental)
+
+Elyra supports a beta version of the **Code Snippet** feature. 
+This allows users to add custom pieces of code that can be reused, making programming in JupyterLab more efficient
+by reducing repetitive work.
+
+![Code Snippets](docs/source/images/code-snippet-expanded.png)
+
+For more information on how to configure code snippets metadata see [Elyra Code Snippets](docs/dev/code-snippets.md)
 
 #### Notebook versioning based on git integration
 
