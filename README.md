@@ -94,7 +94,7 @@ by reducing repetitive work.
 
 ![Code Snippets](docs/source/images/code-snippet-expanded.png)
 
-For more information on how to configure code snippets metadata see [Elyra Code Snippets](https://github.com/elyra-ai/elyra/blob/master/docs/dev/code-snippets.md)
+For more information on how to configure code snippets metadata see [Elyra Code Snippets](docs/dev/code-snippets.md)
 
 #### Notebook versioning based on git integration
 
