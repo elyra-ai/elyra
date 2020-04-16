@@ -53,7 +53,7 @@ export class PipelineSubmissionDialog extends Widget
     let runtime_options = '';
     let filetype_options = '';
     const runtimes = props['runtimes'];
-    const filetypes = ['tar', 'tar.gz', 'zip', 'yaml', 'yml', 'py'];
+    const filetypes = ['tgz', 'tar.gz', 'zip', 'yaml', 'yml', 'py'];
 
     for (const key in runtimes) {
       runtime_options =
