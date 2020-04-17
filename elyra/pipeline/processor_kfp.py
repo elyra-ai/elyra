@@ -83,10 +83,10 @@ class KfpPipelineProcessor(PipelineProcessor):
 
     def export(self, pipeline):
         if pipeline.file_type not in ["tgz", "tar.gz", "zip", "yaml", "yml", "py"]:
-            self.log.warn("Pipeline file type not recognized...defaulting to tar.gz")
-            pipeline_file_ext = "tar.gz"
+            self.log.warn("Pipeline file type not recognized...defaulting to " + pipeline.DEFAULT_FILETYPE)
+            pipeline_file_type = pipeline.DEFAULT_FILETYPE
         else:
-            pipeline_file_ext = pipeline.file_type
+            pipeline_file_type = pipeline.file_type
 
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
@@ -94,9 +94,10 @@ class KfpPipelineProcessor(PipelineProcessor):
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
 
-        full_path_to_pipeline = os.getcwd() + '/' + pipeline_name + '.' + pipeline_file_ext
+        full_path_to_pipeline = os.getcwd() + '/' + pipeline_name + '.' + pipeline_file_type
 
-        if pipeline_file_ext != "py":
+        self.log.info('Creating pipeline definition as a .' + pipeline_file_type + ' file')
+        if pipeline_file_type != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
                 kfp.compiler.Compiler().compile(pipeline_function, full_path_to_pipeline)
@@ -104,8 +105,6 @@ class KfpPipelineProcessor(PipelineProcessor):
                 raise RuntimeError('Error compiling pipeline {} at {}'.
                                    format(pipeline_name, full_path_to_pipeline), str(ex))
         else:
-            self.log.info('Creating pipeline definition as a Python file')
-
             # Load template from installed elyra package
             loader = PackageLoader('elyra', 'templates')
             template_env = Environment(loader=loader)

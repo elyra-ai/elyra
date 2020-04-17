@@ -83,7 +83,7 @@ export class PipelineSubmissionDialog extends Widget
       content =
         content +
         br +
-        '<label for="pipeline_filetype">Pipeline File Type:</label>' +
+        '<label for="pipeline_filetype">Export Pipeline as:</label>' +
         br +
         '<select id="pipeline_filetype" name="pipeline_filetype" class="elyra-form-export-filetype">' +
         filetype_options +

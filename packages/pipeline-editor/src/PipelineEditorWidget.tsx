@@ -443,7 +443,7 @@ export class PipelineEditor extends React.Component<
         showDialog({
           title: 'Run pipeline',
           body: new PipelineSubmissionDialog({
-            exporting,
+            exporting: exporting,
             runtimes: response.runtimes
           }),
           buttons: [Dialog.cancelButton(), Dialog.okButton()],
