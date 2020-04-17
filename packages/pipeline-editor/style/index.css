@@ -50,15 +50,14 @@
   background-image: url('./export-pipeline.svg');
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 30%;
-  fill: #3d70b2;
+  background-size: 33%;
 }
 
 .new .list-item {
   background-image: url('./new-pipeline.svg');
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 35%;
+  background-size: 27%;
 }
 
 .clear .list-item {

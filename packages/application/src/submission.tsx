@@ -157,10 +157,13 @@ export class SubmissionHandler {
       JSON.stringify(pipeline),
       submissionType,
       (data: any) => {
-        const dialogTitle: string =
-          'Job submission to ' + runtime_config + ' succeeded';
+        const exporting = pipeline.pipelines[0]['app_data']['export'];
+        let dialogTitle = '';
         let dialogBody = <p></p>;
-        if (!pipeline.pipelines[0]['app_data']['export']) {
+        if (exporting) {
+          dialogTitle = 'Pipeline export succeeded';
+        } else {
+          dialogTitle = 'Job submission to ' + runtime_config + ' succeeded';
           dialogBody = (
             <p>
               Check the status of your run at{' '}
