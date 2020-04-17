@@ -88,8 +88,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         else:
             pipeline_file_type = pipeline.file_type
 
-        timestamp = datetime.now().strftime("%m%d%H%M%S")
-        pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
+        pipeline_name = (pipeline.title if pipeline.title else 'pipeline')
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
