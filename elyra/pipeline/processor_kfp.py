@@ -102,7 +102,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
                 kfp.compiler.Compiler().compile(pipeline_function, full_path_to_pipeline)
             except Exception as ex:
-                raise RuntimeError('Error compiling pipeline {} at {}'.
+                raise RuntimeError('Error compiling pipeline {} for export at {}'.
                                    format(pipeline_name, full_path_to_pipeline), str(ex))
         else:
             # Load template from installed elyra package
