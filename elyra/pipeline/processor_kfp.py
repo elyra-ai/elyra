@@ -24,6 +24,7 @@ from datetime import datetime
 from elyra.metadata import MetadataManager
 from elyra.metadata.runtime import Runtime
 from elyra.pipeline import PipelineProcessor
+from elyra.pipeline.parser import DEFAULT_FILETYPE
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from kubernetes.client.models import V1EnvVar
@@ -83,8 +84,8 @@ class KfpPipelineProcessor(PipelineProcessor):
 
     def export(self, pipeline):
         if pipeline.file_type not in ["tgz", "tar.gz", "zip", "yaml", "yml", "py"]:
-            self.log.warn("Pipeline file type not recognized...defaulting to " + pipeline.DEFAULT_FILETYPE)
-            pipeline_file_type = pipeline.DEFAULT_FILETYPE
+            self.log.warn("Pipeline file type not recognized...defaulting to " + DEFAULT_FILETYPE)
+            pipeline_file_type = DEFAULT_FILETYPE
         else:
             pipeline_file_type = pipeline.file_type
 
