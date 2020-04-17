@@ -17,6 +17,7 @@
 import kfp
 import os
 import tempfile
+import autopep8
 
 from datetime import datetime
 
@@ -28,6 +29,7 @@ from elyra.util.cos import CosClient
 from kubernetes.client.models import V1EnvVar
 from notebook.pipeline import NotebookOp
 from urllib3.exceptions import MaxRetryError
+from jinja2 import Environment, PackageLoader
 
 
 class KfpPipelineProcessor(PipelineProcessor):
@@ -89,6 +91,9 @@ class KfpPipelineProcessor(PipelineProcessor):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = (pipeline.title if pipeline.title else 'pipeline') + '-' + timestamp
 
+        runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
+        api_endpoint = runtime_configuration.metadata['api_endpoint']
+
         full_path_to_pipeline = os.getcwd() + '/' + pipeline_name + '.' + pipeline_file_ext
 
         if pipeline_file_ext != "py":
@@ -100,6 +105,23 @@ class KfpPipelineProcessor(PipelineProcessor):
                                    format(pipeline_name, full_path_to_pipeline), str(ex))
         else:
             self.log.info('Creating pipeline definition as a Python file')
+
+            # Load template from installed elyra package
+            loader = PackageLoader('elyra', 'templates')
+            template_env = Environment(loader=loader)
+
+            template = template_env.get_template('kfp_template.jinja2')
+
+            defined_pipeline = self._cc_pipeline(pipeline, pipeline_name)
+
+            python_output = template.render(operations_list=defined_pipeline,
+                                            pipeline_name=pipeline_name,
+                                            api_endpoint=api_endpoint,
+                                            pipeline_description="Elyra Pipeline")
+
+            # Write to python file and fix formatting
+            with open(full_path_to_pipeline, "w") as fh:
+                fh.write(autopep8.fix_code(python_output))
 
         return full_path_to_pipeline
 
