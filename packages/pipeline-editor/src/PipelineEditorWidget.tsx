@@ -35,7 +35,7 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { IconRegistry, IIconRegistry } from '@jupyterlab/ui-components';
 
-import { toArray } from '@phosphor/algorithm';
+import { toArray, find } from '@phosphor/algorithm';
 import { IDragEvent } from '@phosphor/dragdrop';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
@@ -423,15 +423,21 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  submitPipelineRequest(
+    runtime_config: any,
+    pipelineFlow: any,
+    exporting: boolean
+  ): void {
+    // TODO: Be more flexible and remove hardcoded runtime type
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
+
+    pipelineFlow.pipelines[0]['app_data']['export'] = exporting;
+
+    SubmissionHandler.submitPipeline(pipelineFlow, runtime_config, 'pipeline');
+  }
+
   handleExport(): void {
-    this.submitOrExport(true);
-  }
-
-  handleRun(): void {
-    this.submitOrExport(false);
-  }
-
-  submitOrExport(exporting: boolean): void {
     SubmissionHandler.makeGetRequest(
       'api/metadata/runtimes',
       'pipeline',
@@ -440,15 +446,10 @@ export class PipelineEditor extends React.Component<
           return SubmissionHandler.noMetadataError('runtimes');
         }
 
-        let title = 'Run pipeline';
-        if (exporting) {
-          title = 'Export pipeline';
-        }
-
         showDialog({
-          title: title,
+          title: 'Export pipeline',
           body: new PipelineSubmissionDialog({
-            exporting: exporting,
+            exporting: true,
             runtimes: response.runtimes
           }),
           buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -461,31 +462,85 @@ export class PipelineEditor extends React.Component<
 
           // prepare pipeline submission details
           const pipelineFlow = this.canvasController.getPipelineFlow();
-          if (exporting) {
-            pipelineFlow.pipelines[0]['app_data'][
-              'title'
-            ] = this.widgetContext.path
-              .split('/')
-              .pop()
-              .split('.')[0];
-            pipelineFlow.pipelines[0]['app_data']['file_type'] =
-              result.value.filetype;
+          const pipeline_filepath = this.widgetContext.path.split('/').pop();
+          const pipeline_name = pipeline_filepath.split('.')[0];
+          const export_filepath = pipeline_name + '.' + result.value.filetype;
+
+          pipelineFlow.pipelines[0]['app_data']['title'] = pipeline_name;
+          pipelineFlow.pipelines[0]['app_data']['file_type'] =
+            result.value.filetype;
+
+          // If the export file already exists in the current directory, warn
+          // the user before replacing that file.
+          const cwdFiles = this.browserFactory.defaultBrowser.model.items();
+          if (
+            find(cwdFiles, (file, _) => {
+              return file.name === export_filepath;
+            })
+          ) {
+            const warningMessage =
+              export_filepath +
+              ' already exists in current directory. Do you want to replace this file?';
+            showDialog({
+              title: warningMessage,
+              buttons: [
+                Dialog.cancelButton(),
+                Dialog.okButton({ label: 'Replace' })
+              ]
+            }).then(warnResult => {
+              if (warnResult.button.accept) {
+                this.submitPipelineRequest(
+                  result.value.runtime_config,
+                  pipelineFlow,
+                  true
+                );
+              }
+            });
           } else {
-            pipelineFlow.pipelines[0]['app_data']['title'] =
-              result.value.pipeline_name;
+            this.submitPipelineRequest(
+              result.value.runtime_config,
+              pipelineFlow,
+              true
+            );
+          }
+        });
+      }
+    );
+  }
+
+  handleRun(): void {
+    SubmissionHandler.makeGetRequest(
+      'api/metadata/runtimes',
+      'pipeline',
+      (response: any) => {
+        if (Object.keys(response.runtimes).length === 0) {
+          return SubmissionHandler.noMetadataError('runtimes');
+        }
+
+        showDialog({
+          title: 'Run pipeline',
+          body: new PipelineSubmissionDialog({
+            exporting: false,
+            runtimes: response.runtimes
+          }),
+          buttons: [Dialog.cancelButton(), Dialog.okButton()],
+          focusNodeSelector: '#pipeline_name'
+        }).then(result => {
+          if (result.value == null) {
+            // When Cancel is clicked on the dialog, just return
+            return;
           }
 
-          // TODO: Be more flexible and remove hardcoded runtime type
-          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-            result.value.runtime_config;
+          // prepare pipeline submission details
+          const pipelineFlow = this.canvasController.getPipelineFlow();
 
-          pipelineFlow.pipelines[0]['app_data']['export'] = exporting;
+          pipelineFlow.pipelines[0]['app_data']['title'] =
+            result.value.pipeline_name;
 
-          SubmissionHandler.submitPipeline(
-            pipelineFlow,
+          this.submitPipelineRequest(
             result.value.runtime_config,
-            'pipeline'
+            pipelineFlow,
+            false
           );
         });
       }
