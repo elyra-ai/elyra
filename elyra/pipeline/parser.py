@@ -58,11 +58,11 @@ class PipelineParser(LoggingConfigurable):
             raise SyntaxError("Invalid pipeline: At least one node must exist in primary pipeline.")
 
         pipeline_object = Pipeline(pipeline['id'],
-                                   __class__._read_pipeline_title(pipeline),
-                                   __class__._read_pipeline_runtime(pipeline),
-                                   __class__._read_pipeline_runtime_config(pipeline),
-                                   __class__._read_pipeline_filetype(pipeline),
-                                   __class__._read_pipeline_export(pipeline))
+                                   PipelineParser._read_pipeline_title(pipeline),
+                                   PipelineParser._read_pipeline_runtime(pipeline),
+                                   PipelineParser._read_pipeline_runtime_config(pipeline),
+                                   PipelineParser._read_pipeline_filetype(pipeline),
+                                   PipelineParser._read_pipeline_export(pipeline))
 
         for node in pipeline['nodes']:
             # Supernodes are not supported
@@ -70,7 +70,7 @@ class PipelineParser(LoggingConfigurable):
                 raise SyntaxError('Invalid pipeline: Supernode feature is not supported.')
 
             # parse links as dependencies
-            links = __class__._read_pipeline_operation_dependencies(node)
+            links = PipelineParser._read_pipeline_operation_dependencies(node)
 
             try:
                 # parse each node as a pipeline operation
