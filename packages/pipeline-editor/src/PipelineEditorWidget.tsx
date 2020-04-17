@@ -440,8 +440,13 @@ export class PipelineEditor extends React.Component<
           return SubmissionHandler.noMetadataError('runtimes');
         }
 
+        let title = 'Run pipeline';
+        if (exporting) {
+          title = 'Export pipeline';
+        }
+
         showDialog({
-          title: 'Run pipeline',
+          title: title,
           body: new PipelineSubmissionDialog({
             exporting: exporting,
             runtimes: response.runtimes
@@ -456,17 +461,25 @@ export class PipelineEditor extends React.Component<
 
           // prepare pipeline submission details
           const pipelineFlow = this.canvasController.getPipelineFlow();
-          pipelineFlow.pipelines[0]['app_data']['title'] =
-            result.value.pipeline_name;
+          if (exporting) {
+            pipelineFlow.pipelines[0]['app_data'][
+              'title'
+            ] = this.widgetContext.path
+              .split('/')
+              .pop()
+              .split('.')[0];
+            pipelineFlow.pipelines[0]['app_data']['file_type'] =
+              result.value.filetype;
+          } else {
+            pipelineFlow.pipelines[0]['app_data']['title'] =
+              result.value.pipeline_name;
+          }
+
           // TODO: Be more flexible and remove hardcoded runtime type
           pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
           pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
             result.value.runtime_config;
 
-          if (result.value.filetype) {
-            pipelineFlow.pipelines[0]['app_data']['file_type'] =
-              result.value.filetype.value;
-          }
           pipelineFlow.pipelines[0]['app_data']['export'] = exporting;
 
           SubmissionHandler.submitPipeline(

@@ -36,15 +36,26 @@ export class PipelineSubmissionDialog extends Widget
   }
 
   getValue(): any {
-    return {
-      pipeline_name: (document.getElementById(
-        'pipeline_name'
-      ) as HTMLInputElement).value,
-      runtime_config: (document.getElementById(
-        'runtime_config'
-      ) as HTMLInputElement).value,
-      filetype: document.getElementById('pipeline_filetype') as HTMLInputElement
-    };
+    const pipeline_name = document.getElementById(
+      'pipeline_name'
+    ) as HTMLInputElement;
+    const runtime_config = (document.getElementById(
+      'runtime_config'
+    ) as HTMLInputElement).value;
+    const pipeline_filetype = document.getElementById(
+      'pipeline_filetype'
+    ) as HTMLInputElement;
+    if (pipeline_filetype != null) {
+      return {
+        runtime_config: runtime_config,
+        filetype: pipeline_filetype.value
+      };
+    } else {
+      return {
+        pipeline_name: pipeline_name.value,
+        runtime_config: runtime_config
+      };
+    }
   }
 
   getHtml(props: any): HTMLElement {
@@ -53,7 +64,7 @@ export class PipelineSubmissionDialog extends Widget
     let runtime_options = '';
     let filetype_options = '';
     const runtimes = props['runtimes'];
-    const filetypes = ['tgz', 'tar.gz', 'zip', 'yaml', 'yml', 'py'];
+    const filetypes = ['tar.gz', 'tgz', 'zip', 'yaml', 'yml', 'py'];
 
     for (const key in runtimes) {
       runtime_options =
@@ -67,12 +78,6 @@ export class PipelineSubmissionDialog extends Widget
     });
 
     let content =
-      '' +
-      '<label for="pipeline_name">Pipeline Name:</label>' +
-      br +
-      '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>' +
-      br +
-      br +
       '<label for="runtime_config">Runtime Config:</label>' +
       br +
       '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">' +
@@ -89,6 +94,14 @@ export class PipelineSubmissionDialog extends Widget
         filetype_options +
         '</select>' +
         br;
+    } else {
+      content =
+        '<label for="pipeline_name">Pipeline Name:</label>' +
+        br +
+        '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>' +
+        br +
+        br +
+        content;
     }
 
     htmlContent.innerHTML = content;
