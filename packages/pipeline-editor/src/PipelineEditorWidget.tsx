@@ -19,6 +19,7 @@ import {
   NotebookParser,
   SubmissionHandler
 } from '@elyra/application';
+import { Path } from '@elyra/application/lib/path';
 import {
   CommonCanvas,
   CanvasController,
@@ -49,6 +50,7 @@ import { IntlProvider } from 'react-intl';
 
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
+import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
 
@@ -448,12 +450,11 @@ export class PipelineEditor extends React.Component<
 
         showDialog({
           title: 'Export pipeline',
-          body: new PipelineSubmissionDialog({
-            exporting: true,
+          body: new PipelineExportDialog({
             runtimes: response.runtimes
           }),
           buttons: [Dialog.cancelButton(), Dialog.okButton()],
-          focusNodeSelector: '#pipeline_name'
+          focusNodeSelector: '#runtime_config'
         }).then(result => {
           if (result.value == null) {
             // When Cancel is clicked on the dialog, just return
@@ -462,13 +463,21 @@ export class PipelineEditor extends React.Component<
 
           // prepare pipeline submission details
           const pipelineFlow = this.canvasController.getPipelineFlow();
-          const pipeline_filepath = this.widgetContext.path.split('/').pop();
-          const pipeline_name = pipeline_filepath.split('.')[0];
-          const export_filepath = pipeline_name + '.' + result.value.filetype;
+          const pipeline_filepath = this.widgetContext.path;
+
+          const pipeline_dir = Path.dirname(pipeline_filepath);
+          const pipeline_name = Path.filename(pipeline_filepath);
+          const export_filepath =
+            pipeline_dir + pipeline_name + '.' + result.value.pipeline_filetype;
+
+          console.log(`pipeline_filepath ${pipeline_filepath}`);
+          console.log(`pipeline_dir ${pipeline_dir}`);
+          console.log(`pipeline_name ${pipeline_name}`);
+          console.log(`export_filepath ${export_filepath}`);
 
           pipelineFlow.pipelines[0]['app_data']['title'] = pipeline_name;
           pipelineFlow.pipelines[0]['app_data']['file_type'] =
-            result.value.filetype;
+            result.value.pipeline_filetype;
 
           // If the export file already exists in the current directory, warn
           // the user before replacing that file.
