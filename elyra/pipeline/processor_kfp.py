@@ -24,7 +24,6 @@ from datetime import datetime
 from elyra.metadata import MetadataManager
 from elyra.metadata.runtime import Runtime
 from elyra.pipeline import PipelineProcessor
-from elyra.pipeline.parser import DEFAULT_FILETYPE
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from kubernetes.client.models import V1EnvVar
@@ -82,22 +81,19 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         return None
 
-    def export(self, pipeline):
-        if pipeline.file_type not in ["tgz", "tar.gz", "zip", "yaml", "yml", "py"]:
-            self.log.warn("Pipeline file type not recognized...defaulting to " + DEFAULT_FILETYPE)
-            pipeline_file_type = DEFAULT_FILETYPE
-        else:
-            pipeline_file_type = pipeline.file_type
+    def export(self, pipeline, pipeline_export_format):
+        if pipeline_export_format not in ["tgz", "tar.gz", "zip", "yaml", "yml", "py"]:
+            raise RuntimeError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
         pipeline_name = (pipeline.title if pipeline.title else 'pipeline')
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
 
-        full_path_to_pipeline = os.getcwd() + '/' + pipeline_name + '.' + pipeline_file_type
+        full_path_to_pipeline = os.getcwd() + '/' + pipeline_name + '.' + pipeline_export_format
 
-        self.log.info('Creating pipeline definition as a .' + pipeline_file_type + ' file')
-        if pipeline_file_type != "py":
+        self.log.info('Creating pipeline definition as a .' + pipeline_export_format + ' file')
+        if pipeline_export_format != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
                 kfp.compiler.Compiler().compile(pipeline_function, full_path_to_pipeline)

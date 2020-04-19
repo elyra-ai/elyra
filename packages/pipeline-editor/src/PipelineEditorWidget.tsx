@@ -53,6 +53,7 @@ import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
+import { PipelineSubmissionHandler } from './submission';
 
 const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -425,16 +426,10 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  submitPipelineRequest(
-    runtime_config: any,
-    pipelineFlow: any,
-    exporting: boolean
-  ): void {
+  submitPipelineRequest(pipelineFlow: any, runtime_config: any): void {
     // TODO: Be more flexible and remove hardcoded runtime type
     pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
     pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
-
-    pipelineFlow.pipelines[0]['app_data']['export'] = exporting;
 
     SubmissionHandler.submitPipeline(pipelineFlow, runtime_config, 'pipeline');
   }
@@ -463,32 +458,30 @@ export class PipelineEditor extends React.Component<
 
           // prepare pipeline submission details
           const pipelineFlow = this.canvasController.getPipelineFlow();
-          const pipeline_filepath = this.widgetContext.path;
+          const pipeline_path = this.widgetContext.path;
 
-          const pipeline_dir = Path.dirname(pipeline_filepath);
-          const pipeline_name = Path.filename(pipeline_filepath);
-          const export_filepath =
+          const pipeline_dir = Path.dirname(pipeline_path);
+          const pipeline_name = Path.filename(pipeline_path);
+          const pipeline_export_path =
             pipeline_dir + pipeline_name + '.' + result.value.pipeline_filetype;
 
-          console.log(`pipeline_filepath ${pipeline_filepath}`);
-          console.log(`pipeline_dir ${pipeline_dir}`);
-          console.log(`pipeline_name ${pipeline_name}`);
-          console.log(`export_filepath ${export_filepath}`);
+          const pipeline_export_format = result.value.pipeline_filetype;
 
           pipelineFlow.pipelines[0]['app_data']['title'] = pipeline_name;
-          pipelineFlow.pipelines[0]['app_data']['file_type'] =
-            result.value.pipeline_filetype;
+          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+            result.value.runtime_config;
 
           // If the export file already exists in the current directory, warn
           // the user before replacing that file.
           const cwdFiles = this.browserFactory.defaultBrowser.model.items();
           if (
             find(cwdFiles, (file, _) => {
-              return file.name === export_filepath;
+              return file.name === pipeline_export_path;
             })
           ) {
             const warningMessage =
-              export_filepath +
+              pipeline_export_path +
               ' already exists in current directory. Do you want to replace this file?';
             showDialog({
               title: warningMessage,
@@ -498,18 +491,16 @@ export class PipelineEditor extends React.Component<
               ]
             }).then(warnResult => {
               if (warnResult.button.accept) {
-                this.submitPipelineRequest(
-                  result.value.runtime_config,
+                PipelineSubmissionHandler.exportPipeline(
                   pipelineFlow,
-                  true
+                  pipeline_export_format
                 );
               }
             });
           } else {
-            this.submitPipelineRequest(
-              result.value.runtime_config,
+            PipelineSubmissionHandler.exportPipeline(
               pipelineFlow,
-              true
+              pipeline_export_format
             );
           }
         });
@@ -546,11 +537,7 @@ export class PipelineEditor extends React.Component<
           pipelineFlow.pipelines[0]['app_data']['title'] =
             result.value.pipeline_name;
 
-          this.submitPipelineRequest(
-            result.value.runtime_config,
-            pipelineFlow,
-            false
-          );
+          this.submitPipelineRequest(pipelineFlow, result.value.runtime_config);
         });
       }
     );
