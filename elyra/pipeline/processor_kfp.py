@@ -83,7 +83,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
     def export(self, pipeline, pipeline_export_format):
         if pipeline_export_format not in ["tgz", "tar.gz", "zip", "yaml", "yml", "py"]:
-            raise RuntimeError("Pipeline export format {} not recognized.".format(pipeline_export_format))
+            raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
         pipeline_name = (pipeline.title if pipeline.title else 'pipeline')
 
