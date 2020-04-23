@@ -19,16 +19,8 @@ describe('PipelineEditor', () => {
     cy.visit('?token=test&reset');
   });
 
-  it('opens launcher with notebook and pipeline abilities', () => {
-    cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click();
-
-    cy.get(
-      '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
-    );
-    cy.get('.jp-LauncherCard[title="Pipeline Editor"]:visible');
-  });
-
   it('opens blank notebook', () => {
+    cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click();
     cy.get(
       '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
     ).click();
@@ -40,11 +32,11 @@ describe('PipelineEditor', () => {
     ).click();
   });
 
-  it('reopens launcher', () => {
-    cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click();
-  });
-
   it('opens pipeline editor', () => {
-    cy.get('.jp-LauncherCard[title="Pipeline Editor"]:visible').click();
+    cy.get(
+      '.p-TabBar-content > [data-id="launcher-0"] > .p-TabBar-tabCloseIcon:visible'
+    ).click({ multiple: true });
+    cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click();
+    cy.get('.jp-Launcher-cardContainer > [title="Pipeline Editor"]').click();
   });
 });
