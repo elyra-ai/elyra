@@ -57,5 +57,8 @@
   },
   "jupyterlab": {
     "extension": true
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
