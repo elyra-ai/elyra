@@ -15,9 +15,11 @@
  */
 
 import {
+  dragDropIcon,
   FrontendServices,
   NotebookParser,
-  SubmissionHandler
+  SubmissionHandler,
+  pipelineIcon
 } from '@elyra/application';
 import {
   CommonCanvas,
@@ -37,18 +39,11 @@ import { notebookIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
-import { Widget, PanelLayout } from '@lumino/widgets';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
-import {
-  dragDropIcon,
-  FrontendServices,
-  NotebookParser,
-  SubmissionHandler,
-  pipelineIcon
-} from '@elyra/application';
+
 import 'carbon-components/css/carbon-components.min.css';
 
 import * as React from 'react';

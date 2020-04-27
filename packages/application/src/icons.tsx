@@ -16,8 +16,8 @@
 
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import dragDropSvg from '../style/dragdrop.svg';
 import elyraSvg from '../style/codait-piebrainlogo-jupyter-color.svg';
+import dragDropSvg from '../style/dragdrop.svg';
 import pipelineSvg from '../style/pipeline-flow.svg';
 
 export const dragDropIcon = new LabIcon({

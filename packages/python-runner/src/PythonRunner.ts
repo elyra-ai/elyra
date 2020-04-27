@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   Kernel,
   KernelManager,
@@ -77,13 +77,6 @@ export class PythonRunner {
         // kernel didn't get started
         return this.errorDialog(
           'Failed to start kernel environment to execute script.'
-        );
-      } else if (!this.kernel.ready) {
-        // kernel started, but something is wrong and the kernel is not ready
-        // shut down the kernel to unblock the start of a new kernel
-        this.shutDownKernel();
-        return this.errorDialog(
-          'Kernel environment not ready to execute script.'
         );
       }
 

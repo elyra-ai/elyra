@@ -31,28 +31,20 @@ import {
   OutputPrompt
 } from '@jupyterlab/outputarea';
 import {
+  RenderMimeRegistry,
+  standardRendererFactories as initialFactories
+} from '@jupyterlab/rendermime';
+import {
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
   DockPanelSvg,
-  HTMLSelect,
   pythonIcon,
   runIcon,
   saveIcon,
   stopIcon,
   TabBarSvg
 } from '@jupyterlab/ui-components';
-import {
-  RenderMimeRegistry,
-  standardRendererFactories as initialFactories
-} from '@jupyterlab/rendermime';
-import { KernelSpec } from '@jupyterlab/services';
-import {
-  BoxLayout,
-  PanelLayout,
-  Widget,
-  DockPanel,
-  TabBar
-} from '@lumino/widgets';
+import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 
 import { KernelDropdown } from './KernelDropdown';
 import { PythonRunner } from './PythonRunner';
@@ -66,12 +58,7 @@ const OUTPUT_AREA_ERROR_CLASS = 'elyra-PythonEditor-OutputArea-error';
 const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
 const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
-const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
 const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
-const RUN_ICON_CLASS = 'jp-RunIcon';
-const STOP_ICON_CLASS = 'jp-StopIcon';
-const PYTHON_ICON_CLASS = 'jp-PythonIcon';
-const SAVE_ICON_CLASS = 'jp-SaveIcon';
 
 /**
  * A widget for python editors.
@@ -113,10 +100,7 @@ export class PythonFileEditor extends DocumentWidget<
       tooltip: 'Save file contents'
     });
 
-    const dropDown = new CellTypeSwitcher(
-      this.runner,
-      this.updateSelectedKernel
-    );
+    const dropDown = new KernelDropdown(this.runner, this.updateSelectedKernel);
 
     const runButton = new ToolbarButton({
       icon: runIcon,
@@ -183,6 +167,7 @@ export class PythonFileEditor extends DocumentWidget<
     if (!this.runDisabled) {
       this.resetOutputArea();
       this.displayOutputArea();
+    }
     this.runner.runPython(this.kernelName, this.handleKernelMsg);
   };
 
