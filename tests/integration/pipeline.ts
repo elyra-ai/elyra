@@ -26,17 +26,17 @@ describe('PipelineEditor', () => {
     ).click();
   });
 
-  it('saves blank notebook', () => {
+  it('saves and closes blank notebook', () => {
     cy.get(
       '[title="Save the notebook contents and create checkpoint"]:visible'
     ).click();
+    cy.get(
+      '.lm-DockPanel-tabBar > .lm-TabBar-content > .lm-TabBar-tab > .lm-TabBar-tabCloseIcon'
+    ).click({ multiple: true });
+    cy.get('.jp-mod-accept').click();
   });
 
   it('opens pipeline editor', () => {
-    cy.get(
-      '.p-TabBar-content > [data-id="launcher-0"] > .p-TabBar-tabCloseIcon:visible'
-    ).click({ multiple: true });
-    cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click();
     cy.get('.jp-Launcher-cardContainer > [title="Pipeline Editor"]')
       .scrollIntoView()
       .click();
