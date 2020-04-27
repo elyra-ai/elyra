@@ -43,7 +43,10 @@ export class PipelineExportDialog extends Widget
 
       pipeline_filetype: (document.getElementById(
         'pipeline_filetype'
-      ) as HTMLInputElement).value
+      ) as HTMLInputElement).value,
+
+      overwrite: (document.getElementById('overwrite') as HTMLInputElement)
+        .checked
     };
   }
 
@@ -78,6 +81,9 @@ export class PipelineExportDialog extends Widget
       '<select id="pipeline_filetype" name="pipeline_filetype" class="elyra-form-export-filetype">' +
       filetype_options +
       '</select>' +
+      br +
+      '<label for="overwrite">Replace if file already exists: </label>' +
+      '<input type="checkbox" id="overwrite"/>' +
       br;
 
     htmlContent.innerHTML = content;
