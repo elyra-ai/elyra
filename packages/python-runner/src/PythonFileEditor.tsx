@@ -103,6 +103,7 @@ export class PythonFileEditor extends DocumentWidget<
     const dropDown = new KernelDropdown(this.runner, this.updateSelectedKernel);
 
     const runButton = new ToolbarButton({
+      className: RUN_BUTTON_CLASS,
       icon: runIcon,
       onClick: this.runPython,
       tooltip: 'Run'
@@ -110,7 +111,7 @@ export class PythonFileEditor extends DocumentWidget<
 
     const stopButton = new ToolbarButton({
       icon: stopIcon,
-      onClick: this.runner.shutDownKernel,
+      onClick: this.stopRun,
       tooltip: 'Stop'
     });
 
@@ -144,8 +145,6 @@ export class PythonFileEditor extends DocumentWidget<
       model
     });
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
-    this.outputAreaWidget.title.label = 'Python Console Output';
-    this.outputAreaWidget.title.closable = true;
 
     const layout = this.layout as BoxLayout;
     // TODO: Investigate SplitLayout instead of BoxLayout, for layout resizing functionality
@@ -167,8 +166,8 @@ export class PythonFileEditor extends DocumentWidget<
     if (!this.runDisabled) {
       this.resetOutputArea();
       this.displayOutputArea();
+      this.runner.runPython(this.kernelName, this.handleKernelMsg);
     }
-    this.runner.runPython(this.kernelName, this.handleKernelMsg);
   };
 
   private stopRun = async (): Promise<void> => {

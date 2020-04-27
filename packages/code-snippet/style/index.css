@@ -39,11 +39,11 @@
 }
 
 .elyra-downArrow-icon {
-  background-image: var(--down-arrow);
+  background-image: var(--jp-icon-caret-right);
 }
 
 .elyra-upArrow-icon {
-  background-image: var(--up-arrow);
+  background-image: var(--jp-icon-caret-down);
 }
 
 .elyra-expandableContainer-actionButton {

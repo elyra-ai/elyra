@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { pipelineIcon } from '@elyra/application';
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
@@ -29,7 +31,6 @@ import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 
 import '../style/index.css';
 
-const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
@@ -70,7 +71,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.docRegistry.addFileType({
       name: PIPELINE,
       extensions: ['.pipeline'],
-      iconClass: PIPELINE_ICON_CLASS
+      icon: pipelineIcon
     });
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
@@ -102,7 +103,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(openPipelineEditorCommand, {
       label: args =>
         args['isPalette'] ? 'New Pipeline Editor' : 'Pipeline Editor',
-      iconClass: args => (args['isPalette'] ? '' : PIPELINE_ICON_CLASS),
+      icon: args => (args['isPalette'] ? undefined : pipelineIcon),
       execute: () => {
         // Creates blank file, then opens it in a new window
         app.commands
