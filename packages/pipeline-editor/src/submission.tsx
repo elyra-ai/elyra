@@ -19,7 +19,12 @@ import { showDialog, Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 
 export class PipelineSubmissionHandler extends SubmissionHandler {
-  static exportPipeline(pipeline: any, pipeline_export_format: string): void {
+  static exportPipeline(
+    pipeline: any,
+    pipeline_export_format: string,
+    pipeline_export_path: string,
+    overwrite: boolean
+  ): void {
     console.log('Pipeline definition:');
     console.log(pipeline);
 
@@ -27,9 +32,13 @@ export class PipelineSubmissionHandler extends SubmissionHandler {
       'Exporting pipeline to [' + pipeline_export_format + '] format'
     );
 
+    console.log('Overwriting existing file: ' + overwrite);
+
     const body = {
       pipeline: pipeline,
-      export_format: pipeline_export_format
+      export_format: pipeline_export_format,
+      export_path: pipeline_export_path,
+      overwrite: overwrite
     };
 
     this.makePostRequest(

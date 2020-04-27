@@ -81,7 +81,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         return None
 
-    def export(self, pipeline, pipeline_export_format):
+    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         if pipeline_export_format not in ["tgz", "tar.gz", "zip", "yaml", "yml", "py"]:
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
@@ -90,16 +90,17 @@ class KfpPipelineProcessor(PipelineProcessor):
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
 
-        full_path_to_pipeline = os.getcwd() + '/' + pipeline_name + '.' + pipeline_export_format
+        if os.path.exists(pipeline_export_path) and not overwrite:
+            raise ValueError("File " + pipeline_export_path + " already exists.")
 
         self.log.info('Creating pipeline definition as a .' + pipeline_export_format + ' file')
         if pipeline_export_format != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
-                kfp.compiler.Compiler().compile(pipeline_function, full_path_to_pipeline)
+                kfp.compiler.Compiler().compile(pipeline_function, pipeline_export_path)
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
-                                   format(pipeline_name, full_path_to_pipeline), str(ex))
+                                   format(pipeline_name, pipeline_export_path), str(ex))
         else:
             # Load template from installed elyra package
             loader = PackageLoader('elyra', 'templates')
@@ -115,10 +116,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                                             pipeline_description="Elyra Pipeline")
 
             # Write to python file and fix formatting
-            with open(full_path_to_pipeline, "w") as fh:
+            with open(pipeline_export_path, "w") as fh:
                 fh.write(autopep8.fix_code(python_output))
 
-        return full_path_to_pipeline
+        return pipeline_export_path
 
     def _cc_pipeline(self, pipeline, pipeline_name):
 

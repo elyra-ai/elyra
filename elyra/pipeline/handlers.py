@@ -38,14 +38,16 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
 
         pipeline_definition = payload['pipeline']
         pipeline_export_format = payload['export_format']
+        pipeline_export_path = payload['export_path']
+        pipeline_overwrite = payload['overwrite']
 
         pipeline = PipelineParser.parse(pipeline_definition)
 
-        PipelineProcessorManager.export(pipeline, pipeline_export_format)
+        PipelineProcessorManager.export(pipeline, pipeline_export_format, pipeline_export_path, pipeline_overwrite)
         json_msg = json.dumps({"status": "ok",
                                "message": "Pipeline successfully exported"})
 
-        self.set_status(200)
+        self.set_status(201)
         self.write(json_msg)
         self.flush()
 

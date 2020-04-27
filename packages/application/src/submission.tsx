@@ -130,7 +130,7 @@ export class SubmissionHandler {
 
         response.json().then(
           (result: any) => {
-            if (response.status !== 200) {
+            if (response.status !== 200 && response.status !== 201) {
               return this.handleError(result, submissionType);
             }
             return dialogCallback(result);

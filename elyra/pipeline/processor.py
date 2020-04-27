@@ -59,7 +59,7 @@ class PipelineProcessorManager(SingletonConfigurable):
         return processor.process(pipeline)
 
     @staticmethod
-    def export(pipeline, pipeline_export_format):
+    def export(pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         registry = PipelineProcessorRegistry()
 
         processor_type = pipeline.runtime
@@ -68,7 +68,7 @@ class PipelineProcessorManager(SingletonConfigurable):
         if not processor:
             raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.platform))
 
-        return processor.export(pipeline, pipeline_export_format)
+        return processor.export(pipeline, pipeline_export_format, pipeline_export_path, overwrite)
 
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
@@ -83,5 +83,5 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         raise NotImplementedError()
 
     @abstractmethod
-    def export(self, pipeline):
+    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError()

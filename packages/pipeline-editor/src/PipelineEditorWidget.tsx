@@ -36,7 +36,7 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { IconRegistry, IIconRegistry } from '@jupyterlab/ui-components';
 
-import { toArray, find } from '@phosphor/algorithm';
+import { toArray } from '@phosphor/algorithm';
 import { IDragEvent } from '@phosphor/dragdrop';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
@@ -462,47 +462,23 @@ export class PipelineEditor extends React.Component<
 
           const pipeline_dir = Path.dirname(pipeline_path);
           const pipeline_name = Path.filename(pipeline_path);
-          const pipeline_export_path =
-            pipeline_dir + pipeline_name + '.' + result.value.pipeline_filetype;
-
           const pipeline_export_format = result.value.pipeline_filetype;
+          const pipeline_export_path =
+            pipeline_dir + pipeline_name + '.' + pipeline_export_format;
+
+          const overwrite = result.value.overwrite;
 
           pipelineFlow.pipelines[0]['app_data']['title'] = pipeline_name;
           pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
           pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
             result.value.runtime_config;
 
-          // If the export file already exists in the current directory, warn
-          // the user before replacing that file.
-          const cwdFiles = this.browserFactory.defaultBrowser.model.items();
-          if (
-            find(cwdFiles, (file, _) => {
-              return file.name === pipeline_export_path;
-            })
-          ) {
-            const warningMessage =
-              pipeline_export_path +
-              ' already exists in current directory. Do you want to replace this file?';
-            showDialog({
-              title: warningMessage,
-              buttons: [
-                Dialog.cancelButton(),
-                Dialog.okButton({ label: 'Replace' })
-              ]
-            }).then(warnResult => {
-              if (warnResult.button.accept) {
-                PipelineSubmissionHandler.exportPipeline(
-                  pipelineFlow,
-                  pipeline_export_format
-                );
-              }
-            });
-          } else {
-            PipelineSubmissionHandler.exportPipeline(
-              pipelineFlow,
-              pipeline_export_format
-            );
-          }
+          PipelineSubmissionHandler.exportPipeline(
+            pipelineFlow,
+            pipeline_export_format,
+            pipeline_export_path,
+            overwrite
+          );
         });
       }
     );
