@@ -76,6 +76,7 @@ class MetadataManager(LoggingConfigurable):
     # System-owned namespaces
     NAMESPACE_RUNTIMES = "runtimes"
     NAMESPACE_CODE_SNIPPETS = "code-snippets"
+    NAMESPACE_DATA_SOURCES = "data-sources"
 
     metadata_class = Type(Metadata, config=True,
                           help="""The metadata class.  This is configurable to allow subclassing of

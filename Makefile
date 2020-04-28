@@ -69,6 +69,7 @@ npm-packages: lerna-build
 	$(call PACKAGE_LAB_EXTENSION,ui-components)
 	$(call PACKAGE_LAB_EXTENSION,theme)
 	$(call PACKAGE_LAB_EXTENSION,code-snippet)
+	$(call PACKAGE_LAB_EXTENSION,data-source)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
 	cd dist && curl -o jupyterlab-git-0.20.0.tgz $$(npm view @jupyterlab/git@0.20.0 dist.tarball) && cd -
@@ -83,6 +84,7 @@ install: bdist lint ## Build distribution and install
 	$(call UNLINK_LAB_EXTENSION,ui-components)
 	$(call UNLINK_LAB_EXTENSION,theme-extension)
 	$(call UNLINK_LAB_EXTENSION,code-snippet-extension-experimental)
+	$(call UNLINK_LAB_EXTENSION,data-source-extension-experimental)
 	$(call UNLINK_LAB_EXTENSION,pipeline-editor-extension)
 	$(call UNLINK_LAB_EXTENSION,python-runner-extension)
 	jupyter lab clean
@@ -90,6 +92,7 @@ install: bdist lint ## Build distribution and install
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call LINK_LAB_EXTENSION,theme)
 	$(call LINK_LAB_EXTENSION,code-snippet)
+	$(call LINK_LAB_EXTENSION,data-source)
 	$(call LINK_LAB_EXTENSION,pipeline-editor)
 	$(call LINK_LAB_EXTENSION,python-runner)
 	jupyter lab build

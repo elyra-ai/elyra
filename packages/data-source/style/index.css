@@ -1,0 +1,45 @@
+/*
+ * Copyright 2018-2020 IBM Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.elyra-dataSourcesHeader {
+  font-weight: bold;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+}
+
+.elyra-dataSource-item {
+  border-bottom: 1px solid #eeeeee;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.elyra-dataSource-item textarea {
+  background-color: inherit;
+  border: none;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
+  min-height: 125px;
+  height: 100%;
+  width: 100%;
+  resize: vertical;
+  white-space: pre;
+  word-wrap: normal;
+  overflow-x: scroll;
+}

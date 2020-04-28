@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Data Source metadata",
+  "name": "data-source",
+  "namespace": "data-sources",
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
+      "minLength": 1
+    },
+    "display_name": {
+      "description": "The display name of the Data Source",
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+    },
+    "metadata": {
+      "description": "Additional data specific to this Data Source",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "Data source description",
+          "type": "string"
+        },
+        "source": {
+          "description": "URL to access data source",
+          "type": "string"
+        },
+        "accessKey": {
+          "description": "Access key to access data source",
+          "type": "string"
+        },
+        "accessSecret": {
+          "description": "Access secret key to access data source",
+          "type": "string"
+        },
+        "type": {
+          "description": "Format of data source (i.e. database, csv, etc.)",
+          "type": "string"
+        }
+      },
+      "required": ["source"]
+    }
+  },
+  "required": ["schema_name", "display_name"]
+}
