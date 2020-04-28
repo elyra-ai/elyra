@@ -126,7 +126,7 @@ export class SubmitNotebookButtonExtension
     });
 
     // Add the toolbar button to the notebook
-    panel.toolbar.insertItem(9, 'submitNotebook', submitNotebookButton);
+    panel.toolbar.insertItem(10, 'submitNotebook', submitNotebookButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.
