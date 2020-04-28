@@ -51,10 +51,6 @@ then
   echo ">>> Installing nbdime 1.1.0"
   pip install --upgrade nbdime==1.1.0
   pip install --upgrade jupyterlab-git==0.10.1
-else
-  echo ">>> Installing nbdime"
-  pip install --upgrade nbdime
-  pip install --upgrade jupyterlab-git==0.20.0rc0
 fi
 
 jupyter --version
