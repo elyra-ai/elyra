@@ -19,6 +19,7 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { elyraIcon } from './icons';
 
@@ -30,8 +31,12 @@ import '../style/index.css';
 const extension: JupyterFrontEndPlugin<void> = {
   id: 'elyra-application',
   autoStart: true,
-  requires: [IMainMenu],
-  activate: (app: JupyterFrontEnd) => {
+  requires: [IMainMenu, ISettingRegistry],
+  activate: (
+    app: JupyterFrontEnd,
+    mainMenu: IMainMenu,
+    settings: ISettingRegistry
+  ) => {
     console.log('Elyra - application extension is activated!');
 
     // Find the MainLogo widget in the shell and replace it with the Elyra Logo

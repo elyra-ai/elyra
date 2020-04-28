@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "jupyter.lab.setting-icon": "ui-components:text-editor",
+  "jupyter.lab.setting-icon-label": "Elyra",
+  "title": "Elyra",
+  "name": "Elyra settings",
+
+  "properties": {
+    "runtime": {
+      "description": "Runtime configurations",
+      "type": "object",
+      "properties": {
+        "images": {
+          "type": "array",
+          "title": "Runtime docker images",
+          "description": "Available runtime docker images",
+          "default": "default"
+        }
+      }
+    }
+  },
+  "type": "object"
+}

@@ -11,14 +11,11 @@
   "bugs": {
     "url": "https://github.com/elyra-ai/elyra/issues"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/elyra-ai/elyra/"
-  },
   "license": "Apache-2.0",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
-    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
+    "schema/*.json"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -39,6 +36,7 @@
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/coreutils": "^4.0.2",
     "@jupyterlab/ui-components": "^2.0.2",
+    "@jupyterlab/settingregistry": "^2.0.1",
     "@jupyterlab/services": "^5.0.2"
   },
   "devDependencies": {
@@ -46,7 +44,8 @@
     "typescript": "~3.7.3"
   },
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "schemaDir": "schema"
   },
   "publishConfig": {
     "access": "public"
