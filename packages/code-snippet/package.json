@@ -1,6 +1,6 @@
 {
   "name": "@elyra/code-snippet-extension-experimental",
-  "version": "0.11.0-rc.0",
+  "version": "0.11.0-dev",
   "description": "JupyterLab extension - Reusable code snippets for your Notebook and Python Scripts",
   "keywords": [
     "jupyter",
@@ -31,7 +31,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/application": "^0.11.0-rc.0",
+    "@elyra/application": "^0.11.0-dev",
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/cells": "^2.0.2",

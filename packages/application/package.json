@@ -1,6 +1,6 @@
 {
   "name": "@elyra/application",
-  "version": "0.11.0-rc.0",
+  "version": "0.11.0-dev",
   "description": "JupyterLab extension - Widgets and utilities for use in elyra",
   "keywords": [
     "jupyter",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/elyra-ai/elyra"
+    "url": "https://github.com/elyra-ai/elyra/"
   },
   "license": "Apache-2.0",
   "files": [
@@ -23,6 +23,10 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "style": "style/index.css",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elyra-ai/elyra"
+  },
   "scripts": {
     "build": "tsc",
     "clean": "rimraf lib",
@@ -34,8 +38,8 @@
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/coreutils": "^4.0.2",
-    "@jupyterlab/services": "^5.0.2",
-    "@jupyterlab/ui-components": "^2.0.2"
+    "@jupyterlab/ui-components": "^2.0.2",
+    "@jupyterlab/services": "^5.0.2"
   },
   "devDependencies": {
     "rimraf": "~3.0.0",
