@@ -18,7 +18,7 @@
   background-image: url('./code-snippet.svg');
 }
 
-.p-TabBar-tabIcon.jp-SideBar-tabIcon.elyra-codeSnippet-icon {
+.lm-TabBar-tabIcon.jp-SideBar-tabIcon.elyra-codeSnippet-icon {
   background-size: 30px;
 }
 
@@ -39,11 +39,11 @@
 }
 
 .elyra-downArrow-icon {
-  background-image: var(--down-arrow);
+  background-image: var(--jp-icon-caret-right);
 }
 
 .elyra-upArrow-icon {
-  background-image: var(--up-arrow);
+  background-image: var(--jp-icon-caret-down);
 }
 
 .elyra-expandableContainer-actionButton {

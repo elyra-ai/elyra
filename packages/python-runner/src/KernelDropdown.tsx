@@ -15,7 +15,7 @@
  */
 
 import { ReactWidget } from '@jupyterlab/apputils';
-import { Kernel } from '@jupyterlab/services';
+import { KernelSpec } from '@jupyterlab/services';
 import { HTMLSelect } from '@jupyterlab/ui-components';
 import React from 'react';
 
@@ -35,7 +35,7 @@ class DropDownProps {
  * Class: Holds kernel state property.
  */
 class DropDownState {
-  kernelSpecs: Kernel.ISpecModels;
+  kernelSpecs: KernelSpec.ISpecModels;
 }
 
 /**
@@ -60,7 +60,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
    * Function: Gets kernel specs and state.
    */
   private async getKernelSPecs(): Promise<void> {
-    const specs: Kernel.ISpecModels = await this.props.runner.getKernelSpecs();
+    const specs: KernelSpec.ISpecModels = await this.props.runner.getKernelSpecs();
     this.filterPythonKernels(specs);
 
     // Set kernel to default
@@ -73,7 +73,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   /**
    * Function: Filters for python kernel specs only.
    */
-  private filterPythonKernels = (specs: Kernel.ISpecModels): void => {
+  private filterPythonKernels = (specs: KernelSpec.ISpecModels): void => {
     Object.entries(specs.kernelspecs)
       .filter(entry => entry[1].language !== 'python')
       .forEach(entry => delete specs.kernelspecs[entry[0]]);
@@ -82,7 +82,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
   /**
    * Function: Creates drop down options with available python kernel specs.
    */
-  private createOptionElems = (specs: Kernel.ISpecModels): void => {
+  private createOptionElems = (specs: KernelSpec.ISpecModels): void => {
     const kernelNames: string[] = Object.keys(specs.kernelspecs);
     kernelNames.forEach((specName: string, i: number) => {
       const elem = React.createElement(
@@ -109,11 +109,6 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
           {
             className: DROPDOWN_CLASS,
             onChange: this.handleSelection.bind(this),
-            iconProps: {
-              icon: (
-                <span className="jp-MaterialIcon jp-DownCaretIcon bp3-icon" />
-              )
-            },
             defaultValue: this.state.kernelSpecs.default
           },
           this.kernelOptionElems

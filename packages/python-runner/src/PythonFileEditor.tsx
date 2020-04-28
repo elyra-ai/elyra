@@ -34,14 +34,17 @@ import {
   RenderMimeRegistry,
   standardRendererFactories as initialFactories
 } from '@jupyterlab/rendermime';
-import { Kernel } from '@jupyterlab/services';
 import {
-  BoxLayout,
-  PanelLayout,
-  Widget,
-  DockPanel,
-  TabBar
-} from '@phosphor/widgets';
+  caretDownEmptyThinIcon,
+  caretUpEmptyThinIcon,
+  DockPanelSvg,
+  pythonIcon,
+  runIcon,
+  saveIcon,
+  stopIcon,
+  TabBarSvg
+} from '@jupyterlab/ui-components';
+import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 
 import { KernelDropdown } from './KernelDropdown';
 import { PythonRunner } from './PythonRunner';
@@ -56,10 +59,6 @@ const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
 const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
 const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
-const RUN_ICON_CLASS = 'jp-RunIcon';
-const STOP_ICON_CLASS = 'jp-StopIcon';
-const PYTHON_ICON_CLASS = 'jp-PythonIcon';
-const SAVE_ICON_CLASS = 'jp-SaveIcon';
 
 /**
  * A widget for python editors.
@@ -69,8 +68,8 @@ export class PythonFileEditor extends DocumentWidget<
   DocumentRegistry.ICodeModel
 > {
   private runner: PythonRunner;
-  private kernelSettings: Kernel.IOptions;
-  private dockPanel: DockPanel;
+  private kernelName: string;
+  private dockPanel: DockPanelSvg;
   private outputAreaWidget: OutputArea;
   private scrollingWidget: ScrollingWidget<OutputArea>;
   private model: any;
@@ -87,16 +86,16 @@ export class PythonFileEditor extends DocumentWidget<
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
     this.model = this.content.model;
     this.runner = new PythonRunner(this.model, this.disableRun);
-    this.kernelSettings = { name: null };
+    this.kernelName = null;
     this.emptyOutput = true;
     this.runDisabled = false;
 
     // Add python icon to main tab
-    this.title.iconClass = PYTHON_ICON_CLASS;
+    this.title.icon = pythonIcon;
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
-      iconClassName: SAVE_ICON_CLASS,
+      icon: saveIcon,
       onClick: this.saveFile,
       tooltip: 'Save file contents'
     });
@@ -105,13 +104,13 @@ export class PythonFileEditor extends DocumentWidget<
 
     const runButton = new ToolbarButton({
       className: RUN_BUTTON_CLASS,
-      iconClassName: RUN_ICON_CLASS,
+      icon: runIcon,
       onClick: this.runPython,
       tooltip: 'Run'
     });
 
     const stopButton = new ToolbarButton({
-      iconClassName: STOP_ICON_CLASS,
+      icon: stopIcon,
       onClick: this.stopRun,
       tooltip: 'Stop'
     });
@@ -132,7 +131,7 @@ export class PythonFileEditor extends DocumentWidget<
    */
   private createOutputAreaWidget = (): void => {
     // Add dockpanel wrapper for output area
-    this.dockPanel = new DockPanel();
+    this.dockPanel = new DockPanelSvg();
     Widget.attach(this.dockPanel, document.body);
     window.addEventListener('resize', () => {
       this.dockPanel.fit();
@@ -157,7 +156,7 @@ export class PythonFileEditor extends DocumentWidget<
    * Function: Updates kernel settings as per drop down selection.
    */
   private updateSelectedKernel = (selection: string): void => {
-    this.kernelSettings.name = selection;
+    this.kernelName = selection;
   };
 
   /**
@@ -167,7 +166,7 @@ export class PythonFileEditor extends DocumentWidget<
     if (!this.runDisabled) {
       this.resetOutputArea();
       this.displayOutputArea();
-      this.runner.runPython(this.kernelSettings, this.handleKernelMsg);
+      this.runner.runPython(this.kernelName, this.handleKernelMsg);
     }
   };
 
@@ -226,6 +225,14 @@ export class PythonFileEditor extends DocumentWidget<
     scrollDownButton.onclick = function(): void {
       scrollingWidget.node.scrollTop = scrollingWidget.node.scrollHeight;
     };
+    caretUpEmptyThinIcon.element({
+      container: scrollUpButton,
+      elementPosition: 'center'
+    });
+    caretDownEmptyThinIcon.element({
+      container: scrollDownButton,
+      elementPosition: 'center'
+    });
     this.dockPanel.node.appendChild(scrollUpButton);
     this.dockPanel.node.appendChild(scrollDownButton);
   };
@@ -247,7 +254,7 @@ export class PythonFileEditor extends DocumentWidget<
       this.createScrollButtons(this.scrollingWidget);
       this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
-      const outputTab: TabBar<Widget> = this.dockPanel.tabBars().next();
+      const outputTab: TabBarSvg<Widget> = this.dockPanel.tabBars().next();
       outputTab.id = 'tab-python-editor-output';
       outputTab.currentTitle.label = 'Python Console Output';
       outputTab.currentTitle.closable = true;

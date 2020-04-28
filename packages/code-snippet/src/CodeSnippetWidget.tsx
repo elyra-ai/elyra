@@ -19,8 +19,8 @@ import '../style/index.css';
 import { ReactWidget, UseSignal, Clipboard } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { Message } from '@phosphor/messaging';
-import { Signal } from '@phosphor/signaling';
+import { Message } from '@lumino/messaging';
+import { Signal } from '@lumino/signaling';
 
 import React from 'react';
 

@@ -15,9 +15,11 @@
  */
 
 import {
+  dragDropIcon,
   FrontendServices,
   NotebookParser,
-  SubmissionHandler
+  SubmissionHandler,
+  pipelineIcon
 } from '@elyra/application';
 import { Path } from '@elyra/application/lib/path';
 import {
@@ -34,14 +36,15 @@ import {
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { IconRegistry, IIconRegistry } from '@jupyterlab/ui-components';
+import { notebookIcon } from '@jupyterlab/ui-components';
 
-import { toArray } from '@phosphor/algorithm';
-import { IDragEvent } from '@phosphor/dragdrop';
+import { toArray } from '@lumino/algorithm';
+import { IDragEvent } from '@lumino/dragdrop';
+
+import '@elyra/canvas/dist/common-canvas.min.css';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
 
-import '@elyra/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
 
 import * as React from 'react';
@@ -55,7 +58,6 @@ import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
 import { PipelineSubmissionHandler } from './submission';
 
-const PIPELINE_ICON_CLASS = 'jp-MaterialIcon elyra-PipelineIcon';
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
 export const commandIDs = {
@@ -71,14 +73,12 @@ export class PipelineEditorWidget extends ReactWidget {
   app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
   context: DocumentRegistry.Context;
-  iconRegistry: IconRegistry;
 
   constructor(props: any) {
     super(props);
     this.app = props.app;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
-    this.iconRegistry = props.iconRegistry;
   }
 
   render(): React.ReactElement {
@@ -86,7 +86,6 @@ export class PipelineEditorWidget extends ReactWidget {
       <PipelineEditor
         app={this.app}
         browserFactory={this.browserFactory}
-        iconRegistry={this.iconRegistry}
         widgetContext={this.context}
       />
     );
@@ -103,7 +102,6 @@ export namespace PipelineEditor {
   export interface IProps {
     app: JupyterFrontEnd;
     browserFactory: IFileBrowserFactory;
-    iconRegistry: IIconRegistry;
     widgetContext: DocumentRegistry.Context;
   }
 
@@ -132,7 +130,6 @@ export class PipelineEditor extends React.Component<
 > {
   app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
-  iconRegistry: IconRegistry;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
   position = 10;
@@ -142,7 +139,6 @@ export class PipelineEditor extends React.Component<
     super(props);
     this.app = props.app;
     this.browserFactory = props.browserFactory;
-    this.iconRegistry = props.iconRegistry;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
@@ -168,7 +164,7 @@ export class PipelineEditor extends React.Component<
     const style = { height: '100%' };
     const emptyCanvasContent = (
       <div>
-        <div className="dragdrop" />
+        <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
         <h1>
           {' '}
           Start your new pipeline by dragging files from the file browser pane.{' '}
@@ -395,7 +391,7 @@ export class PipelineEditor extends React.Component<
           );
           data.nodeTemplate.image =
             'data:image/svg+xml;utf8,' +
-            encodeURIComponent(this.iconRegistry.svg('notebook'));
+            encodeURIComponent(notebookIcon.svgstr);
           data.nodeTemplate.app_data['artifact'] = item.path;
           data.nodeTemplate.app_data[
             'image'
@@ -582,14 +578,16 @@ export class PipelineEditor extends React.Component<
     const node = this.node.current!;
     node.addEventListener('dragenter', this.handleEvent);
     node.addEventListener('dragover', this.handleEvent);
-    node.addEventListener('p-dragover', this.handleEvent);
-    node.addEventListener('p-drop', this.handleEvent);
+    node.addEventListener('lm-dragenter', this.handleEvent);
+    node.addEventListener('lm-dragover', this.handleEvent);
+    node.addEventListener('lm-drop', this.handleEvent);
   }
 
   componentWillUnmount(): void {
     const node = this.node.current!;
-    node.removeEventListener('p-drop', this.handleEvent);
-    node.removeEventListener('p-dragover', this.handleEvent);
+    node.removeEventListener('lm-drop', this.handleEvent);
+    node.removeEventListener('lm-dragover', this.handleEvent);
+    node.removeEventListener('lm-dragenter', this.handleEvent);
     node.removeEventListener('dragover', this.handleEvent);
     node.removeEventListener('dragenter', this.handleEvent);
   }
@@ -607,12 +605,15 @@ export class PipelineEditor extends React.Component<
       case 'dragover':
         event.preventDefault();
         break;
-      case 'p-dragover':
+      case 'lm-dragenter':
+        event.preventDefault();
+        break;
+      case 'lm-dragover':
         event.preventDefault();
         event.stopPropagation();
         (event as IDragEvent).dropAction = (event as IDragEvent).proposedAction;
         break;
-      case 'p-drop':
+      case 'lm-drop':
         event.preventDefault();
         event.stopPropagation();
         this.handleAdd(
@@ -629,13 +630,11 @@ export class PipelineEditor extends React.Component<
 export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   app: JupyterFrontEnd;
   browserFactory: IFileBrowserFactory;
-  iconRegistry: IconRegistry;
 
   constructor(options: any) {
     super(options);
     this.app = options.app;
     this.browserFactory = options.browserFactory;
-    this.iconRegistry = options.iconRegistry;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
@@ -643,7 +642,6 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     const props = {
       app: this.app,
       browserFactory: this.browserFactory,
-      iconRegistry: this.iconRegistry,
       context: context
     };
     const content = new PipelineEditorWidget(props);
@@ -653,7 +651,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       node: document.createElement('div')
     });
     widget.addClass(PIPELINE_CLASS);
-    widget.title.iconClass = PIPELINE_ICON_CLASS;
+    widget.title.icon = pipelineIcon;
     return widget;
   }
 }

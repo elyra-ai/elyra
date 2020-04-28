@@ -19,16 +19,16 @@
   max-height: 100vh;
 }
 
-.p-Widget #jp-left-stack {
+.lm-Widget #jp-left-stack {
   padding-left: 8px;
 }
 
-.p-Widget #jp-right-stack {
+.lm-Widget #jp-right-stack {
   margin-top: 25px;
   margin-right: 5px;
 }
 
-.p-Widget a {
+.lm-Widget a {
   color: #1970b7;
 }
 
