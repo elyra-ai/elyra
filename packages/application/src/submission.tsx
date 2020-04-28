@@ -17,13 +17,15 @@
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
+import {
+  caretDownEmptyThinIcon,
+  caretUpEmptyThinIcon
+} from '@jupyterlab/ui-components';
 
 import * as React from 'react';
 
 const MESSAGE_DISPLAY = 'elyra-pipelineSubmission-messageDisplay';
 const ERROR_DISPLAY_BUTTON = 'elyra-pipelineSubmission-errDisplayButton';
-const DOWN_ICON_CLASS = 'elyra-pipelineSubmission-errDisplayButton-down';
-const UP_ICON_CLASS = 'elyra-pipelineSubmission-errDisplayButton-up';
 const ERROR_DETAILS_VISIBLE = 'elyra-pipelineSubmission-error-visible';
 const ERROR_DETAILS_HIDDEN = 'elyra-pipelineSubmission-error-hidden';
 
@@ -203,15 +205,20 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
         <br />
         <div>
           <button
-            className={
-              ERROR_DISPLAY_BUTTON +
-              ' ' +
-              (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
-            }
+            className={ERROR_DISPLAY_BUTTON}
             onClick={(): void => {
               this.toggleMsgDisplay();
             }}
-          ></button>
+          >
+            {this.state.expanded ? (
+              <caretUpEmptyThinIcon.react tag="span" elementPosition="center" />
+            ) : (
+              <caretDownEmptyThinIcon.react
+                tag="span"
+                elementPosition="center"
+              />
+            )}
+          </button>
           {'Error details: '}
         </div>
         <br />

@@ -18,15 +18,14 @@ import {
   NotebookParser,
   SubmissionHandler
 } from '@elyra/application';
-
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
-import { JSONObject, JSONValue } from '@phosphor/coreutils';
-import { IDisposable } from '@phosphor/disposable';
-import { Widget } from '@phosphor/widgets';
+import { JSONObject, JSONValue } from '@lumino/coreutils';
+import { IDisposable } from '@lumino/disposable';
+import { Widget } from '@lumino/widgets';
 
 import Utils from './utils';
 
@@ -127,7 +126,7 @@ export class SubmitNotebookButtonExtension
     });
 
     // Add the toolbar button to the notebook
-    panel.toolbar.insertItem(9, 'submitNotebook', submitNotebookButton);
+    panel.toolbar.insertItem(10, 'submitNotebook', submitNotebookButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.

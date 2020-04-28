@@ -15,7 +15,7 @@
  */
 
 import { Dialog } from '@jupyterlab/apputils';
-import { Widget, PanelLayout } from '@phosphor/widgets';
+import { Widget, PanelLayout } from '@lumino/widgets';
 
 /**
  * Class for dialog that pops up for pipeline submission

@@ -34,7 +34,7 @@ describe('PipelineEditor', () => {
 
   it('opens pipeline editor', () => {
     cy.get(
-      '.p-TabBar-content > [data-id="launcher-0"] > .p-TabBar-tabCloseIcon:visible'
+      '.lm-TabBar-tab[data-id="launcher-0"] > .lm-TabBar-tabCloseIcon:visible'
     ).click({ multiple: true });
     cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click();
     cy.get('.jp-Launcher-cardContainer > [title="Pipeline Editor"]')

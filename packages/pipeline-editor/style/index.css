@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-/* Add CSS variables to :root */
-:root {
-  --elyra-icon-pipeline: url('./pipeline-flow.svg');
-}
-
-.dragdrop {
-  background-image: url('./dragdrop.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  height: 120px;
-}
-
 .empty-canvas h1 {
   color: #8897a2;
   size: 20pt;
@@ -58,10 +46,6 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: 40%;
-}
-
-.elyra-PipelineIcon {
-  background-image: var(--elyra-icon-pipeline);
 }
 
 .elyra-PipelineEditor .properties-modal {
