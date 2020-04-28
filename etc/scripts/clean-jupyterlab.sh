@@ -15,21 +15,17 @@
 # limitations under the License.
 #
 
-ANACONDA_HOME=${ANACONDA_HOME:='~/opt/anaconda'}
-JUPYTERLAB_HOME=${JUPYTERLAB_HOME:='~/opensource/jupyterlab/jupyterlab'}
+ANACONDA_HOME=${ANACONDA_HOME:='~/anaconda'}
 
-LAB_VERSION="1.2.13"
+LAB_VERSION=""
 
 if [ "$1" = "--version" ]
 then
-    LAB_VERSION="$2"
+    LAB_VERSION="==$2"
 fi
-LAB_VERSION="==$LAB_VERSION"
 
 echo "Anaconda..........: $ANACONDA_HOME"
 echo "Anaconda env......: $CONDA_DEFAULT_ENV"
-echo "JupyterLab........: $JUPYTERLAB_HOME"
-echo "JupyterLab Version: $LAB_VERSION"
 echo " "
 
 set -e
@@ -55,12 +51,9 @@ then
   echo ">>> Installing nbdime 1.1.0"
   pip install --upgrade nbdime==1.1.0
   pip install --upgrade jupyterlab-git==0.10.1
-fi
-
-if [ ${LAB_VERSION:2:1} == "2" ]
-then
-echo ">>> Installing nbdime 2.0.0"
-  pip install --upgrade nbdime==2.0.0
+else
+  echo ">>> Installing nbdime"
+  pip install --upgrade nbdime
   pip install --upgrade jupyterlab-git==0.20.0rc0
 fi
 
