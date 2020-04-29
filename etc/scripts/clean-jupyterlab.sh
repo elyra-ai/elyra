@@ -29,35 +29,46 @@ echo "Anaconda env......: $CONDA_DEFAULT_ENV"
 echo " "
 
 set -e
+echo "Uninstalling old packages"
 pip uninstall -y elyra || true;
 pip uninstall -y jupyterlab-git || true;
 pip uninstall -y jupyterlab-server || true;
 pip uninstall -y jupyterlab || true;
 pip uninstall -y nbdime || true;
+echo " "
 
-# Clean jupyterlab environment / workspace
-echo "Cleaning jupyter and jupyterlab environment / workspace"
+echo "Cleaning jupyter and jupyterlab workspace"
 rm -rf ~/.jupyter
 rm -rf $ANACONDA_HOME/etc/jupyter
 rm -rf $ANACONDA_HOME/share/jupyter
 rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/etc/jupyter
 rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter
+echo " "
 
-pip install --upgrade notebook
-pip install --upgrade "jupyterlab$LAB_VERSION"
+echo "Installing/Updating Notebook and JupyterLab"
+pip install --quiet --upgrade notebook
+pip install --quiet --upgrade "jupyterlab$LAB_VERSION"
+echo " "
 
-if [ ${LAB_VERSION:2:1} == "1" ]
+if [ ! -z "$LAB_VERSION" ]
 then
-  echo ">>> Installing nbdime 1.1.0"
-  pip install --upgrade nbdime==1.1.0
-  pip install --upgrade jupyterlab-git==0.10.1
+  if [ ${LAB_VERSION:2:1} == "1" ]
+  then
+    echo ">>> Installing nbdime and jupyterlab git for lab 1.x"
+    pip install --quiet --upgrade nbdime==1.1.0
+    pip install --quiet --upgrade jupyterlab-git==0.10.1
+    echo " "
+  fi
 else
-  echo ">>> Installing nbdime"
-  pip install --upgrade nbdime
-  pip install --upgrade jupyterlab-git==0.20.0rc0
+  echo ">>> Installing nbdime and jupyterlab git for lab 2.x"
+  pip install --quiet --upgrade nbdime
+  pip install --quiet --upgrade jupyterlab-git==0.20.0rc0
+  echo " "
 fi
 
 jupyter --version
-
+echo " "
 jupyter serverextension list
+echo " "
 jupyter labextension list
+echo " "
