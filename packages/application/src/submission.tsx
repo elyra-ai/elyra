@@ -17,10 +17,7 @@
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
-import {
-  caretDownEmptyThinIcon,
-  caretUpEmptyThinIcon
-} from '@jupyterlab/ui-components';
+import { caretDownIcon, caretRightIcon } from '@jupyterlab/ui-components';
 
 import * as React from 'react';
 
@@ -211,12 +208,9 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
             }}
           >
             {this.state.expanded ? (
-              <caretUpEmptyThinIcon.react tag="span" elementPosition="center" />
+              <caretDownIcon.react tag="span" elementPosition="center" />
             ) : (
-              <caretDownEmptyThinIcon.react
-                tag="span"
-                elementPosition="center"
-              />
+              <caretRightIcon.react tag="span" elementPosition="center" />
             )}
           </button>
           {'Error details: '}
