@@ -56,7 +56,7 @@ export class PipelineExportDialog extends Widget
     let runtime_options = '';
     let filetype_options = '';
     const runtimes = props['runtimes'];
-    const filetypes = ['tar.gz', 'tgz', 'zip', 'yaml', 'py'];
+    const filetypes = ['yaml', 'py'];
 
     for (const key in runtimes) {
       runtime_options =
