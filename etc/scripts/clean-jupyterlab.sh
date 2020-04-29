@@ -50,22 +50,6 @@ pip install --quiet --upgrade notebook
 pip install --quiet --upgrade "jupyterlab$LAB_VERSION"
 echo " "
 
-if [ ! -z "$LAB_VERSION" ]
-then
-  if [ ${LAB_VERSION:2:1} == "1" ]
-  then
-    echo ">>> Installing nbdime and jupyterlab git for lab 1.x"
-    pip install --quiet --upgrade nbdime==1.1.0
-    pip install --quiet --upgrade jupyterlab-git==0.10.1
-    echo " "
-  fi
-else
-  echo ">>> Installing nbdime and jupyterlab git for lab 2.x"
-  pip install --quiet --upgrade nbdime
-  pip install --quiet --upgrade jupyterlab-git==0.20.0rc0
-  echo " "
-fi
-
 jupyter --version
 echo " "
 jupyter serverextension list
