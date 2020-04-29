@@ -23,7 +23,7 @@ const dockerImages: { [key: string]: string } = {
   'tensorflow/tensorflow:2.0.0-gpu-py3': 'Tensorflow 2.0 w/ GPU',
   'pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime': 'Pytorch 1.2 w/ CUDA-runtime',
   'pytorch/pytorch:1.2-cuda10.0-cudnn7-devel': 'Pytorch 1.2 w/ CUDA-devel',
-  'amancevice/pandas:0.25.0-jupyter': 'Pandas'
+  'amancevice/pandas:1.0.3': 'Pandas 1.0.3'
 };
 
 /**
