@@ -82,8 +82,8 @@ export class PipelineExportDialog extends Widget
       filetype_options +
       '</select>' +
       br +
-      '<label for="overwrite">Replace if file already exists: </label>' +
       '<input type="checkbox" id="overwrite"/>' +
+      '<label for="overwrite">Replace if file already exists: </label>' +
       br;
 
     htmlContent.innerHTML = content;
