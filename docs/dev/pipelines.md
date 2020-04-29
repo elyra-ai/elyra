@@ -134,7 +134,7 @@ For more details on the **pipeline json definition** see it's [json schema](http
 			"type": "execution_node",
 			"app_data": {
 				"artifact": "demo-pipelines/overview.ipynb",
-				"image": "tensorflow/tensorflow:1.15.2-py3",
+				"image": "elyra/tensorflow:1.15.2-py3",
 				"ui_data": {
 					"label": "overview",
 					"x_pos": 318,
