@@ -125,11 +125,15 @@ Elyra can be installed via PyPi:
 ### Prerequisites :
 * [NodeJS 12+](https://nodejs.org/en/)
 * [Python 3.X](https://www.anaconda.com/distribution/)
-* [Elyra Metadata Runtime](#configuring-runtime-metadata)
+
 ##### Optional :
 * [Anaconda](https://www.anaconda.com/distribution/) 
 * [Docker](https://docs.docker.com/install//) - If using the docker image
 
+#### JupyterLab support
+
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.0 and below**
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 0.11.0-rc0 and above**
 
 via PyPi:
 ```bash
@@ -149,13 +153,14 @@ config dir: /usr/local/etc/jupyter
       elyra  OK
     jupyterlab  enabled
     - Validating...
-      jupyterlab 1.2.7 OK
+      jupyterlab 2.1.1 OK
     jupyterlab_git  enabled
     - Validating...
-      jupyterlab_git  OK
+      jupyterlab_git 0.20.0rc0 OK
     nbdime  enabled
     - Validating...
-      nbdime 1.1.0 OK
+      nbdime 2.0.0 OK
+
 ```
 ```bash
 jupyter labextension list
@@ -163,14 +168,15 @@ jupyter labextension list
 Should output:
 ```
 Known labextensions:
-   app dir: /usr/local/share/jupyter/lab
-        @elyra/application v0.6.1  enabled  OK
-        @elyra/notebook-scheduler-extension v0.6.1  enabled  OK
-        @elyra/pipeline-editor-extension v0.6.1  enabled  OK
-        @elyra/python-runner-extension v0.6.1  enabled  OK
-        @jupyterlab/git v0.9.0  enabled  OK
-        @jupyterlab/toc v2.0.0  enabled  OK
-        nbdime-jupyterlab v1.0.0  enabled  OK
+   app dir: /Users/lresende/opt/anaconda/envs/dev/share/jupyter/lab
+        @elyra/application v0.11.0-dev  enabled  OK*
+        @elyra/code-snippet-extension-experimental v0.11.0-dev  enabled  OK
+        @elyra/notebook-scheduler-extension v0.11.0-dev  enabled  OK
+        @elyra/pipeline-editor-extension v0.11.0-dev  enabled  OK
+        @elyra/python-runner-extension v0.11.0-dev  enabled  OK
+        @jupyterlab/git v0.20.0-rc.0  enabled  OK
+        @jupyterlab/toc v3.0.0  enabled  OK
+        nbdime-jupyterlab v2.0.0  enabled  OK
 ```
 NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable
 it with `jupyter serverextension enable elyra`
