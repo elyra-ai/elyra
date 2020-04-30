@@ -16,6 +16,11 @@
 
 import '../style/index.css';
 
+import {
+  caretDownIcon,
+  caretRightIcon,
+  LabIcon
+} from '@jupyterlab/ui-components';
 import * as React from 'react';
 
 /**
@@ -25,8 +30,6 @@ const DETAILS_VISIBLE_CLASS = 'elyra-expandableContainer-details-visible';
 const DETAILS_HIDDEN_CLASS = 'elyra-expandableContainer-details-hidden';
 const DISPLAY_NAME_CLASS = 'elyra-expandableContainer-name';
 const ELYRA_BUTTON_CLASS = 'elyra-button';
-const DOWN_ICON_CLASS = 'elyra-downArrow-icon';
-const UP_ICON_CLASS = 'elyra-upArrow-icon';
 const BUTTON_CLASS = 'elyra-expandableContainer-button';
 const TITLE_CLASS = 'elyra-expandableContainer-title';
 const ACTION_BUTTONS_WRAPPER_CLASS = 'elyra-expandableContainer-action-buttons';
@@ -37,7 +40,7 @@ const ACTION_BUTTON_CLASS = 'elyra-expandableContainer-actionButton';
  */
 export interface IExpandableActionButton {
   title: string;
-  iconClass: string;
+  icon: LabIcon;
   onClick: Function;
 }
 
@@ -76,15 +79,25 @@ export class ExpandableComponent extends React.Component<
       <div>
         <div key={this.props.displayName} className={TITLE_CLASS}>
           <button
-            className={
-              buttonClasses +
-              ' ' +
-              (this.state.expanded ? UP_ICON_CLASS : DOWN_ICON_CLASS)
-            }
+            className={buttonClasses}
             onClick={(): void => {
               this.toggleDetailsDisplay();
             }}
-          ></button>
+          >
+            {this.state.expanded ? (
+              <caretDownIcon.react
+                tag="span"
+                elementPosition="center"
+                width="20px"
+              />
+            ) : (
+              <caretRightIcon.react
+                tag="span"
+                elementPosition="center"
+                width="20px"
+              />
+            )}
+          </button>
           <span
             title={this.props.tooltip}
             className={DISPLAY_NAME_CLASS}
@@ -101,17 +114,17 @@ export class ExpandableComponent extends React.Component<
                 <button
                   key={btn.title}
                   title={btn.title}
-                  className={
-                    buttonClasses +
-                    ' ' +
-                    ACTION_BUTTON_CLASS +
-                    ' ' +
-                    btn.iconClass
-                  }
+                  className={buttonClasses + ' ' + ACTION_BUTTON_CLASS}
                   onClick={(): void => {
                     btn.onClick();
                   }}
-                ></button>
+                >
+                  <btn.icon.react
+                    tag="span"
+                    elementPosition="center"
+                    width="16px"
+                  />
+                </button>
               );
             })}
           </div>

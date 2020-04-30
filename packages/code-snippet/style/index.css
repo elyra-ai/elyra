@@ -14,50 +14,15 @@
  * limitations under the License.
  */
 
-.elyra-codeSnippet-icon {
-  background-image: url('./code-snippet.svg');
-}
-
-.lm-TabBar-tabIcon.jp-SideBar-tabIcon.elyra-codeSnippet-icon {
-  background-size: 30px;
-}
-
 .elyra-expandableContainer-button {
   background-color: transparent;
   vertical-align: middle;
+  padding: 0;
+  width: 20px;
 }
 
 .elyra-expandableContainer-button:hover {
   cursor: pointer;
-}
-
-.elyra-downArrow-icon,
-.elyra-upArrow-icon {
-  background-size: 18px;
-  padding: 0;
-  width: 20px;
-}
-
-.elyra-downArrow-icon {
-  background-image: var(--jp-icon-caret-right);
-}
-
-.elyra-upArrow-icon {
-  background-image: var(--jp-icon-caret-down);
-}
-
-.elyra-expandableContainer-actionButton {
-  background-size: 15px;
-  padding: 0;
-  width: 20px;
-}
-
-.elyra-copy-icon {
-  background-image: var(--jp-icon-copy);
-}
-
-.elyra-add-icon {
-  background-image: var(--jp-icon-add);
 }
 
 .elyra-expandableContainer-actionButton:hover {
