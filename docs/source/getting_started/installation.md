@@ -7,7 +7,6 @@ Elyra can be installed via PyPi:
 
 ##### Optional
 * [Anaconda](https://www.anaconda.com/distribution/) 
-* [Docker](https://docs.docker.com/install//) - If using the docker image
 
 #### JupyterLab support
 
