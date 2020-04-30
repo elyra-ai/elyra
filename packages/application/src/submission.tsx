@@ -129,7 +129,7 @@ export class SubmissionHandler {
 
         response.json().then(
           (result: any) => {
-            if (response.status !== 200) {
+            if (response.status !== 200 && response.status !== 201) {
               return this.handleError(result, submissionType);
             }
             return dialogCallback(result);
@@ -156,16 +156,22 @@ export class SubmissionHandler {
       JSON.stringify(pipeline),
       submissionType,
       (data: any) => {
-        const dialogTitle: string =
-          'Job submission to ' + runtime_config + ' succeeded';
-        const dialogBody = (
-          <p>
-            Check the status of your run at{' '}
-            <a href={data.url} target="_blank" rel="noopener noreferrer">
-              Run Details
-            </a>
-          </p>
-        );
+        const exporting = pipeline.pipelines[0]['app_data']['export'];
+        let dialogTitle = '';
+        let dialogBody = <p></p>;
+        if (exporting) {
+          dialogTitle = 'Pipeline export succeeded';
+        } else {
+          dialogTitle = 'Job submission to ' + runtime_config + ' succeeded';
+          dialogBody = (
+            <p>
+              Check the status of your run at{' '}
+              <a href={data.url} target="_blank" rel="noopener noreferrer">
+                Run Details
+              </a>
+            </p>
+          );
+        }
         return showDialog({
           title: dialogTitle,
           body: dialogBody,
