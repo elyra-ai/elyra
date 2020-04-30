@@ -16,18 +16,12 @@
 #
 
 # Ubuntu 18.04 LTS - Bionic
-FROM jupyterhub/k8s-singleuser-sample:0.8.2
+FROM jupyterhub/k8s-singleuser-sample:0.9.0
 
+USER jovyan
 # pip packages
 RUN pip install --upgrade pip
 RUN pip install setuptools --ignore-installed --upgrade
-
-ENV NBGITPULLER_APP=lab
-
-# Install Lab which is enabled by default
-RUN pip install --upgrade pip jupyterlab notebook
-
-RUN mkdir -p /home/jovyan/.local/share/jupyter/metadata/runtimes
 
 COPY *.whl /tmp/elyra/
 RUN pip install /tmp/elyra/*.whl
@@ -36,4 +30,11 @@ RUN jupyter lab build --debug
 
 RUN jupyter labextension list && jupyter serverextension list
 
-ENTRYPOINT ["/bin/bash", "-c", "jupyter lab --debug --no-browser"]
+RUN fix-permissions $CONDA_DIR && \
+    fix-permissions /home/jovyan
+
+USER root
+RUN fix-permissions /etc/jupyter/
+
+USER jovyan
+
