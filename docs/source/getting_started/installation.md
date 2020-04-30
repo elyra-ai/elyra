@@ -11,7 +11,7 @@ Elyra can be installed via PyPi:
 
 #### JupyterLab support
 
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.0 and below**
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.1 and below**
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 0.11.0-rc0 and above**
 
 via PyPi:
@@ -29,7 +29,7 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra  OK
+      elyra 0.10.1 OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.1.1 OK
@@ -48,11 +48,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /Users/lresende/opt/anaconda/envs/dev/share/jupyter/lab
-        @elyra/application v0.11.0-dev  enabled  OK*
-        @elyra/code-snippet-extension-experimental v0.11.0-dev  enabled  OK
-        @elyra/notebook-scheduler-extension v0.11.0-dev  enabled  OK
-        @elyra/pipeline-editor-extension v0.11.0-dev  enabled  OK
-        @elyra/python-runner-extension v0.11.0-dev  enabled  OK
+        @elyra/application v0.10.1  enabled  OK*
+        @elyra/code-snippet-extension-experimental v0.10.1  enabled  OK
+        @elyra/notebook-scheduler-extension v0.10.1  enabled  OK
+        @elyra/pipeline-editor-extension v0.10.1  enabled  OK
+        @elyra/python-runner-extension v0.10.1  enabled  OK
         @jupyterlab/git v0.20.0-rc.0  enabled  OK
         @jupyterlab/toc v3.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK

@@ -66,7 +66,7 @@ The log output will be color coded, legend as follows:
 | ERROR     | Red   |
 | CRITICAL  | Magenta |
 
-##### Setting the Log Level in Elyra
+##### Setting the Log Level
 The default Log Level is set to INFO. If you need to increase log verbosity, you can start Jupyterlab with 
 the `--debug` option for example:  
 ```
