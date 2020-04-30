@@ -21,13 +21,17 @@
 }
 
 .save .toolbar-icons:not(.overflow) {
-  height: 80%;
+  height: auto;
   width: 80%;
 }
 
-.new .toolbar-icons:not(.overflow),
-.clear .toolbar-icons:not(.overflow) {
+.new .toolbar-icons:not(.overflow) {
   height: 100%;
+  width: auto;
+}
+
+.clear .toolbar-icons:not(.overflow) {
+  height: auto;
   width: 100%;
 }
 
