@@ -201,6 +201,7 @@ export class PipelineEditor extends React.Component<
         iconEnabled: IconUtil.encode(exportPipelineIcon),
         iconDisabled: IconUtil.encode(exportPipelineIcon)
       },
+      { divider: true },
       {
         action: 'new',
         label: 'New Pipeline',
