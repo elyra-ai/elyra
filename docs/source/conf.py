@@ -16,6 +16,8 @@ import os
 import sphinx_rtd_theme
 from recommonmark.transform import AutoStructify
 
+master_doc = 'index'
+
 # -- Project information -----------------------------------------------------
 
 project = 'Elyra'
