@@ -47,3 +47,8 @@ button.elyra-pipelineSubmission-errDisplayButton {
 .elyra-pipelineSubmission-error-hidden {
   display: none;
 }
+
+/* temporary fix until this is addressed in jupyterlab */
+.lm-TabBar-tabIcon svg {
+  height: auto;
+}
