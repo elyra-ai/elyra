@@ -140,6 +140,7 @@ export class PipelineEditor extends React.Component<
   widgetContext: DocumentRegistry.Context;
   position = 10;
   node: React.RefObject<HTMLDivElement>;
+  propertiesInfo: any;
 
   constructor(props: any) {
     super(props);
@@ -158,6 +159,13 @@ export class PipelineEditor extends React.Component<
     this.editActionHandler = this.editActionHandler.bind(this);
 
     this.state = { showPropertiesDialog: false, propertiesInfo: {} };
+
+    this.addRuntimeImages(properties).then(images => {
+      this.propertiesInfo = {
+        parameterDef: images,
+        appData: { id: '' }
+      };
+    });
 
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
@@ -270,23 +278,18 @@ export class PipelineEditor extends React.Component<
     );
   }
 
-  propertiesInfo = {
-    parameterDef: this.addDockerImages(properties),
-    appData: { id: '' }
-  };
-
-  addDockerImages(properties: any): any {
+  async addRuntimeImages(properties: any): Promise<any> {
     let firstImage = true;
-    const dockerImages = FrontendServices.getDockerImages();
+    const runtimeImages = await FrontendServices.getRuntimeImages();
     const imageEnum = [];
 
-    for (const image in dockerImages) {
+    for (const image in runtimeImages) {
       if (firstImage) {
         properties.current_parameters.image = image;
         firstImage = false;
       }
       imageEnum.push(image);
-      properties.resources['image.' + image + '.label'] = dockerImages[image];
+      properties.resources['image.' + image + '.label'] = runtimeImages[image];
     }
     properties.parameters[0].enum = imageEnum;
     return properties;

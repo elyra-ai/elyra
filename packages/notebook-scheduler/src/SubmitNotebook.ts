@@ -150,17 +150,22 @@ export class SubmitNotebook extends Widget
     this._envVars = envVars;
     this._runtimes = runtimes;
 
-    this.node.appendChild(this.renderHtml());
-    (this.node.getElementsByClassName(
-      'elyra-form-runtime-config'
-    )[0] as HTMLSelectElement).value = '';
+    FrontendServices.getRuntimeImages().then(
+      (runtimeImages: { [key: string]: string }) => {
+        const html: HTMLElement = this.renderHtml(runtimeImages);
+        this.node.appendChild(html);
+        (this.node.getElementsByClassName(
+          'elyra-form-runtime-config'
+        )[0] as HTMLSelectElement).value = '';
+      }
+    );
   }
 
   /**
    * Render the dialog widget used to gather configuration information
    * required to submit/run the notebook remotely
    */
-  renderHtml(): HTMLElement {
+  renderHtml(runtimeImages: { [key: string]: string }): HTMLElement {
     const tr = '<tr>'; //'<tr style="padding: 1px;">';
     const td = '<td>'; //'<td style="padding: 1px;">';
     const td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
@@ -176,10 +181,9 @@ export class SubmitNotebook extends Widget
         `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
     }
 
-    const dockerImages = FrontendServices.getDockerImages();
     let defaultImage = 'selected';
     let imageSelect = '<select id="framework">';
-    for (const image in dockerImages) {
+    for (const image in runtimeImages) {
       imageSelect =
         imageSelect +
         '<option value="' +
@@ -187,7 +191,7 @@ export class SubmitNotebook extends Widget
         '" ' +
         defaultImage +
         '>' +
-        dockerImages[image] +
+        runtimeImages[image] +
         '</option>';
       defaultImage = '';
     }
@@ -210,6 +214,8 @@ export class SubmitNotebook extends Widget
       imageSelect +
       '</td>' +
       '</tr>' +
+      tr +
+      td +
       // + tr
       // + td
       // +'<label for="cpus">CPUs:</label>'
@@ -229,9 +235,6 @@ export class SubmitNotebook extends Widget
       // +'<input type="text" id="memory" name="memory" placeholder="1Gb" value="1Gb"/>'
       // +'</td>'
       // +'</tr>'
-
-      tr +
-      td +
       '<br/>' +
       '<input type="checkbox" id="dependency_include" name="dependency_include" size="20" checked /> Include dependencies<br/>' +
       '</td>' +
