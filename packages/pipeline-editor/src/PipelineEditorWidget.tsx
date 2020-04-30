@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as path from 'path';
+
 import {
   dragDropIcon,
   FrontendServices,
@@ -21,7 +23,6 @@ import {
   SubmissionHandler,
   pipelineIcon
 } from '@elyra/application';
-import { Path } from '@elyra/application/lib/path';
 import {
   CommonCanvas,
   CanvasController,
@@ -422,14 +423,6 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  submitPipelineRequest(pipelineFlow: any, runtime_config: any): void {
-    // TODO: Be more flexible and remove hardcoded runtime type
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
-
-    SubmissionHandler.submitPipeline(pipelineFlow, runtime_config, 'pipeline');
-  }
-
   handleExport(): void {
     SubmissionHandler.makeGetRequest(
       'api/metadata/runtimes',
@@ -456,11 +449,14 @@ export class PipelineEditor extends React.Component<
           const pipelineFlow = this.canvasController.getPipelineFlow();
           const pipeline_path = this.widgetContext.path;
 
-          const pipeline_dir = Path.dirname(pipeline_path);
-          const pipeline_name = Path.filename(pipeline_path);
+          const pipeline_dir = path.dirname(pipeline_path);
+          const pipeline_name = path.basename(
+            pipeline_path,
+            path.extname(pipeline_path)
+          );
           const pipeline_export_format = result.value.pipeline_filetype;
           const pipeline_export_path =
-            pipeline_dir + pipeline_name + '.' + pipeline_export_format;
+            pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
 
           const overwrite = result.value.overwrite;
 
@@ -492,7 +488,6 @@ export class PipelineEditor extends React.Component<
         showDialog({
           title: 'Run pipeline',
           body: new PipelineSubmissionDialog({
-            exporting: false,
             runtimes: response.runtimes
           }),
           buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -509,7 +504,16 @@ export class PipelineEditor extends React.Component<
           pipelineFlow.pipelines[0]['app_data']['title'] =
             result.value.pipeline_name;
 
-          this.submitPipelineRequest(pipelineFlow, result.value.runtime_config);
+          // TODO: Be more flexible and remove hardcoded runtime type
+          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+            result.value.runtime_config;
+
+          SubmissionHandler.submitPipeline(
+            pipelineFlow,
+            result.value.runtime_config,
+            'pipeline'
+          );
         });
       }
     );

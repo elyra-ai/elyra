@@ -75,13 +75,11 @@ export class PipelineExportDialog extends Widget
       '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">' +
       runtime_options +
       '</select>' +
-      br +
       '<label for="pipeline_filetype">Export Pipeline as:</label>' +
       br +
       '<select id="pipeline_filetype" name="pipeline_filetype" class="elyra-form-export-filetype">' +
       filetype_options +
       '</select>' +
-      br +
       '<input type="checkbox" id="overwrite"/>' +
       '<label for="overwrite">Replace if file already exists</label>' +
       br;
