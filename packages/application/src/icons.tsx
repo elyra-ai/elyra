@@ -16,9 +16,12 @@
 
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import elyraSvg from '../style/codait-piebrainlogo-jupyter-color.svg';
-import dragDropSvg from '../style/dragdrop.svg';
-import pipelineSvg from '../style/pipeline-flow.svg';
+import clearPipelineSvg from '../style/icons/clear-pipeline.svg';
+import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
+import dragDropSvg from '../style/icons/dragdrop.svg';
+import newPipelineSvg from '../style/icons/new-pipeline.svg';
+import pipelineSvg from '../style/icons/pipeline-flow.svg';
+import savePipelineSvg from '../style/icons/save-pipeline.svg';
 
 export const dragDropIcon = new LabIcon({
   name: 'elyra:dragdrop',
@@ -29,3 +32,25 @@ export const pipelineIcon = new LabIcon({
   name: 'elyra:pipeline',
   svgstr: pipelineSvg
 });
+
+export const clearPipelineIcon = new LabIcon({
+  name: 'elyra:clear-pipeline',
+  svgstr: clearPipelineSvg
+});
+export const newPipelineIcon = new LabIcon({
+  name: 'elyra:new-pipeline',
+  svgstr: newPipelineSvg
+});
+export const savePipelineIcon = new LabIcon({
+  name: 'elyra:save-pipeline',
+  svgstr: savePipelineSvg
+});
+
+/**
+ * A utilities class for handling LabIcons.
+ */
+export class IconUtil {
+  static encode(icon: LabIcon): string {
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(icon.svgstr);
+  }
+}

@@ -15,11 +15,15 @@
  */
 
 import {
-  dragDropIcon,
   FrontendServices,
+  IconUtil,
   NotebookParser,
   SubmissionHandler,
-  pipelineIcon
+  clearPipelineIcon,
+  dragDropIcon,
+  newPipelineIcon,
+  pipelineIcon,
+  savePipelineIcon
 } from '@elyra/application';
 import {
   CommonCanvas,
@@ -177,13 +181,29 @@ export class PipelineEditor extends React.Component<
     const toolbarConfig = [
       { action: 'run', label: 'Run Pipeline', enable: true },
       { divider: true },
-      { action: 'save', label: 'Save Pipeline', enable: true },
+      {
+        action: 'save',
+        label: 'Save Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(savePipelineIcon),
+        iconDisabled: IconUtil.encode(savePipelineIcon)
+      },
       { divider: true },
-      // { action: 'open', label: 'Open Pipeline', enable: true },
-      // { divider: true },
-      { action: 'new', label: 'New Pipeline', enable: true },
+      {
+        action: 'new',
+        label: 'New Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(newPipelineIcon),
+        iconDisabled: IconUtil.encode(newPipelineIcon)
+      },
       { divider: true },
-      { action: 'clear', label: 'Clear Pipeline', enable: true },
+      {
+        action: 'clear',
+        label: 'Clear Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(clearPipelineIcon),
+        iconDisabled: IconUtil.encode(clearPipelineIcon)
+      },
       { divider: true },
       { action: 'undo', label: 'Undo', enable: true },
       { action: 'redo', label: 'Redo', enable: true },
@@ -384,9 +404,7 @@ export class PipelineEditor extends React.Component<
             /\.[^/.]+$/,
             ''
           );
-          data.nodeTemplate.image =
-            'data:image/svg+xml;utf8,' +
-            encodeURIComponent(notebookIcon.svgstr);
+          data.nodeTemplate.image = IconUtil.encode(notebookIcon);
           data.nodeTemplate.app_data['artifact'] = item.path;
           data.nodeTemplate.app_data[
             'image'
