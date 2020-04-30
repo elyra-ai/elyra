@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help clean yarn-install test-dependencies lint lerna-build npm-packages bdist install test docs install-backend docker-image
+.PHONY: help clean yarn-install test-dependencies lint lerna-build npm-packages bdist install test docs-dependencies docs install-backend docker-image
 
 SHELL:=/bin/bash
 
@@ -102,7 +102,10 @@ test-ui-debug: lint-ui
 
 test: test-server test-ui ## Run all tests
 
-docs: 
+docs-dependencies:
+	@pip install -q -r docs/requirements.txt
+
+docs: docs-dependencies
 	make -C docs html
 
 install-backend: ## Build and install backend
