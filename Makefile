@@ -108,7 +108,7 @@ install-backend: ## Build and install backend
 
 docker-image: ## bdist ## Build docker image
 	@mkdir -p build/docker
-	cp etc/docker/Dockerfile build/docker/Dockerfile
+	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp -r dist/*.whl build/docker/
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
 

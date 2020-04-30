@@ -20,11 +20,11 @@ FROM jupyterhub/k8s-singleuser-sample:0.9.0
 
 USER jovyan
 # pip packages
-RUN pip install --upgrade pip
-RUN pip install setuptools --ignore-installed --upgrade
+RUN python -m pip install --upgrade pip
+RUN python -m pip install setuptools --ignore-installed --upgrade
 
 COPY *.whl /tmp/elyra/
-RUN pip install /tmp/elyra/*.whl
+RUN python -m pip install /tmp/elyra/*.whlq
 
 RUN jupyter lab build --debug
 
