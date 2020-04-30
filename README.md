@@ -70,7 +70,7 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra  OK
+      elyra 0.10.1 OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.1.1 OK
