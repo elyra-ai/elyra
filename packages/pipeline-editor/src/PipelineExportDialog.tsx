@@ -18,9 +18,9 @@ import { Dialog } from '@jupyterlab/apputils';
 import { Widget, PanelLayout } from '@lumino/widgets';
 
 /**
- * Pipeline submission dialog widget
+ * Pipeline export dialog widget
  */
-export class PipelineSubmissionDialog extends Widget
+export class PipelineExportDialog extends Widget
   implements Dialog.IBodyWidget<any> {
   constructor(props: any) {
     super(props);
@@ -37,12 +37,16 @@ export class PipelineSubmissionDialog extends Widget
 
   getValue(): any {
     return {
-      pipeline_name: (document.getElementById(
-        'pipeline_name'
-      ) as HTMLInputElement).value,
       runtime_config: (document.getElementById(
         'runtime_config'
-      ) as HTMLInputElement).value
+      ) as HTMLInputElement).value,
+
+      pipeline_filetype: (document.getElementById(
+        'pipeline_filetype'
+      ) as HTMLInputElement).value,
+
+      overwrite: (document.getElementById('overwrite') as HTMLInputElement)
+        .checked
     };
   }
 
@@ -50,7 +54,9 @@ export class PipelineSubmissionDialog extends Widget
     const htmlContent = document.createElement('div');
     const br = '<br/>';
     let runtime_options = '';
+    let filetype_options = '';
     const runtimes = props['runtimes'];
+    const filetypes = ['yaml', 'py'];
 
     for (const key in runtimes) {
       runtime_options =
@@ -58,18 +64,25 @@ export class PipelineSubmissionDialog extends Widget
         `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
     }
 
+    filetypes.forEach(filetype => {
+      filetype_options =
+        filetype_options + `<option value="${filetype}">${filetype}</option>`;
+    });
+
     const content =
-      '' +
-      '<label for="pipeline_name">Pipeline Name:</label>' +
-      br +
-      '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name"/>' +
-      br +
-      br +
       '<label for="runtime_config">Runtime Config:</label>' +
       br +
       '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">' +
       runtime_options +
-      '</select>';
+      '</select>' +
+      '<label for="pipeline_filetype">Export Pipeline as:</label>' +
+      br +
+      '<select id="pipeline_filetype" name="pipeline_filetype" class="elyra-form-export-filetype">' +
+      filetype_options +
+      '</select>' +
+      '<input type="checkbox" id="overwrite"/>' +
+      '<label for="overwrite">Replace if file already exists</label>' +
+      br;
 
     htmlContent.innerHTML = content;
 

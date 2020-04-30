@@ -112,12 +112,14 @@ class Operation(object):
 
 class Pipeline(object):
 
-    def __init__(self, id, title, runtime, runtime_config):
+    def __init__(self, id, title, runtime, runtime_config, file_type, export):
         self._id = id
         self._title = title
         self._runtime = runtime
         self._runtime_config = runtime_config
         self._operations = {}
+        self._file_type = file_type
+        self._export = export
 
     @property
     def id(self):
@@ -144,6 +146,14 @@ class Pipeline(object):
     @property
     def operations(self):
         return self._operations
+
+    @property
+    def file_type(self):
+        return self._file_type
+
+    @property
+    def export(self):
+        return self._export
 
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):

@@ -21,6 +21,7 @@ from .api.handlers import JsonSpecHandler, YamlSpecHandler
 from .scheduler.handler import SchedulerHandler
 from .metadata.handlers import MetadataHandler, MetadataNamespaceHandler
 from .metadata import MetadataManager
+from .pipeline import PipelineExportHandler
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
@@ -43,5 +44,6 @@ def load_jupyter_server_extension(nb_server_app):
         (url_path_join(web_app.settings['base_url'], r'/api/metadata/%s' % (namespace_regex)), MetadataHandler),
         (url_path_join(web_app.settings['base_url'], r'/api/metadata/%s/%s' % (namespace_regex, resource_regex)),
          MetadataNamespaceHandler),
+        (url_path_join(web_app.settings['base_url'], r'/api/pipeline/export'), PipelineExportHandler),
     ])
 
