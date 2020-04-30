@@ -17,13 +17,13 @@
 // A list of supported docker images for submission
 // TODO: replace this static list with a call to a metadata service
 const dockerImages: { [key: string]: string } = {
-  'tensorflow/tensorflow:1.15.2-py3': 'Tensorflow 1.15.2',
-  'tensorflow/tensorflow:1.15.2-gpu-py3': 'Tensorflow 1.15.2 w/ GPU',
+  'elyra/tensorflow:1.15.2-py3': 'Tensorflow 1.15.2',
+  'elyra/tensorflow:1.15.2-gpu-py3': 'Tensorflow 1.15.2 w/ GPU',
   'tensorflow/tensorflow:2.0.0-py3': 'Tensorflow 2.0',
   'tensorflow/tensorflow:2.0.0-gpu-py3': 'Tensorflow 2.0 w/ GPU',
   'pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime': 'Pytorch 1.2 w/ CUDA-runtime',
   'pytorch/pytorch:1.2-cuda10.0-cudnn7-devel': 'Pytorch 1.2 w/ CUDA-devel',
-  'amancevice/pandas:0.25.0-jupyter': 'Pandas'
+  'amancevice/pandas:1.0.3': 'Pandas 1.0.3'
 };
 
 /**

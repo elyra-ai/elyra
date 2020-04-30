@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as path from 'path';
+
 import {
   FrontendServices,
   IconUtil,
@@ -21,6 +23,7 @@ import {
   SubmissionHandler,
   clearPipelineIcon,
   dragDropIcon,
+  exportPipelineIcon,
   newPipelineIcon,
   pipelineIcon,
   savePipelineIcon
@@ -56,8 +59,10 @@ import { IntlProvider } from 'react-intl';
 
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
+import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
+import { PipelineSubmissionHandler } from './submission';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -189,6 +194,13 @@ export class PipelineEditor extends React.Component<
         iconDisabled: IconUtil.encode(savePipelineIcon)
       },
       { divider: true },
+      {
+        action: 'export',
+        label: 'Export Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(exportPipelineIcon),
+        iconDisabled: IconUtil.encode(exportPipelineIcon)
+      },
       {
         action: 'new',
         label: 'New Pipeline',
@@ -435,6 +447,59 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  handleExport(): void {
+    SubmissionHandler.makeGetRequest(
+      'api/metadata/runtimes',
+      'pipeline',
+      (response: any) => {
+        if (Object.keys(response.runtimes).length === 0) {
+          return SubmissionHandler.noMetadataError('runtimes');
+        }
+
+        showDialog({
+          title: 'Export pipeline',
+          body: new PipelineExportDialog({
+            runtimes: response.runtimes
+          }),
+          buttons: [Dialog.cancelButton(), Dialog.okButton()],
+          focusNodeSelector: '#runtime_config'
+        }).then(result => {
+          if (result.value == null) {
+            // When Cancel is clicked on the dialog, just return
+            return;
+          }
+
+          // prepare pipeline submission details
+          const pipelineFlow = this.canvasController.getPipelineFlow();
+          const pipeline_path = this.widgetContext.path;
+
+          const pipeline_dir = path.dirname(pipeline_path);
+          const pipeline_name = path.basename(
+            pipeline_path,
+            path.extname(pipeline_path)
+          );
+          const pipeline_export_format = result.value.pipeline_filetype;
+          const pipeline_export_path =
+            pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
+
+          const overwrite = result.value.overwrite;
+
+          pipelineFlow.pipelines[0]['app_data']['title'] = pipeline_name;
+          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+            result.value.runtime_config;
+
+          PipelineSubmissionHandler.exportPipeline(
+            pipelineFlow,
+            pipeline_export_format,
+            pipeline_export_path,
+            overwrite
+          );
+        });
+      }
+    );
+  }
+
   handleRun(): void {
     SubmissionHandler.makeGetRequest(
       'api/metadata/runtimes',
@@ -446,7 +511,9 @@ export class PipelineEditor extends React.Component<
 
         showDialog({
           title: 'Run pipeline',
-          body: new PipelineSubmissionDialog({ runtimes: response.runtimes }),
+          body: new PipelineSubmissionDialog({
+            runtimes: response.runtimes
+          }),
           buttons: [Dialog.cancelButton(), Dialog.okButton()],
           focusNodeSelector: '#pipeline_name'
         }).then(result => {
@@ -457,8 +524,10 @@ export class PipelineEditor extends React.Component<
 
           // prepare pipeline submission details
           const pipelineFlow = this.canvasController.getPipelineFlow();
+
           pipelineFlow.pipelines[0]['app_data']['title'] =
             result.value.pipeline_name;
+
           // TODO: Be more flexible and remove hardcoded runtime type
           pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
           pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
@@ -520,6 +589,8 @@ export class PipelineEditor extends React.Component<
     if (action == 'run') {
       // When executing the pipeline
       this.handleRun();
+    } else if (action == 'export') {
+      this.handleExport();
     } else if (action == 'save') {
       this.handleSave();
     } else if (action == 'open') {

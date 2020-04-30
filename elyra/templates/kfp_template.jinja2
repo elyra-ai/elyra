@@ -1,0 +1,37 @@
+import kfp
+from notebook.pipeline import NotebookOp
+
+
+@kfp.dsl.pipeline(
+   name='{{ pipeline_name }}',
+   description='{{ pipeline_description }}'
+)
+
+def create_pipeline():
+    {% for key, operation in operations_list.items() %}
+     notebook_op_{{ operation.notebook }} = NotebookOp(name='{{ operation.notebook }}',
+                          notebook='{{ operation.notebook }}',
+                          cos_endpoint='{{ operation.cos_endpoint }}',
+                          cos_bucket='{{ operation.cos_bucket }}',
+                          cos_directory='{{ operation.cos_directory }}',
+                          cos_pull_archive='{{ operation.cos_pull_archive }}',
+                          pipeline_outputs='{{ operation.pipeline_outputs }}',
+                          pipeline_inputs='{{ operation.pipeline_inputs }}',
+                          image='{{ operation.image }}')
+
+     notebook_op_{{ operation.notebook }}.name = '{{ operation.name }}'
+     notebook_op_{{ operation.notebook }}.env_variables = {{ operation.env_variables }}
+     notebook_op_{{ operation.notebook }}.dependent_names = {{ operation.dependent_names }}
+
+    {% endfor %}
+
+
+if __name__ == "__main__":
+    pipeline_func = create_pipeline
+    pipeline_filename = '{{ pipeline_name }}' + '.pipeline.tgz'
+    kfp.compiler.Compiler().compile(pipeline_func, pipeline_filename)
+
+    client = kfp.Client(host='{{ api_endpoint }}')
+    name = '{{ pipeline_name }}'
+    exp = client.create_experiment('{{ pipeline_name }}')
+    run_result = client.run_pipeline(exp.id, name, pipeline_filename, {})

@@ -25,6 +25,11 @@
   width: 80%;
 }
 
+.export .toolbar-icons:not(.overflow) {
+  height: 100%;
+  width: auto;
+}
+
 .new .toolbar-icons:not(.overflow) {
   height: 100%;
   width: auto;

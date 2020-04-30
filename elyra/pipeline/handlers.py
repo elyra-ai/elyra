@@ -16,38 +16,38 @@
 import json
 
 from notebook.base.handlers import APIHandler
-from ..pipeline import PipelineParser, PipelineProcessorManager
+from .parser import PipelineParser
+from .processor import PipelineProcessorManager
 from ..util.http import HttpErrorMixin
 
 
-class SchedulerHandler(HttpErrorMixin, APIHandler):
+class PipelineExportHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose REST API to export pipelines"""
 
-    """REST-ish method calls to execute pipelines as batch jobs"""
     def get(self):
         msg_json = dict(title="Operation not supported.")
         self.write(msg_json)
         self.flush()
 
     def post(self, *args, **kwargs):
-        self.log.debug("Pipeline SchedulerHandler now executing post request")
+        self.log.debug("Pipeline Export handler now executing post request")
 
-        pipeline_definition = self.get_json_body()
+        payload = self.get_json_body()
 
-        self.log.debug("JSON payload: %s", pipeline_definition)
+        self.log.debug("JSON payload: %s", payload)
+
+        pipeline_definition = payload['pipeline']
+        pipeline_export_format = payload['export_format']
+        pipeline_export_path = payload['export_path']
+        pipeline_overwrite = payload['overwrite']
 
         pipeline = PipelineParser.parse(pipeline_definition)
 
-        if pipeline.export:
-            PipelineProcessorManager.export(pipeline)
-            json_msg = json.dumps({"status": "ok",
-                                   "message": "Pipeline successfully exported"})
-        else:
-            run_url = PipelineProcessorManager.process(pipeline)
-            json_msg = json.dumps({"status": "ok",
-                                   "message": "Pipeline successfully submitted",
-                                   "url": run_url})
+        PipelineProcessorManager.export(pipeline, pipeline_export_format, pipeline_export_path, pipeline_overwrite)
+        json_msg = json.dumps({"status": "ok",
+                               "message": "Pipeline successfully exported"})
 
-        self.set_status(200)
+        self.set_status(201)
         self.write(json_msg)
         self.flush()
 
