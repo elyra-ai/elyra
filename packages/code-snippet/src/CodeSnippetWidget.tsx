@@ -17,7 +17,13 @@
 import '../style/index.css';
 
 import { PythonFileEditor } from '@elyra/python-runner-extension/lib/PythonFileEditor';
-import { ReactWidget, UseSignal, Clipboard } from '@jupyterlab/apputils';
+import {
+  ReactWidget,
+  UseSignal,
+  Clipboard,
+  Dialog,
+  showDialog
+} from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
@@ -72,9 +78,17 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetProps> {
       ((widget as NotebookPanel)
         .content as Notebook).activeCell.editor.replaceSelection(snippetStr);
     } else {
-      console.log('code snippet insert failed: unsupported widget');
+      this.errorDialog('Code snippet insert failed: Unsupported widget');
     }
   }
+
+  private errorDialog = (errorMsg: string): Promise<Dialog.IResult<string>> => {
+    return showDialog({
+      title: 'Error',
+      body: errorMsg,
+      buttons: [Dialog.okButton()]
+    });
+  };
 
   private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
     const displayName =
