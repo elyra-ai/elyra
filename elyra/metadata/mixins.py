@@ -27,3 +27,10 @@ class AppUtilMixin(object):
     def confirm_required(self, name, value):
         if value is None or len(value) == 0:
             self.log_and_exit("'{}' is a required parameter.".format(name), display_help=True)
+
+    def exit_no_subcommand(self):
+        print("No subcommand specified. Must specify one of: %s" % list(self.subcommands))
+        print()
+        self.print_description()
+        self.print_subcommands()
+        self.exit(1)

@@ -37,6 +37,7 @@ class Metadata(HasTraits):
     reason = None
 
     def __init__(self, **kwargs):
+        super(Metadata, self).__init__(**kwargs)
         if 'display_name' not in kwargs:
             raise AttributeError("Missing required 'display_name' attribute")
 
@@ -200,10 +201,10 @@ class FileMetadataStore(MetadataStore):
         if not name:
             raise ValueError('Name of metadata was not provided.')
 
-        match = re.search("^[a-z][a-z,-,_,0-9]*[a-z,0-9]$", name)
+        match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
         if match is None:
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
-                             "embedded hyphens ('-') and underscores ('_').")
+                             "embedded underscores ('_').")
 
         if not metadata:
             raise ValueError("An instance of class 'Metadata' was not provided.")
@@ -241,7 +242,7 @@ class FileMetadataStore(MetadataStore):
         try:
             self._load_from_resource(resource)
         except ValidationError as ve:
-            self.log.error(str(ve) + "\nRemoving metadata resource '{}'.".format(resource))
+            self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
                 shutil.rmtree(self.metadata_dir)

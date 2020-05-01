@@ -1,7 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Test schema for runtime testing",
+  "title": "Testing netadata",
   "name": "test",
+  "namespace": "runtimes",
   "properties": {
     "schema_name": {
       "type": "string",
@@ -17,6 +18,10 @@
       "description": "Additional data specific to this metadata",
       "type": "object",
       "properties": {
+        "description": {
+          "description": "Test instance description",
+          "type": "string"
+        },
         "api_endpoint": {
           "description": "The endpoint corresponding to this metadata item",
           "type": "string",
