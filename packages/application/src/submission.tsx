@@ -26,6 +26,9 @@ const ERROR_DISPLAY_BUTTON = 'elyra-pipelineSubmission-errDisplayButton';
 const ERROR_DETAILS = 'elyra-pipelineSubmission-errDetails';
 const ERROR_DETAILS_VISIBLE = 'elyra-pipelineSubmission-error-visible';
 const ERROR_DETAILS_HIDDEN = 'elyra-pipelineSubmission-error-hidden';
+const ERROR_DIALOG_WIDTH = 600;
+const ERROR_DIALOG_HEIGHT = 400;
+const JP_DIALOG_CONTENT = 'jp-Dialog-content';
 
 export class SubmissionHandler {
   static handleError(
@@ -186,14 +189,34 @@ interface IErrorDialogProps {
 }
 
 class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
+  dialogNode: HTMLDivElement;
+
   constructor(props: any) {
     super(props);
     this.state = { expanded: false };
   }
 
+  updateDialogSize(expanded: boolean): void {
+    if (!this.dialogNode) {
+      this.dialogNode = document.querySelector('.' + JP_DIALOG_CONTENT);
+    }
+
+    const width = this.dialogNode.clientWidth;
+    const height = this.dialogNode.clientHeight;
+
+    if (
+      expanded &&
+      (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
+    ) {
+      this.dialogNode.style.width = ERROR_DIALOG_WIDTH + 'px';
+      this.dialogNode.style.height = ERROR_DIALOG_HEIGHT + 'px';
+    }
+  }
+
   toggleMsgDisplay(): void {
     // Switch expanded flag
     const expanded = !this.state.expanded;
+    this.updateDialogSize(expanded);
     this.setState({ expanded: expanded });
   }
 
