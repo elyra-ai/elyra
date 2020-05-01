@@ -154,6 +154,7 @@ export class PipelineEditor extends React.Component<
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
+    this.clickActionHandler = this.clickActionHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
 
     this.state = { showPropertiesDialog: false, propertiesInfo: {} };
@@ -259,6 +260,7 @@ export class PipelineEditor extends React.Component<
           toolbarMenuActionHandler={this.toolbarMenuActionHandler}
           contextMenuHandler={this.contextMenuHandler}
           contextMenuActionHandler={this.contextMenuActionHandler}
+          clickActionHandler={this.clickActionHandler}
           editActionHandler={this.editActionHandler}
           toolbarConfig={toolbarConfig}
           config={canvasConfig}
@@ -359,6 +361,16 @@ export class PipelineEditor extends React.Component<
         this.closePropertiesDialog();
       } else {
         this.openPropertiesDialog(source);
+      }
+    }
+  }
+
+  clickActionHandler(source: any): void {
+    if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
+      const nodes = source.selectedObjectIds;
+      for (let i = 0; i < nodes.length; i++) {
+        const path = this.canvasController.getNode(nodes[i]).app_data.artifact;
+        this.app.commands.execute(commandIDs.openDocManager, { path });
       }
     }
   }
