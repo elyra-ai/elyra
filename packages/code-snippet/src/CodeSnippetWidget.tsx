@@ -55,7 +55,7 @@ interface ICodeSnippetProps {
 class CodeSnippetDisplay extends React.Component<ICodeSnippetProps> {
   // TODO: Use code mirror to display code
 
-  private insertCodeSnippet(snippet: ICodeSnippet) {
+  private insertCodeSnippet(snippet: ICodeSnippet): void {
     const widget: Widget = this.props.getCurrentWidget();
     const snippetStr: string = snippet.code.join('\n');
 
