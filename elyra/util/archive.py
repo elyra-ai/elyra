@@ -55,19 +55,18 @@ def create_temp_archive(archive_name, source_dir, files=None, recursive=False):
         if '*' in files:
             return tarinfo
 
-        # if tarinfo.name == os.path.basename(operation.artifact):
-        #    return tarinfo
-
         for dependency in files:
             if dependency:
                 if dependency.startswith('*'):
                     # handle check for extension wildcard
                     if tarinfo.name.endswith(dependency.replace('*.', '.')):
                         return tarinfo
-                else:
+                elif tarinfo.name == dependency:
                     # handle check for specific file
-                    if tarinfo.name == dependency:
-                        return tarinfo
+                    return tarinfo
+                elif recursive:
+                    # handle recursive
+                    return tarinfo
 
         return None
 
