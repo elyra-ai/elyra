@@ -327,6 +327,8 @@ export class PipelineEditor extends React.Component<
 
   contextMenuHandler(source: any, defaultMenu: any): any {
     let customMenu = defaultMenu;
+    // Remove option to create super node
+    customMenu.splice(4, 2);
     if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
         customMenu = customMenu.concat({
