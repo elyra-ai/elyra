@@ -25,8 +25,8 @@ import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
-
 import { Widget } from '@lumino/widgets';
+
 import React from 'react';
 
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
@@ -56,7 +56,10 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
   // TODO: Use code mirror to display code
   // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
 
-  private insertCodeSnippet(widget: Widget, snippetStr: string) {
+  private insertCodeSnippet(snippet: ICodeSnippet) {
+    const widget: Widget = this.props.getCurrentWidget();
+    const snippetStr: string = snippet.code.join('\n');
+
     if (
       widget instanceof DocumentWidget &&
       (widget as DocumentWidget).content instanceof FileEditor
@@ -70,9 +73,7 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
       ((widget as NotebookPanel)
         .content as Notebook).activeCell.editor.replaceSelection(snippetStr);
     } else {
-      console.log(
-        'Insert Code Snippet - unsupported widget: ' + widget.constructor.name
-      );
+      console.log('code snippet insert failed: unsupported widget');
     }
   }
 
@@ -92,10 +93,7 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
         title: 'Insert',
         iconClass: INSERT_ICON_CLASS,
         onClick: (): void => {
-          this.insertCodeSnippet(
-            this.props.getCurrentWidget(),
-            codeSnippet.code.join('\n')
-          );
+          this.insertCodeSnippet(codeSnippet);
         }
       }
     ];
