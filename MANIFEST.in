@@ -34,4 +34,5 @@ recursive-exclude * *.py[co]
 
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
 recursive-include elyra/metadata/schemas *
+recursive-include elyra/templates *
 

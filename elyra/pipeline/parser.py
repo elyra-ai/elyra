@@ -19,6 +19,7 @@ from .pipeline import Pipeline, Operation
 from traitlets.config import LoggingConfigurable
 
 DEFAULT_RUNTIME = "kfp"
+DEFAULT_FILETYPE = "tar.gz"
 
 
 class PipelineParser(LoggingConfigurable):
@@ -57,9 +58,11 @@ class PipelineParser(LoggingConfigurable):
             raise SyntaxError("Invalid pipeline: At least one node must exist in primary pipeline.")
 
         pipeline_object = Pipeline(pipeline['id'],
-                                   __class__._read_pipeline_title(pipeline),
-                                   __class__._read_pipeline_runtime(pipeline),
-                                   __class__._read_pipeline_runtime_config(pipeline))
+                                   PipelineParser._read_pipeline_title(pipeline),
+                                   PipelineParser._read_pipeline_runtime(pipeline),
+                                   PipelineParser._read_pipeline_runtime_config(pipeline),
+                                   PipelineParser._read_pipeline_filetype(pipeline),
+                                   PipelineParser._read_pipeline_export(pipeline))
 
         for node in pipeline['nodes']:
             # Supernodes are not supported
@@ -67,7 +70,7 @@ class PipelineParser(LoggingConfigurable):
                 raise SyntaxError('Invalid pipeline: Supernode feature is not supported.')
 
             # parse links as dependencies
-            links = __class__._read_pipeline_operation_dependencies(node)
+            links = PipelineParser._read_pipeline_operation_dependencies(node)
 
             try:
                 # parse each node as a pipeline operation
@@ -103,6 +106,24 @@ class PipelineParser(LoggingConfigurable):
                 title = pipeline['app_data']['title']
 
         return title
+
+    @staticmethod
+    def _read_pipeline_filetype(pipeline) -> str:
+        filetype = DEFAULT_FILETYPE
+        if 'app_data' in pipeline.keys():
+            if 'file_type' in pipeline['app_data'].keys():
+                filetype = pipeline['app_data']['file_type']
+
+        return filetype
+
+    @staticmethod
+    def _read_pipeline_export(pipeline) -> str:
+        export = False
+        if 'app_data' in pipeline.keys():
+            if 'export' in pipeline['app_data'].keys():
+                export = pipeline['app_data']['export']
+
+        return export
 
     @staticmethod
     def _read_pipeline_runtime(pipeline) -> str:

@@ -13,12 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+FROM tensorflow/tensorflow:1.15.2-py3
 
-from .handlers import PipelineExportHandler
-from .parser import PipelineParser
-from .pipeline import Operation, Pipeline
-from .processor import PipelineProcessorRegistry, PipelineProcessorManager, PipelineProcessor
-from .processor_kfp import KfpPipelineProcessor
-
-
-
+RUN apt install -y curl

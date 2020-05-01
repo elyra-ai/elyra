@@ -59,6 +59,8 @@ setup_args = dict(
         'requests>=2.9.1,<3.0',
         'entrypoints>=0.3',
         'rfc3986-validator>=0.1.1',
+        'autopep8',
+        'jinja2'
     ],
     include_package_data=True,
     classifiers=(
