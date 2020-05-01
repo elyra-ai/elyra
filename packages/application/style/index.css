@@ -62,6 +62,12 @@ button.elyra-pipelineSubmission-errDisplayButton {
   display: none;
 }
 
+/* temporary fix until this is addressed in jupyterlab */
+.lm-TabBar-tabIcon svg {
+  height: auto;
+}
+
 .jp-Dialog-content {
   resize: both;
 }
+

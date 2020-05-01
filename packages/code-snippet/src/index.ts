@@ -16,6 +16,8 @@
 
 import '../style/index.css';
 
+import { codeSnippetIcon } from '@elyra/application';
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -38,8 +40,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
 
     const codeSnippetWidget = new CodeSnippetWidget();
     codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
-    codeSnippetWidget.title.iconClass =
-      'jp-SideBar-tabIcon elyra-codeSnippet-icon';
+    codeSnippetWidget.title.icon = codeSnippetIcon;
     codeSnippetWidget.title.caption = 'Code Snippet';
 
     // Rank has been chosen somewhat arbitrarily to give priority to the running

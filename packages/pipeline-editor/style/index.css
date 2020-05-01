@@ -20,39 +20,24 @@
   text-align: center;
 }
 
-.save .list-item {
-  background-image: url('./save-pipeline.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 30%;
+.save .toolbar-icons:not(.overflow) {
+  height: auto;
+  width: 80%;
 }
 
-.open .list-item {
-  background-image: url('./open-pipeline.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 43%;
+.export .toolbar-icons:not(.overflow) {
+  height: auto;
+  width: 100%;
 }
 
-.export .list-item {
-  background-image: url('./export-pipeline.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 37%;
+.new .toolbar-icons:not(.overflow) {
+  height: 100%;
+  width: auto;
 }
 
-.new .list-item {
-  background-image: url('./new-pipeline.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 27%;
-}
-
-.clear .list-item {
-  background-image: url('./clear-pipeline.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 40%;
+.clear .toolbar-icons:not(.overflow) {
+  height: auto;
+  width: 100%;
 }
 
 .elyra-PipelineEditor .properties-modal {
