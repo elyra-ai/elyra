@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@elyra/application": "^0.11.0-dev",
+    "@elyra/python-runner-extension": "^0.11.0-dev",
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/cells": "^2.0.2",

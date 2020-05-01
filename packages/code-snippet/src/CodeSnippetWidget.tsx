@@ -16,7 +16,7 @@
 
 import '../style/index.css';
 
-import { PythonFileEditor } from '@elyra/python-runner-extension/lib/PythonFileEditor';
+import { PythonFileEditor } from '@elyra/python-runner-extension';
 import {
   ReactWidget,
   UseSignal,
