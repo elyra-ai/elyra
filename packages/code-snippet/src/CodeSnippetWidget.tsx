@@ -42,7 +42,7 @@ const COPY_ICON_CLASS = 'elyra-copy-icon';
 const INSERT_ICON_CLASS = 'elyra-add-icon';
 
 /**
- * CodeSnippetTable props.
+ * CodeSnippetDisplay props.
  */
 interface ICodeSnippetProps {
   codeSnippets: ICodeSnippet[];
@@ -52,9 +52,8 @@ interface ICodeSnippetProps {
 /**
  * A React Component for code-snippets display list.
  */
-class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
+class CodeSnippetDisplay extends React.Component<ICodeSnippetProps> {
   // TODO: Use code mirror to display code
-  // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
 
   private insertCodeSnippet(snippet: ICodeSnippet) {
     const widget: Widget = this.props.getCurrentWidget();
@@ -157,7 +156,7 @@ export class CodeSnippetWidget extends ReactWidget {
         </header>
         <UseSignal signal={this.renderCodeSnippetsSignal} initialArgs={[]}>
           {(_, codeSnippets): React.ReactElement => (
-            <CodeSnippetTable
+            <CodeSnippetDisplay
               codeSnippets={codeSnippets}
               getCurrentWidget={this.getCurrentWidget}
             />
