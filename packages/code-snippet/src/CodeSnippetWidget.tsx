@@ -16,12 +16,16 @@
 
 import '../style/index.css';
 
+import { PythonFileEditor } from '@elyra/python-runner-extension/lib/PythonFileEditor';
 import { ReactWidget, UseSignal, Clipboard } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
+import { DocumentWidget } from '@jupyterlab/docregistry';
+import { FileEditor } from '@jupyterlab/fileeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 
+import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
@@ -41,6 +45,7 @@ const INSERT_ICON_CLASS = 'elyra-add-icon';
  */
 interface ICodeSnippetProps {
   codeSnippets: ICodeSnippet[];
+  getCurrentWidget: () => Widget;
 }
 
 /**
@@ -50,6 +55,18 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
   // TODO: Use code mirror to display code
   // TODO: implement copy to clipboard command
   // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
+
+  private insertCodeSnippet(widget: Widget, snippetStr: string) {
+    if (
+      widget instanceof (DocumentWidget || PythonFileEditor) &&
+      widget.content instanceof FileEditor
+    ) {
+      ((widget as DocumentWidget)
+        .content as FileEditor).editor.replaceSelection(snippetStr);
+    } else {
+      console.log('unsupported widget open: ' + widget.constructor.name);
+    }
+  }
 
   private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
     const displayName =
@@ -68,6 +85,10 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
         iconClass: INSERT_ICON_CLASS,
         onClick: (): void => {
           console.log('INSERT CODE BUTTON CLICKED');
+          this.insertCodeSnippet(
+            this.props.getCurrentWidget(),
+            codeSnippet.code.join('\n')
+          );
         }
       }
     ];
@@ -102,9 +123,11 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
 export class CodeSnippetWidget extends ReactWidget {
   codeSnippetManager: CodeSnippetManager;
   renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
+  getCurrentWidget: () => Widget;
 
-  constructor() {
+  constructor(getCurrentWidget: () => Widget) {
     super();
+    this.getCurrentWidget = getCurrentWidget;
     this.codeSnippetManager = new CodeSnippetManager();
     this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
   }
@@ -129,7 +152,10 @@ export class CodeSnippetWidget extends ReactWidget {
         </header>
         <UseSignal signal={this.renderCodeSnippetsSignal} initialArgs={[]}>
           {(_, codeSnippets): React.ReactElement => (
-            <CodeSnippetTable codeSnippets={codeSnippets} />
+            <CodeSnippetTable
+              codeSnippets={codeSnippets}
+              getCurrentWidget={this.getCurrentWidget}
+            />
           )}
         </UseSignal>
       </div>
