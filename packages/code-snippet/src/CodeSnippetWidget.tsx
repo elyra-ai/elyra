@@ -69,20 +69,26 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetProps> {
       widget instanceof DocumentWidget &&
       (widget as DocumentWidget).content instanceof FileEditor
     ) {
-      ((widget as DocumentWidget)
-        .content as FileEditor).editor.replaceSelection(snippetStr);
+      const documentWidget = widget as DocumentWidget;
+      const fileEditor = (documentWidget.content as FileEditor).editor;
+      fileEditor.replaceSelection(snippetStr);
     } else if (widget instanceof PythonFileEditor) {
-      ((widget as PythonFileEditor)
-        .content as FileEditor).editor.replaceSelection(snippetStr);
+      const pythonEditorWidget = widget as PythonFileEditor;
+      const pythonEditor = (pythonEditorWidget.content as FileEditor).editor;
+      pythonEditor.replaceSelection(snippetStr);
     } else if (widget instanceof NotebookPanel) {
-      ((widget as NotebookPanel)
-        .content as Notebook).activeCell.editor.replaceSelection(snippetStr);
+      const notebookWidget = widget as NotebookPanel;
+      const notebookCellEditor = (notebookWidget.content as Notebook).activeCell
+        .editor;
+      notebookCellEditor.replaceSelection(snippetStr);
     } else {
-      this.errorDialog('Code snippet insert failed: Unsupported widget');
+      this.showErrorDialog('Code snippet insert failed: Unsupported widget');
     }
   }
 
-  private errorDialog = (errorMsg: string): Promise<Dialog.IResult<string>> => {
+  private showErrorDialog = (
+    errorMsg: string
+  ): Promise<Dialog.IResult<string>> => {
     return showDialog({
       title: 'Error',
       body: errorMsg,
