@@ -398,6 +398,9 @@ export class PipelineEditor extends React.Component<
             'image'
           ] = this.propertiesInfo.parameterDef.current_parameters.image;
           data.nodeTemplate.app_data['vars'] = vars;
+          data.nodeTemplate.app_data[
+            'recursive_dependencies'
+          ] = this.propertiesInfo.parameterDef.current_parameters.recursive_dependencies;
 
           this.canvasController.editActionHandler(data);
 
