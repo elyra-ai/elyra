@@ -21,6 +21,7 @@ import { ReactWidget, UseSignal, Clipboard } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
+import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
@@ -53,18 +54,25 @@ interface ICodeSnippetProps {
  */
 class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
   // TODO: Use code mirror to display code
-  // TODO: implement copy to clipboard command
   // TODO: implement insert code to file editor command (first check for code language matches file editor kernel language)
 
   private insertCodeSnippet(widget: Widget, snippetStr: string) {
     if (
-      widget instanceof (DocumentWidget || PythonFileEditor) &&
-      widget.content instanceof FileEditor
+      widget instanceof DocumentWidget &&
+      (widget as DocumentWidget).content instanceof FileEditor
     ) {
       ((widget as DocumentWidget)
         .content as FileEditor).editor.replaceSelection(snippetStr);
+    } else if (widget instanceof PythonFileEditor) {
+      ((widget as PythonFileEditor)
+        .content as FileEditor).editor.replaceSelection(snippetStr);
+    } else if (widget instanceof NotebookPanel) {
+      ((widget as NotebookPanel)
+        .content as Notebook).activeCell.editor.replaceSelection(snippetStr);
     } else {
-      console.log('unsupported widget open: ' + widget.constructor.name);
+      console.log(
+        'Insert Code Snippet - unsupported widget: ' + widget.constructor.name
+      );
     }
   }
 
@@ -84,7 +92,6 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
         title: 'Insert',
         iconClass: INSERT_ICON_CLASS,
         onClick: (): void => {
-          console.log('INSERT CODE BUTTON CLICKED');
           this.insertCodeSnippet(
             this.props.getCurrentWidget(),
             codeSnippet.code.join('\n')
