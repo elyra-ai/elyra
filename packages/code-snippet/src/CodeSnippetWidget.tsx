@@ -19,6 +19,7 @@ import '../style/index.css';
 import { ReactWidget, UseSignal, Clipboard } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { copyIcon, addIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 
@@ -33,8 +34,6 @@ import { ExpandableComponent } from './ExpandableComponent';
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
-const COPY_ICON_CLASS = 'elyra-copy-icon';
-const INSERT_ICON_CLASS = 'elyra-add-icon';
 
 /**
  * CodeSnippetTable props.
@@ -58,14 +57,14 @@ class CodeSnippetTable extends React.Component<ICodeSnippetProps> {
     const actionButtons = [
       {
         title: 'Copy',
-        iconClass: COPY_ICON_CLASS,
+        icon: copyIcon,
         onClick: (): void => {
           Clipboard.copyToSystem(codeSnippet.code.join('\n'));
         }
       },
       {
         title: 'Insert',
-        iconClass: INSERT_ICON_CLASS,
+        icon: addIcon,
         onClick: (): void => {
           console.log('INSERT CODE BUTTON CLICKED');
         }
