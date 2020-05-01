@@ -61,3 +61,7 @@ button.elyra-pipelineSubmission-errDisplayButton {
 .elyra-pipelineSubmission-error-hidden {
   display: none;
 }
+
+.jp-Dialog-content {
+  resize: both;
+}
