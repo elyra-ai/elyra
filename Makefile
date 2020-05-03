@@ -105,7 +105,7 @@ test: test-server test-ui ## Run all tests
 docs-dependencies:
 	@pip install -q -r docs/requirements.txt
 
-docs: docs-dependencies
+docs: docs-dependencies ## Build docs
 	make -C docs html
 
 install-backend: ## Build and install backend
