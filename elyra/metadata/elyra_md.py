@@ -52,18 +52,15 @@ class NamespaceBase(AppBase):
 class NamespaceList(NamespaceBase):
     """Handles the 'list' subcommand functionality for a specific namespace."""
 
-    json_option = Option("--json_output", name='json_output',
-                     description='List complete instances as JSON (default=False)', default_value=False)
-    json_flag = Flag("--json", option=json_option, name='json',
-                     description='List complete instances as JSON', default_value=True)
+    json_flag = Flag("--json", name='json',
+                     description='List complete instances as JSON', default_value=False)
 
-    valid_only_option = Option("--valid_only", name='valid_only',
-                           description='Only lists valid instances (default=False)', default_value=False)
-    valid_only_flag = Flag("--valid-only", option=valid_only_option, name='valid-only',
-                           description='Only lists valid instances', default_value=True)
+    valid_only_flag = Flag("--valid-only", name='valid-only',
+                           description='Only list valid instances (default includes invalid instances)',
+                           default_value=False)
 
-    # 'List' options and flags
-    options = [json_option, json_flag, valid_only_option, valid_only_flag]
+    # 'List' flags
+    options = [json_flag, valid_only_flag]
 
     def __init__(self, **kwargs):
         super(NamespaceList, self).__init__(**kwargs)
@@ -72,7 +69,7 @@ class NamespaceList(NamespaceBase):
     def start(self):
         self.process_cli_options(self.options)  # process options
 
-        include_invalid = not self.valid_only_option.value
+        include_invalid = not self.valid_only_flag.value
         try:
             metadata_instances = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
         except KeyError:
@@ -85,7 +82,7 @@ class NamespaceList(NamespaceBase):
 
         validity_clause = "includes invalid" if include_invalid else "valid only"
         print("Available metadata instances for {} ({}):".format(self.namespace, validity_clause))
-        if self.json_option.value:
+        if self.json_flag.value:
             print()
             [print('Instance: {} {}\n{}'.
                    format(rt.name, "**INVALID**" if rt.reason and len(rt.reason) > 0 else "", rt.to_json()))
@@ -147,10 +144,8 @@ class NamespaceInstall(NamespaceBase):
 
     # Known options, others will be derived from schema based on schema_name...
 
-    replace_option = Flag("--replace_instance", option=None, name='replace_instance',
+    replace_flag = Flag("--replace", name='replace',
                         description='Replace existing instance', default_value=False)
-    replace_flag = Flag("--replace", option=replace_option, name='replace',
-                        description='Replace existing instance', default_value=True)
     schema_name_option = Option("--schema_name", name='schema_name',
                                 description='The schema_name of the metadata instance to install', required=True)
     name_option = Option("--name", name='name',

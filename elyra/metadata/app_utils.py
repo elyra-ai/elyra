@@ -91,13 +91,10 @@ class Option(object):
 
 
 class Flag(Option):
-    """Represents a command-line flag."""
+    """Represents a command-line flag.  When present, the value used is `not default_value`."""
 
-    option = None
-
-    def __init__(self, flag, option=None, **kwargs):
+    def __init__(self, flag, **kwargs):
         super(Flag, self).__init__(flag, **kwargs)
-        self.option = option
 
 
 class Property(Option):
@@ -237,12 +234,8 @@ class AppBase(object):
             return
         cli_option = option.cli_option
         if cli_option in self.argv_mappings.keys():
-            if isinstance(option, Flag):  # flags set their option object from their value
-                flag = option
-                # Only if flag is associated with an option should we transfer the value,
-                # else just use what's there.
-                if flag.option:
-                    flag.option.value = flag.value
+            if isinstance(option, Flag):  # flags set their value opposite their default
+                option.value = not option.default_value
             else:  # this is a regular option, just set value
                 option.set_value(self.argv_mappings.get(cli_option))
                 if option.required and not option.value:
