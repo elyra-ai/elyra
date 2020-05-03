@@ -159,8 +159,9 @@ class AppBase(object):
         if log_option:
             self.argv.remove(log_option)
 
-    def log_and_exit(self, msg, exit_status=1, display_help=False):
-        self.log.error(msg)
+    def log_and_exit(self, msg=None, exit_status=1, display_help=False):
+        if msg:
+            self.log.error(msg)
         if display_help:
             print()
             self.print_help()
@@ -178,7 +179,9 @@ class AppBase(object):
                 self._remove_argv_entry(arg)
                 return subcommand
 
-            if not arg.startswith('--help'):
+            if arg in ['--help', '-h']:
+                self.log_and_exit(display_help=True)
+            else:
                 self.log.error("Subcommand '{}' is invalid.".format(self.argv[0]))
         return None
 
@@ -219,12 +222,17 @@ class AppBase(object):
                 options.get(required).required = True
         return list(options.values())
 
-    def process_cli_option(self, option):
+    def process_cli_option(self, option, check_help=False):
         """Check if the given option exists in the current arguments.  If found set its
            the Option instance's value to that of the argv.  Once processed, update the
            argv lists by removing the option.  If the option is a required property and
            is not in the argv lists or does not have a value, exit.
         """
+        # if check_help is enabled, check the arguments for help options and
+        # exit if found. This is only necessary when processing invidual options.
+        if check_help and self.has_help():
+            self.log_and_exit(display_help=True)
+
         if option.processed:
             return
         cli_option = option.cli_option
@@ -248,28 +256,30 @@ class AppBase(object):
         """For each Option instance in the list, process it according to the argv lists.
            After traversal, if arguments still remain, log help and exit.
         """
+        # Since we're down to processing options (no subcommands), scan the arguments
+        # for help entries and, if found, exit with the help message.
+        if self.has_help():
+            self.log_and_exit(display_help=True)
+
         for option in cli_options:
             self.process_cli_option(option)
 
         # Check if there are still unprocessed arguments.  If so, and fail_unexpected is true,
-        # log and exit, else issue warning and continue.  Prior to doing so, check if --help
-        # is one of the options and process accordingly.
+        # log and exit, else issue warning and continue.
         if len(self.argv) > 0:
-            # check for help options here and print help, then exit
-            need_help = 0
-            help_arg = None
-            for arg in self.argv:
-                if arg.startswith('--help'):
-                    help_arg = arg
-                    need_help += 1
+            msg = "The following arguments were unexpected: {}".format(self.argv)
+            self.log_and_exit(msg, display_help=True)
 
-            if need_help > 0 and need_help < len(self.argv):  # help was with other invalid args.
-                self.argv.remove(help_arg)
-                msg = "The following arguments were unexpected: {}".format(self.argv)
-                self.log_and_exit(msg, display_help=True)
-            else:
-                self.print_help()
-                self.exit(1)
+    def has_help(self):
+        """Checks the arguments to see if any match the help options.
+           We do this by converting two lists to sets and checking if
+           there's an intersection.
+        """
+        helps = set(['--help', '-h'])
+        args = set(self.argv_mappings.keys())
+        help_list = list(helps & args)
+        return len(help_list) > 0
+
 
     def _remove_argv_entry(self, cli_option):
         """Removes the argument entry corresponding to cli_option in both

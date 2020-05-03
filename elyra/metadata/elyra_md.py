@@ -44,6 +44,10 @@ class NamespaceBase(AppBase):
                 print(option.cli_option)
             print("    " + option.description)
 
+    def start(self):
+        # Process client options since all subclasses are option processer
+        self.process_cli_options(self.options)
+
 
 class NamespaceList(NamespaceBase):
     """Handles the 'list' subcommand functionality for a specific namespace."""
@@ -64,9 +68,10 @@ class NamespaceList(NamespaceBase):
     def __init__(self, **kwargs):
         super(NamespaceList, self).__init__(**kwargs)
         self.metadata_manager = MetadataManager(namespace=self.namespace)
-        self.process_cli_options(self.options)
 
     def start(self):
+        self.process_cli_options(self.options)  # process options
+
         include_invalid = not self.valid_only_option.value
         try:
             metadata_instances = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
@@ -121,9 +126,10 @@ class NamespaceRemove(NamespaceBase):
     def __init__(self, **kwargs):
         super(NamespaceRemove, self).__init__(**kwargs)
         self.metadata_manager = MetadataManager(namespace=self.namespace)
-        self.process_cli_options(self.options)
 
     def start(self):
+        super(NamespaceInstall, self).start()  # process options
+
         name = self.name_option.value
         try:
             self.metadata_manager.get(name)
@@ -157,8 +163,8 @@ class NamespaceInstall(NamespaceBase):
         super(NamespaceInstall, self).__init__(**kwargs)
         self.metadata_manager = MetadataManager(namespace=self.namespace)
         # First, process the schema_name option so we can then load the appropriate schema
-        # file to build the schema-based options.
-        self.process_cli_option(self.schema_name_option)
+        # file to build the schema-based options.  If help is requested, give it to them.
+        self.process_cli_option(self.schema_name_option, check_help=True)
         schema_name = self.schema_name_option.value
 
         # If schema is not registered in the set of schemas for this namespace, bail.
@@ -169,9 +175,10 @@ class NamespaceInstall(NamespaceBase):
         schema = self.schemas[schema_name]
         self.schema_options = NamespaceInstall.schema_to_options(schema)
         self.options.extend(self.schema_options)
-        self.process_cli_options(self.options)
 
     def start(self):
+        super(NamespaceInstall, self).start()  # process options
+
         # Get known options, then gather display_name and build metadata dict.
         name = self.name_option.value
         schema_name = self.schema_name_option.value
@@ -246,6 +253,9 @@ class SubcommandBase(AppBase):
         subinstance = subcommand[0](argv=self.argv, namespace_schemas=self.namespace_schemas)
         return subinstance.start()
 
+    def print_help(self):
+        super(SubcommandBase, self).print_help()
+        self.print_subcommands()
 
 class List(SubcommandBase):
     """Lists a metadata instances of a given namespace."""
@@ -308,6 +318,10 @@ class ElyraMetadataApp(AppBase):
 
         subinstance = subcommand[0](argv=self.argv, namespace_schemas=self.namespace_schemas)
         return subinstance.start()
+
+    def print_help(self):
+        super(ElyraMetadataApp, self).print_help()
+        self.print_subcommands()
 
 
 if __name__ == '__main__':
