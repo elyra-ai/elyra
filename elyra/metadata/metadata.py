@@ -204,7 +204,7 @@ class FileMetadataStore(MetadataStore):
         match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
         if match is None:
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
-                             "embedded underscores ('_').")
+                             "embedded hyphens ('-') and underscores ('_').")
 
         if not metadata:
             raise ValueError("An instance of class 'Metadata' was not provided.")
