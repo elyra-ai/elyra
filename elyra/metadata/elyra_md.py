@@ -18,7 +18,7 @@ import sys
 
 from jsonschema import ValidationError
 
-from .app_utils import AppBase, load_namespaces, Option, Flag, Property, MetadataProperty
+from .app_utils import AppBase, load_namespaces, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
 from .metadata import Metadata, MetadataManager
 
 
@@ -38,11 +38,7 @@ class NamespaceBase(AppBase):
         print("-------")
         print()
         for option in self.options:
-            if not isinstance(option, Flag):
-                print(option.cli_option + '=<value>')
-            else:
-                print(option.cli_option)
-            print("    " + option.description)
+            option.print_help()
 
     def start(self):
         # Process client options since all subclasses are option processer
@@ -106,16 +102,16 @@ class NamespaceList(NamespaceBase):
                 if instance.reason and len(instance.reason) > 0:
                     invalid = "**INVALID** ({})".format(instance.reason)
                 print("%s   %s  %s  %s" % (instance.schema_name.ljust(max_schema_name_len),
-                                             instance.name.ljust(max_name_len),
-                                             instance.resource.ljust(max_resource_len),
-                                             invalid))
+                                           instance.name.ljust(max_name_len),
+                                           instance.resource.ljust(max_resource_len),
+                                           invalid))
 
 
 class NamespaceRemove(NamespaceBase):
     """Handles the 'remove' subcommand functionality for a specific namespace."""
 
-    name_option = Option("--name", name='name',
-                         description='The name of the metadata instance to remove', required=True)
+    name_option = CliOption("--name", name='name',
+                            description='The name of the metadata instance to remove', required=True)
 
     # 'Remove' options
     options = [name_option]
@@ -125,7 +121,7 @@ class NamespaceRemove(NamespaceBase):
         self.metadata_manager = MetadataManager(namespace=self.namespace)
 
     def start(self):
-        super(NamespaceInstall, self).start()  # process options
+        super(NamespaceRemove, self).start()  # process options
 
         name = self.name_option.value
         try:
@@ -146,10 +142,10 @@ class NamespaceInstall(NamespaceBase):
 
     replace_flag = Flag("--replace", name='replace',
                         description='Replace existing instance', default_value=False)
-    schema_name_option = Option("--schema_name", name='schema_name',
-                                description='The schema_name of the metadata instance to install', required=True)
-    name_option = Option("--name", name='name',
-                         description='The name of the metadata instance to install', required=True)
+    schema_name_option = CliOption("--schema_name", name='schema_name',
+                                   description='The schema_name of the metadata instance to install', required=True)
+    name_option = CliOption("--name", name='name',
+                            description='The name of the metadata instance to install', required=True)
 
     # 'Install' options
     options = [replace_flag, schema_name_option, name_option]
@@ -180,14 +176,14 @@ class NamespaceInstall(NamespaceBase):
         display_name = None
 
         metadata = {}
-        # Walk the options looking for Property instances. Any MetadataProperty instances go
+        # Walk the options looking for SchemaProperty instances. Any MetadataSchemaProperty instances go
         # into the metadata dict.
         for option in self.options:
-            if isinstance(option, Property):
-                if option.name == 'display_name':
+            if isinstance(option, SchemaProperty):
+                if option.name == 'display_name':  # Be sure we have a display_name
                     display_name = option.value
                     continue
-            if isinstance(option, MetadataProperty):
+            if isinstance(option, MetadataSchemaProperty):
                 # skip adding any non required properties that have no value.
                 if not option.required and not option.value:
                     continue
@@ -251,6 +247,7 @@ class SubcommandBase(AppBase):
     def print_help(self):
         super(SubcommandBase, self).print_help()
         self.print_subcommands()
+
 
 class List(SubcommandBase):
     """Lists a metadata instances of a given namespace."""

@@ -25,6 +25,7 @@ import warnings
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)1.1s %(asctime)s.%(msecs).03d] %(message)s')
 
+
 def load_namespaces(schema_dir=None):
     """Loads the static schema files into a dictionary indexed by namespace.
        If schema_dir is not specified, the static location relative to this
@@ -62,8 +63,7 @@ def load_namespaces(schema_dir=None):
 
 
 class Option(object):
-    """Represents a command-line option.
-    The name represents an attribute on the object of the calling class.
+    """Represents the base option class.
     """
     cli_option = None
     name = None
@@ -71,10 +71,10 @@ class Option(object):
     default_value = None
     required = False
     value = None
-    type = None  # Only used by Property instances for now
+    type = None  # Only used by SchemaProperty instances for now
     processed = False
 
-    def __init__(self, cli_option, name=None, description=None, default_value=None, required=False, type=None):
+    def __init__(self, cli_option, name=None, description=None, default_value=None, required=False, type="string"):
         self.cli_option = cli_option
         self.name = name
         self.description = description
@@ -89,35 +89,94 @@ class Option(object):
         else:
             self.value = value
 
+    def print_help(self):
+        if isinstance(self, CliOption):
+            print("{option}=<{type}>".format(option=self.cli_option, type=self.type))
+        else:
+            print(self.cli_option)
+        self.print_description()
+
+    def print_description(self):
+        print("\t{}".format(self.description))
+
+
+class CliOption(Option):
+    """Represents a command-line option."""
+    def __init__(self, cli_option, **kwargs):
+        super(CliOption, self).__init__(cli_option, **kwargs)
+
 
 class Flag(Option):
     """Represents a command-line flag.  When present, the value used is `not default_value`."""
-
     def __init__(self, flag, **kwargs):
-        super(Flag, self).__init__(flag, **kwargs)
+        super(Flag, self).__init__(flag, type="boolean", **kwargs)
 
 
-class Property(Option):
+class SchemaProperty(CliOption):
     """Represents the necessary information to handle a property from the schema.
        No validation is performed on corresponding instance values since the
        schema validation in the metadata service applies that.
-       Property instances are initialized from the corresponding property stanza
+       SchemaProperty instances are initialized from the corresponding property stanza
        from the schema
     """
     def __init__(self, name, schema_property):
+        self.schema_property = schema_property
         cli_option = '--' + name
-        super(Property, self).__init__(cli_option=cli_option, name=name,
-                                       description=schema_property.get('description'),
-                                       default_value=schema_property.get('default'),
-                                       type=schema_property.get('type'))
+        type = schema_property.get('type')
+
+        super(SchemaProperty, self).__init__(cli_option=cli_option, name=name,
+                                             description=schema_property.get('description'),
+                                             default_value=schema_property.get('default'),
+                                             type=type)
+
+    def print_description(self):
+
+        additional_clause = None
+        if self.type == 'string':
+            format = self.schema_property.get('format')
+            if format:
+                additional_clause = self._build_clause(additional_clause,
+                                                       "Format: {} ".format(format))
+            pattern = self.schema_property.get('pattern')
+            if pattern:
+                additional_clause = self._build_clause(additional_clause,
+                                                       "Pattern: {}".format(pattern))
+            minLength = self.schema_property.get('minLength')
+            if minLength:
+                additional_clause = self._build_clause(additional_clause,
+                                                       "MinLength: {}".format(minLength))
+            maxLength = self.schema_property.get('maxLength')
+            if maxLength:
+                additional_clause = self._build_clause(additional_clause,
+                                                       "MaxLength: {}".format(maxLength))
+        elif self.type == 'number' or type == 'integer':
+            minimum = self.schema_property.get('minimum')
+            if minimum:
+                additional_clause = self._build_clause(additional_clause,
+                                                       "Minimum: {}".format(minimum))
+            maximum = self.schema_property.get('maximum')
+            if maximum:
+                additional_clause = self._build_clause(additional_clause,
+                                                       "Maximum: {}".format(maximum))
+
+        if additional_clause:
+            print("\t{}; {}".format(self.description, additional_clause))
+        else:
+            print("\t{}".format(self.description))
+
+    def _build_clause(self, additional_clause, addition):
+        if additional_clause:
+            additional_clause = additional_clause + ", " + addition
+        else:
+            additional_clause = addition
+        return additional_clause
 
 
-class MetadataProperty(Property):
+class MetadataSchemaProperty(SchemaProperty):
     """Represents the property from the schema that resides in the Metadata stanza.
     """
-
     def __init__(self, name, schema_property):
-        super(MetadataProperty, self).__init__(name, schema_property)
+        super(MetadataSchemaProperty, self).__init__(name, schema_property)
 
 
 class AppBase(object):
@@ -191,10 +250,10 @@ class AppBase(object):
 
     @staticmethod
     def schema_to_options(schema):
-        """Takes a JSON schema and builds a list of Property instances corresponding to each
+        """Takes a JSON schema and builds a list of SchemaProperty instances corresponding to each
            property in the schema.  There are two section of properties, one that includes
            schema_name and display_name and another within the metadata container - which
-           will be separated by class type - Property vs. MetadataProperty.
+           will be separated by class type - SchemaProperty vs. MetadataSchemaProperty.
         """
         options = {}
         properties = schema['properties']
@@ -202,11 +261,11 @@ class AppBase(object):
             if name == 'schema_name':  # already have this option, skip
                 continue
             if name != 'metadata':
-                options[name] = Property(name, value)
+                options[name] = SchemaProperty(name, value)
             else:  # process metadata properties...
                 metadata_properties = properties['metadata']['properties']
                 for md_name, md_value in metadata_properties.items():
-                    options[md_name] = MetadataProperty(md_name, md_value)
+                    options[md_name] = MetadataSchemaProperty(md_name, md_value)
 
         # Now set required-ness on MetadataProperties and top-level Properties
         required_props = properties['metadata'].get('required')
@@ -219,7 +278,7 @@ class AppBase(object):
                 options.get(required).required = True
         return list(options.values())
 
-    def process_cli_option(self, option, check_help=False):
+    def process_cli_option(self, cli_option, check_help=False):
         """Check if the given option exists in the current arguments.  If found set its
            the Option instance's value to that of the argv.  Once processed, update the
            argv lists by removing the option.  If the option is a required property and
@@ -230,20 +289,20 @@ class AppBase(object):
         if check_help and self.has_help():
             self.log_and_exit(display_help=True)
 
-        if option.processed:
+        if cli_option.processed:
             return
-        cli_option = option.cli_option
-        if cli_option in self.argv_mappings.keys():
-            if isinstance(option, Flag):  # flags set their value opposite their default
-                option.value = not option.default_value
+        option = cli_option.cli_option
+        if option in self.argv_mappings.keys():
+            if isinstance(cli_option, Flag):  # flags set their value opposite their default
+                cli_option.value = not cli_option.default_value
             else:  # this is a regular option, just set value
-                option.set_value(self.argv_mappings.get(cli_option))
-                if option.required and not option.value:
-                    self.log_and_exit("'{}' is a required parameter.".format(option.cli_option), display_help=True)
-            self._remove_argv_entry(cli_option)
-        elif option.required:
-            self.log_and_exit("'{}' is a required parameter.".format(option.cli_option), display_help=True)
-        option.processed = True
+                cli_option.set_value(self.argv_mappings.get(option))
+                if cli_option.required and not cli_option.value:
+                    self.log_and_exit("'{}' is a required parameter.".format(cli_option.option), display_help=True)
+            self._remove_argv_entry(option)
+        elif cli_option.required:
+            self.log_and_exit("'{}' is a required parameter.".format(cli_option.cli_option), display_help=True)
+        cli_option.processed = True
 
     def process_cli_options(self, cli_options):
         """For each Option instance in the list, process it according to the argv lists.
@@ -272,7 +331,6 @@ class AppBase(object):
         args = set(self.argv_mappings.keys())
         help_list = list(helps & args)
         return len(help_list) > 0
-
 
     def _remove_argv_entry(self, cli_option):
         """Removes the argument entry corresponding to cli_option in both

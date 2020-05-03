@@ -241,7 +241,7 @@ class FileMetadataStore(MetadataStore):
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
             self._load_from_resource(resource)
-        except ValidationError as ve:
+        except ValidationError:
             self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
