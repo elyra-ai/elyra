@@ -853,7 +853,6 @@ export class PipelineEditor extends React.Component<
     // prepare pipeline submission details
     const pipelineFlow = this.canvasController.getPipelineFlow();
     const pipeline_path = this.widgetContext.path;
-
     const pipeline_dir = path.dirname(pipeline_path);
     const pipeline_name = path.basename(
       pipeline_path,

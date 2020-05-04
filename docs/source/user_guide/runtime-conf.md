@@ -19,11 +19,11 @@ limitations under the License.
 
 ### Prerequisites
 * A Kubeflow Pipelines Endpoint
-* IBM Cloud Object Storage or other S3 Based Object Store (Optional)
+* IBM Cloud Object Storage or other S3 Based Object Store
 
 ### Configuring Runtime Metadata
 **AI Pipelines** require configuring a pipeline runtime to enable its full potential. 
-AI Pipelines currently only support `Kubeflow Pipelines` with plans to expand support for other runtimes
+AI Pipelines currently only support `Kubeflow Pipelines` , and `Apache Airflow (Experimental)`with plans to expand support for other runtimes
 in the future.
 
 #### Using Command Line Interface
@@ -92,9 +92,10 @@ and will also be saved in json format in `[JUPYTER DATA DIR]/metadata/runtimes/`
 #### Parameters
 
 ##### api_endpoint
-The KubeFlow Pipelines API Endpoint you wish to run your Pipeline.
+The Pipelines API Endpoint you wish to run your Pipeline.
 
-Example: `https://kubernetes-service.ibm.com/pipeline`
+KubeFlow Example: `https://kubernetes-service.ibm.com/pipeline`  
+Airflow Example: `http://your.apache.webserver:port`
 
 ##### api_username
 Username used to access your KubeFlow Pipelines API endpoint. SEE NOTE.
@@ -125,6 +126,12 @@ Example: `minio123`
 Name of the bucket you want your artifacts in. If the bucket doesn't exist, it will be created
 
 Example: `test-bucket`
+
+##### cos_dag_bucket (Only Required for Apache Airflow)
+Name of the bucket you want Elyra to upload DAG files to. This is a separate bucket that will be used
+to sync with Apache Airflow's DAG directory
+
+Example: 'dag-bucket' 
 
 NOTE: 
 If using an authentication-restricted Kubeflow environment, you must enter your credentials in `api_username` and `api_password` fields 

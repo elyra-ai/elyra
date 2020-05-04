@@ -1,0 +1,43 @@
+from airflow import DAG
+from datetime import datetime, timedelta
+from notebook.pipeline import NotebookOp
+
+## Setup default args with older date to automatically trigger when uploaded
+default_args = {
+    'start_date': datetime(2020, 1, 1),
+    'project_id' : '{{ pipeline_name }}',
+    'retries': 1,
+    'retry_delay': timedelta(minutes=3),
+}
+
+dag = DAG(
+    '{{ pipeline_name }}',
+    default_args=default_args,
+    description='{{ pipeline_description }}',
+    is_paused_upon_creation={{ is_paused_upon_creation }},
+)
+
+{% for key, operation in operations_list.items() %}
+notebook_op_{{ operation.id|replace("-", "_") }} = NotebookOp(name='{{ operation.notebook }}',
+                                                              namespace='{{ namespace }}',
+                                                              task_id='{{ operation.notebook }}',
+                                                              notebook='{{ operation.notebook }}',
+                                                              cos_endpoint='{{ operation.cos_endpoint }}',
+                                                              cos_bucket='{{ operation.cos_bucket }}',
+                                                              cos_directory='{{ operation.cos_directory }}',
+                                                              cos_pull_archive='{{ operation.cos_pull_archive }}',
+                                                              pipeline_outputs='{{ operation.pipeline_outputs }}',
+                                                              pipeline_inputs='{{ operation.pipeline_inputs }}',
+                                                              image='{{ operation.image }}',
+                                                              in_cluster={{ in_cluster }},
+                                                              env_vars={{ operation.env_vars }},
+                                                              config_file="{{ kube_config_path }}",
+                                                              dag=dag,
+    )
+    {% if operation.dependencies %}
+        {% for dependency in operation.dependencies %}
+        notebook_op_{{ operation.id|replace("-", "_") }} << notebook_op_{{ dependency|replace("-", "_") }}
+        {% endfor %}
+    {% endif %}
+
+{% endfor %}

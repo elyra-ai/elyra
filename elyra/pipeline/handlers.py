@@ -38,7 +38,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
 
         payload = self.get_json_body()
 
-        self.log.debug("JSON payload: %s", payload)
+        self.log.debug("JSON payload: %s", json.dumps(payload, sort_keys=True, indent=2, separators=(',', ': ')))
 
         pipeline_definition = payload['pipeline']
         pipeline_export_format = payload['export_format']
