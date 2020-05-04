@@ -75,7 +75,9 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
 
       // Wrap in code block if inserting snippet into a markdown file
       if (PathExt.extname(widget.context.path) === '.md') {
-        fileEditor.replaceSelection('```' + snippetStr + '```');
+        fileEditor.replaceSelection(
+          '```' + snippet.language + '\n' + snippetStr + '\n```'
+        );
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
