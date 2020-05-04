@@ -72,7 +72,7 @@ import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import {
   PipelineService,
-  KFP_SCHEMA,
+  AIRFLOW_SCHEMA,
   RUNTIMES_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
@@ -1248,7 +1248,7 @@ export class PipelineEditor extends React.Component<
 
   handleOpenRuntimes(): void {
     this.shell.activateById(
-      `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`
+      `elyra-metadata:${RUNTIMES_NAMESPACE}:${AIRFLOW_SCHEMA}`
     );
   }
 

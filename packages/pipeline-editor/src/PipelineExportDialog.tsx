@@ -20,7 +20,7 @@ import { IRuntime } from './PipelineService';
 
 const FILE_TYPES = [
   { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' },
-  { label: 'KFP domain-specific language Python code', key: 'py' }
+  { label: 'Airflow domain-specific language Python code', key: 'py' }
 ];
 
 interface IProps {

@@ -87,10 +87,9 @@ class KfpPipelineProcessor(PipelineProcessor):
             try:
                 description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.name}.pipeline'."
                 t0 = time.time()
-                kfp_pipeline = \
-                    client.upload_pipeline(pipeline_path,
-                                           pipeline_name,
-                                           description)
+                kfp_pipeline = client.upload_pipeline(pipeline_path,
+                                                      pipeline_name,
+                                                      description)
                 self.log_pipeline_info(pipeline_name, 'pipeline uploaded', duration=(time.time() - t0))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
@@ -148,7 +147,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         else:
             # Load template from installed elyra package
             t0 = time.time()
-            loader = PackageLoader('elyra', 'templates')
+            loader = PackageLoader('elyra', 'templates/kfp')
             template_env = Environment(loader=loader)
 
             template_env.filters['to_basename'] = lambda path: os.path.basename(path)

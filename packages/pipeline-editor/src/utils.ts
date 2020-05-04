@@ -59,7 +59,7 @@ export default class Utils {
     template.pipelines[0].nodes[0].app_data.dependencies = dependencies;
 
     template.pipelines[0].app_data.name = artifactName;
-    template.pipelines[0].app_data.runtime = 'kfp';
+    template.pipelines[0].app_data.runtime = 'airflow';
     template.pipelines[0].app_data['runtime-config'] = runtime_config;
     template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
 

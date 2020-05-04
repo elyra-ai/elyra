@@ -20,3 +20,4 @@ from .pipeline import Operation, Pipeline
 from .processor import PipelineProcessorRegistry, PipelineProcessorManager, PipelineProcessor, PipelineProcessorResponse
 from .processor_kfp import KfpPipelineProcessor
 from .processor_local import LocalPipelineProcessor
+from .processor_airflow import AirflowPipelineProcessor
