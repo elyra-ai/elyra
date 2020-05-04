@@ -278,6 +278,4 @@ const extension: JupyterFrontEndPlugin<void> = {
   }
 };
 
-export { PythonFileEditor };
-
 export default extension;

@@ -16,7 +16,6 @@
 
 import '../style/index.css';
 
-import { PythonFileEditor } from '@elyra/python-runner-extension';
 import {
   ReactWidget,
   UseSignal,
@@ -79,12 +78,9 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
       } else {
+        // Allow code snippet insertion independent of file extension
         fileEditor.replaceSelection(snippetStr);
       }
-    } else if (widget instanceof PythonFileEditor) {
-      const pythonEditorWidget = widget as PythonFileEditor;
-      const pythonEditor = (pythonEditorWidget.content as FileEditor).editor;
-      pythonEditor.replaceSelection(snippetStr);
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
       const notebookCellEditor = (notebookWidget.content as Notebook).activeCell
