@@ -30,15 +30,16 @@ help:
 
 clean: ## Make a clean source tree
 	rm -rf build *.egg-info yarn-error.log
-	rm -rf $$(find . -name dist)
+	rm -rf node_modules lib dist
+	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
+	rm -rf $$(find packages -name dist -type d)
+	rm -rf $$(find packages -name lib -type d)
+	rm -rf $$(find . -name __pycache__ -type d)
 	rm -rf $$(find . -name *.tgz)
-	rm -rf $$(find . -name lib)
-	rm -rf $$(find . -name node_modules)
 	rm -rf $$(find . -name tsconfig.tsbuildinfo)
 	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
-	rm -rf $$(find . -name __pycache__)
 
 # Prepares Elyra for build/packaging/installation
 yarn-install:
