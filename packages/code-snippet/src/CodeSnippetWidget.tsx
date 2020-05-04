@@ -50,7 +50,7 @@ const INSERT_ICON_CLASS = 'elyra-add-icon';
 /**
  * CodeSnippetDisplay props.
  */
-interface ICodeSnippetProps {
+interface ICodeSnippetDisplayProps {
   codeSnippets: ICodeSnippet[];
   getCurrentWidget: () => Widget;
 }
@@ -58,7 +58,7 @@ interface ICodeSnippetProps {
 /**
  * A React Component for code-snippets display list.
  */
-class CodeSnippetDisplay extends React.Component<ICodeSnippetProps> {
+class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   // TODO: Use code mirror to display code
 
   private insertCodeSnippet(snippet: ICodeSnippet): void {
