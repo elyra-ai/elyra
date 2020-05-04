@@ -68,3 +68,6 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    developer_guide/trackers
    developer_guide/testing
    developer_guide/documentation
+   developer_guide/deploying-kubeflow-locally-for-dev.md
+   developer_guide/configure-airflow-as-a-runtime.md
+

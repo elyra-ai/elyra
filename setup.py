@@ -97,7 +97,8 @@ setup_args = dict(
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
-            'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'
+            'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor',
+            'airflow = elyra.pipeline.processor_airflow:AirflowPipelineProcessor',
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',

@@ -166,9 +166,11 @@ Example: `['test','unsecured']`
 This section defines the settings for the Kubeflow Pipelines deployment that you want to associate with this runtime configuration.
 
 ##### api_endpoint
+
 The KubeFlow Pipelines API endpoint you want to utilize. This setting is required.
 
-Example: `https://kubernetes-service.ibm.com/pipeline`
+KubeFlow Example: `https://kubernetes-service.ibm.com/pipeline`  
+Airflow Example: `http://your.apache.webserver:port`
 
 ##### user_namespace
 The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
@@ -222,7 +224,21 @@ Name of the bucket you want your artifacts in. This setting is required. If the 
 
 Example: `test-bucket`
 
+<<<<<<< HEAD
 Note: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 
+=======
+##### cos_dag_bucket (Only Required for Apache Airflow)
+Name of the bucket you want Elyra to upload DAG files to. This is a separate bucket that will be used
+to sync with Apache Airflow's DAG directory
+
+Example: 'dag-bucket' 
+
+NOTE: 
+If using an authentication-restricted Kubeflow environment, you must enter your credentials in `api_username` and `api_password` fields 
+to allow pipeline uploads through Elyra.
+
+If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 
+>>>>>>> 40db13d... Add support for Apache Airflow as a pipeline runtime
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
 Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.
 

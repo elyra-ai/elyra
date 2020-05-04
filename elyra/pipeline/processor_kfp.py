@@ -167,6 +167,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         else:
             # Load template from installed elyra package
             t0 = time.time()
+
             loader = PackageLoader('elyra', 'templates')
             template_env = Environment(loader=loader, trim_blocks=True)
 

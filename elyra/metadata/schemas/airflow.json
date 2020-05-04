@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema for Airflow runtime metadata",
+  "name": "airflow",
+  "namespace": "runtimes",
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
+      "minLength": 1
+    },
+    "display_name": {
+      "description": "The display name of the metadata",
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "Additional data specific to this metadata properties",
+          "type": "string"
+        },
+        "api_endpoint": {
+          "description": "The REST API endpoint for Airflow",
+          "type": "string",
+          "format": "uri"
+        },
+        "cos_endpoint": {
+          "description": "The Cloud Object Storage endpoint",
+          "type": "string",
+          "format": "uri"
+        },
+        "cos_username": {
+          "description": "The Cloud Object Storage username",
+          "type": "string"
+        },
+        "cos_password": {
+          "description": "The Cloud Object Storage password",
+          "type": "string",
+          "minLength": 8
+        },
+        "cos_bucket": {
+          "description": "The Cloud Object Storage bucket name",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-.]*[a-z0-9]$",
+          "minLength": 3,
+          "maxLength": 222
+        },
+        "cos_dag_bucket": {
+          "description": "The Cloud Object Storage bucket name used to store generated DAGs",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-.]*[a-z0-9]$",
+          "minLength": 3,
+          "maxLength": 222
+        }
+      },
+      "required": [
+        "cos_endpoint",
+        "cos_username",
+        "cos_password",
+        "cos_bucket",
+        "cos_dag_bucket"
+      ]
+    }
+  },
+  "required": ["schema_name", "display_name"]
+}
