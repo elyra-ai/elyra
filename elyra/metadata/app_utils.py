@@ -121,7 +121,10 @@ class SchemaProperty(CliOption):
     """
     # Skip the following meta-properties when building the description.  We will already
     # have description and type and the others are difficult to display in a succinct manner.
-    skipped_meta_properties = ['description', 'type', 'items', 'additionalItems']
+    # Schema validation will still enforce these.
+    skipped_meta_properties = ['description', 'type', 'items', 'additionalItems', 'properties'
+                               'propertyNames', 'dependencies', 'examples', 'contains',
+                               'additionalProperties', 'patternProperties']
 
     def __init__(self, name, schema_property):
         self.schema_property = schema_property
@@ -171,7 +174,7 @@ class AppBase(object):
     def __init__(self, **kwargs):
         self.argv = kwargs['argv']
         self._get_argv_mappings()
-        self.log = logging.getLogger()
+        self.log = logging.getLogger()  # setup logger so that metadata service logging is displayed
 
     def _get_argv_mappings(self):
         """Walk argv and build mapping from argument to value for later processing. """
@@ -197,7 +200,7 @@ class AppBase(object):
 
     def log_and_exit(self, msg=None, exit_status=1, display_help=False):
         if msg:
-            self.log.error(msg)
+            print(msg)
         if display_help:
             print()
             self.print_help()
@@ -218,7 +221,7 @@ class AppBase(object):
             if arg in ['--help', '-h']:
                 self.log_and_exit(display_help=True)
             else:
-                self.log.error("Subcommand '{}' is invalid.".format(self.argv[0]))
+                print("Subcommand '{}' is invalid.".format(self.argv[0]))
         return None
 
     def exit_no_subcommand(self):
@@ -318,8 +321,7 @@ class AppBase(object):
         """
         # build the argv entry from the mappings since it must be located with name=value
         if cli_option not in self.argv_mappings.keys():
-            self.log.error("Can't find option '{}' in argv!".format(cli_option))
-            exit(1)
+            self.log_and_exit("Can't find option '{}' in argv!".format(cli_option))
 
         entry = cli_option
         value = self.argv_mappings.get(cli_option)

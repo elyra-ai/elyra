@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import os
 import sys
 
 from jsonschema import ValidationError
@@ -21,6 +21,9 @@ from jsonschema import ValidationError
 from .app_utils import AppBase, load_namespaces, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
 from .metadata import Metadata, MetadataManager
 
+# The following exposes the elyra-metadatat-test namespace if true or 1.  App testing will enable this env.
+ELYRA_METADATA_APP_TESTING = os.getenv("ELYRA_METADATA_APP_TESTING", 0)
+ELYRA_METADATA_TEST_NAMESPACE = "elyra-metadata-tests"
 
 class NamespaceBase(AppBase):
     """Simple attribute-only base class for the various namespace subcommand classes """
@@ -226,14 +229,16 @@ class SubcommandBase(AppBase):
         # For each namespace in current schemas, add a corresponding subcommand
         # This requires a new subclass of the NamespaceList class with an appropriate description
         self.subcommands = {}
-        for namespace in self.namespace_schemas.keys():
+        for namespace, schemas in self.namespace_schemas.items():
+            if namespace == ELYRA_METADATA_TEST_NAMESPACE and not ELYRA_METADATA_APP_TESTING:
+                continue
             subcommand_desciption = self.subcommand_desciption.format(namespace=namespace)
             # Create the appropriate namespace class, initialized with its description,
             # namespace, and corresponding schemas as attributes,
             namespace_class = type(namespace, (self.namespace_base_class,),
                                    {'description': subcommand_desciption,
                                     'namespace': namespace,
-                                    'schemas': self.namespace_schemas[namespace]})
+                                    'schemas': schemas})
             self.subcommands[namespace] = (namespace_class, namespace_class.description)
 
     def start(self):

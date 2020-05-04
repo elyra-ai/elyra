@@ -22,7 +22,7 @@ import jupyter_core.paths
 from notebook.utils import url_path_join
 from tornado.escape import url_escape
 from elyra.metadata.metadata import MetadataManager, FileMetadataStore, SchemaManager
-from elyra.metadata.runtime import Runtime
+#from elyra.metadata.runtime import Runtime
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
 
 
@@ -107,25 +107,25 @@ def fetch(request, *parts, **kwargs):
 # END - Remove once transition to jupyter_server occurs
 
 
-metadata_runtimes_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", "runtimes"))
+metadata_tests_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", "elyra-metadata-tests"))
 metadata_bogus_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", "bogus"))
 
 
 @pytest.fixture
-def setup_runtimes(environ, metadata_runtimes_dir):
-    create_json_file(metadata_runtimes_dir, 'valid.json', valid_metadata_json)
-    create_json_file(metadata_runtimes_dir, 'another.json', another_metadata_json)
-    create_json_file(metadata_runtimes_dir, 'invalid.json', invalid_metadata_json)
+def setup_runtimes(environ, metadata_tests_dir):
+    create_json_file(metadata_tests_dir, 'valid.json', valid_metadata_json)
+    create_json_file(metadata_tests_dir, 'another.json', another_metadata_json)
+    create_json_file(metadata_tests_dir, 'invalid.json', invalid_metadata_json)
 
 
 @pytest.fixture
-def runtimes_manager(setup_runtimes):
-    return MetadataManager(namespace=Runtime.namespace)
+def tests_manager(setup_runtimes):
+    return MetadataManager(namespace="elyra-metadata-tests")
 
 
 @pytest.fixture
 def filestore(setup_runtimes):
-    return FileMetadataStore(namespace=Runtime.namespace)
+    return FileMetadataStore(namespace="elyra-metadata-tests")
 
 
 @pytest.fixture

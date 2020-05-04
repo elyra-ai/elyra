@@ -22,27 +22,65 @@ from jsonschema import ValidationError
 
 valid_metadata_json = {
     'schema_name': 'test',
-    'display_name': 'valid runtime',
+    'display_name': 'valid metadata instance',
     'metadata': {
-        'api_endpoint': 'http://localhost:31823/v1/models?version=2017-02-13',
-        'foo': 8
+        'uri_test': 'http://localhost:31823/v1/models?version=2017-02-13',
+        'number_range_test': 8,
+        'required_test': "required_value"
     }
 }
 
 another_metadata_json = {
     'schema_name': 'test',
-    'name': 'another_foo',
-    'display_name': 'Another Runtime (2)',
+    'name': 'another_instance',
+    'display_name': 'Another Metadata Instance (2)',
     'metadata': {
-        'api_endpoint': 'http://localhost:8081/'
+        'uri_test': 'http://localhost:8081/',
+        'required_test': "required_value"
     }
 }
 
 invalid_metadata_json = {
     'schema_name': 'test',
-    'display_name': 'Invalid Runtime',
+    'display_name': 'Invalid Metadat Instance',
     'metadata': {
-        'api_endpoint': '//localhost:8081/'
+        'uri_test': '//localhost:8081/',
+        'required_test': "required_value"
+    }
+}
+
+# Contains all values corresponding to test schema...
+complete_metadata_json = {
+    "schema_name": "test",
+    "display_name": "complete metadata instance",
+    "metadata": {
+        "required_test": "required_value",
+        "uri_test": "http://localhost:31823/v1/models?version=2017-02-13",
+        "integer_exclusivity_test": 7,
+        "integer_multipleOf7_test": 42,
+        "number_range_test": 8,
+        # purposely missing "number_default_test": 42
+        "const_test": 3.14,
+        "string_length_test": "1234567",
+        "enum_test":"rocks",
+        "array_test": [ "elyra", "rocks", "the", "world"],
+        "object_test": {
+            "property1": "first prop",
+            "property2": "second_prop",
+            "property3": "third prop",
+            "property4": "fourth prop"},
+        "boolean_test": True,
+        "null_test": "null"
+    }
+}
+
+# Minimal json to be built upon for each property test.  Only
+# required values are specified.
+minmal_metadata_json = {
+    "schema_name": "test",
+    "display_name": "complete metadata instance",
+    "metadata": {
+        "required_test": "required_value"
     }
 }
 
