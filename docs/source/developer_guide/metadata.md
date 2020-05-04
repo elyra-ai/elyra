@@ -88,14 +88,17 @@ Because the runtime platform schemas are considered "factory data", the schema f
 Users can easily manipulate metadata via the Client API
 
 ```bash
-jupyter runtimes list
+elyra-metadata list runtimes
 ```
 
 ```
-Available metadata for external runtimes:
-  kfp-fyre       /Users/lresende/Library/Jupyter/metadata/runtimes/kfp-fyre.json
-  kfp-qa         /Users/lresende/Library/Jupyter/metadata/runtimes/kfp-qa.json
-  airflow-cloud  /Users/lresende/Library/Jupyter/metadata/runtimes/airflow-cloud.json
+Available metadata instances for runtimes (includes invalid):
+
+Schema   Instance       Resource  
+------   --------       -------- 
+kfp      kfp-fyre       /Users/lresende/Library/Jupyter/metadata/runtimes/kfp-fyre.json
+kfp      kfp-qa         /Users/lresende/Library/Jupyter/metadata/runtimes/kfp-qa.json
+airflow  airflow-cloud  /Users/lresende/Library/Jupyter/metadata/runtimes/airflow-cloud.json
 ```
 
 ### Metadata Service REST API

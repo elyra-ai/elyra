@@ -9,12 +9,13 @@
 AI Pipelines currently only support `Kubeflow Pipelines` with plans to expand support for other runtimes
 in the future.
 
-To configure runtime metadata for `Kubeflow Pipelines` use the `jupyter runtimes install kfp` command providing appropriate options.  This command will create a json file in your local Jupyter Data directory under its `metadata/runtimes` subdirectories.  If not known, the Jupyter Data directory can be discovered by issuing a ```jupyter --data-dir```
+To configure runtime metadata for `Kubeflow Pipelines` use the `elyra-metadata install runtimes` command providing appropriate options.  This command will create a json file in your local Jupyter Data directory under its `metadata/runtimes` subdirectories.  If not known, the Jupyter Data directory can be discovered by issuing a ```jupyter --data-dir```
 command on your terminal.
 
 Here's an example invocation of `jupyter runtimes install kfp` to create runtime metadata for use by `Kubeflow Pipelines` corresponding to the example values in the table below. Following its invocation, a file containing the runtime metadata can be found in `[JUPYTER DATA DIR]/metadata/runtimes/my_kfp.json`.
 ```bash
-jupyter runtimes install kfp --name=my_kfp \
+elyra-metadata install runtimes --schema_name=kfp \
+       --name=my_kfp \
        --display_name="My Kubeflow Pipeline Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --cos_endpoint=minio-service.kubeflow:9000 \
@@ -40,15 +41,18 @@ NOTE: In case of typing a custom bucket name using minio cloud storage, make sur
 
 To validate your new configuration is available, run:
 ```bash
-jupyter runtimes list
+elyra-metadata list runtimes
 
-Available metadata for external runtimes:
-  my_kfp    /Users/jdoe/Library/Jupyter/metadata/runtimes/my_kfp.json
+Available metadata instances for runtimes (includes invalid):
+
+Schema   Instance  Resource  
+------   --------  -------- 
+kfp      my_kfp    /Users/jdoe/Library/Jupyter/metadata/runtimes/my_kfp.json
 ```
 
-Existing runtime metadata configurations can be removed via `jupyter runtimes remove --name=[runtime]`:
+Existing runtime metadata configurations can be removed via `elyra-metadata remove runtimes --name=[runtime]`:
 ```bash
-jupyter runtimes remove --name=my_kfp
+elyra-metadata remove runtimes --name=my_kfp
 ```
 
 `Elyra` depends on its runtime metadata to determine how to communicate with your KubeFlow Pipelines
