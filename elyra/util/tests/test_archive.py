@@ -43,14 +43,10 @@ class ArchiveTestCase(unittest.TestCase):
         """
         # create test files
         self.test_dir = tempfile.mkdtemp(self.test_dir_name)
-        for test_file in self.test_files:
-            file_path = os.path.join(self.test_dir, test_file)
-            with open(file_path, 'a'):
-                os.utime(file_path, None)
+        self._create_test_files(self.test_dir)
 
     def tearDown(self):
         if os.path.exists(self.test_dir):
-            print('removing test directory: {}'.format(self.test_dir))
             shutil.rmtree(self.test_dir)
 
     def test_archive_all(self):
@@ -58,20 +54,78 @@ class ArchiveTestCase(unittest.TestCase):
         archive_path = create_temp_archive(test_archive_name, self.test_dir)
         self.assertArchivedContent(archive_path, self.test_files)
 
-    def test_archive_by_extension(self):
+    def test_archive_by_filter(self):
         test_archive_name = 'python-' + self.test_timestamp + '.tar.gz'
         archive_path = create_temp_archive(test_archive_name, self.test_dir, ['*.py'])
         self.assertArchivedContent(archive_path, ['a.py', 'b.py'])
 
-    def test_archive_multiple_extensions(self):
+    def test_archive_multiple_filters(self):
         test_archive_name = 'multiple-' + self.test_timestamp + '.tar.gz'
         archive_path = create_temp_archive(test_archive_name, self.test_dir, ['*.json', '*.txt'])
         self.assertArchivedContent(archive_path, ['c.json', 'd.txt'])
 
-    def test_archive_unexistent_extensions(self):
+    def test_archive_unexistent_filter(self):
         test_archive_name = 'empty-' + self.test_timestamp + '.tar.gz'
         archive_path = create_temp_archive(test_archive_name, self.test_dir, ['*.yml'])
         self.assertArchivedContent(archive_path, [])
+
+    def test_archive_with_subdirectories(self):
+        subdir_name = os.path.join(self.test_dir, 'subdir')
+        os.makedirs(subdir_name)
+        self._create_test_files(subdir_name)
+
+        test_archive_name = 'subdir-' + self.test_timestamp + '.tar.gz'
+        archive_path = create_temp_archive(archive_name=test_archive_name,
+                                           source_dir=self.test_dir,
+                                           recursive=True)
+
+        self.assertArchivedFileCount(archive_path, 8)
+
+    def test_archive_with_subdirectories_and_filters(self):
+        subdir_name = os.path.join(self.test_dir, 'subdir')
+        os.makedirs(subdir_name)
+        self._create_test_files(subdir_name)
+
+        test_archive_name = 'subdir-' + self.test_timestamp + '.tar.gz'
+        archive_path = create_temp_archive(archive_name=test_archive_name,
+                                           source_dir=self.test_dir,
+                                           files=['*.py'],
+                                           recursive=True)
+
+        self.assertArchivedFileCount(archive_path, 4)
+
+    def test_archive_with_second_level_subdirectories(self):
+        subdir_name = os.path.join(self.test_dir, 'subdir')
+        os.makedirs(subdir_name)
+        self._create_test_files(subdir_name)
+
+        another_subdir_name = os.path.join(subdir_name, 'another.subdir')
+        os.makedirs(another_subdir_name)
+        self._create_test_files(another_subdir_name)
+
+        test_archive_name = 'subdir-' + self.test_timestamp + '.tar.gz'
+        archive_path = create_temp_archive(archive_name=test_archive_name,
+                                           source_dir=self.test_dir,
+                                           recursive=True)
+
+        self.assertArchivedFileCount(archive_path, 12)
+
+    def test_archive_with_second_level_subdirectories_and_unexistent_filter(self):
+        subdir_name = os.path.join(self.test_dir, 'subdir')
+        os.makedirs(subdir_name)
+        self._create_test_files(subdir_name)
+
+        another_subdir_name = os.path.join(subdir_name, 'another.subdir')
+        os.makedirs(another_subdir_name)
+        self._create_test_files(another_subdir_name)
+
+        test_archive_name = 'subdir-' + self.test_timestamp + '.tar.gz'
+        archive_path = create_temp_archive(archive_name=test_archive_name,
+                                           source_dir=self.test_dir,
+                                           files=['*.yml'],
+                                           recursive=True)
+
+        self.assertArchivedFileCount(archive_path, 0)
 
     def assertArchivedContent(self, archive_path, expected_content):
         actual_content = []
@@ -81,3 +135,18 @@ class ArchiveTestCase(unittest.TestCase):
                     actual_content.append(tarinfo.name)
 
         self.assertListEqual(sorted(actual_content), sorted(expected_content))
+
+    def assertArchivedFileCount(self, archive_path, expected_number_of_files):
+        n_files = 0
+        with tarfile.open(archive_path, "r:gz") as tar:
+            for tarinfo in tar:
+                if tarinfo.isreg():
+                    n_files = n_files + 1
+
+        self.assertEqual(expected_number_of_files, n_files)
+
+    def _create_test_files(self, dir_name):
+        for test_file in self.test_files:
+            file_path = os.path.join(dir_name, test_file)
+            with open(file_path, 'a'):
+                os.utime(file_path, None)
