@@ -119,6 +119,10 @@ class SchemaProperty(CliOption):
        SchemaProperty instances are initialized from the corresponding property stanza
        from the schema
     """
+    # Skip the following meta-properties when building the description.  We will already
+    # have description and type and the others are difficult to display in a succinct manner.
+    skipped_meta_properties = ['description', 'type', 'items', 'additionalItems']
+
     def __init__(self, name, schema_property):
         self.schema_property = schema_property
         cli_option = '--' + name
@@ -131,44 +135,20 @@ class SchemaProperty(CliOption):
 
     def print_description(self):
 
-        additional_clause = None
-        if self.type == 'string':
-            format = self.schema_property.get('format')
-            if format:
-                additional_clause = self._build_clause(additional_clause,
-                                                       "Format: {} ".format(format))
-            pattern = self.schema_property.get('pattern')
-            if pattern:
-                additional_clause = self._build_clause(additional_clause,
-                                                       "Pattern: {}".format(pattern))
-            minLength = self.schema_property.get('minLength')
-            if minLength:
-                additional_clause = self._build_clause(additional_clause,
-                                                       "MinLength: {}".format(minLength))
-            maxLength = self.schema_property.get('maxLength')
-            if maxLength:
-                additional_clause = self._build_clause(additional_clause,
-                                                       "MaxLength: {}".format(maxLength))
-        elif self.type == 'number' or type == 'integer':
-            minimum = self.schema_property.get('minimum')
-            if minimum:
-                additional_clause = self._build_clause(additional_clause,
-                                                       "Minimum: {}".format(minimum))
-            maximum = self.schema_property.get('maximum')
-            if maximum:
-                additional_clause = self._build_clause(additional_clause,
-                                                       "Maximum: {}".format(maximum))
+        additional_clause = ""
+        for meta_prop, value in self.schema_property.items():
+            if meta_prop in self.skipped_meta_properties:
+                continue
+            additional_clause = self._build_clause(additional_clause, meta_prop, value)
 
-        if additional_clause:
-            print("\t{}; {}".format(self.description, additional_clause))
-        else:
-            print("\t{}".format(self.description))
+        print("\t{}{}".format(self.description, additional_clause))
 
-    def _build_clause(self, additional_clause, addition):
-        if additional_clause:
-            additional_clause = additional_clause + ", " + addition
+    def _build_clause(self, additional_clause, meta_prop, value):
+        if len(additional_clause) == 0:
+            additional_clause = additional_clause + "; "
         else:
-            additional_clause = addition
+            additional_clause = additional_clause + ", "
+        additional_clause = additional_clause + meta_prop + ": " + str(value)
         return additional_clause
 
 
