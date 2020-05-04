@@ -24,6 +24,7 @@ import {
   Dialog,
   showDialog
 } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
@@ -71,7 +72,13 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     ) {
       const documentWidget = widget as DocumentWidget;
       const fileEditor = (documentWidget.content as FileEditor).editor;
-      fileEditor.replaceSelection(snippetStr);
+
+      // Wrap in code block if inserting snippet into a markdown file
+      if (PathExt.extname(widget.context.path) === '.md') {
+        fileEditor.replaceSelection('```' + snippetStr + '```');
+      } else {
+        fileEditor.replaceSelection(snippetStr);
+      }
     } else if (widget instanceof PythonFileEditor) {
       const pythonEditorWidget = widget as PythonFileEditor;
       const pythonEditor = (pythonEditorWidget.content as FileEditor).editor;
