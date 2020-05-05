@@ -19,6 +19,7 @@ limitations under the License.
 
 [![PyPI version](https://badge.fury.io/py/elyra.svg)](https://badge.fury.io/py/elyra)
 [![Downloads](https://pepy.tech/badge/elyra/month)](https://pepy.tech/project/jupyterlab/month)
+[![Documentation Status](https://readthedocs.org/projects/elyra/badge/?version=latest)](https://elyra.readthedocs.io/en/latest/?badge=latest)
 [![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
 [![Gitter](https://badges.gitter.im/elyra-ai/community.svg)](https://gitter.im/elyra-ai/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/)
@@ -133,3 +134,10 @@ You can check that the JupyterLab extension was successful installed with:
 ```bash
 jupyter labextension list
 ```
+
+### Weekly Dev Community Meeting
+**When**: Thursdays at [9AM PST](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&)
+
+**Where**: [Zoom](https://zoom.us/j/99736674253) (Meeting ID: 997 3667 4253)
+
+**What**: [Meeting Notes](https://hackmd.io/SgvSqrWWR2248mCw2BZ5gg?both)
