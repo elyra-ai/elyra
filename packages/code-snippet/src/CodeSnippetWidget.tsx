@@ -85,17 +85,26 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       const notebookWidget = widget as NotebookPanel;
       const notebookCellEditor = (notebookWidget.content as Notebook).activeCell
         .editor;
+      const kernelLanguage: string =
+        notebookWidget.context.sessionContext.kernelPreference.language;
+      if (snippet.language !== kernelLanguage) {
+        this.showDialog('Warning', 'Language incompatibility');
+      }
       notebookCellEditor.replaceSelection(snippetStr);
     } else {
-      this.showErrorDialog('Code snippet insert failed: Unsupported widget');
+      this.showDialog(
+        'Error',
+        'Code snippet insert failed: Unsupported widget'
+      );
     }
   }
 
-  private showErrorDialog = (
+  private showDialog = (
+    errorType: string,
     errorMsg: string
   ): Promise<Dialog.IResult<string>> => {
     return showDialog({
-      title: 'Error',
+      title: errorType,
       body: errorMsg,
       buttons: [Dialog.okButton()]
     });
