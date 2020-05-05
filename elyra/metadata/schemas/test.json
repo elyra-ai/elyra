@@ -30,10 +30,10 @@
         "integer_exclusivity_test": {
           "description": "Property used to test integers with exclusivity restrictions",
           "type": "integer",
-          "exclusiveMaximum": 3,
-          "exclusiveMinimum": 10
+          "exclusiveMinimum": 3,
+          "exclusiveMaximum": 10
         },
-        "integer_multipleOf7_test": {
+        "integer_multiple_test": {
           "description": "Property used to test integers with multipleOf restrictions",
           "type": "integer",
           "multipleOf": 7

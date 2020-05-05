@@ -25,6 +25,7 @@ from .metadata import Metadata, MetadataManager
 ELYRA_METADATA_APP_TESTING = os.getenv("ELYRA_METADATA_APP_TESTING", 0)
 ELYRA_METADATA_TEST_NAMESPACE = "elyra-metadata-tests"
 
+
 class NamespaceBase(AppBase):
     """Simple attribute-only base class for the various namespace subcommand classes """
 
@@ -187,8 +188,8 @@ class NamespaceInstall(NamespaceBase):
                     display_name = option.value
                     continue
             if isinstance(option, MetadataSchemaProperty):
-                # skip adding any non required properties that have no value.
-                if not option.required and not option.value:
+                # skip adding any non required properties that have no value (unless its a null type).
+                if not option.required and not option.value and option.type != 'null':
                     continue
                 metadata[option.name] = option.value
 

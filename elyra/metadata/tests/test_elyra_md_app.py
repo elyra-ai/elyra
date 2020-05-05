@@ -15,16 +15,17 @@
 #
 
 """Tests for elyra-metadata application"""
-
 import json
 import os
 import pytest
 import shutil
 from tempfile import mkdtemp
 from elyra.metadata.metadata import Metadata, MetadataManager
-from .test_utils import create_json_file, valid_metadata_json, another_metadata_json, invalid_metadata_json
+from .test_utils import PropertyTester, create_json_file, valid_metadata_json, \
+    another_metadata_json, invalid_metadata_json
 
 os.environ["ELYRA_METADATA_APP_TESTING"] = "1"  # Enable elyra-metadata-tests namespace
+
 
 @pytest.fixture()
 def mock_runtime_dir():
@@ -288,3 +289,183 @@ def test_remove_instance(script_runner, mock_runtime_dir):
     assert len(instances) == 2
     assert instances[0].name.endswith('2')
     assert instances[1].name.endswith('2')
+
+
+# Begin property tests...
+
+def test_required(script_runner, mock_runtime_dir):
+    # Doesn't use PropertyTester due to its unique test since all other tests require this property
+    name = "required"
+
+    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests', name + '.json')
+    # Cleanup from any potential previous failures
+    if os.path.exists(expected_file):
+        os.remove(expected_file)
+
+    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+                            '--name=' + name, '--display_name=' + name)
+
+    assert ret.success is False
+    assert "'--required_test' is a required parameter" in ret.stdout
+
+    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+                            '--name=' + name, '--display_name=' + name,
+                            '--required_test=required_value')
+
+    assert ret.success
+    assert "Metadata instance '" + name + "' for schema 'test' has been written" in ret.stdout
+
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+    assert os.path.isfile(expected_file)
+
+    with open(expected_file, "r") as fd:
+        instance_json = json.load(fd)
+        assert instance_json["schema_name"] == 'test'
+        assert instance_json["display_name"] == name
+        assert instance_json["metadata"]["required_test"] == "required_value"
+
+
+def test_number_default(script_runner, mock_runtime_dir):
+    # Doesn't use PropertyTester due to its unique test (no failure, needs --replace, etc.)
+    name = "number_default"
+
+    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests', name + '.json')
+    # Cleanup from any potential previous failures
+    if os.path.exists(expected_file):
+        os.remove(expected_file)
+
+    # No negative test here.  First create w/o a value and ensure 42, then create with a value and ensure that value.
+    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+                            '--name=' + name, '--display_name=' + name,
+                            '--required_test=required_value')
+
+    assert ret.success
+    assert "Metadata instance '" + name + "' for schema 'test' has been written" in ret.stdout
+
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+    assert os.path.isfile(expected_file)
+
+    with open(expected_file, "r") as fd:
+        instance_json = json.load(fd)
+        assert instance_json["schema_name"] == 'test'
+        assert instance_json["display_name"] == name
+        assert instance_json["metadata"]["number_default_test"] == 42
+
+    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+                            '--name=' + name, '--display_name=' + name,
+                            '--required_test=required_value', '--replace',
+                            '--number_default_test=7.2')
+
+    assert ret.success
+    assert "Metadata instance '" + name + "' for schema 'test' has been written" in ret.stdout
+
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+    assert os.path.isfile(expected_file)
+
+    with open(expected_file, "r") as fd:
+        instance_json = json.load(fd)
+        assert instance_json["schema_name"] == 'test'
+        assert instance_json["display_name"] == name
+        assert instance_json["metadata"]["number_default_test"] == 7.2
+
+
+def test_uri(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("uri")
+    prop_test.negative_value = "//invalid-uri"
+    prop_test.negative_stdout = "Property used to test uri formatting; format: uri"
+    prop_test.negative_stderr = "'//invalid-uri' is not a 'uri'"
+    prop_test.positive_value = "http://localhost:31823/v1/models?version=2017-02-13"
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_integer_exclusivity(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("integer_exclusivity")
+    prop_test.negative_value = 3
+    prop_test.negative_stdout = "Property used to test integers with exclusivity restrictions; " \
+                                "exclusiveMinimum: 3, exclusiveMaximum: 10"
+    prop_test.negative_stderr = "3 is less than or equal to the minimum of 3"
+    prop_test.positive_value = 7
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_integer_multiple(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("integer_multiple")
+    prop_test.negative_value = 32
+    prop_test.negative_stdout = "Property used to test integers with multipleOf restrictions; multipleOf: 7"
+    prop_test.negative_stderr = "32 is not a multiple of 7"
+    prop_test.positive_value = 42
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_number_range(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("number_range")
+    prop_test.negative_value = 2.7
+    prop_test.negative_stdout = "Property used to test numbers with range; minimum: 3, maximum: 10"
+    prop_test.negative_stderr = "2.7 is less than the minimum of 3"
+    prop_test.positive_value = 7.2
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_const(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("const")
+    prop_test.negative_value = 2.718
+    prop_test.negative_stdout = "Property used to test properties with const; const: 3.14"
+    prop_test.negative_stderr = "3.14 was expected"
+    prop_test.positive_value = 3.14
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_string_length(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("string_length")
+    prop_test.negative_value = "12345678901"
+    prop_test.negative_stdout = "Property used to test strings with length restrictions; minLength: 3, maxLength: 10"
+    prop_test.negative_stderr = "'12345678901' is too long"
+    prop_test.positive_value = "123456"
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_enum(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("enum")
+    prop_test.negative_value = "jupyter"
+    prop_test.negative_stdout = "Property used to test properties with enums; enum: ['elyra', 'rocks']"
+    prop_test.negative_stderr = "'jupyter' is not one of ['elyra', 'rocks']"
+    prop_test.positive_value = "rocks"
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_array(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("array")
+    prop_test.negative_value = [1, 2, 2]
+    prop_test.negative_stdout = "Property used to test array with item restrictions; " \
+                                "minItems: 3, maxItems: 10, uniqueItems: True"
+    prop_test.negative_stderr = "[1, 2, 2] has non-unique elements"
+    prop_test.positive_value = [1, 2, 3, 4, 5]
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_object(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("object")
+    prop_test.negative_value = {'prop1': 2, 'prop2': 3}
+    prop_test.negative_stdout = "Property used to test object elements with properties restrictions; " \
+                                "minProperties: 3, maxProperties: 10"
+    prop_test.negative_stderr = "{'prop1': 2, 'prop2': 3} does not have enough properties"
+    prop_test.positive_value = {'prop1': 2, 'prop2': 3, 'prop3': 4, 'prop4': 5}
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_boolean(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("boolean")
+    prop_test.negative_value = "bogus_boolean"
+    prop_test.negative_stdout = "Property used to test boolean values"
+    prop_test.negative_stderr = "'bogus_boolean' is not of type 'boolean'"
+    prop_test.positive_value = True
+    prop_test.run(script_runner, mock_runtime_dir)
+
+
+def test_null(script_runner, mock_runtime_dir):
+    prop_test = PropertyTester("null")
+    prop_test.negative_value = "bogus_null"
+    prop_test.negative_stdout = "Property used to test null types"
+    prop_test.negative_stderr = "'bogus_null' is not of type 'null'"
+    prop_test.positive_value = None
+    prop_test.run(script_runner, mock_runtime_dir)

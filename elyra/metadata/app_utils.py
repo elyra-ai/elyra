@@ -84,8 +84,29 @@ class Option(object):
         self.type = type
 
     def set_value(self, value):
-        if self.type == 'array':
+        if self.type == 'array' or self.type == 'object':
             self.value = ast.literal_eval(value)
+        elif self.type == 'integer':
+            self.value = int(value)
+        elif self.type == 'number':
+            if "." in value:
+                self.value = float(value)
+            else:
+                self.value = int(value)
+        elif self.type == 'boolean':
+            if isinstance(value, bool):
+                self.value = value
+            elif str(value).lower() in ("true", "1"):
+                self.value = True
+            elif str(value).lower() in ("false", "0"):
+                self.value = False
+            else:
+                self.value = value  # let it take its course
+        elif self.type == 'null':
+            if str(value) in ("null", "None"):
+                self.value = None
+            else:
+                self.value = value
         else:
             self.value = value
 

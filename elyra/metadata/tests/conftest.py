@@ -22,7 +22,6 @@ import jupyter_core.paths
 from notebook.utils import url_path_join
 from tornado.escape import url_escape
 from elyra.metadata.metadata import MetadataManager, FileMetadataStore, SchemaManager
-#from elyra.metadata.runtime import Runtime
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
 
 

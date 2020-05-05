@@ -62,8 +62,8 @@ complete_metadata_json = {
         # purposely missing "number_default_test": 42
         "const_test": 3.14,
         "string_length_test": "1234567",
-        "enum_test":"rocks",
-        "array_test": [ "elyra", "rocks", "the", "world"],
+        "enum_test": "rocks",
+        "array_test": ["elyra", "rocks", "the", "world"],
         "object_test": {
             "property1": "first prop",
             "property2": "second_prop",
@@ -106,3 +106,52 @@ def get_schema(schema_name):
         schema_json = json.load(f)
 
     return schema_json
+
+
+class PropertyTester(object):
+    """Helper class used by elyra_md tests to test each of the properties in the test.json schema. """
+    name = None             # prefixed with 'test_' is test name, post-fixed with '_test' is schema property name
+    negative_res = False    # expected success of first test
+    negative_value = None   # value to use in first test (usually negative test)
+    negative_stdout = None  # expected string to find in first test's stdout
+    negative_stderr = None  # expected string to find in second test's stdout
+    positive_res = True     # expected success of second test
+    positive_value = None   # value to use in second test (usually successful)
+
+    def __init__(self, name):
+        self.name = name
+        self.property = name + "_test"
+
+    def run(self, script_runner, mock_runtime_dir):
+        expected_file = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests', self.name + '.json')
+        # Cleanup from any potential previous failures
+        if os.path.exists(expected_file):
+            os.remove(expected_file)
+
+        # First test
+        ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+                                '--name=' + self.name, '--display_name=' + self.name,
+                                '--required_test=required_value',
+                                '--' + self.property + '=' + str(self.negative_value))
+
+        assert ret.success is self.negative_res
+        assert self.negative_stdout in ret.stdout
+        assert self.negative_stderr in ret.stderr
+
+        # Second test
+        ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+                                '--name=' + self.name, '--display_name=' + self.name,
+                                '--required_test=required_value',
+                                '--' + self.property + '=' + str(self.positive_value))
+
+        assert ret.success is self.positive_res
+        assert "Metadata instance '" + self.name + "' for schema 'test' has been written" in ret.stdout
+
+        assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+        assert os.path.isfile(expected_file)
+
+        with open(expected_file, "r") as fd:
+            instance_json = json.load(fd)
+            assert instance_json["schema_name"] == 'test'
+            assert instance_json["display_name"] == self.name
+            assert instance_json["metadata"][self.property] == self.positive_value

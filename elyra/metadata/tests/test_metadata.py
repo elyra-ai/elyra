@@ -32,26 +32,26 @@ from .test_utils import valid_metadata_json, invalid_metadata_json, create_json_
 # Test factory schemas.
 # Note: should we ever decide to allow folks to bring their own schemas, we'd want to expose this.
 schema_schema = {
-  "title": "Schema for Elyra schema.",
-  "properties": {
-    "name": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
-    },
-    "namespace": {
-      "description": "The display name of the Code Snippet",
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
-    },
+    "title": "Schema for Elyra schema.",
     "properties": {
-      "type": "object",
-        "propertyNames": {
-          "enum": ["schema_name", "display_name", "metadata"]
+        "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
         },
-        "additionalProperties": True
-    }
-  },
-  "required": ["name", "namespace", "properties"]
+        "namespace": {
+            "description": "The display name of the Code Snippet",
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
+        },
+        "properties": {
+            "type": "object",
+            "propertyNames": {
+                "enum": ["schema_name", "display_name", "metadata"]
+            },
+            "additionalProperties": True
+        }
+    },
+    "required": ["name", "namespace", "properties"]
 }
 
 
