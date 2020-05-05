@@ -1,0 +1,7 @@
+{
+  "display_name": "Pytorch 1.2 with CUDA-devel",
+  "metadata": {
+    "image_name": "pytorch/pytorch:1.2-cuda10.0-cudnn7-devel"
+  },
+  "schema_name": "runtime-image"
+}

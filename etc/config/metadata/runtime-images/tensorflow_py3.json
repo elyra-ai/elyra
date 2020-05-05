@@ -1,0 +1,7 @@
+{
+  "display_name": "Tensorflow 1.15.2",
+  "metadata": {
+    "image_name": "elyra/tensorflow:1.15.2-py3"
+  },
+  "schema_name": "runtime-image"
+}
