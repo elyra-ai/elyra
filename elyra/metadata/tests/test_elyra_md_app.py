@@ -259,10 +259,19 @@ def test_remove_no_name(script_runner):
 
 
 def test_remove_missing(script_runner):
+    # Create an instance so that the namespace exists.
+    metadata_manager = MetadataManager(namespace='elyra-metadata-tests')
+    valid = Metadata(**valid_metadata_json)
+    metadata_manager.add('valid', valid)
+
     ret = script_runner.run('elyra-metadata', 'remove', 'elyra-metadata-tests', '--name=missing')
     assert ret.success is False
     assert ret.stdout == '"Metadata \'missing\' in namespace \'elyra-metadata-tests\' was not found!"\n'
     assert ret.stderr == ''
+
+    # Now cleanup original instance.
+    ret = script_runner.run('elyra-metadata', 'remove', 'elyra-metadata-tests', '--name=valid')
+    assert ret.success
 
 
 def test_remove_instance(script_runner, mock_runtime_dir):
