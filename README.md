@@ -135,6 +135,8 @@ jupyter labextension list
 ```
 
 ### Weekly Dev Community Meeting
-When: Thursdays at [9AM PST](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&)
-Where: [Zoom](https://zoom.us/j/99736674253) (Meeting ID: 997 3667 4253)
-What: [Meeting Notes](https://hackmd.io/SgvSqrWWR2248mCw2BZ5gg?both)
+**When**: Thursdays at [9AM PST](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&)
+
+**Where**: [Zoom](https://zoom.us/j/99736674253) (Meeting ID: 997 3667 4253)
+
+**What**: [Meeting Notes](https://hackmd.io/SgvSqrWWR2248mCw2BZ5gg?both)
