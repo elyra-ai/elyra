@@ -43,7 +43,8 @@ release = version_ns['__version__']
 # ones.
 extensions = [
     "sphinx_rtd_theme",
-    "recommonmark"
+    "recommonmark",
+    "sphinx_markdown_tables"
 ]
 
 source_suffix = {
