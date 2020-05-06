@@ -81,7 +81,12 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
       } else if (widget instanceof PythonFileEditor) {
-        this.verifyLanguage(snippet.language, 'python', fileEditor, snippetStr);
+        this.verifyLanguageAndInsert(
+          snippet.language,
+          'python',
+          fileEditor,
+          snippetStr
+        );
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
@@ -91,7 +96,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         .editor;
       const kernelLanguage: string =
         notebookWidget.context.sessionContext.kernelPreference.language;
-      this.verifyLanguage(
+      this.verifyLanguageAndInsert(
         snippet.language,
         kernelLanguage,
         notebookCellEditor,
@@ -103,7 +108,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   }
 
   // Handle language compatibility between code snippet and editor
-  private verifyLanguage = async (
+  private verifyLanguageAndInsert = async (
     snippetLanguage: string,
     editorLanguage: string,
     editor: CodeEditor.IEditor,
@@ -111,7 +116,9 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   ): Promise<void> => {
     if (snippetLanguage !== editorLanguage) {
       const result = await this.showWarnDialog(editorLanguage);
-      result.button.accept && editor.replaceSelection(code);
+      if (result.button.accept) {
+        editor.replaceSelection(code);
+      }
     } else {
       editor.replaceSelection(code);
     }
