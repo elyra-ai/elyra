@@ -9,7 +9,12 @@
     "typeRoots": ["./node_modules/@types"]
   },
   "include": ["src/*", "src/*/*"],
-  "files": ["src/palette.json", "src/properties.json", "src/en.json"],
+  "files": [
+    "src/palette.json",
+    "src/properties.json",
+    "src/en.json",
+    "src/pipeline-template.json"
+  ],
   "references": [
     {
       "path": "../application"
