@@ -63,6 +63,7 @@ interface ICodeSnippetDisplayProps {
 class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   // TODO: Use code mirror to display code
 
+  // Handle code snippet insert into an editor
   private insertCodeSnippet(snippet: ICodeSnippet): void {
     const widget: Widget = this.props.getCurrentWidget();
     const snippetStr: string = snippet.code.join('\n');
@@ -79,8 +80,6 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         fileEditor.replaceSelection(
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
-
-        // TODO: Change how python file editor is checked below to be more generic
       } else if (widget instanceof PythonFileEditor) {
         this.verifyLanguage(snippet.language, 'python', fileEditor, snippetStr);
       } else {
@@ -103,6 +102,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     }
   }
 
+  // Handle language compatibility between code snippet and editor
   private verifyLanguage = async (
     snippetLanguage: string,
     editorLanguage: string,
@@ -117,6 +117,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     }
   };
 
+  // Display warning dialog when inserting a code snippet incompatible with editor's language
   private showWarnDialog = async (
     editorLanguage: string
   ): Promise<Dialog.IResult<string>> => {
@@ -130,6 +131,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     });
   };
 
+  // Display error dialog when inserting a code snippet into unsupported widget (i.e. not an editor)
   private showErrDialog = (errMsg: string): Promise<Dialog.IResult<string>> => {
     return showDialog({
       title: 'Error',
@@ -138,6 +140,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     });
   };
 
+  // Render display of code snippet list
   private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
     const displayName =
       '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
