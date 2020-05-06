@@ -35,11 +35,12 @@ schema_schema = {
     "title": "Schema for Elyra schema.",
     "properties": {
         "name": {
+            "description": "The name of the schema.",
             "type": "string",
             "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
         },
         "namespace": {
-            "description": "The display name of the Code Snippet",
+            "description": "The namespace corresponding to the schema and its instances.",
             "type": "string",
             "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
         },
