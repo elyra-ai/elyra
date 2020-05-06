@@ -77,7 +77,7 @@ setup_args = dict(
     ),
     entry_points={
         'console_scripts': [
-            'elyra-metadata = elyra.metadata.elyra_md:ElyraMetadataApp.main',
+            'elyra-metadata = elyra.metadata.metadata_app:MetadataApplication.main',
         ],
         'elyra.pipeline.processors': [
             'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'

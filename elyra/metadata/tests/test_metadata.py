@@ -23,8 +23,8 @@ import pytest
 from jsonschema import validate, ValidationError, draft7_format_checker
 from logging import StreamHandler
 
-from elyra.metadata.metadata import Metadata, MetadataManager
-from elyra.metadata.app_utils import load_namespaces
+from elyra.metadata import Metadata, MetadataManager
+from elyra.metadata.metadata_app_utils import load_namespaces
 
 from .test_utils import valid_metadata_json, invalid_metadata_json, create_json_file, get_schema
 

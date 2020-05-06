@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .metadata import Metadata, MetadataManager, MetadataStore, FileMetadataStore
+from .metadata import FileMetadataStore, Metadata, MetadataManager, MetadataStore, SchemaManager

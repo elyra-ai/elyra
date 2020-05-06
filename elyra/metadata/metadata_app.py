@@ -18,7 +18,7 @@ import sys
 
 from jsonschema import ValidationError
 
-from .app_utils import AppBase, load_namespaces, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
+from .metadata_app_utils import AppBase, load_namespaces, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
 from .metadata import Metadata, MetadataManager
 
 # The following exposes the elyra-metadatat-test namespace if true or 1.  App testing will enable this env.
@@ -288,7 +288,7 @@ class Install(SubcommandBase):
         super(Install, self).__init__(**kwargs)
 
 
-class ElyraMetadataApp(AppBase):
+class MetadataApplication(AppBase):
     """Lists, installs and removes metadata for a given namespace."""
 
     name = "elyra-metadata"
@@ -306,7 +306,7 @@ class ElyraMetadataApp(AppBase):
         elyra_metadata.start()
 
     def __init__(self, **kwargs):
-        super(ElyraMetadataApp, self).__init__(**kwargs)
+        super(MetadataApplication, self).__init__(**kwargs)
         self.namespace_schemas = load_namespaces()
 
     def start(self):
@@ -318,9 +318,9 @@ class ElyraMetadataApp(AppBase):
         return subinstance.start()
 
     def print_help(self):
-        super(ElyraMetadataApp, self).print_help()
+        super(MetadataApplication, self).print_help()
         self.print_subcommands()
 
 
 if __name__ == '__main__':
-    ElyraMetadataApp.main()
+    MetadataApplication.main()

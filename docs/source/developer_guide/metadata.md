@@ -122,7 +122,7 @@ GET /api/metadata/<namespace>/<resource>
 A Python API is also available for accessing and manipulating metadata.  This is accomplished using the `MetadataManager` along with a corresponding storage class.  The default storage class is `FileMetadataStore`.
 
 ```Python
-from elyra.metadata.metadata import MetadataManager, FileMetadataStore
+from elyra.metadata import MetadataManager, FileMetadataStore
 
 metadata_manager = MetadataManager(namespace="runtimes",
                                    store=FileMetadataStore(namespace='runtimes'))

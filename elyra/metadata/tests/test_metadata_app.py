@@ -20,7 +20,7 @@ import os
 import pytest
 import shutil
 from tempfile import mkdtemp
-from elyra.metadata.metadata import Metadata, MetadataManager
+from elyra.metadata import Metadata, MetadataManager
 from .test_utils import PropertyTester, create_json_file, valid_metadata_json, \
     another_metadata_json, invalid_metadata_json
 
