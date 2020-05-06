@@ -108,34 +108,15 @@ After verifying Elyra has been installed, start Elyra with:
 jupyter lab
 ```
 
-## Development Workflow
-### Building
+## Contributing to Elyra
+If you are interested in helping make Elyra better, we encourage you to take a look at our 
+[Contributing](CONTRIBUTING.md) page,  
+[Development Workflow](docs/source/developer-guide/development-workflow.md) documentation, and 
+invite you to attend our weekly dev community meetings.
 
-`Elyra` is divided in two parts, a collection of Jupyter Notebook backend extensions,
-and their respective JupyterLab UI extensions. Our JupyterLab extensions are located in our `packages`
-directory. 
+### Weekly Dev Community Meeting 
+Join us weekly to discuss Elyra development topics.  Everyone is welcome and participation is optional.
 
-#### Requirements
-
-* [Yarn](https://yarnpkg.com/lang/en/docs/install) 
-
-#### Installation
-
-```bash
-make clean install
-```
-
-You can check that the notebook server extension was successful installed with:
-```bash
-jupyter serverextension list
-```
-
-You can check that the JupyterLab extension was successful installed with:
-```bash
-jupyter labextension list
-```
-
-### Weekly Dev Community Meeting
 **When**: Thursdays at [9AM PST](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&)
 
 **Where**: [Zoom](https://zoom.us/j/99736674253) (Meeting ID: 997 3667 4253)

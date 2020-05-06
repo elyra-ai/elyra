@@ -16,10 +16,10 @@ limitations under the License.
 {% endcomment %}
 -->
 ## Development Workflow
+This section describes the steps necessary to build Elyra in a development environment. 
 
 ### Building
-
-`Elyra` is divided in two parts, a collection of Jupyter Notebook backend extensions,
+Elyra is divided in two parts, a collection of Jupyter Notebook backend extensions,
 and their respective JupyterLab UI extensions. Our JupyterLab extensions are located in our `packages`
 directory. 
 
