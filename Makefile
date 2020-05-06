@@ -15,7 +15,7 @@
 #
 
 .PHONY: help clean yarn-install test-dependencies lint-server lint-ui lint lerna-build npm-packages bdist install
-.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs install-backend docker-image
+.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs install-backend docker-image npm-dists
 
 SHELL:=/bin/bash
 
@@ -118,10 +118,22 @@ docker-image: ## bdist ## Build docker image
 	cp -r dist/*.whl build/docker/
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
 
+# Create package dists for publishing elyra. Run after make install
+npm-dists:
+	$(call PACKAGE_LAB_EXTENSION,application)
+	$(call PACKAGE_LAB_EXTENSION,code-snippet)
+	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
+	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
+	$(call PACKAGE_LAB_EXTENSION,python-runner)
+
 define UNLINK_LAB_EXTENSION
 	- jupyter labextension unlink --no-build @elyra/$1
 endef
 
 define LINK_LAB_EXTENSION
 	cd packages/$1 && jupyter labextension link --no-build .
+endef
+
+define PACKAGE_LAB_EXTENSION
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && npm run dist && mv *.tgz ../../dist
 endef
