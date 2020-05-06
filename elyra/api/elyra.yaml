@@ -4,8 +4,8 @@ info:
   description: The API for the Elyra extensions
   version: '1'
   contact:
-    name: Jupyter Project
-    url: 'https://jupyter.org'
+    name: Elyra
+    url: 'https://github.com/elyra-ai/elyra'
 produces:
   - application/json
 consumes:
@@ -34,14 +34,6 @@ paths:
       responses:
         '200':
           description: Returns a swagger specification in yaml
-  /api/elyra.json:
-    get:
-      summary: Get API information (json)
-      tags:
-        - api
-      responses:
-        '200':
-          description: Returns a swagger specification in json
   '/api/metadata/{namespace}':
     parameters:
       - $ref: '#/parameters/namespace'
@@ -51,7 +43,7 @@ paths:
         - metadata
       responses:
         '200':
-          description: Returns the metadata objects for a given namespace
+          description: Returns the metadata instances for a given namespace
           schema:
             type: object
             properties:
@@ -59,7 +51,7 @@ paths:
                 type: array
                 description: The name of the namespace.
                 items:
-                  $ref: '#/definitions/NamespaceResource'
+                  $ref: '#/definitions/MetadataResource'
         '404':
           description: Namespace not found
   '/api/metadata/{namespace}/{resource}':
@@ -67,20 +59,56 @@ paths:
       - $ref: '#/parameters/namespace'
       - $ref: '#/parameters/resource'
     get:
-      summary: Get metadata for a given resource in a given namespace
+      summary: Get a given metadata instance from a given namespace
       tags:
         - metadata
       responses:
         '200':
           description: >-
-            Returns the metadata object for a given resource in a given
+            Returns the metadata instances for a given resource in a given
             namespace
           schema:
-            $ref: '#/definitions/NamespaceResource'
+            $ref: '#/definitions/MetadataResource'
+        '404':
+          description: Namespace/Resource not found
+  '/api/metadata_schema/{namespace}':
+    parameters:
+      - $ref: '#/parameters/namespace'
+    get:
+      summary: Get schemas for a given namespace
+      tags:
+        - metadata
+      responses:
+        '200':
+          description: Returns the schema instances for a given namespace
+          schema:
+            type: object
+            properties:
+              namespace:
+                type: array
+                description: The name of the namespace.
+                items:
+                  $ref: '#/definitions/SchemaResource'
+        '404':
+          description: Namespace not found
+  '/api/metadata_schema/{namespace}/{resource}':
+    parameters:
+      - $ref: '#/parameters/namespace'
+      - $ref: '#/parameters/resource'
+    get:
+      summary: Get a given schema instance from a given namespace
+      tags:
+        - metadata
+      responses:
+        '200':
+          description: >-
+            Returns the schema instance for a given resource in a given namespace
+          schema:
+            $ref: '#/definitions/SchemaResource'
         '404':
           description: Namespace/Resource not found
 definitions:
-  NamespaceResource:
+  MetadataResource:
     description: The set of properties comprising a namespace resource entity
     required:
       - name
@@ -101,6 +129,23 @@ definitions:
         format: filename
         description: Path to json file containing resource definition
       metadata:
+        type: object
+        description: >-
+          A free-form dictionary consisting of additional information about the
+          resource.
+  SchemaResource:
+    description: The set of properties comprising a namespace resource entity
+    required:
+      - namespace
+      - name
+    properties:
+      namespace:
+        type: string
+        description: The namespace of the resource
+      name:
+        type: string
+        description: The canonical name of the resource
+      properties:
         type: object
         description: >-
           A free-form dictionary consisting of additional information about the

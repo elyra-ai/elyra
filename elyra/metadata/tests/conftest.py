@@ -111,19 +111,19 @@ metadata_bogus_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata",
 
 
 @pytest.fixture
-def setup_runtimes(environ, metadata_tests_dir):
+def setup_namespace(environ, metadata_tests_dir):
     create_json_file(metadata_tests_dir, 'valid.json', valid_metadata_json)
     create_json_file(metadata_tests_dir, 'another.json', another_metadata_json)
     create_json_file(metadata_tests_dir, 'invalid.json', invalid_metadata_json)
 
 
 @pytest.fixture
-def tests_manager(setup_runtimes):
+def tests_manager(setup_namespace):
     return MetadataManager(namespace="elyra-metadata-tests")
 
 
 @pytest.fixture
-def filestore(setup_runtimes):
+def filestore(setup_namespace):
     return FileMetadataStore(namespace="elyra-metadata-tests")
 
 

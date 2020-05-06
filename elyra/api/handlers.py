@@ -38,16 +38,6 @@ class BaseSpecHandler(web.StaticFileHandler, APIHandler):
         return self.get_resource_metadata()[1]
 
 
-class JsonSpecHandler(BaseSpecHandler):
-    """Exposes the ability to return specifications from static files"""
-
-    @staticmethod
-    def get_resource_metadata():
-        """Returns the (resource, mime-type) for the handlers spec.
-        """
-        return 'elyra.json', 'application/json'
-
-
 class YamlSpecHandler(BaseSpecHandler):
     """Exposes the ability to return specifications from static files"""
 

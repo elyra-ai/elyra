@@ -18,8 +18,8 @@ import sys
 
 from jsonschema import ValidationError
 
-from .metadata_app_utils import AppBase, load_namespaces, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
-from .metadata import Metadata, MetadataManager
+from .metadata_app_utils import AppBase, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
+from .metadata import Metadata, MetadataManager, SchemaManager
 
 # The following exposes the elyra-metadatat-test namespace if true or 1.  App testing will enable this env.
 METADATA_APP_TESTING = os.getenv("METADATA_APP_TESTING", 0)
@@ -307,7 +307,7 @@ class MetadataApp(AppBase):
 
     def __init__(self, **kwargs):
         super(MetadataApp, self).__init__(**kwargs)
-        self.namespace_schemas = load_namespaces()
+        self.namespace_schemas = SchemaManager.load_namespace_schemas()
 
     def start(self):
         subcommand = self.get_subcommand()

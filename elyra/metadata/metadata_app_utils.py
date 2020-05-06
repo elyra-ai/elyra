@@ -14,52 +14,12 @@
 # limitations under the License.
 #
 import ast
-import io
-import json
 import logging
-import os
 import sys
-import warnings
 
 """Utility functions and classes used for metadata applications and classes."""
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)1.1s %(asctime)s.%(msecs).03d] %(message)s')
-
-
-def load_namespaces(schema_dir=None):
-    """Loads the static schema files into a dictionary indexed by namespace.
-       If schema_dir is not specified, the static location relative to this
-       file will be used.
-
-       Note: The schema file must have a top-level string-valued attribute
-       named 'namespace' to be included in the resulting dictionary.
-    """
-    namespace_schemas = {}
-
-    if schema_dir is None:
-        schema_dir = os.path.join(os.path.dirname(__file__), 'schemas')
-    if not os.path.exists(schema_dir):
-        raise RuntimeError("Metadata schema directory '{}' was not found!".format(schema_dir))
-
-    schema_files = [json_file for json_file in os.listdir(schema_dir) if json_file.endswith('.json')]
-    for json_file in schema_files:
-        schema_file = os.path.join(schema_dir, json_file)
-        with io.open(schema_file, 'r', encoding='utf-8') as f:
-            schema_json = json.load(f)
-        namespace = schema_json.get('namespace')
-        if namespace is None:
-            warnings.warn("Schema file '{}' is missing its namespace attribute!  Skipping...".format(schema_file))
-            continue
-        if namespace not in namespace_schemas:  # Create the namespace dict
-            namespace_schemas[namespace] = {}
-        # Add the schema file indexed by name within the namespace
-        name = schema_json.get('name')
-        if name is None:
-            # If schema is missing a name attribute, use file's basename.
-            name = os.path.splitext(os.path.basename(schema_file))[0]
-        namespace_schemas[namespace][name] = schema_json
-
-    return namespace_schemas
 
 
 class Option(object):
