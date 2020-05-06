@@ -16,6 +16,7 @@
 
 import '../style/index.css';
 
+import { PythonFileEditor } from '@elyra/python-runner-extension/lib/PythonFileEditor';
 import {
   ReactWidget,
   UseSignal,
@@ -23,6 +24,7 @@ import {
   Dialog,
   showDialog
 } from '@jupyterlab/apputils';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentWidget } from '@jupyterlab/docregistry';
@@ -72,13 +74,16 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       const documentWidget = widget as DocumentWidget;
       const fileEditor = (documentWidget.content as FileEditor).editor;
 
-      // Wrap in code block if inserting snippet into a markdown file
       if (PathExt.extname(widget.context.path) === '.md') {
+        // Wrap snippet into a code block when inserting it into a markdown file
         fileEditor.replaceSelection(
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
+
+        // TODO: Change how python file editor is checked below to be more generic
+      } else if (widget instanceof PythonFileEditor) {
+        this.verifyLanguage(snippet.language, 'python', fileEditor, snippetStr);
       } else {
-        // Allow code snippet insertion independent of file extension
         fileEditor.replaceSelection(snippetStr);
       }
     } else if (widget instanceof NotebookPanel) {
@@ -87,25 +92,48 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         .editor;
       const kernelLanguage: string =
         notebookWidget.context.sessionContext.kernelPreference.language;
-      if (snippet.language !== kernelLanguage) {
-        this.showDialog('Warning', 'Language incompatibility');
-      }
-      notebookCellEditor.replaceSelection(snippetStr);
-    } else {
-      this.showDialog(
-        'Error',
-        'Code snippet insert failed: Unsupported widget'
+      this.verifyLanguage(
+        snippet.language,
+        kernelLanguage,
+        notebookCellEditor,
+        snippetStr
       );
+    } else {
+      this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
   }
 
-  private showDialog = (
-    errorType: string,
-    errorMsg: string
+  private verifyLanguage = async (
+    snippetLanguage: string,
+    editorLanguage: string,
+    editor: CodeEditor.IEditor,
+    code: string
+  ): Promise<void> => {
+    if (snippetLanguage !== editorLanguage) {
+      const result = await this.showWarnDialog(editorLanguage);
+      result.button.accept && editor.replaceSelection(code);
+    } else {
+      editor.replaceSelection(code);
+    }
+  };
+
+  private showWarnDialog = async (
+    editorLanguage: string
   ): Promise<Dialog.IResult<string>> => {
     return showDialog({
-      title: errorType,
-      body: errorMsg,
+      title: 'Warning',
+      body:
+        'The current code snippet is incompatible with ' +
+        editorLanguage +
+        '. Continue?',
+      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+    });
+  };
+
+  private showErrDialog = (errMsg: string): Promise<Dialog.IResult<string>> => {
+    return showDialog({
+      title: 'Error',
+      body: errMsg,
       buttons: [Dialog.okButton()]
     });
   };
