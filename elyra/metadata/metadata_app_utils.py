@@ -362,7 +362,7 @@ class AppBase(object):
         print("Subcommands")
         print("-----------")
         print("Subcommands are launched as `elyra-metadata cmd [args]`. For information on")
-        print("using subcommand 'cmd', do: `elyra-metadata cmd -h`.")
+        print("using subcommand 'cmd', run: `elyra-metadata cmd -h`.")
         print()
         for subcommand, desc in self.subcommands.items():
             print(subcommand)

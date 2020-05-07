@@ -288,7 +288,7 @@ class Install(SubcommandBase):
         super(Install, self).__init__(**kwargs)
 
 
-class MetadataApplication(AppBase):
+class MetadataApp(AppBase):
     """Lists, installs and removes metadata for a given namespace."""
 
     name = "elyra-metadata"
@@ -306,7 +306,7 @@ class MetadataApplication(AppBase):
         elyra_metadata.start()
 
     def __init__(self, **kwargs):
-        super(MetadataApplication, self).__init__(**kwargs)
+        super(MetadataApp, self).__init__(**kwargs)
         self.namespace_schemas = load_namespaces()
 
     def start(self):
@@ -318,9 +318,9 @@ class MetadataApplication(AppBase):
         return subinstance.start()
 
     def print_help(self):
-        super(MetadataApplication, self).print_help()
+        super(MetadataApp, self).print_help()
         self.print_subcommands()
 
 
 if __name__ == '__main__':
-    MetadataApplication.main()
+    MetadataApp.main()

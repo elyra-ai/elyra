@@ -42,7 +42,7 @@ another_metadata_json = {
 
 invalid_metadata_json = {
     'schema_name': 'test',
-    'display_name': 'Invalid Metadat Instance',
+    'display_name': 'Invalid Metadata Instance',
     'metadata': {
         'uri_test': '//localhost:8081/',
         'required_test': "required_value"

@@ -29,7 +29,7 @@ in the future.
 To configure runtime metadata for `Kubeflow Pipelines` use the `elyra-metadata install runtimes` command providing appropriate options.  This command will create a json file in your local Jupyter Data directory under its `metadata/runtimes` subdirectories.  If not known, the Jupyter Data directory can be discovered by issuing a ```jupyter --data-dir```
 command on your terminal.
 
-Here's an example invocation of `jupyter runtimes install kfp` to create runtime metadata for use by `Kubeflow Pipelines` corresponding to the example values in the table below. Following its invocation, a file containing the runtime metadata can be found in `[JUPYTER DATA DIR]/metadata/runtimes/my_kfp.json`.
+Here's an example invocation of `elyra-metadata install runtimes --schema_name=kfp` to create runtime metadata for use by `Kubeflow Pipelines` corresponding to the example values in the table below. Following its invocation, a file containing the runtime metadata can be found in `[JUPYTER DATA DIR]/metadata/runtimes/my_kfp.json`.
 ```bash
 elyra-metadata install runtimes --schema_name=kfp \
        --name=my_kfp \
