@@ -15,6 +15,7 @@
  */
 
 // A list of supported docker images for submission
+import { IDictionary } from './parsing';
 import { SubmissionHandler } from './submission';
 
 /**
@@ -39,7 +40,7 @@ export class FrontendServices {
     return metadataResponse;
   }
 
-  static async getRuntimeImages(): Promise<{ [key: string]: string }> {
+  static async getRuntimeImages(): Promise<IDictionary<string>> {
     const runtimeImages = await this.getMetadata('runtime-images');
     const images: { [key: string]: string } = {};
     for (const image in runtimeImages) {

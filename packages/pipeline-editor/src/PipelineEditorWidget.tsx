@@ -26,7 +26,8 @@ import {
   exportPipelineIcon,
   newPipelineIcon,
   pipelineIcon,
-  savePipelineIcon
+  savePipelineIcon,
+  IDictionary
 } from '@elyra/application';
 import {
   CommonCanvas,
@@ -160,12 +161,7 @@ export class PipelineEditor extends React.Component<
 
     this.state = { showPropertiesDialog: false, propertiesInfo: {} };
 
-    this.addRuntimeImages(properties).then(images => {
-      this.propertiesInfo = {
-        parameterDef: images,
-        appData: { id: '' }
-      };
-    });
+    this.initPropertiesInfo();
 
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
@@ -278,21 +274,30 @@ export class PipelineEditor extends React.Component<
     );
   }
 
-  async addRuntimeImages(properties: any): Promise<any> {
-    let firstImage = true;
-    const runtimeImages = await FrontendServices.getRuntimeImages();
-    const imageEnum = [];
+  initPropertiesInfo(): void {
+    FrontendServices.getRuntimeImages().then(
+      (runtimeImages: IDictionary<string>) => {
+        let firstImage = true;
+        const imageEnum = [];
 
-    for (const image in runtimeImages) {
-      if (firstImage) {
-        properties.current_parameters.image = image;
-        firstImage = false;
+        for (const image in runtimeImages) {
+          if (firstImage) {
+            properties.current_parameters.image = image;
+            firstImage = false;
+          }
+          imageEnum.push(image);
+          (properties.resources as IDictionary<string>)[
+            'image.' + image + '.label'
+          ] = runtimeImages[image];
+        }
+        properties.parameters[0].enum = imageEnum;
+
+        this.propertiesInfo = {
+          parameterDef: properties,
+          appData: { id: '' }
+        };
       }
-      imageEnum.push(image);
-      properties.resources['image.' + image + '.label'] = runtimeImages[image];
-    }
-    properties.parameters[0].enum = imageEnum;
-    return properties;
+    );
   }
 
   openPropertiesDialog(source: any): void {

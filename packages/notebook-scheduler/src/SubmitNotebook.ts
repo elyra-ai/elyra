@@ -15,6 +15,7 @@
  */
 import {
   FrontendServices,
+  IDictionary,
   NotebookParser,
   SubmissionHandler
 } from '@elyra/application';
@@ -165,7 +166,7 @@ export class SubmitNotebook extends Widget
    * Render the dialog widget used to gather configuration information
    * required to submit/run the notebook remotely
    */
-  renderHtml(runtimeImages: { [key: string]: string }): HTMLElement {
+  renderHtml(runtimeImages: IDictionary<string>): HTMLElement {
     const tr = '<tr>'; //'<tr style="padding: 1px;">';
     const td = '<td>'; //'<td style="padding: 1px;">';
     const td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
@@ -214,8 +215,6 @@ export class SubmitNotebook extends Widget
       imageSelect +
       '</td>' +
       '</tr>' +
-      tr +
-      td +
       // + tr
       // + td
       // +'<label for="cpus">CPUs:</label>'
@@ -235,6 +234,8 @@ export class SubmitNotebook extends Widget
       // +'<input type="text" id="memory" name="memory" placeholder="1Gb" value="1Gb"/>'
       // +'</td>'
       // +'</tr>'
+      tr +
+      td +
       '<br/>' +
       '<input type="checkbox" id="dependency_include" name="dependency_include" size="20" checked /> Include dependencies<br/>' +
       '</td>' +

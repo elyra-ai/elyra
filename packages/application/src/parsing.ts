@@ -15,6 +15,13 @@
  */
 
 /**
+ * An interface for typing json dictionaries in typescript
+ */
+export interface IDictionary<T> {
+  [key: string]: T;
+}
+
+/**
  * A utilities class for parsing notebook files.
  */
 export class NotebookParser {
