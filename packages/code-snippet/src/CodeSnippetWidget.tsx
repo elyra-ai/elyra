@@ -83,6 +83,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       } else if (widget instanceof PythonFileEditor) {
         this.verifyLanguageAndInsert(
           snippet.language,
+          snippet.displayName,
           'python',
           fileEditor,
           snippetStr
@@ -98,6 +99,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         notebookWidget.context.sessionContext.kernelPreference.language;
       this.verifyLanguageAndInsert(
         snippet.language,
+        snippet.displayName,
         kernelLanguage,
         notebookCellEditor,
         snippetStr
@@ -110,12 +112,13 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   // Handle language compatibility between code snippet and editor
   private verifyLanguageAndInsert = async (
     snippetLanguage: string,
+    snippetName: string,
     editorLanguage: string,
     editor: CodeEditor.IEditor,
     code: string
   ): Promise<void> => {
     if (snippetLanguage !== editorLanguage) {
-      const result = await this.showWarnDialog(editorLanguage);
+      const result = await this.showWarnDialog(editorLanguage, snippetName);
       if (result.button.accept) {
         editor.replaceSelection(code);
       }
@@ -126,12 +129,15 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
 
   // Display warning dialog when inserting a code snippet incompatible with editor's language
   private showWarnDialog = async (
-    editorLanguage: string
+    editorLanguage: string,
+    snippetName: string
   ): Promise<Dialog.IResult<string>> => {
     return showDialog({
       title: 'Warning',
       body:
-        'The current code snippet is incompatible with ' +
+        'Code snippet "' +
+        snippetName +
+        '" is incompatible with ' +
         editorLanguage +
         '. Continue?',
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
