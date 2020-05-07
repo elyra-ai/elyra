@@ -74,8 +74,9 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     ) {
       const documentWidget = widget as DocumentWidget;
       const fileEditor = (documentWidget.content as FileEditor).editor;
+      const markdownRegex = /md|mkdn?|mdown|markdown/g;
 
-      if (PathExt.extname(widget.context.path) === '.md') {
+      if (PathExt.extname(widget.context.path).match(markdownRegex) !== null) {
         // Wrap snippet into a code block when inserting it into a markdown file
         fileEditor.replaceSelection(
           '```' + snippet.language + '\n' + snippetStr + '\n```'
