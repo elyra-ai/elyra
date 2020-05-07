@@ -20,7 +20,6 @@ from notebook.utils import url_path_join
 from .api.handlers import JsonSpecHandler, YamlSpecHandler
 from .scheduler.handler import SchedulerHandler
 from .metadata.handlers import MetadataHandler, MetadataNamespaceHandler
-from .metadata import MetadataManager
 from .pipeline import PipelineExportHandler
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"

@@ -22,27 +22,65 @@ from jsonschema import ValidationError
 
 valid_metadata_json = {
     'schema_name': 'test',
-    'display_name': 'valid runtime',
+    'display_name': 'valid metadata instance',
     'metadata': {
-        'api_endpoint': 'http://localhost:31823/v1/models?version=2017-02-13',
-        'foo': 8
+        'uri_test': 'http://localhost:31823/v1/models?version=2017-02-13',
+        'number_range_test': 8,
+        'required_test': "required_value"
     }
 }
 
 another_metadata_json = {
     'schema_name': 'test',
-    'name': 'another_foo',
-    'display_name': 'Another Runtime (2)',
+    'name': 'another_instance',
+    'display_name': 'Another Metadata Instance (2)',
     'metadata': {
-        'api_endpoint': 'http://localhost:8081/'
+        'uri_test': 'http://localhost:8081/',
+        'required_test': "required_value"
     }
 }
 
 invalid_metadata_json = {
     'schema_name': 'test',
-    'display_name': 'Invalid Runtime',
+    'display_name': 'Invalid Metadata Instance',
     'metadata': {
-        'api_endpoint': '//localhost:8081/'
+        'uri_test': '//localhost:8081/',
+        'required_test': "required_value"
+    }
+}
+
+# Contains all values corresponding to test schema...
+complete_metadata_json = {
+    "schema_name": "test",
+    "display_name": "complete metadata instance",
+    "metadata": {
+        "required_test": "required_value",
+        "uri_test": "http://localhost:31823/v1/models?version=2017-02-13",
+        "integer_exclusivity_test": 7,
+        "integer_multipleOf7_test": 42,
+        "number_range_test": 8,
+        # purposely missing "number_default_test": 42
+        "const_test": 3.14,
+        "string_length_test": "1234567",
+        "enum_test": "rocks",
+        "array_test": ["elyra", "rocks", "the", "world"],
+        "object_test": {
+            "property1": "first prop",
+            "property2": "second_prop",
+            "property3": "third prop",
+            "property4": "fourth prop"},
+        "boolean_test": True,
+        "null_test": "null"
+    }
+}
+
+# Minimal json to be built upon for each property test.  Only
+# required values are specified.
+minmal_metadata_json = {
+    "schema_name": "test",
+    "display_name": "complete metadata instance",
+    "metadata": {
+        "required_test": "required_value"
     }
 }
 
@@ -68,3 +106,52 @@ def get_schema(schema_name):
         schema_json = json.load(f)
 
     return schema_json
+
+
+class PropertyTester(object):
+    """Helper class used by elyra_md tests to test each of the properties in the test.json schema. """
+    name = None             # prefixed with 'test_' is test name, post-fixed with '_test' is schema property name
+    negative_res = False    # expected success of first test
+    negative_value = None   # value to use in first test (usually negative test)
+    negative_stdout = None  # expected string to find in first test's stdout
+    negative_stderr = None  # expected string to find in second test's stdout
+    positive_res = True     # expected success of second test
+    positive_value = None   # value to use in second test (usually successful)
+
+    def __init__(self, name):
+        self.name = name
+        self.property = name + "_test"
+
+    def run(self, script_runner, mock_runtime_dir):
+        expected_file = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests', self.name + '.json')
+        # Cleanup from any potential previous failures
+        if os.path.exists(expected_file):
+            os.remove(expected_file)
+
+        # First test
+        ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+                                '--name=' + self.name, '--display_name=' + self.name,
+                                '--required_test=required_value',
+                                '--' + self.property + '=' + str(self.negative_value))
+
+        assert ret.success is self.negative_res
+        assert self.negative_stdout in ret.stdout
+        assert self.negative_stderr in ret.stderr
+
+        # Second test
+        ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+                                '--name=' + self.name, '--display_name=' + self.name,
+                                '--required_test=required_value',
+                                '--' + self.property + '=' + str(self.positive_value))
+
+        assert ret.success is self.positive_res
+        assert "Metadata instance '" + self.name + "' for schema 'test' has been written" in ret.stdout
+
+        assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+        assert os.path.isfile(expected_file)
+
+        with open(expected_file, "r") as fd:
+            instance_json = json.load(fd)
+            assert instance_json["schema_name"] == 'test'
+            assert instance_json["display_name"] == self.name
+            assert instance_json["metadata"][self.property] == self.positive_value

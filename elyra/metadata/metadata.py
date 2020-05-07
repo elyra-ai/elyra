@@ -37,6 +37,7 @@ class Metadata(HasTraits):
     reason = None
 
     def __init__(self, **kwargs):
+        super(Metadata, self).__init__(**kwargs)
         if 'display_name' not in kwargs:
             raise AttributeError("Missing required 'display_name' attribute")
 
@@ -68,6 +69,11 @@ class Metadata(HasTraits):
 
 
 class MetadataManager(LoggingConfigurable):
+
+    # System-owned namespaces
+    NAMESPACE_RUNTIMES = "runtimes"
+    NAMESPACE_CODE_SNIPPETS = "code-snippets"
+
     metadata_class = Type(Metadata, config=True,
                           help="""The metadata class.  This is configurable to allow subclassing of
                           the MetadataManager for customized behavior.""")
@@ -200,7 +206,7 @@ class FileMetadataStore(MetadataStore):
         if not name:
             raise ValueError('Name of metadata was not provided.')
 
-        match = re.search("^[a-z][a-z,-,_,0-9]*[a-z,0-9]$", name)
+        match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
         if match is None:
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
                              "embedded hyphens ('-') and underscores ('_').")
@@ -240,8 +246,8 @@ class FileMetadataStore(MetadataStore):
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
             self._load_from_resource(resource)
-        except ValidationError as ve:
-            self.log.error(str(ve) + "\nRemoving metadata resource '{}'.".format(resource))
+        except ValidationError:
+            self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
                 shutil.rmtree(self.metadata_dir)
