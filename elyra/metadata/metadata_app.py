@@ -22,8 +22,8 @@ from .metadata_app_utils import AppBase, load_namespaces, CliOption, Flag, Schem
 from .metadata import Metadata, MetadataManager
 
 # The following exposes the elyra-metadatat-test namespace if true or 1.  App testing will enable this env.
-ELYRA_METADATA_APP_TESTING = os.getenv("ELYRA_METADATA_APP_TESTING", 0)
-ELYRA_METADATA_TEST_NAMESPACE = "elyra-metadata-tests"
+METADATA_APP_TESTING = os.getenv("METADATA_APP_TESTING", 0)
+METADATA_TEST_NAMESPACE = "metadata-tests"
 
 
 class NamespaceBase(AppBase):
@@ -231,7 +231,7 @@ class SubcommandBase(AppBase):
         # This requires a new subclass of the NamespaceList class with an appropriate description
         self.subcommands = {}
         for namespace, schemas in self.namespace_schemas.items():
-            if namespace == ELYRA_METADATA_TEST_NAMESPACE and not ELYRA_METADATA_APP_TESTING:
+            if namespace == METADATA_TEST_NAMESPACE and not METADATA_APP_TESTING:
                 continue
             subcommand_desciption = self.subcommand_desciption.format(namespace=namespace)
             # Create the appropriate namespace class, initialized with its description,

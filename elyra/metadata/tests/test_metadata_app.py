@@ -24,7 +24,7 @@ from elyra.metadata import Metadata, MetadataManager
 from .test_utils import PropertyTester, create_json_file, valid_metadata_json, \
     another_metadata_json, invalid_metadata_json
 
-os.environ["ELYRA_METADATA_APP_TESTING"] = "1"  # Enable elyra-metadata-tests namespace
+os.environ["METADATA_APP_TESTING"] = "1"  # Enable elyra-metadata-tests namespace
 
 
 @pytest.fixture()
