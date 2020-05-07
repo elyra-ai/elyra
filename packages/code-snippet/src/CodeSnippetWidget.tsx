@@ -82,13 +82,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
       } else if (widget instanceof PythonFileEditor) {
-        this.verifyLanguageAndInsert(
-          snippet.language,
-          snippet.displayName,
-          'python',
-          fileEditor,
-          snippetStr
-        );
+        this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
@@ -98,13 +92,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         .editor;
       const kernelLanguage: string =
         notebookWidget.context.sessionContext.kernelPreference.language;
-      this.verifyLanguageAndInsert(
-        snippet.language,
-        snippet.displayName,
-        kernelLanguage,
-        notebookCellEditor,
-        snippetStr
-      );
+      this.verifyLanguageAndInsert(snippet, kernelLanguage, notebookCellEditor);
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
@@ -112,19 +100,21 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
 
   // Handle language compatibility between code snippet and editor
   private verifyLanguageAndInsert = async (
-    snippetLanguage: string,
-    snippetName: string,
+    snippet: ICodeSnippet,
     editorLanguage: string,
-    editor: CodeEditor.IEditor,
-    code: string
+    editor: CodeEditor.IEditor
   ): Promise<void> => {
-    if (snippetLanguage !== editorLanguage) {
-      const result = await this.showWarnDialog(editorLanguage, snippetName);
+    const snippetStr: string = snippet.code.join('\n');
+    if (snippet.language !== editorLanguage) {
+      const result = await this.showWarnDialog(
+        editorLanguage,
+        snippet.displayName
+      );
       if (result.button.accept) {
-        editor.replaceSelection(code);
+        editor.replaceSelection(snippetStr);
       }
     } else {
-      editor.replaceSelection(code);
+      editor.replaceSelection(snippetStr);
     }
   };
 
