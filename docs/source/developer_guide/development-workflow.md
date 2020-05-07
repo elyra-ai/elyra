@@ -53,7 +53,7 @@ After installation run the following to watch for code changes and rebuild autom
 make watch
 ```
 
-Then in a separate terminal using the same environment, start JupyterLab in watch mode:
+Then in a separate terminal, using the same Python environment, start JupyterLab in watch mode:
 ```bash
 jupyter lab --watch
 ```
