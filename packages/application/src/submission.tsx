@@ -120,16 +120,23 @@ export class SubmissionHandler {
     );
 
     // Note: a button is required to resolve the dialog below
-    const waitDialog = new Dialog({
-      title: 'Making server request...',
-      body: 'This may take some time',
-      buttons: [Dialog.okButton()]
-    });
-    waitDialog.launch();
+    let waitDialog: Dialog<any> = null;
+    // TODO: @ajbozarth will address this during coming refactor
+    // which will turn the showing of this dialog controlled by a flag
+    if (requestUrl.includes('scheduler') || requestUrl.includes('export')) {
+      waitDialog = new Dialog({
+        title: 'Making server request...',
+        body: 'This may take some time',
+        buttons: [Dialog.okButton()]
+      });
+      waitDialog.launch();
+    }
 
     ServerConnection.makeRequest(requestUrl, requestOptions, settings).then(
       (response: any) => {
-        waitDialog.resolve();
+        if (waitDialog) {
+          waitDialog.resolve();
+        }
 
         response.json().then(
           (result: any) => {
