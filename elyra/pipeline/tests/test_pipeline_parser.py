@@ -31,7 +31,7 @@ def valid_operation():
 
 
 def test_valid_pipeline(valid_operation):
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
 
     pipeline = PipelineParser.parse(pipeline_definition)
 
@@ -41,7 +41,7 @@ def test_valid_pipeline(valid_operation):
 
 
 def test_missing_primary():
-    pipeline_definition = __read_pipeline_resource('pipeline_invalid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_invalid.json')
     pipeline_definition.pop('primary_pipeline')
 
     with pytest.raises(SyntaxError):
@@ -49,7 +49,7 @@ def test_missing_primary():
 
 
 def test_missing_pipelines():
-    pipeline_definition = __read_pipeline_resource('pipeline_invalid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_invalid.json')
     pipeline_definition.pop('pipelines')
 
     with pytest.raises(SyntaxError):
@@ -57,7 +57,7 @@ def test_missing_pipelines():
 
 
 def test_missing_primary_id():
-    pipeline_definition = __read_pipeline_resource('pipeline_invalid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_invalid.json')
     # Replace pipeline id with non-matching guid so primary is not found
     pipeline_definition['pipelines'][0]['id'] = "deadbeef-dead-beef-dead-beefdeadbeef"
 
@@ -66,7 +66,7 @@ def test_missing_primary_id():
 
 
 def test_zero_nodes():
-    pipeline_definition = __read_pipeline_resource('pipeline_invalid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_invalid.json')
     pipeline_definition['pipelines'][0]['nodes'] = []
 
     with pytest.raises(SyntaxError):
@@ -74,7 +74,7 @@ def test_zero_nodes():
 
 
 def test_multinode_pipeline():
-    pipeline_definition = __read_pipeline_resource('pipeline_3_node_sample.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_3_node_sample.json')
 
     pipeline = PipelineParser.parse(pipeline_definition)
 
@@ -82,21 +82,21 @@ def test_multinode_pipeline():
 
 
 def test_supernode_pipelinen():
-    pipeline_definition = __read_pipeline_resource('pipeline_with_supernode.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_with_supernode.json')
 
     with pytest.raises(SyntaxError):
         PipelineParser.parse(pipeline_definition)
 
 
 def test_multiple_pipeline_definition():
-    pipeline_definition = __read_pipeline_resource('pipeline_multiple_pipeline_definitions.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_multiple_pipeline_definitions.json')
 
     with pytest.raises(SyntaxError):
         PipelineParser.parse(pipeline_definition)
 
 
 def test_pipeline_operations_and_handle_artifact_file_details():
-    pipeline_definition = __read_pipeline_resource('pipeline_3_node_sample.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_3_node_sample.json')
 
     pipeline = PipelineParser.parse(pipeline_definition)
 
@@ -108,7 +108,7 @@ def test_pipeline_operations_and_handle_artifact_file_details():
 
 
 def test_pipeline_with_dependencies():
-    pipeline_definition = __read_pipeline_resource('pipeline_3_node_sample_with_dependencies.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_3_node_sample_with_dependencies.json')
 
     pipeline = PipelineParser.parse(pipeline_definition)
 
@@ -116,7 +116,7 @@ def test_pipeline_with_dependencies():
 
 
 def test_pipeline_global_attributes():
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
 
     pipeline = PipelineParser.parse(pipeline_definition)
 
@@ -126,7 +126,7 @@ def test_pipeline_global_attributes():
 
 
 def test_missing_pipeline_title():
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
     pipeline_definition['pipelines'][0]['app_data']['title'] = ''
 
     with pytest.raises(SyntaxError) as e:
@@ -136,7 +136,7 @@ def test_missing_pipeline_title():
 
 
 def test_missing_pipeline_runtime():
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
     pipeline_definition['pipelines'][0]['app_data']['runtime'] = ''
 
     with pytest.raises(SyntaxError) as e:
@@ -146,7 +146,7 @@ def test_missing_pipeline_runtime():
 
 
 def test_missing_pipeline_runtime_configuration():
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
     pipeline_definition['pipelines'][0]['app_data']['runtime_config'] = ''
 
     with pytest.raises(SyntaxError) as e:
@@ -156,7 +156,7 @@ def test_missing_pipeline_runtime_configuration():
 
 
 def test_missing_operation_id():
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
     pipeline_definition['pipelines'][0]['nodes'][0]['id'] = ''
 
     with pytest.raises(SyntaxError) as e:
@@ -166,7 +166,7 @@ def test_missing_operation_id():
 
 
 def test_missing_operation_type():
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
     pipeline_definition['pipelines'][0]['nodes'][0]['type'] = ''
 
     with pytest.raises(SyntaxError) as e:
@@ -176,7 +176,7 @@ def test_missing_operation_type():
 
 
 def test_missing_operation_artifact():
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
     pipeline_definition['pipelines'][0]['nodes'][0]['app_data']['artifact'] = ''
 
     with pytest.raises(SyntaxError) as e:
@@ -186,7 +186,7 @@ def test_missing_operation_artifact():
 
 
 def test_missing_operation_image():
-    pipeline_definition = __read_pipeline_resource('pipeline_valid.json')
+    pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
     pipeline_definition['pipelines'][0]['nodes'][0]['app_data']['image'] = ''
 
     with pytest.raises(SyntaxError) as e:
@@ -195,7 +195,7 @@ def test_missing_operation_image():
     assert "Missing field 'operation image'" in str(e.value)
 
 
-def __read_pipeline_resource(pipeline_filename):
+def _read_pipeline_resource(pipeline_filename):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     pipeline_path = os.path.join(root, pipeline_filename)
 
