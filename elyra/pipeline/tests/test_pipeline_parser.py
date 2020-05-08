@@ -147,7 +147,7 @@ def test_missing_pipeline_runtime():
 
 def test_missing_pipeline_runtime_configuration():
     pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
-    pipeline_definition['pipelines'][0]['app_data']['runtime_config'] = ''
+    pipeline_definition['pipelines'][0]['app_data']['runtime-config'] = ''
 
     with pytest.raises(SyntaxError) as e:
         PipelineParser.parse(pipeline_definition)
