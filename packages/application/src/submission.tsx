@@ -121,7 +121,7 @@ export class SubmissionHandler {
 
     // Note: a button is required to resolve the dialog below
     const waitDialog = new Dialog({
-      title: 'Submitting request...',
+      title: 'Making server request...',
       body: 'This may take some time',
       buttons: [Dialog.okButton()]
     });
