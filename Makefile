@@ -15,7 +15,7 @@
 #
 
 .PHONY: help clean yarn-install test-dependencies lint-server lint-ui lint lerna-build npm-packages bdist install
-.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs install-backend docker-image npm-dists
+.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs install-backend docker-image
 
 SHELL:=/bin/bash
 
@@ -65,6 +65,11 @@ lerna-build: yarn-install
 
 npm-packages: lerna-build
 	mkdir -p dist
+	$(call PACKAGE_LAB_EXTENSION,application)
+	$(call PACKAGE_LAB_EXTENSION,code-snippet)
+	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
+	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
+	$(call PACKAGE_LAB_EXTENSION,python-runner)
 	cd dist && curl -o jupyterlab-git-0.20.0-rc.0.tgz $$(npm view @jupyterlab/git@0.20.0-rc.0 dist.tarball) && cd -
 	cd dist && curl -o jupyterlab-toc-3.0.0.tgz $$(npm view @jupyterlab/toc@3.0.0 dist.tarball) && cd -
 
@@ -117,14 +122,6 @@ docker-image: ## bdist ## Build docker image
 	cp etc/docker/Dockerfile build/docker/Dockerfile
 	cp -r dist/*.whl build/docker/
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
-
-# Create package dists for publishing elyra. Run after make install
-npm-dists:
-	$(call PACKAGE_LAB_EXTENSION,application)
-	$(call PACKAGE_LAB_EXTENSION,code-snippet)
-	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
-	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
-	$(call PACKAGE_LAB_EXTENSION,python-runner)
 
 define UNLINK_LAB_EXTENSION
 	- jupyter labextension unlink --no-build @elyra/$1
