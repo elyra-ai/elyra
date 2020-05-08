@@ -64,6 +64,13 @@ class PipelineParser(LoggingConfigurable):
                                    PipelineParser._read_pipeline_filetype(pipeline),
                                    PipelineParser._read_pipeline_export(pipeline))
 
+        if not pipeline_object.title:
+            raise SyntaxError('Invalid pipeline: Missing title.')
+        if not pipeline_object.runtime:
+            raise SyntaxError('Invalid pipeline: Missing runtime.')
+        if not pipeline_object.runtime_config:
+            raise SyntaxError('Invalid pipeline: Missing runtime configuration.')
+
         for node in pipeline['nodes']:
             # Supernodes are not supported
             if node['type'] == "super_node":
@@ -86,6 +93,17 @@ class PipelineParser(LoggingConfigurable):
                     outputs=node['app_data'].get('outputs') or [],
                     dependencies=links
                 )
+                # validate that the operation has all required properties
+                if not operation.id:
+                    raise SyntaxError("Invalid pipeline: Missing field 'operation id'.")
+                if not operation.type:
+                    raise SyntaxError("Invalid pipeline: Missing field 'operation type'.")
+                if not operation.artifact:
+                    raise SyntaxError("Invalid pipeline: Missing field 'operation artifact'.")
+                if not operation.image:
+                    raise SyntaxError("Invalid pipeline: Missing field 'operation image'.")
+
+                # add valid operation to list of operations
                 pipeline_object.operations[operation.id] = operation
             except Exception as e:
                 raise SyntaxError("Invalid pipeline: Missing field {}".format(e))
