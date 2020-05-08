@@ -277,14 +277,8 @@ export class PipelineEditor extends React.Component<
   initPropertiesInfo(): void {
     FrontendServices.getRuntimeImages().then(
       (runtimeImages: IDictionary<string>) => {
-        let firstImage = true;
         const imageEnum = [];
-
         for (const image in runtimeImages) {
-          if (firstImage) {
-            properties.current_parameters.image = image;
-            firstImage = false;
-          }
           imageEnum.push(image);
           (properties.resources as IDictionary<string>)[
             'image.' + image + '.label'

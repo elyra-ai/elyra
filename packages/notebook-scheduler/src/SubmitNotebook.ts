@@ -151,8 +151,7 @@ export class SubmitNotebook extends Widget
     this._envVars = envVars;
     this._runtimes = runtimes;
 
-    const html: HTMLElement = this.renderHtml();
-    this.node.appendChild(html);
+    this.node.appendChild(this.renderHtml());
     (this.node.getElementsByClassName(
       'elyra-form-runtime-config'
     )[0] as HTMLSelectElement).value = '';
@@ -160,22 +159,21 @@ export class SubmitNotebook extends Widget
     FrontendServices.getRuntimeImages().then(
       (runtimeImages: IDictionary<string>) => {
         let imageSelect = '';
-        let defaultImage = 'selected';
         for (const image in runtimeImages) {
           imageSelect =
             imageSelect +
             '<option value="' +
             image +
             '" ' +
-            defaultImage +
             '>' +
             runtimeImages[image] +
             '</option>';
-          defaultImage = '';
         }
-        (this.node.getElementsByClassName(
+        const imageSelectElement: HTMLSelectElement = this.node.getElementsByClassName(
           'elyra-form-framework'
-        )[0] as HTMLSelectElement).innerHTML = imageSelect;
+        )[0] as HTMLSelectElement;
+        imageSelectElement.innerHTML = imageSelect;
+        imageSelectElement.value = '';
       }
     );
   }

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-// A list of supported docker images for submission
 import { IDictionary } from './parsing';
 import { SubmissionHandler } from './submission';
 
