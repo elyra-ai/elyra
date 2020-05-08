@@ -40,6 +40,7 @@ Elyra currently includes:
   
 ![Elyra](docs/source/images/elyra-main-page.png)
 
+The [Elyra Getting Started Guide](docs/source/getting_started/overview.md) includes more details on these features.
 
 ## Installation
 Elyra can be installed via PyPi:
@@ -102,6 +103,11 @@ Known labextensions:
 NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable
 it with `jupyter serverextension enable elyra`
 
+## Configuring Runtimes for Pipeline execution
+
+The Elyra Pipeline editor delegates execution of pipelines to remote runtimes. Configure these
+external runtimes as documented in [Runtime Configuration](docs/source/user_guide/runtime-conf.md).
+
 ## Starting Elyra
 After verifying Elyra has been installed, start Elyra with:
 ```bash
@@ -111,7 +117,7 @@ jupyter lab
 ## Contributing to Elyra
 If you are interested in helping make Elyra better, we encourage you to take a look at our 
 [Contributing](CONTRIBUTING.md) page,  
-[Development Workflow](docs/source/developer-guide/development-workflow.md) documentation, and 
+[Development Workflow](docs/source/developer_guide/development-workflow.md) documentation, and
 invite you to attend our weekly dev community meetings.
 
 ### Weekly Dev Community Meeting 
