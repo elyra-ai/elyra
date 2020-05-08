@@ -23,15 +23,15 @@ class Operation(object):
 
         # validate that the operation has all required properties
         if not id:
-            raise SyntaxError("Invalid pipeline: Missing field 'operation id'.")
+            raise ValueError("Invalid pipeline: Missing field 'operation id'.")
         if not type:
-            raise SyntaxError("Invalid pipeline: Missing field 'operation type'.")
+            raise ValueError("Invalid pipeline: Missing field 'operation type'.")
         if not title:
-            raise SyntaxError("Invalid pipeline: Missing field 'operation title'.")
+            raise ValueError("Invalid pipeline: Missing field 'operation title'.")
         if not artifact:
-            raise SyntaxError("Invalid pipeline: Missing field 'operation artifact'.")
+            raise ValueError("Invalid pipeline: Missing field 'operation artifact'.")
         if not image:
-            raise SyntaxError("Invalid pipeline: Missing field 'operation image'.")
+            raise ValueError("Invalid pipeline: Missing field 'operation image'.")
 
         self._id = id
         self._type = type
@@ -128,11 +128,11 @@ class Pipeline(object):
     def __init__(self, id, title, runtime, runtime_config, file_type, export):
 
         if not title:
-            raise SyntaxError('Invalid pipeline: Missing title.')
+            raise ValueError('Invalid pipeline: Missing title.')
         if not runtime:
-            raise SyntaxError('Invalid pipeline: Missing runtime.')
+            raise ValueError('Invalid pipeline: Missing runtime.')
         if not runtime_config:
-            raise SyntaxError('Invalid pipeline: Missing runtime configuration.')
+            raise ValueError('Invalid pipeline: Missing runtime configuration.')
 
         self._id = id
         self._title = title

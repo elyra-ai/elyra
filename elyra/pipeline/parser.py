@@ -37,11 +37,11 @@ class PipelineParser(LoggingConfigurable):
         # Check for required values.  We require a primary_pipeline, a set of pipelines, and
         # nodes within the primary pipeline (checked below).
         if 'primary_pipeline' not in pipeline_definition:
-            raise SyntaxError("Invalid pipeline: Could not determine the primary pipeline.")
+            raise ValueError("Invalid pipeline: Could not determine the primary pipeline.")
         if 'pipelines' not in pipeline_definition:
-            raise SyntaxError("Invalid pipeline: Pipeline definition not found.")
+            raise ValueError("Invalid pipeline: Pipeline definition not found.")
         if len(pipeline_definition['pipelines']) > 1:
-            raise SyntaxError("Invalid pipeline: Multiple pipelines is not supported (e.g. Supernode).")
+            raise ValueError("Invalid pipeline: Multiple pipelines is not supported (e.g. Supernode).")
 
         pipeline = None
         primary_pipeline_id = pipeline_definition['primary_pipeline']
@@ -52,10 +52,10 @@ class PipelineParser(LoggingConfigurable):
                 break
 
         if not pipeline:
-            raise SyntaxError("Invalid pipeline: Primary pipeline '{}' not found.".format(primary_pipeline_id))
+            raise ValueError("Invalid pipeline: Primary pipeline '{}' not found.".format(primary_pipeline_id))
 
         if 'nodes' not in pipeline or len(pipeline['nodes']) == 0:
-            raise SyntaxError("Invalid pipeline: At least one node must exist in primary pipeline.")
+            raise ValueError("Invalid pipeline: At least one node must exist in primary pipeline.")
 
         pipeline_object = Pipeline(pipeline['id'],
                                    PipelineParser._read_pipeline_title(pipeline),
@@ -67,29 +67,26 @@ class PipelineParser(LoggingConfigurable):
         for node in pipeline['nodes']:
             # Supernodes are not supported
             if node['type'] == "super_node":
-                raise SyntaxError('Invalid pipeline: Supernode feature is not supported.')
+                raise ValueError('Invalid pipeline: Supernode feature is not supported.')
 
             # parse links as dependencies
             links = PipelineParser._read_pipeline_operation_dependencies(node)
 
-            try:
-                # parse each node as a pipeline operation
-                operation = Operation(
-                    id=node['id'],
-                    type=node['type'],
-                    title=node['app_data']['ui_data']['label'],
-                    artifact=node['app_data']['artifact'],
-                    image=node['app_data']['image'],
-                    vars=node['app_data'].get('vars') or [],
-                    file_dependencies=node['app_data'].get('dependencies') or [],
-                    recursive_dependencies=node['app_data'].get('recursive_dependencies') or False,
-                    outputs=node['app_data'].get('outputs') or [],
-                    dependencies=links
-                )
-                # add valid operation to list of operations
-                pipeline_object.operations[operation.id] = operation
-            except Exception as e:
-                raise SyntaxError("Invalid pipeline: Missing field {}".format(e))
+            # parse each node as a pipeline operation
+            operation = Operation(
+                id=node['id'],
+                type=node['type'],
+                title=node['app_data']['ui_data']['label'],
+                artifact=node['app_data']['artifact'],
+                image=node['app_data']['image'],
+                vars=node['app_data'].get('vars') or [],
+                file_dependencies=node['app_data'].get('dependencies') or [],
+                recursive_dependencies=node['app_data'].get('recursive_dependencies') or False,
+                outputs=node['app_data'].get('outputs') or [],
+                dependencies=links
+            )
+            # add valid operation to list of operations
+            pipeline_object.operations[operation.id] = operation
 
         return pipeline_object
 
