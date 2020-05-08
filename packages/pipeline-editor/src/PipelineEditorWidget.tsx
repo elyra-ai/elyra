@@ -26,7 +26,8 @@ import {
   exportPipelineIcon,
   newPipelineIcon,
   pipelineIcon,
-  savePipelineIcon
+  savePipelineIcon,
+  IDictionary
 } from '@elyra/application';
 import {
   CommonCanvas,
@@ -140,6 +141,7 @@ export class PipelineEditor extends React.Component<
   widgetContext: DocumentRegistry.Context;
   position = 10;
   node: React.RefObject<HTMLDivElement>;
+  propertiesInfo: any;
 
   constructor(props: any) {
     super(props);
@@ -158,6 +160,8 @@ export class PipelineEditor extends React.Component<
     this.editActionHandler = this.editActionHandler.bind(this);
 
     this.state = { showPropertiesDialog: false, propertiesInfo: {} };
+
+    this.initPropertiesInfo();
 
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
@@ -270,26 +274,24 @@ export class PipelineEditor extends React.Component<
     );
   }
 
-  propertiesInfo = {
-    parameterDef: this.addDockerImages(properties),
-    appData: { id: '' }
-  };
+  initPropertiesInfo(): void {
+    FrontendServices.getRuntimeImages().then(
+      (runtimeImages: IDictionary<string>) => {
+        const imageEnum = [];
+        for (const image in runtimeImages) {
+          imageEnum.push(image);
+          (properties.resources as IDictionary<string>)[
+            'image.' + image + '.label'
+          ] = runtimeImages[image];
+        }
+        properties.parameters[0].enum = imageEnum;
 
-  addDockerImages(properties: any): any {
-    let firstImage = true;
-    const dockerImages = FrontendServices.getDockerImages();
-    const imageEnum = [];
-
-    for (const image in dockerImages) {
-      if (firstImage) {
-        properties.current_parameters.image = image;
-        firstImage = false;
+        this.propertiesInfo = {
+          parameterDef: properties,
+          appData: { id: '' }
+        };
       }
-      imageEnum.push(image);
-      properties.resources['image.' + image + '.label'] = dockerImages[image];
-    }
-    properties.parameters[0].enum = imageEnum;
-    return properties;
+    );
   }
 
   openPropertiesDialog(source: any): void {

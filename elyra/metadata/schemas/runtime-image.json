@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Runtime Image metadata",
+  "name": "runtime-image",
+  "namespace": "runtime-images",
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
+      "minLength": 1
+    },
+    "display_name": {
+      "description": "The display name of the Runtime Image",
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+    },
+    "metadata": {
+      "description": "Additional data specific to this Runtime Image",
+      "type": "object",
+      "properties": {
+        "image_name": {
+          "description": "Runtime Image description",
+          "type": "string"
+        }
+      },
+      "required": ["image_name"]
+    }
+  },
+  "required": ["schema_name", "display_name"]
+}
