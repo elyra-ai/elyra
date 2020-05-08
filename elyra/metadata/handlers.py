@@ -66,7 +66,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
         self.finish(metadata.to_dict())
 
 
-class MetadataSchemaHandler(HttpErrorMixin, APIHandler):
+class SchemaHandler(HttpErrorMixin, APIHandler):
     """Handler for namespace schemas. """
 
     @web.authenticated
@@ -75,7 +75,7 @@ class MetadataSchemaHandler(HttpErrorMixin, APIHandler):
         namespace = url_unescape(namespace)
         schema_manager = SchemaManager()
         try:
-            self.log.debug("MetadataSchemaHandler: Fetching all schemas for namespace '{}'...".format(namespace))
+            self.log.debug("SchemaHandler: Fetching all schemas for namespace '{}'...".format(namespace))
             schemas = yield maybe_future(schema_manager.get_namespace_schemas(namespace))
         except (ValidationError, ValueError, KeyError) as err:
             raise web.HTTPError(404, str(err))
@@ -88,7 +88,7 @@ class MetadataSchemaHandler(HttpErrorMixin, APIHandler):
         self.finish(schemas_model)
 
 
-class MetadataSchemaResourceHandler(HttpErrorMixin, APIHandler):
+class SchemaResourceHandler(HttpErrorMixin, APIHandler):
     """Handler for a specific schema (resource) for a given namespace. """
 
     @web.authenticated
@@ -98,7 +98,7 @@ class MetadataSchemaResourceHandler(HttpErrorMixin, APIHandler):
         resource = url_unescape(resource)
         schema_manager = SchemaManager()
         try:
-            self.log.debug("MetadataSchemaResourceHandler: Fetching schema '{}' for namespace '{}'...".
+            self.log.debug("SchemaResourceHandler: Fetching schema '{}' for namespace '{}'...".
                            format(resource, namespace))
             schema = yield maybe_future(schema_manager.get_schema(namespace, resource))
         except (ValidationError, ValueError, KeyError) as err:
@@ -108,3 +108,25 @@ class MetadataSchemaResourceHandler(HttpErrorMixin, APIHandler):
 
         self.set_header("Content-Type", 'application/json')
         self.finish(schema)
+
+
+class NamespaceHandler(HttpErrorMixin, APIHandler):
+    """Handler for retrieving namespaces """
+
+    @web.authenticated
+    @gen.coroutine
+    def get(self):
+        schema_manager = SchemaManager()
+        try:
+            self.log.debug("NamespaceHandler: Fetching namespaces...")
+            namespaces = schema_manager.get_namespaces()
+        except (ValidationError, ValueError, KeyError) as err:
+            raise web.HTTPError(404, str(err))
+        except Exception as ex:
+            raise web.HTTPError(500, repr(ex))
+
+        namespace_model = dict()
+        namespace_model['namespaces'] = namespaces
+
+        self.set_header("Content-Type", 'application/json')
+        self.finish(namespace_model)
