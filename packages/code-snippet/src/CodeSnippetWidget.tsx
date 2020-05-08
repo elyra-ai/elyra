@@ -31,6 +31,11 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+// import {
+//   SessionManager,
+//   KernelManager,
+//   KernelSpecManager
+// } from '@jupyterlab/services';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
@@ -64,7 +69,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   // TODO: Use code mirror to display code
 
   // Handle code snippet insert into an editor
-  private insertCodeSnippet(snippet: ICodeSnippet): void {
+  private insertCodeSnippet = async (snippet: ICodeSnippet): Promise<void> => {
     const widget: Widget = this.props.getCurrentWidget();
     const snippetStr: string = snippet.code.join('\n');
 
@@ -72,6 +77,11 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       widget instanceof DocumentWidget &&
       (widget as DocumentWidget).content instanceof FileEditor
     ) {
+      //TODO remove debug lines below
+      console.log('widget instanceof PythonFileEditor? ');
+      console.log(widget instanceof PythonFileEditor); // Prints false when it is a PythonFileEditor
+      console.log(widget); // Prints a PythonFileEditor object when expected
+
       const documentWidget = widget as DocumentWidget;
       const fileEditor = (documentWidget.content as FileEditor).editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
@@ -82,6 +92,10 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
       } else if (widget instanceof PythonFileEditor) {
+        // ISSUE: This is not being triggered by a PythonFileEditor
+        //TODO remove debug line below
+        console.log('This is a PythonFileEditor');
+
         this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
       } else {
         fileEditor.replaceSelection(snippetStr);
@@ -90,13 +104,46 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       const notebookWidget = widget as NotebookPanel;
       const notebookCellEditor = (notebookWidget.content as Notebook).activeCell
         .editor;
-      const kernelLanguage: string =
-        notebookWidget.context.sessionContext.kernelPreference.language;
+
+      // Original approach:
+      // ISSUE: kernelLanguage is an empty string, not updated until a new notebook is saved, closed and reopened
+      // const kernelLanguage: string =
+      //   notebookWidget.context.sessionContext.kernelPreference.language;
+
+      // GET NOTEBOOK KERNEL SPEC
+      // This is now handled before a new notebook is saved
+      // ISSUE: it might take some time such as a spark cluster
+      const kernelInfo = await notebookWidget.sessionContext.session?.kernel
+        ?.info;
+      const kernelLanguage: string = kernelInfo?.language_info.name || '';
+      console.log('KERNEL LANG: ' + kernelLanguage);
       this.verifyLanguageAndInsert(snippet, kernelLanguage, notebookCellEditor);
+
+      // ISSUE: kernel name doesn't define kernel language, they might differ in some cases
+      // const kernelLanguage: string = notebookWidget.sessionContext.session?.kernel?.name;
+      // console.log('KERNEL LANG: ' + kernelLanguage);
+      // this.verifyLanguageAndInsert(snippet, kernelLanguage, notebookCellEditor);
+
+      // const kernelManager = new KernelManager();
+      // const specsManager = new KernelSpecManager();
+      // const sessionManager = new SessionManager({ kernelManager });
+      // const sessionContext = new SessionContext({
+      //   sessionManager,
+      //   specsManager,
+      //   name: 'Example'
+      // });
+      //
+      // // This never gets called
+      // sessionContext.kernelChanged.connect(() => {
+      //     void sessionContext.session?.kernel?.info.then(info => {
+      //       const lang = info.language_info;
+      //       console.log('KERNEL LANG: '+ lang);
+      //     });
+      //   });
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
-  }
+  };
 
   // Handle language compatibility between code snippet and editor
   private verifyLanguageAndInsert = async (
@@ -104,8 +151,17 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     editorLanguage: string,
     editor: CodeEditor.IEditor
   ): Promise<void> => {
+    console.log(
+      'editorLanguage: ' +
+        editorLanguage +
+        ', snippet.languange: ' +
+        snippet.language
+    );
     const snippetStr: string = snippet.code.join('\n');
-    if (snippet.language !== editorLanguage) {
+    if (editorLanguage === '') {
+      // Allow code snippet insertion when editorLanguage is unavailable
+      editor.replaceSelection(snippetStr);
+    } else if (snippet.language !== editorLanguage) {
       const result = await this.showWarnDialog(
         editorLanguage,
         snippet.displayName
@@ -114,6 +170,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         editor.replaceSelection(snippetStr);
       }
     } else {
+      // Language match
       editor.replaceSelection(snippetStr);
     }
   };
