@@ -151,13 +151,31 @@ export class SubmitNotebook extends Widget
     this._envVars = envVars;
     this._runtimes = runtimes;
 
+    const html: HTMLElement = this.renderHtml();
+    this.node.appendChild(html);
+    (this.node.getElementsByClassName(
+      'elyra-form-runtime-config'
+    )[0] as HTMLSelectElement).value = '';
+
     FrontendServices.getRuntimeImages().then(
-      (runtimeImages: { [key: string]: string }) => {
-        const html: HTMLElement = this.renderHtml(runtimeImages);
-        this.node.appendChild(html);
+      (runtimeImages: IDictionary<string>) => {
+        let imageSelect = '';
+        let defaultImage = 'selected';
+        for (const image in runtimeImages) {
+          imageSelect =
+            imageSelect +
+            '<option value="' +
+            image +
+            '" ' +
+            defaultImage +
+            '>' +
+            runtimeImages[image] +
+            '</option>';
+          defaultImage = '';
+        }
         (this.node.getElementsByClassName(
-          'elyra-form-runtime-config'
-        )[0] as HTMLSelectElement).value = '';
+          'elyra-form-framework'
+        )[0] as HTMLSelectElement).innerHTML = imageSelect;
       }
     );
   }
@@ -166,7 +184,7 @@ export class SubmitNotebook extends Widget
    * Render the dialog widget used to gather configuration information
    * required to submit/run the notebook remotely
    */
-  renderHtml(runtimeImages: IDictionary<string>): HTMLElement {
+  renderHtml(): HTMLElement {
     const tr = '<tr>'; //'<tr style="padding: 1px;">';
     const td = '<td>'; //'<td style="padding: 1px;">';
     const td_colspan2 = '<td colspan=2>'; //'<td style="padding: 1px;" colspan=2>';
@@ -182,22 +200,6 @@ export class SubmitNotebook extends Widget
         `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
     }
 
-    let defaultImage = 'selected';
-    let imageSelect = '<select id="framework">';
-    for (const image in runtimeImages) {
-      imageSelect =
-        imageSelect +
-        '<option value="' +
-        image +
-        '" ' +
-        defaultImage +
-        '>' +
-        runtimeImages[image] +
-        '</option>';
-      defaultImage = '';
-    }
-    imageSelect = imageSelect + '</select>';
-
     const content =
       '' +
       '<table id="table-submit-dialog" class="elyra-table"><tbody>' +
@@ -212,7 +214,7 @@ export class SubmitNotebook extends Widget
       td_colspan2 +
       '<label for="framework">Deep Learning Framework:</label>' +
       '<br/>' +
-      imageSelect +
+      '<select id="framework" class="elyra-form-framework"></select>' +
       '</td>' +
       '</tr>' +
       // + tr
@@ -234,6 +236,7 @@ export class SubmitNotebook extends Widget
       // +'<input type="text" id="memory" name="memory" placeholder="1Gb" value="1Gb"/>'
       // +'</td>'
       // +'</tr>'
+
       tr +
       td +
       '<br/>' +
