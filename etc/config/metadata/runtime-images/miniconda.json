@@ -1,0 +1,7 @@
+{
+  "display_name": "Miniconda Python 3.x",
+  "metadata": {
+    "image_name": "continuumio/miniconda3:latest"
+  },
+  "schema_name": "runtime-image"
+}
