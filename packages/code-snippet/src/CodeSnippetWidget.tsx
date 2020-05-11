@@ -16,7 +16,6 @@
 
 import '../style/index.css';
 
-import { PythonFileEditor } from '@elyra/python-runner-extension/lib/PythonFileEditor';
 import {
   ReactWidget,
   UseSignal,
@@ -79,21 +78,16 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       const documentWidget = widget as DocumentWidget;
       const fileEditor = (documentWidget.content as FileEditor).editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
-
       if (PathExt.extname(widget.context.path).match(markdownRegex) !== null) {
         // Wrap snippet into a code block when inserting it into a markdown file
         fileEditor.replaceSelection(
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
+      } else if (widget.constructor.name == 'PythonFileEditor') {
+        this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
-    } else if (widget instanceof PythonFileEditor) {
-      // ISSUE: This block is never reached when widget is a PythonFileEditor
-      const documentWidget = widget as DocumentWidget;
-      const fileEditor = (documentWidget.content as FileEditor).editor;
-
-      this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
       const notebookCellEditor = (notebookWidget.content as Notebook).activeCell
