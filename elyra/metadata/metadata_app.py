@@ -99,8 +99,12 @@ class NamespaceList(NamespaceBase):
                 max_resource_len = max(len(instance.resource), max_resource_len)
 
             print()
-            print("%s   %s  %s  " % ('Schema', 'Instance', 'Resource'))
-            print("%s   %s  %s  " % ('------', '--------', '--------'))
+            print("%s   %s  %s  " % ('Schema'.ljust(max_schema_name_len),
+                                     'Instance'.ljust(max_name_len),
+                                     'Resource'.ljust(max_resource_len)))
+            print("%s   %s  %s  " % ('------'.ljust(max_schema_name_len),
+                                     '--------'.ljust(max_name_len),
+                                     '--------'.ljust(max_resource_len)))
             for instance in sorted_instances:
                 invalid = ""
                 if instance.reason and len(instance.reason) > 0:
