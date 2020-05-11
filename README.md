@@ -40,6 +40,8 @@ Elyra currently includes:
   
 ![Elyra](docs/source/images/elyra-main-page.png)
 
+The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting_started/overview.html)
+includes more details on these features.
 
 ## Installation
 Elyra can be installed via PyPi:
@@ -101,40 +103,27 @@ Known labextensions:
 NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable
 it with `jupyter serverextension enable elyra`
 
+## Configuring Runtimes for Pipeline execution
+
+The Elyra Pipeline editor delegates execution of pipelines to remote runtimes. Configure these
+external runtimes as documented in
+[Runtime Configuration](https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html).
+
 ## Starting Elyra
 After verifying Elyra has been installed, start Elyra with:
 ```bash
 jupyter lab
 ```
 
-## Development Workflow
-### Building
+## Contributing to Elyra
+If you are interested in helping make Elyra better, we encourage you to take a look at our 
+[Contributing](CONTRIBUTING.md) page,  
+[Development Workflow](https://elyra.readthedocs.io/en/latest/developer_guide/development-workflow.html)
+documentation, and invite you to attend our weekly dev community meetings.
 
-`Elyra` is divided in two parts, a collection of Jupyter Notebook backend extensions,
-and their respective JupyterLab UI extensions. Our JupyterLab extensions are located in our `packages`
-directory. 
+### Weekly Dev Community Meeting 
+Join us weekly to discuss Elyra development topics.  Everyone is welcome and participation is optional.
 
-#### Requirements
-
-* [Yarn](https://yarnpkg.com/lang/en/docs/install) 
-
-#### Installation
-
-```bash
-make clean install
-```
-
-You can check that the notebook server extension was successful installed with:
-```bash
-jupyter serverextension list
-```
-
-You can check that the JupyterLab extension was successful installed with:
-```bash
-jupyter labextension list
-```
-
-### Weekly Dev Community Meeting
 **When**: Thursdays at [9AM PST](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&)
 
 **Where**: [Zoom](https://zoom.us/j/99736674253) (Meeting ID: 997 3667 4253)

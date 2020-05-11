@@ -1,7 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Schema for Kubeflow Pipeline runtime metadata",
+  "title": "Kubeflow Pipeline runtime metadata",
   "name": "kfp",
+  "namespace": "runtimes",
   "properties": {
     "schema_name": {
       "type": "string",
@@ -9,7 +10,7 @@
       "minLength": 1
     },
     "display_name": {
-      "description": "The display name of the metadata",
+      "description": "The display name of this KFP instance",
       "type": "string",
       "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
     },
@@ -17,6 +18,10 @@
       "description": "Additional data specific to this metadata",
       "type": "object",
       "properties": {
+        "description": {
+          "description": "The description of this KFP runtime instance",
+          "type": "string"
+        },
         "api_endpoint": {
           "description": "The API endpoint",
           "type": "string",

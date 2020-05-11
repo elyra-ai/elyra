@@ -30,7 +30,9 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 npm_packages_path = "./dist/*.tgz"
-auto_extension_path = "./jupyter-config/jupyter_notebook_config.d/*.json"
+auto_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
+metadata_path = './etc/config/metadata/runtime-images/*.json'
+
 
 setup_args = dict(
     name="elyra",
@@ -40,18 +42,19 @@ setup_args = dict(
     long_description=long_desc,
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
-    data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_extension_path))],
+    data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_extension_path)),
+                ('share/jupyter/metadata/runtime-images', glob(metadata_path))],
     packages=find_packages(),
     install_requires=[
         "jupyter_core>=4.0,<5.0",
         "kfp==0.2.2",
         "urllib3==1.24.2",
-        "kfp-notebook>=0.7.0",
+        "kfp-notebook>=0.8.0",
         "kfp-server-api==0.1.18.3",
         "minio>=5.0.7",
         'nbdime>=2.0.0',
         'jupyterlab>=2.0.0',
-        'jupyterlab-git==0.20.0rc0',
+        'jupyterlab-git>=0.20.0',
         'nbconvert>=5.6.1',
         'notebook>=6.0.3',
         'traitlets>=4.3.2',
@@ -77,8 +80,7 @@ setup_args = dict(
     ),
     entry_points={
         'console_scripts': [
-            'jupyter-runtimes = elyra.metadata.runtime:RuntimeMetadataApp.launch_instance',
-            'jupyter-code-snippets = elyra.metadata.code_snippet:CodeSnippetMetadataApp.launch_instance',
+            'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
         ],
         'elyra.pipeline.processors': [
             'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'

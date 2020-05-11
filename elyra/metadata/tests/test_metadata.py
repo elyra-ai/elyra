@@ -20,12 +20,50 @@ import os
 import shutil
 import pytest
 
-from jsonschema import ValidationError
+from jsonschema import validate, ValidationError, draft7_format_checker
 from logging import StreamHandler
 
-from elyra.metadata.metadata import Metadata, MetadataManager
+from elyra.metadata import Metadata, MetadataManager
+from elyra.metadata.metadata_app_utils import load_namespaces
 
 from .test_utils import valid_metadata_json, invalid_metadata_json, create_json_file, get_schema
+
+
+# Test factory schemas.
+# Note: should we ever decide to allow folks to bring their own schemas, we'd want to expose this.
+schema_schema = {
+    "title": "Schema for Elyra schema.",
+    "properties": {
+        "name": {
+            "description": "The name of the schema.",
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
+        },
+        "namespace": {
+            "description": "The namespace corresponding to the schema and its instances.",
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
+        },
+        "properties": {
+            "type": "object",
+            "propertyNames": {
+                "enum": ["schema_name", "display_name", "metadata"]
+            },
+            "additionalProperties": True
+        }
+    },
+    "required": ["name", "namespace", "properties"]
+}
+
+
+def test_validate_factory_schemas():
+    # Test that each of our factory schemas meet the minimum requirements.
+
+    namespace_schemas = load_namespaces()
+    for namespace, schemas in namespace_schemas.items():
+        for name, schema in schemas.items():
+            print("Validating schema '{namespace}/{name}'...".format(namespace=namespace, name=name))
+            validate(instance=schema, schema=schema_schema, format_checker=draft7_format_checker)
 
 
 # ########################## MetadataManager Tests ###########################
@@ -66,56 +104,56 @@ def test_manager_add_invalid(data_dir):
     assert not os.path.exists(metadata_file)
 
 
-def test_manager_list_summary(runtimes_manager):
-    metadata_summary_list = runtimes_manager.get_all_metadata_summary(include_invalid=False)
+def test_manager_list_summary(tests_manager):
+    metadata_summary_list = tests_manager.get_all_metadata_summary(include_invalid=False)
     assert len(metadata_summary_list) == 2
-    metadata_summary_list = runtimes_manager.get_all_metadata_summary(include_invalid=True)
+    metadata_summary_list = tests_manager.get_all_metadata_summary(include_invalid=True)
     assert len(metadata_summary_list) == 3
 
 
-def test_manager_list_all(runtimes_manager):
-    metadata_list = runtimes_manager.get_all()
+def test_manager_list_all(tests_manager):
+    metadata_list = tests_manager.get_all()
     assert len(metadata_list) == 2
     # Ensure name is getting derived from resource and not from contents
     for metadata in metadata_list:
-        if metadata.display_name == "Another Runtime (2)":
+        if metadata.display_name == "Another Metadata Instance (2)":
             assert metadata.name == "another"
         else:
             assert metadata.name == "valid"
 
 
-def test_manager_list_summary_none(runtimes_manager, metadata_runtimes_dir):
+def test_manager_list_summary_none(tests_manager, metadata_tests_dir):
     # Delete the metadata dir contents and attempt listing metadata
-    shutil.rmtree(metadata_runtimes_dir)
-    assert runtimes_manager.namespace_exists() is False
-    os.makedirs(metadata_runtimes_dir)
-    assert runtimes_manager.namespace_exists()
+    shutil.rmtree(metadata_tests_dir)
+    assert tests_manager.namespace_exists() is False
+    os.makedirs(metadata_tests_dir)
+    assert tests_manager.namespace_exists()
 
-    metadata_summary_list = runtimes_manager.get_all_metadata_summary()
+    metadata_summary_list = tests_manager.get_all_metadata_summary()
     assert len(metadata_summary_list) == 0
 
 
-def test_manager_list_all_none(runtimes_manager, metadata_runtimes_dir):
+def test_manager_list_all_none(tests_manager, metadata_tests_dir):
     # Delete the metadata dir contents and attempt listing metadata
-    shutil.rmtree(metadata_runtimes_dir)
-    assert runtimes_manager.namespace_exists() is False
-    os.makedirs(metadata_runtimes_dir)
-    assert runtimes_manager.namespace_exists()
+    shutil.rmtree(metadata_tests_dir)
+    assert tests_manager.namespace_exists() is False
+    os.makedirs(metadata_tests_dir)
+    assert tests_manager.namespace_exists()
 
-    metadata_list = runtimes_manager.get_all()
+    metadata_list = tests_manager.get_all()
     assert len(metadata_list) == 0
 
 
-def test_manager_add_remove_valid(runtimes_manager, metadata_runtimes_dir):
+def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
     metadata_name = 'valid_add_remove'
 
     metadata = Metadata(**valid_metadata_json)
 
-    resource = runtimes_manager.add(metadata_name, metadata)
+    resource = tests_manager.add(metadata_name, metadata)
     assert resource is not None
 
     # Ensure file was created
-    metadata_file = os.path.join(metadata_runtimes_dir, 'valid_add_remove.json')
+    metadata_file = os.path.join(metadata_tests_dir, 'valid_add_remove.json')
     assert os.path.exists(metadata_file)
 
     with open(metadata_file, 'r', encoding='utf-8') as f:
@@ -123,59 +161,59 @@ def test_manager_add_remove_valid(runtimes_manager, metadata_runtimes_dir):
         assert "resource" not in valid_add
         assert "name" not in valid_add
         assert "display_name" in valid_add
-        assert valid_add['display_name'] == "valid runtime"
+        assert valid_add['display_name'] == "valid metadata instance"
         assert "schema_name" in valid_add
         assert valid_add['schema_name'] == "test"
 
     # Attempt to create again w/o replace, then replace it.
-    resource = runtimes_manager.add(metadata_name, metadata, replace=False)
+    resource = tests_manager.add(metadata_name, metadata, replace=False)
     assert resource is None
 
-    resource = runtimes_manager.add(metadata_name, metadata)
+    resource = tests_manager.add(metadata_name, metadata)
     assert resource is not None
 
     # And finally, remove it.
-    resource = runtimes_manager.remove(metadata_name)
+    resource = tests_manager.remove(metadata_name)
 
     assert not os.path.exists(metadata_file)
     assert resource == metadata_file
 
 
-def test_manager_remove_invalid(runtimes_manager, metadata_runtimes_dir):
+def test_manager_remove_invalid(tests_manager, metadata_tests_dir):
     # Ensure invalid metadata file isn't validated and is removed.
-    create_json_file(metadata_runtimes_dir, 'remove_invalid.json', invalid_metadata_json)
+    create_json_file(metadata_tests_dir, 'remove_invalid.json', invalid_metadata_json)
     metadata_name = 'remove_invalid'
-    resource = runtimes_manager.remove(metadata_name)
-    metadata_file = os.path.join(metadata_runtimes_dir, 'remove_invalid.json')
+    resource = tests_manager.remove(metadata_name)
+    metadata_file = os.path.join(metadata_tests_dir, 'remove_invalid.json')
     assert not os.path.exists(metadata_file)
     assert resource == metadata_file
 
 
-def test_manager_remove_missing(runtimes_manager, metadata_runtimes_dir):
+def test_manager_remove_missing(tests_manager, metadata_tests_dir):
     # Ensure removal of missing metadata file is handled.
     metadata_name = 'missing'
-    resource = runtimes_manager.remove(metadata_name)
+    resource = tests_manager.remove(metadata_name)
     assert resource is None
 
 
-def test_manager_read_valid_by_name(runtimes_manager, metadata_runtimes_dir):
+def test_manager_read_valid_by_name(tests_manager, metadata_tests_dir):
     metadata_name = 'valid'
-    some_metadata = runtimes_manager.get(metadata_name)
+    some_metadata = tests_manager.get(metadata_name)
     assert some_metadata.name == metadata_name
     assert some_metadata.schema_name == "test"
-    assert str(metadata_runtimes_dir) in some_metadata.resource
+    assert str(metadata_tests_dir) in some_metadata.resource
 
 
-def test_manager_read_invalid_by_name(runtimes_manager):
+def test_manager_read_invalid_by_name(tests_manager):
     metadata_name = 'invalid'
     with pytest.raises(ValidationError):
-        runtimes_manager.get(metadata_name)
+        tests_manager.get(metadata_name)
 
 
-def test_manager_read_missing_by_name(runtimes_manager):
+def test_manager_read_missing_by_name(tests_manager):
     metadata_name = 'missing'
     with pytest.raises(KeyError):
-        runtimes_manager.get(metadata_name)
+        tests_manager.get(metadata_name)
 
 
 # ########################## FileMetadataStore Tests ###########################
@@ -191,22 +229,22 @@ def test_filestore_list_all(filestore):
     assert len(metadata_list) == 2
 
 
-def test_filestore_list_summary_none(filestore, metadata_runtimes_dir):
+def test_filestore_list_summary_none(filestore, metadata_tests_dir):
     # Delete the metadata dir contents and attempt listing metadata
-    shutil.rmtree(metadata_runtimes_dir)
+    shutil.rmtree(metadata_tests_dir)
     assert filestore.namespace_exists() is False
-    os.makedirs(metadata_runtimes_dir)
+    os.makedirs(metadata_tests_dir)
     assert filestore.namespace_exists()
 
     metadata_summary_list = filestore.get_all_metadata_summary(include_invalid=True)
     assert len(metadata_summary_list) == 0
 
 
-def test_filestore_list_all_none(filestore, metadata_runtimes_dir):
+def test_filestore_list_all_none(filestore, metadata_tests_dir):
     # Delete the metadata dir contents and attempt listing metadata
-    shutil.rmtree(metadata_runtimes_dir)
+    shutil.rmtree(metadata_tests_dir)
     assert filestore.namespace_exists() is False
-    os.makedirs(metadata_runtimes_dir)
+    os.makedirs(metadata_tests_dir)
     assert filestore.namespace_exists()
 
     metadata_list = filestore.get_all()

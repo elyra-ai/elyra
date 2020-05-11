@@ -21,7 +21,7 @@ import shutil
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError, draft7_format_checker
-from jupyter_core.paths import jupyter_data_dir
+from jupyter_core.paths import jupyter_data_dir, jupyter_path
 from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
@@ -37,6 +37,7 @@ class Metadata(HasTraits):
     reason = None
 
     def __init__(self, **kwargs):
+        super(Metadata, self).__init__(**kwargs)
         if 'display_name' not in kwargs:
             raise AttributeError("Missing required 'display_name' attribute")
 
@@ -68,6 +69,11 @@ class Metadata(HasTraits):
 
 
 class MetadataManager(LoggingConfigurable):
+
+    # System-owned namespaces
+    NAMESPACE_RUNTIMES = "runtimes"
+    NAMESPACE_CODE_SNIPPETS = "code-snippets"
+
     metadata_class = Type(Metadata, config=True,
                           help="""The metadata class.  This is configurable to allow subclassing of
                           the MetadataManager for customized behavior.""")
@@ -173,7 +179,15 @@ class FileMetadataStore(MetadataStore):
         return self.metadata_dir
 
     def namespace_exists(self):
-        return os.path.exists(self.metadata_dir)
+        is_valid_namespace = False
+
+        all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
+        for d in all_metadata_dirs:
+            if os.path.isdir(d):
+                is_valid_namespace = True
+                break
+
+        return is_valid_namespace
 
     def get_all_metadata_summary(self, include_invalid=False):
         metadata_list = self._load_metadata_resources(include_invalid=include_invalid)
@@ -200,7 +214,7 @@ class FileMetadataStore(MetadataStore):
         if not name:
             raise ValueError('Name of metadata was not provided.')
 
-        match = re.search("^[a-z][a-z,-,_,0-9]*[a-z,0-9]$", name)
+        match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
         if match is None:
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
                              "embedded hyphens ('-') and underscores ('_').")
@@ -240,8 +254,8 @@ class FileMetadataStore(MetadataStore):
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
             self._load_from_resource(resource)
-        except ValidationError as ve:
-            self.log.error(str(ve) + "\nRemoving metadata resource '{}'.".format(resource))
+        except ValidationError:
+            self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
                 shutil.rmtree(self.metadata_dir)
@@ -276,21 +290,24 @@ class FileMetadataStore(MetadataStore):
         """
         resources = []
         if self.namespace_exists():
-            for f in os.listdir(self.metadata_dir):
-                path = os.path.join(self.metadata_dir, f)
-                if path.endswith(".json"):
-                    if name:
-                        if os.path.splitext(os.path.basename(path))[0] == name:
-                            return self._load_from_resource(path, validate_metadata=validate_metadata)
-                    else:
-                        metadata = None
-                        try:
-                            metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
-                                                                include_invalid=include_invalid)
-                        except Exception:
-                            pass  # Ignore ValidationError and others when loading all resources
-                        if metadata is not None:
-                            resources.append(metadata)
+            all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
+            for metadata_dir in all_metadata_dirs:
+                if os.path.isdir(metadata_dir):
+                    for f in os.listdir(metadata_dir):
+                        path = os.path.join(metadata_dir, f)
+                        if path.endswith(".json"):
+                            if name:
+                                if os.path.splitext(os.path.basename(path))[0] == name:
+                                    return self._load_from_resource(path, validate_metadata=validate_metadata)
+                            else:
+                                metadata = None
+                                try:
+                                    metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
+                                                                        include_invalid=include_invalid)
+                                except Exception:
+                                    pass  # Ignore ValidationError and others when loading all resources
+                                if metadata is not None:
+                                    resources.append(metadata)
         else:  # namespace doesn't exist, treat as KeyError
             raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
 
