@@ -15,22 +15,45 @@
 #
 import os
 import shutil
+import sys
 
 from traitlets.config import Config
 from notebook.tests.launchnotebook import NotebookTestBase
 
+from ..metadata import METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
 from .conftest import fetch  # FIXME - remove once jupyter_server is used
 
 
-class MetadataHandlerTest(NotebookTestBase):
+os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
+
+
+class MetadataTestBase(NotebookTestBase):
+    """Base class to override environment patch.  Note that because the notebook doesn't
+       enable proper subclassing patching, we need to override the method completely.
+    """
+    @classmethod
+    def get_patch_env(cls):
+        return {
+            'HOME': cls.home_dir,
+            'PYTHONPATH': os.pathsep.join(sys.path),
+            'IPYTHONDIR': os.path.join(cls.home_dir, '.ipython'),
+            'JUPYTER_NO_CONFIG': '1',  # needed in the future
+            'JUPYTER_CONFIG_DIR': cls.config_dir,
+            'JUPYTER_DATA_DIR': cls.data_dir,
+            'JUPYTER_RUNTIME_DIR': cls.runtime_dir,
+            'METADATA_TESTING': '1',
+        }
+
+
+class MetadataHandlerTest(MetadataTestBase):
     """Test Metadata REST API"""
     config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
 
     def setUp(self):
         # The _dir names here are fixtures that should be referenced by the appropriate
         # test methods once transition to jupyter_server occurs.
-        self.metadata_namespace_dir = os.path.join(self.data_dir, 'metadata', 'elyra-metadata-tests')
+        self.metadata_namespace_dir = os.path.join(self.data_dir, 'metadata', 'metadata-tests')
         self.metadata_bogus_dir = os.path.join(self.data_dir, 'metadata', 'bogus')
 
         create_json_file(self.metadata_namespace_dir, 'valid.json', valid_metadata_json)
@@ -49,21 +72,21 @@ class MetadataHandlerTest(NotebookTestBase):
 
     def test_missing_instance(self):
         # Validate missing is not found
-        r = fetch(self.request, 'api', 'metadata', 'elyra-metadata-tests', 'missing',
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "Metadata 'missing' in namespace 'elyra-metadata-tests' was not found!" in r.text
+        assert "Metadata 'missing' in namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
 
     def test_invalid_instance(self):
         # Validate invalid throws 404 with validation message
-        r = fetch(self.request, 'api', 'metadata', 'elyra-metadata-tests', 'invalid',
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'invalid',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
         assert "Schema validation failed for metadata 'invalid'" in r.text
 
     def test_valid_instance(self):
         # Ensure valid metadata can be found
-        r = fetch(self.request, 'api', 'metadata', 'elyra-metadata-tests', 'valid',
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   base_url=self.base_url(), headers=self.auth_headers())
 
         assert r.status_code == 200
@@ -73,13 +96,13 @@ class MetadataHandlerTest(NotebookTestBase):
 
     def test_get_instances(self):
         # Ensure all valid metadata can be found
-        r = fetch(self.request, 'api', 'metadata', 'elyra-metadata-tests',
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         metadata = r.json()
         assert isinstance(metadata, dict)
         assert len(metadata) == 1
-        instances = metadata['elyra-metadata-tests']
+        instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 2
         assert 'another' in instances.keys()
         assert 'valid' in instances.keys()
@@ -87,24 +110,24 @@ class MetadataHandlerTest(NotebookTestBase):
     def test_get_empty_namespace_instances(self):
         # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_namespace_dir)
-        r = fetch(self.request, 'api', 'metadata', 'elyra-metadata-tests',
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "Metadata namespace 'elyra-metadata-tests' was not found!" in r.text
+        assert "Metadata namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
 
         # Now create empty namespace
         os.makedirs(self.metadata_namespace_dir)
-        r = fetch(self.request, 'api', 'metadata', 'elyra-metadata-tests',
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         metadata = r.json()
         assert isinstance(metadata, dict)
         assert len(metadata) == 1
-        instances = metadata['elyra-metadata-tests']
+        instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 0
 
 
-class SchemaHandlerTest(NotebookTestBase):
+class SchemaHandlerTest(MetadataTestBase):
     """Test Schema REST API"""
     config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
 
@@ -134,7 +157,7 @@ class SchemaHandlerTest(NotebookTestBase):
 
     def test_get_test_schemas(self):
         # Ensure all schema for code-snippets can be found
-        self._get_namespace_schemas('elyra-metadata-tests', ['test'])
+        self._get_namespace_schemas(METADATA_TEST_NAMESPACE, ['metadata-test'])
 
     def test_get_runtimes_schema(self):
         # Ensure all schema for runtimes can be found
@@ -146,7 +169,7 @@ class SchemaHandlerTest(NotebookTestBase):
 
     def test_get_test_schema(self):
         # Ensure all schema for code-snippets can be found
-        self._get_namespace_schema('elyra-metadata-tests', 'test')
+        self._get_namespace_schema(METADATA_TEST_NAMESPACE, 'metadata-test')
 
     def _get_namespace_schemas(self, namespace, expected):
         r = fetch(self.request, 'api', 'schema', namespace,
@@ -170,7 +193,7 @@ class SchemaHandlerTest(NotebookTestBase):
         assert namespace == namespace_schema['namespace']
 
 
-class NamespaceHandlerTest(NotebookTestBase):
+class NamespaceHandlerTest(MetadataTestBase):
     """Test Namespace REST API"""
     config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
 

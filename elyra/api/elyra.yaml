@@ -21,7 +21,7 @@ paths:
             text/x-yaml:
               schema:
                 type: string
-        5XX:
+        500:
           description: Unexpected error.
 
   /api/namespace:
@@ -38,9 +38,11 @@ paths:
                 type: object
                 properties:
                   namespaces:
-                    type: array
-                    description: The name of the namespace.
-        5XX:
+                    items: {
+                      type: string
+                    }
+                    description: The list of current namespaces.
+        500:
           description: Unexpected error.
 
   /api/schema/{namespace}:
@@ -71,7 +73,7 @@ paths:
         404:
           description: Namespace not found
           content: {}
-        5XX:
+        500:
           description: Unexpected error.
 
   /api/schema/{namespace}/{resource}:
@@ -103,7 +105,7 @@ paths:
         404:
           description: Namespace/Resource not found
           content: {}
-        5XX:
+        500:
           description: Unexpected error.
 
   /api/metadata/{namespace}:
@@ -134,7 +136,7 @@ paths:
         404:
           description: Namespace not found
           content: {}
-        5XX:
+        500:
           description: Unexpected error.
 
   /api/metadata/{namespace}/{resource}:
@@ -166,7 +168,7 @@ paths:
         404:
           description: Namespace/Resource not found
           content: {}
-        5XX:
+        500:
           description: Unexpected error.
 
 components:

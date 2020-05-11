@@ -20,9 +20,11 @@ import shutil
 import pytest
 
 from jsonschema import validate, ValidationError, draft7_format_checker
-from elyra.metadata import Metadata, MetadataManager, SchemaManager
+from elyra.metadata import Metadata, MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, create_json_file, get_schema
 
+
+os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
 
 # Test factory schemas.
 # Note: should we ever decide to allow folks to bring their own schemas, we'd want to expose this.
@@ -137,7 +139,7 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
         assert "display_name" in valid_add
         assert valid_add['display_name'] == "valid metadata instance"
         assert "schema_name" in valid_add
-        assert valid_add['schema_name'] == "test"
+        assert valid_add['schema_name'] == "metadata-test"
 
     # Attempt to create again w/o replace, then replace it.
     resource = tests_manager.add(metadata_name, metadata, replace=False)
@@ -174,7 +176,7 @@ def test_manager_read_valid_by_name(tests_manager, metadata_tests_dir):
     metadata_name = 'valid'
     some_metadata = tests_manager.get(metadata_name)
     assert some_metadata.name == metadata_name
-    assert some_metadata.schema_name == "test"
+    assert some_metadata.schema_name == "metadata-test"
     assert str(metadata_tests_dir) in some_metadata.resource
 
 
@@ -247,17 +249,17 @@ def test_filestore_read_missing_by_name(filestore):
 def test_schema_manager_all(schema_manager):
     schema_manager.clear_all()
 
-    test_schema_json = get_schema('test')
+    test_schema_json = get_schema('metadata-test')
 
     with pytest.raises(ValueError):
-        schema_manager.add_schema("foo", "test", test_schema_json)
+        schema_manager.add_schema("foo", "metadata-test", test_schema_json)
 
     with pytest.raises(ValueError):
-        schema_manager.add_schema("bar", "test", test_schema_json)
+        schema_manager.add_schema("bar", "metadata-test", test_schema_json)
 
-    schema_manager.add_schema("elyra-metadata-tests", "test", test_schema_json)
+    schema_manager.add_schema(METADATA_TEST_NAMESPACE, "metadata-test", test_schema_json)
 
-    test_schema = schema_manager.get_schema("elyra-metadata-tests", "test")
+    test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
     assert test_schema is not None
     assert test_schema == test_schema_json
 
@@ -265,17 +267,17 @@ def test_schema_manager_all(schema_manager):
     modified_schema = copy.deepcopy(test_schema)
     modified_schema['properties']['metadata']['properties']['bar'] = {"type": "string", "minLength": 5}
 
-    schema_manager.add_schema("elyra-metadata-tests", "test", modified_schema)
-    bar_schema = schema_manager.get_schema("elyra-metadata-tests", "test")
+    schema_manager.add_schema(METADATA_TEST_NAMESPACE, "metadata-test", modified_schema)
+    bar_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
     assert bar_schema is not None
     assert bar_schema != test_schema_json
     assert bar_schema == modified_schema
 
-    schema_manager.remove_schema("elyra-metadata-tests", "test")
+    schema_manager.remove_schema(METADATA_TEST_NAMESPACE, "metadata-test")
     with pytest.raises(KeyError):
-        schema_manager.get_schema("elyra-metadata-tests", "test")
+        schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
 
     schema_manager.clear_all()  # Ensure test schema has been restored
-    test_schema = schema_manager.get_schema("elyra-metadata-tests", "test")
+    test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
     assert test_schema is not None
     assert test_schema == test_schema_json

@@ -13,17 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 import sys
 
 from jsonschema import ValidationError
 
 from .metadata_app_utils import AppBase, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
 from .metadata import Metadata, MetadataManager, SchemaManager
-
-# The following exposes the elyra-metadatat-test namespace if true or 1.  App testing will enable this env.
-METADATA_APP_TESTING = os.getenv("METADATA_APP_TESTING", 0)
-METADATA_TEST_NAMESPACE = "metadata-tests"
 
 
 class NamespaceBase(AppBase):
@@ -231,8 +226,6 @@ class SubcommandBase(AppBase):
         # This requires a new subclass of the NamespaceList class with an appropriate description
         self.subcommands = {}
         for namespace, schemas in self.namespace_schemas.items():
-            if namespace == METADATA_TEST_NAMESPACE and not METADATA_APP_TESTING:
-                continue
             subcommand_desciption = self.subcommand_desciption.format(namespace=namespace)
             # Create the appropriate namespace class, initialized with its description,
             # namespace, and corresponding schemas as attributes,

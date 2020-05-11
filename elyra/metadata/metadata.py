@@ -26,6 +26,8 @@ from jupyter_core.paths import jupyter_data_dir
 from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
+
+METADATA_TEST_NAMESPACE = "metadata-tests"  # exposed via METADATA_TESTING env
 DEFAULT_SCHEMA_NAME = 'kfp'
 
 
@@ -427,6 +429,11 @@ class SchemaManager(SingletonConfigurable):
            Note: The schema file must have a top-level string-valued attribute
            named 'namespace' to be included in the resulting dictionary.
         """
+        # The following exposes the metadata-test namespace if true or 1.
+        # Metadata testing will enable this env.  Note: this cannot be globally
+        # defined, else the file could be loaded before the tests have enable the env.
+        metadata_testing_enabled = bool(os.getenv("METADATA_TESTING", 0))
+
         namespace_schemas = {}
         if schema_dir is None:
             schema_dir = os.path.join(os.path.dirname(__file__), 'schemas')
@@ -443,6 +450,9 @@ class SchemaManager(SingletonConfigurable):
             namespace = schema_json.get('namespace')
             if namespace is None:
                 warnings.warn("Schema file '{}' is missing its namespace attribute!  Skipping...".format(schema_file))
+                continue
+            # Skip test namespace unless we're testing metadata
+            if namespace == METADATA_TEST_NAMESPACE and not metadata_testing_enabled:
                 continue
             if namespace not in namespace_schemas:  # Create the namespace dict
                 namespace_schemas[namespace] = {}
