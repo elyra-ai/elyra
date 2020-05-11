@@ -72,7 +72,12 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     const widget: Widget = this.props.getCurrentWidget();
     const snippetStr: string = snippet.code.join('\n');
 
-    if (
+    if (widget.constructor instanceof PythonFileEditor.constructor) {
+      const documentWidget = widget as DocumentWidget;
+      const fileEditor = (documentWidget.content as FileEditor).editor;
+
+      this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
+    } else if (
       widget instanceof DocumentWidget &&
       (widget as DocumentWidget).content instanceof FileEditor
     ) {
@@ -88,11 +93,6 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
-    } else if (widget instanceof PythonFileEditor) {
-      const documentWidget = widget as DocumentWidget;
-      const fileEditor = (documentWidget.content as FileEditor).editor;
-
-      this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
       const notebookCellEditor = (notebookWidget.content as Notebook).activeCell
