@@ -83,6 +83,7 @@ export class PythonFileEditor extends DocumentWidget<
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
+    Object.setPrototypeOf(this, PythonFileEditor.prototype);
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
     this.model = this.content.model;
     this.runner = new PythonRunner(this.model, this.disableRun);

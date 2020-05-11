@@ -77,11 +77,6 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       widget instanceof DocumentWidget &&
       (widget as DocumentWidget).content instanceof FileEditor
     ) {
-      //TODO remove debug lines below
-      console.log('widget instanceof PythonFileEditor? ');
-      console.log(widget instanceof PythonFileEditor); // Prints false when it is a PythonFileEditor
-      console.log(widget); // Prints a PythonFileEditor object when expected
-
       const documentWidget = widget as DocumentWidget;
       const fileEditor = (documentWidget.content as FileEditor).editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
@@ -91,15 +86,14 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         fileEditor.replaceSelection(
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
-      } else if (widget instanceof PythonFileEditor) {
-        // ISSUE: This is not being triggered by a PythonFileEditor
-        //TODO remove debug line below
-        console.log('This is a PythonFileEditor');
-
-        this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
+    } else if (widget instanceof PythonFileEditor) {
+      const documentWidget = widget as DocumentWidget;
+      const fileEditor = (documentWidget.content as FileEditor).editor;
+
+      this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
       const notebookCellEditor = (notebookWidget.content as Notebook).activeCell
@@ -151,17 +145,8 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     editorLanguage: string,
     editor: CodeEditor.IEditor
   ): Promise<void> => {
-    console.log(
-      'editorLanguage: ' +
-        editorLanguage +
-        ', snippet.languange: ' +
-        snippet.language
-    );
     const snippetStr: string = snippet.code.join('\n');
-    if (editorLanguage === '') {
-      // Allow code snippet insertion when editorLanguage is unavailable
-      editor.replaceSelection(snippetStr);
-    } else if (snippet.language !== editorLanguage) {
+    if (editorLanguage && snippet.language !== editorLanguage) {
       const result = await this.showWarnDialog(
         editorLanguage,
         snippet.displayName
@@ -170,7 +155,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         editor.replaceSelection(snippetStr);
       }
     } else {
-      // Language match
+      // Language match or editorLanguage is unavailable
       editor.replaceSelection(snippetStr);
     }
   };
