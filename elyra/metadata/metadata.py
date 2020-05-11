@@ -18,6 +18,7 @@ import json
 import os
 import re
 import shutil
+import warnings
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError, draft7_format_checker
@@ -25,6 +26,8 @@ from jupyter_core.paths import jupyter_data_dir, jupyter_path
 from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
+
+METADATA_TEST_NAMESPACE = "metadata-tests"  # exposed via METADATA_TESTING env
 DEFAULT_SCHEMA_NAME = 'kfp'
 
 
@@ -119,6 +122,11 @@ class MetadataManager(LoggingConfigurable):
 
 class MetadataStore(ABC):
     def __init__(self, namespace, **kwargs):
+        self.schema_mgr = SchemaManager.instance()
+        if not self.schema_mgr.is_valid_namespace(namespace):
+            raise ValueError("Namespace '{}' is not in the list of valid namespaces: {}".
+                             format(namespace, self.schema_mgr.get_namespaces()))
+
         self.namespace = namespace
         self.log = log.get_logger()
 
@@ -170,7 +178,6 @@ class FileMetadataStore(MetadataStore):
 
     def __init__(self, namespace, **kwargs):
         super(FileMetadataStore, self).__init__(namespace, **kwargs)
-        self.schema_mgr = SchemaManager.instance()
         self.metadata_dir = os.path.join(jupyter_data_dir(), 'metadata', self.namespace)
         self.log.debug("Namespace '{}' is using metadata directory: {}".format(self.namespace, self.metadata_dir))
 
@@ -368,38 +375,103 @@ class FileMetadataStore(MetadataStore):
 
 
 class SchemaManager(SingletonConfigurable):
-    """Singleton used to store all schemas for all metadata types.  The storage class
-       (and caller) is responsible for providing an appropraite epoch.  For file-based classes
-       it is recommended that the file's last modified time be used.  For db-based classes,
-       a monotonically increasing column value is appropriate, or even a uuid.  Staleness
-       is a straight equality check against the provider's epoch vs. the one associated
-       with the entry.
+    """Singleton used to store all schemas for all metadata types.
+       Note: we currently don't refresh these entries.
     """
 
-    schemas = {}        # Dict of namespace & schema_name to schema content
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # namespace_schemas is a dict of namespace keys to dict of schema_name keys of JSON schema
+        self.namespace_schemas = SchemaManager.load_namespace_schemas()
 
-    @staticmethod
-    def _get_key(namespace, schema_name):
-        return namespace + '.' + schema_name
+    def is_valid_namespace(self, namespace):
+        return namespace in self.namespace_schemas.keys()
+
+    def get_namespaces(self):
+        return list(self.namespace_schemas.keys())
+
+    def get_namespace_schemas(self, namespace):
+        self.log.debug("SchemaManager: Fetching all schemas from namespace '{}'".format(namespace))
+        if not self.is_valid_namespace(namespace):
+            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
+                             format(namespace, self.get_namespaces()))
+        schemas = self.namespace_schemas.get(namespace)
+        return schemas
 
     def get_schema(self, namespace, schema_name):
-        key = SchemaManager._get_key(namespace, schema_name)
-        self.log.debug("SchemaManager: Fetching schema: '{}'".format(key))
-        return self.schemas.get(key)
+        schema_json = None
+        self.log.debug("SchemaManager: Fetching schema '{}' from namespace '{}'".format(schema_name, namespace))
+        if not self.is_valid_namespace(namespace):
+            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
+                             format(namespace, self.get_namespaces()))
+        schemas = self.namespace_schemas.get(namespace)
+        if schema_name not in schemas.keys():
+            raise KeyError("Schema '{}' in namespace '{}' was not found!".format(schema_name, namespace))
+        schema_json = schemas.get(schema_name)
+
+        return schema_json
 
     def add_schema(self, namespace, schema_name, schema):
         """Adds (updates) schema to set of stored schemas. """
-        key = SchemaManager._get_key(namespace, schema_name)
-        self.log.debug("SchemaManager: Adding schema: '{}'".format(key))
-        self.schemas[key] = schema
+        if not self.is_valid_namespace(namespace):
+            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
+                             format(namespace, self.get_namespaces()))
+        self.log.debug("SchemaManager: Adding schema '{}' to namespace '{}'".format(schema_name, namespace))
+        self.namespace_schemas[namespace][schema_name] = schema
 
-    def remove_all(self):
-        """Primarily used for testing, this method removes all items across all namespaces. """
-        self.log.debug("SchemaManager: Clearing schemas.")
-        self.schemas.clear()
+    def clear_all(self):
+        """Primarily used for testing, this method reloads schemas from initial values. """
+        self.log.debug("SchemaManager: Reloading all schemas for all namespaces.")
+        self.namespace_schemas = SchemaManager.load_namespace_schemas()
 
     def remove_schema(self, namespace, schema_name):
         """Removes the schema entry associated with namespace & schema_name. """
-        key = SchemaManager._get_key(namespace, schema_name)
-        self.log.debug("SchemaManager: Removing schema: '{}'".format(key))
-        self.schemas.pop(key)
+        self.log.debug("SchemaManager: Removing schema '{}' from namespace '{}'".format(schema_name, namespace))
+        if not self.is_valid_namespace(namespace):
+            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
+                             format(namespace, self.get_namespaces()))
+        self.namespace_schemas[namespace].pop(schema_name)
+
+    @classmethod
+    def load_namespace_schemas(cls, schema_dir=None):
+        """Loads the static schema files into a dictionary indexed by namespace.
+           If schema_dir is not specified, the static location relative to this
+           file will be used.
+           Note: The schema file must have a top-level string-valued attribute
+           named 'namespace' to be included in the resulting dictionary.
+        """
+        # The following exposes the metadata-test namespace if true or 1.
+        # Metadata testing will enable this env.  Note: this cannot be globally
+        # defined, else the file could be loaded before the tests have enable the env.
+        metadata_testing_enabled = bool(os.getenv("METADATA_TESTING", 0))
+
+        namespace_schemas = {}
+        if schema_dir is None:
+            schema_dir = os.path.join(os.path.dirname(__file__), 'schemas')
+        if not os.path.exists(schema_dir):
+            raise RuntimeError("Metadata schema directory '{}' was not found!".format(schema_dir))
+
+        schema_files = [json_file for json_file in os.listdir(schema_dir) if json_file.endswith('.json')]
+        for json_file in schema_files:
+            schema_file = os.path.join(schema_dir, json_file)
+            with io.open(schema_file, 'r', encoding='utf-8') as f:
+                schema_json = json.load(f)
+
+            # Elyra schema files are required to have a namespace property (see test_validate_factory_schema)
+            namespace = schema_json.get('namespace')
+            if namespace is None:
+                warnings.warn("Schema file '{}' is missing its namespace attribute!  Skipping...".format(schema_file))
+                continue
+            # Skip test namespace unless we're testing metadata
+            if namespace == METADATA_TEST_NAMESPACE and not metadata_testing_enabled:
+                continue
+            if namespace not in namespace_schemas:  # Create the namespace dict
+                namespace_schemas[namespace] = {}
+            # Add the schema file indexed by name within the namespace
+            name = schema_json.get('name')
+            if name is None:
+                # If schema is missing a name attribute, use file's basename.
+                name = os.path.splitext(os.path.basename(schema_file))[0]
+            namespace_schemas[namespace][name] = schema_json
+
+        return namespace_schemas.copy()

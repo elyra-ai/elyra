@@ -14,20 +14,17 @@
 # limitations under the License.
 #
 import copy
-import io
 import json
 import os
 import shutil
 import pytest
 
 from jsonschema import validate, ValidationError, draft7_format_checker
-from logging import StreamHandler
-
-from elyra.metadata import Metadata, MetadataManager
-from elyra.metadata.metadata_app_utils import load_namespaces
-
+from elyra.metadata import Metadata, MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, create_json_file, get_schema
 
+
+os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
 
 # Test factory schemas.
 # Note: should we ever decide to allow folks to bring their own schemas, we'd want to expose this.
@@ -58,8 +55,7 @@ schema_schema = {
 
 def test_validate_factory_schemas():
     # Test that each of our factory schemas meet the minimum requirements.
-
-    namespace_schemas = load_namespaces()
+    namespace_schemas = SchemaManager.load_namespace_schemas()
     for namespace, schemas in namespace_schemas.items():
         for name, schema in schemas.items():
             print("Validating schema '{namespace}/{name}'...".format(namespace=namespace, name=name))
@@ -67,41 +63,21 @@ def test_validate_factory_schemas():
 
 
 # ########################## MetadataManager Tests ###########################
-def test_manager_add_invalid(data_dir):
-    # Use a local metadata mgr because we want to reference a bad namespace to ensure
-    # directory metadata/invalid is not created.
-    metadata_manager = MetadataManager(namespace='invalid')
+def test_manager_add_invalid(tests_manager, data_dir):
+
+    with pytest.raises(ValueError):
+        MetadataManager(namespace='invalid')
 
     # Attempt with non Metadata instance
     with pytest.raises(TypeError):
-        metadata_manager.add(invalid_metadata_json)
+        tests_manager.add(invalid_metadata_json)
 
     # and invalid parameters
     with pytest.raises(ValueError):
-        metadata_manager.add(None, invalid_metadata_json)
+        tests_manager.add(None, invalid_metadata_json)
 
     with pytest.raises(ValueError):
-        metadata_manager.add("foo", None)
-
-    metadata = Metadata(**invalid_metadata_json)
-
-    capture = io.StringIO()
-    handler = StreamHandler(capture)
-    metadata_manager.log.addHandler(handler)
-
-    # Ensure save produces result of None and logging indicates validation error and file removal
-    metadata_name = 'save_invalid'
-    resource = metadata_manager.add(metadata_name, metadata)
-    assert resource is None
-    captured = capture.getvalue()
-    assert "Schema validation failed" in captured
-    assert "Removing metadata resource" in captured
-    # Ensure file was not created.  Since this was the first instance of 'invalid', then
-    # also ensure that directory 'metadata/invalid' was not created.
-    invalid_metadata_dir = os.path.join(data_dir, 'metadata', 'invalid')
-    assert not os.path.exists(invalid_metadata_dir)
-    metadata_file = os.path.join(invalid_metadata_dir, 'save_invalid.json')
-    assert not os.path.exists(metadata_file)
+        tests_manager.add("foo", None)
 
 
 def test_manager_list_summary(tests_manager):
@@ -163,7 +139,7 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
         assert "display_name" in valid_add
         assert valid_add['display_name'] == "valid metadata instance"
         assert "schema_name" in valid_add
-        assert valid_add['schema_name'] == "test"
+        assert valid_add['schema_name'] == "metadata-test"
 
     # Attempt to create again w/o replace, then replace it.
     resource = tests_manager.add(metadata_name, metadata, replace=False)
@@ -200,7 +176,7 @@ def test_manager_read_valid_by_name(tests_manager, metadata_tests_dir):
     metadata_name = 'valid'
     some_metadata = tests_manager.get(metadata_name)
     assert some_metadata.name == metadata_name
-    assert some_metadata.schema_name == "test"
+    assert some_metadata.schema_name == "metadata-test"
     assert str(metadata_tests_dir) in some_metadata.resource
 
 
@@ -271,42 +247,37 @@ def test_filestore_read_missing_by_name(filestore):
 
 # ########################## SchemaManager Tests ###########################
 def test_schema_manager_all(schema_manager):
-    schema_manager.remove_all()
+    schema_manager.clear_all()
 
-    test_schema_json = get_schema('test')
+    test_schema_json = get_schema('metadata-test')
 
-    schema_manager.add_schema("foo", "test", test_schema_json)
-    schema_manager.add_schema("bar", "test", test_schema_json)
-    schema_manager.add_schema("baz", "test", test_schema_json)
+    with pytest.raises(ValueError):
+        schema_manager.add_schema("foo", "metadata-test", test_schema_json)
 
-    foo_schema = schema_manager.get_schema("foo", "test")
-    assert foo_schema is not None
-    assert foo_schema == test_schema_json
+    with pytest.raises(ValueError):
+        schema_manager.add_schema("bar", "metadata-test", test_schema_json)
 
-    baz_schema = schema_manager.get_schema("baz", "test")
-    assert baz_schema is not None
-    assert baz_schema == test_schema_json
+    schema_manager.add_schema(METADATA_TEST_NAMESPACE, "metadata-test", test_schema_json)
 
-    bar_schema = schema_manager.get_schema("bar", "test")
-    assert baz_schema is not None
-    assert bar_schema == test_schema_json
+    test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
+    assert test_schema is not None
+    assert test_schema == test_schema_json
 
     # extend the schema... add and ensure update exists...
-    modified_schema = copy.deepcopy(bar_schema)
+    modified_schema = copy.deepcopy(test_schema)
     modified_schema['properties']['metadata']['properties']['bar'] = {"type": "string", "minLength": 5}
 
-    schema_manager.add_schema("bar", "test", modified_schema)
-    bar_schema = schema_manager.get_schema("bar", "test")
+    schema_manager.add_schema(METADATA_TEST_NAMESPACE, "metadata-test", modified_schema)
+    bar_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
     assert bar_schema is not None
     assert bar_schema != test_schema_json
     assert bar_schema == modified_schema
 
-    schema_manager.remove_schema("bar", "test")
-    bar_schema = schema_manager.get_schema("bar", "test")
-    assert bar_schema is None
+    schema_manager.remove_schema(METADATA_TEST_NAMESPACE, "metadata-test")
+    with pytest.raises(KeyError):
+        schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
 
-    schema_manager.remove_all()
-    foo_schema = schema_manager.get_schema("foo", "test")
-    assert foo_schema is None
-    baz_schema = schema_manager.get_schema("baz", "test")
-    assert baz_schema is None
+    schema_manager.clear_all()  # Ensure test schema has been restored
+    test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
+    assert test_schema is not None
+    assert test_schema == test_schema_json

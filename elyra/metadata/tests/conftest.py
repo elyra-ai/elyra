@@ -21,7 +21,7 @@ import jupyter_core.paths
 
 from notebook.utils import url_path_join
 from tornado.escape import url_escape
-from elyra.metadata.metadata import MetadataManager, FileMetadataStore, SchemaManager
+from elyra.metadata.metadata import MetadataManager, FileMetadataStore, SchemaManager, METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
 
 
@@ -72,6 +72,7 @@ def environ(
     monkeypatch.setenv("JUPYTER_CONFIG_DIR", str(config_dir))
     monkeypatch.setenv("JUPYTER_DATA_DIR", str(data_dir))
     monkeypatch.setenv("JUPYTER_RUNTIME_DIR", str(runtime_dir))
+    monkeypatch.setenv("METADATA_TESTING", "1")  # enable metadata-tests namespace
     monkeypatch.setattr(
         jupyter_core.paths, "SYSTEM_JUPYTER_PATH", [str(system_jupyter_path)]
     )
@@ -106,25 +107,25 @@ def fetch(request, *parts, **kwargs):
 # END - Remove once transition to jupyter_server occurs
 
 
-metadata_tests_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", "elyra-metadata-tests"))
+metadata_tests_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", METADATA_TEST_NAMESPACE))
 metadata_bogus_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", "bogus"))
 
 
 @pytest.fixture
-def setup_runtimes(environ, metadata_tests_dir):
+def setup_namespace(environ, metadata_tests_dir):
     create_json_file(metadata_tests_dir, 'valid.json', valid_metadata_json)
     create_json_file(metadata_tests_dir, 'another.json', another_metadata_json)
     create_json_file(metadata_tests_dir, 'invalid.json', invalid_metadata_json)
 
 
 @pytest.fixture
-def tests_manager(setup_runtimes):
-    return MetadataManager(namespace="elyra-metadata-tests")
+def tests_manager(setup_namespace):
+    return MetadataManager(namespace=METADATA_TEST_NAMESPACE)
 
 
 @pytest.fixture
-def filestore(setup_runtimes):
-    return FileMetadataStore(namespace="elyra-metadata-tests")
+def filestore(setup_namespace):
+    return FileMetadataStore(namespace=METADATA_TEST_NAMESPACE)
 
 
 @pytest.fixture

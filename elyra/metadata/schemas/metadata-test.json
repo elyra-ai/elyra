@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Testing metadata",
-  "name": "test",
-  "namespace": "elyra-metadata-tests",
+  "name": "metadata-test",
+  "namespace": "metadata-tests",
   "properties": {
     "schema_name": {
       "type": "string",

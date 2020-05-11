@@ -20,11 +20,11 @@ import os
 import pytest
 import shutil
 from tempfile import mkdtemp
-from elyra.metadata import Metadata, MetadataManager
+from elyra.metadata import Metadata, MetadataManager, METADATA_TEST_NAMESPACE
 from .test_utils import PropertyTester, create_json_file, valid_metadata_json, \
     another_metadata_json, invalid_metadata_json
 
-os.environ["METADATA_APP_TESTING"] = "1"  # Enable elyra-metadata-tests namespace
+os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
 
 
 @pytest.fixture()
@@ -59,7 +59,7 @@ def test_install_bad_argument(script_runner):
     ret = script_runner.run('elyra-metadata', 'install', '--bogus-argument')
     assert ret.success is False
     assert ret.stdout.startswith("Subcommand '--bogus-argument' is invalid.")
-    assert "Install a metadata instance into namespace \'elyra-metadata-tests\'." in ret.stdout
+    assert "Install a metadata instance into namespace \'{}\'.".format(METADATA_TEST_NAMESPACE) in ret.stdout
 
 
 def test_install_bad_namespace(script_runner):
@@ -67,126 +67,127 @@ def test_install_bad_namespace(script_runner):
     assert ret.success is False
     assert ret.stdout.startswith("Subcommand 'bogus-namespace' is invalid.")
     assert "Install a metadata instance into a given namespace." in ret.stdout
-    assert "Install a metadata instance into namespace \'elyra-metadata-tests\'." in ret.stdout
+    assert "Install a metadata instance into namespace \'{}\'.".format(METADATA_TEST_NAMESPACE) in ret.stdout
     assert ret.stderr == ''
 
 
 def test_install_help(script_runner):
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--help')
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--help')
     assert ret.success is False
-    assert ret.stdout.startswith("\nInstall a metadata instance into namespace 'elyra-metadata-tests'.")
+    assert ret.stdout.startswith("\nInstall a metadata instance into namespace '{}'.".format(METADATA_TEST_NAMESPACE))
     assert ret.stderr == ''
 
 
 def test_install_no_schema_name(script_runner, mock_runtime_dir):
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests')
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE)
     assert ret.success is False
     assert ret.stdout.startswith("'--schema_name' is a required parameter.")
     assert ret.stderr == ''
 
 
 def test_install_no_name(script_runner, mock_runtime_dir):
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test')
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test')
     assert ret.success is False
     assert ret.stdout.startswith("'--name' is a required parameter.")
     assert ret.stderr == ''
 
 
 def test_install_invalid_name(script_runner, mock_runtime_dir):
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=UPPER_CASE_NOT_ALLOWED', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success is False
     assert ret.stdout.startswith("The following exception occurred saving metadata instance "
-                                 "'UPPER_CASE_NOT_ALLOWED' for schema 'test'")
+                                 "'UPPER_CASE_NOT_ALLOWED' for schema 'metadata-test'")
     assert "Name of metadata must be lowercase alphanumeric" in ret.stdout
 
 
 def test_install_simple(script_runner, mock_runtime_dir):
-    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests',
+    expected_file = os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE,
                                  'test-metadata_42_valid-name.json')
     # Cleanup from any potential previous failures
     if os.path.exists(expected_file):
         os.remove(expected_file)
 
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success
-    assert "Metadata instance 'test-metadata_42_valid-name' for schema 'test' has been written" in ret.stdout
+    assert "Metadata instance 'test-metadata_42_valid-name' for schema 'metadata-test' has been written" in ret.stdout
 
-    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE))
     assert os.path.isfile(expected_file)
 
     with open(expected_file, "r") as fd:
         instance_json = json.load(fd)
-        assert instance_json["schema_name"] == 'test'
+        assert instance_json["schema_name"] == 'metadata-test'
         assert instance_json["display_name"] == 'display_name'
         assert instance_json["metadata"]["required_test"] == 'required_value'
         assert instance_json["metadata"]["number_default_test"] == 42  # defaults will always persist
 
 
 def test_install_and_replace(script_runner, mock_runtime_dir):
-    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests',
+    expected_file = os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE,
                                  'test-metadata_42_valid-name.json')
     # Cleanup from any potential previous failures
     if os.path.exists(expected_file):
         os.remove(expected_file)
 
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success
-    assert "Metadata instance 'test-metadata_42_valid-name' for schema 'test' has been written" in ret.stdout
+    assert "Metadata instance 'test-metadata_42_valid-name' for schema 'metadata-test' has been written" in ret.stdout
 
     # Re-attempt w/o replace flag - failure expected
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success is False
-    assert "A failure occurred saving metadata instance 'test-metadata_42_valid-name' for schema 'test'." in ret.stdout
+    assert "A failure occurred saving metadata instance 'test-metadata_42_valid-name' for schema 'metadata-test'." \
+           in ret.stdout
     assert "already exists. Use the replace flag to overwrite" in ret.stderr
 
     # Re-attempt with replace flag - success expected
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value', '--replace')
     assert ret.success
-    assert "Metadata instance 'test-metadata_42_valid-name' for schema 'test' has been written" in ret.stdout
+    assert "Metadata instance 'test-metadata_42_valid-name' for schema 'metadata-test' has been written" in ret.stdout
 
-    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE))
     assert os.path.isfile(expected_file)
 
     with open(expected_file, "r") as fd:
         instance_json = json.load(fd)
-        assert instance_json["schema_name"] == 'test'
+        assert instance_json["schema_name"] == 'metadata-test'
         assert instance_json["display_name"] == 'display_name'
         assert instance_json["metadata"]["required_test"] == 'required_value'
         assert instance_json["metadata"]["number_default_test"] == 42  # defaults will always persist
 
 
 def test_list_help(script_runner):
-    ret = script_runner.run('elyra-metadata', 'list', 'elyra-metadata-tests', '--help')
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--help')
     assert ret.success is False
-    assert ret.stdout.startswith("\nList installed metadata for elyra-metadata-tests.")
+    assert ret.stdout.startswith("\nList installed metadata for {}.".format(METADATA_TEST_NAMESPACE))
     assert ret.stderr == ''
 
 
 def test_list_bad_argument(script_runner):
-    ret = script_runner.run('elyra-metadata', 'list', 'elyra-metadata-tests', '--bogus-argument')
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--bogus-argument')
     assert ret.success is False
     assert ret.stdout.startswith("The following arguments were unexpected: ['--bogus-argument']")
     assert ret.stderr == ''
 
 
 def test_list_instances(script_runner, mock_runtime_dir):
-    metadata_manager = MetadataManager(namespace='elyra-metadata-tests')
+    metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
 
-    ret = script_runner.run('elyra-metadata', 'list', 'elyra-metadata-tests')
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE)
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert lines[0].startswith("No metadata instances available for elyra-metadata-tests at:")
+    assert lines[0].startswith("No metadata instances available for {} at:".format(METADATA_TEST_NAMESPACE))
 
     valid = Metadata(**valid_metadata_json)
     resource = metadata_manager.add('valid', valid)
@@ -199,19 +200,19 @@ def test_list_instances(script_runner, mock_runtime_dir):
     resource = metadata_manager.add('another2', another)
     assert resource is not None
 
-    ret = script_runner.run('elyra-metadata', 'list', 'elyra-metadata-tests')
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE)
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 9  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for elyra-metadata-tests (includes invalid):"
+    assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_NAMESPACE)
     line_elements = [line.split() for line in lines[4:8]]
-    assert line_elements[0][0] == "test"
+    assert line_elements[0][0] == "metadata-test"
     assert line_elements[0][1] == "another"
-    assert line_elements[1][0] == "test"
+    assert line_elements[1][0] == "metadata-test"
     assert line_elements[1][1] == "another2"
-    assert line_elements[2][0] == "test"
+    assert line_elements[2][0] == "metadata-test"
     assert line_elements[2][1] == "valid"
-    assert line_elements[3][0] == "test"
+    assert line_elements[3][0] == "metadata-test"
     assert line_elements[3][1] == "valid2"
     assert ret.stderr == ''
 
@@ -219,14 +220,14 @@ def test_list_instances(script_runner, mock_runtime_dir):
     metadata_manager.remove('valid2')
     metadata_manager.remove('another2')
     # Include an invalid file as well
-    metadata_dir = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests')
+    metadata_dir = os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE)
     create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
 
-    ret = script_runner.run('elyra-metadata', 'list', 'elyra-metadata-tests')
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE)
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 8  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for elyra-metadata-tests (includes invalid):"
+    assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_NAMESPACE)
     line_elements = [line.split() for line in lines[4:7]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "invalid"
@@ -234,25 +235,25 @@ def test_list_instances(script_runner, mock_runtime_dir):
     assert line_elements[1][4] == "(ValidationError)"
     assert line_elements[2][1] == "valid"
 
-    ret = script_runner.run('elyra-metadata', 'list', 'elyra-metadata-tests', '--valid-only')
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--valid-only')
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 7  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for elyra-metadata-tests (valid only):"
+    assert lines[0] == "Available metadata instances for {} (valid only):".format(METADATA_TEST_NAMESPACE)
     line_elements = [line.split() for line in lines[4:6]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "valid"
 
 
 def test_remove_help(script_runner):
-    ret = script_runner.run('elyra-metadata', 'remove', 'elyra-metadata-tests', '--help')
+    ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--help')
     assert ret.success is False
-    assert ret.stdout.startswith("\nRemove a metadata instance from namespace 'elyra-metadata-tests'.")
+    assert ret.stdout.startswith("\nRemove a metadata instance from namespace '{}'.".format(METADATA_TEST_NAMESPACE))
     assert ret.stderr == ''
 
 
 def test_remove_no_name(script_runner):
-    ret = script_runner.run('elyra-metadata', 'remove', 'elyra-metadata-tests')
+    ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE)
     assert ret.success is False
     assert ret.stdout.startswith("'--name' is a required parameter.")
     assert ret.stderr == ''
@@ -260,22 +261,22 @@ def test_remove_no_name(script_runner):
 
 def test_remove_missing(script_runner):
     # Create an instance so that the namespace exists.
-    metadata_manager = MetadataManager(namespace='elyra-metadata-tests')
+    metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
     valid = Metadata(**valid_metadata_json)
     metadata_manager.add('valid', valid)
 
-    ret = script_runner.run('elyra-metadata', 'remove', 'elyra-metadata-tests', '--name=missing')
+    ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=missing')
     assert ret.success is False
-    assert ret.stdout == '"Metadata \'missing\' in namespace \'elyra-metadata-tests\' was not found!"\n'
+    assert ret.stdout == '"Metadata \'missing\' in namespace \'{}\' was not found!"\n'.format(METADATA_TEST_NAMESPACE)
     assert ret.stderr == ''
 
     # Now cleanup original instance.
-    ret = script_runner.run('elyra-metadata', 'remove', 'elyra-metadata-tests', '--name=valid')
+    ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=valid')
     assert ret.success
 
 
 def test_remove_instance(script_runner, mock_runtime_dir):
-    metadata_manager = MetadataManager(namespace='elyra-metadata-tests')
+    metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
 
     valid = Metadata(**valid_metadata_json)
     resource = metadata_manager.add('valid', valid)
@@ -288,10 +289,10 @@ def test_remove_instance(script_runner, mock_runtime_dir):
     resource = metadata_manager.add('another2', another)
     assert resource is not None
 
-    ret = script_runner.run('elyra-metadata', 'remove', 'elyra-metadata-tests', '--name=valid')
+    ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=valid')
     assert ret.success
 
-    ret = script_runner.run('elyra-metadata', 'remove', 'elyra-metadata-tests', '--name=another')
+    ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=another')
     assert ret.success
 
     instances = metadata_manager.get_all_metadata_summary()
@@ -306,30 +307,30 @@ def test_required(script_runner, mock_runtime_dir):
     # Doesn't use PropertyTester due to its unique test since all other tests require this property
     name = "required"
 
-    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests', name + '.json')
+    expected_file = os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE, name + '.json')
     # Cleanup from any potential previous failures
     if os.path.exists(expected_file):
         os.remove(expected_file)
 
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=' + name, '--display_name=' + name)
 
     assert ret.success is False
     assert "'--required_test' is a required parameter" in ret.stdout
 
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=' + name, '--display_name=' + name,
                             '--required_test=required_value')
 
     assert ret.success
-    assert "Metadata instance '" + name + "' for schema 'test' has been written" in ret.stdout
+    assert "Metadata instance '" + name + "' for schema 'metadata-test' has been written" in ret.stdout
 
-    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE))
     assert os.path.isfile(expected_file)
 
     with open(expected_file, "r") as fd:
         instance_json = json.load(fd)
-        assert instance_json["schema_name"] == 'test'
+        assert instance_json["schema_name"] == 'metadata-test'
         assert instance_json["display_name"] == name
         assert instance_json["metadata"]["required_test"] == "required_value"
 
@@ -338,42 +339,42 @@ def test_number_default(script_runner, mock_runtime_dir):
     # Doesn't use PropertyTester due to its unique test (no failure, needs --replace, etc.)
     name = "number_default"
 
-    expected_file = os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests', name + '.json')
+    expected_file = os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE, name + '.json')
     # Cleanup from any potential previous failures
     if os.path.exists(expected_file):
         os.remove(expected_file)
 
     # No negative test here.  First create w/o a value and ensure 42, then create with a value and ensure that value.
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=' + name, '--display_name=' + name,
                             '--required_test=required_value')
 
     assert ret.success
-    assert "Metadata instance '" + name + "' for schema 'test' has been written" in ret.stdout
+    assert "Metadata instance '" + name + "' for schema 'metadata-test' has been written" in ret.stdout
 
-    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE))
     assert os.path.isfile(expected_file)
 
     with open(expected_file, "r") as fd:
         instance_json = json.load(fd)
-        assert instance_json["schema_name"] == 'test'
+        assert instance_json["schema_name"] == 'metadata-test'
         assert instance_json["display_name"] == name
         assert instance_json["metadata"]["number_default_test"] == 42
 
-    ret = script_runner.run('elyra-metadata', 'install', 'elyra-metadata-tests', '--schema_name=test',
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
                             '--name=' + name, '--display_name=' + name,
                             '--required_test=required_value', '--replace',
                             '--number_default_test=7.2')
 
     assert ret.success
-    assert "Metadata instance '" + name + "' for schema 'test' has been written" in ret.stdout
+    assert "Metadata instance '" + name + "' for schema 'metadata-test' has been written" in ret.stdout
 
-    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', 'elyra-metadata-tests'))
+    assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE))
     assert os.path.isfile(expected_file)
 
     with open(expected_file, "r") as fd:
         instance_json = json.load(fd)
-        assert instance_json["schema_name"] == 'test'
+        assert instance_json["schema_name"] == 'metadata-test'
         assert instance_json["display_name"] == name
         assert instance_json["metadata"]["number_default_test"] == 7.2
 

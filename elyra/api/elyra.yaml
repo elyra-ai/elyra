@@ -1,107 +1,234 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
   title: Elyra API
   description: The API for the Elyra extensions
-  version: '1'
   contact:
-    name: Jupyter Project
-    url: 'https://jupyter.org'
-produces:
-  - application/json
-consumes:
-  - application/json
-parameters:
-  namespace:
-    name: namespace
-    required: true
-    in: path
-    description: The name of the namespace
-    type: string
-  resource:
-    name: resource
-    required: true
-    in: path
-    description: The name of the resource in a given namespace
-    type: string
+    name: Elyra
+    url: https://github.com/elyra-ai/elyra
+  version: "1"
+
 paths:
+
   /api/elyra.yaml:
     get:
-      produces:
-        - text/x-yaml
+      tags:
+      - api
       summary: Get API information (yaml)
-      tags:
-        - api
       responses:
-        '200':
+        200:
           description: Returns a swagger specification in yaml
-  /api/elyra.json:
+          content:
+            text/x-yaml:
+              schema:
+                type: string
+        500:
+          description: Unexpected error.
+
+  /api/namespace:
     get:
-      summary: Get API information (json)
       tags:
-        - api
+      - namespace
+      summary: Get current namespaces
       responses:
-        '200':
-          description: Returns a swagger specification in json
-  '/api/metadata/{namespace}':
-    parameters:
-      - $ref: '#/parameters/namespace'
+        200:
+          description: Returns the list of current namespaces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  namespaces:
+                    items: {
+                      type: string
+                    }
+                    description: The list of current namespaces.
+        500:
+          description: Unexpected error.
+
+  /api/schema/{namespace}:
     get:
-      summary: Get metadata for a given namespace
       tags:
-        - metadata
+      - schema
+      summary: Get schemas for a given namespace
+      parameters:
+      - name: namespace
+        in: path
+        description: The name of the namespace
+        required: true
+        schema:
+          type: string
       responses:
-        '200':
-          description: Returns the metadata objects for a given namespace
-          schema:
-            type: object
-            properties:
-              namespace:
-                type: array
-                description: The name of the namespace.
-                items:
-                  $ref: '#/definitions/NamespaceResource'
-        '404':
+        200:
+          description: Returns the schema instances for a given namespace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  namespace:
+                    type: array
+                    description: The name of the namespace.
+                    items:
+                      $ref: '#/components/schemas/SchemaResource'
+        404:
           description: Namespace not found
-  '/api/metadata/{namespace}/{resource}':
-    parameters:
-      - $ref: '#/parameters/namespace'
-      - $ref: '#/parameters/resource'
+          content: {}
+        500:
+          description: Unexpected error.
+
+  /api/schema/{namespace}/{resource}:
     get:
-      summary: Get metadata for a given resource in a given namespace
       tags:
-        - metadata
+      - schema
+      summary: Get a given schema instance from a given namespace
+      parameters:
+      - name: namespace
+        in: path
+        description: The name of the namespace
+        required: true
+        schema:
+          type: string
+      - name: resource
+        in: path
+        description: The name of the resource in a given namespace
+        required: true
+        schema:
+          type: string
       responses:
-        '200':
-          description: >-
-            Returns the metadata object for a given resource in a given
+        200:
+          description: Returns the schema instance for a given resource in a given
             namespace
-          schema:
-            $ref: '#/definitions/NamespaceResource'
-        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaResource'
+        404:
           description: Namespace/Resource not found
-definitions:
-  NamespaceResource:
-    description: The set of properties comprising a namespace resource entity
-    required:
-      - name
+          content: {}
+        500:
+          description: Unexpected error.
+
+  /api/metadata/{namespace}:
+    get:
+      tags:
+      - metadata
+      summary: Get metadata for a given namespace
+      parameters:
+      - name: namespace
+        in: path
+        description: The name of the namespace
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Returns the metadata instances for a given namespace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  namespace:
+                    type: array
+                    description: The name of the namespace.
+                    items:
+                      $ref: '#/components/schemas/MetadataResource'
+        404:
+          description: Namespace not found
+          content: {}
+        500:
+          description: Unexpected error.
+
+  /api/metadata/{namespace}/{resource}:
+    get:
+      tags:
+      - metadata
+      summary: Get a given metadata instance from a given namespace
+      parameters:
+      - name: namespace
+        in: path
+        description: The name of the namespace
+        required: true
+        schema:
+          type: string
+      - name: resource
+        in: path
+        description: The name of the resource in a given namespace
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Returns the metadata instances for a given resource in a given
+            namespace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetadataResource'
+        404:
+          description: Namespace/Resource not found
+          content: {}
+        500:
+          description: Unexpected error.
+
+components:
+  schemas:
+    MetadataResource:
+      required:
       - display_name
+      - name
       - schema_name
-    properties:
-      name:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The canonical name of the resource
+        display_name:
+          type: string
+          description: The display name of the resource
+        schema_name:
+          type: string
+          description: The schema name used to validate the resource
+        resource:
+          type: string
+          description: Path to json file containing resource definition
+          format: filename
+        metadata:
+          type: object
+          properties: {}
+          description: A free-form dictionary consisting of additional information
+            about the resource.
+      description: The set of properties comprising a namespace resource entity
+    SchemaResource:
+      required:
+      - name
+      - namespace
+      type: object
+      properties:
+        namespace:
+          type: string
+          description: The namespace of the resource
+        name:
+          type: string
+          description: The canonical name of the resource
+        properties:
+          type: object
+          properties: {}
+          description: A free-form dictionary consisting of additional information
+            about the resource.
+      description: The set of properties comprising a namespace resource entity
+  parameters:
+    namespace:
+      name: namespace
+      in: path
+      description: The name of the namespace
+      required: true
+      schema:
         type: string
-        description: The canonical name of the resource
-      display_name:
+    resource:
+      name: resource
+      in: path
+      description: The name of the resource in a given namespace
+      required: true
+      schema:
         type: string
-        description: The display name of the resource
-      schema_name:
-        type: string
-        description: The schema name used to validate the resource
-      resource:
-        type: string
-        format: filename
-        description: Path to json file containing resource definition
-      metadata:
-        type: object
-        description: >-
-          A free-form dictionary consisting of additional information about the
-          resource.
