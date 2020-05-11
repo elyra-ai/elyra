@@ -15,6 +15,7 @@
  */
 import {
   FrontendServices,
+  IDictionary,
   NotebookParser,
   SubmissionHandler
 } from '@elyra/application';
@@ -85,29 +86,37 @@ export class SubmitNotebookButtonExtension
           return SubmissionHandler.noMetadataError('runtimes');
         }
 
-        showDialog({
-          title: 'Submit notebook',
-          body: new SubmitNotebook(envVars, response.runtimes),
-          buttons: [Dialog.cancelButton(), Dialog.okButton()]
-        }).then(result => {
-          if (result.value == null) {
-            // When Cancel is clicked on the dialog, just return
-            return;
+        FrontendServices.getRuntimeImages().then(
+          (runtimeImages: IDictionary<string>) => {
+            showDialog({
+              title: 'Submit notebook',
+              body: new SubmitNotebook(
+                envVars,
+                response.runtimes,
+                runtimeImages
+              ),
+              buttons: [Dialog.cancelButton(), Dialog.okButton()]
+            }).then(result => {
+              if (result.value == null) {
+                // When Cancel is clicked on the dialog, just return
+                return;
+              }
+
+              // prepare notebook submission details
+              const notebookOptions: ISubmitNotebookOptions = result.value as ISubmitNotebookOptions;
+              const pipeline = Utils.generateNotebookPipeline(
+                this.panel.context.path,
+                notebookOptions
+              );
+
+              SubmissionHandler.submitPipeline(
+                pipeline,
+                result.value.runtime_config,
+                'notebook'
+              );
+            });
           }
-
-          // prepare notebook submission details
-          const notebookOptions: ISubmitNotebookOptions = result.value as ISubmitNotebookOptions;
-          const pipeline = Utils.generateNotebookPipeline(
-            this.panel.context.path,
-            notebookOptions
-          );
-
-          SubmissionHandler.submitPipeline(
-            pipeline,
-            result.value.runtime_config,
-            'notebook'
-          );
-        });
+        );
       }
     );
   };
@@ -143,16 +152,25 @@ export class SubmitNotebook extends Widget
   implements Dialog.IBodyWidget<ISubmitNotebookConfiguration> {
   _envVars: string[];
   _runtimes: any;
+  _runtimeImages: IDictionary<string>;
 
-  constructor(envVars: string[], runtimes: any) {
+  constructor(
+    envVars: string[],
+    runtimes: any,
+    runtimeImages: IDictionary<string>
+  ) {
     super();
 
     this._envVars = envVars;
     this._runtimes = runtimes;
+    this._runtimeImages = runtimeImages;
 
     this.node.appendChild(this.renderHtml());
     (this.node.getElementsByClassName(
       'elyra-form-runtime-config'
+    )[0] as HTMLSelectElement).value = '';
+    (this.node.getElementsByClassName(
+      'elyra-form-framework'
     )[0] as HTMLSelectElement).value = '';
   }
 
@@ -169,6 +187,7 @@ export class SubmitNotebook extends Widget
 
     const htmlContent = document.createElement('div');
     let runtime_options = '';
+    let runtimeImages_options = '';
 
     for (const key in this._runtimes) {
       runtime_options =
@@ -176,22 +195,11 @@ export class SubmitNotebook extends Widget
         `<option value="${this._runtimes[key]['name']}">${this._runtimes[key]['display_name']}</option>`;
     }
 
-    const dockerImages = FrontendServices.getDockerImages();
-    let defaultImage = 'selected';
-    let imageSelect = '<select id="framework">';
-    for (const image in dockerImages) {
-      imageSelect =
-        imageSelect +
-        '<option value="' +
-        image +
-        '" ' +
-        defaultImage +
-        '>' +
-        dockerImages[image] +
-        '</option>';
-      defaultImage = '';
+    for (const image in this._runtimeImages) {
+      runtimeImages_options =
+        runtimeImages_options +
+        `<option value="${image}" >${this._runtimeImages[image]}</option>`;
     }
-    imageSelect = imageSelect + '</select>';
 
     const content =
       '' +
@@ -207,7 +215,9 @@ export class SubmitNotebook extends Widget
       td_colspan2 +
       '<label for="framework">Deep Learning Framework:</label>' +
       '<br/>' +
-      imageSelect +
+      '<select id="framework" class="elyra-form-framework">' +
+      runtimeImages_options +
+      '</select>' +
       '</td>' +
       '</tr>' +
       // + tr

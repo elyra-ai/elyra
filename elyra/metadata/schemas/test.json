@@ -1,7 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Test schema for runtime testing",
+  "title": "Testing metadata",
   "name": "test",
+  "namespace": "elyra-metadata-tests",
   "properties": {
     "schema_name": {
       "type": "string",
@@ -17,18 +18,76 @@
       "description": "Additional data specific to this metadata",
       "type": "object",
       "properties": {
-        "api_endpoint": {
-          "description": "The endpoint corresponding to this metadata item",
+        "required_test": {
+          "description": "Property used to test required enforcement",
+          "type": "string"
+        },
+        "uri_test": {
+          "description": "Property used to test uri formatting",
           "type": "string",
           "format": "uri"
         },
-        "foo": {
+        "integer_exclusivity_test": {
+          "description": "Property used to test integers with exclusivity restrictions",
+          "type": "integer",
+          "exclusiveMinimum": 3,
+          "exclusiveMaximum": 10
+        },
+        "integer_multiple_test": {
+          "description": "Property used to test integers with multipleOf restrictions",
+          "type": "integer",
+          "multipleOf": 7
+        },
+        "number_range_test": {
+          "description": "Property used to test numbers with range",
           "type": "number",
-          "minimum": 1,
+          "minimum": 3,
           "maximum": 10
+        },
+        "number_default_test": {
+          "description": "Property used to test numbers with defaults",
+          "type": "number",
+          "default": 42
+        },
+        "const_test": {
+          "description": "Property used to test properties with const",
+          "type": "number",
+          "const": 3.14
+        },
+        "string_length_test": {
+          "description": "Property used to test strings with length restrictions",
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 10
+        },
+        "enum_test": {
+          "description": "Property used to test properties with enums",
+          "type": "string",
+          "enum": ["elyra", "rocks"]
+        },
+        "array_test": {
+          "description": "Property used to test array with item restrictions",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 10,
+          "uniqueItems": true
+        },
+        "object_test": {
+          "description": "Property used to test object elements with properties restrictions",
+          "type": "object",
+          "minProperties": 3,
+          "maxProperties": 10
+        },
+        "boolean_test": {
+          "description": "Property used to test boolean values",
+          "type": "boolean"
+        },
+        "null_test": {
+          "description": "Property used to test null types",
+          "type": "null"
         }
       },
-      "required": ["api_endpoint"]
+      "required": ["required_test"]
     }
   },
   "required": ["schema_name", "display_name"]

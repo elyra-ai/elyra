@@ -36,6 +36,7 @@ import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 //   KernelManager,
 //   KernelSpecManager
 // } from '@jupyterlab/services';
+import { copyIcon, addIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
@@ -51,8 +52,6 @@ import { ExpandableComponent } from './ExpandableComponent';
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
-const COPY_ICON_CLASS = 'elyra-copy-icon';
-const INSERT_ICON_CLASS = 'elyra-add-icon';
 
 /**
  * CodeSnippetDisplay props.
@@ -194,14 +193,14 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     const actionButtons = [
       {
         title: 'Copy',
-        iconClass: COPY_ICON_CLASS,
+        icon: copyIcon,
         onClick: (): void => {
           Clipboard.copyToSystem(codeSnippet.code.join('\n'));
         }
       },
       {
         title: 'Insert',
-        iconClass: INSERT_ICON_CLASS,
+        icon: addIcon,
         onClick: (): void => {
           this.insertCodeSnippet(codeSnippet);
         }

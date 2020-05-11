@@ -1,7 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Schema for Code Snippet metadata",
+  "title": "Code Snippet metadata",
   "name": "code-snippet",
+  "namespace": "code-snippets",
   "properties": {
     "schema_name": {
       "type": "string",
@@ -26,6 +27,7 @@
           "type": "string"
         },
         "code": {
+          "description": "Code snippet code lines",
           "type": "array"
         }
       },

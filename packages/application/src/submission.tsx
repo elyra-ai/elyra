@@ -23,8 +23,12 @@ import * as React from 'react';
 
 const MESSAGE_DISPLAY = 'elyra-pipelineSubmission-messageDisplay';
 const ERROR_DISPLAY_BUTTON = 'elyra-pipelineSubmission-errDisplayButton';
+const ERROR_DETAILS = 'elyra-pipelineSubmission-errDetails';
 const ERROR_DETAILS_VISIBLE = 'elyra-pipelineSubmission-error-visible';
 const ERROR_DETAILS_HIDDEN = 'elyra-pipelineSubmission-error-hidden';
+const ERROR_DIALOG_WIDTH = 600;
+const ERROR_DIALOG_HEIGHT = 400;
+const JP_DIALOG_CONTENT = 'jp-Dialog-content';
 
 export class SubmissionHandler {
   static handleError(
@@ -67,7 +71,7 @@ export class SubmissionHandler {
 
   static noMetadataError(metadataName: string): Promise<Dialog.IResult<any>> {
     return showDialog({
-      title: 'Could not submit',
+      title: 'Error retrieving metadata',
       body: <p>No {metadataName} metadata has been configured.</p>,
       buttons: [Dialog.okButton()]
     });
@@ -116,16 +120,23 @@ export class SubmissionHandler {
     );
 
     // Note: a button is required to resolve the dialog below
-    const waitDialog = new Dialog({
-      title: 'Submitting request...',
-      body: 'This may take some time',
-      buttons: [Dialog.okButton()]
-    });
-    waitDialog.launch();
+    let waitDialog: Dialog<any> = null;
+    // TODO: @ajbozarth will address this during coming refactor
+    // which will turn the showing of this dialog controlled by a flag
+    if (requestUrl.includes('scheduler') || requestUrl.includes('export')) {
+      waitDialog = new Dialog({
+        title: 'Making server request...',
+        body: 'This may take some time',
+        buttons: [Dialog.okButton()]
+      });
+      waitDialog.launch();
+    }
 
     ServerConnection.makeRequest(requestUrl, requestOptions, settings).then(
       (response: any) => {
-        waitDialog.resolve();
+        if (waitDialog) {
+          waitDialog.resolve();
+        }
 
         response.json().then(
           (result: any) => {
@@ -191,21 +202,40 @@ interface IErrorDialogProps {
 }
 
 class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
+  dialogNode: HTMLDivElement;
+
   constructor(props: any) {
     super(props);
     this.state = { expanded: false };
   }
 
+  updateDialogSize(expanded: boolean): void {
+    if (!this.dialogNode) {
+      this.dialogNode = document.querySelector('.' + JP_DIALOG_CONTENT);
+    }
+
+    const width = this.dialogNode.clientWidth;
+    const height = this.dialogNode.clientHeight;
+
+    if (
+      expanded &&
+      (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
+    ) {
+      this.dialogNode.style.width = ERROR_DIALOG_WIDTH + 'px';
+      this.dialogNode.style.height = ERROR_DIALOG_HEIGHT + 'px';
+    }
+  }
+
   toggleMsgDisplay(): void {
     // Switch expanded flag
     const expanded = !this.state.expanded;
+    this.updateDialogSize(expanded);
     this.setState({ expanded: expanded });
   }
 
   render(): React.ReactElement {
     const details = this.props.traceback ? (
-      <div>
-        <br />
+      <div className={ERROR_DETAILS}>
         <div>
           <button
             className={ERROR_DISPLAY_BUTTON}
@@ -221,7 +251,6 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
           </button>
           {'Error details: '}
         </div>
-        <br />
         <div
           className={
             this.state.expanded ? ERROR_DETAILS_VISIBLE : ERROR_DETAILS_HIDDEN
@@ -234,10 +263,8 @@ class ErrorDialogContent extends React.Component<IErrorDialogProps, any> {
 
     return (
       <div className={MESSAGE_DISPLAY}>
-        {this.props.message}
-        <br />
+        <div>{this.props.message}</div>
         {details}
-        <br />
         <div>{this.props.default_msg}</div>
       </div>
     );

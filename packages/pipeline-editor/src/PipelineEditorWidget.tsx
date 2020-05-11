@@ -17,11 +17,17 @@
 import * as path from 'path';
 
 import {
-  dragDropIcon,
   FrontendServices,
+  IconUtil,
   NotebookParser,
   SubmissionHandler,
-  pipelineIcon
+  clearPipelineIcon,
+  dragDropIcon,
+  exportPipelineIcon,
+  newPipelineIcon,
+  pipelineIcon,
+  savePipelineIcon,
+  IDictionary
 } from '@elyra/application';
 import {
   CommonCanvas,
@@ -135,6 +141,7 @@ export class PipelineEditor extends React.Component<
   widgetContext: DocumentRegistry.Context;
   position = 10;
   node: React.RefObject<HTMLDivElement>;
+  propertiesInfo: any;
 
   constructor(props: any) {
     super(props);
@@ -149,9 +156,12 @@ export class PipelineEditor extends React.Component<
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
+    this.clickActionHandler = this.clickActionHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
 
     this.state = { showPropertiesDialog: false, propertiesInfo: {} };
+
+    this.initPropertiesInfo();
 
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
@@ -181,15 +191,37 @@ export class PipelineEditor extends React.Component<
     const toolbarConfig = [
       { action: 'run', label: 'Run Pipeline', enable: true },
       { divider: true },
-      { action: 'save', label: 'Save Pipeline', enable: true },
+      {
+        action: 'save',
+        label: 'Save Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(savePipelineIcon),
+        iconDisabled: IconUtil.encode(savePipelineIcon)
+      },
       { divider: true },
-      // { action: 'open', label: 'Open Pipeline', enable: true },
-      // { divider: true },
-      { action: 'export', label: 'Export Pipeline', enable: true },
+      {
+        action: 'export',
+        label: 'Export Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(exportPipelineIcon),
+        iconDisabled: IconUtil.encode(exportPipelineIcon)
+      },
       { divider: true },
-      { action: 'new', label: 'New Pipeline', enable: true },
+      {
+        action: 'new',
+        label: 'New Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(newPipelineIcon),
+        iconDisabled: IconUtil.encode(newPipelineIcon)
+      },
       { divider: true },
-      { action: 'clear', label: 'Clear Pipeline', enable: true },
+      {
+        action: 'clear',
+        label: 'Clear Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(clearPipelineIcon),
+        iconDisabled: IconUtil.encode(clearPipelineIcon)
+      },
       { divider: true },
       { action: 'undo', label: 'Undo', enable: true },
       { action: 'redo', label: 'Redo', enable: true },
@@ -232,6 +264,7 @@ export class PipelineEditor extends React.Component<
           toolbarMenuActionHandler={this.toolbarMenuActionHandler}
           contextMenuHandler={this.contextMenuHandler}
           contextMenuActionHandler={this.contextMenuActionHandler}
+          clickActionHandler={this.clickActionHandler}
           editActionHandler={this.editActionHandler}
           toolbarConfig={toolbarConfig}
           config={canvasConfig}
@@ -241,26 +274,24 @@ export class PipelineEditor extends React.Component<
     );
   }
 
-  propertiesInfo = {
-    parameterDef: this.addDockerImages(properties),
-    appData: { id: '' }
-  };
+  initPropertiesInfo(): void {
+    FrontendServices.getRuntimeImages().then(
+      (runtimeImages: IDictionary<string>) => {
+        const imageEnum = [];
+        for (const image in runtimeImages) {
+          imageEnum.push(image);
+          (properties.resources as IDictionary<string>)[
+            'image.' + image + '.label'
+          ] = runtimeImages[image];
+        }
+        properties.parameters[0].enum = imageEnum;
 
-  addDockerImages(properties: any): any {
-    let firstImage = true;
-    const dockerImages = FrontendServices.getDockerImages();
-    const imageEnum = [];
-
-    for (const image in dockerImages) {
-      if (firstImage) {
-        properties.current_parameters.image = image;
-        firstImage = false;
+        this.propertiesInfo = {
+          parameterDef: properties,
+          appData: { id: '' }
+        };
       }
-      imageEnum.push(image);
-      properties.resources['image.' + image + '.label'] = dockerImages[image];
-    }
-    properties.parameters[0].enum = imageEnum;
-    return properties;
+    );
   }
 
   openPropertiesDialog(source: any): void {
@@ -300,6 +331,8 @@ export class PipelineEditor extends React.Component<
 
   contextMenuHandler(source: any, defaultMenu: any): any {
     let customMenu = defaultMenu;
+    // Remove option to create super node
+    customMenu.splice(4, 2);
     if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
         customMenu = customMenu.concat({
@@ -332,6 +365,16 @@ export class PipelineEditor extends React.Component<
         this.closePropertiesDialog();
       } else {
         this.openPropertiesDialog(source);
+      }
+    }
+  }
+
+  clickActionHandler(source: any): void {
+    if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
+      const nodes = source.selectedObjectIds;
+      for (let i = 0; i < nodes.length; i++) {
+        const path = this.canvasController.getNode(nodes[i]).app_data.artifact;
+        this.app.commands.execute(commandIDs.openDocManager, { path });
       }
     }
   }
@@ -390,14 +433,15 @@ export class PipelineEditor extends React.Component<
             /\.[^/.]+$/,
             ''
           );
-          data.nodeTemplate.image =
-            'data:image/svg+xml;utf8,' +
-            encodeURIComponent(notebookIcon.svgstr);
+          data.nodeTemplate.image = IconUtil.encode(notebookIcon);
           data.nodeTemplate.app_data['artifact'] = item.path;
           data.nodeTemplate.app_data[
             'image'
           ] = this.propertiesInfo.parameterDef.current_parameters.image;
           data.nodeTemplate.app_data['vars'] = vars;
+          data.nodeTemplate.app_data[
+            'recursive_dependencies'
+          ] = this.propertiesInfo.parameterDef.current_parameters.recursive_dependencies;
 
           this.canvasController.editActionHandler(data);
 

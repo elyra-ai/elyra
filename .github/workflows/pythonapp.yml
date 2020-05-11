@@ -55,6 +55,9 @@ jobs:
       run: |
         export PATH=~/.npm-global/bin:$PATH
         make install
+    - name: Documentation
+      run: |
+        make docs
     - name: Test
       run: |
         make test
