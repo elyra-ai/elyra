@@ -12,20 +12,20 @@
       "enum": []
     },
     {
-      "id": "outputs",
-      "type": "array[string]"
-    },
-    {
-      "id": "vars",
-      "type": "array[string]"
-    },
-    {
       "id": "dependencies",
       "type": "array[string]"
     },
     {
       "id": "recursive_dependencies",
       "type": "boolean"
+    },
+    {
+      "id": "vars",
+      "type": "array[string]"
+    },
+    {
+      "id": "outputs",
+      "type": "array[string]"
     }
   ],
   "uihints": {

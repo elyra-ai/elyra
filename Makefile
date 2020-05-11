@@ -14,7 +14,8 @@
 # limitations under the License.
 #
 
-.PHONY: help clean yarn-install test-dependencies lint lerna-build npm-packages bdist install test docs-dependencies docs install-backend docker-image
+.PHONY: help clean yarn-install test-dependencies lint-server lint-ui lint lerna-build npm-packages bdist install
+.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs install-backend docker-image
 
 SHELL:=/bin/bash
 
@@ -69,7 +70,7 @@ npm-packages: lerna-build
 	$(call PACKAGE_LAB_EXTENSION,notebook-scheduler)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
-	cd dist && curl -o jupyterlab-git-0.20.0-rc.0.tgz $$(npm view @jupyterlab/git@0.20.0-rc.0 dist.tarball) && cd -
+	cd dist && curl -o jupyterlab-git-0.20.0.tgz $$(npm view @jupyterlab/git@0.20.0 dist.tarball) && cd -
 	cd dist && curl -o jupyterlab-toc-3.0.0.tgz $$(npm view @jupyterlab/toc@3.0.0 dist.tarball) && cd -
 
 bdist: npm-packages
@@ -78,19 +79,22 @@ bdist: npm-packages
 install: bdist lint ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 	$(call UNLINK_LAB_EXTENSION,application)
-	$(call UNINSTALL_LAB_EXTENSION,code-snippet)
-	$(call UNINSTALL_LAB_EXTENSION,notebook-scheduler-extension)
-	$(call UNINSTALL_LAB_EXTENSION,pipeline-editor-extension)
-	$(call UNINSTALL_LAB_EXTENSION,python-runner-extension)
+	$(call UNLINK_LAB_EXTENSION,code-snippet)
+	$(call UNLINK_LAB_EXTENSION,notebook-scheduler-extension)
+	$(call UNLINK_LAB_EXTENSION,pipeline-editor-extension)
+	$(call UNLINK_LAB_EXTENSION,python-runner-extension)
 	jupyter lab clean
 	$(call LINK_LAB_EXTENSION,application)
-	$(call INSTALL_LAB_EXTENSION,code-snippet)
-	$(call INSTALL_LAB_EXTENSION,notebook-scheduler)
-	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
-	$(call INSTALL_LAB_EXTENSION,python-runner)
+	$(call LINK_LAB_EXTENSION,code-snippet)
+	$(call LINK_LAB_EXTENSION,notebook-scheduler)
+	$(call LINK_LAB_EXTENSION,pipeline-editor)
+	$(call LINK_LAB_EXTENSION,python-runner)
 	jupyter lab build
 	jupyter serverextension list
 	jupyter labextension list
+
+watch: ## Watch packages. For use alongside jupyter lab --watch
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run watch --parallel
 
 test-server: lint-server ## Run unit tests
 	pytest -v elyra
@@ -125,14 +129,6 @@ endef
 
 define LINK_LAB_EXTENSION
 	cd packages/$1 && jupyter labextension link --no-build .
-endef
-
-define UNINSTALL_LAB_EXTENSION
-	- jupyter labextension uninstall --no-build @elyra/$1
-endef
-
-define INSTALL_LAB_EXTENSION
-	jupyter labextension install --no-build dist/*$1*
 endef
 
 define PACKAGE_LAB_EXTENSION

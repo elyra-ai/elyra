@@ -42,3 +42,25 @@ You can check that the JupyterLab extension was successful installed with:
 ```bash
 jupyter labextension list
 ```
+
+### Incremental Development
+
+Elyra supports incremental development using `--watch`. This allows you to make code changes to
+front-end packages and see them without running `make install` again.
+
+After installation run the following to watch for code changes and rebuild automatically:
+```bash
+make watch
+```
+
+Then in a separate terminal, using the same Python environment, start JupyterLab in watch mode:
+```bash
+jupyter lab --watch
+```
+
+When in watch mode JupyterLab will watch for changes in the build of each package and rebuild.
+To see your changes just refresh JupyterLab in your browser.
+
+> NOTE: JupyterLab watch mode will not pick up changes in package dependencies like `application`.
+So when making changes to application you will need to stop and restart `jupyter lab --watch` and
+not just refresh your browser.

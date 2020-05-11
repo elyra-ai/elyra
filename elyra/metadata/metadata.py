@@ -22,7 +22,7 @@ import warnings
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError, draft7_format_checker
-from jupyter_core.paths import jupyter_data_dir
+from jupyter_core.paths import jupyter_data_dir, jupyter_path
 from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
@@ -186,7 +186,15 @@ class FileMetadataStore(MetadataStore):
         return self.metadata_dir
 
     def namespace_exists(self):
-        return os.path.exists(self.metadata_dir)
+        is_valid_namespace = False
+
+        all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
+        for d in all_metadata_dirs:
+            if os.path.isdir(d):
+                is_valid_namespace = True
+                break
+
+        return is_valid_namespace
 
     def get_all_metadata_summary(self, include_invalid=False):
         metadata_list = self._load_metadata_resources(include_invalid=include_invalid)
@@ -289,21 +297,24 @@ class FileMetadataStore(MetadataStore):
         """
         resources = []
         if self.namespace_exists():
-            for f in os.listdir(self.metadata_dir):
-                path = os.path.join(self.metadata_dir, f)
-                if path.endswith(".json"):
-                    if name:
-                        if os.path.splitext(os.path.basename(path))[0] == name:
-                            return self._load_from_resource(path, validate_metadata=validate_metadata)
-                    else:
-                        metadata = None
-                        try:
-                            metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
-                                                                include_invalid=include_invalid)
-                        except Exception:
-                            pass  # Ignore ValidationError and others when loading all resources
-                        if metadata is not None:
-                            resources.append(metadata)
+            all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
+            for metadata_dir in all_metadata_dirs:
+                if os.path.isdir(metadata_dir):
+                    for f in os.listdir(metadata_dir):
+                        path = os.path.join(metadata_dir, f)
+                        if path.endswith(".json"):
+                            if name:
+                                if os.path.splitext(os.path.basename(path))[0] == name:
+                                    return self._load_from_resource(path, validate_metadata=validate_metadata)
+                            else:
+                                metadata = None
+                                try:
+                                    metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
+                                                                        include_invalid=include_invalid)
+                                except Exception:
+                                    pass  # Ignore ValidationError and others when loading all resources
+                                if metadata is not None:
+                                    resources.append(metadata)
         else:  # namespace doesn't exist, treat as KeyError
             raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
 
