@@ -145,7 +145,10 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     editor: CodeEditor.IEditor
   ): Promise<void> => {
     const snippetStr: string = snippet.code.join('\n');
-    if (editorLanguage && snippet.language !== editorLanguage) {
+    if (
+      editorLanguage &&
+      snippet.language.toLowerCase() !== editorLanguage.toLowerCase()
+    ) {
       const result = await this.showWarnDialog(
         editorLanguage,
         snippet.displayName
