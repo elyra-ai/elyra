@@ -51,7 +51,7 @@ setup_args = dict(
         "minio>=5.0.7",
         'jupyterlab>=1.0.0,<2.0.0',
         'nbdime>=1.1.0,<2.0.0',
-        'jupyterlab-git',
+        'jupyterlab-git<0.20.0',
         'nbconvert>=5.6.1',
         'notebook>=6.0.3',
         'traitlets>=4.3.2',
