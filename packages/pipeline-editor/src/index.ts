@@ -28,6 +28,7 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
+import { SubmitNotebookButtonExtension } from './SubmitNotebook';
 
 import '../style/index.css';
 
@@ -138,6 +139,15 @@ const extension: JupyterFrontEndPlugin<void> = {
       [{ command: openPipelineEditorCommand }],
       30
     );
+
+    // SubmitNotebookButtonExtension initialization code
+    const buttonExtension = new SubmitNotebookButtonExtension(app);
+    app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
+    app.contextMenu.addItem({
+      selector: '.jp-Notebook',
+      command: commandIDs.submitNotebook,
+      rank: -0.5
+    });
   }
 };
 export default extension;

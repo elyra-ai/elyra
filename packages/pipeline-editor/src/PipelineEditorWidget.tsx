@@ -70,7 +70,8 @@ const PIPELINE_CLASS = 'elyra-PipelineEditor';
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
   openDocManager: 'docmanager:open',
-  newDocManager: 'docmanager:new-untitled'
+  newDocManager: 'docmanager:new-untitled',
+  submitNotebook: 'notebook:submit'
 };
 
 /**

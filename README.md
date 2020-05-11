@@ -94,7 +94,6 @@ Known labextensions:
    app dir: /Users/lresende/opt/anaconda/envs/dev/share/jupyter/lab
         @elyra/application v0.11.0-dev  enabled  OK*
         @elyra/code-snippet-extension-experimental v0.11.0-dev  enabled  OK
-        @elyra/notebook-scheduler-extension v0.11.0-dev  enabled  OK
         @elyra/pipeline-editor-extension v0.11.0-dev  enabled  OK
         @elyra/python-runner-extension v0.11.0-dev  enabled  OK
         @jupyterlab/git v0.20.0-rc.0  enabled  OK
