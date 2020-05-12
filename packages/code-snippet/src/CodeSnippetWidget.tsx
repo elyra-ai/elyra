@@ -23,6 +23,7 @@ import {
   Dialog,
   showDialog
 } from '@jupyterlab/apputils';
+import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
@@ -90,44 +91,57 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       }
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
-      const notebookCellEditor = (notebookWidget.content as Notebook).activeCell
-        .editor;
+      const notebookCell = (notebookWidget.content as Notebook).activeCell;
+      const notebookCellEditor = notebookCell.editor;
 
-      // Original approach:
-      // ISSUE: kernelLanguage is an empty string, not updated until a new notebook is saved, closed and reopened
-      // const kernelLanguage: string =
-      //   notebookWidget.context.sessionContext.kernelPreference.language;
+      if (notebookCell instanceof CodeCell) {
+        // Original approach:
+        // ISSUE: kernelLanguage is an empty string, not updated until a new notebook is saved, closed and reopened
+        // const kernelLanguage: string =
+        //   notebookWidget.context.sessionContext.kernelPreference.language;
 
-      // GET NOTEBOOK KERNEL SPEC
-      // This is now handled before a new notebook is saved
-      // ISSUE: it might take some time such as a spark cluster
-      const kernelInfo = await notebookWidget.sessionContext.session?.kernel
-        ?.info;
-      const kernelLanguage: string = kernelInfo?.language_info.name || '';
-      console.log('KERNEL LANG: ' + kernelLanguage);
-      this.verifyLanguageAndInsert(snippet, kernelLanguage, notebookCellEditor);
+        // GET NOTEBOOK KERNEL SPEC
+        // This is now handled before a new notebook is saved
+        // ISSUE: it might take some time such as a spark cluster
+        const kernelInfo = await notebookWidget.sessionContext.session?.kernel
+          ?.info;
+        const kernelLanguage: string = kernelInfo?.language_info.name || '';
+        console.log('KERNEL LANG: ' + kernelLanguage);
+        this.verifyLanguageAndInsert(
+          snippet,
+          kernelLanguage,
+          notebookCellEditor
+        );
 
-      // ISSUE: kernel name doesn't define kernel language, they might differ in some cases
-      // const kernelLanguage: string = notebookWidget.sessionContext.session?.kernel?.name;
-      // console.log('KERNEL LANG: ' + kernelLanguage);
-      // this.verifyLanguageAndInsert(snippet, kernelLanguage, notebookCellEditor);
+        // ISSUE: kernel name doesn't define kernel language, they might differ in some cases
+        // const kernelLanguage: string = notebookWidget.sessionContext.session?.kernel?.name;
+        // console.log('KERNEL LANG: ' + kernelLanguage);
+        // this.verifyLanguageAndInsert(snippet, kernelLanguage, notebookCellEditor);
 
-      // const kernelManager = new KernelManager();
-      // const specsManager = new KernelSpecManager();
-      // const sessionManager = new SessionManager({ kernelManager });
-      // const sessionContext = new SessionContext({
-      //   sessionManager,
-      //   specsManager,
-      //   name: 'Example'
-      // });
-      //
-      // // This never gets called
-      // sessionContext.kernelChanged.connect(() => {
-      //     void sessionContext.session?.kernel?.info.then(info => {
-      //       const lang = info.language_info;
-      //       console.log('KERNEL LANG: '+ lang);
-      //     });
-      //   });
+        // const kernelManager = new KernelManager();
+        // const specsManager = new KernelSpecManager();
+        // const sessionManager = new SessionManager({ kernelManager });
+        // const sessionContext = new SessionContext({
+        //   sessionManager,
+        //   specsManager,
+        //   name: 'Example'
+        // });
+        //
+        // // This never gets called
+        // sessionContext.kernelChanged.connect(() => {
+        //     void sessionContext.session?.kernel?.info.then(info => {
+        //       const lang = info.language_info;
+        //       console.log('KERNEL LANG: '+ lang);
+        //     });
+        //   });
+      } else if (notebookCell instanceof MarkdownCell) {
+        // Wrap snippet into a code block when inserting it into a markdown cell
+        notebookCellEditor.replaceSelection(
+          '```' + snippet.language + '\n' + snippetStr + '\n```'
+        );
+      } else {
+        notebookCellEditor.replaceSelection(snippetStr);
+      }
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
