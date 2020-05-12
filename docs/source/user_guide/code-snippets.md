@@ -17,7 +17,7 @@ limitations under the License.
 -->
 ## Code Snippets - Experimental
 
-The ability to reuse pieces of code allows users to avoid doing repetitive work, 
+The ability to reuse pieces of code allows users to avoid doing repetitive work,
 making the programming workflow much more simple and productive.
 Elyra supports custom code snippets that can be added to the file editor.
 
@@ -27,7 +27,7 @@ Elyra supports custom code snippets that can be added to the file editor.
 This extension uses [Elyra Metadata Service](../developer_guide/metadata)
 and requires configuring code snippets metadata in order to retrieve and display snippets in the UI.
 To configure metadata for code snippets, locate `[JUPYTER DATA DIR]/metadata/` folder and create the subdirectory `code-snippets/`.
-This is where code snippet json files are stored, following a schema defined in 
+This is where code snippet json files are stored, following a schema defined in
 [code snippets metadata](https://github.com/elyra-ai/elyra/blob/master/elyra/metadata/schemas/code-snippet.json)
 
 This is a sample json file:
@@ -47,12 +47,14 @@ This is a sample json file:
 ```
 NOTE: `code` field content must be a string array split by line.
 
-Once code snippet extension is in use, the application component retrieves the metadata from the server 
+Once code snippet extension is in use, the application component retrieves the metadata from the server
 through a REST API, and displays each snippet by `display_name` in the extension UI.
 Each snippet item can then be expanded on click, also displaying the `code` content.
 
 ![Code Snippet Sample](../images/code-snippet-expanded.png)
 
-Currently, the application does not support full integration of adding the code into the editor by
-clicking the `+` button, although it does allow the user to manually copy the snippet and paste it
-in the editor.
+By clicking on the **copy** button, the content of the code snippet is copied into the system clipboard.
+
+The **+** button inserts the code snippet content into the editor tab in focus. If the widget in focus is not an editor, an error is displayed.
+Code snippets are automatically added as code blocks in markdown files and notebook markdown cells.
+When inserting snippets into executable editors (ie. a notebook code cell or a python file editor), the extension will verify kernel language compatibility, warning the user when a mismatch is detected.
