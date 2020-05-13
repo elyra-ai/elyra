@@ -1,11 +1,10 @@
 {
-  "name": "@elyra/application",
+  "name": "@elyra/apputils",
   "version": "0.11.0-dev",
-  "description": "JupyterLab extension - Elyra application support",
+  "description": "JupyterLab - Utilities for use in elyra",
   "keywords": [
     "jupyter",
-    "jupyterlab",
-    "jupyterlab-extension"
+    "jupyterlab"
   ],
   "homepage": "https://github.com/elyra-ai/elyra",
   "bugs": {
@@ -31,16 +30,15 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/apputils": "^0.11.0-dev",
     "@jupyterlab/application": "^2.0.2",
-    "@jupyterlab/mainmenu": "^2.0.2"
+    "@jupyterlab/apputils": "^2.0.2",
+    "@jupyterlab/coreutils": "^4.0.2",
+    "@jupyterlab/ui-components": "^2.0.2",
+    "@jupyterlab/services": "^5.0.2"
   },
   "devDependencies": {
     "rimraf": "~3.0.0",
     "typescript": "~3.7.3"
-  },
-  "jupyterlab": {
-    "extension": true
   },
   "publishConfig": {
     "access": "public"

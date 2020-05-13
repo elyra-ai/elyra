@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
+import { elyraIcon } from '@elyra/apputils';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-
-import { elyraIcon } from './icons';
 
 import '../style/index.css';
 
@@ -55,10 +54,5 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
   }
 };
-
-export * from './parsing';
-export * from './services';
-export * from './submission';
-export * from './icons';
 
 export default extension;

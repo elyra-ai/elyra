@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { SubmissionHandler } from '@elyra/application';
+import { SubmissionHandler } from '@elyra/apputils';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 

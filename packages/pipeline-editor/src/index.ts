@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { pipelineIcon } from '@elyra/application';
+import { pipelineIcon } from '@elyra/apputils';
 
 import {
   JupyterFrontEnd,

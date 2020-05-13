@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { SubmissionHandler } from '@elyra/application';
+import { SubmissionHandler } from '@elyra/apputils';
 
 export interface ICodeSnippet {
   name: string;

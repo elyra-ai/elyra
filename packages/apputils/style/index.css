@@ -1,0 +1,72 @@
+/*
+ * Copyright 2018-2020 IBM Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.elyra-pipelineSubmission-messageDisplay {
+  padding-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.elyra-pipelineSubmission-errDisplayButton {
+  margin-right: 10px;
+  vertical-align: text-bottom;
+  background-color: white;
+  background-repeat: no-repeat;
+  border: none;
+}
+
+.elyra-pipelineSubmission-errDisplayButton:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+button.elyra-pipelineSubmission-errDisplayButton {
+  height: 20px;
+  width: 20px;
+  padding: 0;
+}
+
+.elyra-pipelineSubmission-errDetails {
+  margin: 15px 0;
+  display: flex;
+  flex: 1;
+  min-height: 0px;
+  flex-direction: column;
+}
+
+.elyra-pipelineSubmission-error-visible {
+  display: block;
+  overflow: auto;
+  border: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  background-color: #f6f8fa;
+  padding: 5px;
+  flex: 1;
+  overflow: auto;
+  margin: 5px 0 10px 30px;
+}
+
+.elyra-pipelineSubmission-error-hidden {
+  display: none;
+}
+
+/* temporary fix until this is addressed in jupyterlab */
+.lm-TabBar-tabIcon svg {
+  height: auto;
+}
+
+.jp-Dialog-content {
+  resize: both;
+}

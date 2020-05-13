@@ -18,7 +18,7 @@ import {
   IDictionary,
   NotebookParser,
   SubmissionHandler
-} from '@elyra/application';
+} from '@elyra/apputils';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';

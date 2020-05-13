@@ -65,6 +65,7 @@ lerna-build: yarn-install
 
 npm-packages: lerna-build
 	mkdir -p dist
+	$(call PACKAGE_LAB_EXTENSION,apputils)
 	$(call PACKAGE_LAB_EXTENSION,application)
 	$(call PACKAGE_LAB_EXTENSION,code-snippet)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
@@ -77,11 +78,13 @@ bdist: npm-packages
 
 install: bdist lint ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
+	$(call UNLINK_LAB_EXTENSION,apputils)
 	$(call UNLINK_LAB_EXTENSION,application)
-	$(call UNLINK_LAB_EXTENSION,code-snippet)
+	$(call UNLINK_LAB_EXTENSION,code-snippet-extension-experimental)
 	$(call UNLINK_LAB_EXTENSION,pipeline-editor-extension)
 	$(call UNLINK_LAB_EXTENSION,python-runner-extension)
 	jupyter lab clean
+	$(call LINK_LAB_EXTENSION,apputils)
 	$(call LINK_LAB_EXTENSION,application)
 	$(call LINK_LAB_EXTENSION,code-snippet)
 	$(call LINK_LAB_EXTENSION,pipeline-editor)
