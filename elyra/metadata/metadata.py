@@ -261,7 +261,7 @@ class FileMetadataStore(MetadataStore):
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
             self._load_from_resource(resource)
-        except ValidationError:
+        except (ValidationError, ValueError):
             self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
@@ -346,12 +346,22 @@ class FileMetadataStore(MetadataStore):
 
     def _load_from_resource(self, resource, validate_metadata=True, include_invalid=False):
         # This is always called with an existing resource (path) so no need to check existence.
-        self.log.debug("Loading metadata resource from: '{}'".format(resource))
-        with io.open(resource, 'r', encoding='utf-8') as f:
-            metadata_json = json.load(f)
 
         # Always take name from resource so resources can be copied w/o having to change content
         name = os.path.splitext(os.path.basename(resource))[0]
+
+        self.log.debug("Loading metadata resource from: '{}'".format(resource))
+        with io.open(resource, 'r', encoding='utf-8') as f:
+            try:
+                metadata_json = json.load(f)
+            except ValueError as jde:  # JSONDecodeError is raised, but it derives from ValueError
+                # If the JSON file cannot load, there's nothing we can do other than log and raise since
+                # we aren't able to even instantiate an instance of Metadata.  Because errors are ignored
+                # when getting multiple items, it's okay to raise.  The singleton searches (by handlers)
+                # already catch ValueError and map to 404, so we're good there as well.
+                self.log.error("JSON failed to load for metadata '{}' in namespace '{}' with error: {}.".
+                               format(name, self.namespace, jde))
+                raise jde
 
         reason = None
         if validate_metadata:
