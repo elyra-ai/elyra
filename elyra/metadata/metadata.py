@@ -22,7 +22,7 @@ import warnings
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError, draft7_format_checker
-from jupyter_core.paths import jupyter_data_dir, jupyter_path
+from jupyter_core.paths import jupyter_path
 from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
@@ -101,8 +101,8 @@ class MetadataManager(LoggingConfigurable):
         return self.metadata_store.namespace_exists()
 
     @property
-    def get_metadata_location(self):
-        return self.metadata_store.get_metadata_location
+    def get_metadata_locations(self):
+        return self.metadata_store.get_metadata_locations
 
     def get_all_metadata_summary(self, include_invalid=False):
         return self.metadata_store.get_all_metadata_summary(include_invalid=include_invalid)
@@ -135,7 +135,7 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def get_metadata_location(self):
+    def get_metadata_locations(self):
         pass
 
     @abstractmethod
@@ -178,22 +178,22 @@ class FileMetadataStore(MetadataStore):
 
     def __init__(self, namespace, **kwargs):
         super(FileMetadataStore, self).__init__(namespace, **kwargs)
-        self.metadata_dir = os.path.join(jupyter_data_dir(), 'metadata', self.namespace)
-        self.log.debug("Namespace '{}' is using metadata directory: {}".format(self.namespace, self.metadata_dir))
+        metadata_dir_paths = jupyter_path(os.path.join('metadata', self.namespace))
+        self.preferred_metadata_dir = metadata_dir_paths[0]
+        self.log.debug("Namespace '{}' is using metadata directory: {} from list: {}".
+                       format(self.namespace, self.preferred_metadata_dir, metadata_dir_paths))
 
     @property
-    def get_metadata_location(self):
-        return self.metadata_dir
+    def get_metadata_locations(self):
+        return jupyter_path(os.path.join('metadata', self.namespace))
 
     def namespace_exists(self):
         is_valid_namespace = False
-
         all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
         for d in all_metadata_dirs:
             if os.path.isdir(d):
                 is_valid_namespace = True
                 break
-
         return is_valid_namespace
 
     def get_all_metadata_summary(self, include_invalid=False):
@@ -204,7 +204,7 @@ class FileMetadataStore(MetadataStore):
                 {
                     'name': metadata.name,
                     'display_name': metadata.display_name,
-                    'location': self._get_resource(metadata)
+                    'location': metadata.resource
                 }
             )
         return metadata_list
@@ -233,7 +233,7 @@ class FileMetadataStore(MetadataStore):
             raise TypeError("'metadata' is not an instance of class 'Metadata'.")
 
         metadata_resource_name = '{}.json'.format(name)
-        resource = os.path.join(self.metadata_dir, metadata_resource_name)
+        resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)
 
         if os.path.exists(resource):
             if replace:
@@ -245,8 +245,8 @@ class FileMetadataStore(MetadataStore):
 
         created_namespace_dir = False
         if not self.namespace_exists():  # If the namespaced directory is not present, create it and note it.
-            self.log.debug("Creating metadata directory: {}".format(self.metadata_dir))
-            os.makedirs(self.metadata_dir, mode=0o700, exist_ok=True)
+            self.log.debug("Creating metadata directory: {}".format(self.preferred_metadata_dir))
+            os.makedirs(self.preferred_metadata_dir, mode=0o700, exist_ok=True)
             created_namespace_dir = True
 
         try:
@@ -254,7 +254,7 @@ class FileMetadataStore(MetadataStore):
                 f.write(metadata.to_json(trim=True))  # Only persist necessary items
         except Exception:
             if created_namespace_dir:
-                shutil.rmtree(self.metadata_dir)
+                shutil.rmtree(self.preferred_metadata_dir)
         else:
             self.log.debug("Created metadata resource: {}".format(resource))
 
@@ -265,7 +265,7 @@ class FileMetadataStore(MetadataStore):
             self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
-                shutil.rmtree(self.metadata_dir)
+                shutil.rmtree(self.preferred_metadata_dir)
             else:
                 os.remove(resource)
             resource = None
@@ -280,14 +280,10 @@ class FileMetadataStore(MetadataStore):
             self.log.warning("Metadata resource '{}' in namespace '{}' was not found!".format(name, self.namespace))
             return
 
-        resource = self._get_resource(metadata)
-        os.remove(resource)
+        resource = metadata.resource
+        if resource:
+            os.remove(resource)
 
-        return resource
-
-    def _get_resource(self, metadata):
-        metadata_resource_name = '{}.json'.format(metadata.name)
-        resource = os.path.join(self.metadata_dir, metadata_resource_name)
         return resource
 
     def _load_metadata_resources(self, name=None, validate_metadata=True, include_invalid=False):
@@ -295,9 +291,9 @@ class FileMetadataStore(MetadataStore):
            if 'name' is provided, the single file is loaded and returned, else
            all files ending in '.json' are loaded and returned in a list.
         """
-        resources = []
+        resources = {}
         if self.namespace_exists():
-            all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
+            all_metadata_dirs = reversed(jupyter_path(os.path.join('metadata', self.namespace)))
             for metadata_dir in all_metadata_dirs:
                 if os.path.isdir(metadata_dir):
                     for f in os.listdir(metadata_dir):
@@ -314,14 +310,21 @@ class FileMetadataStore(MetadataStore):
                                 except Exception:
                                     pass  # Ignore ValidationError and others when loading all resources
                                 if metadata is not None:
-                                    resources.append(metadata)
+                                    if metadata.name in resources.keys():
+                                        # If we're replacing an instance, let that be known via debug
+                                        self.log.debug("Replacing metadata resource '{}' from '{}' with '{}'."
+                                                       .format(metadata.name,
+                                                               resources[metadata.name].resource,
+                                                               metadata.resource))
+                                    resources[metadata.name] = metadata
         else:  # namespace doesn't exist, treat as KeyError
             raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
 
         if name:  # If we're looking for a single metadata and we're here, then its not found
             raise KeyError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
 
-        return resources
+        # We're here only if loading all resources, so only return list of values.
+        return list(resources.values())
 
     def _get_schema(self, schema_name):
         """Loads the schema based on the schema_name and returns the loaded schema json.

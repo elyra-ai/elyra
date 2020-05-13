@@ -71,8 +71,8 @@ class NamespaceList(NamespaceBase):
             metadata_instances = None
 
         if not metadata_instances:
-            print("No metadata instances available for {} at: '{}'"
-                  .format(self.namespace, self.metadata_manager.get_metadata_location))
+            print("No metadata instances available for {} in: '{}'"
+                  .format(self.namespace, self.metadata_manager.get_metadata_locations))
             return
 
         validity_clause = "includes invalid" if include_invalid else "valid only"
