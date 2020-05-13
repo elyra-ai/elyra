@@ -24,6 +24,8 @@ import {
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 
+import { Widget } from '@lumino/widgets';
+
 import { CodeSnippetWidget } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
@@ -38,7 +40,11 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
   activate: (app: JupyterFrontEnd, palette: ICommandPalette) => {
     console.log('Elyra - code-snippet extension is activated!');
 
-    const codeSnippetWidget = new CodeSnippetWidget();
+    const getCurrentWidget = (): Widget => {
+      return app.shell.currentWidget;
+    };
+
+    const codeSnippetWidget = new CodeSnippetWidget(getCurrentWidget);
     codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
     codeSnippetWidget.title.icon = codeSnippetIcon;
     codeSnippetWidget.title.caption = 'Code Snippet';
