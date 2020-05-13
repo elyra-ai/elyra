@@ -18,17 +18,60 @@ import json
 import os
 import re
 import shutil
+import sys
 import warnings
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError, draft7_format_checker
-from jupyter_core.paths import jupyter_path
+from jupyter_core.paths import jupyter_data_dir, SYSTEM_JUPYTER_PATH, ENV_JUPYTER_PATH
 from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 
 METADATA_TEST_NAMESPACE = "metadata-tests"  # exposed via METADATA_TESTING env
 DEFAULT_SCHEMA_NAME = 'kfp'
+
+
+def metadata_path(*subdirs):
+    """Return a list of directories to search for metadata files.
+
+    ELYRA_METADATA_PATH environment variable has highest priority.
+
+    This is based on jupyter_core.paths.jupyter_path, but where the python
+    env-based directory is last in the list, preceded by the system shared
+    locations with the user's home-based directory still first in the list.
+
+    The first directory in the list (data_dir, if env is not set) is where files
+    will be written, although files can reside at other levels as well, with
+    SYSTEM_JUPYTER_PATH representing shared data and ENV_JUPYTER_PATH representing
+    the location of factory data (created during installation).
+
+    If ``*subdirs`` are given, that subdirectory will be added to each element.
+    """
+
+    paths = []
+    # highest priority is env
+    if os.environ.get('ELYRA_METADATA_PATH'):
+        paths.extend(
+            p.rstrip(os.sep)
+            for p in os.environ['ELYRA_METADATA_PATH'].split(os.pathsep)
+        )
+    # then user dir
+    paths.append(jupyter_data_dir())
+
+    # then system, where shared files will reside
+    paths.extend(SYSTEM_JUPYTER_PATH)
+
+    # then sys.prefix, where installed files will reside (factory data)
+    for p in ENV_JUPYTER_PATH:
+        if p not in SYSTEM_JUPYTER_PATH:
+            paths.append(p)
+
+    # add subdir, if requested.
+    # Note, the 'metadata' parent dir is automatically added.
+    if subdirs:
+        paths = [os.path.join(p, 'metadata', *subdirs) for p in paths]
+    return paths
 
 
 class Metadata(HasTraits):
@@ -76,6 +119,7 @@ class MetadataManager(LoggingConfigurable):
     # System-owned namespaces
     NAMESPACE_RUNTIMES = "runtimes"
     NAMESPACE_CODE_SNIPPETS = "code-snippets"
+    NAMESPACE_RUNTIME_IMAGES = "runtime-images"
 
     metadata_class = Type(Metadata, config=True,
                           help="""The metadata class.  This is configurable to allow subclassing of
@@ -178,23 +222,23 @@ class FileMetadataStore(MetadataStore):
 
     def __init__(self, namespace, **kwargs):
         super(FileMetadataStore, self).__init__(namespace, **kwargs)
-        metadata_dir_paths = jupyter_path(os.path.join('metadata', self.namespace))
-        self.preferred_metadata_dir = metadata_dir_paths[0]
+        self.metadata_paths = metadata_path(self.namespace)
+        self.preferred_metadata_dir = self.metadata_paths[0]
         self.log.debug("Namespace '{}' is using metadata directory: {} from list: {}".
-                       format(self.namespace, self.preferred_metadata_dir, metadata_dir_paths))
+                       format(self.namespace, self.preferred_metadata_dir, self.metadata_paths))
 
     @property
     def get_metadata_locations(self):
-        return jupyter_path(os.path.join('metadata', self.namespace))
+        return self.metadata_paths
 
     def namespace_exists(self):
-        is_valid_namespace = False
-        all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
-        for d in all_metadata_dirs:
+        """Does the namespace exist in any of the dir paths?"""
+        namespace_dir_exists = False
+        for d in self.metadata_paths:
             if os.path.isdir(d):
-                is_valid_namespace = True
+                namespace_dir_exists = True
                 break
-        return is_valid_namespace
+        return namespace_dir_exists
 
     def get_all_metadata_summary(self, include_invalid=False):
         metadata_list = self._load_metadata_resources(include_invalid=include_invalid)
@@ -291,33 +335,34 @@ class FileMetadataStore(MetadataStore):
            if 'name' is provided, the single file is loaded and returned, else
            all files ending in '.json' are loaded and returned in a list.
         """
+        namespace_dir_exists = False
         resources = {}
-        if self.namespace_exists():
-            all_metadata_dirs = reversed(jupyter_path(os.path.join('metadata', self.namespace)))
-            for metadata_dir in all_metadata_dirs:
-                if os.path.isdir(metadata_dir):
-                    for f in os.listdir(metadata_dir):
-                        path = os.path.join(metadata_dir, f)
-                        if path.endswith(".json"):
-                            if name:
-                                if os.path.splitext(os.path.basename(path))[0] == name:
-                                    return self._load_from_resource(path, validate_metadata=validate_metadata)
-                            else:
-                                metadata = None
-                                try:
-                                    metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
-                                                                        include_invalid=include_invalid)
-                                except Exception:
-                                    pass  # Ignore ValidationError and others when loading all resources
-                                if metadata is not None:
-                                    if metadata.name in resources.keys():
-                                        # If we're replacing an instance, let that be known via debug
-                                        self.log.debug("Replacing metadata resource '{}' from '{}' with '{}'."
-                                                       .format(metadata.name,
-                                                               resources[metadata.name].resource,
-                                                               metadata.resource))
-                                    resources[metadata.name] = metadata
-        else:  # namespace doesn't exist, treat as KeyError
+        all_metadata_dirs = reversed(self.metadata_paths)
+        for metadata_dir in all_metadata_dirs:
+            if os.path.isdir(metadata_dir):
+                namespace_dir_exists = True
+                for f in os.listdir(metadata_dir):
+                    path = os.path.join(metadata_dir, f)
+                    if path.endswith(".json"):
+                        if name:
+                            if os.path.splitext(os.path.basename(path))[0] == name:
+                                return self._load_from_resource(path, validate_metadata=validate_metadata)
+                        else:
+                            metadata = None
+                            try:
+                                metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
+                                                                    include_invalid=include_invalid)
+                            except Exception:
+                                pass  # Ignore ValidationError and others when loading all resources
+                            if metadata is not None:
+                                if metadata.name in resources.keys():
+                                    # If we're replacing an instance, let that be known via debug
+                                    self.log.debug("Replacing metadata resource '{}' from '{}' with '{}'."
+                                                   .format(metadata.name,
+                                                           resources[metadata.name].resource,
+                                                           metadata.resource))
+                                resources[metadata.name] = metadata
+        if not namespace_dir_exists:  # namespace doesn't exist, treat as KeyError
             raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
 
         if name:  # If we're looking for a single metadata and we're here, then its not found

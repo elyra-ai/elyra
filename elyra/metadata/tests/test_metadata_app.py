@@ -187,7 +187,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert lines[0].startswith("No metadata instances available for {} at:".format(METADATA_TEST_NAMESPACE))
+    assert lines[0].startswith("No metadata instances available for {} in:".format(METADATA_TEST_NAMESPACE))
 
     valid = Metadata(**valid_metadata_json)
     resource = metadata_manager.add('valid', valid)
