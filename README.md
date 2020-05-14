@@ -124,8 +124,8 @@ documentation, and invite you to attend our weekly dev community meetings.
 ### Weekly Dev Community Meeting 
 Join us weekly to discuss Elyra development topics.  Everyone is welcome and participation is optional.
 
-**When**: Thursdays at [9AM PST](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&)
+**When**: Thursdays at [9AM Pacific](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&)
 
-**Where**: [Zoom](https://zoom.us/j/99736674253) (Meeting ID: 997 3667 4253)
+**Where**: [Webex](https://ibm.webex.com/meet/akchin)
 
 **What**: [Meeting Notes](https://hackmd.io/SgvSqrWWR2248mCw2BZ5gg?both)
