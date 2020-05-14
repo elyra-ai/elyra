@@ -15,15 +15,14 @@
 #
 import io
 import json
+import jupyter_core.paths
 import os
 import re
 import shutil
-import sys
 import warnings
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError, draft7_format_checker
-from jupyter_core.paths import jupyter_data_dir, SYSTEM_JUPYTER_PATH, ENV_JUPYTER_PATH
 from traitlets import HasTraits, Unicode, Dict, Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
@@ -57,14 +56,18 @@ def metadata_path(*subdirs):
             for p in os.environ['ELYRA_METADATA_PATH'].split(os.pathsep)
         )
     # then user dir
-    paths.append(jupyter_data_dir())
+    paths.append(jupyter_core.paths.jupyter_data_dir())
 
     # then system, where shared files will reside
-    paths.extend(SYSTEM_JUPYTER_PATH)
+    # Note, we're using getattr for these, since tests adjust the value of these
+    # and we need to pull them at runtime, rather than during load.
+    system_path = getattr(jupyter_core.paths, 'SYSTEM_JUPYTER_PATH')
+    paths.extend(system_path)
 
     # then sys.prefix, where installed files will reside (factory data)
-    for p in ENV_JUPYTER_PATH:
-        if p not in SYSTEM_JUPYTER_PATH:
+    env_path = getattr(jupyter_core.paths, 'ENV_JUPYTER_PATH')
+    for p in env_path:
+        if p not in system_path:
             paths.append(p)
 
     # add subdir, if requested.
@@ -83,7 +86,7 @@ class Metadata(HasTraits):
     reason = None
 
     def __init__(self, **kwargs):
-        super(Metadata, self).__init__(**kwargs)
+        super(Metadata, self).__init__()
         if 'display_name' not in kwargs:
             raise AttributeError("Missing required 'display_name' attribute")
 
@@ -336,6 +339,7 @@ class FileMetadataStore(MetadataStore):
            all files ending in '.json' are loaded and returned in a list.
         """
         namespace_dir_exists = False
+        saved_ex = None
         resources = {}
         all_metadata_dirs = reversed(self.metadata_paths)
         for metadata_dir in all_metadata_dirs:
@@ -344,28 +348,39 @@ class FileMetadataStore(MetadataStore):
                 for f in os.listdir(metadata_dir):
                     path = os.path.join(metadata_dir, f)
                     if path.endswith(".json"):
-                        if name:
-                            if os.path.splitext(os.path.basename(path))[0] == name:
-                                return self._load_from_resource(path, validate_metadata=validate_metadata)
-                        else:
-                            metadata = None
-                            try:
-                                metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
-                                                                    include_invalid=include_invalid)
-                            except Exception:
-                                pass  # Ignore ValidationError and others when loading all resources
-                            if metadata is not None:
-                                if metadata.name in resources.keys():
-                                    # If we're replacing an instance, let that be known via debug
-                                    self.log.debug("Replacing metadata resource '{}' from '{}' with '{}'."
-                                                   .format(metadata.name,
-                                                           resources[metadata.name].resource,
-                                                           metadata.resource))
-                                resources[metadata.name] = metadata
+                        metadata = None
+                        if name:  # if looking for a specific resource, and this is it, continue
+                            if os.path.splitext(os.path.basename(path))[0] != name:
+                                continue
+                        try:
+                            metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
+                                                                include_invalid=include_invalid)
+                            saved_ex = None
+                        except Exception as ex:
+                            # Ignore ValidationError and others when loading all resources
+                            if name:
+                                # we may need to raise this exception if, at the end we don't find a valid instance
+                                saved_ex = ex
+
+                        if metadata is not None:
+                            if metadata.name in resources.keys():
+                                # If we're replacing an instance, let that be known via debug
+                                self.log.debug("Replacing metadata resource '{}' from '{}' with '{}'."
+                                               .format(metadata.name,
+                                                       resources[metadata.name].resource,
+                                                       metadata.resource))
+                            resources[metadata.name] = metadata
         if not namespace_dir_exists:  # namespace doesn't exist, treat as KeyError
             raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
 
-        if name:  # If we're looking for a single metadata and we're here, then its not found
+        if name:
+            if saved_ex:  # the instance that we're looking for raised
+                raise saved_ex
+
+            if name in resources.keys():  # check if we have a match.
+                return resources[name]
+
+            # If we're looking for a single metadata and we're here, then its not found
             raise KeyError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
 
         # We're here only if loading all resources, so only return list of values.

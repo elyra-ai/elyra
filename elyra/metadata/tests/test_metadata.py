@@ -21,7 +21,7 @@ import pytest
 
 from jsonschema import validate, ValidationError, draft7_format_checker
 from elyra.metadata import Metadata, MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE
-from .test_utils import valid_metadata_json, invalid_metadata_json, create_json_file, get_schema
+from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, get_schema
 
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
@@ -165,7 +165,7 @@ def test_manager_remove_invalid(tests_manager, metadata_tests_dir):
     assert resource == metadata_file
 
 
-def test_manager_remove_missing(tests_manager, metadata_tests_dir):
+def test_manager_remove_missing(tests_manager):
     # Ensure removal of missing metadata file is handled.
     metadata_name = 'missing'
     resource = tests_manager.remove(metadata_name)
@@ -190,6 +190,139 @@ def test_manager_read_missing_by_name(tests_manager):
     metadata_name = 'missing'
     with pytest.raises(KeyError):
         tests_manager.get(metadata_name)
+
+
+def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):
+
+    # fetch initial instances, only factory data should be present
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure these are all factory instances
+    for metadata in metadata_list:
+        assert metadata.display_name == "factory"
+
+    byo_3 = tests_hierarchy_manager.get('byo_3')
+    assert byo_3.resource.startswith(str(factory_dir))
+
+    # add a shared instance and confirm list count is still the same, but
+    # only that instance is present in shared directory...
+    byo_instance = byo_metadata_json
+    byo_instance['display_name'] = 'shared'
+    create_json_file(shared_dir, 'byo_3.json', byo_instance)
+
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure the proper instances exist
+    for metadata in metadata_list:
+        if metadata.name == 'byo_3':
+            assert metadata.display_name == "shared"
+        else:
+            assert metadata.display_name == "factory"
+
+    byo_3 = tests_hierarchy_manager.get('byo_3')
+    assert byo_3.resource.startswith(str(shared_dir))
+
+    # add a shared and a user instance confirm list count is still the same, but
+    # both the user and shared instances are correct.
+    byo_instance = byo_metadata_json
+    byo_instance['display_name'] = 'shared'
+    create_json_file(shared_dir, 'byo_2.json', byo_instance)
+    byo_instance['display_name'] = 'user'
+    create_json_file(metadata_tests_dir, 'byo_2.json', byo_instance)
+
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure the proper instances exist
+    for metadata in metadata_list:
+        if metadata.name == 'byo_1':
+            assert metadata.display_name == "factory"
+        if metadata.name == 'byo_2':
+            assert metadata.display_name == "user"
+        if metadata.name == 'byo_3':
+            assert metadata.display_name == "shared"
+
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(metadata_tests_dir))
+
+    # delete the user instance and ensure its shared copy is now exposed
+    os.remove(os.path.join(metadata_tests_dir, 'byo_2.json'))
+
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure the proper instances exist
+    for metadata in metadata_list:
+        if metadata.name == 'byo_1':
+            assert metadata.display_name == "factory"
+        if metadata.name == 'byo_2':
+            assert metadata.display_name == "shared"
+        if metadata.name == 'byo_3':
+            assert metadata.display_name == "shared"
+
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(shared_dir))
+
+    # delete both shared copies and ensure only factory is left
+    os.remove(os.path.join(shared_dir, 'byo_2.json'))
+    os.remove(os.path.join(shared_dir, 'byo_3.json'))
+    # fetch initial instances, only factory data should be present
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure these are all factory instances
+    for metadata in metadata_list:
+        assert metadata.display_name == "factory"
+
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(factory_dir))
+
+
+def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
+
+    # fetch initial instances, only factory data should be present
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure these are all factory instances
+    for metadata in metadata_list:
+        assert metadata.display_name == "factory"
+
+    metadata = Metadata(**byo_metadata_json)
+    metadata.display_name = 'user'
+    resource = tests_hierarchy_manager.add('byo_2', metadata)
+    assert resource is not None
+    assert resource.startswith(str(metadata_tests_dir))
+
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure the proper instances exist
+    for metadata in metadata_list:
+        if metadata.name == 'byo_1':
+            assert metadata.display_name == "factory"
+        if metadata.name == 'byo_2':
+            assert metadata.display_name == "user"
+        if metadata.name == 'byo_3':
+            assert metadata.display_name == "factory"
+
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(metadata_tests_dir))
+
+    metadata = Metadata(**byo_metadata_json)
+    metadata.display_name = 'user'
+    resource = tests_hierarchy_manager.add('byo_3', metadata)
+    assert resource is not None
+    assert resource.startswith(str(metadata_tests_dir))
+
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure the proper instances exist
+    for metadata in metadata_list:
+        if metadata.name == 'byo_1':
+            assert metadata.display_name == "factory"
+        if metadata.name == 'byo_2':
+            assert metadata.display_name == "user"
+        if metadata.name == 'byo_3':
+            assert metadata.display_name == "user"
+
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(metadata_tests_dir))
 
 
 # ########################## FileMetadataStore Tests ###########################

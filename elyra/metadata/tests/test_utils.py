@@ -52,7 +52,7 @@ invalid_metadata_json = {
 
 # Contains all values corresponding to test schema...
 complete_metadata_json = {
-    "schema_name": "test",
+    "schema_name": "metadata-test",
     "display_name": "complete metadata instance",
     "metadata": {
         "required_test": "required_value",
@@ -78,8 +78,20 @@ complete_metadata_json = {
 # Minimal json to be built upon for each property test.  Only
 # required values are specified.
 minmal_metadata_json = {
-    "schema_name": "test",
+    "schema_name": "metadata-test",
     "display_name": "complete metadata instance",
+    "metadata": {
+        "required_test": "required_value"
+    }
+}
+
+
+# Bring-your-own metadata template used to test hierarchical writes.  The
+# display_name field will be updated to reflect the location's instance
+# in the hierarchy
+byo_metadata_json = {
+    "schema_name": "metadata-test",
+    "display_name": "location",
     "metadata": {
         "required_test": "required_value"
     }
