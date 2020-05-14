@@ -277,13 +277,7 @@ def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_dir, shared_di
 
 def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
 
-    # fetch initial instances, only factory data should be present
-    metadata_list = tests_hierarchy_manager.get_all()
-    assert len(metadata_list) == 3
-    # Ensure these are all factory instances
-    for metadata in metadata_list:
-        assert metadata.display_name == "factory"
-
+    # Create a copy of existing factory instance and ensure its in the user area
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
     resource = tests_hierarchy_manager.add('byo_2', metadata)
@@ -323,6 +317,56 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
     assert byo_2.resource.startswith(str(metadata_tests_dir))
+
+
+def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):
+
+    # Create additional instances in shared and user areas
+    byo_2 = byo_metadata_json
+    byo_2['display_name'] = 'shared'
+    create_json_file(shared_dir, 'byo_2.json', byo_2)
+
+    metadata = Metadata(**byo_metadata_json)
+    metadata.display_name = 'user'
+    resource = tests_hierarchy_manager.add('byo_2', metadata)
+    assert resource is not None
+    assert resource.startswith(str(metadata_tests_dir))
+
+    # Confirm on in user is found...
+    metadata_list = tests_hierarchy_manager.get_all()
+    assert len(metadata_list) == 3
+    # Ensure the proper instances exist
+    for metadata in metadata_list:
+        if metadata.name == 'byo_1':
+            assert metadata.display_name == "factory"
+        if metadata.name == 'byo_2':
+            assert metadata.display_name == "user"
+        if metadata.name == 'byo_3':
+            assert metadata.display_name == "factory"
+
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(metadata_tests_dir))
+
+    # Now remove instance.  Should be allowed since it resides in user area
+    resource = tests_hierarchy_manager.remove('byo_2')
+    assert resource == byo_2.resource
+
+    # Attempt to remove instance from shared area and its protected
+    with pytest.raises(PermissionError) as pe:
+        tests_hierarchy_manager.remove('byo_2')
+    assert "Removal of metadata resource" in str(pe.value)
+
+    # Ensure the one that exists is the one in the shared area
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(shared_dir))
+
+    # Attempt to remove instance from factory area and its protected as well
+    with pytest.raises(PermissionError) as pe:
+        tests_hierarchy_manager.remove('byo_1')
+    assert "Removal of metadata resource" in str(pe.value)
+
+    byo_1 = tests_hierarchy_manager.get('byo_1')
+    assert byo_1.resource.startswith(str(factory_dir))
 
 
 # ########################## FileMetadataStore Tests ###########################

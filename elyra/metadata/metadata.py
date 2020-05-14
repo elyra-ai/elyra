@@ -329,9 +329,20 @@ class FileMetadataStore(MetadataStore):
 
         resource = metadata.resource
         if resource:
+            # Since multiple folders are in play, we only allow removal if the resource is in
+            # the first directory in the list (i.e., most "near" the user)
+            if not self._remove_allowed(metadata):
+                raise PermissionError("Removal of metadata resource '{}' in namespace '{}' is not permitted!".
+                                      format(resource, self.namespace))
             os.remove(resource)
 
         return resource
+
+    def _remove_allowed(self, metadata):
+        """Determines if the resource of the given instance is allowed to be removed. """
+        allowed_resource = os.path.join(self.preferred_metadata_dir, metadata.name)
+        current_resource = os.path.splitext(metadata.resource)[0]
+        return allowed_resource == current_resource
 
     def _load_metadata_resources(self, name=None, validate_metadata=True, include_invalid=False):
         """Loads metadata files with .json suffix and return requested items.
