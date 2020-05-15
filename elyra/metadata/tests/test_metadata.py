@@ -319,6 +319,38 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
     assert byo_2.resource.startswith(str(metadata_tests_dir))
 
 
+def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):
+
+    # Create a copy of existing factory instance and ensure its in the user area
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(factory_dir))
+
+    byo_2.display_name = 'user'
+    resource = tests_hierarchy_manager.add('byo_2', byo_2, replace=False)
+    assert resource is None
+
+    # Repeat with replacement enabled
+    resource = tests_hierarchy_manager.add('byo_2', byo_2, replace=True)
+    assert resource is not None
+    assert resource.startswith(str(metadata_tests_dir))
+
+    # now "slip in" a shared instance behind the updated version and ensure
+    # the updated version is what's returned.
+    byo_instance = byo_metadata_json
+    byo_instance['display_name'] = 'shared'
+    create_json_file(shared_dir, 'byo_2.json', byo_instance)
+
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(metadata_tests_dir))
+
+    # now remove the updated instance and ensure the shared instance appears
+    resource = tests_hierarchy_manager.remove('byo_2')
+    assert resource == byo_2.resource
+
+    byo_2 = tests_hierarchy_manager.get('byo_2')
+    assert byo_2.resource.startswith(str(shared_dir))
+
+
 def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):
 
     # Create additional instances in shared and user areas

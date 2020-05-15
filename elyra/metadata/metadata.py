@@ -282,6 +282,7 @@ class FileMetadataStore(MetadataStore):
         metadata_resource_name = '{}.json'.format(name)
         resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)
 
+        # Handle replacement flag behavior for hierarchy.
         if os.path.exists(resource):
             if replace:
                 os.remove(resource)
@@ -289,6 +290,16 @@ class FileMetadataStore(MetadataStore):
                 self.log.error("Metadata resource '{}' already exists. Use the replace flag to overwrite.".
                                format(resource))
                 return None
+        # Although the resource doesn't exist in the preferred dir, it may exist at other levels.
+        # If replacement is not enabled, then existence at other levels should also prevent the update.
+        elif not replace:
+            try:
+                self._load_metadata_resources(name, validate_metadata=False)
+                # Instance exists at other (protected) level and replacement was not request
+                self.log.error("Metadata instance '{}' already exists. Use the replace flag to overwrite.".format(name))
+                return None
+            except KeyError:  # doesn't exist elsewhere, so we're good.
+                pass
 
         created_namespace_dir = False
         if not self.namespace_exists():  # If the namespaced directory is not present, create it and note it.
