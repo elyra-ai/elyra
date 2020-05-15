@@ -70,7 +70,7 @@ const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
 
-function NodeProperties(properties: any): React.ReactElement {
+const NodeProperties = (properties: any): React.ReactElement => {
   return (
     <dl className={NODE_TOOLTIP_CLASS}>
       {Object.keys(properties).map((key, idx) => {
