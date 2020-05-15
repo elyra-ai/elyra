@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
+import jupyter_core.paths
 import os
+import pytest
 import shutil
 import sys
 
@@ -21,7 +24,8 @@ from traitlets.config import Config
 from notebook.tests.launchnotebook import NotebookTestBase
 
 from ..metadata import METADATA_TEST_NAMESPACE
-from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
+from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
+    create_json_file
 from .conftest import fetch  # FIXME - remove once jupyter_server is used
 
 
@@ -53,12 +57,12 @@ class MetadataHandlerTest(MetadataTestBase):
     def setUp(self):
         # The _dir names here are fixtures that should be referenced by the appropriate
         # test methods once transition to jupyter_server occurs.
-        self.metadata_namespace_dir = os.path.join(self.data_dir, 'metadata', 'metadata-tests')
+        self.metadata_tests_dir = os.path.join(self.data_dir, 'metadata', METADATA_TEST_NAMESPACE)
         self.metadata_bogus_dir = os.path.join(self.data_dir, 'metadata', 'bogus')
 
-        create_json_file(self.metadata_namespace_dir, 'valid.json', valid_metadata_json)
-        create_json_file(self.metadata_namespace_dir, 'another.json', another_metadata_json)
-        create_json_file(self.metadata_namespace_dir, 'invalid.json', invalid_metadata_json)
+        create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
+        create_json_file(self.metadata_tests_dir, 'another.json', another_metadata_json)
+        create_json_file(self.metadata_tests_dir, 'invalid.json', invalid_metadata_json)
 
     def test_bogus_namespace(self):
         # Validate missing is not found
@@ -109,14 +113,14 @@ class MetadataHandlerTest(MetadataTestBase):
 
     def test_get_empty_namespace_instances(self):
         # Delete the metadata dir contents and attempt listing metadata
-        shutil.rmtree(self.metadata_namespace_dir)
+        shutil.rmtree(self.metadata_tests_dir)
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
         assert "Metadata namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
 
         # Now create empty namespace
-        os.makedirs(self.metadata_namespace_dir)
+        os.makedirs(self.metadata_tests_dir)
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
@@ -125,6 +129,204 @@ class MetadataHandlerTest(MetadataTestBase):
         assert len(metadata) == 1
         instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 0
+
+
+@pytest.mark.usefixtures("environ")
+class MetadataHandlerHierarchyTest(MetadataTestBase):
+    """Test Metadata REST API"""
+    config = Config({'NotebookApp': {"nbserver_extensions": {"elyra": True}}})
+
+    def setUp(self):
+        # The _dir names here are fixtures that should be referenced by the appropriate
+        # test methods once transition to jupyter_server occurs.
+        self.metadata_tests_dir = os.path.join(jupyter_core.paths.jupyter_data_dir(),
+                                               'metadata', METADATA_TEST_NAMESPACE)
+
+        env_path = getattr(jupyter_core.paths, 'ENV_JUPYTER_PATH')
+        self.factory_dir = os.path.join(env_path[0], 'metadata', METADATA_TEST_NAMESPACE)
+
+        system_path = getattr(jupyter_core.paths, 'SYSTEM_JUPYTER_PATH')
+        self.shared_dir = os.path.join(system_path[0], 'metadata', METADATA_TEST_NAMESPACE)
+
+        byo_instance = byo_metadata_json
+        byo_instance['display_name'] = 'factory'
+        create_json_file(self.factory_dir, 'byo_1.json', byo_instance)
+        create_json_file(self.factory_dir, 'byo_2.json', byo_instance)
+        create_json_file(self.factory_dir, 'byo_3.json', byo_instance)
+
+    def test_get_hierarchy_instances(self):
+        # Ensure all valid metadata can be found
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+                  base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        metadata = r.json()
+        assert isinstance(metadata, dict)
+        assert len(metadata) == 1
+        instances = metadata[METADATA_TEST_NAMESPACE]
+        assert len(instances) == 3
+        assert 'byo_1' in instances.keys()
+        assert 'byo_2' in instances.keys()
+        assert 'byo_3' in instances.keys()
+        assert instances['byo_3']['resource'].startswith(self.factory_dir)
+
+    def test_create_instance(self):
+        """Create a simple instance - not conflicting with factory instances. """
+
+        valid = valid_metadata_json
+        valid['name'] = 'valid'
+        body = json.dumps(valid)
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+                  method='POST', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 201
+        resource = r.text
+        assert resource.startswith(self.metadata_tests_dir)
+
+    def test_create_hierarchy_instance(self):
+        """Create a simple instance - that's conflicting with factory instances. """
+
+        byo_instance = byo_metadata_json
+        byo_instance['display_name'] = 'user'
+        byo_instance['name'] = 'byo_2'
+        body = json.dumps(byo_instance)
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+                  method='POST', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 201
+        resource = r.text
+        assert resource.startswith(self.metadata_tests_dir)
+
+        # Confirm the instances and ensure byo_2 is in USER area
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+                  base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        metadata = r.json()
+        assert isinstance(metadata, dict)
+        assert len(metadata) == 1
+        instances = metadata[METADATA_TEST_NAMESPACE]
+        assert len(instances) == 3
+        assert instances['byo_2']['resource'].startswith(self.metadata_tests_dir)
+        assert instances['byo_3']['resource'].startswith(self.factory_dir)
+
+        # Now attempt creation on byo_1 w/o replacement - expect failure
+        byo_instance = byo_metadata_json
+        byo_instance['display_name'] = 'user'
+        byo_instance['name'] = 'byo_1'
+        byo_instance['replace'] = False
+        body = json.dumps(byo_instance)
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+                  method='POST', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 403
+
+        # And retry w/ replace = True
+        byo_instance['replace'] = True
+        body = json.dumps(byo_instance)
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+                  method='POST', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 201
+        resource = r.text
+        assert resource.startswith(self.metadata_tests_dir)
+
+    def test_create_invalid_instance(self):
+        """Create a simple instance - not conflicting with factory instances. """
+
+        invalid = invalid_metadata_json
+        invalid['name'] = 'invalid'
+        body = json.dumps(invalid)
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+                  method='POST', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 400
+        assert "Schema validation failed for metadata" in r.text
+
+    def test_update_instance(self):
+        """Update a simple instance w/ and w/o replacement. """
+
+        create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
+
+        valid = valid_metadata_json
+        valid['name'] = 'valid'
+        valid['metadata']['number_range_test'] = 7
+        body = json.dumps(valid)
+
+        # Update instance
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
+                  method='PUT', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        resource = r.text
+        assert resource.startswith(self.metadata_tests_dir)
+
+        # Confirm update
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+                  base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        instance = r.json()
+        assert instance['metadata']['number_range_test'] == 7
+
+    def test_update_hierarchy_instance(self):
+        """Update a simple instance - that's conflicting with factory instances. """
+
+        byo_instance = byo_metadata_json
+        byo_instance['display_name'] = 'user'
+        byo_instance['metadata']['number_range_test'] = 7
+        byo_instance['name'] = 'byo_2'
+        byo_instance['replace'] = False
+        body = json.dumps(byo_instance)
+
+        # Because this is considered an update of an existing instance and replace is False, expect 403
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
+                  method='PUT', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 403
+
+        # Reattempt with replace = True
+        byo_instance['replace'] = True
+        body = json.dumps(byo_instance)
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
+                  method='PUT', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+
+        # Confirm the instances and ensure byo_2 is in USER area
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+                  base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        metadata = r.json()
+        assert isinstance(metadata, dict)
+        assert len(metadata) == 1
+        instances = metadata[METADATA_TEST_NAMESPACE]
+        assert len(instances) == 3
+        assert instances['byo_2']['resource'].startswith(self.metadata_tests_dir)
+        assert instances['byo_3']['resource'].startswith(self.factory_dir)
+        assert instances['byo_2']['metadata']['number_range_test'] == 7
+
+    def test_delete_instance(self):
+        """Create a simple instance - not conflicting with factory instances and delete it. """
+
+        create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+                  method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        resource = r.text
+        assert resource.startswith(self.metadata_tests_dir)
+
+    def test_delete_hierarchy_instance(self):
+        """Create a simple instance - that conflicts with factory instances and delete it only if local. """
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
+                  method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 403
+
+        # create local instance, delete should succeed
+        create_json_file(self.metadata_tests_dir, 'byo_2.json', byo_metadata_json)
+
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
+                  method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        resource = r.text
+        assert resource.startswith(self.metadata_tests_dir)
 
 
 class SchemaHandlerTest(MetadataTestBase):

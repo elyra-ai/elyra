@@ -22,7 +22,7 @@ import shutil
 from tempfile import mkdtemp
 from elyra.metadata import Metadata, MetadataManager, METADATA_TEST_NAMESPACE
 from .test_utils import PropertyTester, create_json_file, valid_metadata_json, \
-    another_metadata_json, invalid_metadata_json
+    another_metadata_json, invalid_metadata_json, invalid_no_display_name_json
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
 
@@ -144,9 +144,8 @@ def test_install_and_replace(script_runner, mock_data_dir):
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success is False
-    assert "A failure occurred saving metadata instance 'test-metadata_42_valid-name' for schema 'metadata-test'." \
-           in ret.stdout
-    assert "already exists. Use the replace flag to overwrite" in ret.stderr
+    assert "The following exception occurred saving metadata instance 'test-metadata_42_valid-name'" \
+           " for schema 'metadata-test':" in ret.stdout
 
     # Re-attempt with replace flag - success expected
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
@@ -219,21 +218,24 @@ def test_list_instances(script_runner, mock_data_dir):
     # Remove the '2' runtimes and reconfirm smaller set
     metadata_manager.remove('valid2')
     metadata_manager.remove('another2')
-    # Include an invalid file as well
+    # Include two additional invalid files as well - one for uri failure, andother missing display_name
     metadata_dir = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE)
     create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
+    create_json_file(metadata_dir, 'no_display_name.json', invalid_no_display_name_json)
 
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE)
     assert ret.success
     lines = ret.stdout.split('\n')
-    assert len(lines) == 8  # always 5 more than the actual runtime count
+    assert len(lines) == 9  # always 5 more than the actual runtime count
     assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_NAMESPACE)
-    line_elements = [line.split() for line in lines[4:7]]
+    line_elements = [line.split() for line in lines[4:8]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "invalid"
     assert line_elements[1][3] == "**INVALID**"
     assert line_elements[1][4] == "(ValidationError)"
-    assert line_elements[2][1] == "valid"
+    assert line_elements[2][3] == "**INVALID**"
+    assert line_elements[2][4] == "(ValidationError)"
+    assert line_elements[3][1] == "valid"
 
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--valid-only')
     assert ret.success

@@ -23,7 +23,7 @@ import warnings
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError, draft7_format_checker
-from traitlets import HasTraits, Unicode, Dict, Type, log
+from traitlets import Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 
@@ -77,22 +77,18 @@ def metadata_path(*subdirs):
     return paths
 
 
-class Metadata(HasTraits):
+class Metadata(object):
     name = None
     resource = None
-    display_name = Unicode()
-    schema_name = Unicode()
-    metadata = Dict()
+    display_name = None
+    schema_name = None
+    metadata = {}
     reason = None
 
     def __init__(self, **kwargs):
-        super(Metadata, self).__init__()
-        if 'display_name' not in kwargs:
-            raise AttributeError("Missing required 'display_name' attribute")
-
         self.display_name = kwargs.get('display_name')
         self.schema_name = kwargs.get('schema_name') or DEFAULT_SCHEMA_NAME
-        self.metadata = kwargs.get('metadata', Dict())
+        self.metadata = kwargs.get('metadata', {})
         self.name = kwargs.get('name')
         self.resource = kwargs.get('resource')
         self.reason = kwargs.get('reason')
@@ -287,22 +283,25 @@ class FileMetadataStore(MetadataStore):
             if replace:
                 os.remove(resource)
             else:
-                self.log.error("Metadata resource '{}' already exists. Use the replace flag to overwrite.".
-                               format(resource))
-                return None
+                msg = "Metadata resource '{}' already exists. Use the replace flag to overwrite.".format(resource)
+                self.log.error(msg)
+                raise PermissionError(msg)
+
         # Although the resource doesn't exist in the preferred dir, it may exist at other levels.
         # If replacement is not enabled, then existence at other levels should also prevent the update.
         elif not replace:
             try:
                 self._load_metadata_resources(name, validate_metadata=False)
                 # Instance exists at other (protected) level and replacement was not request
-                self.log.error("Metadata instance '{}' already exists. Use the replace flag to overwrite.".format(name))
-                return None
+                msg = "Metadata instance '{}' already exists. Use the replace flag to overwrite.".format(name)
+                self.log.error(msg)
+                raise PermissionError(msg)
             except KeyError:  # doesn't exist elsewhere, so we're good.
                 pass
 
         created_namespace_dir = False
-        if not self.namespace_exists():  # If the namespaced directory is not present, create it and note it.
+        # If the preferred metadata directory is not present, create it and note it.
+        if not os.path.exists(self.preferred_metadata_dir):
             self.log.debug("Creating metadata directory: {}".format(self.preferred_metadata_dir))
             os.makedirs(self.preferred_metadata_dir, mode=0o700, exist_ok=True)
             created_namespace_dir = True
@@ -319,14 +318,14 @@ class FileMetadataStore(MetadataStore):
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
             self._load_from_resource(resource)
-        except (ValidationError, ValueError):
+        except (ValidationError, ValueError) as ve:
             self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
                 shutil.rmtree(self.preferred_metadata_dir)
             else:
                 os.remove(resource)
-            resource = None
+            raise ve
 
         return resource
 
@@ -461,10 +460,10 @@ class FileMetadataStore(MetadataStore):
                 self.log.debug("No schema found in metadata resource '{}' - skipping validation.".format(resource))
 
         metadata = Metadata(name=name,
-                            display_name=metadata_json['display_name'],
-                            schema_name=metadata_json['schema_name'],
+                            display_name=metadata_json.get('display_name'),
+                            schema_name=metadata_json.get('schema_name'),
                             resource=resource,
-                            metadata=metadata_json['metadata'],
+                            metadata=metadata_json.get('metadata'),
                             reason=reason)
         return metadata
 

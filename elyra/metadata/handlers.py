@@ -13,15 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 from jsonschema import ValidationError
 from tornado import web, gen
 from notebook.base.handlers import APIHandler
 from notebook.utils import maybe_future, url_unescape
-from .metadata import MetadataManager, SchemaManager
+from .metadata import MetadataManager, SchemaManager, Metadata
 from ..util.http import HttpErrorMixin
 
 
-class MetadataHandler(HttpErrorMixin, APIHandler):
+class MetadataHandlerBase(HttpErrorMixin, APIHandler):
+
+    def _validate_body(self):
+        """Validates the body issued for creates. """
+        body = self.get_json_body()
+
+        # Ensure name, schema_name and metadata fields exist.
+        required_fields = ['name', 'schema_name', 'metadata']
+        for field in required_fields:
+            if field not in body:
+                raise SyntaxError("Insufficient information - '{}' is missing from request body.".format(field))
+
+        replace = True
+        if 'replace' in body:
+            replace = str(body.pop('replace')).lower() == "true"
+
+        metadata = Metadata(**body)
+        return body['name'], metadata, replace
+
+
+class MetadataHandler(MetadataHandlerBase):
     """Handler for metadata configurations collection. """
 
     @web.authenticated
@@ -42,8 +63,31 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         self.set_header("Content-Type", 'application/json')
         self.finish(metadata_model)
 
+    @web.authenticated
+    @gen.coroutine
+    def post(self, namespace):
 
-class MetadataResourceHandler(HttpErrorMixin, APIHandler):
+        namespace = url_unescape(namespace)
+        try:
+            name, metadata, replace = self._validate_body()
+            self.log.debug("MetadataHandler: Creating metadata instance '{}' in namespace '{}' (replace={})...".
+                           format(name, namespace, replace))
+            metadata_manager = MetadataManager(namespace=namespace)
+            model = metadata_manager.add(name, metadata, replace=replace)
+        except (ValidationError, ValueError, SyntaxError) as se:
+            raise web.HTTPError(400, str(se))
+        except PermissionError as err:
+            raise web.HTTPError(403, str(err))
+        except KeyError as err:
+            raise web.HTTPError(404, str(err))
+        except Exception as ex:
+            raise web.HTTPError(500, repr(ex))
+
+        self.set_status(201)
+        self.finish(model)
+
+
+class MetadataResourceHandler(MetadataHandlerBase):
     """Handler for metadata configuration specific resource (e.g. a runtime element). """
 
     @web.authenticated
@@ -64,6 +108,49 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
 
         self.set_header("Content-Type", 'application/json')
         self.finish(metadata.to_dict())
+
+    @web.authenticated
+    @gen.coroutine
+    def put(self, namespace, resource):
+        namespace = url_unescape(namespace)
+        resource = url_unescape(resource)
+
+        try:
+            _, metadata, replace = self._validate_body()
+            self.log.debug("MetadataHandler: Updating metadata instance '{}' in namespace '{}' (replace={})...".
+                           format(resource, namespace, replace))
+            metadata_manager = MetadataManager(namespace=namespace)
+            model = metadata_manager.add(resource, metadata, replace=replace)
+        except PermissionError as err:
+            raise web.HTTPError(403, str(err))
+        except (ValidationError, ValueError, KeyError) as err:
+            raise web.HTTPError(404, str(err))
+        except Exception as ex:
+            raise web.HTTPError(500, repr(ex))
+
+        self.set_status(200)
+        self.finish(model)
+
+    @web.authenticated
+    @gen.coroutine
+    def delete(self, namespace, resource):
+        namespace = url_unescape(namespace)
+        resource = url_unescape(resource)
+
+        try:
+            self.log.debug("MetadataHandler: Deleting metadata instance '{}' in namespace '{}'...".
+                           format(resource, namespace))
+            metadata_manager = MetadataManager(namespace=namespace)
+            model = metadata_manager.remove(resource)
+        except PermissionError as err:
+            raise web.HTTPError(403, str(err))
+        except (ValidationError, ValueError, KeyError) as err:
+            raise web.HTTPError(404, str(err))
+        except Exception as ex:
+            raise web.HTTPError(500, repr(ex))
+
+        self.set_status(200)
+        self.finish(model)
 
 
 class SchemaHandler(HttpErrorMixin, APIHandler):

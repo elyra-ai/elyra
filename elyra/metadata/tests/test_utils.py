@@ -50,6 +50,14 @@ invalid_metadata_json = {
     }
 }
 
+invalid_no_display_name_json = {
+    'schema_name': 'metadata-test',
+    'metadata': {
+        'uri_test': '//localhost:8081/',
+        'required_test': "required_value"
+    }
+}
+
 # Contains all values corresponding to test schema...
 complete_metadata_json = {
     "schema_name": "metadata-test",

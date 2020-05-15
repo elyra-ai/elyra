@@ -142,8 +142,8 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
         assert valid_add['schema_name'] == "metadata-test"
 
     # Attempt to create again w/o replace, then replace it.
-    resource = tests_manager.add(metadata_name, metadata, replace=False)
-    assert resource is None
+    with pytest.raises(PermissionError):
+        tests_manager.add(metadata_name, metadata, replace=False)
 
     resource = tests_manager.add(metadata_name, metadata)
     assert resource is not None
@@ -326,8 +326,8 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_2.resource.startswith(str(factory_dir))
 
     byo_2.display_name = 'user'
-    resource = tests_hierarchy_manager.add('byo_2', byo_2, replace=False)
-    assert resource is None
+    with pytest.raises(PermissionError):
+        tests_hierarchy_manager.add('byo_2', byo_2, replace=False)
 
     # Repeat with replacement enabled
     resource = tests_hierarchy_manager.add('byo_2', byo_2, replace=True)

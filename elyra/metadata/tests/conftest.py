@@ -120,6 +120,7 @@ def setup_hierarchy(environ, factory_dir):
     create_json_file(factory_dir, 'byo_2.json', byo_instance)
     create_json_file(factory_dir, 'byo_3.json', byo_instance)
 
+
 @pytest.fixture
 def tests_manager(setup_namespace):
     return MetadataManager(namespace=METADATA_TEST_NAMESPACE)
