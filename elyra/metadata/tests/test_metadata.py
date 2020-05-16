@@ -143,9 +143,9 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
 
     # Attempt to create again w/o replace, then replace it.
     with pytest.raises(PermissionError):
-        tests_manager.add(metadata_name, metadata, replace=False)
+        tests_manager.add(metadata_name, metadata)
 
-    resource = tests_manager.add(metadata_name, metadata)
+    resource = tests_manager.add(metadata_name, metadata, replace=True)
     assert resource is not None
 
     # And finally, remove it.
@@ -280,7 +280,10 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
     # Create a copy of existing factory instance and ensure its in the user area
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    resource = tests_hierarchy_manager.add('byo_2', metadata)
+    with pytest.raises(PermissionError):
+        resource = tests_hierarchy_manager.add('byo_2', metadata)
+
+    resource = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
     assert resource is not None
     assert resource.startswith(str(metadata_tests_dir))
 
@@ -300,7 +303,7 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
 
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    resource = tests_hierarchy_manager.add('byo_3', metadata)
+    resource = tests_hierarchy_manager.add('byo_3', metadata, replace=True)
     assert resource is not None
     assert resource.startswith(str(metadata_tests_dir))
 
@@ -327,7 +330,7 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
 
     byo_2.display_name = 'user'
     with pytest.raises(PermissionError):
-        tests_hierarchy_manager.add('byo_2', byo_2, replace=False)
+        tests_hierarchy_manager.add('byo_2', byo_2)
 
     # Repeat with replacement enabled
     resource = tests_hierarchy_manager.add('byo_2', byo_2, replace=True)
@@ -360,7 +363,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_d
 
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    resource = tests_hierarchy_manager.add('byo_2', metadata)
+    resource = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
     assert resource is not None
     assert resource.startswith(str(metadata_tests_dir))
 

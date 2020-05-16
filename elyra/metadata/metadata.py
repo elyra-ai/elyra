@@ -156,7 +156,7 @@ class MetadataManager(LoggingConfigurable):
     def get(self, name):
         return self.metadata_store.read(name)
 
-    def add(self, name, metadata, replace=True):
+    def add(self, name, metadata, replace=False):
         return self.metadata_store.save(name, metadata, replace)
 
     def remove(self, name):
@@ -194,7 +194,7 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def save(self, name, metadata, replace=True):
+    def save(self, name, metadata, replace=False):
         pass
 
     @abstractmethod
@@ -260,7 +260,7 @@ class FileMetadataStore(MetadataStore):
             raise ValueError('Name of metadata was not provided')
         return self._load_metadata_resources(name=name)
 
-    def save(self, name, metadata, replace=True):
+    def save(self, name, metadata, replace=False):
         if not name:
             raise ValueError('Name of metadata was not provided.')
 
