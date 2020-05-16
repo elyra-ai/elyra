@@ -122,8 +122,6 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             model = metadata_manager.add(resource, instance, replace=True)
         except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
-        except FileExistsError as err:
-            raise web.HTTPError(409, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 

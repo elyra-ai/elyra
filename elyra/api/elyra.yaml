@@ -138,6 +138,39 @@ paths:
           content: {}
         500:
           description: Unexpected error.
+    post:
+      tags:
+      - metadata
+      summary: Create a metadata instance in a given namespace
+      parameters:
+      - name: namespace
+        in: path
+        description: The name of the namespace
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetadataResourceBodyPost'
+
+      responses:
+        201:
+          description: Returns the resource (path) to the created instance
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: An error (validation, syntax) occurred relative to the instance data
+        404:
+          description: Namespace not found
+        409:
+          description: Resource already exists
+        500:
+          description: Unexpected error.
 
   /api/metadata/{namespace}/{resource}:
     get:
@@ -171,9 +204,121 @@ paths:
         500:
           description: Unexpected error.
 
+    put:
+      tags:
+        - metadata
+      summary: Update a given metadata resource within a given namespace
+      parameters:
+        - name: namespace
+          in: path
+          description: The name of the namespace
+          required: true
+          schema:
+            type: string
+        - name: resource
+          in: path
+          description: The name of the resource in a given namespace
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetadataResourceBodyPut'
+
+      responses:
+        200:
+          description: Returns the resource (path) of the updated instance
+          content:
+            application/json:
+              schema:
+                type: string
+        404:
+          description: The resource to update was not found
+        500:
+          description: Unexpected error.
+
+    delete:
+      tags:
+      - metadata
+      summary: Delete a given metadata resource from a given namespace
+      parameters:
+      - name: namespace
+        in: path
+        description: The name of the namespace
+        required: true
+        schema:
+          type: string
+      - name: resource
+        in: path
+        description: The name of the resource in a given namespace
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Returns the resource (path) of the deleted instance
+          content:
+            application/json:
+              schema:
+                type: string
+        403:
+          description: Deletion of the resource is not permitted
+        404:
+          description: The resource was not found
+        500:
+          description: Unexpected error.
+
+
 components:
   schemas:
+    MetadataResourceBodyPost:
+      description: The set of properties comprising the request body for POST
+      required:
+        - display_name
+        - name
+        - schema_name
+        - metadata
+      type: object
+      properties:
+        name:
+          type: string
+          description: The canonical name of the resource
+        display_name:
+          type: string
+          description: The display name of the resource
+        schema_name:
+          type: string
+          description: The schema name used to validate the resource
+        metadata:
+          type: object
+          properties: {}
+          description: A free-form dictionary consisting of additional information
+            about the resource.
+
+    MetadataResourceBodyPut:
+      description: The set of properties comprising the request body for PUT; no field is required
+      type: object
+      properties:
+        name:
+          type: string
+          description: The canonical name of the resource
+        display_name:
+          type: string
+          description: The display name of the resource
+        schema_name:
+          type: string
+          description: The schema name used to validate the resource
+        metadata:
+          type: object
+          properties: {}
+          description: A free-form dictionary consisting of additional information
+            about the resource.
+
     MetadataResource:
+      description: The set of properties comprising a metadata resource entity
       required:
       - display_name
       - name
@@ -198,8 +343,9 @@ components:
           properties: {}
           description: A free-form dictionary consisting of additional information
             about the resource.
-      description: The set of properties comprising a namespace resource entity
+
     SchemaResource:
+      description: The set of properties comprising a schema resource entity
       required:
       - name
       - namespace
@@ -216,7 +362,7 @@ components:
           properties: {}
           description: A free-form dictionary consisting of additional information
             about the resource.
-      description: The set of properties comprising a namespace resource entity
+
   parameters:
     namespace:
       name: namespace
