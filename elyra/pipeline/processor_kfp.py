@@ -200,9 +200,9 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             notebook_ops[operation.id] = notebook_op
 
-            self.log.info("NotebookOp Created for Component %s \n", operation.id)
+            self.log.info("NotebookOp Created for Component '%s' (%s) \n", operation.title, operation.id)
 
-            # upload operation dependencies to object store
+            # upload operation dependencies to object storage
             try:
                 dependency_archive_path = self._generate_dependency_archive(operation)
                 cos_client = CosClient(config=runtime_configuration)
@@ -213,7 +213,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 self.log.error("Error uploading artifacts to object storage.", exc_info=True)
                 raise
 
-            self.log.info("Pipeline dependencies have been uploaded to object store")
+            self.log.info("Pipeline dependencies have been uploaded to object storage")
 
         # Process dependencies after all the operations have been created
         for pipeline_operation in pipeline.operations.values():
@@ -261,6 +261,5 @@ class KfpPipelineProcessor(PipelineProcessor):
             runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
             return runtime_configuration
         except BaseException as err:
-            self.log.error('Error retrieving runtime configuration for {}'.format(name),
-                           exc_info=True)
+            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
             raise RuntimeError('Error retrieving runtime configuration for {}', err)
