@@ -67,7 +67,7 @@ class NamespaceList(NamespaceBase):
         include_invalid = not self.valid_only_flag.value
         try:
             metadata_instances = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
-        except KeyError:
+        except FileNotFoundError:
             metadata_instances = None
 
         if not metadata_instances:
@@ -129,7 +129,7 @@ class NamespaceRemove(NamespaceBase):
         name = self.name_option.value
         try:
             self.metadata_manager.get(name)
-        except KeyError as ke:
+        except FileNotFoundError as ke:
             self.log_and_exit(ke)
         except ValidationError:  # Probably deleting invalid instance
             pass

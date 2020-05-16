@@ -142,7 +142,7 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
         assert valid_add['schema_name'] == "metadata-test"
 
     # Attempt to create again w/o replace, then replace it.
-    with pytest.raises(PermissionError):
+    with pytest.raises(FileExistsError):
         tests_manager.add(metadata_name, metadata)
 
     resource = tests_manager.add(metadata_name, metadata, replace=True)
@@ -188,7 +188,7 @@ def test_manager_read_invalid_by_name(tests_manager):
 
 def test_manager_read_missing_by_name(tests_manager):
     metadata_name = 'missing'
-    with pytest.raises(KeyError):
+    with pytest.raises(FileNotFoundError):
         tests_manager.get(metadata_name)
 
 
@@ -277,11 +277,13 @@ def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_dir, shared_di
 
 def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
 
-    # Create a copy of existing factory instance and ensure its in the user area
+    # Note, this is really more of an update test (replace = True), since you cannot "create" an
+    # instance if it already exists - which, in this case, it exists in the factory area
+
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    with pytest.raises(PermissionError):
-        resource = tests_hierarchy_manager.add('byo_2', metadata)
+    with pytest.raises(FileExistsError):
+        tests_hierarchy_manager.add('byo_2', metadata)
 
     resource = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
     assert resource is not None
@@ -329,7 +331,7 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_2.resource.startswith(str(factory_dir))
 
     byo_2.display_name = 'user'
-    with pytest.raises(PermissionError):
+    with pytest.raises(FileExistsError):
         tests_hierarchy_manager.add('byo_2', byo_2)
 
     # Repeat with replacement enabled
@@ -453,7 +455,7 @@ def test_filestore_read_invalid_by_name(filestore):
 
 def test_filestore_read_missing_by_name(filestore):
     metadata_name = 'missing'
-    with pytest.raises(KeyError):
+    with pytest.raises(FileNotFoundError):
         filestore.read(metadata_name)
 
 
@@ -486,7 +488,7 @@ def test_schema_manager_all(schema_manager):
     assert bar_schema == modified_schema
 
     schema_manager.remove_schema(METADATA_TEST_NAMESPACE, "metadata-test")
-    with pytest.raises(KeyError):
+    with pytest.raises(FileNotFoundError):
         schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
 
     schema_manager.clear_all()  # Ensure test schema has been restored

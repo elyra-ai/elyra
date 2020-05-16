@@ -28,7 +28,6 @@ from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 
 METADATA_TEST_NAMESPACE = "metadata-tests"  # exposed via METADATA_TESTING env
-DEFAULT_SCHEMA_NAME = 'kfp'
 
 
 def metadata_path(*subdirs):
@@ -86,10 +85,10 @@ class Metadata(object):
     reason = None
 
     def __init__(self, **kwargs):
-        self.display_name = kwargs.get('display_name')
-        self.schema_name = kwargs.get('schema_name') or DEFAULT_SCHEMA_NAME
-        self.metadata = kwargs.get('metadata', {})
         self.name = kwargs.get('name')
+        self.display_name = kwargs.get('display_name')
+        self.schema_name = kwargs.get('schema_name')
+        self.metadata = kwargs.get('metadata', {})
         self.resource = kwargs.get('resource')
         self.reason = kwargs.get('reason')
 
@@ -278,14 +277,14 @@ class FileMetadataStore(MetadataStore):
         metadata_resource_name = '{}.json'.format(name)
         resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)
 
-        # Handle replacement flag behavior for hierarchy.
+        # Handle replacement behavior for hierarchy.
         if os.path.exists(resource):
             if replace:
                 os.remove(resource)
             else:
-                msg = "Metadata resource '{}' already exists. Use the replace flag to overwrite.".format(resource)
+                msg = "Metadata resource '{}' already exists.".format(resource)
                 self.log.error(msg)
-                raise PermissionError(msg)
+                raise FileExistsError(msg)
 
         # Although the resource doesn't exist in the preferred dir, it may exist at other levels.
         # If replacement is not enabled, then existence at other levels should also prevent the update.
@@ -293,10 +292,10 @@ class FileMetadataStore(MetadataStore):
             try:
                 self._load_metadata_resources(name, validate_metadata=False)
                 # Instance exists at other (protected) level and replacement was not request
-                msg = "Metadata instance '{}' already exists. Use the replace flag to overwrite.".format(name)
+                msg = "Metadata instance '{}' already exists.".format(name)
                 self.log.error(msg)
-                raise PermissionError(msg)
-            except KeyError:  # doesn't exist elsewhere, so we're good.
+                raise FileExistsError(msg)
+            except FileNotFoundError:  # doesn't exist elsewhere, so we're good.
                 pass
 
         created_namespace_dir = False
@@ -333,7 +332,7 @@ class FileMetadataStore(MetadataStore):
         self.log.info("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
         try:
             metadata = self._load_metadata_resources(name=name, validate_metadata=False)  # Don't validate on remove
-        except KeyError:
+        except FileNotFoundError:
             self.log.warning("Metadata resource '{}' in namespace '{}' was not found!".format(name, self.namespace))
             return
 
@@ -391,8 +390,8 @@ class FileMetadataStore(MetadataStore):
                                                        resources[metadata.name].resource,
                                                        metadata.resource))
                             resources[metadata.name] = metadata
-        if not namespace_dir_exists:  # namespace doesn't exist, treat as KeyError
-            raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
+        if not namespace_dir_exists:  # namespace doesn't exist, treat as FileNotFoundError
+            raise FileNotFoundError("Metadata namespace '{}' was not found!".format(self.namespace))
 
         if name:
             if saved_ex:  # the instance that we're looking for raised
@@ -402,7 +401,7 @@ class FileMetadataStore(MetadataStore):
                 return resources[name]
 
             # If we're looking for a single metadata and we're here, then its not found
-            raise KeyError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
+            raise FileNotFoundError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
 
         # We're here only if loading all resources, so only return list of values.
         return list(resources.values())
@@ -500,7 +499,7 @@ class SchemaManager(SingletonConfigurable):
                              format(namespace, self.get_namespaces()))
         schemas = self.namespace_schemas.get(namespace)
         if schema_name not in schemas.keys():
-            raise KeyError("Schema '{}' in namespace '{}' was not found!".format(schema_name, namespace))
+            raise FileNotFoundError("Schema '{}' in namespace '{}' was not found!".format(schema_name, namespace))
         schema_json = schemas.get(schema_name)
 
         return schema_json

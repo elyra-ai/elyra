@@ -183,7 +183,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert resource.startswith(self.metadata_tests_dir)
 
     def test_create_hierarchy_instance(self):
-        """Create a simple instance - that's conflicting with factory instances. """
+        """Attempts to create an instance from one in the hierarchy. """
 
         byo_instance = byo_metadata_json
         byo_instance['display_name'] = 'user'
@@ -192,11 +192,10 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
 
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
                   method='POST', base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 201
-        resource = r.text
-        assert resource.startswith(self.metadata_tests_dir)
+        assert r.status_code == 409
+        assert "already exists" in r.text
 
-        # Confirm the instances and ensure byo_2 is in USER area
+        # Confirm the instance was not changed
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
@@ -205,29 +204,8 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert len(metadata) == 1
         instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 3
-        assert instances['byo_2']['resource'].startswith(self.metadata_tests_dir)
-        assert instances['byo_3']['resource'].startswith(self.factory_dir)
-
-        # Now attempt creation on byo_1 w/o replacement - expect failure
-        byo_instance = byo_metadata_json
-        byo_instance['display_name'] = 'user'
-        byo_instance['name'] = 'byo_1'
-        byo_instance['replace'] = False
-        body = json.dumps(byo_instance)
-
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
-                  method='POST', base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 403
-
-        # And retry w/ replace = True
-        byo_instance['replace'] = True
-        body = json.dumps(byo_instance)
-
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
-                  method='POST', base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 201
-        resource = r.text
-        assert resource.startswith(self.metadata_tests_dir)
+        assert instances['byo_2']['resource'].startswith(self.factory_dir)
+        assert instances['byo_2']['display_name'] == 'factory'
 
     def test_create_invalid_instance(self):
         """Create a simple instance - not conflicting with factory instances. """
@@ -242,14 +220,21 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert "Schema validation failed for metadata" in r.text
 
     def test_update_instance(self):
-        """Update a simple instance w/ and w/o replacement. """
+        """Update a simple instance. """
 
-        create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
-
+        # First, try to update a non-existent instance - 404 expected...
         valid = valid_metadata_json
         valid['name'] = 'valid'
         valid['metadata']['number_range_test'] = 7
         body = json.dumps(valid)
+
+        # Update instance
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
+                  method='PUT', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 404
+
+        # Now create an instance, then re-attempt the update
+        create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
 
         # Update instance
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
@@ -268,22 +253,15 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
     def test_update_hierarchy_instance(self):
         """Update a simple instance - that's conflicting with factory instances. """
 
-        byo_instance = byo_metadata_json
+        # Do not provide name or schema_name intentionally, since this is an update
+        byo_instance = byo_metadata_json.copy()
+        byo_instance.pop('name')
+        byo_instance.pop('schema_name')
         byo_instance['display_name'] = 'user'
         byo_instance['metadata']['number_range_test'] = 7
-        byo_instance['name'] = 'byo_2'
-        byo_instance['replace'] = False
         body = json.dumps(byo_instance)
 
-        # Because this is considered an update of an existing instance and replace is False, expect 403
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
-                  method='PUT', base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 403
-
-        # Reattempt with replace = True
-        byo_instance['replace'] = True
-        body = json.dumps(byo_instance)
-
+        # Because this is considered an update, replacement is enabled.
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
@@ -297,8 +275,9 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert len(metadata) == 1
         instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 3
+        assert instances['byo_2']['name'] == 'byo_2'
+        assert instances['byo_2']['schema_name'] == byo_metadata_json['schema_name']
         assert instances['byo_2']['resource'].startswith(self.metadata_tests_dir)
-        assert instances['byo_3']['resource'].startswith(self.factory_dir)
         assert instances['byo_2']['metadata']['number_range_test'] == 7
 
     def test_delete_instance(self):

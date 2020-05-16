@@ -22,27 +22,7 @@ from .metadata import MetadataManager, SchemaManager, Metadata
 from ..util.http import HttpErrorMixin
 
 
-class MetadataHandlerBase(HttpErrorMixin, APIHandler):
-
-    def _validate_body(self):
-        """Validates the body issued for creates. """
-        body = self.get_json_body()
-
-        # Ensure name, schema_name and metadata fields exist.
-        required_fields = ['name', 'schema_name', 'metadata']
-        for field in required_fields:
-            if field not in body:
-                raise SyntaxError("Insufficient information - '{}' is missing from request body.".format(field))
-
-        replace = True
-        if 'replace' in body:
-            replace = str(body.pop('replace')).lower() == "true"
-
-        metadata = Metadata(**body)
-        return body['name'], metadata, replace
-
-
-class MetadataHandler(MetadataHandlerBase):
+class MetadataHandler(HttpErrorMixin, APIHandler):
     """Handler for metadata configurations collection. """
 
     @web.authenticated
@@ -53,7 +33,7 @@ class MetadataHandler(MetadataHandlerBase):
             metadata_manager = MetadataManager(namespace=namespace)
             self.log.debug("MetadataHandler: Fetching all metadata resources from namespace '{}'...".format(namespace))
             metadata = yield maybe_future(metadata_manager.get_all())
-        except (ValidationError, ValueError, KeyError) as err:
+        except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
@@ -69,25 +49,38 @@ class MetadataHandler(MetadataHandlerBase):
 
         namespace = url_unescape(namespace)
         try:
-            name, metadata, replace = self._validate_body()
-            self.log.debug("MetadataHandler: Creating metadata instance '{}' in namespace '{}' (replace={})...".
-                           format(name, namespace, replace))
+            instance = self._validate_body()
+            self.log.debug("MetadataHandler: Creating metadata instance '{}' in namespace '{}'...".
+                           format(instance.name, namespace))
             metadata_manager = MetadataManager(namespace=namespace)
-            model = metadata_manager.add(name, metadata, replace=replace)
+            model = metadata_manager.add(instance.name, instance, replace=False)
         except (ValidationError, ValueError, SyntaxError) as se:
             raise web.HTTPError(400, str(se))
-        except PermissionError as err:
-            raise web.HTTPError(403, str(err))
-        except KeyError as err:
+        except FileNotFoundError as err:
             raise web.HTTPError(404, str(err))
+        except FileExistsError as err:
+            raise web.HTTPError(409, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
         self.set_status(201)
         self.finish(model)
 
+    def _validate_body(self):
+        """Validates the body issued for creates. """
+        body = self.get_json_body()
 
-class MetadataResourceHandler(MetadataHandlerBase):
+        # Ensure name, schema_name and metadata fields exist.
+        required_fields = ['name', 'schema_name', 'metadata']
+        for field in required_fields:
+            if field not in body:
+                raise SyntaxError("Insufficient information - '{}' is missing from request body.".format(field))
+
+        instance = Metadata(**body)
+        return instance
+
+
+class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     """Handler for metadata configuration specific resource (e.g. a runtime element). """
 
     @web.authenticated
@@ -101,7 +94,7 @@ class MetadataResourceHandler(MetadataHandlerBase):
             self.log.debug("MetadataResourceHandler: Fetching metadata resource '{}' from namespace '{}'...".
                            format(resource, namespace))
             metadata = yield maybe_future(metadata_manager.get(resource))
-        except (ValidationError, ValueError, KeyError) as err:
+        except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
@@ -116,15 +109,21 @@ class MetadataResourceHandler(MetadataHandlerBase):
         resource = url_unescape(resource)
 
         try:
-            _, metadata, replace = self._validate_body()
-            self.log.debug("MetadataHandler: Updating metadata instance '{}' in namespace '{}' (replace={})...".
-                           format(resource, namespace, replace))
+            payload = self.get_json_body()
+            # get the current resource...
             metadata_manager = MetadataManager(namespace=namespace)
-            model = metadata_manager.add(resource, metadata, replace=replace)
-        except PermissionError as err:
-            raise web.HTTPError(403, str(err))
-        except (ValidationError, ValueError, KeyError) as err:
+            current = metadata_manager.get(resource)
+            # convert to dictionary and update current with desired changes
+            updates = current.to_dict()
+            updates.update(payload)
+            instance = Metadata(**updates)
+            self.log.debug("MetadataHandler: Updating metadata instance '{}' in namespace '{}'...".
+                           format(resource, namespace))
+            model = metadata_manager.add(resource, instance, replace=True)
+        except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
+        except FileExistsError as err:
+            raise web.HTTPError(409, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
@@ -144,7 +143,7 @@ class MetadataResourceHandler(MetadataHandlerBase):
             model = metadata_manager.remove(resource)
         except PermissionError as err:
             raise web.HTTPError(403, str(err))
-        except (ValidationError, ValueError, KeyError) as err:
+        except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
@@ -164,7 +163,7 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
         try:
             self.log.debug("SchemaHandler: Fetching all schemas for namespace '{}'...".format(namespace))
             schemas = yield maybe_future(schema_manager.get_namespace_schemas(namespace))
-        except (ValidationError, ValueError, KeyError) as err:
+        except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
@@ -188,7 +187,7 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
             self.log.debug("SchemaResourceHandler: Fetching schema '{}' for namespace '{}'...".
                            format(resource, namespace))
             schema = yield maybe_future(schema_manager.get_schema(namespace, resource))
-        except (ValidationError, ValueError, KeyError) as err:
+        except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
@@ -207,7 +206,7 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
         try:
             self.log.debug("NamespaceHandler: Fetching namespaces...")
             namespaces = schema_manager.get_namespaces()
-        except (ValidationError, ValueError, KeyError) as err:
+        except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
