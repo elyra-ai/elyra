@@ -133,13 +133,21 @@ class KfpPipelineProcessor(PipelineProcessor):
         # Create dictionary that maps component Id to its ContainerOp instance
         notebook_ops = {}
 
-        # Preprocess the output/input artifacts
-        for pipeline_child_operation in pipeline.operations.values():
-            for dependency in pipeline_child_operation.dependencies:
-                pipeline_parent_operation = pipeline.operations[dependency]
-                if pipeline_parent_operation.outputs:
-                    pipeline_child_operation.inputs = \
-                        pipeline_child_operation.inputs + pipeline_parent_operation.outputs
+        # All previous operation outputs should be propagated throughout the pipeline.
+        # In order to process this recursively, the current operation's inputs should be combined
+        # from its parent's inputs (which, themselves are derived from the outputs of their parent)
+        # and its parent's outputs.
+        for pipeline_operation in pipeline.operations.values():
+            parent_inputs_and_outputs = []
+            for dependency_operation_id in pipeline_operation.dependencies:
+                parent_operation = pipeline.operations[dependency_operation_id]
+                if parent_operation.inputs:
+                    parent_inputs_and_outputs.extend(parent_operation.inputs)
+                if parent_operation.outputs:
+                    parent_inputs_and_outputs.extend(parent_operation.outputs)
+
+                if parent_inputs_and_outputs:
+                    pipeline_operation.inputs = parent_inputs_and_outputs
 
         for operation in pipeline.operations.values():
             operation_artifact_archive = self._get_dependency_archive_name(operation)
@@ -210,8 +218,8 @@ class KfpPipelineProcessor(PipelineProcessor):
         # Process dependencies after all the operations have been created
         for pipeline_operation in pipeline.operations.values():
             op = notebook_ops[pipeline_operation.id]
-            for dependency in pipeline_operation.dependencies:
-                dependency_op = notebook_ops[dependency]  # Parent Operation
+            for dependency_operation_id in pipeline_operation.dependencies:
+                dependency_op = notebook_ops[dependency_operation_id]  # Parent Operation
                 op.after(dependency_op)
 
         return notebook_ops
