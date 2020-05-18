@@ -143,8 +143,8 @@ class PropertyTester(object):
         self.name = name
         self.property = name + "_test"
 
-    def run(self, script_runner, mock_runtime_dir):
-        expected_file = os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE, self.name + '.json')
+    def run(self, script_runner, mock_data_dir):
+        expected_file = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE, self.name + '.json')
         # Cleanup from any potential previous failures
         if os.path.exists(expected_file):
             os.remove(expected_file)
@@ -168,7 +168,7 @@ class PropertyTester(object):
         assert ret.success is self.positive_res
         assert "Metadata instance '" + self.name + "' for schema 'metadata-test' has been written" in ret.stdout
 
-        assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE))
+        assert os.path.isdir(os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE))
         assert os.path.isfile(expected_file)
 
         with open(expected_file, "r") as fd:

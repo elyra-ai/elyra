@@ -168,8 +168,8 @@ def test_manager_remove_invalid(tests_manager, metadata_tests_dir):
 def test_manager_remove_missing(tests_manager):
     # Ensure removal of missing metadata file is handled.
     metadata_name = 'missing'
-    resource = tests_manager.remove(metadata_name)
-    assert resource is None
+    with pytest.raises(FileNotFoundError):
+        tests_manager.remove(metadata_name)
 
 
 def test_manager_read_valid_by_name(tests_manager, metadata_tests_dir):

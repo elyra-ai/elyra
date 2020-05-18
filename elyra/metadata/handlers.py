@@ -116,10 +116,16 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             # convert to dictionary and update current with desired changes
             updates = current.to_dict()
             updates.update(payload)
+            # Check if name is in the payload and varies from resource, if so, raise 400
+            if 'name' in payload and payload['name'] != resource:
+                raise NotImplementedError("The attempt to rename instance '{}' to '{}' is not supported.".
+                                          format(resource, payload['name']))
             instance = Metadata(**updates)
             self.log.debug("MetadataHandler: Updating metadata instance '{}' in namespace '{}'...".
                            format(resource, namespace))
             model = metadata_manager.add(resource, instance, replace=True)
+        except (NotImplementedError) as err:
+            raise web.HTTPError(400, str(err))
         except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:

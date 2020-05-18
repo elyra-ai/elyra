@@ -317,7 +317,7 @@ class FileMetadataStore(MetadataStore):
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
             self._load_from_resource(resource)
-        except (ValidationError, ValueError) as ve:
+        except (ValidationError, ValueError, FileNotFoundError) as ve:
             self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
@@ -330,11 +330,9 @@ class FileMetadataStore(MetadataStore):
 
     def remove(self, name):
         self.log.info("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
-        try:
-            metadata = self._load_metadata_resources(name=name, validate_metadata=False)  # Don't validate on remove
-        except FileNotFoundError:
-            self.log.warning("Metadata resource '{}' in namespace '{}' was not found!".format(name, self.namespace))
-            return
+
+        # Let exceptions (FileNotFound) propagate
+        metadata = self._load_metadata_resources(name=name, validate_metadata=False)  # Don't validate on remove
 
         resource = metadata.resource
         if resource:

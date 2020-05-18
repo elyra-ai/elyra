@@ -235,6 +235,8 @@ paths:
             application/json:
               schema:
                 type: string
+        400:
+          description: The operation is not supported
         404:
           description: The resource to update was not found
         500:
