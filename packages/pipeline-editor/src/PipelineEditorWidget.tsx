@@ -28,7 +28,7 @@ import {
   pipelineIcon,
   savePipelineIcon,
   IDictionary
-} from '@elyra/apputils';
+} from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,

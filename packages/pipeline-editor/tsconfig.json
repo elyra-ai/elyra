@@ -17,7 +17,7 @@
   ],
   "references": [
     {
-      "path": "../apputils"
+      "path": "../application"
     }
   ]
 }

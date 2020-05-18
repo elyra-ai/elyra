@@ -16,7 +16,7 @@
 
 import '../style/index.css';
 
-import { codeSnippetIcon } from '@elyra/apputils';
+import { codeSnippetIcon } from '@elyra/application';
 
 import {
   JupyterFrontEnd,

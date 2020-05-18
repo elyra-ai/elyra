@@ -31,7 +31,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/apputils": "^0.11.0-dev",
+    "@elyra/application": "^0.11.0-dev",
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/cells": "^2.0.2",
