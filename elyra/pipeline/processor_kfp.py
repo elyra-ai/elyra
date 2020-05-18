@@ -133,13 +133,21 @@ class KfpPipelineProcessor(PipelineProcessor):
         # Create dictionary that maps component Id to its ContainerOp instance
         notebook_ops = {}
 
-        # Preprocess the output/input artifacts
-        for pipeline_child_operation in pipeline.operations.values():
-            for dependency in pipeline_child_operation.dependencies:
-                pipeline_parent_operation = pipeline.operations[dependency]
-                if pipeline_parent_operation.outputs:
-                    pipeline_child_operation.inputs = \
-                        pipeline_child_operation.inputs + pipeline_parent_operation.outputs
+        # All previous operation outputs should be propagated throughout the pipeline.
+        # In order to process this recursively, the current operation's inputs should be combined
+        # from its parent's inputs (which, themselves are derived from the outputs of their parent)
+        # and its parent's outputs.
+        for pipeline_operation in pipeline.operations.values():
+            parent_inputs_and_outputs = []
+            for dependency_operation_id in pipeline_operation.dependencies:
+                parent_operation = pipeline.operations[dependency_operation_id]
+                if parent_operation.inputs:
+                    parent_inputs_and_outputs.extend(parent_operation.inputs)
+                if parent_operation.outputs:
+                    parent_inputs_and_outputs.extend(parent_operation.outputs)
+
+                if parent_inputs_and_outputs:
+                    pipeline_operation.inputs = parent_inputs_and_outputs
 
         for operation in pipeline.operations.values():
             operation_artifact_archive = self._get_dependency_archive_name(operation)
@@ -192,9 +200,9 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             notebook_ops[operation.id] = notebook_op
 
-            self.log.info("NotebookOp Created for Component %s \n", operation.id)
+            self.log.info("NotebookOp Created for Component '%s' (%s) \n", operation.title, operation.id)
 
-            # upload operation dependencies to object store
+            # upload operation dependencies to object storage
             try:
                 dependency_archive_path = self._generate_dependency_archive(operation)
                 cos_client = CosClient(config=runtime_configuration)
@@ -205,13 +213,13 @@ class KfpPipelineProcessor(PipelineProcessor):
                 self.log.error("Error uploading artifacts to object storage.", exc_info=True)
                 raise
 
-            self.log.info("Pipeline dependencies have been uploaded to object store")
+            self.log.info("Pipeline dependencies have been uploaded to object storage")
 
         # Process dependencies after all the operations have been created
         for pipeline_operation in pipeline.operations.values():
             op = notebook_ops[pipeline_operation.id]
-            for dependency in pipeline_operation.dependencies:
-                dependency_op = notebook_ops[dependency]  # Parent Operation
+            for dependency_operation_id in pipeline_operation.dependencies:
+                dependency_op = notebook_ops[dependency_operation_id]  # Parent Operation
                 op.after(dependency_op)
 
         return notebook_ops
@@ -253,6 +261,5 @@ class KfpPipelineProcessor(PipelineProcessor):
             runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
             return runtime_configuration
         except BaseException as err:
-            self.log.error('Error retrieving runtime configuration for {}'.format(name),
-                           exc_info=True)
+            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
             raise RuntimeError('Error retrieving runtime configuration for {}', err)
