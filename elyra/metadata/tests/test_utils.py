@@ -50,9 +50,17 @@ invalid_metadata_json = {
     }
 }
 
+invalid_no_display_name_json = {
+    'schema_name': 'metadata-test',
+    'metadata': {
+        'uri_test': '//localhost:8081/',
+        'required_test': "required_value"
+    }
+}
+
 # Contains all values corresponding to test schema...
 complete_metadata_json = {
-    "schema_name": "test",
+    "schema_name": "metadata-test",
     "display_name": "complete metadata instance",
     "metadata": {
         "required_test": "required_value",
@@ -78,8 +86,20 @@ complete_metadata_json = {
 # Minimal json to be built upon for each property test.  Only
 # required values are specified.
 minmal_metadata_json = {
-    "schema_name": "test",
+    "schema_name": "metadata-test",
     "display_name": "complete metadata instance",
+    "metadata": {
+        "required_test": "required_value"
+    }
+}
+
+
+# Bring-your-own metadata template used to test hierarchical writes.  The
+# display_name field will be updated to reflect the location's instance
+# in the hierarchy
+byo_metadata_json = {
+    "schema_name": "metadata-test",
+    "display_name": "location",
     "metadata": {
         "required_test": "required_value"
     }
@@ -109,6 +129,14 @@ def get_schema(schema_name):
     return schema_json
 
 
+def get_instance(instances, field, value):
+    """Given a list of instances (dicts), return the dictionary where field == value."""
+    for inst in instances:
+        if inst[field] == value:
+            return inst
+    assert False, "Value '{}' for field '{}' was not found in instances!".format(value, field)
+
+
 class PropertyTester(object):
     """Helper class used by elyra_md tests to test each of the properties in the test.json schema. """
     name = None             # prefixed with 'test_' is test name, post-fixed with '_test' is schema property name
@@ -123,8 +151,8 @@ class PropertyTester(object):
         self.name = name
         self.property = name + "_test"
 
-    def run(self, script_runner, mock_runtime_dir):
-        expected_file = os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE, self.name + '.json')
+    def run(self, script_runner, mock_data_dir):
+        expected_file = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE, self.name + '.json')
         # Cleanup from any potential previous failures
         if os.path.exists(expected_file):
             os.remove(expected_file)
@@ -148,7 +176,7 @@ class PropertyTester(object):
         assert ret.success is self.positive_res
         assert "Metadata instance '" + self.name + "' for schema 'metadata-test' has been written" in ret.stdout
 
-        assert os.path.isdir(os.path.join(mock_runtime_dir, 'metadata', METADATA_TEST_NAMESPACE))
+        assert os.path.isdir(os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE))
         assert os.path.isfile(expected_file)
 
         with open(expected_file, "r") as fd:
