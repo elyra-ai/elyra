@@ -78,7 +78,7 @@ const NodeProperties = (properties: any): React.ReactElement => {
         if (Array.isArray(value)) {
           value = value.join('\n');
         } else if (typeof value === 'boolean') {
-          value = value ? 'checked' : 'unchecked';
+          value = value ? 'Yes' : 'No';
         }
         return (
           <React.Fragment key={idx}>
