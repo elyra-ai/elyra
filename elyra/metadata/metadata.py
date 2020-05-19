@@ -93,12 +93,11 @@ class Metadata(object):
         self.reason = kwargs.get('reason')
 
     def to_dict(self, trim=False):
-        # Exclude name, resource, and reason only if trim is True since we don't want to persist that information.
-        # Only include schema_name if it has a value (regardless of trim).
-        d = dict(display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
+        # Exclude resource, and reason only if trim is True since we don't want to persist that information.
+        # Only include schema_name if it has a value (regardless of trim). Method prepare_write will be used
+        # to trim out name prior to writes.
+        d = dict(name=self.name, display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
         if not trim:
-            if self.name:
-                d['name'] = self.name
             if self.resource:
                 d['resource'] = self.resource
             if self.reason:
@@ -107,9 +106,13 @@ class Metadata(object):
         return d
 
     def to_json(self, trim=False):
-        j = json.dumps(self.to_dict(trim=trim), indent=2)
+        return json.dumps(self.to_dict(trim=trim), indent=2)
 
-        return j
+    def prepare_write(self):
+        """Prepares this instance for writes, stripping name, reason, and resource"""
+        prepared = self.to_dict(trim=True)  # we should also trim 'name' when writing
+        prepared.pop('name', None)
+        return json.dumps(prepared, indent=2)
 
 
 class MetadataManager(LoggingConfigurable):
@@ -307,7 +310,7 @@ class FileMetadataStore(MetadataStore):
 
         try:
             with io.open(resource, 'w', encoding='utf-8') as f:
-                f.write(metadata.to_json(trim=True))  # Only persist necessary items
+                f.write(metadata.prepare_write())  # Only persist necessary items
         except Exception:
             if created_namespace_dir:
                 shutil.rmtree(self.preferred_metadata_dir)
@@ -316,7 +319,7 @@ class FileMetadataStore(MetadataStore):
 
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
-            self._load_from_resource(resource)
+            metadata = self._load_from_resource(resource)
         except (ValidationError, ValueError, FileNotFoundError) as ve:
             self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
@@ -326,7 +329,7 @@ class FileMetadataStore(MetadataStore):
                 os.remove(resource)
             raise ve
 
-        return resource
+        return metadata
 
     def remove(self, name):
         self.log.info("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
@@ -343,7 +346,7 @@ class FileMetadataStore(MetadataStore):
                                       format(resource, self.namespace))
             os.remove(resource)
 
-        return resource
+        return metadata
 
     def _remove_allowed(self, metadata):
         """Determines if the resource of the given instance is allowed to be removed. """

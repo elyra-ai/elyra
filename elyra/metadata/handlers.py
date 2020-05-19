@@ -39,7 +39,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(500, repr(ex))
 
         metadata_model = dict()
-        metadata_model[namespace] = {r.name: r.to_dict() for r in metadata}
+        metadata_model[namespace] = [r.to_dict(trim=True) for r in metadata]
         self.set_header("Content-Type", 'application/json')
         self.finish(metadata_model)
 
@@ -53,7 +53,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
             self.log.debug("MetadataHandler: Creating metadata instance '{}' in namespace '{}'...".
                            format(instance.name, namespace))
             metadata_manager = MetadataManager(namespace=namespace)
-            model = metadata_manager.add(instance.name, instance, replace=False)
+            metadata = metadata_manager.add(instance.name, instance, replace=False)
         except (ValidationError, ValueError, SyntaxError) as se:
             raise web.HTTPError(400, str(se))
         except FileNotFoundError as err:
@@ -64,7 +64,8 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(500, repr(ex))
 
         self.set_status(201)
-        self.finish(model)
+        self.set_header("Content-Type", 'application/json')
+        self.finish(metadata.to_dict(trim=True))
 
     def _validate_body(self):
         """Validates the body issued for creates. """
@@ -100,7 +101,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(500, repr(ex))
 
         self.set_header("Content-Type", 'application/json')
-        self.finish(metadata.to_dict())
+        self.finish(metadata.to_dict(trim=True))
 
     @web.authenticated
     @gen.coroutine
@@ -123,7 +124,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             instance = Metadata(**updates)
             self.log.debug("MetadataHandler: Updating metadata instance '{}' in namespace '{}'...".
                            format(resource, namespace))
-            model = metadata_manager.add(resource, instance, replace=True)
+            metadata = metadata_manager.add(resource, instance, replace=True)
         except (NotImplementedError) as err:
             raise web.HTTPError(400, str(err))
         except (ValidationError, ValueError, FileNotFoundError) as err:
@@ -132,7 +133,8 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(500, repr(ex))
 
         self.set_status(200)
-        self.finish(model)
+        self.set_header("Content-Type", 'application/json')
+        self.finish(metadata.to_dict(trim=True))
 
     @web.authenticated
     @gen.coroutine
@@ -144,7 +146,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             self.log.debug("MetadataHandler: Deleting metadata instance '{}' in namespace '{}'...".
                            format(resource, namespace))
             metadata_manager = MetadataManager(namespace=namespace)
-            model = metadata_manager.remove(resource)
+            metadata = metadata_manager.remove(resource)
         except PermissionError as err:
             raise web.HTTPError(403, str(err))
         except (ValidationError, ValueError, FileNotFoundError) as err:
@@ -153,7 +155,8 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(500, repr(ex))
 
         self.set_status(200)
-        self.finish(model)
+        self.set_header("Content-Type", 'application/json')
+        self.finish(metadata.to_dict(trim=True))
 
 
 class SchemaHandler(HttpErrorMixin, APIHandler):
@@ -173,7 +176,7 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(500, repr(ex))
 
         schemas_model = dict()
-        schemas_model[namespace] = {r['name']: r for r in schemas.values()}
+        schemas_model[namespace] = list(schemas.values())
         self.set_header("Content-Type", 'application/json')
         self.finish(schemas_model)
 

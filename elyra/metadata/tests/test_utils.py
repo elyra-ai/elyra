@@ -129,6 +129,14 @@ def get_schema(schema_name):
     return schema_json
 
 
+def get_instance(instances, field, value):
+    """Given a list of instances (dicts), return the dictionary where field == value."""
+    for inst in instances:
+        if inst[field] == value:
+            return inst
+    assert False, "Value '{}' for field '{}' was not found in instances!".format(value, field)
+
+
 class PropertyTester(object):
     """Helper class used by elyra_md tests to test each of the properties in the test.json schema. """
     name = None             # prefixed with 'test_' is test name, post-fixed with '_test' is schema property name

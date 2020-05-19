@@ -25,7 +25,7 @@ from notebook.tests.launchnotebook import NotebookTestBase
 
 from ..metadata import METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
-    create_json_file
+    create_json_file, get_instance
 from .conftest import fetch  # FIXME - remove once jupyter_server is used
 
 
@@ -108,8 +108,9 @@ class MetadataHandlerTest(MetadataTestBase):
         assert len(metadata) == 1
         instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 2
-        assert 'another' in instances.keys()
-        assert 'valid' in instances.keys()
+        assert isinstance(instances, list)
+        assert get_instance(instances, 'name', 'another')
+        assert get_instance(instances, 'name', 'valid')
 
     def test_get_empty_namespace_instances(self):
         # Delete the metadata dir contents and attempt listing metadata
@@ -164,10 +165,12 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert len(metadata) == 1
         instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 3
-        assert 'byo_1' in instances.keys()
-        assert 'byo_2' in instances.keys()
-        assert 'byo_3' in instances.keys()
-        assert instances['byo_3']['resource'].startswith(self.factory_dir)
+        assert isinstance(instances, list)
+        assert get_instance(instances, 'name', 'byo_1')
+        assert get_instance(instances, 'name', 'byo_2')
+        assert get_instance(instances, 'name', 'byo_3')
+        byo_3 = get_instance(instances, 'name', 'byo_3')
+        assert byo_3['display_name'] == 'factory'
 
     def test_create_instance(self):
         """Create a simple instance - not conflicting with factory instances. """
@@ -179,8 +182,8 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
                   method='POST', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 201
-        resource = r.text
-        assert resource.startswith(self.metadata_tests_dir)
+        metadata = r.json()
+        assert metadata == valid
 
     def test_create_hierarchy_instance(self):
         """Attempts to create an instance from one in the hierarchy. """
@@ -204,8 +207,9 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert len(metadata) == 1
         instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 3
-        assert instances['byo_2']['resource'].startswith(self.factory_dir)
-        assert instances['byo_2']['display_name'] == 'factory'
+        assert isinstance(instances, list)
+        byo_2 = get_instance(instances, 'name', 'byo_2')
+        assert byo_2['display_name'] == 'factory'
 
     def test_create_invalid_instance(self):
         """Create a simple instance - not conflicting with factory instances. """
@@ -258,10 +262,10 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
-        resource = r.text
-        assert resource.startswith(self.metadata_tests_dir)
+        instance = r.json()
+        assert instance['metadata']['number_range_test'] == 7
 
-        # Confirm update
+        # Confirm update via fetch
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
@@ -292,14 +296,14 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert len(metadata) == 1
         instances = metadata[METADATA_TEST_NAMESPACE]
         assert len(instances) == 3
-        assert instances['byo_2']['name'] == 'byo_2'
-        assert instances['byo_2']['schema_name'] == byo_metadata_json['schema_name']
-        assert instances['byo_2']['resource'].startswith(self.metadata_tests_dir)
-        assert instances['byo_2']['metadata']['number_range_test'] == 7
+        assert isinstance(instances, list)
+        byo_2 = get_instance(instances, 'name', 'byo_2')
+        assert byo_2['schema_name'] == byo_metadata_json['schema_name']
+        assert byo_2['metadata']['number_range_test'] == 7
 
         # Attempt to rename the resource, exception expected.
-        instances['byo_2']['name'] = 'byo_2_renamed'
-        body = json.dumps(instances['byo_2'])
+        byo_2['name'] = 'byo_2_renamed'
+        body = json.dumps(byo_2)
 
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
@@ -326,8 +330,14 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
-        resource = r.text
-        assert resource.startswith(self.metadata_tests_dir)
+        metadata = r.json()
+        metadata.pop('name', None)
+        assert metadata == valid_metadata_json
+
+        # Confirm deletion
+        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+                  method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 404
 
     def test_delete_hierarchy_instance(self):
         """Create a simple instance - that conflicts with factory instances and delete it only if local. """
@@ -342,8 +352,8 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
-        resource = r.text
-        assert resource.startswith(self.metadata_tests_dir)
+        metadata = r.json()
+        assert metadata['display_name'] == 'location'
 
 
 class SchemaHandlerTest(MetadataTestBase):
@@ -400,7 +410,7 @@ class SchemaHandlerTest(MetadataTestBase):
         schemas = namespace_schemas[namespace]
         assert len(schemas) == len(expected)
         for expected_schema in expected:
-            assert expected_schema in schemas.keys()
+            assert get_instance(schemas, 'name', expected_schema)
 
     def _get_namespace_schema(self, namespace, expected):
         r = fetch(self.request, 'api', 'schema', namespace, expected,

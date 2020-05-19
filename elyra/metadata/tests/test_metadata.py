@@ -125,8 +125,8 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
 
     metadata = Metadata(**valid_metadata_json)
 
-    resource = tests_manager.add(metadata_name, metadata)
-    assert resource is not None
+    instance = tests_manager.add(metadata_name, metadata)
+    assert instance is not None
 
     # Ensure file was created
     metadata_file = os.path.join(metadata_tests_dir, 'valid_add_remove.json')
@@ -145,24 +145,24 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
     with pytest.raises(FileExistsError):
         tests_manager.add(metadata_name, metadata)
 
-    resource = tests_manager.add(metadata_name, metadata, replace=True)
-    assert resource is not None
+    instance = tests_manager.add(metadata_name, metadata, replace=True)
+    assert instance is not None
 
     # And finally, remove it.
-    resource = tests_manager.remove(metadata_name)
+    instance = tests_manager.remove(metadata_name)
 
     assert not os.path.exists(metadata_file)
-    assert resource == metadata_file
+    assert instance.resource == metadata_file
 
 
 def test_manager_remove_invalid(tests_manager, metadata_tests_dir):
     # Ensure invalid metadata file isn't validated and is removed.
     create_json_file(metadata_tests_dir, 'remove_invalid.json', invalid_metadata_json)
     metadata_name = 'remove_invalid'
-    resource = tests_manager.remove(metadata_name)
+    instance = tests_manager.remove(metadata_name)
     metadata_file = os.path.join(metadata_tests_dir, 'remove_invalid.json')
     assert not os.path.exists(metadata_file)
-    assert resource == metadata_file
+    assert instance.resource == metadata_file
 
 
 def test_manager_remove_missing(tests_manager):
@@ -285,9 +285,9 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
     with pytest.raises(FileExistsError):
         tests_hierarchy_manager.add('byo_2', metadata)
 
-    resource = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
-    assert resource is not None
-    assert resource.startswith(str(metadata_tests_dir))
+    instance = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
+    assert instance is not None
+    assert instance.resource.startswith(str(metadata_tests_dir))
 
     metadata_list = tests_hierarchy_manager.get_all()
     assert len(metadata_list) == 3
@@ -305,9 +305,9 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
 
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    resource = tests_hierarchy_manager.add('byo_3', metadata, replace=True)
-    assert resource is not None
-    assert resource.startswith(str(metadata_tests_dir))
+    instance = tests_hierarchy_manager.add('byo_3', metadata, replace=True)
+    assert instance is not None
+    assert instance.resource.startswith(str(metadata_tests_dir))
 
     metadata_list = tests_hierarchy_manager.get_all()
     assert len(metadata_list) == 3
@@ -335,9 +335,9 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
         tests_hierarchy_manager.add('byo_2', byo_2)
 
     # Repeat with replacement enabled
-    resource = tests_hierarchy_manager.add('byo_2', byo_2, replace=True)
-    assert resource is not None
-    assert resource.startswith(str(metadata_tests_dir))
+    instance = tests_hierarchy_manager.add('byo_2', byo_2, replace=True)
+    assert instance is not None
+    assert instance.resource.startswith(str(metadata_tests_dir))
 
     # now "slip in" a shared instance behind the updated version and ensure
     # the updated version is what's returned.
@@ -349,8 +349,8 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_2.resource.startswith(str(metadata_tests_dir))
 
     # now remove the updated instance and ensure the shared instance appears
-    resource = tests_hierarchy_manager.remove('byo_2')
-    assert resource == byo_2.resource
+    instance = tests_hierarchy_manager.remove('byo_2')
+    assert instance.resource == byo_2.resource
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
     assert byo_2.resource.startswith(str(shared_dir))
@@ -365,9 +365,9 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_d
 
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    resource = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
-    assert resource is not None
-    assert resource.startswith(str(metadata_tests_dir))
+    instance = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
+    assert instance is not None
+    assert instance.resource.startswith(str(metadata_tests_dir))
 
     # Confirm on in user is found...
     metadata_list = tests_hierarchy_manager.get_all()
@@ -385,8 +385,8 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_2.resource.startswith(str(metadata_tests_dir))
 
     # Now remove instance.  Should be allowed since it resides in user area
-    resource = tests_hierarchy_manager.remove('byo_2')
-    assert resource == byo_2.resource
+    instance = tests_hierarchy_manager.remove('byo_2')
+    assert instance.resource == byo_2.resource
 
     # Attempt to remove instance from shared area and its protected
     with pytest.raises(PermissionError) as pe:
