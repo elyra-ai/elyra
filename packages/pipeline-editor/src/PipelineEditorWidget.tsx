@@ -66,6 +66,30 @@ import * as properties from './properties.json';
 import { PipelineSubmissionHandler } from './submission';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
+const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
+
+const TIP_TYPE_NODE = 'tipTypeNode';
+
+const NodeProperties = (properties: any): React.ReactElement => {
+  return (
+    <dl className={NODE_TOOLTIP_CLASS}>
+      {Object.keys(properties).map((key, idx) => {
+        let value = properties[key];
+        if (Array.isArray(value)) {
+          value = value.join('\n');
+        } else if (typeof value === 'boolean') {
+          value = value ? 'Yes' : 'No';
+        }
+        return (
+          <React.Fragment key={idx}>
+            <dd>{key}</dd>
+            <dt>{value}</dt>
+          </React.Fragment>
+        );
+      })}
+    </dl>
+  );
+};
 
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
@@ -159,6 +183,7 @@ export class PipelineEditor extends React.Component<
     this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
     this.clickActionHandler = this.clickActionHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
+    this.tipHandler = this.tipHandler.bind(this);
 
     this.state = { showPropertiesDialog: false, propertiesInfo: {} };
 
@@ -267,6 +292,7 @@ export class PipelineEditor extends React.Component<
           contextMenuActionHandler={this.contextMenuActionHandler}
           clickActionHandler={this.clickActionHandler}
           editActionHandler={this.editActionHandler}
+          tipHandler={this.tipHandler}
           toolbarConfig={toolbarConfig}
           config={canvasConfig}
         />
@@ -385,6 +411,13 @@ export class PipelineEditor extends React.Component<
    */
   editActionHandler(data: any): void {
     this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+  }
+
+  tipHandler(tipType: string, data: any): any {
+    if (tipType === TIP_TYPE_NODE) {
+      const properties = this.canvasController.getNode(data.node.id).app_data;
+      return <NodeProperties {...properties} />;
+    }
   }
 
   handleAdd(x?: number, y?: number): Promise<any> {

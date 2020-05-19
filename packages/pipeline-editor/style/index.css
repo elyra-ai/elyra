@@ -59,6 +59,20 @@
   text-align: center;
 }
 
+.common-canvas-tooltip[data-id^='node_tip'] {
+  max-width: initial;
+}
+.elyra-PipelineNodeTooltip {
+  text-align: left;
+}
+.elyra-PipelineNodeTooltip dd {
+  font-weight: 600;
+}
+.elyra-PipelineNodeTooltip dt {
+  margin-left: 10px;
+  white-space: pre-wrap;
+}
+
 /* notebook-scheduler css */
 
 .jp-Dialog-content {
