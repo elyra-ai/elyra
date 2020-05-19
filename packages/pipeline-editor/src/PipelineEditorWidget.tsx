@@ -74,20 +74,22 @@ const NodeProperties = (properties: any): React.ReactElement => {
   return (
     <dl className={NODE_TOOLTIP_CLASS}>
       {Object.keys(properties).map((key, idx) => {
+        let value = properties[key];
+        if (Array.isArray(value)) {
+          value = value.join('\n');
+        } else if (typeof value === 'boolean') {
+          value = value ? 'Yes' : 'No';
+        }
         return (
           <React.Fragment key={idx}>
             <dd>{key}</dd>
-            <dt>
-              {Array.isArray(properties[key])
-                ? properties[key].join('\n')
-                : properties[key]}
-            </dt>
+            <dt>{value}</dt>
           </React.Fragment>
         );
       })}
     </dl>
   );
-}
+};
 
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
