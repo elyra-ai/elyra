@@ -1,0 +1,44 @@
+{
+  "name": "@elyra/ui-components",
+  "version": "0.11.0-dev",
+  "description": "JupyterLab - UI components for use in elyra",
+  "keywords": [
+    "jupyter",
+    "jupyterlab"
+  ],
+  "homepage": "https://github.com/elyra-ai/elyra",
+  "bugs": {
+    "url": "https://github.com/elyra-ai/elyra/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elyra-ai/elyra/"
+  },
+  "license": "Apache-2.0",
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib",
+    "dist": "npm pack .",
+    "prepare": "npm run build",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "@jupyterlab/ui-components": "^2.0.2",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  },
+  "devDependencies": {
+    "rimraf": "~3.0.0",
+    "typescript": "~3.7.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
