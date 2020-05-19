@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help clean-elyra uninstall clean test-dependencies lint-server lint-ui lint build install install-backend
+.PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
 .PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs docker-image
 
 SHELL:=/bin/bash
