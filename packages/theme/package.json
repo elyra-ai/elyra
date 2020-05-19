@@ -1,5 +1,5 @@
 {
-  "name": "@elyra/theme",
+  "name": "@elyra/theme-extension",
   "version": "0.11.0-dev",
   "description": "JupyterLab extension - Elyra theme",
   "keywords": [

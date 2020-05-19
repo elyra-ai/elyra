@@ -79,7 +79,7 @@ bdist: npm-packages
 install: bdist lint ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 	$(call UNLINK_LAB_EXTENSION,application)
-	$(call UNLINK_LAB_EXTENSION,theme)
+	$(call UNLINK_LAB_EXTENSION,theme-extension)
 	$(call UNLINK_LAB_EXTENSION,code-snippet-extension-experimental)
 	$(call UNLINK_LAB_EXTENSION,pipeline-editor-extension)
 	$(call UNLINK_LAB_EXTENSION,python-runner-extension)
