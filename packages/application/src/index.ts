@@ -19,4 +19,3 @@ import '../style/index.css';
 export * from './parsing';
 export * from './services';
 export * from './submission';
-export * from './icons';
