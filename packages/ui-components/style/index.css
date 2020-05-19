@@ -33,36 +33,6 @@
   background-color: #eeeeee;
 }
 
-.elyra-codeSnippetsHeader {
-  font-weight: bold;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
-}
-
-.elyra-codeSnippet-item {
-  border-bottom: 1px solid #eeeeee;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-}
-
-.elyra-codeSnippet-item textarea {
-  background-color: inherit;
-  border: none;
-  font-family: var(--jp-code-font-family);
-  font-size: var(--jp-code-font-size);
-  line-height: var(--jp-code-line-height);
-  min-height: 125px;
-  height: 100%;
-  width: 100%;
-  resize: vertical;
-  white-space: pre;
-  word-wrap: normal;
-  overflow-x: scroll;
-}
-
 .elyra-expandableContainer-title {
   align-items: center;
   display: flex;
