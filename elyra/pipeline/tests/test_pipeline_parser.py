@@ -25,9 +25,8 @@ from elyra.pipeline import PipelineParser, Operation
 def valid_operation():
     return Operation(id='{{uuid}}',
                      type='{{type}}',
-                     title='{{title}}',
-                     artifact='{{artifact}}',
-                     image='{{image}}')
+                     filename='{{filename}}',
+                     runtime_image='{{image}}')
 
 
 def test_valid_pipeline(valid_operation):
@@ -35,7 +34,7 @@ def test_valid_pipeline(valid_operation):
 
     pipeline = PipelineParser.parse(pipeline_definition)
 
-    assert pipeline.title == '{{title}}'
+    assert pipeline.name == '{{name}}'
     assert len(pipeline.operations) == 1
     assert pipeline.operations['{{uuid}}'] == valid_operation
 
@@ -103,8 +102,7 @@ def test_pipeline_operations_and_handle_artifact_file_details():
     assert len(pipeline.operations) == 3
 
     for op in pipeline.operations.values():
-        assert '/' not in op.artifact_filename
-        assert '.' not in op.artifact_name
+        assert '.' not in op.name
 
 
 def test_pipeline_with_dependencies():
@@ -120,19 +118,19 @@ def test_pipeline_global_attributes():
 
     pipeline = PipelineParser.parse(pipeline_definition)
 
-    assert pipeline.title == '{{title}}'
+    assert pipeline.name == '{{name}}'
     assert pipeline.runtime == '{{runtime}}'
     assert pipeline.runtime_config == '{{runtime-config}}'
 
 
-def test_missing_pipeline_title():
+def test_missing_pipeline_name():
     pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
-    pipeline_definition['pipelines'][0]['app_data']['title'] = ''
+    pipeline_definition['pipelines'][0]['app_data']['name'] = ''
 
     with pytest.raises(ValueError) as e:
         PipelineParser.parse(pipeline_definition)
 
-    assert "Invalid pipeline: Missing title" in str(e.value)
+    assert "Invalid pipeline: Missing pipeline name" in str(e.value)
 
 
 def test_missing_pipeline_runtime():
@@ -175,24 +173,24 @@ def test_missing_operation_type():
     assert "Missing field 'operation type'" in str(e.value)
 
 
-def test_missing_operation_artifact():
+def test_missing_operation_filename():
     pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
-    pipeline_definition['pipelines'][0]['nodes'][0]['app_data']['artifact'] = ''
+    pipeline_definition['pipelines'][0]['nodes'][0]['app_data']['filename'] = ''
 
     with pytest.raises(ValueError) as e:
         PipelineParser.parse(pipeline_definition)
 
-    assert "Missing field 'operation artifact" in str(e.value)
+    assert "Missing field 'operation filename" in str(e.value)
 
 
 def test_missing_operation_image():
     pipeline_definition = _read_pipeline_resource('pipeline_valid.json')
-    pipeline_definition['pipelines'][0]['nodes'][0]['app_data']['image'] = ''
+    pipeline_definition['pipelines'][0]['nodes'][0]['app_data']['runtime_image'] = ''
 
     with pytest.raises(ValueError) as e:
         PipelineParser.parse(pipeline_definition)
 
-    assert "Missing field 'operation image'" in str(e.value)
+    assert "Missing field 'operation runtime image'" in str(e.value)
 
 
 def _read_pipeline_resource(pipeline_filename):

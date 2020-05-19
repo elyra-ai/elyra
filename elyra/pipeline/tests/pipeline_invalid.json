@@ -12,23 +12,17 @@
           "id": "{{uuid}}",
           "type": "{{type}}",
           "app_data": {
-            "image": "{{image}}",
-            "ui_data": {
-              "label": "{{title}}",
-              "x_pos": 75,
-              "y_pos": 85,
-              "description": "Notebook file"
-            }
+            "runtime_image": "{{image}}"
           }
         }
       ],
       "app_data": {
-        "title": "{{title}}",
         "runtime": "{{runtime}}",
         "runtime-config": "{{runtime-config}}",
         "ui_data": {
           "comments": []
-        }
+        },
+        "name": "{{title}}"
       }
     }
   ],

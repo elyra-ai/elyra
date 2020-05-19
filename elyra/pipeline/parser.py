@@ -58,11 +58,9 @@ class PipelineParser(LoggingConfigurable):
             raise ValueError("Invalid pipeline: At least one node must exist in primary pipeline.")
 
         pipeline_object = Pipeline(pipeline['id'],
-                                   PipelineParser._read_pipeline_title(pipeline),
+                                   PipelineParser._read_pipeline_name(pipeline),
                                    PipelineParser._read_pipeline_runtime(pipeline),
-                                   PipelineParser._read_pipeline_runtime_config(pipeline),
-                                   PipelineParser._read_pipeline_filetype(pipeline),
-                                   PipelineParser._read_pipeline_export(pipeline))
+                                   PipelineParser._read_pipeline_runtime_config(pipeline))
 
         for node in pipeline['nodes']:
             # Supernodes are not supported
@@ -70,20 +68,19 @@ class PipelineParser(LoggingConfigurable):
                 raise ValueError('Invalid pipeline: Supernode feature is not supported.')
 
             # parse links as dependencies
-            links = PipelineParser._read_pipeline_operation_dependencies(node)
+            links = PipelineParser._read_pipeline_operation_parent_operations(node)
 
             # parse each node as a pipeline operation
             operation = Operation(
                 id=node['id'],
                 type=node['type'],
-                title=node['app_data']['ui_data']['label'],
-                artifact=node['app_data']['artifact'],
-                image=node['app_data']['image'],
-                vars=node['app_data'].get('vars') or [],
-                file_dependencies=node['app_data'].get('dependencies') or [],
-                recursive_dependencies=node['app_data'].get('recursive_dependencies') or False,
+                filename=node['app_data']['filename'],
+                runtime_image=node['app_data']['runtime_image'],
+                env_vars=node['app_data'].get('env_vars') or [],
+                dependencies=node['app_data'].get('dependencies') or [],
+                include_subdirectories=node['app_data'].get('include_subdirectories') or False,
                 outputs=node['app_data'].get('outputs') or [],
-                dependencies=links
+                parent_operations=links
             )
             # add valid operation to list of operations
             pipeline_object.operations[operation.id] = operation
@@ -97,31 +94,13 @@ class PipelineParser(LoggingConfigurable):
         return self.__logger
 
     @staticmethod
-    def _read_pipeline_title(pipeline) -> str:
-        title = 'untitled'
+    def _read_pipeline_name(pipeline) -> str:
+        name = 'untitled'
         if 'app_data' in pipeline.keys():
-            if 'title' in pipeline['app_data'].keys():
-                title = pipeline['app_data']['title']
+            if 'name' in pipeline['app_data'].keys():
+                name = pipeline['app_data']['name']
 
-        return title
-
-    @staticmethod
-    def _read_pipeline_filetype(pipeline) -> str:
-        filetype = DEFAULT_FILETYPE
-        if 'app_data' in pipeline.keys():
-            if 'file_type' in pipeline['app_data'].keys():
-                filetype = pipeline['app_data']['file_type']
-
-        return filetype
-
-    @staticmethod
-    def _read_pipeline_export(pipeline) -> str:
-        export = False
-        if 'app_data' in pipeline.keys():
-            if 'export' in pipeline['app_data'].keys():
-                export = pipeline['app_data']['export']
-
-        return export
+        return name
 
     @staticmethod
     def _read_pipeline_runtime(pipeline) -> str:
@@ -143,7 +122,7 @@ class PipelineParser(LoggingConfigurable):
         return runtime_config
 
     @staticmethod
-    def _read_pipeline_operation_dependencies(node) -> list:
+    def _read_pipeline_operation_parent_operations(node) -> list:
         dependencies = []
         if 'inputs' in node.keys():
             if 'links' in node['inputs'][0].keys():

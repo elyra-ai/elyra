@@ -1,14 +1,14 @@
 {
   "current_parameters": {
-    "image": "",
+    "runtime_image": "",
     "outputs": [],
-    "vars": [],
+    "env_vars": [],
     "dependencies": [],
-    "recursive_dependencies": false
+    "include_subdirectories": false
   },
   "parameters": [
     {
-      "id": "image",
+      "id": "runtime_image",
       "enum": []
     },
     {
@@ -16,11 +16,11 @@
       "type": "array[string]"
     },
     {
-      "id": "recursive_dependencies",
+      "id": "include_subdirectories",
       "type": "boolean"
     },
     {
-      "id": "vars",
+      "id": "env_vars",
       "type": "array[string]"
     },
     {
@@ -32,7 +32,7 @@
     "id": "nodeProperties",
     "parameter_info": [
       {
-        "parameter_ref": "image",
+        "parameter_ref": "runtime_image",
         "control": "oneofselect",
         "label": {
           "default": "Docker Image"
@@ -48,9 +48,9 @@
         }
       },
       {
-        "parameter_ref": "vars",
+        "parameter_ref": "env_vars",
         "label": {
-          "default": "Env Vars"
+          "default": "Environmental Variables"
         },
         "place_holder_text": {
           "default": "One var per line in the format ENV_VAR=value"
@@ -66,7 +66,7 @@
         }
       },
       {
-        "parameter_ref": "recursive_dependencies",
+        "parameter_ref": "include_subdirectories",
         "label": {
           "default": "Include subdirectories in dependencies (may increase submission time)"
         }

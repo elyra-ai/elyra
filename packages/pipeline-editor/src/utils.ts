@@ -27,13 +27,13 @@ export default class Utils {
   }
 
   static generateNotebookPipeline(
-    artifact: string,
+    filename: string,
     options: ISubmitNotebookOptions
   ): any {
     const template = pipeline_template;
     const generated_uuid: string = Utils.getUUID();
 
-    const artifactFileName = artifact.replace(/^.*[\\/]/, '');
+    const artifactFileName = filename.replace(/^.*[\\/]/, '');
     const artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
 
     template.id = generated_uuid;
@@ -41,13 +41,12 @@ export default class Utils {
     template.pipelines[0].id = generated_uuid;
 
     template.pipelines[0].nodes[0].id = generated_uuid;
-    template.pipelines[0].nodes[0].app_data.artifact = artifact;
-    template.pipelines[0].nodes[0].app_data.image = options.framework;
-    template.pipelines[0].nodes[0].app_data.vars = options.env;
+    template.pipelines[0].nodes[0].app_data.filename = filename;
+    template.pipelines[0].nodes[0].app_data.runtime_image = options.framework;
+    template.pipelines[0].nodes[0].app_data.env_vars = options.env;
     template.pipelines[0].nodes[0].app_data.dependencies = options.dependencies;
-    template.pipelines[0].nodes[0].app_data.ui_data.label = artifactName;
 
-    template.pipelines[0].app_data.title = artifactName;
+    template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = 'kfp';
     template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
 

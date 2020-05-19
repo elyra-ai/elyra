@@ -18,32 +18,29 @@ import os
 
 class Operation(object):
 
-    def __init__(self, id, type, title, artifact, image, vars=None, file_dependencies=None,
-                 recursive_dependencies=False, outputs=None, inputs=None, dependencies=None):
+    def __init__(self, id, type, filename, runtime_image, env_vars=None, dependencies=None,
+                 include_subdirectories=False, outputs=None, inputs=None, parent_operations=None):
 
         # validate that the operation has all required properties
         if not id:
             raise ValueError("Invalid pipeline: Missing field 'operation id'.")
         if not type:
             raise ValueError("Invalid pipeline: Missing field 'operation type'.")
-        if not title:
-            raise ValueError("Invalid pipeline: Missing field 'operation title'.")
-        if not artifact:
-            raise ValueError("Invalid pipeline: Missing field 'operation artifact'.")
-        if not image:
-            raise ValueError("Invalid pipeline: Missing field 'operation image'.")
+        if not filename:
+            raise ValueError("Invalid pipeline: Missing field 'operation filename'.")
+        if not runtime_image:
+            raise ValueError("Invalid pipeline: Missing field 'operation runtime image'.")
 
         self._id = id
         self._type = type
-        self._title = title
-        self._artifact = artifact
-        self._image = image
-        self._vars = self.__initialize_empty_array_if_none(vars)
-        self._file_dependencies = self.__initialize_empty_array_if_none(file_dependencies)
-        self._recursive_dependencies = recursive_dependencies
+        self._filename = filename
+        self._runtime_image = runtime_image
+        self._env_vars = self.__initialize_empty_array_if_none(env_vars)
+        self._dependencies = self.__initialize_empty_array_if_none(dependencies)
+        self._include_subdirectories = include_subdirectories
         self._outputs = self.__initialize_empty_array_if_none(outputs)
         self._inputs = self.__initialize_empty_array_if_none(inputs)
-        self._dependencies = self.__initialize_empty_array_if_none(dependencies)
+        self._parent_operations = self.__initialize_empty_array_if_none(parent_operations)
 
     @property
     def id(self):
@@ -54,36 +51,28 @@ class Operation(object):
         return self._type
 
     @property
-    def title(self):
-        return self._title
+    def name(self):
+        return os.path.basename(self._filename).split(".")[0]
 
     @property
-    def artifact(self):
-        return self._artifact
+    def filename(self):
+        return self._filename
 
     @property
-    def artifact_filename(self):
-        return os.path.basename(self._artifact)
+    def runtime_image(self):
+        return self._runtime_image
 
     @property
-    def artifact_name(self):
-        return os.path.basename(self._artifact).split(".")[0]
+    def env_vars(self):
+        return self._env_vars
 
     @property
-    def image(self):
-        return self._image
+    def dependencies(self):
+        return self._dependencies
 
     @property
-    def vars(self):
-        return self._vars
-
-    @property
-    def file_dependencies(self):
-        return self._file_dependencies
-
-    @property
-    def recursive_dependencies(self):
-        return self._recursive_dependencies
+    def include_subdirectories(self):
+        return self._include_subdirectories
 
     @property
     def outputs(self):
@@ -98,22 +87,21 @@ class Operation(object):
         self._inputs = value
 
     @property
-    def dependencies(self):
-        return self._dependencies
+    def parent_operations(self):
+        return self._parent_operations
 
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
             return self.id == other.id and \
                 self.type == other.type and \
-                self.title == other.title and \
-                self.artifact == other.artifact and \
-                self.image == other.image and \
-                self.vars == other.vars and \
-                self.file_dependencies == other.file_dependencies and \
-                self.recursive_dependencies == other.recursive_dependencies and \
+                self.filename == other.filename and \
+                self.runtime_image == other.runtime_image and \
+                self.env_vars == other.env_vars and \
+                self.dependencies == other.dependencies and \
+                self.include_subdirectories == other.include_subdirectories and \
                 self.outputs == other.outputs and \
                 self.inputs == other.inputs and \
-                self.dependencies == other.dependencies
+                self.parent_operations == other.parent_operations
 
     @staticmethod
     def __initialize_empty_array_if_none(value):
@@ -125,30 +113,28 @@ class Operation(object):
 
 class Pipeline(object):
 
-    def __init__(self, id, title, runtime, runtime_config, file_type, export):
+    def __init__(self, id, name, runtime, runtime_config):
 
-        if not title:
-            raise ValueError('Invalid pipeline: Missing title.')
+        if not name:
+            raise ValueError('Invalid pipeline: Missing name.')
         if not runtime:
             raise ValueError('Invalid pipeline: Missing runtime.')
         if not runtime_config:
             raise ValueError('Invalid pipeline: Missing runtime configuration.')
 
         self._id = id
-        self._title = title
+        self._name = name
         self._runtime = runtime
         self._runtime_config = runtime_config
         self._operations = {}
-        self._file_type = file_type
-        self._export = export
 
     @property
     def id(self):
         return self._id
 
     @property
-    def title(self):
-        return self._title
+    def name(self):
+        return self._name
 
     @property
     def runtime(self):
@@ -168,17 +154,9 @@ class Pipeline(object):
     def operations(self):
         return self._operations
 
-    @property
-    def file_type(self):
-        return self._file_type
-
-    @property
-    def export(self):
-        return self._export
-
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
-            return self.title == other.title and \
+            return self.name == other.name and \
                 self.runtime_type == other.runtime_type and \
                 self.runtime_config == other.runtime_config and \
                 self.operations == other.operations
