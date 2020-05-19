@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 
-.PHONY: help clean yarn-install test-dependencies lint-server lint-ui lint lerna-build npm-packages bdist install
-.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs install-backend docker-image
+.PHONY: help clean test-dependencies lint-server lint-ui lint build npm-packages bdist install install-backend
+.PHONY: install-external-extensions dev watch test-server test-ui test-ui-debug test docs-dependencies docs docker-image
 
 SHELL:=/bin/bash
 
@@ -41,12 +41,15 @@ clean: ## Make a clean source tree
 	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
-
-# Prepares Elyra for build/packaging/installation
-yarn-install:
-	rm -f yarn.lock package-lock.json
 	yarn cache clean
-	yarn
+	pip uninstall -y jupyterlab-git
+	- jupyter labextension uninstall --no-build @jupyterlab/toc
+	$(call UNLINK_LAB_EXTENSION,application)
+	$(call UNINSTALL_LAB_EXTENSION,theme-extension)
+	$(call UNINSTALL_LAB_EXTENSION,code-snippet-extension-experimental)
+	$(call UNINSTALL_LAB_EXTENSION,pipeline-editor-extension)
+	$(call UNINSTALL_LAB_EXTENSION,python-runner-extension)
+	jupyter lab clean
 
 test-dependencies:
 	@pip install -q -r test_requirements.txt
@@ -60,12 +63,12 @@ lint-ui:
 
 lint: lint-ui lint-server ## Run linters
 
-lerna-build: yarn-install
+build:
+	yarn
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
-npm-packages: lerna-build
+npm-packages: build
 	mkdir -p dist
-	$(call PACKAGE_LAB_EXTENSION,application)
 	$(call PACKAGE_LAB_EXTENSION,theme)
 	$(call PACKAGE_LAB_EXTENSION,code-snippet)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
@@ -78,17 +81,25 @@ bdist: npm-packages
 
 install: bdist lint ## Build distribution and install
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
-	$(call UNLINK_LAB_EXTENSION,application)
-	$(call UNLINK_LAB_EXTENSION,theme-extension)
-	$(call UNLINK_LAB_EXTENSION,code-snippet-extension-experimental)
-	$(call UNLINK_LAB_EXTENSION,pipeline-editor-extension)
-	$(call UNLINK_LAB_EXTENSION,python-runner-extension)
-	jupyter lab clean
 	$(call LINK_LAB_EXTENSION,application)
-	$(call LINK_LAB_EXTENSION,theme)
-	$(call LINK_LAB_EXTENSION,code-snippet)
-	$(call LINK_LAB_EXTENSION,pipeline-editor)
-	$(call LINK_LAB_EXTENSION,python-runner)
+	jupyter lab build
+	jupyter serverextension list
+	jupyter labextension list
+
+install-backend: ## Build and install backend
+	python setup.py bdist_wheel --dev
+	pip install --upgrade dist/elyra-*-py3-none-any.whl
+
+install-external-extensions:
+	pip install --upgrade jupyterlab-git==0.20.0
+	jupyter labextension install --no-build @jupyterlab/toc@3.0.0
+
+dev: build lint install-backend install-external-extensions ## Build locally for developement
+	$(call LINK_LAB_EXTENSION,application)
+	$(call INSTALL_LAB_EXTENSION,theme)
+	$(call INSTALL_LAB_EXTENSION,code-snippet)
+	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
+	$(call INSTALL_LAB_EXTENSION,python-runner)
 	jupyter lab build
 	jupyter serverextension list
 	jupyter labextension list
@@ -113,10 +124,6 @@ docs-dependencies:
 docs: docs-dependencies ## Build docs
 	make -C docs html
 
-install-backend: ## Build and install backend
-	python setup.py bdist_wheel --dev
-	pip install --upgrade dist/elyra-*-py3-none-any.whl
-
 docker-image: ## bdist ## Build docker image
 	@mkdir -p build/docker
 	cp etc/docker/Dockerfile build/docker/Dockerfile
@@ -129,6 +136,14 @@ endef
 
 define LINK_LAB_EXTENSION
 	cd packages/$1 && jupyter labextension link --no-build .
+endef
+
+define UNINSTALL_LAB_EXTENSION
+	- jupyter labextension uninstall --no-build @elyra/$1
+endef
+
+define INSTALL_LAB_EXTENSION
+	cd packages/$1 && jupyter labextension install --no-build .
 endef
 
 define PACKAGE_LAB_EXTENSION
