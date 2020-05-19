@@ -29,7 +29,7 @@ help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-clean-elyra:
+purge:
 	rm -rf build *.egg-info yarn-error.log
 	rm -rf node_modules lib dist
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
@@ -54,7 +54,7 @@ uninstall:
 	pip uninstall -y elyra
 	jupyter lab clean
 
-clean: clean-elyra uninstall ## Make a clean source tree and uninstall extensions
+clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
 test-dependencies:
 	@pip install -q -r test_requirements.txt
@@ -68,19 +68,23 @@ lint-ui:
 
 lint: lint-ui lint-server ## Run linters
 
-build:
+yarn-install:
 	yarn
+
+build-ui: yarn-install lint-ui ## Build packages
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
-install-server: ## Build and install backend
+build-server: lint-server ## Build backend
 	python setup.py bdist_wheel
+
+install-server: ## Install backend
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 
 install-external-extensions:
 	pip install --upgrade jupyterlab-git==0.20.0
 	jupyter labextension install --no-build @jupyterlab/toc@3.0.0
 
-install: lint build install-server install-external-extensions ## Build and install
+install: build-ui build-server install-server install-external-extensions ## Build and install
 	$(call LINK_LAB_EXTENSION,application)
 	$(call INSTALL_LAB_EXTENSION,theme)
 	$(call INSTALL_LAB_EXTENSION,code-snippet)
@@ -110,7 +114,7 @@ docs-dependencies:
 docs: docs-dependencies ## Build docs
 	make -C docs html
 
-docker-image: ## bdist ## Build docker image
+docker-image: ## Build docker image
 	@mkdir -p build/docker
 	cp etc/docker/Dockerfile build/docker/Dockerfile
 	cp -r dist/*.whl build/docker/
