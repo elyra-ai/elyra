@@ -20,6 +20,7 @@ export interface IDataSource {
   name: string;
   displayName: string;
   description: string;
+  source: string;
   language: string;
   code: string[];
 }
@@ -43,6 +44,7 @@ export class DataSourceManager {
                 name: jsonDataSource.name,
                 displayName: jsonDataSource.display_name,
                 description: jsonDataSource.metadata.description,
+                source: jsonDataSource.metadata.source,
                 language: jsonDataSource.metadata.language,
                 code: jsonDataSource.metadata.code
               };

@@ -183,7 +183,24 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
       }
     ];
 
-    console.log(dataSource);
+    // const br = '<br/>';
+    let sourceTitle = dataSource.source;
+    if (sourceTitle.length > 25) {
+      sourceTitle = sourceTitle.substring(0,25) + '...';
+    }
+    let sourceLink = 
+      (<a href={dataSource.source}>
+      {sourceTitle}
+      </a>);
+    let description = (
+      <div className="elyra-dataSource-description"> 
+        {dataSource.description} 
+      </div>);
+    let body = (
+      <div>
+        { description }
+        source : {sourceLink} 
+    </div>);
 
     return (
       <div key={dataSource.name} className={DATA_SOURCE_ITEM}>
@@ -191,7 +208,7 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
           displayName={displayName}
           tooltip={dataSource.description}
           actionButtons={actionButtons}
-        ></ExpandableComponent>
+        > {body} </ExpandableComponent>
       </div>
     );
   };

@@ -43,3 +43,8 @@
   word-wrap: normal;
   overflow-x: scroll;
 }
+
+.elyra-dataSource-description {
+  font-style: italic;
+  padding-bottom: 5px;
+}
