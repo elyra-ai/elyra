@@ -115,11 +115,3 @@
   align-self: flex-end;
   height: 100%;
 }
-
-#jp-left-stack > .lm-Widget {
-  border-left: solid var(--jp-border-width) var(--jp-border-color2);
-}
-
-.lm-Widget .lm-Panel #jp-right-stack {
-  margin-top: unset;
-}

@@ -81,12 +81,12 @@
 }
 
 .lm-Widget #jp-left-stack {
-  padding-left: 8px;
+  padding-left: unset;
 }
 
 .lm-Widget #jp-right-stack {
-  margin-top: 25px;
-  margin-right: 5px;
+  margin-top: 0px;
+  margin-right: 0px;
 }
 
 .lm-Widget a {
