@@ -24,8 +24,6 @@ with open(args['pipeline_file'], "r") as file:
         if 'export' in pipeline['app_data']:
             pipeline['app_data'].pop('export')
         for node in pipeline['nodes']:
-            if 'ui_data' in node['app_data']:
-                node['app_data'].pop('ui_data')
             if 'artifact' in node['app_data']:
                 node['app_data']['filename'] = node['app_data'].pop('artifact')
             if 'image' in node['app_data']:
