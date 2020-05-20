@@ -16,11 +16,12 @@
 
 import '../style/index.css';
 
-import { codeSnippetIcon } from '@elyra/ui-components';
+import { dataSourceIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
+  ILayoutRestorer
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 
@@ -36,8 +37,12 @@ const DATA_SOURCE_EXTENSION_ID = 'elyra-data-source-extension';
 export const data_source_extension: JupyterFrontEndPlugin<void> = {
   id: DATA_SOURCE_EXTENSION_ID,
   autoStart: true,
-  requires: [ICommandPalette],
-  activate: (app: JupyterFrontEnd, palette: ICommandPalette) => {
+  requires: [ICommandPalette, ILayoutRestorer],
+  activate: (
+    app: JupyterFrontEnd,
+    palette: ICommandPalette,
+    restorer: ILayoutRestorer
+  ) => {
     console.log('Elyra - data-source extension is activated!');
 
     const getCurrentWidget = (): Widget => {
@@ -46,8 +51,10 @@ export const data_source_extension: JupyterFrontEndPlugin<void> = {
 
     const dataSourceWidget = new DataSourceWidget(getCurrentWidget);
     dataSourceWidget.id = DATA_SOURCE_EXTENSION_ID;
-    dataSourceWidget.title.icon = codeSnippetIcon;
+    dataSourceWidget.title.icon = dataSourceIcon;
     dataSourceWidget.title.caption = 'Data Source';
+
+    restorer.add(dataSourceWidget, DATA_SOURCE_EXTENSION_ID);
 
     // Rank has been chosen somewhat arbitrarily to give priority to the running
     // sessions widget in the sidebar.

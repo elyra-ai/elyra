@@ -22,7 +22,7 @@ export interface IDataSource {
   description: string;
   source: string;
   language: string;
-  code: string[];
+  code: string[][];
 }
 
 export class DataSourceManager {

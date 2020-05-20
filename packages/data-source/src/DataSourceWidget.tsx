@@ -186,21 +186,20 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
     // const br = '<br/>';
     let sourceTitle = dataSource.source;
     if (sourceTitle.length > 25) {
-      sourceTitle = sourceTitle.substring(0,25) + '...';
+      sourceTitle = sourceTitle.substring(0, 25) + '...';
     }
-    let sourceLink = 
-      (<a href={dataSource.source}>
-      {sourceTitle}
-      </a>);
-    let description = (
-      <div className="elyra-dataSource-description"> 
-        {dataSource.description} 
-      </div>);
-    let body = (
+    const sourceLink = <a href={dataSource.source}>{sourceTitle}</a>;
+    const description = (
+      <div className="elyra-dataSource-description">
+        {dataSource.description}
+      </div>
+    );
+    const body = (
       <div>
-        { description }
-        source : {sourceLink} 
-    </div>);
+        {description}
+        source : {sourceLink}
+      </div>
+    );
 
     return (
       <div key={dataSource.name} className={DATA_SOURCE_ITEM}>
@@ -208,7 +207,10 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
           displayName={displayName}
           tooltip={dataSource.description}
           actionButtons={actionButtons}
-        > {body} </ExpandableComponent>
+        >
+          {' '}
+          {body}{' '}
+        </ExpandableComponent>
       </div>
     );
   };
@@ -254,9 +256,7 @@ export class DataSourceWidget extends ReactWidget {
   render(): React.ReactElement {
     return (
       <div className={DATA_SOURCES_CLASS}>
-        <header className={DATA_SOURCES_HEADER_CLASS}>
-          {'</> Data Sources'}
-        </header>
+        <header className={DATA_SOURCES_HEADER_CLASS}>{'Data Sources'}</header>
         <UseSignal signal={this.renderDataSourcesSignal} initialArgs={[]}>
           {(_, dataSources): React.ReactElement => (
             <DataSourceDisplay
