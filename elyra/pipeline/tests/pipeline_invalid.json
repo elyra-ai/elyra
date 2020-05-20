@@ -12,7 +12,7 @@
           "id": "{{uuid}}",
           "type": "{{type}}",
           "app_data": {
-            "runtime_image": "{{image}}"
+            "runtime_image": "{{runtime_image}}"
           }
         }
       ],
@@ -22,7 +22,7 @@
         "ui_data": {
           "comments": []
         },
-        "name": "{{title}}"
+        "name": "{{name}}"
       }
     }
   ],

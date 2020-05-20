@@ -116,7 +116,7 @@ class Pipeline(object):
     def __init__(self, id, name, runtime, runtime_config):
 
         if not name:
-            raise ValueError('Invalid pipeline: Missing name.')
+            raise ValueError('Invalid pipeline: Missing pipeline name.')
         if not runtime:
             raise ValueError('Invalid pipeline: Missing runtime.')
         if not runtime_config:

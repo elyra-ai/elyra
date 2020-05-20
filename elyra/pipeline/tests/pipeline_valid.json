@@ -12,8 +12,8 @@
           "id": "{{uuid}}",
           "type": "{{type}}",
           "app_data": {
-            "filename": "{{artifact}}",
-            "runtime_image": "{{image}}"
+            "filename": "{{filename}}",
+            "runtime_image": "{{runtime_image}}"
           }
         }
       ],
@@ -23,7 +23,7 @@
         "ui_data": {
           "comments": []
         },
-        "name": "{{title}}"
+        "name": "{{name}}"
       }
     }
   ],

@@ -26,7 +26,7 @@ def valid_operation():
     return Operation(id='{{uuid}}',
                      type='{{type}}',
                      filename='{{filename}}',
-                     runtime_image='{{image}}')
+                     runtime_image='{{runtime_image}}')
 
 
 def test_valid_pipeline(valid_operation):
@@ -110,7 +110,7 @@ def test_pipeline_with_dependencies():
 
     pipeline = PipelineParser.parse(pipeline_definition)
 
-    assert len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].dependencies) == 2
+    assert len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].parent_operations) == 2
 
 
 def test_pipeline_global_attributes():
