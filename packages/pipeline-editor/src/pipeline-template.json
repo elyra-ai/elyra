@@ -9,7 +9,7 @@
       "id": "{{primary_pipeline_uuid}}",
       "nodes": [
         {
-          "id": "{{pipelines.noded.uuid}}",
+          "id": "{{pipelines.node.uuid}}",
           "type": "execution_node",
           "app_data": {
             "artifact": "{{artifact}}",
@@ -29,7 +29,7 @@
       ],
       "app_data": {
         "title": "{{title}}",
-        "runtime": "{{rutime}}",
+        "runtime": "{{runtime}}",
         "runtime-config": "{{runtime-config}}",
         "ui_data": {
           "comments": []
