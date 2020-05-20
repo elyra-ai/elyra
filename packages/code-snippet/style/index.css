@@ -35,7 +35,7 @@
 
 .elyra-codeSnippetsHeader {
   font-weight: bold;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }
 
@@ -100,7 +100,7 @@
   overflow-y: auto;
   display: block;
   padding: 5px;
-  margin: 5px 5px 5px 0;
+  margin: 5px;
   border: 1px solid #eeeeee;
   border-radius: 2px;
   background-color: #f6f8fa;
