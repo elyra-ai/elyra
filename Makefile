@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 
-.PHONY: help clean yarn-install test-dependencies lint-server lint-ui lint lerna-build npm-packages bdist install
-.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs install-backend docker-image
+.PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
+.PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs docker-image
 
 SHELL:=/bin/bash
 
@@ -29,7 +29,7 @@ help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-clean: ## Make a clean source tree
+purge:
 	rm -rf build *.egg-info yarn-error.log
 	rm -rf node_modules lib dist
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
@@ -41,12 +41,20 @@ clean: ## Make a clean source tree
 	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
+	rm -rf $(yarn cache dir)
 
-# Prepares Elyra for build/packaging/installation
-yarn-install:
-	rm -f yarn.lock package-lock.json
-	yarn cache clean
-	yarn
+uninstall:
+	$(call UNLINK_LAB_EXTENSION,@elyra/application)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension-experimental)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-runner-extension)
+	$(call UNINSTALL_LAB_EXTENSION,@jupyterlab/toc)
+	pip uninstall -y jupyterlab-git
+	pip uninstall -y elyra
+	jupyter lab clean
+
+clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
 test-dependencies:
 	@pip install -q -r test_requirements.txt
@@ -60,35 +68,28 @@ lint-ui:
 
 lint: lint-ui lint-server ## Run linters
 
-lerna-build: yarn-install
+yarn-install:
+	yarn
+
+build-ui: yarn-install lint-ui ## Build packages
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
-npm-packages: lerna-build
-	mkdir -p dist
-	$(call PACKAGE_LAB_EXTENSION,application)
-	$(call PACKAGE_LAB_EXTENSION,theme)
-	$(call PACKAGE_LAB_EXTENSION,code-snippet)
-	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
-	$(call PACKAGE_LAB_EXTENSION,python-runner)
-	cd dist && curl -o jupyterlab-git-0.20.0.tgz $$(npm view @jupyterlab/git@0.20.0 dist.tarball) && cd -
-	cd dist && curl -o jupyterlab-toc-4.0.0.tgz $$(npm view @jupyterlab/toc@4.0.0 dist.tarball) && cd -
-
-bdist: npm-packages
+build-server: lint-server ## Build backend
 	python setup.py bdist_wheel
 
-install: bdist lint ## Build distribution and install
+install-server: ## Install backend
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
-	$(call UNLINK_LAB_EXTENSION,application)
-	$(call UNLINK_LAB_EXTENSION,theme-extension)
-	$(call UNLINK_LAB_EXTENSION,code-snippet-extension-experimental)
-	$(call UNLINK_LAB_EXTENSION,pipeline-editor-extension)
-	$(call UNLINK_LAB_EXTENSION,python-runner-extension)
-	jupyter lab clean
+
+install-external-extensions:
+	pip install --upgrade jupyterlab-git==0.20.0
+	jupyter labextension install --no-build @jupyterlab/toc@4.0.0
+
+install: build-ui build-server install-server install-external-extensions ## Build and install
 	$(call LINK_LAB_EXTENSION,application)
-	$(call LINK_LAB_EXTENSION,theme)
-	$(call LINK_LAB_EXTENSION,code-snippet)
-	$(call LINK_LAB_EXTENSION,pipeline-editor)
-	$(call LINK_LAB_EXTENSION,python-runner)
+	$(call INSTALL_LAB_EXTENSION,theme)
+	$(call INSTALL_LAB_EXTENSION,code-snippet)
+	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
+	$(call INSTALL_LAB_EXTENSION,python-runner)
 	jupyter lab build
 	jupyter serverextension list
 	jupyter labextension list
@@ -113,24 +114,24 @@ docs-dependencies:
 docs: docs-dependencies ## Build docs
 	make -C docs html
 
-install-backend: ## Build and install backend
-	python setup.py bdist_wheel --dev
-	pip install --upgrade dist/elyra-*-py3-none-any.whl
-
-docker-image: ## bdist ## Build docker image
+docker-image: ## Build docker image
 	@mkdir -p build/docker
 	cp etc/docker/Dockerfile build/docker/Dockerfile
 	cp -r dist/*.whl build/docker/
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
 
 define UNLINK_LAB_EXTENSION
-	- jupyter labextension unlink --no-build @elyra/$1
+	- jupyter labextension unlink --no-build $1
 endef
 
 define LINK_LAB_EXTENSION
 	cd packages/$1 && jupyter labextension link --no-build .
 endef
 
-define PACKAGE_LAB_EXTENSION
-	export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && npm run dist && mv *.tgz ../../dist
+define UNINSTALL_LAB_EXTENSION
+	- jupyter labextension uninstall --no-build $1
+endef
+
+define INSTALL_LAB_EXTENSION
+	cd packages/$1 && jupyter labextension install --no-build .
 endef
