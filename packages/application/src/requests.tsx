@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
+import { ErrorDialogContent } from '@elyra/ui-components';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 
 import * as React from 'react';
-
-import { ErrorDialogContent } from './ErrorDialogContent';
 
 const HTML_STATUS_SUCCESS = [200, 201];
 

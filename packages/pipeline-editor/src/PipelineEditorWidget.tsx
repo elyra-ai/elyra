@@ -16,7 +16,7 @@
 
 import * as path from 'path';
 
-import { IDictionary } from '@elyra/application';
+import { IDictionary, NotebookParser } from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,

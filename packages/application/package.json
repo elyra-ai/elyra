@@ -30,6 +30,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
+    "@elyra/ui-components": "^0.11.0-dev",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/coreutils": "^4.0.2",
     "@jupyterlab/ui-components": "^2.0.2",
