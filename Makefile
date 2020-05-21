@@ -82,7 +82,7 @@ install-server: ## Install backend
 
 install-external-extensions:
 	pip install --upgrade jupyterlab-git==0.20.0
-	jupyter labextension install --no-build @jupyterlab/toc@3.0.0
+	jupyter labextension install --no-build @jupyterlab/toc@4.0.0
 
 install: build-ui build-server install-server install-external-extensions ## Build and install
 	$(call LINK_LAB_EXTENSION,application)

@@ -80,15 +80,6 @@
   max-height: 100vh;
 }
 
-.lm-Widget #jp-left-stack {
-  padding-left: 8px;
-}
-
-.lm-Widget #jp-right-stack {
-  margin-top: 25px;
-  margin-right: 5px;
-}
-
 .lm-Widget a {
   color: #1970b7;
 }
