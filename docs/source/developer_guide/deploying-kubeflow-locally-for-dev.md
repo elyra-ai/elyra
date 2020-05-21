@@ -101,11 +101,25 @@ kubectl port-forward $(kubectl get pods -n kubeflow | grep minio | cut -d' ' -f1
 ```
 - Your Kubeflow Pipelines API and Minio Object Store endpoints should be respectively
 ```bash
-http://localhost:31380/pipelines
-http://minio-service:9000
+UI Endpoint: http://localhost:31380
+API Endpoint: http://localhost:31380/pipeline
+Object Storage Endpoint: http://minio-service:9000
 ```
-These two endpoints will be used to configure your Elyra metadata runtime 
 
+These endpoints will be used to configure your Elyra metadata runtime with the
+command below:
+
+```bash
+elyra-metadata install runtimes --replace=true \
+       --schema_name=kfp \
+       --name=kfp-local \
+       --display_name="Kubeflow Pipeline (local)" \
+       --api_endpoint=http://localhost:31380/pipeline \
+       --cos_endpoint=http://minio-service:9000 \
+       --cos_username=minio \
+       --cos_password=minio123 \
+       --cos_bucket=covid
+```
 ## Additional Resources and Documentation
 [Docker Desktop Installation Docs](https://docs.docker.com/get-started/)  
 [KubeFlow Installation Docs](https://www.kubeflow.org/docs/started/k8s/kfctl-k8s-istio/)

@@ -15,6 +15,7 @@
 #
 import io
 import json
+import jupyter_core.paths
 import os
 import re
 import shutil
@@ -22,42 +23,81 @@ import warnings
 
 from abc import ABC, abstractmethod
 from jsonschema import validate, ValidationError, draft7_format_checker
-from jupyter_core.paths import jupyter_data_dir, jupyter_path
-from traitlets import HasTraits, Unicode, Dict, Type, log
+from traitlets import Type, log
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 
 METADATA_TEST_NAMESPACE = "metadata-tests"  # exposed via METADATA_TESTING env
-DEFAULT_SCHEMA_NAME = 'kfp'
 
 
-class Metadata(HasTraits):
+def metadata_path(*subdirs):
+    """Return a list of directories to search for metadata files.
+
+    ELYRA_METADATA_PATH environment variable has highest priority.
+
+    This is based on jupyter_core.paths.jupyter_path, but where the python
+    env-based directory is last in the list, preceded by the system shared
+    locations with the user's home-based directory still first in the list.
+
+    The first directory in the list (data_dir, if env is not set) is where files
+    will be written, although files can reside at other levels as well, with
+    SYSTEM_JUPYTER_PATH representing shared data and ENV_JUPYTER_PATH representing
+    the location of factory data (created during installation).
+
+    If ``*subdirs`` are given, that subdirectory will be added to each element.
+    """
+
+    paths = []
+    # highest priority is env
+    if os.environ.get('ELYRA_METADATA_PATH'):
+        paths.extend(
+            p.rstrip(os.sep)
+            for p in os.environ['ELYRA_METADATA_PATH'].split(os.pathsep)
+        )
+    # then user dir
+    paths.append(jupyter_core.paths.jupyter_data_dir())
+
+    # then system, where shared files will reside
+    # Note, we're using getattr for these, since tests adjust the value of these
+    # and we need to pull them at runtime, rather than during load.
+    system_path = getattr(jupyter_core.paths, 'SYSTEM_JUPYTER_PATH')
+    paths.extend(system_path)
+
+    # then sys.prefix, where installed files will reside (factory data)
+    env_path = getattr(jupyter_core.paths, 'ENV_JUPYTER_PATH')
+    for p in env_path:
+        if p not in system_path:
+            paths.append(p)
+
+    # add subdir, if requested.
+    # Note, the 'metadata' parent dir is automatically added.
+    if subdirs:
+        paths = [os.path.join(p, 'metadata', *subdirs) for p in paths]
+    return paths
+
+
+class Metadata(object):
     name = None
     resource = None
-    display_name = Unicode()
-    schema_name = Unicode()
-    metadata = Dict()
+    display_name = None
+    schema_name = None
+    metadata = {}
     reason = None
 
     def __init__(self, **kwargs):
-        super(Metadata, self).__init__(**kwargs)
-        if 'display_name' not in kwargs:
-            raise AttributeError("Missing required 'display_name' attribute")
-
-        self.display_name = kwargs.get('display_name')
-        self.schema_name = kwargs.get('schema_name') or DEFAULT_SCHEMA_NAME
-        self.metadata = kwargs.get('metadata', Dict())
         self.name = kwargs.get('name')
+        self.display_name = kwargs.get('display_name')
+        self.schema_name = kwargs.get('schema_name')
+        self.metadata = kwargs.get('metadata', {})
         self.resource = kwargs.get('resource')
         self.reason = kwargs.get('reason')
 
     def to_dict(self, trim=False):
-        # Exclude name, resource, and reason only if trim is True since we don't want to persist that information.
-        # Only include schema_name if it has a value (regardless of trim).
-        d = dict(display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
+        # Exclude resource, and reason only if trim is True since we don't want to persist that information.
+        # Only include schema_name if it has a value (regardless of trim). Method prepare_write will be used
+        # to trim out name prior to writes.
+        d = dict(name=self.name, display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
         if not trim:
-            if self.name:
-                d['name'] = self.name
             if self.resource:
                 d['resource'] = self.resource
             if self.reason:
@@ -66,9 +106,13 @@ class Metadata(HasTraits):
         return d
 
     def to_json(self, trim=False):
-        j = json.dumps(self.to_dict(trim=trim), indent=2)
+        return json.dumps(self.to_dict(trim=trim), indent=2)
 
-        return j
+    def prepare_write(self):
+        """Prepares this instance for writes, stripping name, reason, and resource"""
+        prepared = self.to_dict(trim=True)  # we should also trim 'name' when writing
+        prepared.pop('name', None)
+        return json.dumps(prepared, indent=2)
 
 
 class MetadataManager(LoggingConfigurable):
@@ -76,6 +120,7 @@ class MetadataManager(LoggingConfigurable):
     # System-owned namespaces
     NAMESPACE_RUNTIMES = "runtimes"
     NAMESPACE_CODE_SNIPPETS = "code-snippets"
+    NAMESPACE_RUNTIME_IMAGES = "runtime-images"
 
     metadata_class = Type(Metadata, config=True,
                           help="""The metadata class.  This is configurable to allow subclassing of
@@ -101,8 +146,8 @@ class MetadataManager(LoggingConfigurable):
         return self.metadata_store.namespace_exists()
 
     @property
-    def get_metadata_location(self):
-        return self.metadata_store.get_metadata_location
+    def get_metadata_locations(self):
+        return self.metadata_store.get_metadata_locations
 
     def get_all_metadata_summary(self, include_invalid=False):
         return self.metadata_store.get_all_metadata_summary(include_invalid=include_invalid)
@@ -113,7 +158,7 @@ class MetadataManager(LoggingConfigurable):
     def get(self, name):
         return self.metadata_store.read(name)
 
-    def add(self, name, metadata, replace=True):
+    def add(self, name, metadata, replace=False):
         return self.metadata_store.save(name, metadata, replace)
 
     def remove(self, name):
@@ -135,7 +180,7 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def get_metadata_location(self):
+    def get_metadata_locations(self):
         pass
 
     @abstractmethod
@@ -151,7 +196,7 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def save(self, name, metadata, replace=True):
+    def save(self, name, metadata, replace=False):
         pass
 
     @abstractmethod
@@ -178,23 +223,23 @@ class FileMetadataStore(MetadataStore):
 
     def __init__(self, namespace, **kwargs):
         super(FileMetadataStore, self).__init__(namespace, **kwargs)
-        self.metadata_dir = os.path.join(jupyter_data_dir(), 'metadata', self.namespace)
-        self.log.debug("Namespace '{}' is using metadata directory: {}".format(self.namespace, self.metadata_dir))
+        self.metadata_paths = metadata_path(self.namespace)
+        self.preferred_metadata_dir = self.metadata_paths[0]
+        self.log.debug("Namespace '{}' is using metadata directory: {} from list: {}".
+                       format(self.namespace, self.preferred_metadata_dir, self.metadata_paths))
 
     @property
-    def get_metadata_location(self):
-        return self.metadata_dir
+    def get_metadata_locations(self):
+        return self.metadata_paths
 
     def namespace_exists(self):
-        is_valid_namespace = False
-
-        all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
-        for d in all_metadata_dirs:
+        """Does the namespace exist in any of the dir paths?"""
+        namespace_dir_exists = False
+        for d in self.metadata_paths:
             if os.path.isdir(d):
-                is_valid_namespace = True
+                namespace_dir_exists = True
                 break
-
-        return is_valid_namespace
+        return namespace_dir_exists
 
     def get_all_metadata_summary(self, include_invalid=False):
         metadata_list = self._load_metadata_resources(include_invalid=include_invalid)
@@ -204,7 +249,7 @@ class FileMetadataStore(MetadataStore):
                 {
                     'name': metadata.name,
                     'display_name': metadata.display_name,
-                    'location': self._get_resource(metadata)
+                    'location': metadata.resource
                 }
             )
         return metadata_list
@@ -217,7 +262,7 @@ class FileMetadataStore(MetadataStore):
             raise ValueError('Name of metadata was not provided')
         return self._load_metadata_resources(name=name)
 
-    def save(self, name, metadata, replace=True):
+    def save(self, name, metadata, replace=False):
         if not name:
             raise ValueError('Name of metadata was not provided.')
 
@@ -233,95 +278,134 @@ class FileMetadataStore(MetadataStore):
             raise TypeError("'metadata' is not an instance of class 'Metadata'.")
 
         metadata_resource_name = '{}.json'.format(name)
-        resource = os.path.join(self.metadata_dir, metadata_resource_name)
+        resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)
 
+        # Handle replacement behavior for hierarchy.
         if os.path.exists(resource):
             if replace:
                 os.remove(resource)
             else:
-                self.log.error("Metadata resource '{}' already exists. Use the replace flag to overwrite.".
-                               format(resource))
-                return None
+                msg = "Metadata resource '{}' already exists.".format(resource)
+                self.log.error(msg)
+                raise FileExistsError(msg)
+
+        # Although the resource doesn't exist in the preferred dir, it may exist at other levels.
+        # If replacement is not enabled, then existence at other levels should also prevent the update.
+        elif not replace:
+            try:
+                self._load_metadata_resources(name, validate_metadata=False)
+                # Instance exists at other (protected) level and replacement was not request
+                msg = "Metadata instance '{}' already exists.".format(name)
+                self.log.error(msg)
+                raise FileExistsError(msg)
+            except FileNotFoundError:  # doesn't exist elsewhere, so we're good.
+                pass
 
         created_namespace_dir = False
-        if not self.namespace_exists():  # If the namespaced directory is not present, create it and note it.
-            self.log.debug("Creating metadata directory: {}".format(self.metadata_dir))
-            os.makedirs(self.metadata_dir, mode=0o700, exist_ok=True)
+        # If the preferred metadata directory is not present, create it and note it.
+        if not os.path.exists(self.preferred_metadata_dir):
+            self.log.debug("Creating metadata directory: {}".format(self.preferred_metadata_dir))
+            os.makedirs(self.preferred_metadata_dir, mode=0o700, exist_ok=True)
             created_namespace_dir = True
 
         try:
             with io.open(resource, 'w', encoding='utf-8') as f:
-                f.write(metadata.to_json(trim=True))  # Only persist necessary items
+                f.write(metadata.prepare_write())  # Only persist necessary items
         except Exception:
             if created_namespace_dir:
-                shutil.rmtree(self.metadata_dir)
+                shutil.rmtree(self.preferred_metadata_dir)
         else:
             self.log.debug("Created metadata resource: {}".format(resource))
 
         # Now that its written, attempt to load it so, if a schema is present, we can validate it.
         try:
-            self._load_from_resource(resource)
-        except (ValidationError, ValueError):
+            metadata = self._load_from_resource(resource)
+        except (ValidationError, ValueError, FileNotFoundError) as ve:
             self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
             # If we just created the directory, include that during cleanup
             if created_namespace_dir:
-                shutil.rmtree(self.metadata_dir)
+                shutil.rmtree(self.preferred_metadata_dir)
             else:
                 os.remove(resource)
-            resource = None
+            raise ve
 
-        return resource
+        return metadata
 
     def remove(self, name):
         self.log.info("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
-        try:
-            metadata = self._load_metadata_resources(name=name, validate_metadata=False)  # Don't validate on remove
-        except KeyError:
-            self.log.warning("Metadata resource '{}' in namespace '{}' was not found!".format(name, self.namespace))
-            return
 
-        resource = self._get_resource(metadata)
-        os.remove(resource)
+        # Let exceptions (FileNotFound) propagate
+        metadata = self._load_metadata_resources(name=name, validate_metadata=False)  # Don't validate on remove
 
-        return resource
+        resource = metadata.resource
+        if resource:
+            # Since multiple folders are in play, we only allow removal if the resource is in
+            # the first directory in the list (i.e., most "near" the user)
+            if not self._remove_allowed(metadata):
+                raise PermissionError("Removal of metadata resource '{}' in namespace '{}' is not permitted!".
+                                      format(resource, self.namespace))
+            os.remove(resource)
 
-    def _get_resource(self, metadata):
-        metadata_resource_name = '{}.json'.format(metadata.name)
-        resource = os.path.join(self.metadata_dir, metadata_resource_name)
-        return resource
+        return metadata
+
+    def _remove_allowed(self, metadata):
+        """Determines if the resource of the given instance is allowed to be removed. """
+        allowed_resource = os.path.join(self.preferred_metadata_dir, metadata.name)
+        current_resource = os.path.splitext(metadata.resource)[0]
+        return allowed_resource == current_resource
 
     def _load_metadata_resources(self, name=None, validate_metadata=True, include_invalid=False):
         """Loads metadata files with .json suffix and return requested items.
            if 'name' is provided, the single file is loaded and returned, else
            all files ending in '.json' are loaded and returned in a list.
         """
-        resources = []
-        if self.namespace_exists():
-            all_metadata_dirs = jupyter_path(os.path.join('metadata', self.namespace))
-            for metadata_dir in all_metadata_dirs:
-                if os.path.isdir(metadata_dir):
-                    for f in os.listdir(metadata_dir):
-                        path = os.path.join(metadata_dir, f)
-                        if path.endswith(".json"):
+        namespace_dir_exists = False
+        saved_ex = None
+        resources = {}
+        all_metadata_dirs = reversed(self.metadata_paths)
+        for metadata_dir in all_metadata_dirs:
+            if os.path.isdir(metadata_dir):
+                namespace_dir_exists = True
+                for f in os.listdir(metadata_dir):
+                    path = os.path.join(metadata_dir, f)
+                    if path.endswith(".json"):
+                        metadata = None
+                        if name:  # if looking for a specific resource, and this is it, continue
+                            if os.path.splitext(os.path.basename(path))[0] != name:
+                                continue
+                        try:
+                            metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
+                                                                include_invalid=include_invalid)
+                            saved_ex = None
+                        except Exception as ex:
+                            # Ignore ValidationError and others when loading all resources
                             if name:
-                                if os.path.splitext(os.path.basename(path))[0] == name:
-                                    return self._load_from_resource(path, validate_metadata=validate_metadata)
-                            else:
-                                metadata = None
-                                try:
-                                    metadata = self._load_from_resource(path, validate_metadata=validate_metadata,
-                                                                        include_invalid=include_invalid)
-                                except Exception:
-                                    pass  # Ignore ValidationError and others when loading all resources
-                                if metadata is not None:
-                                    resources.append(metadata)
-        else:  # namespace doesn't exist, treat as KeyError
-            raise KeyError("Metadata namespace '{}' was not found!".format(self.namespace))
+                                # we may need to raise this exception if, at the end we don't find a valid instance
+                                saved_ex = ex
 
-        if name:  # If we're looking for a single metadata and we're here, then its not found
-            raise KeyError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
+                        if metadata is not None:
+                            if metadata.name in resources.keys():
+                                # If we're replacing an instance, let that be known via debug
+                                self.log.debug("Replacing metadata resource '{}' from '{}' with '{}'."
+                                               .format(metadata.name,
+                                                       resources[metadata.name].resource,
+                                                       metadata.resource))
+                            resources[metadata.name] = metadata
+        if not namespace_dir_exists:  # namespace doesn't exist, treat as FileNotFoundError
+            raise FileNotFoundError("Metadata namespace '{}' was not found!".format(self.namespace))
 
-        return resources
+        if name:
+            if saved_ex:  # the instance that we're looking for raised
+                raise saved_ex
+
+            if name in resources.keys():  # check if we have a match.
+                return resources[name]
+
+            # If we're looking for a single metadata and we're here, then its not found
+            raise FileNotFoundError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
+
+        # We're here only if loading all resources, so only return list of values.
+        return list(resources.values())
 
     def _get_schema(self, schema_name):
         """Loads the schema based on the schema_name and returns the loaded schema json.
@@ -376,10 +460,10 @@ class FileMetadataStore(MetadataStore):
                 self.log.debug("No schema found in metadata resource '{}' - skipping validation.".format(resource))
 
         metadata = Metadata(name=name,
-                            display_name=metadata_json['display_name'],
-                            schema_name=metadata_json['schema_name'],
+                            display_name=metadata_json.get('display_name'),
+                            schema_name=metadata_json.get('schema_name'),
                             resource=resource,
-                            metadata=metadata_json['metadata'],
+                            metadata=metadata_json.get('metadata'),
                             reason=reason)
         return metadata
 
@@ -416,7 +500,7 @@ class SchemaManager(SingletonConfigurable):
                              format(namespace, self.get_namespaces()))
         schemas = self.namespace_schemas.get(namespace)
         if schema_name not in schemas.keys():
-            raise KeyError("Schema '{}' in namespace '{}' was not found!".format(schema_name, namespace))
+            raise FileNotFoundError("Schema '{}' in namespace '{}' was not found!".format(schema_name, namespace))
         schema_json = schemas.get(schema_name)
 
         return schema_json

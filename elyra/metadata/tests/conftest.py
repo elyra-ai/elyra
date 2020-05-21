@@ -21,8 +21,9 @@ import jupyter_core.paths
 
 from notebook.utils import url_path_join
 from tornado.escape import url_escape
-from elyra.metadata.metadata import MetadataManager, FileMetadataStore, SchemaManager, METADATA_TEST_NAMESPACE
-from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, create_json_file
+from elyra.metadata import MetadataManager, FileMetadataStore, SchemaManager, METADATA_TEST_NAMESPACE
+from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
+    create_json_file
 
 
 # BEGIN - Remove once transition to jupyter_server occurs
@@ -40,16 +41,10 @@ config_dir = pytest.fixture(lambda tmp_path: mkdir(tmp_path, "config"))
 runtime_dir = pytest.fixture(lambda tmp_path: mkdir(tmp_path, "runtime"))
 root_dir = pytest.fixture(lambda tmp_path: mkdir(tmp_path, "root_dir"))
 template_dir = pytest.fixture(lambda tmp_path: mkdir(tmp_path, "templates"))
-system_jupyter_path = pytest.fixture(
-    lambda tmp_path: mkdir(tmp_path, "share", "jupyter")
-)
-env_jupyter_path = pytest.fixture(
-    lambda tmp_path: mkdir(tmp_path, "env", "share", "jupyter")
-)
+system_jupyter_path = pytest.fixture(lambda tmp_path: mkdir(tmp_path, "share", "jupyter"))
+env_jupyter_path = pytest.fixture(lambda tmp_path: mkdir(tmp_path, "env", "share", "jupyter"))
 system_config_path = pytest.fixture(lambda tmp_path: mkdir(tmp_path, "etc", "jupyter"))
-env_config_path = pytest.fixture(
-    lambda tmp_path: mkdir(tmp_path, "env", "etc", "jupyter")
-)
+env_config_path = pytest.fixture(lambda tmp_path: mkdir(tmp_path, "env", "etc", "jupyter"))
 
 
 @pytest.fixture
@@ -73,13 +68,9 @@ def environ(
     monkeypatch.setenv("JUPYTER_DATA_DIR", str(data_dir))
     monkeypatch.setenv("JUPYTER_RUNTIME_DIR", str(runtime_dir))
     monkeypatch.setenv("METADATA_TESTING", "1")  # enable metadata-tests namespace
-    monkeypatch.setattr(
-        jupyter_core.paths, "SYSTEM_JUPYTER_PATH", [str(system_jupyter_path)]
-    )
+    monkeypatch.setattr(jupyter_core.paths, "SYSTEM_JUPYTER_PATH", [str(system_jupyter_path)])
     monkeypatch.setattr(jupyter_core.paths, "ENV_JUPYTER_PATH", [str(env_jupyter_path)])
-    monkeypatch.setattr(
-        jupyter_core.paths, "SYSTEM_CONFIG_PATH", [str(system_config_path)]
-    )
+    monkeypatch.setattr(jupyter_core.paths, "SYSTEM_CONFIG_PATH", [str(system_config_path)])
     monkeypatch.setattr(jupyter_core.paths, "ENV_CONFIG_PATH", [str(env_config_path)])
 
 
@@ -109,6 +100,8 @@ def fetch(request, *parts, **kwargs):
 
 metadata_tests_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", METADATA_TEST_NAMESPACE))
 metadata_bogus_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", "bogus"))
+shared_dir = pytest.fixture(lambda system_jupyter_path: mkdir(system_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
+factory_dir = pytest.fixture(lambda env_jupyter_path: mkdir(env_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
 
 
 @pytest.fixture
@@ -119,7 +112,22 @@ def setup_namespace(environ, metadata_tests_dir):
 
 
 @pytest.fixture
+def setup_hierarchy(environ, factory_dir):
+    # Only populate factory info
+    byo_instance = byo_metadata_json
+    byo_instance['display_name'] = 'factory'
+    create_json_file(factory_dir, 'byo_1.json', byo_instance)
+    create_json_file(factory_dir, 'byo_2.json', byo_instance)
+    create_json_file(factory_dir, 'byo_3.json', byo_instance)
+
+
+@pytest.fixture
 def tests_manager(setup_namespace):
+    return MetadataManager(namespace=METADATA_TEST_NAMESPACE)
+
+
+@pytest.fixture
+def tests_hierarchy_manager(setup_hierarchy):
     return MetadataManager(namespace=METADATA_TEST_NAMESPACE)
 
 
