@@ -20,7 +20,6 @@ import {
   FrontendServices,
   IconUtil,
   NotebookParser,
-  SubmissionHandler,
   clearPipelineIcon,
   dragDropIcon,
   exportPipelineIcon,
@@ -63,7 +62,7 @@ import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
-import { PipelineSubmissionHandler } from './submission';
+import { SubmissionHandler } from './SubmissionHandler';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
@@ -301,24 +300,22 @@ export class PipelineEditor extends React.Component<
     );
   }
 
-  initPropertiesInfo(): void {
-    FrontendServices.getRuntimeImages().then(
-      (runtimeImages: IDictionary<string>) => {
-        const imageEnum = [];
-        for (const image in runtimeImages) {
-          imageEnum.push(image);
-          (properties.resources as IDictionary<string>)[
-            'image.' + image + '.label'
-          ] = runtimeImages[image];
-        }
-        properties.parameters[0].enum = imageEnum;
+  async initPropertiesInfo(): Promise<void> {
+    const runtimeImages = await SubmissionHandler.getRuntimeImages();
 
-        this.propertiesInfo = {
-          parameterDef: properties,
-          appData: { id: '' }
-        };
-      }
-    );
+    const imageEnum = [];
+    for (const image in runtimeImages) {
+      imageEnum.push(image);
+      (properties.resources as IDictionary<string>)[
+        'image.' + image + '.label'
+      ] = runtimeImages[image];
+    }
+    properties.parameters[0].enum = imageEnum;
+
+    this.propertiesInfo = {
+      parameterDef: properties,
+      appData: { id: '' }
+    };
   }
 
   openPropertiesDialog(source: any): void {
@@ -501,100 +498,79 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  handleExport(): void {
-    SubmissionHandler.makeGetRequest(
-      'api/metadata/runtimes',
-      'pipeline',
-      (response: any) => {
-        if (Object.keys(response.runtimes).length === 0) {
-          return SubmissionHandler.noMetadataError('runtimes');
-        }
+  async handleExport(): Promise<void> {
+    const runtimes = await FrontendServices.getMetadata('runtimes');
 
-        showDialog({
-          title: 'Export pipeline',
-          body: new PipelineExportDialog({
-            runtimes: response.runtimes
-          }),
-          buttons: [Dialog.cancelButton(), Dialog.okButton()],
-          focusNodeSelector: '#runtime_config'
-        }).then(result => {
-          if (result.value == null) {
-            // When Cancel is clicked on the dialog, just return
-            return;
-          }
-
-          // prepare pipeline submission details
-          const pipelineFlow = this.canvasController.getPipelineFlow();
-          const pipeline_path = this.widgetContext.path;
-
-          const pipeline_dir = path.dirname(pipeline_path);
-          const pipeline_name = path.basename(
-            pipeline_path,
-            path.extname(pipeline_path)
-          );
-          const pipeline_export_format = result.value.pipeline_filetype;
-          const pipeline_export_path =
-            pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
-
-          const overwrite = result.value.overwrite;
-
-          pipelineFlow.pipelines[0]['app_data']['title'] = pipeline_name;
-          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-            result.value.runtime_config;
-
-          PipelineSubmissionHandler.exportPipeline(
-            pipelineFlow,
-            pipeline_export_format,
-            pipeline_export_path,
-            overwrite
-          );
-        });
+    showDialog({
+      title: 'Export pipeline',
+      body: new PipelineExportDialog({ runtimes }),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      focusNodeSelector: '#runtime_config'
+    }).then(result => {
+      if (result.value == null) {
+        // When Cancel is clicked on the dialog, just return
+        return;
       }
-    );
+
+      // prepare pipeline submission details
+      const pipelineFlow = this.canvasController.getPipelineFlow();
+      const pipeline_path = this.widgetContext.path;
+
+      const pipeline_dir = path.dirname(pipeline_path);
+      const pipeline_name = path.basename(
+        pipeline_path,
+        path.extname(pipeline_path)
+      );
+      const pipeline_export_format = result.value.pipeline_filetype;
+      const pipeline_export_path =
+        pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
+
+      const overwrite = result.value.overwrite;
+
+      pipelineFlow.pipelines[0]['app_data']['title'] = pipeline_name;
+      pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+      pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+        result.value.runtime_config;
+
+      SubmissionHandler.exportPipeline(
+        pipelineFlow,
+        pipeline_export_format,
+        pipeline_export_path,
+        overwrite
+      );
+    });
   }
 
-  handleRun(): void {
-    SubmissionHandler.makeGetRequest(
-      'api/metadata/runtimes',
-      'pipeline',
-      (response: any) => {
-        if (Object.keys(response.runtimes).length === 0) {
-          return SubmissionHandler.noMetadataError('runtimes');
-        }
+  async handleRun(): Promise<void> {
+    const runtimes = await FrontendServices.getMetadata('runtimes');
 
-        showDialog({
-          title: 'Run pipeline',
-          body: new PipelineSubmissionDialog({
-            runtimes: response.runtimes
-          }),
-          buttons: [Dialog.cancelButton(), Dialog.okButton()],
-          focusNodeSelector: '#pipeline_name'
-        }).then(result => {
-          if (result.value == null) {
-            // When Cancel is clicked on the dialog, just return
-            return;
-          }
-
-          // prepare pipeline submission details
-          const pipelineFlow = this.canvasController.getPipelineFlow();
-
-          pipelineFlow.pipelines[0]['app_data']['title'] =
-            result.value.pipeline_name;
-
-          // TODO: Be more flexible and remove hardcoded runtime type
-          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-            result.value.runtime_config;
-
-          SubmissionHandler.submitPipeline(
-            pipelineFlow,
-            result.value.runtime_config,
-            'pipeline'
-          );
-        });
+    showDialog({
+      title: 'Run pipeline',
+      body: new PipelineSubmissionDialog({ runtimes }),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      focusNodeSelector: '#pipeline_name'
+    }).then(result => {
+      if (result.value == null) {
+        // When Cancel is clicked on the dialog, just return
+        return;
       }
-    );
+
+      // prepare pipeline submission details
+      const pipelineFlow = this.canvasController.getPipelineFlow();
+
+      pipelineFlow.pipelines[0]['app_data']['title'] =
+        result.value.pipeline_name;
+
+      // TODO: Be more flexible and remove hardcoded runtime type
+      pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+      pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+        result.value.runtime_config;
+
+      SubmissionHandler.submitPipeline(
+        pipelineFlow,
+        result.value.runtime_config
+      );
+    });
   }
 
   handleSave(): void {

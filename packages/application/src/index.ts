@@ -16,7 +16,8 @@
 
 import '../style/index.css';
 
+export * from './ErrorDialogContent';
 export * from './parsing';
 export * from './services';
-export * from './submission';
+export * from './requests';
 export * from './icons';

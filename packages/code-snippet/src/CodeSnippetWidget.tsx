@@ -38,7 +38,7 @@ import { Widget } from '@lumino/widgets';
 
 import React from 'react';
 
-import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
+import { CodeSnippetManager, ICodeSnippet } from './CodeSnippetManager';
 import { ExpandableComponent } from './ExpandableComponent';
 
 /**

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { SubmissionHandler } from '@elyra/application';
+import { FrontendServices } from '@elyra/application';
 
 export interface ICodeSnippet {
   name: string;
@@ -25,37 +25,25 @@ export interface ICodeSnippet {
 }
 
 export class CodeSnippetManager {
-  readonly codeSnippetEndpoint = 'api/metadata/code-snippets';
-
   async findAll(): Promise<ICodeSnippet[]> {
-    const getCodeSnippets: Promise<ICodeSnippet[]> = new Promise(
-      (resolve, reject) => {
-        const allCodeSnippets: ICodeSnippet[] = [];
-        SubmissionHandler.makeGetRequest(
-          this.codeSnippetEndpoint,
-          'code snippets',
-          (response: any) => {
-            const codeSnippetsResponse = response['code-snippets'];
-
-            for (const codeSnippetKey in codeSnippetsResponse) {
-              const jsonCodeSnippet = codeSnippetsResponse[codeSnippetKey];
-              const codeSnippet: ICodeSnippet = {
-                name: jsonCodeSnippet.name,
-                displayName: jsonCodeSnippet.display_name,
-                description: jsonCodeSnippet.metadata.description,
-                language: jsonCodeSnippet.metadata.language,
-                code: jsonCodeSnippet.metadata.code
-              };
-              allCodeSnippets.push(codeSnippet);
-            }
-            resolve(allCodeSnippets);
-          }
-        );
-      }
+    const codeSnippetsResponse = await FrontendServices.getMetadata(
+      'code-snippets'
     );
-    const codeSnippets = await getCodeSnippets;
+    const allCodeSnippets: ICodeSnippet[] = [];
 
-    return codeSnippets;
+    for (const codeSnippetKey in codeSnippetsResponse) {
+      const jsonCodeSnippet = codeSnippetsResponse[codeSnippetKey];
+      const codeSnippet: ICodeSnippet = {
+        name: jsonCodeSnippet.name,
+        displayName: jsonCodeSnippet.display_name,
+        description: jsonCodeSnippet.metadata.description,
+        language: jsonCodeSnippet.metadata.language,
+        code: jsonCodeSnippet.metadata.code
+      };
+      allCodeSnippets.push(codeSnippet);
+    }
+
+    return allCodeSnippets;
   }
 
   // TODO: Test this function
