@@ -31,16 +31,16 @@ export class FrontendServices {
     });
   }
 
-  static async getMetadata(name: string): Promise<any> {
+  static async getMetadata(namespace: string): Promise<any> {
     const metadataResponse: any = await RequestHandler.makeGetRequest(
-      'api/metadata/' + name,
+      'api/metadata/' + namespace,
       false
     );
 
-    if (Object.keys(metadataResponse[name]).length === 0) {
-      return this.noMetadataError(name);
+    if (Object.keys(metadataResponse[namespace]).length === 0) {
+      return this.noMetadataError(namespace);
     }
 
-    return metadataResponse[name];
+    return metadataResponse[namespace];
   }
 }
