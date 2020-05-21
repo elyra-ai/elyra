@@ -37,10 +37,6 @@ export class FrontendServices {
       false
     );
 
-    if (Object.keys(metadataResponse[namespace]).length === 0) {
-      return this.noMetadataError(namespace);
-    }
-
     return metadataResponse[namespace];
   }
 }

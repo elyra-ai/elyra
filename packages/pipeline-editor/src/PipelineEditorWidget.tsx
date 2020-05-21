@@ -17,7 +17,6 @@
 import * as path from 'path';
 
 import {
-  FrontendServices,
   IconUtil,
   NotebookParser,
   clearPipelineIcon,
@@ -499,7 +498,7 @@ export class PipelineEditor extends React.Component<
   }
 
   async handleExport(): Promise<void> {
-    const runtimes = await FrontendServices.getMetadata('runtimes');
+    const runtimes = await SubmissionHandler.getRuntimes();
 
     showDialog({
       title: 'Export pipeline',
@@ -542,7 +541,7 @@ export class PipelineEditor extends React.Component<
   }
 
   async handleRun(): Promise<void> {
-    const runtimes = await FrontendServices.getMetadata('runtimes');
+    const runtimes = await SubmissionHandler.getRuntimes();
 
     showDialog({
       title: 'Run pipeline',

@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  FrontendServices,
-  IDictionary,
-  NotebookParser
-} from '@elyra/application';
+import { IDictionary, NotebookParser } from '@elyra/application';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -78,7 +74,7 @@ export class SubmitNotebookButtonExtension
       this.panel.content.model.toString()
     );
 
-    const runtimes = await FrontendServices.getMetadata('runtimes');
+    const runtimes = await SubmissionHandler.getRuntimes();
     const runtimeImages = await SubmissionHandler.getRuntimeImages();
 
     showDialog({

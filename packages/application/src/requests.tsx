@@ -93,9 +93,7 @@ export class RequestHandler {
     const settings = ServerConnection.makeSettings();
     const requestUrl = URLExt.join(settings.baseUrl, requestExt);
 
-    console.log(
-      'Sending a ' + requestOptions.method + ' request to ' + requestUrl
-    );
+    console.log(`Sending a ${requestOptions.method} request to ${requestUrl}`);
 
     const waitDialog: Dialog<any> = new Dialog({
       title: 'Making server request...',
