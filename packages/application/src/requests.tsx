@@ -25,7 +25,10 @@ import { ErrorDialogContent } from './ErrorDialogContent';
 const HTML_STATUS_SUCCESS = [200, 201];
 
 export class RequestHandler {
-  static serverError(response: any): Promise<Dialog.IResult<any>> {
+  /**
+   * displays an error Dialog with an optional stack trace
+   */
+  private static serverError(response: any): Promise<Dialog.IResult<any>> {
     const reason = response.reason ? response.reason : '';
     const message = response.message ? response.message : '';
     const timestamp = response.timestamp ? response.timestamp : '';
@@ -52,14 +55,26 @@ export class RequestHandler {
     });
   }
 
-  static server404(): Promise<Dialog.IResult<any>> {
+  /**
+   * displays an error Dialog for a 404
+   */
+  private static server404(): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error contacting server',
       body: <p>Elyra service endpoint not found.</p>,
       buttons: [Dialog.okButton()]
     });
   }
-
+  /**
+   * Make a GET request to the jupyterlab server.
+   *
+   * @param requestExt - The url for the request.
+   *
+   * @param displayWaitDialog - Whether or not to display a dialog warning
+   * warning the use the request may take time.
+   *
+   * @returns a Promise that resolves with either the response or a Dialog.
+   */
   static async makeGetRequest(
     requestExt: string,
     displayWaitDialog: boolean
@@ -71,6 +86,18 @@ export class RequestHandler {
     );
   }
 
+  /**
+   * Make a POST request to the jupyterlab server.
+   *
+   * @param requestExt - The url for the request.
+   *
+   * @param requestBody - The body of the request.
+   *
+   * @param displayWaitDialog - Whether or not to display a dialog warning
+   * warning the use the request may take time.
+   *
+   * @returns a Promise that resolves with either the response or a Dialog.
+   */
   static async makePostRequest(
     requestExt: string,
     requestBody: any,
@@ -82,7 +109,18 @@ export class RequestHandler {
       displayWaitDialog
     );
   }
-
+  /**
+   * Make an request to the jupyterlab server.
+   *
+   * @param requestExt - The url for the request.
+   *
+   * @param requestOptions - The initialization options for the request.
+   *
+   * @param displayWaitDialog - Whether or not to display a dialog warning
+   * warning the use the request may take time.
+   *
+   * @returns a Promise that resolves with either the response or a Dialog.
+   */
   static async makeServerRequest(
     requestExt: string,
     requestOptions: any,
@@ -113,6 +151,7 @@ export class RequestHandler {
           }
 
           response.json().then(
+            // handle cases where the server returns a valid response
             (result: any) => {
               if (!HTML_STATUS_SUCCESS.includes(response.status)) {
                 return this.serverError(result);
@@ -120,8 +159,8 @@ export class RequestHandler {
 
               resolve(result);
             },
+            // handle 404 if the server is not found
             (reason: any) => {
-              // handle 404 if elyra server extension is not found
               return this.server404();
             }
           );

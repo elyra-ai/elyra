@@ -23,7 +23,7 @@ import { JSONObject, JSONValue } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
 import { Widget } from '@lumino/widgets';
 
-import { SubmissionHandler } from './SubmissionHandler';
+import { PipelineService } from './PipelineService';
 import Utils from './utils';
 
 /**
@@ -74,8 +74,8 @@ export class SubmitNotebookButtonExtension
       this.panel.content.model.toString()
     );
 
-    const runtimes = await SubmissionHandler.getRuntimes();
-    const runtimeImages = await SubmissionHandler.getRuntimeImages();
+    const runtimes = await PipelineService.getRuntimes();
+    const runtimeImages = await PipelineService.getRuntimeImages();
 
     showDialog({
       title: 'Submit notebook',
@@ -94,7 +94,7 @@ export class SubmitNotebookButtonExtension
         notebookOptions
       );
 
-      SubmissionHandler.submitPipeline(pipeline, result.value.runtime_config);
+      PipelineService.submitPipeline(pipeline, result.value.runtime_config);
     });
   };
 

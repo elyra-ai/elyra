@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-import { FrontendServices, RequestHandler } from '@elyra/application';
+import { MetadataService, RequestHandler } from '@elyra/application';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 
-export class SubmissionHandler {
+export class PipelineService {
   static async getRuntimes(): Promise<any> {
-    const runtimes = await FrontendServices.getMetadata('runtimes');
+    const runtimes = await MetadataService.getMetadata('runtimes');
 
     if (Object.keys(runtimes).length === 0) {
-      return FrontendServices.noMetadataError('runtimes');
+      return MetadataService.noMetadataError('runtimes');
     }
 
     return runtimes;
   }
 
   static async getRuntimeImages(): Promise<any> {
-    const runtimeImages = await FrontendServices.getMetadata('runtime-images');
+    const runtimeImages = await MetadataService.getMetadata('runtime-images');
 
     if (Object.keys(runtimeImages).length === 0) {
-      return FrontendServices.noMetadataError('runtime-images');
+      return MetadataService.noMetadataError('runtime-images');
     }
 
     const images: { [key: string]: string } = {};

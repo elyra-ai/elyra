@@ -18,11 +18,11 @@ import { caretDownIcon, caretRightIcon } from '@jupyterlab/ui-components';
 
 import * as React from 'react';
 
-const MESSAGE_DISPLAY = 'elyra-pipelineSubmission-messageDisplay';
-const ERROR_DISPLAY_BUTTON = 'elyra-pipelineSubmission-errDisplayButton';
-const ERROR_DETAILS = 'elyra-pipelineSubmission-errDetails';
-const ERROR_DETAILS_VISIBLE = 'elyra-pipelineSubmission-error-visible';
-const ERROR_DETAILS_HIDDEN = 'elyra-pipelineSubmission-error-hidden';
+const MESSAGE_DISPLAY = 'elyra-errorDialog-messageDisplay';
+const ERROR_DISPLAY_BUTTON = 'elyra-errorDialog-errDisplayButton';
+const ERROR_DETAILS = 'elyra-errorDialog-errDetails';
+const ERROR_DETAILS_VISIBLE = 'elyra-errorDialog-error-visible';
+const ERROR_DETAILS_HIDDEN = 'elyra-errorDialog-error-hidden';
 const ERROR_DIALOG_WIDTH = 600;
 const ERROR_DIALOG_HEIGHT = 400;
 const JP_DIALOG_CONTENT = 'jp-Dialog-content';

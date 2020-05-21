@@ -20,9 +20,9 @@ import * as React from 'react';
 import { RequestHandler } from './requests';
 
 /**
- * A utilities class for various elyra services.
+ * A utility class for handling elyra metadata calls.
  */
-export class FrontendServices {
+export class MetadataService {
   static noMetadataError(metadataName: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error retrieving metadata',

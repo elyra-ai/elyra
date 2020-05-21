@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-.elyra-pipelineSubmission-messageDisplay {
+.elyra-errorDialog-messageDisplay {
   padding-bottom: 5px;
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.elyra-pipelineSubmission-errDisplayButton {
+.elyra-errorDialog-errDisplayButton {
   margin-right: 10px;
   vertical-align: text-bottom;
   background-color: white;
@@ -29,17 +29,17 @@
   border: none;
 }
 
-.elyra-pipelineSubmission-errDisplayButton:hover {
+.elyra-errorDialog-errDisplayButton:hover {
   background-color: var(--jp-layout-color2);
 }
 
-button.elyra-pipelineSubmission-errDisplayButton {
+button.elyra-errorDialog-errDisplayButton {
   height: 20px;
   width: 20px;
   padding: 0;
 }
 
-.elyra-pipelineSubmission-errDetails {
+.elyra-errorDialog-errDetails {
   margin: 15px 0;
   display: flex;
   flex: 1;
@@ -47,7 +47,7 @@ button.elyra-pipelineSubmission-errDisplayButton {
   flex-direction: column;
 }
 
-.elyra-pipelineSubmission-error-visible {
+.elyra-errorDialog-error-visible {
   display: block;
   overflow: auto;
   border: var(--jp-border-width) solid var(--jp-toolbar-border-color);
@@ -58,7 +58,7 @@ button.elyra-pipelineSubmission-errDisplayButton {
   margin: 5px 0 10px 30px;
 }
 
-.elyra-pipelineSubmission-error-hidden {
+.elyra-errorDialog-error-hidden {
   display: none;
 }
 

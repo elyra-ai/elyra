@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FrontendServices } from '@elyra/application';
+import { MetadataService } from '@elyra/application';
 
 export interface ICodeSnippet {
   name: string;
@@ -26,7 +26,7 @@ export interface ICodeSnippet {
 
 export class CodeSnippetManager {
   async findAll(): Promise<ICodeSnippet[]> {
-    const codeSnippetsResponse = await FrontendServices.getMetadata(
+    const codeSnippetsResponse = await MetadataService.getMetadata(
       'code-snippets'
     );
     const allCodeSnippets: ICodeSnippet[] = [];

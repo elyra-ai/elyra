@@ -59,9 +59,9 @@ import { IntlProvider } from 'react-intl';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
+import { PipelineService } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
-import { SubmissionHandler } from './SubmissionHandler';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
@@ -300,7 +300,7 @@ export class PipelineEditor extends React.Component<
   }
 
   async initPropertiesInfo(): Promise<void> {
-    const runtimeImages = await SubmissionHandler.getRuntimeImages();
+    const runtimeImages = await PipelineService.getRuntimeImages();
 
     const imageEnum = [];
     for (const image in runtimeImages) {
@@ -498,7 +498,7 @@ export class PipelineEditor extends React.Component<
   }
 
   async handleExport(): Promise<void> {
-    const runtimes = await SubmissionHandler.getRuntimes();
+    const runtimes = await PipelineService.getRuntimes();
 
     showDialog({
       title: 'Export pipeline',
@@ -531,7 +531,7 @@ export class PipelineEditor extends React.Component<
       pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
         result.value.runtime_config;
 
-      SubmissionHandler.exportPipeline(
+      PipelineService.exportPipeline(
         pipelineFlow,
         pipeline_export_format,
         pipeline_export_path,
@@ -541,7 +541,7 @@ export class PipelineEditor extends React.Component<
   }
 
   async handleRun(): Promise<void> {
-    const runtimes = await SubmissionHandler.getRuntimes();
+    const runtimes = await PipelineService.getRuntimes();
 
     showDialog({
       title: 'Run pipeline',
@@ -565,10 +565,7 @@ export class PipelineEditor extends React.Component<
       pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
         result.value.runtime_config;
 
-      SubmissionHandler.submitPipeline(
-        pipelineFlow,
-        result.value.runtime_config
-      );
+      PipelineService.submitPipeline(pipelineFlow, result.value.runtime_config);
     });
   }
 
