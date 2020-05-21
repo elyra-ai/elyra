@@ -16,8 +16,7 @@
 
 .elyra-codeSnippetsHeader {
   font-weight: bold;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding: 8px 10px;
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }
 
