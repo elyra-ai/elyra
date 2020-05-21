@@ -20,7 +20,8 @@ import { codeSnippetIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
+  ILayoutRestorer
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 
@@ -36,8 +37,12 @@ const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
 export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
   id: CODE_SNIPPET_EXTENSION_ID,
   autoStart: true,
-  requires: [ICommandPalette],
-  activate: (app: JupyterFrontEnd, palette: ICommandPalette) => {
+  requires: [ICommandPalette, ILayoutRestorer],
+  activate: (
+    app: JupyterFrontEnd,
+    palette: ICommandPalette,
+    restorer: ILayoutRestorer
+  ) => {
     console.log('Elyra - code-snippet extension is activated!');
 
     const getCurrentWidget = (): Widget => {
@@ -48,6 +53,8 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
     codeSnippetWidget.title.icon = codeSnippetIcon;
     codeSnippetWidget.title.caption = 'Code Snippet';
+
+    restorer.add(codeSnippetWidget, CODE_SNIPPET_EXTENSION_ID);
 
     // Rank has been chosen somewhat arbitrarily to give priority to the running
     // sessions widget in the sidebar.

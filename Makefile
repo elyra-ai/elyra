@@ -72,7 +72,7 @@ npm-packages: lerna-build
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
 	cd dist && curl -o jupyterlab-git-0.20.0.tgz $$(npm view @jupyterlab/git@0.20.0 dist.tarball) && cd -
-	cd dist && curl -o jupyterlab-toc-3.0.0.tgz $$(npm view @jupyterlab/toc@3.0.0 dist.tarball) && cd -
+	cd dist && curl -o jupyterlab-toc-4.0.0.tgz $$(npm view @jupyterlab/toc@4.0.0 dist.tarball) && cd -
 
 bdist: npm-packages
 	python setup.py bdist_wheel
