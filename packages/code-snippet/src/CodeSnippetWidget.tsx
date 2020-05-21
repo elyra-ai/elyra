@@ -16,6 +16,8 @@
 
 import '../style/index.css';
 
+import { ExpandableComponent } from '@elyra/ui-components';
+
 import {
   ReactWidget,
   UseSignal,

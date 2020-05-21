@@ -11,6 +11,10 @@
   "bugs": {
     "url": "https://github.com/elyra-ai/elyra/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elyra-ai/elyra/"
+  },
   "license": "Apache-2.0",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
@@ -19,19 +23,16 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "style": "style/index.css",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/elyra-ai/elyra/"
-  },
   "scripts": {
     "build": "tsc",
-    "dist": "npm pack .",
     "clean": "rimraf lib",
+    "dist": "npm pack .",
     "prepare": "npm run build",
     "watch": "tsc -w"
   },
   "dependencies": {
     "@elyra/application": "^0.11.0-dev",
+    "@elyra/ui-components": "^0.11.0-dev",
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/cells": "^2.0.2",
