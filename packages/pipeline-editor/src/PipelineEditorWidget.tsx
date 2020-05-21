@@ -18,15 +18,8 @@ import * as path from 'path';
 
 import {
   FrontendServices,
-  IconUtil,
   NotebookParser,
   SubmissionHandler,
-  clearPipelineIcon,
-  dragDropIcon,
-  exportPipelineIcon,
-  newPipelineIcon,
-  pipelineIcon,
-  savePipelineIcon,
   IDictionary
 } from '@elyra/application';
 import {
@@ -34,6 +27,16 @@ import {
   CanvasController,
   CommonProperties
 } from '@elyra/canvas';
+import {
+  IconUtil,
+  clearPipelineIcon,
+  dragDropIcon,
+  exportPipelineIcon,
+  newPipelineIcon,
+  pipelineIcon,
+  savePipelineIcon
+} from '@elyra/ui-components';
+
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {

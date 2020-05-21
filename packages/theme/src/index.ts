@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { elyraIcon } from '@elyra/application';
+import { elyraIcon } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
