@@ -1,11 +1,10 @@
 {
-  "name": "@elyra/theme-extension",
+  "name": "@elyra/ui-components",
   "version": "0.11.0-dev",
-  "description": "JupyterLab extension - Elyra theme",
+  "description": "JupyterLab - UI components for use in elyra",
   "keywords": [
     "jupyter",
-    "jupyterlab",
-    "jupyterlab-extension"
+    "jupyterlab"
   ],
   "homepage": "https://github.com/elyra-ai/elyra",
   "bugs": {
@@ -31,17 +30,13 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/application": "^0.11.0-dev",
-    "@elyra/ui-components": "^0.11.0-dev",
-    "@jupyterlab/application": "^2.0.2",
-    "@jupyterlab/mainmenu": "^2.0.2"
+    "@jupyterlab/ui-components": "^2.0.2",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
   },
   "devDependencies": {
     "rimraf": "~3.0.0",
     "typescript": "~3.7.3"
-  },
-  "jupyterlab": {
-    "extension": true
   },
   "publishConfig": {
     "access": "public"

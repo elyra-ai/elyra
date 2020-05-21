@@ -45,6 +45,7 @@ purge:
 
 uninstall:
 	$(call UNLINK_LAB_EXTENSION,@elyra/application)
+	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension-experimental)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
@@ -86,6 +87,7 @@ install-external-extensions:
 
 install: build-ui build-server install-server install-external-extensions ## Build and install
 	$(call LINK_LAB_EXTENSION,application)
+	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call INSTALL_LAB_EXTENSION,theme)
 	$(call INSTALL_LAB_EXTENSION,code-snippet)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
