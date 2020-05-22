@@ -58,8 +58,10 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
 
   constructor(props: any) {
     super(props);
+    // this.props = props;
 
     this.commandRegistry = new CommandRegistry();
+
     this.props.app.commands.addCommand('insert-data-source', {
       execute: (args: any) => {
         console.log('execute');
@@ -72,10 +74,48 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
       selector: '.elyra-expandableContainer-actionButton',
       command: 'insert-data-source'
     });
+  }
 
-    console.log(this.props.app.commands);
+  private addSubmenu(dataSource: IDataSource): void {
+    const languageMenus: any[] = [];
+    for (const code of dataSource.code) {
+      const language = code.language;
+      const framework = code.framework;
+      const menuObj: any = languageMenus.find((languageMenu: any) => {
+        return languageMenu.language == language;
+      });
+      let menu: Menu;
+      if (!menuObj) {
+        console.log('no menu');
+        menu = new Menu({ commands: this.commandRegistry });
+        menu.title.label = language;
 
-    this.props = props;
+        languageMenus.push({ language: language, menu: menu });
+        this.props.app.contextMenu.addItem({
+          type: 'submenu' as Menu.ItemType,
+          submenu: menu,
+          selector: '.elyra-expandableContainer-actionButton'
+        });
+      } else {
+        menu = menuObj.menu;
+      }
+
+      this.commandRegistry.addCommand(
+        'insert-data-source:' + language + ':' + framework,
+        {
+          execute: (args: any) => {
+            console.log('commandsreg');
+            console.log(args);
+          },
+          label: 'Insert ' + framework
+        }
+      );
+
+      menu.addItem({
+        command: 'insert-data-source:' + language + ':' + framework,
+        args: { language: language, framework: framework }
+      });
+    }
   }
 
   // Render display of data source list
@@ -92,46 +132,7 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
       }
     ];
 
-    console.log(this.commandRegistry);
-
-    console.log(dataSource.code);
-    const languageMenus: any[] = [];
-    for (const code of dataSource.code) {
-      const language = code.language;
-      const framework = code.framework;
-      const menuObj: any = languageMenus.find((languageMenu: any) => {
-        return languageMenu.language == language;
-      });
-      let menu: Menu;
-      if (!menuObj) {
-        console.log('no menu');
-        menu = new Menu({ commands: this.commandRegistry });
-        menu.title.label = language;
-        console.log(
-          menu.addItem({
-            command: 'insert-data-source',
-            args: { language: language, framework: framework }
-          })
-        );
-        languageMenus.push({ language: language, menu: menu });
-        console.log(
-          this.props.app.contextMenu.addItem({
-            selector: '.elyra-expandableContainer-actionButton',
-            // type: 'submenu' as Menu.ItemType,
-            // subMenu: menu,
-            rank: 2,
-            commands: 'insert-data-source',
-            args: { language: language, framework: framework }
-          })
-        );
-        console.log(this.props.app.contextMenu);
-      } else {
-        menu = menuObj.menu;
-      }
-      console.log(menu);
-    }
-
-    console.log(languageMenus);
+    this.addSubmenu(dataSource);
 
     // const br = '<br/>';
     let sourceTitle = dataSource.source;
