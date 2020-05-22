@@ -43,12 +43,11 @@ In this example, we will be performing the steps on a MacOS system
 1. In the upper right corner locate the Docker Desktop Icon, Click and go to `Preferences`   
 ![Elyra](../images/docker-desktop-icon.png)  
   
-2. Navigate to the `Advanced` Tab and ensure that Docker Desktop has at least   
-4 CPUs, 8 GB of Memory and 1 GB of Swap. If not, increase as necessary and restart   
-the Docker Desktop Engine.  
-![Elyra](../images/docker-desktop-advanced.png)  
+2. Navigate to the `Resources` sub-menu and ensure that Docker Desktop has at least   
+4 CPUs, 8 GB of Memory and 1 GB of Swap. If not, increase as necessary and click `Apply & Restart`.  
+![Elyra](../images/docker-desktop-resources.png)  
   
-3. Navigate to the `Kubernetes` Tab and Click `Enable Kubernetes` and hit `Apply`  
+3. Navigate to the `Kubernetes` sub-menu and click `Enable Kubernetes` and hit `Apply & Restart`  
 ![Elyra](../images/docker-desktop-k8s-menu.png)  
   
 4. `Docker Desktop` should now install a single node deployment of Kubernetes  
