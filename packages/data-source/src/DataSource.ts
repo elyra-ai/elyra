@@ -24,6 +24,7 @@ export interface ICodeTemplate {
 
 export interface IDataSource {
   name: string;
+  id: number;
   displayName: string;
   description: string;
   source: string;
@@ -38,6 +39,7 @@ export class DataSourceManager {
     const getDataSources: Promise<IDataSource[]> = new Promise(
       (resolve, reject) => {
         const allDataSources: IDataSource[] = [];
+        let idNum = 0;
         SubmissionHandler.makeGetRequest(
           this.dataSourceEndpoint,
           'data sources',
@@ -46,8 +48,10 @@ export class DataSourceManager {
 
             for (const dataSourceKey in dataSourcesResponse) {
               const jsonDataSource = dataSourcesResponse[dataSourceKey];
+              idNum++;
               const dataSource: IDataSource = {
                 name: jsonDataSource.name,
+                id: idNum,
                 displayName: jsonDataSource.display_name,
                 description: jsonDataSource.metadata.description,
                 source: jsonDataSource.metadata.source,

@@ -17,6 +17,7 @@
 .elyra-dataSourcesHeader {
   font-weight: bold;
   padding-top: 10px;
+  padding-left: 10px;
   padding-bottom: 10px;
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }

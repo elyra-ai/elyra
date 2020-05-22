@@ -61,23 +61,11 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
     // this.props = props;
 
     this.commandRegistry = new CommandRegistry();
-
-    this.props.app.commands.addCommand('insert-data-source', {
-      execute: (args: any) => {
-        console.log('execute');
-        console.log(args);
-      },
-      label: 'Insert'
-    });
-
-    this.props.app.contextMenu.addItem({
-      selector: '.elyra-expandableContainer-actionButton',
-      command: 'insert-data-source'
-    });
   }
 
   private addSubmenu(dataSource: IDataSource): void {
     const languageMenus: any[] = [];
+    const id = dataSource.id;
     for (const code of dataSource.code) {
       const language = code.language;
       const framework = code.framework;
@@ -94,14 +82,15 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
         this.props.app.contextMenu.addItem({
           type: 'submenu' as Menu.ItemType,
           submenu: menu,
-          selector: '.elyra-expandableContainer-actionButton'
+          selector:
+            '.elyra-expandableContainer-actionButton[title="' + id + '"]'
         });
       } else {
         menu = menuObj.menu;
       }
 
       this.commandRegistry.addCommand(
-        'insert-data-source:' + language + ':' + framework,
+        'insert-data-source:' + id + ':' + language + ':' + framework,
         {
           execute: (args: any) => {
             console.log('commandsreg');
@@ -112,7 +101,7 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
       );
 
       menu.addItem({
-        command: 'insert-data-source:' + language + ':' + framework,
+        command: 'insert-data-source:' + id + ':' + language + ':' + framework,
         args: { language: language, framework: framework }
       });
     }
@@ -124,7 +113,7 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
 
     const actionButtons = [
       {
-        title: 'Insert',
+        title: dataSource.id + '',
         icon: addIcon,
         onClick: (): void => {
           console.log('TODO OPEN CONTEXT MENU');
