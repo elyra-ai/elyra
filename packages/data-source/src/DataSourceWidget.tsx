@@ -74,7 +74,6 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
       });
       let menu: Menu;
       if (!menuObj) {
-        console.log('no menu');
         menu = new Menu({ commands: this.commandRegistry });
         menu.title.label = language;
 
@@ -116,7 +115,7 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
         title: dataSource.id + '',
         icon: addIcon,
         onClick: (): void => {
-          console.log('TODO OPEN CONTEXT MENU');
+          console.log('TODO automatically open context menu');
         }
       }
     ];
