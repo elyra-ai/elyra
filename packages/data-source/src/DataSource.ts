@@ -16,13 +16,19 @@
 
 import { SubmissionHandler } from '@elyra/application';
 
+export interface ICodeTemplate {
+  language: string;
+  framework: string;
+  code: string[];
+}
+
 export interface IDataSource {
   name: string;
   displayName: string;
   description: string;
   source: string;
   language: string;
-  code: string[][];
+  code: ICodeTemplate[];
 }
 
 export class DataSourceManager {

@@ -49,7 +49,7 @@ export const data_source_extension: JupyterFrontEndPlugin<void> = {
       return app.shell.currentWidget;
     };
 
-    const dataSourceWidget = new DataSourceWidget(getCurrentWidget);
+    const dataSourceWidget = new DataSourceWidget(getCurrentWidget, app);
     dataSourceWidget.id = DATA_SOURCE_EXTENSION_ID;
     dataSourceWidget.title.icon = dataSourceIcon;
     dataSourceWidget.title.caption = 'Data Source';

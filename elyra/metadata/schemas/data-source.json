@@ -37,6 +37,9 @@
         "type": {
           "description": "Format of data source (i.e. database, csv, etc.)",
           "type": "string"
+        },
+        "code": {
+          "type": "array"
         }
       },
       "required": ["source"]

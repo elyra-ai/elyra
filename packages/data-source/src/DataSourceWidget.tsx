@@ -18,25 +18,16 @@ import '../style/index.css';
 
 import { ExpandableComponent } from '@elyra/ui-components';
 
-import {
-  ReactWidget,
-  UseSignal,
-  Clipboard,
-  Dialog,
-  showDialog
-} from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
-import { CodeEditor } from '@jupyterlab/codeeditor';
-import { PathExt } from '@jupyterlab/coreutils';
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-import { DocumentWidget } from '@jupyterlab/docregistry';
-import { FileEditor } from '@jupyterlab/fileeditor';
-import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { copyIcon, addIcon } from '@jupyterlab/ui-components';
+import { addIcon } from '@jupyterlab/ui-components';
+
+import { CommandRegistry } from '@lumino/commands';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
-import { Widget } from '@lumino/widgets';
+import { Widget, Menu } from '@lumino/widgets';
 
 import React from 'react';
 
@@ -55,112 +46,37 @@ const DATA_SOURCE_ITEM = 'elyra-dataSource-item';
 interface IDataSourceDisplayProps {
   dataSources: IDataSource[];
   getCurrentWidget: () => Widget;
+  app: JupyterFrontEnd;
 }
 
 /**
  * A React Component for data-sources display list.
  */
 class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
-  // TODO: Use code mirror to display code
+  props: any;
+  commandRegistry: CommandRegistry;
 
-  // Handle data source insert into an editor
-  private insertDataSource = async (source: IDataSource): Promise<void> => {
-    const widget: Widget = this.props.getCurrentWidget();
-    const sourceStr: string = source.code.join('\n');
+  constructor(props: any) {
+    super(props);
 
-    if (
-      widget instanceof DocumentWidget &&
-      (widget as DocumentWidget).content instanceof FileEditor
-    ) {
-      const documentWidget = widget as DocumentWidget;
-      const fileEditor = (documentWidget.content as FileEditor).editor;
-      const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
-      if (PathExt.extname(widget.context.path).match(markdownRegex) !== null) {
-        // Wrap source into a code block when inserting it into a markdown file
-        fileEditor.replaceSelection(
-          '```' + source.language + '\n' + sourceStr + '\n```'
-        );
-      } else if (widget.constructor.name == 'PythonFileEditor') {
-        this.verifyLanguageAndInsert(source, 'python', fileEditor);
-      } else {
-        fileEditor.replaceSelection(sourceStr);
-      }
-    } else if (widget instanceof NotebookPanel) {
-      const notebookWidget = widget as NotebookPanel;
-      const notebookCell = (notebookWidget.content as Notebook).activeCell;
-      const notebookCellEditor = notebookCell.editor;
-
-      if (notebookCell instanceof CodeCell) {
-        const kernelInfo = await notebookWidget.sessionContext.session?.kernel
-          ?.info;
-        const kernelLanguage: string = kernelInfo?.language_info.name || '';
-        this.verifyLanguageAndInsert(
-          source,
-          kernelLanguage,
-          notebookCellEditor
-        );
-      } else if (notebookCell instanceof MarkdownCell) {
-        // Wrap source into a code block when inserting it into a markdown cell
-        notebookCellEditor.replaceSelection(
-          '```' + source.language + '\n' + sourceStr + '\n```'
-        );
-      } else {
-        notebookCellEditor.replaceSelection(sourceStr);
-      }
-    } else {
-      this.showErrDialog('Code source insert failed: Unsupported widget');
-    }
-  };
-
-  // Handle language compatibility between data source and editor
-  private verifyLanguageAndInsert = async (
-    source: IDataSource,
-    editorLanguage: string,
-    editor: CodeEditor.IEditor
-  ): Promise<void> => {
-    const sourceStr: string = source.code.join('\n');
-    if (
-      editorLanguage &&
-      source.language.toLowerCase() !== editorLanguage.toLowerCase()
-    ) {
-      const result = await this.showWarnDialog(
-        editorLanguage,
-        source.displayName
-      );
-      if (result.button.accept) {
-        editor.replaceSelection(sourceStr);
-      }
-    } else {
-      // Language match or editorLanguage is unavailable
-      editor.replaceSelection(sourceStr);
-    }
-  };
-
-  // Display warning dialog when inserting a data source incompatible with editor's language
-  private showWarnDialog = async (
-    editorLanguage: string,
-    sourceName: string
-  ): Promise<Dialog.IResult<string>> => {
-    return showDialog({
-      title: 'Warning',
-      body:
-        'Code source "' +
-        sourceName +
-        '" is incompatible with ' +
-        editorLanguage +
-        '. Continue?',
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+    this.commandRegistry = new CommandRegistry();
+    this.props.app.commands.addCommand('insert-data-source', {
+      execute: (args: any) => {
+        console.log('execute');
+        console.log(args);
+      },
+      label: 'Insert'
     });
-  };
 
-  // Display error dialog when inserting a data source into unsupported widget (i.e. not an editor)
-  private showErrDialog = (errMsg: string): Promise<Dialog.IResult<string>> => {
-    return showDialog({
-      title: 'Error',
-      body: errMsg,
-      buttons: [Dialog.okButton()]
+    this.props.app.contextMenu.addItem({
+      selector: '.elyra-expandableContainer-actionButton',
+      command: 'insert-data-source'
     });
-  };
+
+    console.log(this.props.app.commands);
+
+    this.props = props;
+  }
 
   // Render display of data source list
   private renderDataSource = (dataSource: IDataSource): JSX.Element => {
@@ -168,20 +84,54 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
 
     const actionButtons = [
       {
-        title: 'Copy',
-        icon: copyIcon,
-        onClick: (): void => {
-          Clipboard.copyToSystem(dataSource.code.join('\n'));
-        }
-      },
-      {
         title: 'Insert',
         icon: addIcon,
         onClick: (): void => {
-          this.insertDataSource(dataSource);
+          console.log('TODO OPEN CONTEXT MENU');
         }
       }
     ];
+
+    console.log(this.commandRegistry);
+
+    console.log(dataSource.code);
+    const languageMenus: any[] = [];
+    for (const code of dataSource.code) {
+      const language = code.language;
+      const framework = code.framework;
+      const menuObj: any = languageMenus.find((languageMenu: any) => {
+        return languageMenu.language == language;
+      });
+      let menu: Menu;
+      if (!menuObj) {
+        console.log('no menu');
+        menu = new Menu({ commands: this.commandRegistry });
+        menu.title.label = language;
+        console.log(
+          menu.addItem({
+            command: 'insert-data-source',
+            args: { language: language, framework: framework }
+          })
+        );
+        languageMenus.push({ language: language, menu: menu });
+        console.log(
+          this.props.app.contextMenu.addItem({
+            selector: '.elyra-expandableContainer-actionButton',
+            // type: 'submenu' as Menu.ItemType,
+            // subMenu: menu,
+            rank: 2,
+            commands: 'insert-data-source',
+            args: { language: language, framework: framework }
+          })
+        );
+        console.log(this.props.app.contextMenu);
+      } else {
+        menu = menuObj.menu;
+      }
+      console.log(menu);
+    }
+
+    console.log(languageMenus);
 
     // const br = '<br/>';
     let sourceTitle = dataSource.source;
@@ -233,12 +183,14 @@ export class DataSourceWidget extends ReactWidget {
   dataSourceManager: DataSourceManager;
   renderDataSourcesSignal: Signal<this, IDataSource[]>;
   getCurrentWidget: () => Widget;
+  app: JupyterFrontEnd;
 
-  constructor(getCurrentWidget: () => Widget) {
+  constructor(getCurrentWidget: () => Widget, app: JupyterFrontEnd) {
     super();
     this.getCurrentWidget = getCurrentWidget;
     this.dataSourceManager = new DataSourceManager();
     this.renderDataSourcesSignal = new Signal<this, IDataSource[]>(this);
+    this.app = app;
   }
 
   // Request data sources from server
@@ -262,6 +214,7 @@ export class DataSourceWidget extends ReactWidget {
             <DataSourceDisplay
               dataSources={dataSources}
               getCurrentWidget={this.getCurrentWidget}
+              app={this.app}
             />
           )}
         </UseSignal>
