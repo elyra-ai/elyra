@@ -139,8 +139,8 @@ class KfpPipelineProcessor(PipelineProcessor):
         # and its parent's outputs.
         for pipeline_operation in pipeline.operations.values():
             parent_inputs_and_outputs = []
-            for dependency_operation_id in pipeline_operation.parent_operations:
-                parent_operation = pipeline.operations[dependency_operation_id]
+            for parent_operation_id in pipeline_operation.parent_operations:
+                parent_operation = pipeline.operations[parent_operation_id]
                 if parent_operation.inputs:
                     parent_inputs_and_outputs.extend(parent_operation.inputs)
                 if parent_operation.outputs:
@@ -218,9 +218,9 @@ class KfpPipelineProcessor(PipelineProcessor):
         # Process dependencies after all the operations have been created
         for pipeline_operation in pipeline.operations.values():
             op = notebook_ops[pipeline_operation.id]
-            for dependency_operation_id in pipeline_operation.parent_operations:
-                dependency_op = notebook_ops[dependency_operation_id]  # Parent Operation
-                op.after(dependency_op)
+            for parent_operation_id in pipeline_operation.parent_operations:
+                parent_op = notebook_ops[parent_operation_id]  # Parent Operation
+                op.after(parent_op)
 
         return notebook_ops
 

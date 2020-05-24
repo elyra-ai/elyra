@@ -68,7 +68,7 @@ class PipelineParser(LoggingConfigurable):
                 raise ValueError('Invalid pipeline: Supernode feature is not supported.')
 
             # parse links as dependencies
-            links = PipelineParser._read_pipeline_operation_parent_operations(node)
+            links = PipelineParser._read_pipeline_parent_operation_dependencies(node)
 
             # parse each node as a pipeline operation
             operation = Operation(
@@ -122,7 +122,7 @@ class PipelineParser(LoggingConfigurable):
         return runtime_config
 
     @staticmethod
-    def _read_pipeline_operation_parent_operations(node) -> list:
+    def _read_pipeline_parent_operation_dependencies(node) -> list:
         dependencies = []
         if 'inputs' in node.keys():
             if 'links' in node['inputs'][0].keys():
