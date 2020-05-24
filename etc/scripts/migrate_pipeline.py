@@ -20,7 +20,7 @@ import json
 import argparse
 
 
-parser = argparse.ArgumentParser(description='Description of your program')
+parser = argparse.ArgumentParser(description='Elyra Pipeline Migration utility')
 parser.add_argument('-f', '--file',
                     dest="pipeline_file",
                     help='The pipeline file to convert to new format',
