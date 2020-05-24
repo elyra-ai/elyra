@@ -29,7 +29,7 @@ def valid_operation():
                      filename='{{filename}}',
                      runtime_image='{{runtime_image}}',
                      env_vars=["var1=var1", "var2=var2"],
-                     file_dependencies=["a.txt", "b.txt", "c.txt"],
+                     dependencies=["a.txt", "b.txt", "c.txt"],
                      outputs=["d.txt", "e.txt", "f.txt"],
                      )
 
