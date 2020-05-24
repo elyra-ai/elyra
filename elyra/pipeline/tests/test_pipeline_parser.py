@@ -27,7 +27,11 @@ def valid_operation():
                      type='{{type}}',
                      classifier='execute-notebook-node',
                      filename='{{filename}}',
-                     runtime_image='{{runtime_image}}')
+                     runtime_image='{{runtime_image}}',
+                     env_vars=["var1=var1", "var2=var2"],
+                     file_dependencies=["a.txt", "b.txt", "c.txt"],
+                     outputs=["d.txt", "e.txt", "f.txt"],
+                     )
 
 
 def test_valid_pipeline(valid_operation):
