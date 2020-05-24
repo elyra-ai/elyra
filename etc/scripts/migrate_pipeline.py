@@ -56,6 +56,6 @@ with open(args['pipeline_file'], "r") as file:
         if args['overwrite']:
             new_pipeline_file = args['pipeline_file']
         else:
-            new_pipeline_file = os.path.basename(args['pipeline_file']).split(".")[0] + '-new.json'
+            new_pipeline_file = os.path.basename(args['pipeline_file']).split(".")[0] + '-new.pipeline'
         with open(new_pipeline_file, "w") as f:
             f.write(json.dumps(json_data, indent=4))
