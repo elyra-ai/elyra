@@ -22,7 +22,7 @@ import autopep8
 from datetime import datetime
 
 from elyra.metadata import MetadataManager
-from elyra.pipeline import PipelineProcessor
+from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from kubernetes.client.models import V1EnvVar
@@ -44,6 +44,8 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
+        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
+        cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
@@ -76,7 +78,12 @@ class KfpPipelineProcessor(PipelineProcessor):
                                       pipeline_id=kfp_pipeline.id)
 
             self.log.info("Starting Kubeflow Pipeline Run...")
-            return "{}/#/runs/details/{}".format(api_endpoint, run.id)
+
+            return PipelineProcessorResponse(
+                run_url="{}/#/runs/details/{}".format(api_endpoint, run.id),
+                object_storage_url="{}".format(cos_endpoint),
+                object_storage_path="/{}/{}".format(cos_bucket, pipeline_name),
+            )
 
         return None
 
