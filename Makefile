@@ -78,20 +78,24 @@ build-ui: yarn-install lint-ui ## Build packages
 build-server: lint-server ## Build backend
 	python setup.py bdist_wheel
 
-install-server: ## Install backend
+build: build-server build-ui
+
+install-server: build-server ## Install backend
 	pip install --upgrade dist/elyra-*-py3-none-any.whl
 
-install-external-extensions:
-	pip install --upgrade jupyterlab-git==0.20.0
-	jupyter labextension install --no-build @jupyterlab/toc@4.0.0
-
-install: build-ui build-server install-server install-external-extensions ## Build and install
+install-ui: build-ui
 	$(call LINK_LAB_EXTENSION,application)
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call INSTALL_LAB_EXTENSION,theme)
 	$(call INSTALL_LAB_EXTENSION,code-snippet)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,python-runner)
+
+install-external-extensions:
+	pip install --upgrade jupyterlab-git==0.20.0
+	jupyter labextension install --no-build @jupyterlab/toc@4.0.0
+
+install: install-server install-ui install-external-extensions ## Build and install
 	jupyter lab build
 	jupyter serverextension list
 	jupyter labextension list
