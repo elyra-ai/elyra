@@ -15,3 +15,4 @@
  */
 export * from './ExpandableComponent';
 export * from './icons';
+export * from './insertCodeSnippet';

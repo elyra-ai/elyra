@@ -16,22 +16,11 @@
 
 import '../style/index.css';
 
-import { ExpandableComponent } from '@elyra/ui-components';
+import { ExpandableComponent, insertCodeSnippet } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import {
-  ReactWidget,
-  UseSignal,
-  Dialog,
-  showDialog
-} from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
-import { CodeEditor } from '@jupyterlab/codeeditor';
-import { PathExt } from '@jupyterlab/coreutils';
+import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-import { DocumentWidget } from '@jupyterlab/docregistry';
-import { FileEditor } from '@jupyterlab/fileeditor';
-import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { addIcon } from '@jupyterlab/ui-components';
 
@@ -42,7 +31,7 @@ import { Widget, Menu } from '@lumino/widgets';
 
 import React from 'react';
 
-import { CodeTemplateManager, ICodeTemplate } from './CodeTemplate';
+import { CodeTemplateManager } from './CodeTemplate';
 import { DataSourceManager, IDataSource } from './DataSource';
 
 /**
@@ -66,118 +55,21 @@ interface IDataSourceDisplayProps {
  */
 class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
   props: any;
-
   commandRegistry: CommandRegistry;
 
   constructor(props: any) {
     super(props);
   }
 
-  // Handle code snippet insert into an editor
-  private insertCodeSnippet = async (
-    dataSource: IDataSource,
-    snippet: ICodeTemplate
-  ): Promise<void> => {
-    const widget: Widget = this.props.getCurrentWidget();
-    const snippetStr = eval('`' + snippet.code.join('\n') + '`');
-
-    if (
-      widget instanceof DocumentWidget &&
-      (widget as DocumentWidget).content instanceof FileEditor
-    ) {
-      const documentWidget = widget as DocumentWidget;
-      const fileEditor = (documentWidget.content as FileEditor).editor;
-      const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
-      if (PathExt.extname(widget.context.path).match(markdownRegex) !== null) {
-        // Wrap snippet into a code block when inserting it into a markdown file
-        fileEditor.replaceSelection(
-          '```' + snippet.language + '\n' + snippetStr + '\n```'
-        );
-      } else if (widget.constructor.name == 'PythonFileEditor') {
-        this.verifyLanguageAndInsert(snippet, dataSource, 'python', fileEditor);
-      } else {
-        fileEditor.replaceSelection(snippetStr);
-      }
-    } else if (widget instanceof NotebookPanel) {
-      const notebookWidget = widget as NotebookPanel;
-      const notebookCell = (notebookWidget.content as Notebook).activeCell;
-      const notebookCellEditor = notebookCell.editor;
-
-      if (notebookCell instanceof CodeCell) {
-        const kernelInfo = await notebookWidget.sessionContext.session?.kernel
-          ?.info;
-        const kernelLanguage: string = kernelInfo?.language_info.name || '';
-        this.verifyLanguageAndInsert(
-          snippet,
-          dataSource,
-          kernelLanguage,
-          notebookCellEditor
-        );
-      } else if (notebookCell instanceof MarkdownCell) {
-        // Wrap snippet into a code block when inserting it into a markdown cell
-        notebookCellEditor.replaceSelection(
-          '```' + snippet.language + '\n' + snippetStr + '\n```'
-        );
-      } else {
-        notebookCellEditor.replaceSelection(snippetStr);
-      }
-    } else {
-      this.showErrDialog('Code snippet insert failed: Unsupported widget');
-    }
-  };
-
-  // Handle language compatibility between code snippet and editor
-  private verifyLanguageAndInsert = async (
-    snippet: ICodeTemplate,
-    dataSource: IDataSource,
-    editorLanguage: string,
-    editor: CodeEditor.IEditor
-  ): Promise<void> => {
-    const snippetStr: string = eval('`' + snippet.code.join('\n') + '`');
-    if (
-      editorLanguage &&
-      snippet.language.toLowerCase() !== editorLanguage.toLowerCase()
-    ) {
-      const result = await this.showWarnDialog(editorLanguage);
-      if (result.button.accept) {
-        editor.replaceSelection(snippetStr);
-      }
-    } else {
-      // Language match or editorLanguage is unavailable
-      editor.replaceSelection(snippetStr);
-    }
-  };
-
-  // Display warning dialog when inserting a code snippet incompatible with editor's language
-  private showWarnDialog = async (
-    editorLanguage: string
-  ): Promise<Dialog.IResult<string>> => {
-    return showDialog({
-      title: 'Warning',
-      body:
-        'Code snippet is incompatible with ' + editorLanguage + '. Continue?',
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    });
-  };
-
-  // Display error dialog when inserting a code snippet into unsupported widget (i.e. not an editor)
-  private showErrDialog = (errMsg: string): Promise<Dialog.IResult<string>> => {
-    return showDialog({
-      title: 'Error',
-      body: errMsg,
-      buttons: [Dialog.okButton()]
-    });
-  };
-
   private addSubmenu(dataSource: IDataSource): void {
     const languageMenus: any[] = [];
     const id = dataSource.id;
-    for (const code of this.props.codeTemplates) {
-      const language = code.language;
-      const framework = code.framework;
+    for (const template of this.props.codeTemplates) {
+      const language = template.language;
+      const framework = template.framework;
 
       // Only show code templates that are for the format of this datasource
-      const format = code.format;
+      const format = template.format;
       if (format != dataSource.format) {
         continue;
       }
@@ -204,7 +96,12 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
         'insert-data-source:' + id + ':' + language + ':' + framework,
         {
           execute: (args: any) => {
-            this.insertCodeSnippet(dataSource, code);
+            const snippetStr = eval('`' + template.code.join('\n') + '`');
+            insertCodeSnippet(
+              language,
+              snippetStr,
+              this.props.getCurrentWidget
+            );
           },
           label: 'Insert ' + framework
         }

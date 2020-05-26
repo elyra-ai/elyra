@@ -16,22 +16,10 @@
 
 import '../style/index.css';
 
-import { ExpandableComponent } from '@elyra/ui-components';
+import { ExpandableComponent, insertCodeSnippet } from '@elyra/ui-components';
 
-import {
-  ReactWidget,
-  UseSignal,
-  Clipboard,
-  Dialog,
-  showDialog
-} from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
-import { CodeEditor } from '@jupyterlab/codeeditor';
-import { PathExt } from '@jupyterlab/coreutils';
+import { ReactWidget, UseSignal, Clipboard } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-import { DocumentWidget } from '@jupyterlab/docregistry';
-import { FileEditor } from '@jupyterlab/fileeditor';
-import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { copyIcon, addIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
@@ -63,105 +51,6 @@ interface ICodeSnippetDisplayProps {
 class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   // TODO: Use code mirror to display code
 
-  // Handle code snippet insert into an editor
-  private insertCodeSnippet = async (snippet: ICodeSnippet): Promise<void> => {
-    const widget: Widget = this.props.getCurrentWidget();
-    const snippetStr: string = snippet.code.join('\n');
-
-    if (
-      widget instanceof DocumentWidget &&
-      (widget as DocumentWidget).content instanceof FileEditor
-    ) {
-      const documentWidget = widget as DocumentWidget;
-      const fileEditor = (documentWidget.content as FileEditor).editor;
-      const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
-      if (PathExt.extname(widget.context.path).match(markdownRegex) !== null) {
-        // Wrap snippet into a code block when inserting it into a markdown file
-        fileEditor.replaceSelection(
-          '```' + snippet.language + '\n' + snippetStr + '\n```'
-        );
-      } else if (widget.constructor.name == 'PythonFileEditor') {
-        this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
-      } else {
-        fileEditor.replaceSelection(snippetStr);
-      }
-    } else if (widget instanceof NotebookPanel) {
-      const notebookWidget = widget as NotebookPanel;
-      const notebookCell = (notebookWidget.content as Notebook).activeCell;
-      const notebookCellEditor = notebookCell.editor;
-
-      if (notebookCell instanceof CodeCell) {
-        const kernelInfo = await notebookWidget.sessionContext.session?.kernel
-          ?.info;
-        const kernelLanguage: string = kernelInfo?.language_info.name || '';
-        this.verifyLanguageAndInsert(
-          snippet,
-          kernelLanguage,
-          notebookCellEditor
-        );
-      } else if (notebookCell instanceof MarkdownCell) {
-        // Wrap snippet into a code block when inserting it into a markdown cell
-        notebookCellEditor.replaceSelection(
-          '```' + snippet.language + '\n' + snippetStr + '\n```'
-        );
-      } else {
-        notebookCellEditor.replaceSelection(snippetStr);
-      }
-    } else {
-      this.showErrDialog('Code snippet insert failed: Unsupported widget');
-    }
-  };
-
-  // Handle language compatibility between code snippet and editor
-  private verifyLanguageAndInsert = async (
-    snippet: ICodeSnippet,
-    editorLanguage: string,
-    editor: CodeEditor.IEditor
-  ): Promise<void> => {
-    const snippetStr: string = snippet.code.join('\n');
-    if (
-      editorLanguage &&
-      snippet.language.toLowerCase() !== editorLanguage.toLowerCase()
-    ) {
-      const result = await this.showWarnDialog(
-        editorLanguage,
-        snippet.displayName
-      );
-      if (result.button.accept) {
-        editor.replaceSelection(snippetStr);
-      }
-    } else {
-      // Language match or editorLanguage is unavailable
-      editor.replaceSelection(snippetStr);
-    }
-  };
-
-  // Display warning dialog when inserting a code snippet incompatible with editor's language
-  private showWarnDialog = async (
-    editorLanguage: string,
-    snippetName: string
-  ): Promise<Dialog.IResult<string>> => {
-    return showDialog({
-      title: 'Warning',
-      body:
-        'Code snippet "' +
-        snippetName +
-        '" is incompatible with ' +
-        editorLanguage +
-        '. Continue?',
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    });
-  };
-
-  // Display error dialog when inserting a code snippet into unsupported widget (i.e. not an editor)
-  private showErrDialog = (errMsg: string): Promise<Dialog.IResult<string>> => {
-    return showDialog({
-      title: 'Error',
-      body: errMsg,
-      buttons: [Dialog.okButton()]
-    });
-  };
-
   // Render display of code snippet list
   private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
     const displayName =
@@ -179,7 +68,11 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         title: 'Insert',
         icon: addIcon,
         onClick: (): void => {
-          this.insertCodeSnippet(codeSnippet);
+          insertCodeSnippet(
+            codeSnippet.language,
+            codeSnippet.code.join('\n'),
+            this.props.getCurrentWidget
+          );
         }
       }
     ];
