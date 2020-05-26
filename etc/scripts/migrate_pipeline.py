@@ -40,6 +40,10 @@ with open(args['pipeline_file'], "r") as file:
             pipeline['app_data']['name'] = pipeline['app_data'].pop('title')
         if 'export' in pipeline['app_data']:
             pipeline['app_data'].pop('export')
+        if 'export_format' in pipeline['app_data']:
+            pipeline['app_data'].pop('export_format')
+        if 'export_path' in pipeline['app_data']:
+            pipeline['app_data'].pop('export_path')
         for node in pipeline['nodes']:
             if 'artifact' in node['app_data']:
                 node['app_data']['filename'] = node['app_data'].pop('artifact')
