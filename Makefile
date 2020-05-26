@@ -19,10 +19,10 @@
 
 SHELL:=/bin/bash
 
-VERSION:=0.0.1
+GIT_VERSION:=0.20.0
+TOC_VERSION:=4.0.0
 
 TAG:=dev
-
 IMAGE=elyra/elyra:$(TAG)
 
 help:
@@ -92,8 +92,8 @@ install-ui: build-ui
 	$(call INSTALL_LAB_EXTENSION,python-runner)
 
 install-external-extensions:
-	pip install --upgrade jupyterlab-git==0.20.0
-	jupyter labextension install --no-build @jupyterlab/toc@4.0.0
+	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
+	jupyter labextension install --no-build @jupyterlab/toc@$(TOC_VERSION)
 
 install: install-server install-ui install-external-extensions ## Build and install
 	jupyter lab build
