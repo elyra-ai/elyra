@@ -308,11 +308,11 @@ export class PipelineEditor extends React.Component<
     FrontendServices.getRuntimeImages().then(
       (runtimeImages: IDictionary<string>) => {
         const imageEnum = [];
-        for (const image in runtimeImages) {
-          imageEnum.push(image);
+        for (const runtimeImage in runtimeImages) {
+          imageEnum.push(runtimeImage);
           (properties.resources as IDictionary<string>)[
-            'image.' + image + '.label'
-          ] = runtimeImages[image];
+            'runtime_image.' + runtimeImage + '.label'
+          ] = runtimeImages[runtimeImage];
         }
         properties.parameters[0].enum = imageEnum;
 

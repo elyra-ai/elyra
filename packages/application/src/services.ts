@@ -41,7 +41,7 @@ export class FrontendServices {
 
   static async getRuntimeImages(): Promise<IDictionary<string>> {
     const runtimeImages = await this.getMetadata('runtime-images');
-    const images: { [key: string]: string } = {};
+    const images: IDictionary<string> = {};
     for (const image in runtimeImages) {
       const imageName: string = runtimeImages[image]['metadata']['image_name'];
       images[imageName] = runtimeImages[image]['display_name'];
