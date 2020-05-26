@@ -11,6 +11,7 @@
         {
           "id": "{{pipelines.node.uuid}}",
           "type": "execution_node",
+          "op": "execute-notebook-node",
           "app_data": {
             "filename": "{{filename}}",
             "runtime_image": "{{runtime_image}}",

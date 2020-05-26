@@ -11,6 +11,7 @@
         {
           "id": "d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c",
           "type": "execution_node",
+          "op": "execute-notebook-node",
           "app_data": {
             "filename": "demo-pipelines/generate-contributions.ipynb",
             "runtime_image": "elyra/tensorflow:1.15.2-py3"
@@ -19,6 +20,7 @@
         {
           "id": "5ddfbd02-2f4e-462b-8349-ddd7ec7afb71",
           "type": "execution_node",
+          "op": "execute-notebook-node",
           "app_data": {
             "filename": "demo-pipelines/generate-stats.ipynb",
             "runtime_image": "elyra/tensorflow:1.15.2-py3"
@@ -27,6 +29,7 @@
         {
           "id": "acc4527d-7cc8-4c16-b520-5aa0f50a2e34",
           "type": "execution_node",
+          "op": "execute-notebook-node",
           "app_data": {
             "filename": "demo-pipelines/overview.ipynb",
             "runtime_image": "elyra/tensorflow:1.15.2-py3"

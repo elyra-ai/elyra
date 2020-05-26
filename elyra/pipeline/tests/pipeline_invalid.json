@@ -11,6 +11,7 @@
         {
           "id": "{{uuid}}",
           "type": "{{type}}",
+          "op": "{{op}}",
           "app_data": {
             "runtime_image": "{{runtime_image}}"
           }

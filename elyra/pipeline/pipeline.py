@@ -20,17 +20,17 @@ class Operation(object):
     """
     Represents a single operation in a pipeline
     """
-    def __init__(self, id, type, filename, runtime_image, classification, env_vars=None, dependencies=None,
+    def __init__(self, id, type, classification, filename, runtime_image, env_vars=None, dependencies=None,
                  include_subdirectories=False, outputs=None, inputs=None, parent_operations=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
         :param type: The type of node e.g. execution_node
+        :param classification: classifier for processor execution e.g. Argo
         :param filename: The relative path to the source file in the users local environment
                          to be executed e.g. path/to/file.ext
         :param runtime_image: The DockerHub image to be used for the operation
                                e.g. user/docker_image_name:tag
-        :param classification: classifier for processor execution e.g. Argo
         :param env_vars: List of Environmental variables to set in the docker image
                          e.g. FOO="BAR"
         :param dependencies: List of local files/directories needed for the operation to run
@@ -46,6 +46,8 @@ class Operation(object):
             raise ValueError("Invalid pipeline: Missing field 'operation id'.")
         if not type:
             raise ValueError("Invalid pipeline: Missing field 'operation type'.")
+        if not classification:
+            raise ValueError("Invalid pipeline: Missing field 'operation classification'.")
         if not filename:
             raise ValueError("Invalid pipeline: Missing field 'operation filename'.")
         if not runtime_image:
