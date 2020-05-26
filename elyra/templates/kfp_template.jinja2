@@ -14,13 +14,13 @@ def create_pipeline():
                           cos_endpoint='{{ operation.cos_endpoint }}',
                           cos_bucket='{{ operation.cos_bucket }}',
                           cos_directory='{{ operation.cos_directory }}',
-                          cos_pull_archive='{{ operation.cos_pull_archive }}',
-                          pipeline_outputs='{{ operation.pipeline_outputs }}',
-                          pipeline_inputs='{{ operation.pipeline_inputs }}',
-                          image='{{ operation.image }}')
+                          cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
+                          inputs='{{ operation.inputs }}',
+                          outputs='{{ operation.outputs }}',
+                          image='{{ operation.runtime_image }}')
 
      notebook_op_{{ operation.notebook }}.name = '{{ operation.name }}'
-     notebook_op_{{ operation.notebook }}.env_variables = {{ operation.env_variables }}
+     notebook_op_{{ operation.notebook }}.env_vars = {{ operation.env_vars }}
      notebook_op_{{ operation.notebook }}.dependent_names = {{ operation.dependent_names }}
 
     {% endfor %}

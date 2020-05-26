@@ -181,8 +181,8 @@ class KfpPipelineProcessor(PipelineProcessor):
                                      cos_bucket=cos_bucket,
                                      cos_directory=cos_directory,
                                      cos_dependencies_archive=operation_artifact_archive,
-                                     outputs=self._artifact_list_to_str(operation.outputs),
                                      inputs=self._artifact_list_to_str(operation.inputs),
+                                     outputs=self._artifact_list_to_str(operation.outputs),
                                      image=operation.runtime_image)
 
             notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
