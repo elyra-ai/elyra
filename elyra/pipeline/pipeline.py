@@ -17,9 +17,29 @@ import os
 
 
 class Operation(object):
-
-    def __init__(self, id, type, filename, runtime_image, env_vars=None, dependencies=None,
+    """
+    Represents a single operation in a pipeline
+    """
+    def __init__(self, id, type, filename, runtime_image, classification, env_vars=None, dependencies=None,
                  include_subdirectories=False, outputs=None, inputs=None, parent_operations=None):
+        """
+        :param id: Generated UUID, 128 bit number used as a unique identifier
+                   e.g. 123e4567-e89b-12d3-a456-426614174000
+        :param type: The type of node e.g. execution_node
+        :param filename: The relative path to the source file in the users local environment
+                         to be executed e.g. path/to/file.ext
+        :param runtime_image: The DockerHub image to be used for the operation
+                               e.g. user/docker_image_name:tag
+        :param classification: classifier for processor execution e.g. Argo
+        :param env_vars: List of Environmental variables to set in the docker image
+                         e.g. FOO="BAR"
+        :param dependencies: List of local files/directories needed for the operation to run
+                             and packaged into each operation's dependency archive
+        :param include_subdirectories: Include or Exclude subdirectories when packaging our 'dependencies'
+        :param outputs: List of files produced by this operation to be included in a child operation(s)
+        :param inputs: List of files to be consumed by this operation, produced by parent operation(s)
+        :param parent_operations: List of parent operation 'ids' required to execute prior to this operation
+        """
 
         # validate that the operation has all required properties
         if not id:
@@ -33,6 +53,7 @@ class Operation(object):
 
         self._id = id
         self._type = type
+        self._classification = classification
         self._filename = filename
         self._runtime_image = runtime_image
         self._env_vars = self.__initialize_empty_array_if_none(env_vars)
@@ -49,6 +70,10 @@ class Operation(object):
     @property
     def type(self):
         return self._type
+
+    @property
+    def classification(self):
+        return self._classification
 
     @property
     def name(self):
@@ -94,6 +119,7 @@ class Operation(object):
         if isinstance(self, other.__class__):
             return self.id == other.id and \
                 self.type == other.type and \
+                self._classification == other.classification and \
                 self.filename == other.filename and \
                 self.runtime_image == other.runtime_image and \
                 self.env_vars == other.env_vars and \
@@ -112,8 +138,20 @@ class Operation(object):
 
 
 class Pipeline(object):
+    """
+    Represents a single pipeline constructed in the pipeline editor
+    """
 
     def __init__(self, id, name, runtime, runtime_config):
+        """
+        :param id: Generated UUID, 128 bit number used as a unique identifier
+                   e.g. 123e4567-e89b-12d3-a456-426614174000
+        :param name: Pipeline name
+                     e.g. test-pipeline-123456
+        :param runtime: Type of runtime we want to use to execute our pipeline
+                        e.g. kfp OR airflow
+        :param runtime_config: Runtime configuration that should be used to submit the pipeline to execution
+        """
 
         if not name:
             raise ValueError('Invalid pipeline: Missing pipeline name.')

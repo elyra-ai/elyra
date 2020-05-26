@@ -74,6 +74,7 @@ class PipelineParser(LoggingConfigurable):
             operation = Operation(
                 id=node['id'],
                 type=node['type'],
+                classification=node['op'],
                 filename=node['app_data']['filename'],
                 runtime_image=node['app_data']['runtime_image'],
                 env_vars=node['app_data'].get('env_vars') or [],
