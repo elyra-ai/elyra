@@ -16,20 +16,13 @@
 
 import { SubmissionHandler } from '@elyra/application';
 
-export interface ICodeTemplate {
-  language: string;
-  framework: string;
-  code: string[];
-}
-
 export interface IDataSource {
   name: string;
   id: number;
   displayName: string;
   description: string;
   source: string;
-  language: string;
-  code: ICodeTemplate[];
+  format: string;
 }
 
 export class DataSourceManager {
@@ -54,9 +47,8 @@ export class DataSourceManager {
                 id: idNum,
                 displayName: jsonDataSource.display_name,
                 description: jsonDataSource.metadata.description,
-                source: jsonDataSource.metadata.source,
-                language: jsonDataSource.metadata.language,
-                code: jsonDataSource.metadata.code
+                format: jsonDataSource.metadata.format,
+                source: jsonDataSource.metadata.source
               };
               allDataSources.push(dataSource);
             }
@@ -68,19 +60,5 @@ export class DataSourceManager {
     const dataSources = await getDataSources;
 
     return dataSources;
-  }
-
-  // TODO: Test this function
-  async findByLanguage(language: string): Promise<IDataSource[]> {
-    const allDataSources: IDataSource[] = await this.findAll();
-    const dataSourcesByLanguage: IDataSource[] = [];
-
-    for (const dataSource of allDataSources) {
-      if (dataSource.language === language) {
-        dataSourcesByLanguage.push(dataSource);
-      }
-    }
-
-    return dataSourcesByLanguage;
   }
 }

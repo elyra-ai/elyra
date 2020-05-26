@@ -34,15 +34,12 @@
           "description": "Access secret key to access data source",
           "type": "string"
         },
-        "type": {
+        "format": {
           "description": "Format of data source (i.e. database, csv, etc.)",
           "type": "string"
-        },
-        "code": {
-          "type": "array"
         }
       },
-      "required": ["source"]
+      "required": ["source", "format"]
     }
   },
   "required": ["schema_name", "display_name"]

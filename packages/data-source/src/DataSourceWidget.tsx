@@ -42,7 +42,8 @@ import { Widget, Menu } from '@lumino/widgets';
 
 import React from 'react';
 
-import { DataSourceManager, IDataSource, ICodeTemplate } from './DataSource';
+import { CodeTemplateManager, ICodeTemplate } from './CodeTemplate';
+import { DataSourceManager, IDataSource } from './DataSource';
 
 /**
  * The CSS class added to data source widget.
@@ -65,6 +66,7 @@ interface IDataSourceDisplayProps {
  */
 class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
   props: any;
+
   commandRegistry: CommandRegistry;
 
   constructor(props: any) {
@@ -72,9 +74,12 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
   }
 
   // Handle code snippet insert into an editor
-  private insertCodeSnippet = async (snippet: ICodeTemplate): Promise<void> => {
+  private insertCodeSnippet = async (
+    dataSource: IDataSource,
+    snippet: ICodeTemplate
+  ): Promise<void> => {
     const widget: Widget = this.props.getCurrentWidget();
-    const snippetStr: string = snippet.code.join('\n');
+    const snippetStr = eval('`' + snippet.code.join('\n') + '`');
 
     if (
       widget instanceof DocumentWidget &&
@@ -89,7 +94,7 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
           '```' + snippet.language + '\n' + snippetStr + '\n```'
         );
       } else if (widget.constructor.name == 'PythonFileEditor') {
-        this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
+        this.verifyLanguageAndInsert(snippet, dataSource, 'python', fileEditor);
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
@@ -104,6 +109,7 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
         const kernelLanguage: string = kernelInfo?.language_info.name || '';
         this.verifyLanguageAndInsert(
           snippet,
+          dataSource,
           kernelLanguage,
           notebookCellEditor
         );
@@ -123,10 +129,11 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
   // Handle language compatibility between code snippet and editor
   private verifyLanguageAndInsert = async (
     snippet: ICodeTemplate,
+    dataSource: IDataSource,
     editorLanguage: string,
     editor: CodeEditor.IEditor
   ): Promise<void> => {
-    const snippetStr: string = snippet.code.join('\n');
+    const snippetStr: string = eval('`' + snippet.code.join('\n') + '`');
     if (
       editorLanguage &&
       snippet.language.toLowerCase() !== editorLanguage.toLowerCase()
@@ -165,9 +172,15 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
   private addSubmenu(dataSource: IDataSource): void {
     const languageMenus: any[] = [];
     const id = dataSource.id;
-    for (const code of dataSource.code) {
+    for (const code of this.props.codeTemplates) {
       const language = code.language;
       const framework = code.framework;
+
+      // Only show code templates that are for the format of this datasource
+      const format = code.format;
+      if (format != dataSource.format) {
+        continue;
+      }
       const menuObj: any = languageMenus.find((languageMenu: any) => {
         return languageMenu.language == language;
       });
@@ -191,7 +204,7 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
         'insert-data-source:' + id + ':' + language + ':' + framework,
         {
           execute: (args: any) => {
-            this.insertCodeSnippet(code);
+            this.insertCodeSnippet(dataSource, code);
           },
           label: 'Insert ' + framework
         }
@@ -269,7 +282,8 @@ class DataSourceDisplay extends React.Component<IDataSourceDisplayProps> {
  */
 export class DataSourceWidget extends ReactWidget {
   dataSourceManager: DataSourceManager;
-  renderDataSourcesSignal: Signal<this, IDataSource[]>;
+  codeTemplateManager: CodeTemplateManager;
+  renderDataSourcesSignal: Signal<this, any>;
   getCurrentWidget: () => Widget;
   app: JupyterFrontEnd;
 
@@ -277,19 +291,22 @@ export class DataSourceWidget extends ReactWidget {
     super();
     this.getCurrentWidget = getCurrentWidget;
     this.dataSourceManager = new DataSourceManager();
-    this.renderDataSourcesSignal = new Signal<this, IDataSource[]>(this);
+    this.codeTemplateManager = new CodeTemplateManager();
+    this.renderDataSourcesSignal = new Signal<this, any>(this);
     this.app = app;
   }
 
-  // Request data sources from server
-  async fetchData(): Promise<IDataSource[]> {
-    return await this.dataSourceManager.findAll();
+  // Request data sources and templates from server
+  async fetchData(): Promise<any> {
+    const dataSources = await this.dataSourceManager.findAll();
+    const codeTemplates = await this.codeTemplateManager.findAll();
+    return { dataSources: dataSources, codeTemplates: codeTemplates };
   }
 
   // Triggered when the widget button on side palette is clicked
   onAfterShow(msg: Message): void {
-    this.fetchData().then((dataSources: IDataSource[]) => {
-      this.renderDataSourcesSignal.emit(dataSources);
+    this.fetchData().then((response: any) => {
+      this.renderDataSourcesSignal.emit(response);
     });
   }
 
@@ -297,14 +314,20 @@ export class DataSourceWidget extends ReactWidget {
     return (
       <div className={DATA_SOURCES_CLASS}>
         <header className={DATA_SOURCES_HEADER_CLASS}>{'Data Sources'}</header>
-        <UseSignal signal={this.renderDataSourcesSignal} initialArgs={[]}>
-          {(_, dataSources): React.ReactElement => (
-            <DataSourceDisplay
-              dataSources={dataSources}
-              getCurrentWidget={this.getCurrentWidget}
-              app={this.app}
-            />
-          )}
+        <UseSignal
+          signal={this.renderDataSourcesSignal}
+          initialArgs={{ dataSources: [], codeTemplates: [] }}
+        >
+          {(_, response: any): React.ReactElement => {
+            return (
+              <DataSourceDisplay
+                dataSources={response.dataSources}
+                codeTemplates={response.codeTemplates}
+                getCurrentWidget={this.getCurrentWidget}
+                app={this.app}
+              />
+            );
+          }}
         </UseSignal>
       </div>
     );

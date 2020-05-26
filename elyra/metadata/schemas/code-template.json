@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Code snippet template metadata",
+  "name": "code-template",
+  "namespace": "code-template",
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
+      "minLength": 1
+    },
+    "display_name": {
+      "description": "The display name of the code template",
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+    },
+    "metadata": {
+      "description": "Additional data specific to this code snippet template",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "Code template description",
+          "type": "string"
+        },
+        "format": {
+          "description": "Type of file to import",
+          "type": "string"
+        },
+        "language": {
+          "description": "Coding language that the template uses",
+          "type": "string"
+        },
+        "framework": {
+          "description": "Coding framework that the template uses",
+          "type": "string"
+        },
+        "code": {
+          "description": "Code template - each line of a code snippet is a separate entry in an array",
+          "type": "array"
+        }
+      },
+      "required": ["format", "language", "framework", "code"]
+    }
+  },
+  "required": ["schema_name", "display_name"]
+}
