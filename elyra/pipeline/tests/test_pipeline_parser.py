@@ -25,6 +25,7 @@ from elyra.pipeline import PipelineParser, Operation
 def valid_operation():
     return Operation(id='{{uuid}}',
                      type='{{type}}',
+                     classification='execute-notebook-node',
                      filename='{{filename}}',
                      runtime_image='{{runtime_image}}')
 
@@ -35,6 +36,8 @@ def test_valid_pipeline(valid_operation):
     pipeline = PipelineParser.parse(pipeline_definition)
 
     assert pipeline.name == '{{name}}'
+    assert pipeline.runtime == '{{runtime}}'
+    assert pipeline.runtime_config == '{{runtime-config}}'
     assert len(pipeline.operations) == 1
     assert pipeline.operations['{{uuid}}'] == valid_operation
 

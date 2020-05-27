@@ -126,7 +126,7 @@ class Operation(object):
         if isinstance(self, other.__class__):
             return self.id == other.id and \
                 self.type == other.type and \
-                self._classification == other.classification and \
+                self.classification == other.classification and \
                 self.filename == other.filename and \
                 self.runtime_image == other.runtime_image and \
                 self.env_vars == other.env_vars and \
