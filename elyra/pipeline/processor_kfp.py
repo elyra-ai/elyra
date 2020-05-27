@@ -109,6 +109,15 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             defined_pipeline = self._cc_pipeline(pipeline, pipeline_name)
 
+            for key, operation in defined_pipeline.items():
+                self.log.debug("component :\n "
+                               "container op name : %s \n "
+                               "inputs : %s \n "
+                               "outputs : %s \n ",
+                               operation.name,
+                               operation.inputs,
+                               operation.outputs)
+
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
                                             api_endpoint=api_endpoint,
@@ -181,8 +190,8 @@ class KfpPipelineProcessor(PipelineProcessor):
                                      cos_bucket=cos_bucket,
                                      cos_directory=cos_directory,
                                      cos_dependencies_archive=operation_artifact_archive,
-                                     inputs=self._artifact_list_to_str(operation.inputs),
-                                     outputs=self._artifact_list_to_str(operation.outputs),
+                                     pipeline_inputs=self._artifact_list_to_str(operation.inputs),
+                                     pipeline_outputs=self._artifact_list_to_str(operation.outputs),
                                      image=operation.runtime_image)
 
             notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
