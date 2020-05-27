@@ -20,8 +20,9 @@ class Operation(object):
     """
     Represents a single operation in a pipeline
     """
-    def __init__(self, id, type, classification, filename, runtime_image, env_vars=None, dependencies=None,
-                 include_subdirectories=False, outputs=None, inputs=None, parent_operations=None):
+    def __init__(self, id, type, classification, filename, runtime_image, dependencies=None,
+                 include_subdirectories=False, env_vars=None,  outputs=None, inputs=None,
+                 parent_operations=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -31,13 +32,13 @@ class Operation(object):
                          to be executed e.g. path/to/file.ext
         :param runtime_image: The DockerHub image to be used for the operation
                                e.g. user/docker_image_name:tag
-        :param env_vars: List of Environmental variables to set in the docker image
-                         e.g. FOO="BAR"
         :param dependencies: List of local files/directories needed for the operation to run
                              and packaged into each operation's dependency archive
         :param include_subdirectories: Include or Exclude subdirectories when packaging our 'dependencies'
-        :param outputs: List of files produced by this operation to be included in a child operation(s)
+        :param env_vars: List of Environmental variables to set in the docker image
+                         e.g. FOO="BAR"
         :param inputs: List of files to be consumed by this operation, produced by parent operation(s)
+        :param outputs: List of files produced by this operation to be included in a child operation(s)
         :param parent_operations: List of parent operation 'ids' required to execute prior to this operation
         """
 
@@ -58,11 +59,11 @@ class Operation(object):
         self._classification = classification
         self._filename = filename
         self._runtime_image = runtime_image
-        self._env_vars = self.__initialize_empty_array_if_none(env_vars)
         self._dependencies = self.__initialize_empty_array_if_none(dependencies)
         self._include_subdirectories = include_subdirectories
-        self._outputs = self.__initialize_empty_array_if_none(outputs)
+        self._env_vars = self.__initialize_empty_array_if_none(env_vars)
         self._inputs = self.__initialize_empty_array_if_none(inputs)
+        self._outputs = self.__initialize_empty_array_if_none(outputs)
         self._parent_operations = self.__initialize_empty_array_if_none(parent_operations)
 
     @property
@@ -90,10 +91,6 @@ class Operation(object):
         return self._runtime_image
 
     @property
-    def env_vars(self):
-        return self._env_vars
-
-    @property
     def dependencies(self):
         return self._dependencies
 
@@ -102,8 +99,8 @@ class Operation(object):
         return self._include_subdirectories
 
     @property
-    def outputs(self):
-        return self._outputs
+    def env_vars(self):
+        return self._env_vars
 
     @property
     def inputs(self):
@@ -112,6 +109,14 @@ class Operation(object):
     @inputs.setter
     def inputs(self, value):
         self._inputs = value
+
+    @property
+    def outputs(self):
+        return self._outputs
+
+    @inputs.setter
+    def outputs(self, value):
+        self._outputs = value
 
     @property
     def parent_operations(self):
