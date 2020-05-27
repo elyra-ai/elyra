@@ -103,7 +103,7 @@ install: install-server install-ui install-external-extensions ## Build and inst
 watch: ## Watch packages. For use alongside jupyter lab --watch
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run watch --parallel
 
-test-server: install-server lint-server ## Run unit tests
+test-server: install-server ## Run unit tests
 	pytest -v elyra
 
 test-ui: lint-ui ## Run frontend tests
