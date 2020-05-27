@@ -167,11 +167,11 @@ class KfpPipelineProcessor(PipelineProcessor):
                            "parent_operations : %s \n "
                            "dependencies : %s \n "
                            "dependencies include subdirectories : %s \n "
-                           "path of workspace : %s \n "
+                           "filename : %s \n "
                            "archive : %s \n "
                            "inputs : %s \n "
                            "outputs : %s \n "
-                           "docker image : %s \n ",
+                           "runtime image : %s \n ",
                            operation.id,
                            operation.name,
                            operation.parent_operations,
