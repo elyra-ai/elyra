@@ -21,7 +21,7 @@ class Operation(object):
     Represents a single operation in a pipeline
     """
     def __init__(self, id, type, classification, filename, runtime_image, dependencies=None,
-                 include_subdirectories=False, env_vars=None,  outputs=None, inputs=None,
+                 include_subdirectories=False, env_vars=None, inputs=None, outputs=None,
                  parent_operations=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -114,7 +114,7 @@ class Operation(object):
     def outputs(self):
         return self._outputs
 
-    @inputs.setter
+    @outputs.setter
     def outputs(self, value):
         self._outputs = value
 

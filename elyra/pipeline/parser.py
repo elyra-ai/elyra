@@ -77,9 +77,9 @@ class PipelineParser(LoggingConfigurable):
                 classification=node['op'],
                 filename=node['app_data']['filename'],
                 runtime_image=node['app_data']['runtime_image'],
-                env_vars=node['app_data'].get('env_vars') or [],
                 dependencies=node['app_data'].get('dependencies') or [],
                 include_subdirectories=node['app_data'].get('include_subdirectories') or False,
+                env_vars=node['app_data'].get('env_vars') or [],
                 outputs=node['app_data'].get('outputs') or [],
                 parent_operations=links
             )
