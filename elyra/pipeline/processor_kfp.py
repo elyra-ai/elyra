@@ -84,7 +84,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         if pipeline_export_format not in ["yaml", "py"]:
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
-        pipeline_name = (pipeline.name if pipeline.name else 'pipeline')
+        pipeline_name = pipeline.name
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']

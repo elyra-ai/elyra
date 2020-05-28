@@ -226,7 +226,8 @@
       "app_data": {
         "ui_data": {
           "comments": []
-        }
+        },
+        "name": "test-definition"
       },
       "runtime_ref": ""
     }

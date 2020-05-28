@@ -44,15 +44,15 @@ class Operation(object):
 
         # validate that the operation has all required properties
         if not id:
-            raise ValueError("Invalid pipeline: Missing field 'operation id'.")
+            raise ValueError("Invalid pipeline operation: Missing field 'operation id'.")
         if not type:
-            raise ValueError("Invalid pipeline: Missing field 'operation type'.")
+            raise ValueError("Invalid pipeline operation: Missing field 'operation type'.")
         if not classification:
-            raise ValueError("Invalid pipeline: Missing field 'operation classification'.")
+            raise ValueError("Invalid pipeline operation: Missing field 'operation classification'.")
         if not filename:
-            raise ValueError("Invalid pipeline: Missing field 'operation filename'.")
+            raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
         if not runtime_image:
-            raise ValueError("Invalid pipeline: Missing field 'operation runtime image'.")
+            raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
 
         self._id = id
         self._type = type

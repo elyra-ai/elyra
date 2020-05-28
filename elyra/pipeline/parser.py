@@ -18,7 +18,6 @@ import logging
 from .pipeline import Pipeline, Operation
 from traitlets.config import LoggingConfigurable
 
-DEFAULT_RUNTIME = "kfp"
 DEFAULT_FILETYPE = "tar.gz"
 
 
@@ -46,8 +45,9 @@ class PipelineParser(LoggingConfigurable):
         pipeline = None
         primary_pipeline_id = pipeline_definition['primary_pipeline']
         for p in pipeline_definition['pipelines']:
-            if 'id'not in p:
-                raise ValueError("Invalid pipeline operation: Pipeline operation id not found.")
+            id = PipelineParser._read_app_data_field(p, 'id'),
+            if not id:
+                raise ValueError("Invalid pipeline: Missing field 'id'.")
 
             pipeline_id = p['id']
             if pipeline_id == primary_pipeline_id:
@@ -60,15 +60,24 @@ class PipelineParser(LoggingConfigurable):
         if 'nodes' not in pipeline or len(pipeline['nodes']) == 0:
             raise ValueError("Invalid pipeline: At least one node must exist in primary pipeline.")
 
-        pipeline_object = Pipeline(pipeline['id'],
-                                   PipelineParser._read_app_data_field(pipeline, 'name', 'untitled'),
-                                   PipelineParser._read_app_data_field(pipeline, 'runtime', DEFAULT_RUNTIME),
-                                   PipelineParser._read_app_data_field(pipeline, 'runtime-config'))
+        runtime = PipelineParser._read_app_data_field(pipeline, 'runtime')
+        if not runtime:
+            raise ValueError("Invalid pipeline: Missing runtime.")
+        runtime_config = PipelineParser._read_app_data_field(pipeline, 'runtime-config')
+        if not runtime_config:
+            raise ValueError("Invalid pipeline: Missing runtime configuration.")
+
+        pipeline_object = Pipeline(id=id,
+                                   name=PipelineParser._read_app_data_field(pipeline, 'name', 'untitled'),
+                                   runtime=runtime,
+                                   runtime_config=runtime_config)
 
         for node in pipeline['nodes']:
             # Supernodes are not supported
-            if node['type'] == "super_node":
-                raise ValueError('Invalid pipeline: Supernode feature is not supported.')
+            node_type = PipelineParser._read_field(node, 'type')
+            if node_type:
+                if node['type'] == "super_node":
+                    raise ValueError('Invalid pipeline: Supernode feature is not supported.')
 
             # parse links as dependencies
             links = PipelineParser._read_pipeline_parent_operation_dependencies(node)
@@ -99,13 +108,15 @@ class PipelineParser(LoggingConfigurable):
         return self.__logger
 
     @staticmethod
-    def _read_field(node, field_name, default_value=None):
-        return node.get(field_name, default_value)
+    def _read_field(node, field_name, defaultValue=None):
+        return_value = node.get(field_name, defaultValue)
+        return return_value
 
     @staticmethod
     def _read_app_data_field(node, field_name, default_value=None):
         if 'app_data' in node.keys():
-            return node.get(field_name, default_value)
+            return_value = node['app_data'].get(field_name, default_value)
+            return return_value
         else:
             return default_value
 
