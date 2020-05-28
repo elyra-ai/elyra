@@ -11,19 +11,14 @@
         {
           "id": "{{uuid}}",
           "type": "{{type}}",
+          "op": "{{op}}",
           "app_data": {
-            "image": "{{image}}",
-            "ui_data": {
-              "label": "{{title}}",
-              "x_pos": 75,
-              "y_pos": 85,
-              "description": "Notebook file"
-            }
+            "runtime_image": "{{runtime_image}}"
           }
         }
       ],
       "app_data": {
-        "title": "{{title}}",
+        "name": "{{name}}",
         "runtime": "{{runtime}}",
         "runtime-config": "{{runtime-config}}",
         "ui_data": {
