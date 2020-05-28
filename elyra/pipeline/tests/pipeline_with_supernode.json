@@ -224,10 +224,10 @@
         }
       ],
       "app_data": {
+        "name": "test-definition",
         "ui_data": {
           "comments": []
-        },
-        "name": "test-definition"
+        }
       },
       "runtime_ref": ""
     }

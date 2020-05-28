@@ -115,6 +115,7 @@
         }
       ],
       "app_data": {
+        "name": "pipeline-title",
         "runtime": "kfp",
         "runtime-config": "kfp-yukked1",
         "ui_data": {
@@ -130,8 +131,7 @@
               "associated_id_refs": []
             }
           ]
-        },
-        "name": "pipeline-title"
+        }
       },
       "runtime_ref": ""
     }
