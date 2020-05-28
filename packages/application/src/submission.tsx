@@ -123,7 +123,7 @@ export class SubmissionHandler {
     let waitDialog: Dialog<any> = null;
     // TODO: @ajbozarth will address this during coming refactor
     // which will turn the showing of this dialog controlled by a flag
-    if (requestUrl.includes('scheduler') || requestUrl.includes('export')) {
+    if (requestUrl.includes('schedule') || requestUrl.includes('export')) {
       waitDialog = new Dialog({
         title: 'Making server request...',
         body: 'This may take some time',
@@ -163,7 +163,7 @@ export class SubmissionHandler {
     console.log(pipeline);
 
     this.makePostRequest(
-      'api/scheduler',
+      'api/pipeline/schedule',
       JSON.stringify(pipeline),
       submissionType,
       (data: any) => {
