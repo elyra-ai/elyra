@@ -17,7 +17,7 @@
 from jsonschema import ValidationError
 from tornado import web, gen
 from notebook.base.handlers import APIHandler
-from notebook.utils import maybe_future, url_unescape
+from notebook.utils import maybe_future, url_unescape, url_path_join
 from .metadata import MetadataManager, SchemaManager, Metadata
 from ..util.http import HttpErrorMixin
 
@@ -65,6 +65,8 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
 
         self.set_status(201)
         self.set_header("Content-Type", 'application/json')
+        location = url_path_join(self.base_url, 'api', 'metadata', namespace, metadata.name)
+        self.set_header('Location', location)
         self.finish(metadata.to_dict(trim=True))
 
     def _validate_body(self):
@@ -146,7 +148,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             self.log.debug("MetadataHandler: Deleting metadata instance '{}' in namespace '{}'...".
                            format(resource, namespace))
             metadata_manager = MetadataManager(namespace=namespace)
-            metadata = metadata_manager.remove(resource)
+            metadata_manager.remove(resource)
         except PermissionError as err:
             raise web.HTTPError(403, str(err))
         except (ValidationError, ValueError, FileNotFoundError) as err:
@@ -154,9 +156,8 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
 
-        self.set_status(200)
-        self.set_header("Content-Type", 'application/json')
-        self.finish(metadata.to_dict(trim=True))
+        self.set_status(204)
+        self.finish()
 
 
 class SchemaHandler(HttpErrorMixin, APIHandler):

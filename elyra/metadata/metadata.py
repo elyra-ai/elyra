@@ -162,7 +162,7 @@ class MetadataManager(LoggingConfigurable):
         return self.metadata_store.save(name, metadata, replace)
 
     def remove(self, name):
-        return self.metadata_store.remove(name)
+        self.metadata_store.remove(name)
 
 
 class MetadataStore(ABC):
@@ -345,8 +345,6 @@ class FileMetadataStore(MetadataStore):
                 raise PermissionError("Removal of metadata resource '{}' in namespace '{}' is not permitted!".
                                       format(resource, self.namespace))
             os.remove(resource)
-
-        return metadata
 
     def _remove_allowed(self, metadata):
         """Determines if the resource of the given instance is allowed to be removed. """

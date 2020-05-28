@@ -162,6 +162,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetadataResource'
+          headers:
+            Location:
+              description: Resource endpoint
+              schema:
+                type: string
+                format: url
         400:
           description: An error (validation, syntax) occurred relative to the instance data
         404:
@@ -258,12 +264,8 @@ paths:
         schema:
           type: string
       responses:
-        200:
-          description: The deleted metadata instance
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MetadataResource'
+        204:
+          description: The resource was successfully deleted
         403:
           description: Deletion of the resource is not permitted
         404:
