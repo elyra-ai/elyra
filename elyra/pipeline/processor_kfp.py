@@ -40,13 +40,13 @@ class KfpPipelineProcessor(PipelineProcessor):
 
     def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
-        pipeline_name = (pipeline.name if pipeline.name else 'pipeline') + '-' + timestamp
+        pipeline_name = f'{pipeline.name} - {timestamp}'
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            pipeline_path = temp_dir + '/' + pipeline_name + '.tar.gz'
+            pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
 
             self.log.info("Pipeline : %s", pipeline_name)
             self.log.debug("Creating temp directory %s", temp_dir)
