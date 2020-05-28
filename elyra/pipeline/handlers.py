@@ -72,14 +72,18 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
     def post(self, *args, **kwargs):
         self.log.debug("Pipeline SchedulerHandler now executing post request")
 
-        pipeline_definition = self.get_json_body()
+        try:
+            pipeline_definition = self.get_json_body()
+            self.log.debug("JSON payload: %s", pipeline_definition)
 
-        self.log.debug("JSON payload: %s", pipeline_definition)
+            pipeline = PipelineParser.parse(pipeline_definition)
 
-        pipeline = PipelineParser.parse(pipeline_definition)
-
-        response = PipelineProcessorManager.process(pipeline)
-        json_msg = json.dumps(response.to_json())
+            response = PipelineProcessorManager.process(pipeline)
+            json_msg = json.dumps(response.to_json())
+        except (ValueError) as se:
+            raise web.HTTPError(400, str(se))
+        except Exception as ex:
+            raise web.HTTPError(500, repr(ex))
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
