@@ -14,29 +14,33 @@
  * limitations under the License.
  */
 
-import { MetadataService, RequestHandler } from '@elyra/application';
+import {
+  FrontendServices,
+  IDictionary,
+  RequestHandler
+} from '@elyra/application';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 
 export class PipelineService {
   static async getRuntimes(): Promise<any> {
-    const runtimes = await MetadataService.getMetadata('runtimes');
+    const runtimes = await FrontendServices.getMetadata('runtimes');
 
     if (Object.keys(runtimes).length === 0) {
-      return MetadataService.noMetadataError('runtimes');
+      return FrontendServices.noMetadataError('runtimes');
     }
 
     return runtimes;
   }
 
   static async getRuntimeImages(): Promise<any> {
-    const runtimeImages = await MetadataService.getMetadata('runtime-images');
+    const runtimeImages = await FrontendServices.getMetadata('runtime-images');
 
     if (Object.keys(runtimeImages).length === 0) {
-      return MetadataService.noMetadataError('runtime-images');
+      return FrontendServices.noMetadataError('runtime-images');
     }
 
-    const images: { [key: string]: string } = {};
+    const images: IDictionary<string> = {};
     for (const image in runtimeImages) {
       const imageName: string = runtimeImages[image]['metadata']['image_name'];
       images[imageName] = runtimeImages[image]['display_name'];

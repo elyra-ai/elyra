@@ -21,8 +21,6 @@ import { ServerConnection } from '@jupyterlab/services';
 
 import * as React from 'react';
 
-const HTML_STATUS_SUCCESS = [200, 201];
-
 export class RequestHandler {
   /**
    * displays an error Dialog with an optional stack trace
@@ -64,25 +62,22 @@ export class RequestHandler {
       buttons: [Dialog.okButton()]
     });
   }
+
   /**
    * Make a GET request to the jupyterlab server.
    *
    * @param requestExt - The url for the request.
    *
-   * @param displayWaitDialog - Whether or not to display a dialog warning
-   * warning the use the request may take time.
+   * @param longRequest - If the request is expected to take a long time.
+   * If true, displays a dialog warning that the request may take time.
    *
    * @returns a Promise that resolves with either the response or a Dialog.
    */
   static async makeGetRequest(
     requestExt: string,
-    displayWaitDialog: boolean
+    longRequest: boolean
   ): Promise<any> {
-    return this.makeServerRequest(
-      requestExt,
-      { method: 'GET' },
-      displayWaitDialog
-    );
+    return this.makeServerRequest(requestExt, { method: 'GET' }, longRequest);
   }
 
   /**
@@ -92,43 +87,44 @@ export class RequestHandler {
    *
    * @param requestBody - The body of the request.
    *
-   * @param displayWaitDialog - Whether or not to display a dialog warning
-   * warning the use the request may take time.
+   * @param longRequest - If the request is expected to take a long time.
+   * If true, displays a dialog warning that the request may take time.
    *
    * @returns a Promise that resolves with either the response or a Dialog.
    */
   static async makePostRequest(
     requestExt: string,
     requestBody: any,
-    displayWaitDialog: boolean
+    longRequest: boolean
   ): Promise<any> {
     return this.makeServerRequest(
       requestExt,
       { method: 'POST', body: requestBody },
-      displayWaitDialog
+      longRequest
     );
   }
+
   /**
    * Make an request to the jupyterlab server.
    *
-   * @param requestExt - The url for the request.
+   * @param requestPath - The url for the request.
    *
    * @param requestOptions - The initialization options for the request.
    *
-   * @param displayWaitDialog - Whether or not to display a dialog warning
-   * warning the use the request may take time.
+   * @param longRequest - If the request is expected to take a long time.
+   * If true, displays a dialog warning that the request may take time.
    *
    * @returns a Promise that resolves with either the response or a Dialog.
    */
   static async makeServerRequest(
-    requestExt: string,
+    requestPath: string,
     requestOptions: any,
-    displayWaitDialog: boolean
+    longRequest: boolean
   ): Promise<any> {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are the in the extension installed by this package
     const settings = ServerConnection.makeSettings();
-    const requestUrl = URLExt.join(settings.baseUrl, requestExt);
+    const requestUrl = URLExt.join(settings.baseUrl, requestPath);
 
     console.log(`Sending a ${requestOptions.method} request to ${requestUrl}`);
 
@@ -138,21 +134,21 @@ export class RequestHandler {
       buttons: [Dialog.okButton()]
     });
 
-    if (displayWaitDialog) {
+    if (longRequest) {
       waitDialog.launch();
     }
 
     const getServerResponse: Promise<any> = new Promise((resolve, reject) => {
       ServerConnection.makeRequest(requestUrl, requestOptions, settings).then(
         (response: any) => {
-          if (displayWaitDialog) {
+          if (longRequest) {
             waitDialog.resolve();
           }
 
           response.json().then(
             // handle cases where the server returns a valid response
             (result: any) => {
-              if (!HTML_STATUS_SUCCESS.includes(response.status)) {
+              if (response.status < 200 || response.status >= 300) {
                 return this.serverError(result);
               }
 
@@ -163,6 +159,11 @@ export class RequestHandler {
               return this.server404();
             }
           );
+        },
+        // something unexpected went wrong with the request
+        (reason: any) => {
+          console.error(reason);
+          return this.serverError(reason);
         }
       );
     });

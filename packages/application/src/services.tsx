@@ -22,7 +22,7 @@ import { RequestHandler } from './requests';
 /**
  * A utility class for handling elyra metadata calls.
  */
-export class MetadataService {
+export class FrontendServices {
   static noMetadataError(metadataName: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error retrieving metadata',
