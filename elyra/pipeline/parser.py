@@ -86,7 +86,7 @@ class PipelineParser(LoggingConfigurable):
             operation = Operation(
                 id=PipelineParser._read_field(node, 'id'),
                 type=PipelineParser._read_field(node, 'type'),
-                classification=PipelineParser._read_field(node, 'op'),
+                classifier=PipelineParser._read_field(node, 'op'),
                 filename=PipelineParser._read_app_data_field(node, 'filename'),
                 runtime_image=PipelineParser._read_app_data_field(node, 'runtime_image'),
                 dependencies=PipelineParser._read_app_data_field(node, 'dependencies', []),  # or []

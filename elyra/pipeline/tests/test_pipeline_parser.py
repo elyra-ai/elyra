@@ -25,7 +25,7 @@ from elyra.pipeline import PipelineParser, Operation
 def valid_operation():
     return Operation(id='{{uuid}}',
                      type='{{type}}',
-                     classification='execute-notebook-node',
+                     classifier='execute-notebook-node',
                      filename='{{filename}}',
                      runtime_image='{{runtime_image}}')
 

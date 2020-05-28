@@ -20,14 +20,14 @@ class Operation(object):
     """
     Represents a single operation in a pipeline
     """
-    def __init__(self, id, type, classification, filename, runtime_image, dependencies=None,
+    def __init__(self, id, type, classifier, filename, runtime_image, dependencies=None,
                  include_subdirectories=False, env_vars=None, inputs=None, outputs=None,
                  parent_operations=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
         :param type: The type of node e.g. execution_node
-        :param classification: classifier for processor execution e.g. Argo
+        :param classifier: classifier for processor execution e.g. Argo
         :param filename: The relative path to the source file in the users local environment
                          to be executed e.g. path/to/file.ext
         :param runtime_image: The DockerHub image to be used for the operation
@@ -47,8 +47,8 @@ class Operation(object):
             raise ValueError("Invalid pipeline operation: Missing field 'operation id'.")
         if not type:
             raise ValueError("Invalid pipeline operation: Missing field 'operation type'.")
-        if not classification:
-            raise ValueError("Invalid pipeline operation: Missing field 'operation classification'.")
+        if not classifier:
+            raise ValueError("Invalid pipeline operation: Missing field 'operation classifier'.")
         if not filename:
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
         if not runtime_image:
@@ -56,7 +56,7 @@ class Operation(object):
 
         self._id = id
         self._type = type
-        self._classification = classification
+        self._classifier = classifier
         self._filename = filename
         self._runtime_image = runtime_image
         self._dependencies = self.__initialize_empty_array_if_none(dependencies)
@@ -75,8 +75,8 @@ class Operation(object):
         return self._type
 
     @property
-    def classification(self):
-        return self._classification
+    def classifier(self):
+        return self._classifier
 
     @property
     def name(self):
@@ -126,7 +126,7 @@ class Operation(object):
         if isinstance(self, other.__class__):
             return self.id == other.id and \
                 self.type == other.type and \
-                self.classification == other.classification and \
+                self.classifier == other.classifier and \
                 self.filename == other.filename and \
                 self.runtime_image == other.runtime_image and \
                 self.env_vars == other.env_vars and \
