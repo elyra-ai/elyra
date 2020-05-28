@@ -11,24 +11,19 @@
         {
           "id": "{{pipelines.node.uuid}}",
           "type": "execution_node",
+          "op": "execute-notebook-node",
           "app_data": {
-            "artifact": "{{artifact}}",
-            "image": "{{image}}",
+            "filename": "{{filename}}",
+            "runtime_image": "{{runtime_image}}",
             "outputs": [],
-            "vars": [],
+            "env_vars": [],
             "dependencies": [],
-            "recursive_dependencies": false,
-            "ui_data": {
-              "label": "{{title}}",
-              "x_pos": 75,
-              "y_pos": 85,
-              "description": "Notebook file"
-            }
+            "include_subdirectories": false
           }
         }
       ],
       "app_data": {
-        "title": "{{title}}",
+        "name": "{{name}}",
         "runtime": "{{runtime}}",
         "runtime-config": "{{runtime-config}}",
         "ui_data": {

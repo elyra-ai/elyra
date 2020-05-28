@@ -56,7 +56,7 @@ export class PipelineService {
     console.log(pipeline);
 
     const response = await RequestHandler.makePostRequest(
-      'api/scheduler',
+      'api/pipeline/schedule',
       JSON.stringify(pipeline),
       true
     );
@@ -64,10 +64,21 @@ export class PipelineService {
     const dialogTitle = 'Job submission to ' + runtime_config + ' succeeded';
     const dialogBody = (
       <p>
-        Check the status of your run at{' '}
-        <a href={response.url} target="_blank" rel="noopener noreferrer">
-          Run Details
+        Check the status of your pipeline at{' '}
+        <a href={response['run-url']} target="_blank" rel="noopener noreferrer">
+          Run Details.
         </a>
+        <br />
+        The results and outputs are in the [{response['object-storage-path']}]
+        working directory in{' '}
+        <a
+          href={response['object-storage-url']}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          object storage
+        </a>
+        .
       </p>
     );
     return showDialog({

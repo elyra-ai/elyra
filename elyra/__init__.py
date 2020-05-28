@@ -18,10 +18,9 @@ from ._version import __version__
 from notebook.utils import url_path_join
 
 from .api.handlers import YamlSpecHandler
-from .scheduler.handler import SchedulerHandler
 from .metadata.handlers import MetadataHandler, MetadataResourceHandler, SchemaHandler, SchemaResourceHandler, \
     NamespaceHandler
-from .pipeline import PipelineExportHandler
+from .pipeline import PipelineExportHandler, PipelineSchedulerHandler
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
@@ -38,7 +37,6 @@ def load_jupyter_server_extension(nb_server_app):
     web_app.add_handlers(host_pattern, [
         (url_path_join(web_app.settings['base_url'], r'/api/{}'.format(YamlSpecHandler.get_resource_metadata()[0])),
          YamlSpecHandler),
-        (url_path_join(web_app.settings['base_url'], r'/api/scheduler'), SchedulerHandler),
         (url_path_join(web_app.settings['base_url'], r'/api/metadata/%s' % (namespace_regex)), MetadataHandler),
         (url_path_join(web_app.settings['base_url'], r'/api/metadata/%s/%s' % (namespace_regex, resource_regex)),
          MetadataResourceHandler),
@@ -46,6 +44,7 @@ def load_jupyter_server_extension(nb_server_app):
         (url_path_join(web_app.settings['base_url'], r'/api/schema/%s/%s' % (namespace_regex, resource_regex)),
          SchemaResourceHandler),
         (url_path_join(web_app.settings['base_url'], r'/api/namespace'), NamespaceHandler),
+        (url_path_join(web_app.settings['base_url'], r'/api/pipeline/schedule'), PipelineSchedulerHandler),
         (url_path_join(web_app.settings['base_url'], r'/api/pipeline/export'), PipelineExportHandler),
     ])
 
