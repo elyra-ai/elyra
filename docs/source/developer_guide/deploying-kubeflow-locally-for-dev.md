@@ -119,6 +119,22 @@ elyra-metadata install runtimes --replace=true \
        --cos_password=minio123 \
        --cos_bucket=covid
 ```
+
+## Troubleshooting
+If the kubernetes cluster fails to start you may need to analyze the container logs to figure out which 
+component is failing. 
+1. To do this, go back to your `Kubernetes` sub-menu under `Preferences`
+2. Check the box for `Show System Containers (Advanced)` and click `Apply and Restart`
+![Elyra](../images/docker-desktop-advanced-option.png)  
+3. Open a terminal window and run `docker ps`. This should show a list of containers currently running in 
+Docker as well as the containers that are part of your kubernetes cluster.
+![Elyra](../images/docker-desktop-ps.png)  
+4. To view the logs of a container, use
+```bash
+docker logs <CONTAINER ID>
+```
+The output of these logs should hopefully assist with any issues you may encounter.
+
 ## Additional Resources and Documentation
 [Docker Desktop Installation Docs](https://docs.docker.com/get-started/)  
 [KubeFlow Installation Docs](https://www.kubeflow.org/docs/started/k8s/kfctl-k8s-istio/)
