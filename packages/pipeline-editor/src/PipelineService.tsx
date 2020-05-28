@@ -69,7 +69,9 @@ export class PipelineService {
           Run Details.
         </a>
         <br />
-        The results and outputs are in the [{response['object-storage-path']}]
+        The results and outputs are in the {
+          response['object-storage-path']
+        }{' '}
         working directory in{' '}
         <a
           href={response['object-storage-url']}
