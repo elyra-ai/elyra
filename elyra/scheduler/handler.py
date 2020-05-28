@@ -37,17 +37,10 @@ class SchedulerHandler(HttpErrorMixin, APIHandler):
 
         pipeline = PipelineParser.parse(pipeline_definition)
 
-        run_url = PipelineProcessorManager.process(pipeline)
-        json_msg = json.dumps({"status": "ok",
-                               "message": "Pipeline successfully submitted",
-                               "url": run_url})
+        response = PipelineProcessorManager.process(pipeline)
+        json_msg = json.dumps(response.to_json())
 
         self.set_status(200)
-        self.write(json_msg)
+        self.set_header("Content-Type", 'application/json')
+        self.finish(json_msg)
         self.flush()
-
-    def __artifact_list_to_str(self, pipeline_array):
-        if not pipeline_array:
-            return "None"
-        else:
-            return ','.join(pipeline_array)

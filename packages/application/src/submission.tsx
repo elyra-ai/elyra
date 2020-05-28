@@ -176,10 +176,24 @@ export class SubmissionHandler {
           dialogTitle = 'Job submission to ' + runtime_config + ' succeeded';
           dialogBody = (
             <p>
-              Check the status of your run at{' '}
-              <a href={data.url} target="_blank" rel="noopener noreferrer">
-                Run Details
+              Check the status of your pipeline at{' '}
+              <a
+                href={data['run-url']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Run Details.
               </a>
+              <br />
+              The results and outputs are in the [{data['object-storage-path']}]
+              working directory in{' '}
+              <a
+                href={data['object-storage-url']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                object storage.
+              </a>{' '}
             </p>
           );
         }
