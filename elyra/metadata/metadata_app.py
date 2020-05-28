@@ -199,14 +199,15 @@ class NamespaceInstall(NamespaceBase):
                             display_name=display_name, metadata=metadata)
 
         ex_msg = None
-        resource = None
+        new_instance = None
         try:
-            resource = self.metadata_manager.add(name, instance, replace=self.replace_flag.value)
+            new_instance = self.metadata_manager.add(name, instance, replace=self.replace_flag.value)
         except Exception as ex:
             ex_msg = str(ex)
 
-        if resource:
-            print("Metadata instance '{}' for schema '{}' has been written to: {}".format(name, schema_name, resource))
+        if new_instance:
+            print("Metadata instance '{}' for schema '{}' has been written to: {}"
+                  .format(name, schema_name, new_instance.resource))
         else:
             if ex_msg:
                 self.log_and_exit("The following exception occurred saving metadata instance '{}' for schema '{}': {}"
