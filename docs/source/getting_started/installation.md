@@ -16,11 +16,11 @@ limitations under the License.
 {% endcomment %}
 -->
 ## Installation
-Elyra can be installed via PyPi:
+Elyra can be installed via PyPI:
 
 ### Prerequisites
-* [NodeJS 12+](https://nodejs.org/en/)
-* [Python 3.X](https://www.anaconda.com/distribution/)
+* [Node.js 12+](https://nodejs.org/en/)
+* [Python 3.x](https://www.python.org/downloads/)
 
 ##### Optional
 * [Anaconda](https://www.anaconda.com/distribution/) 
@@ -30,7 +30,7 @@ Elyra can be installed via PyPi:
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.1 and below**
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 0.11.0-rc0 and above**
 
-via PyPi:
+via PyPI:
 ```bash
 pip install elyra && jupyter lab build
 ```
@@ -57,6 +57,10 @@ config dir: /usr/local/etc/jupyter
       nbdime 2.0.0 OK
 
 ```
+
+NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable
+it with `jupyter serverextension enable elyra`
+
 ```bash
 jupyter labextension list
 ```
@@ -72,5 +76,3 @@ Known labextensions:
         @jupyterlab/toc v3.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```
-NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable
-it with `jupyter serverextension enable elyra`
