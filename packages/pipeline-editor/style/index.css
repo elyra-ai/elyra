@@ -40,6 +40,11 @@
   width: 100%;
 }
 
+.history .toolbar-icons:not(.overflow) {
+  height: auto;
+  width: 100%;
+}
+
 .elyra-PipelineEditor .properties-modal {
   position: absolute;
 }

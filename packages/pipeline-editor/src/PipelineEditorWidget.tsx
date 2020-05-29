@@ -34,7 +34,8 @@ import {
   exportPipelineIcon,
   newPipelineIcon,
   pipelineIcon,
-  savePipelineIcon
+  savePipelineIcon,
+  historyIcon
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -66,6 +67,7 @@ import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
+import { RuntimesHistoryDialog } from './RuntimesHistoryDialog';
 import { PipelineSubmissionHandler } from './submission';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -250,6 +252,14 @@ export class PipelineEditor extends React.Component<
         enable: true,
         iconEnabled: IconUtil.encode(clearPipelineIcon),
         iconDisabled: IconUtil.encode(clearPipelineIcon)
+      },
+      { divider: true },
+      {
+        action: 'history',
+        label: 'Runtimes History',
+        enable: true,
+        iconEnabled: IconUtil.encode(historyIcon),
+        iconDisabled: IconUtil.encode(historyIcon)
       },
       { divider: true },
       { action: 'undo', label: 'Undo', enable: true },
@@ -639,6 +649,28 @@ export class PipelineEditor extends React.Component<
     });
   }
 
+  handleHistory(): void {
+    SubmissionHandler.makeGetRequest(
+      'api/metadata/runtimes',
+      'metadata',
+      (response: any) => {
+        if (Object.keys(response.runtimes).length === 0) {
+          return SubmissionHandler.noMetadataError('runtimes');
+        }
+
+        showDialog({
+          title: 'Open Runtimes History',
+          body: new RuntimesHistoryDialog({ runtimes: response.runtimes }),
+          buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Open' })]
+        }).then(result => {
+          if (result.button.accept) {
+            window.open(result.value.runtime_url, '_blank');
+          }
+        });
+      }
+    );
+  }
+
   /**
    * Handles submitting pipeline runs
    */
@@ -657,6 +689,8 @@ export class PipelineEditor extends React.Component<
       this.handleNew();
     } else if (action == 'clear') {
       this.handleClear();
+    } else if (action == 'history') {
+      this.handleHistory();
     }
   }
 
