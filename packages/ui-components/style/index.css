@@ -86,3 +86,7 @@
   align-self: flex-end;
   height: 100%;
 }
+
+.elyra-form-inputtext {
+  margin-bottom: 12px;
+}

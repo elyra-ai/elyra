@@ -18,6 +18,25 @@
   font-weight: bold;
   padding: 8px 10px;
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.elyra-codeSnippetsHeader p {
+  position: absolute;
+}
+
+.elyra-codeSnippetHeader-button {
+  background-color: transparent;
+  vertical-align: middle;
+  padding: 0;
+  width: 20px;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  display: inline-flex;
+  align-self: flex-end;
 }
 
 .elyra-codeSnippet-item {

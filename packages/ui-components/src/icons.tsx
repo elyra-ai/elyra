@@ -16,6 +16,7 @@
 
 import { LabIcon } from '@jupyterlab/ui-components';
 
+import addSnippetSvg from '../style/icons/addSnippet.svg';
 import clearPipelineSvg from '../style/icons/clear-pipeline.svg';
 import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
 import codeSnippetSvg from '../style/icons/code-snippet.svg';
@@ -28,6 +29,10 @@ import savePipelineSvg from '../style/icons/save-pipeline.svg';
 export const codeSnippetIcon = new LabIcon({
   name: 'elyra:code-snippet',
   svgstr: codeSnippetSvg
+});
+export const addSnippetIcon = new LabIcon({
+  name: 'elyra:add-snippet',
+  svgstr: addSnippetSvg
 });
 export const dragDropIcon = new LabIcon({
   name: 'elyra:dragdrop',

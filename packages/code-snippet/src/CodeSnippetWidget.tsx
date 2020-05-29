@@ -16,7 +16,8 @@
 
 import '../style/index.css';
 
-import { ExpandableComponent } from '@elyra/ui-components';
+import { SubmissionHandler } from '@elyra/application';
+import { ExpandableComponent, addSnippetIcon } from '@elyra/ui-components';
 
 import {
   ReactWidget,
@@ -33,7 +34,7 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { copyIcon, addIcon } from '@jupyterlab/ui-components';
+import { copyIcon, addIcon, editIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
@@ -41,6 +42,7 @@ import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
+import { EditorDialog } from './EditorDialog';
 
 /**
  * The CSS class added to code snippet widget.
@@ -48,6 +50,7 @@ import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
+const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetsHeader-button';
 
 /**
  * CodeSnippetDisplay props.
@@ -55,6 +58,7 @@ const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 interface ICodeSnippetDisplayProps {
   codeSnippets: ICodeSnippet[];
   getCurrentWidget: () => Widget;
+  editCodeSnippet: any;
 }
 
 /**
@@ -181,6 +185,19 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         onClick: (): void => {
           this.insertCodeSnippet(codeSnippet);
         }
+      },
+      {
+        title: 'Edit',
+        icon: editIcon,
+        onClick: (): void => {
+          this.props.editCodeSnippet(
+            codeSnippet.displayName,
+            codeSnippet.description,
+            codeSnippet.language,
+            codeSnippet.code.join('\n'),
+            false
+          );
+        }
       }
     ];
 
@@ -228,10 +245,75 @@ export class CodeSnippetWidget extends ReactWidget {
     return await this.codeSnippetManager.findAll();
   }
 
-  // Triggered when the widget button on side palette is clicked
-  onAfterShow(msg: Message): void {
+  updateSnippets(): void {
     this.fetchData().then((codeSnippets: ICodeSnippet[]) => {
       this.renderCodeSnippetsSignal.emit(codeSnippets);
+    });
+  }
+
+  // Triggered when the widget button on side palette is clicked
+  onAfterShow(msg: Message): void {
+    this.updateSnippets();
+  }
+
+  addCodeSnippet(): void {
+    this.editCodeSnippet('', '', '', '', true);
+  }
+
+  async editCodeSnippet(
+    displayName: string,
+    description: string,
+    language: string,
+    code: string,
+    newFile: boolean
+  ): Promise<void> {
+    const codeSnippetEndpoint = 'api/metadata/code-snippets';
+    showDialog({
+      title: 'Edit snippet',
+      body: new EditorDialog({
+        display_name: displayName,
+        description: description,
+        language: language,
+        code: code
+      }),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+    }).then((result: any) => {
+      if (result.value == null) {
+        // When Cancel is clicked on the dialog, just return
+        return;
+      }
+
+      const newSnippet = {
+        schema_name: 'code-snippet',
+        name: result.value.display_name,
+        display_name: result.value.display_name,
+        metadata: {
+          description: result.value.description,
+          language: result.value.language,
+          code: result.value.code.split('\n')
+        }
+      };
+      const newSnippetString = JSON.stringify(newSnippet);
+
+      if (newFile) {
+        SubmissionHandler.makePostRequest(
+          codeSnippetEndpoint,
+          JSON.stringify(newSnippet),
+          'code snippets',
+          (response: any) => {
+            this.updateSnippets();
+          }
+        );
+      } else {
+        SubmissionHandler.makeServerRequest(
+          codeSnippetEndpoint + '/' + newSnippet.name,
+          { method: 'PUT', body: newSnippetString },
+          'code snippets',
+          (response: any) => {
+            this.updateSnippets();
+          }
+        );
+      }
     });
   }
 
@@ -239,12 +321,23 @@ export class CodeSnippetWidget extends ReactWidget {
     return (
       <div className={CODE_SNIPPETS_CLASS}>
         <header className={CODE_SNIPPETS_HEADER_CLASS}>
-          {'</> Code Snippets'}
+          <p> {'</> Code Snippets'} </p>
+          <button
+            className={CODE_SNIPPETS_HEADER_BUTTON_CLASS}
+            onClick={this.addCodeSnippet.bind(this)}
+          >
+            <addSnippetIcon.react
+              tag="span"
+              elementPosition="center"
+              width="16px"
+            />
+          </button>
         </header>
         <UseSignal signal={this.renderCodeSnippetsSignal} initialArgs={[]}>
           {(_, codeSnippets): React.ReactElement => (
             <CodeSnippetDisplay
               codeSnippets={codeSnippets}
+              editCodeSnippet={this.editCodeSnippet}
               getCurrentWidget={this.getCurrentWidget}
             />
           )}
