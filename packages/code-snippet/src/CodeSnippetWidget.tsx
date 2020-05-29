@@ -50,7 +50,7 @@ import { EditorDialog } from './EditorDialog';
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
-const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetsHeader-button';
+const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 
 /**
  * CodeSnippetDisplay props.
