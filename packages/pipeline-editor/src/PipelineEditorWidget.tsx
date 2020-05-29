@@ -304,6 +304,12 @@ export class PipelineEditor extends React.Component<
     );
   }
 
+  updateModel(): void {
+    this.widgetContext.model.fromString(
+      JSON.stringify(this.canvasController.getPipelineFlow(), null, 2)
+    );
+  }
+
   initPropertiesInfo(): void {
     FrontendServices.getRuntimeImages().then(
       (runtimeImages: IDictionary<string>) => {
@@ -414,7 +420,7 @@ export class PipelineEditor extends React.Component<
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any): void {
-    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.updateModel();
   }
 
   tipHandler(tipType: string, data: any): any {
@@ -602,7 +608,7 @@ export class PipelineEditor extends React.Component<
   }
 
   handleSave(): void {
-    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.updateModel();
     this.widgetContext.save();
   }
 
@@ -631,9 +637,7 @@ export class PipelineEditor extends React.Component<
     }).then(result => {
       if (result.button.accept) {
         this.canvasController.clearPipelineFlow();
-        this.widgetContext.model.fromJSON(
-          this.canvasController.getPipelineFlow()
-        );
+        this.updateModel();
         this.position = 10;
       }
     });
