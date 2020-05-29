@@ -43,12 +43,11 @@ In this example, we will be performing the steps on a MacOS system
 1. In the upper right corner locate the Docker Desktop Icon, Click and go to `Preferences`   
 ![Elyra](../images/docker-desktop-icon.png)  
   
-2. Navigate to the `Advanced` Tab and ensure that Docker Desktop has at least   
-4 CPUs, 8 GB of Memory and 1 GB of Swap. If not, increase as necessary and restart   
-the Docker Desktop Engine.  
-![Elyra](../images/docker-desktop-advanced.png)  
+2. Navigate to the `Resources` sub-menu and ensure that Docker Desktop has at least   
+4 CPUs, 8 GB of Memory and 1 GB of Swap. If not, increase as necessary and click `Apply & Restart`.  
+![Elyra](../images/docker-desktop-resources.png)  
   
-3. Navigate to the `Kubernetes` Tab and Click `Enable Kubernetes` and hit `Apply`  
+3. Navigate to the `Kubernetes` sub-menu and click `Enable Kubernetes` and hit `Apply & Restart`  
 ![Elyra](../images/docker-desktop-k8s-menu.png)  
   
 4. `Docker Desktop` should now install a single node deployment of Kubernetes  
@@ -120,6 +119,22 @@ elyra-metadata install runtimes --replace=true \
        --cos_password=minio123 \
        --cos_bucket=covid
 ```
+
+## Troubleshooting
+If the kubernetes cluster fails to start you may need to analyze the container logs to figure out which 
+component is failing. 
+1. To do this, go back to your `Kubernetes` sub-menu under `Preferences`
+2. Check the box for `Show System Containers (Advanced)` and click `Apply and Restart`
+![Elyra](../images/docker-desktop-advanced-option.png)  
+3. Open a terminal window and run `docker ps`. This should show a list of containers currently running in 
+Docker as well as the containers that are part of your kubernetes cluster.
+![Elyra](../images/docker-desktop-ps.png)  
+4. To view the logs of a container, use
+```bash
+docker logs <CONTAINER ID>
+```
+The output of these logs should hopefully assist with any issues you may encounter.
+
 ## Additional Resources and Documentation
 [Docker Desktop Installation Docs](https://docs.docker.com/get-started/)  
 [KubeFlow Installation Docs](https://www.kubeflow.org/docs/started/k8s/kfctl-k8s-istio/)
