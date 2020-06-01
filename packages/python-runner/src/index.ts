@@ -23,6 +23,12 @@ import {
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+import {
+  CompleterModel,
+  Completer,
+  CompletionHandler,
+  KernelConnector
+} from '@jupyterlab/completer';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -38,6 +44,7 @@ import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
 import { pythonIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
+import { Widget } from '@lumino/widgets';
 
 import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
 
@@ -49,7 +56,8 @@ const commandIDs = {
   createNewPython: 'pyeditor:create-new-python-file',
   openPyEditor: 'pyeditor:open',
   openDocManager: 'docmanager:open',
-  newDocManager: 'docmanager:new-untitled'
+  newDocManager: 'docmanager:new-untitled',
+  invokeCompleter: 'invoke:completer'
 };
 
 /**
@@ -95,6 +103,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     const tracker = new WidgetTracker<PythonFileEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
+
+    let completer: Completer = null;
+    let completionHandler: CompletionHandler = null;
 
     if (tocRegistry) {
       const pythonGenerator = createPythonGenerator(tracker);
@@ -148,6 +159,8 @@ const extension: JupyterFrontEndPlugin<void> = {
         const key = keyStr as keyof CodeEditor.IConfig;
         editor.setOption(key, config[key]);
       });
+
+      addCompleter(widget, editor);
     };
 
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
@@ -274,6 +287,53 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: commandIDs.createNewPython,
       args: { isPalette: true },
       category: 'Python Editor'
+    });
+
+    // Function to setup code auto-complete. Adapted from jupyterlab examples/notebook.
+    const addCompleter = (
+      widget: FileEditor,
+      editor: CodeEditor.IEditor
+    ): void => {
+      if (!completer) {
+        console.log('Setting up auto-complete...'); // TODO: remove debug line
+
+        const model = new CompleterModel();
+        completer = new Completer({ editor, model });
+        const sessionContext = widget.context.sessionContext;
+        const connector = new KernelConnector({
+          session: sessionContext.session
+        });
+        completionHandler = new CompletionHandler({ completer, connector });
+
+        void sessionContext.ready.then(() => {
+          completionHandler.connector = new KernelConnector({
+            session: sessionContext.session
+          });
+        });
+
+        // Set the handler's editor.
+        completionHandler.editor = editor;
+
+        // Hide the widget when it first loads.
+        completer.hide();
+
+        Widget.attach(completer, document.body);
+      }
+    };
+
+    // Add completer command.
+    app.commands.addCommand(commandIDs.invokeCompleter, {
+      execute: () => {
+        console.log('Invoke completer command'); // This is never executed
+        completionHandler && completionHandler.invoke();
+      }
+    });
+
+    // Bind tab key to completer.
+    app.commands.addKeyBinding({
+      selector: '.jp-InputArea-editor.jp-mod-completer-enabled',
+      keys: ['Tab'],
+      command: commandIDs.invokeCompleter
     });
   }
 };
