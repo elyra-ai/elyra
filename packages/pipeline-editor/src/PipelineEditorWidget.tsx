@@ -65,9 +65,9 @@ import { IntlProvider } from 'react-intl';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
+import { PipelinesSubmissionHistoryDialog } from './PipelinesSubmissionHistoryDialog';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
-import { PipelinesSubmissionHistoryDialog } from './PipelinesSubmissionHistoryDialog';
 import { PipelineSubmissionHandler } from './submission';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
