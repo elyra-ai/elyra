@@ -67,7 +67,7 @@ import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
-import { RuntimesHistoryDialog } from './RuntimesHistoryDialog';
+import { PipelinesSubmissionHistoryDialog } from './PipelinesSubmissionHistoryDialog';
 import { PipelineSubmissionHandler } from './submission';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -256,7 +256,7 @@ export class PipelineEditor extends React.Component<
       { divider: true },
       {
         action: 'history',
-        label: 'Runtimes History',
+        label: 'Pipelines Submission History',
         enable: true,
         iconEnabled: IconUtil.encode(historyIcon),
         iconDisabled: IconUtil.encode(historyIcon)
@@ -659,8 +659,10 @@ export class PipelineEditor extends React.Component<
         }
 
         showDialog({
-          title: 'Open Runtimes History',
-          body: new RuntimesHistoryDialog({ runtimes: response.runtimes }),
+          title: 'Open Pipelines Submission History',
+          body: new PipelinesSubmissionHistoryDialog({
+            runtimes: response.runtimes
+          }),
           buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Open' })]
         }).then(result => {
           if (result.button.accept) {

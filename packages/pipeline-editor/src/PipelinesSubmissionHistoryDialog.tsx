@@ -18,9 +18,9 @@ import { Dialog } from '@jupyterlab/apputils';
 import { Widget, PanelLayout } from '@lumino/widgets';
 
 /**
- * Runtimes history dialog widget
+ * Pipelines submission history dialog widget
  */
-export class RuntimesHistoryDialog extends Widget
+export class PipelinesSubmissionHistoryDialog extends Widget
   implements Dialog.IBodyWidget<any> {
   constructor(props: any) {
     super(props);
