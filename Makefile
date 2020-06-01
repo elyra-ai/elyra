@@ -15,7 +15,7 @@
 #
 
 .PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
-.PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs docker-image
+.PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release docker-image
 
 SHELL:=/bin/bash
 
@@ -120,6 +120,17 @@ docs-dependencies:
 docs: docs-dependencies ## Build docs
 	make -C docs html
 
+dist-ui: build-ui
+	mkdir -p dist
+	$(call PACKAGE_LAB_EXTENSION,theme)
+	$(call PACKAGE_LAB_EXTENSION,code-snippet)
+	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
+	$(call PACKAGE_LAB_EXTENSION,python-runner)
+	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
+	cd dist && curl -o jupyterlab-toc-$(TOC_VERSION).tgz $$(npm view @jupyterlab/toc@$(TOC_VERSION) dist.tarball) && cd -
+
+release: dist-ui build-server ## Build wheel file for release
+
 docker-image: ## Build docker image
 	@mkdir -p build/docker
 	cp etc/docker/Dockerfile build/docker/Dockerfile
@@ -140,4 +151,8 @@ endef
 
 define INSTALL_LAB_EXTENSION
 	cd packages/$1 && jupyter labextension install --no-build .
+endef
+
+define PACKAGE_LAB_EXTENSION
+	export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && npm run dist && mv *.tgz ../../dist
 endef
