@@ -16,24 +16,33 @@
 #
 
 # Ubuntu 18.04 LTS - Bionic
-FROM jupyterhub/k8s-singleuser-sample:0.8.2
+FROM jupyterhub/k8s-singleuser-sample:0.9.0
 
-# pip packages
-RUN pip install --upgrade pip
-RUN pip install setuptools --ignore-installed --upgrade
+USER root
+
+ADD start-elyra.sh /usr/local/bin/start-elyra.sh
+
+RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
+    apt-get update && apt-get install -y build-essential curl && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && apt-get install -y yarn && \
+    rm -rf /var/lib/apt/lists/*
+
+USER $NB_USER
+#USER jovyan
+
+RUN python -m pip install --upgrade pip && \
+    python -m pip install setuptools --ignore-installed --upgrade && \
+    echo "scripts-prepend-node-path=true" >> /home/jovyan/.npmrc && \
+    echo "prefix=/home/jovyan/.npm-global" >> /home/jovyan/.npmrc && \
+    mkdir -p /home/jovyan/.npm-global && \
+    npm install -g yarn && \
+    npm install -g npm && \
+    cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
+    cd /tmp/elyra && make install
 
 ENV NBGITPULLER_APP=lab
 
-# Install Lab which is enabled by default
-RUN pip install --upgrade pip jupyterlab notebook
+CMD ["/usr/local/bin/start-elyra.sh"]
 
-RUN mkdir -p /home/jovyan/.local/share/jupyter/metadata/runtimes
-
-COPY *.whl /tmp/elyra/
-RUN pip install /tmp/elyra/*.whl
-
-RUN jupyter lab build --debug
-
-RUN jupyter labextension list && jupyter serverextension list
-
-ENTRYPOINT ["/bin/bash", "-c", "jupyter lab --debug --no-browser"]
