@@ -60,3 +60,8 @@
   word-wrap: normal;
   overflow-x: scroll;
 }
+
+#code {
+  box-sizing: border-box;
+  border: var(--jp-border-width) solid var(--jp-border-color1);
+}

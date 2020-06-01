@@ -15,19 +15,41 @@
  */
 
 import { Dialog } from '@jupyterlab/apputils';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+// import { CodeMirrorEditorFactory } from '@jupyterlab/codemirror';
+
+import { Message } from '@lumino/messaging';
 import { Widget, PanelLayout } from '@lumino/widgets';
 
 /**
  * Code snippet editor dialog widget
  */
 export class EditorDialog extends Widget implements Dialog.IBodyWidget<any> {
+  props: any;
+  editor: CodeEditor.IEditor;
+
   constructor(props: any) {
     super(props);
 
+    this.props = props;
     const layout = (this.layout = new PanelLayout());
     const htmlContent = this.getHtml(props);
 
     layout.addWidget(new Widget({ node: htmlContent }));
+  }
+
+  keydownHandler(instance: CodeEditor.IEditor, event: KeyboardEvent): boolean {
+    console.log(event);
+    return true;
+  }
+
+  onAfterAttach(msg: Message): void {
+    const editorFactory: CodeEditor.Factory = this.props.editorFactory;
+    this.editor = editorFactory({
+      host: document.getElementById('code'),
+      model: new CodeEditor.Model({ value: this.props.code })
+    });
+    this.editor.addKeydownHandler(this.keydownHandler);
   }
 
   getValue(): any {
@@ -41,7 +63,7 @@ export class EditorDialog extends Widget implements Dialog.IBodyWidget<any> {
 
       language: (document.getElementById('language') as HTMLInputElement).value,
 
-      code: (document.getElementById('code') as HTMLTextAreaElement).value
+      code: this.editor.model.value.text
     };
   }
 
@@ -70,12 +92,10 @@ export class EditorDialog extends Widget implements Dialog.IBodyWidget<any> {
       br +
       '<label for="code">Code snippet:</label>' +
       br +
-      '<textarea id="code" name="code"' +
-      // {this.onSubmitHandler()} +
-      // br +
+      '<div id="code" name="code"' +
       ' class="elyra-form-code">' +
-      props.code +
-      '</textarea>' +
+      // props.code +
+      '</div>' +
       br;
 
     htmlContent.innerHTML = content;
