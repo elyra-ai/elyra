@@ -156,20 +156,17 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
     assert instance is not None
 
     # And finally, remove it.
-    instance = tests_manager.remove(metadata_name)
-
+    tests_manager.remove(metadata_name)
     assert not os.path.exists(metadata_file)
-    assert instance.resource == metadata_file
 
 
 def test_manager_remove_invalid(tests_manager, metadata_tests_dir):
     # Ensure invalid metadata file isn't validated and is removed.
     create_json_file(metadata_tests_dir, 'remove_invalid.json', invalid_metadata_json)
     metadata_name = 'remove_invalid'
-    instance = tests_manager.remove(metadata_name)
+    tests_manager.remove(metadata_name)
     metadata_file = os.path.join(metadata_tests_dir, 'remove_invalid.json')
     assert not os.path.exists(metadata_file)
-    assert instance.resource == metadata_file
 
 
 def test_manager_remove_missing(tests_manager):
@@ -356,8 +353,7 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_2.resource.startswith(str(metadata_tests_dir))
 
     # now remove the updated instance and ensure the shared instance appears
-    instance = tests_hierarchy_manager.remove('byo_2')
-    assert instance.resource == byo_2.resource
+    tests_hierarchy_manager.remove('byo_2')
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
     assert byo_2.resource.startswith(str(shared_dir))
@@ -392,8 +388,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_2.resource.startswith(str(metadata_tests_dir))
 
     # Now remove instance.  Should be allowed since it resides in user area
-    instance = tests_hierarchy_manager.remove('byo_2')
-    assert instance.resource == byo_2.resource
+    tests_hierarchy_manager.remove('byo_2')
 
     # Attempt to remove instance from shared area and its protected
     with pytest.raises(PermissionError) as pe:
