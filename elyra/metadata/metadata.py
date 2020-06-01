@@ -309,7 +309,7 @@ class FileMetadataStore(MetadataStore):
             created_namespace_dir = True
 
         try:
-            with io.open(resource, 'w', encoding='utf-8') as f:
+            with jupyter_core.paths.secure_write(resource) as f:
                 f.write(metadata.prepare_write())  # Only persist necessary items
         except Exception:
             if created_namespace_dir:
@@ -493,7 +493,6 @@ class SchemaManager(SingletonConfigurable):
         return schemas
 
     def get_schema(self, namespace, schema_name):
-        schema_json = None
         self.log.debug("SchemaManager: Fetching schema '{}' from namespace '{}'".format(schema_name, namespace))
         if not self.is_valid_namespace(namespace):
             raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
