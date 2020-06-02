@@ -35,7 +35,7 @@ interface IErrorDialogProps {
   default_msg: string;
 }
 
-export class ErrorDialogContent extends React.Component<
+export class ExpandableErrorDialog extends React.Component<
   IErrorDialogProps,
   any
 > {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ErrorDialogContent } from '@elyra/ui-components';
+import { ExpandableErrorDialog } from '@elyra/ui-components';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
@@ -38,7 +38,7 @@ export class RequestHandler {
       title: 'Error making request',
       body:
         reason || message ? (
-          <ErrorDialogContent
+          <ExpandableErrorDialog
             reason={reason}
             message={message}
             timestamp={timestamp}

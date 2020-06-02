@@ -24,7 +24,7 @@ export interface ICodeSnippet {
   code: string[];
 }
 
-export class CodeSnippetManager {
+export class CodeSnippetService {
   async findAll(): Promise<ICodeSnippet[]> {
     const codeSnippetsResponse = await FrontendServices.getMetadata(
       'code-snippets'

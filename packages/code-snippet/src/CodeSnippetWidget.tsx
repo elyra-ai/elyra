@@ -39,7 +39,7 @@ import { Widget } from '@lumino/widgets';
 
 import React from 'react';
 
-import { CodeSnippetManager, ICodeSnippet } from './CodeSnippetManager';
+import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
 
 /**
  * The CSS class added to code snippet widget.
@@ -211,14 +211,14 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
  * A widget for Code Snippets.
  */
 export class CodeSnippetWidget extends ReactWidget {
-  codeSnippetManager: CodeSnippetManager;
+  codeSnippetManager: CodeSnippetService;
   renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
   getCurrentWidget: () => Widget;
 
   constructor(getCurrentWidget: () => Widget) {
     super();
     this.getCurrentWidget = getCurrentWidget;
-    this.codeSnippetManager = new CodeSnippetManager();
+    this.codeSnippetManager = new CodeSnippetService();
     this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
   }
 
