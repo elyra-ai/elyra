@@ -66,7 +66,7 @@ export class RequestHandler {
   /**
    * Make a GET request to the jupyterlab server.
    *
-   * @param requestExt - The url for the request.
+   * @param requestPath - The url for the request.
    *
    * @param longRequest - If the request is expected to take a long time.
    * If true, displays a dialog warning that the request may take time.
@@ -74,16 +74,16 @@ export class RequestHandler {
    * @returns a Promise that resolves with either the response or a Dialog.
    */
   static async makeGetRequest(
-    requestExt: string,
+    requestPath: string,
     longRequest: boolean
   ): Promise<any> {
-    return this.makeServerRequest(requestExt, { method: 'GET' }, longRequest);
+    return this.makeServerRequest(requestPath, { method: 'GET' }, longRequest);
   }
 
   /**
    * Make a POST request to the jupyterlab server.
    *
-   * @param requestExt - The url for the request.
+   * @param requestPath - The url for the request.
    *
    * @param requestBody - The body of the request.
    *
@@ -93,12 +93,12 @@ export class RequestHandler {
    * @returns a Promise that resolves with either the response or a Dialog.
    */
   static async makePostRequest(
-    requestExt: string,
+    requestPath: string,
     requestBody: any,
     longRequest: boolean
   ): Promise<any> {
     return this.makeServerRequest(
-      requestExt,
+      requestPath,
       { method: 'POST', body: requestBody },
       longRequest
     );
