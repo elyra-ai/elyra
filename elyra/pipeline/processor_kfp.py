@@ -26,7 +26,7 @@ from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from kubernetes.client.models import V1EnvVar
-from notebook.pipeline import NotebookOp
+from kfp_notebook.pipeline import NotebookOp
 from urllib3.exceptions import MaxRetryError
 from jinja2 import Environment, PackageLoader
 
