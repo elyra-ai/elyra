@@ -138,6 +138,7 @@ def test_install_and_replace(script_runner, mock_data_dir):
                             '--required_test=required_value')
     assert ret.success
     assert "Metadata instance 'test-metadata_42_valid-name' for schema 'metadata-test' has been written" in ret.stdout
+    assert expected_file in ret.stdout
 
     # Re-attempt w/o replace flag - failure expected
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
