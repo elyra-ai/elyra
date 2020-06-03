@@ -17,7 +17,6 @@
 import '../style/index.css';
 
 import { SubmissionHandler } from '@elyra/application';
-import { addSnippetIcon } from '@elyra/ui-components';
 
 import {
   ReactWidget,
@@ -26,9 +25,9 @@ import {
   showDialog
 } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-// import { CodeMirrorEditorFactory } from '@jupyterlab/codemirror';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { addIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
@@ -99,8 +98,12 @@ export class CodeSnippetWidget extends ReactWidget {
     code: string,
     newFile: boolean
   ): Promise<void> {
+    let dialogTitle = 'Edit snippet';
+    if (newFile) {
+      dialogTitle = 'Add snippet';
+    }
     showDialog({
-      title: 'Edit snippet',
+      title: dialogTitle,
       body: new EditorDialog({
         display_name: displayName,
         description: description,
@@ -158,11 +161,7 @@ export class CodeSnippetWidget extends ReactWidget {
             className={CODE_SNIPPETS_HEADER_BUTTON_CLASS}
             onClick={this.addCodeSnippet.bind(this)}
           >
-            <addSnippetIcon.react
-              tag="span"
-              elementPosition="center"
-              width="16px"
-            />
+            <addIcon.react tag="span" elementPosition="center" width="16px" />
           </button>
         </header>
         <UseSignal signal={this.renderCodeSnippetsSignal} initialArgs={[]}>
@@ -170,6 +169,7 @@ export class CodeSnippetWidget extends ReactWidget {
             <CodeSnippetDisplay
               codeSnippets={codeSnippets}
               editCodeSnippet={this.editCodeSnippet}
+              editorFactory={this.editorFactory}
               getCurrentWidget={this.getCurrentWidget}
               updateSnippets={this.updateSnippets}
             />

@@ -29,13 +29,17 @@
 .elyra-codeSnippetHeader-button {
   background-color: transparent;
   vertical-align: middle;
-  padding: 0;
+  padding: 5px;
   width: 20px;
   background-repeat: no-repeat;
   background-position: center;
   border: none;
   display: inline-flex;
   align-self: flex-end;
+}
+
+.elyra-codeSnippetHeader-button:hover {
+  background-color: #eeeeee;
 }
 
 .elyra-codeSnippet-item {
@@ -46,7 +50,7 @@
   padding: 0;
 }
 
-.elyra-codeSnippet-item textarea {
+.elyra-codeSnippet-item .CodeMirror-code {
   background-color: inherit;
   border: none;
   font-family: var(--jp-code-font-family);
@@ -64,4 +68,13 @@
 #code {
   box-sizing: border-box;
   border: var(--jp-border-width) solid var(--jp-border-color1);
+}
+
+.elyra-codeSnippet-saveButton {
+  background-color: transparent;
+  border: none;
+}
+
+.elyra-codeSnippet-saveButton:hover {
+  background-color: #eeeeee;
 }

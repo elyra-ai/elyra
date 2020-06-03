@@ -49,7 +49,6 @@ export class EditorDialog extends Widget implements Dialog.IBodyWidget<any> {
       host: document.getElementById('code'),
       model: new CodeEditor.Model({ value: this.props.code })
     });
-    this.editor.addKeydownHandler(this.keydownHandler);
   }
 
   getValue(): any {
