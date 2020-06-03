@@ -34,7 +34,7 @@ import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { ICodeSnippet } from './CodeSnippet';
-import { CODE_SNIPPET_ENDPOINT } from './CodeSnippetWidget';
+import { CODE_SNIPPET_ENDPOINT } from './MetadataEditor';
 
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 const SAVE_BUTTON_CLASS = 'elyra-codeSnippet-saveButton';

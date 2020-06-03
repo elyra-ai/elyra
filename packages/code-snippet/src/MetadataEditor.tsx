@@ -17,7 +17,14 @@
 import { ReactWidget } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 
+import { SubmissionHandler } from '@elyra/application';
+
 import React from 'react';
+
+/**
+ * API endpoint for code snippets
+ */
+export const CODE_SNIPPET_ENDPOINT = 'api/metadata/code-snippets';
 
 /**
  * Metadata editor widget
@@ -27,6 +34,8 @@ export class MetadataEditor extends ReactWidget {
   description: string;
   language: string;
   code: string;
+  newFile: boolean;
+  updateSnippets: () => void;
   editorFactory: CodeEditor.Factory;
   editor: CodeEditor.IEditor;
 
@@ -35,6 +44,8 @@ export class MetadataEditor extends ReactWidget {
     description: string,
     language: string,
     code: string,
+    newFile: boolean,
+    updateSnippets: () => void,
     editorFactory: CodeEditor.Factory
   ) {
     super();
@@ -42,10 +53,46 @@ export class MetadataEditor extends ReactWidget {
     this.description = description;
     this.language = language;
     this.code = code;
+    this.saveSnippet = this.saveSnippet.bind(this);
+    this.updateSnippets = updateSnippets;
     this.editorFactory = editorFactory;
   }
 
-  componentDidMount(): void {
+  saveSnippet(): void {
+    const newSnippet = {
+      schema_name: 'code-snippet',
+      name: this.displayName,
+      display_name: this.displayName,
+      metadata: {
+        description: this.description,
+        language: this.language,
+        code: this.editor.model.value.text.split('\n')
+      }
+    };
+    const newSnippetString = JSON.stringify(newSnippet);
+
+    if (this.newFile) {
+      SubmissionHandler.makePostRequest(
+        CODE_SNIPPET_ENDPOINT,
+        JSON.stringify(newSnippet),
+        'code snippets',
+        (response: any) => {
+          this.updateSnippets();
+        }
+      );
+    } else {
+      SubmissionHandler.makeServerRequest(
+        CODE_SNIPPET_ENDPOINT + '/' + newSnippet.name,
+        { method: 'PUT', body: newSnippetString },
+        'code snippets',
+        (response: any) => {
+          this.updateSnippets();
+        }
+      );
+    }
+  }
+
+  onAfterShow(): void {
     const editorFactory: CodeEditor.Factory = this.editorFactory;
     this.editor = editorFactory({
       host: document.getElementById('code'),
@@ -99,6 +146,7 @@ export class MetadataEditor extends ReactWidget {
         <br />
         <div id="code" className="elyra-form-code"></div>
         <br />
+        <button onClick={this.saveSnippet}> Save snippet </button>
       </div>
     );
   }

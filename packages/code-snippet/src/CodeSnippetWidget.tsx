@@ -18,7 +18,7 @@ import '../style/index.css';
 
 // import { SubmissionHandler } from '@elyra/application';
 
-import { JupyterFrontEnd } from '@jupyterlab/application';
+import { JupyterFrontEnd, ILayoutRestorer } from '@jupyterlab/application';
 import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentManager } from '@jupyterlab/docmanager';
@@ -40,12 +40,7 @@ import { MetadataEditor } from './MetadataEditor';
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
-const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
-
-/**
- * API endpoint for code snippets
- */
-export const CODE_SNIPPET_ENDPOINT = 'api/metadata/code-snippets';
+const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
 /**
  * A widget for Code Snippets.
@@ -56,11 +51,13 @@ export class CodeSnippetWidget extends ReactWidget {
   getCurrentWidget: () => Widget;
   editorFactory: CodeEditor.Factory;
   app: JupyterFrontEnd;
+  restorer: ILayoutRestorer;
 
   constructor(
     getCurrentWidget: () => Widget,
     editorFactory: CodeEditor.Factory,
-    app: JupyterFrontEnd
+    app: JupyterFrontEnd,
+    restorer: ILayoutRestorer
   ) {
     super();
     this.getCurrentWidget = getCurrentWidget;
@@ -69,6 +66,8 @@ export class CodeSnippetWidget extends ReactWidget {
     this.editCodeSnippet = this.editCodeSnippet.bind(this);
     this.editorFactory = editorFactory;
     this.app = app;
+    this.restorer = restorer;
+    this.fetchData = this.fetchData.bind(this);
   }
 
   // Request code snippets from server
@@ -98,57 +97,19 @@ export class CodeSnippetWidget extends ReactWidget {
     code: string,
     newFile: boolean
   ): Promise<void> {
-    // let dialogTitle = 'Edit snippet';
-    // if (newFile) {
-    //   dialogTitle = 'Add snippet';
-    // }
     const metadataEditorWidget = new MetadataEditor(
       displayName,
       description,
       language,
       code,
+      newFile,
+      this.updateSnippets,
       this.editorFactory
     );
-    metadataEditorWidget.id = CODE_SNIPPET_EXTENSION_ID;
+    metadataEditorWidget.id = METADATA_EDITOR_ID;
+    metadataEditorWidget.title.caption = displayName;
+    this.restorer.add(metadataEditorWidget, METADATA_EDITOR_ID);
     this.app.shell.add(metadataEditorWidget, 'main');
-    //.then((result: any) => {
-    //   if (result.value == null) {
-    //     // When Cancel is clicked on the dialog, just return
-    //     return;
-    //   }
-
-    //   const newSnippet = {
-    //     schema_name: 'code-snippet',
-    //     name: result.value.display_name,
-    //     display_name: result.value.display_name,
-    //     metadata: {
-    //       description: result.value.description,
-    //       language: result.value.language,
-    //       code: result.value.code.split('\n')
-    //     }
-    //   };
-    //   const newSnippetString = JSON.stringify(newSnippet);
-
-    //   if (newFile) {
-    //     SubmissionHandler.makePostRequest(
-    //       CODE_SNIPPET_ENDPOINT,
-    //       JSON.stringify(newSnippet),
-    //       'code snippets',
-    //       (response: any) => {
-    //         this.updateSnippets();
-    //       }
-    //     );
-    //   } else {
-    //     SubmissionHandler.makeServerRequest(
-    //       CODE_SNIPPET_ENDPOINT + '/' + newSnippet.name,
-    //       { method: 'PUT', body: newSnippetString },
-    //       'code snippets',
-    //       (response: any) => {
-    //         this.updateSnippets();
-    //       }
-    //     );
-    //   }
-    // });
   }
 
   render(): React.ReactElement {
