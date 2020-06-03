@@ -182,6 +182,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
                   method='POST', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 201
+        assert r.headers.get('location') == r.request.path_url + '/valid'
         metadata = r.json()
         assert metadata == valid
 
@@ -329,10 +330,8 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
 
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 200
-        metadata = r.json()
-        metadata.pop('name', None)
-        assert metadata == valid_metadata_json
+        assert r.status_code == 204
+        assert len(r.text) == 0
 
         # Confirm deletion
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
@@ -351,9 +350,8 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
 
         r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 200
-        metadata = r.json()
-        assert metadata['display_name'] == 'location'
+        assert r.status_code == 204
+        assert len(r.text) == 0
 
 
 class SchemaHandlerTest(MetadataTestBase):

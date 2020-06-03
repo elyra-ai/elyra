@@ -47,10 +47,9 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         "jupyter_core>=4.0,<5.0",
-        "kfp==0.2.2",
+        "kfp==0.5.1",
         "urllib3==1.24.2",
-        "kfp-notebook>=0.8.1",
-        "kfp-server-api==0.1.18.3",
+        "kfp-notebook>=0.8.2",
         "minio>=5.0.7",
         'nbdime>=2.0.0',
         'jupyterlab>=2.0.0',

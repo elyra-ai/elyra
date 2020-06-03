@@ -123,7 +123,7 @@ export class SubmissionHandler {
     let waitDialog: Dialog<any> = null;
     // TODO: @ajbozarth will address this during coming refactor
     // which will turn the showing of this dialog controlled by a flag
-    if (requestUrl.includes('scheduler') || requestUrl.includes('export')) {
+    if (requestUrl.includes('schedule') || requestUrl.includes('export')) {
       waitDialog = new Dialog({
         title: 'Making server request...',
         body: 'This may take some time',
@@ -163,7 +163,7 @@ export class SubmissionHandler {
     console.log(pipeline);
 
     this.makePostRequest(
-      'api/scheduler',
+      'api/pipeline/schedule',
       JSON.stringify(pipeline),
       submissionType,
       (data: any) => {
@@ -176,10 +176,24 @@ export class SubmissionHandler {
           dialogTitle = 'Job submission to ' + runtime_config + ' succeeded';
           dialogBody = (
             <p>
-              Check the status of your run at{' '}
-              <a href={data.url} target="_blank" rel="noopener noreferrer">
-                Run Details
+              Check the status of your pipeline at{' '}
+              <a
+                href={data['run-url']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Run Details.
               </a>
+              <br />
+              The results and outputs are in the [{data['object-storage-path']}]
+              working directory in{' '}
+              <a
+                href={data['object-storage-url']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                object storage.
+              </a>{' '}
             </p>
           );
         }

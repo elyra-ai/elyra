@@ -18,15 +18,8 @@ import * as path from 'path';
 
 import {
   FrontendServices,
-  IconUtil,
   NotebookParser,
   SubmissionHandler,
-  clearPipelineIcon,
-  dragDropIcon,
-  exportPipelineIcon,
-  newPipelineIcon,
-  pipelineIcon,
-  savePipelineIcon,
   IDictionary
 } from '@elyra/application';
 import {
@@ -34,6 +27,16 @@ import {
   CanvasController,
   CommonProperties
 } from '@elyra/canvas';
+import {
+  IconUtil,
+  clearPipelineIcon,
+  dragDropIcon,
+  exportPipelineIcon,
+  newPipelineIcon,
+  pipelineIcon,
+  savePipelineIcon
+} from '@elyra/ui-components';
+
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {
@@ -301,15 +304,21 @@ export class PipelineEditor extends React.Component<
     );
   }
 
+  updateModel(): void {
+    this.widgetContext.model.fromString(
+      JSON.stringify(this.canvasController.getPipelineFlow(), null, 2)
+    );
+  }
+
   initPropertiesInfo(): void {
     FrontendServices.getRuntimeImages().then(
       (runtimeImages: IDictionary<string>) => {
         const imageEnum = [];
-        for (const image in runtimeImages) {
-          imageEnum.push(image);
+        for (const runtimeImage in runtimeImages) {
+          imageEnum.push(runtimeImage);
           (properties.resources as IDictionary<string>)[
-            'image.' + image + '.label'
-          ] = runtimeImages[image];
+            'runtime_image.' + runtimeImage + '.label'
+          ] = runtimeImages[runtimeImage];
         }
         properties.parameters[0].enum = imageEnum;
 
@@ -329,13 +338,14 @@ export class PipelineEditor extends React.Component<
     const node_props = this.propertiesInfo;
     node_props.appData.id = node_id;
 
-    node_props.parameterDef.current_parameters.image = app_data.image;
+    node_props.parameterDef.current_parameters.runtime_image =
+      app_data.runtime_image;
     node_props.parameterDef.current_parameters.outputs = app_data.outputs;
-    node_props.parameterDef.current_parameters.vars = app_data.vars;
+    node_props.parameterDef.current_parameters.env_vars = app_data.env_vars;
     node_props.parameterDef.current_parameters.dependencies =
       app_data.dependencies;
-    node_props.parameterDef.current_parameters.recursive_dependencies =
-      app_data.recursive_dependencies;
+    node_props.parameterDef.current_parameters.include_subdirectories =
+      app_data.include_subdirectories;
 
     this.setState({ showPropertiesDialog: true, propertiesInfo: node_props });
   }
@@ -344,11 +354,11 @@ export class PipelineEditor extends React.Component<
     console.log('Applying changes to properties');
     const app_data = this.canvasController.getNode(appData.id).app_data;
 
-    app_data.image = propertySet.image;
+    app_data.runtime_image = propertySet.runtime_image;
     app_data.outputs = propertySet.outputs;
-    app_data.vars = propertySet.vars;
+    app_data.env_vars = propertySet.env_vars;
     app_data.dependencies = propertySet.dependencies;
-    app_data.recursive_dependencies = propertySet.recursive_dependencies;
+    app_data.include_subdirectories = propertySet.include_subdirectories;
   }
 
   closePropertiesDialog(): void {
@@ -384,7 +394,7 @@ export class PipelineEditor extends React.Component<
     if (action === 'openNotebook' && source.type === 'node') {
       const nodes = source.selectedObjectIds;
       for (let i = 0; i < nodes.length; i++) {
-        const path = this.canvasController.getNode(nodes[i]).app_data.artifact;
+        const path = this.canvasController.getNode(nodes[i]).app_data.filename;
         this.app.commands.execute(commandIDs.openDocManager, { path });
       }
     } else if (action === 'properties' && source.type === 'node') {
@@ -400,7 +410,7 @@ export class PipelineEditor extends React.Component<
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
       const nodes = source.selectedObjectIds;
       for (let i = 0; i < nodes.length; i++) {
-        const path = this.canvasController.getNode(nodes[i]).app_data.artifact;
+        const path = this.canvasController.getNode(nodes[i]).app_data.filename;
         this.app.commands.execute(commandIDs.openDocManager, { path });
       }
     }
@@ -410,7 +420,7 @@ export class PipelineEditor extends React.Component<
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any): void {
-    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.updateModel();
   }
 
   tipHandler(tipType: string, data: any): any {
@@ -458,7 +468,7 @@ export class PipelineEditor extends React.Component<
           const notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
           notebookWidget.dispose();
 
-          const vars = NotebookParser.getEnvVars(notebookStr).map(
+          const env_vars = NotebookParser.getEnvVars(notebookStr).map(
             str => str + '='
           );
 
@@ -468,14 +478,14 @@ export class PipelineEditor extends React.Component<
             ''
           );
           data.nodeTemplate.image = IconUtil.encode(notebookIcon);
-          data.nodeTemplate.app_data['artifact'] = item.path;
+          data.nodeTemplate.app_data['filename'] = item.path;
           data.nodeTemplate.app_data[
-            'image'
-          ] = this.propertiesInfo.parameterDef.current_parameters.image;
-          data.nodeTemplate.app_data['vars'] = vars;
+            'runtime_image'
+          ] = this.propertiesInfo.parameterDef.current_parameters.runtime_image;
+          data.nodeTemplate.app_data['env_vars'] = env_vars;
           data.nodeTemplate.app_data[
-            'recursive_dependencies'
-          ] = this.propertiesInfo.parameterDef.current_parameters.recursive_dependencies;
+            'include_subdirectories'
+          ] = this.propertiesInfo.parameterDef.current_parameters.include_subdirectories;
 
           this.canvasController.editActionHandler(data);
 
@@ -538,7 +548,7 @@ export class PipelineEditor extends React.Component<
 
           const overwrite = result.value.overwrite;
 
-          pipelineFlow.pipelines[0]['app_data']['title'] = pipeline_name;
+          pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
           pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
           pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
             result.value.runtime_config;
@@ -579,7 +589,7 @@ export class PipelineEditor extends React.Component<
           // prepare pipeline submission details
           const pipelineFlow = this.canvasController.getPipelineFlow();
 
-          pipelineFlow.pipelines[0]['app_data']['title'] =
+          pipelineFlow.pipelines[0]['app_data']['name'] =
             result.value.pipeline_name;
 
           // TODO: Be more flexible and remove hardcoded runtime type
@@ -598,7 +608,7 @@ export class PipelineEditor extends React.Component<
   }
 
   handleSave(): void {
-    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.updateModel();
     this.widgetContext.save();
   }
 
@@ -627,9 +637,7 @@ export class PipelineEditor extends React.Component<
     }).then(result => {
       if (result.button.accept) {
         this.canvasController.clearPipelineFlow();
-        this.widgetContext.model.fromJSON(
-          this.canvasController.getPipelineFlow()
-        );
+        this.updateModel();
         this.position = 10;
       }
     });

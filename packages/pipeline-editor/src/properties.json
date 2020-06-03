@@ -1,14 +1,14 @@
 {
   "current_parameters": {
-    "image": "",
+    "runtime_image": "",
     "outputs": [],
-    "vars": [],
+    "env_vars": [],
     "dependencies": [],
-    "recursive_dependencies": false
+    "include_subdirectories": false
   },
   "parameters": [
     {
-      "id": "image",
+      "id": "runtime_image",
       "enum": []
     },
     {
@@ -16,11 +16,11 @@
       "type": "array[string]"
     },
     {
-      "id": "recursive_dependencies",
+      "id": "include_subdirectories",
       "type": "boolean"
     },
     {
-      "id": "vars",
+      "id": "env_vars",
       "type": "array[string]"
     },
     {
@@ -32,28 +32,10 @@
     "id": "nodeProperties",
     "parameter_info": [
       {
-        "parameter_ref": "image",
+        "parameter_ref": "runtime_image",
         "control": "oneofselect",
         "label": {
-          "default": "Docker Image"
-        }
-      },
-      {
-        "parameter_ref": "outputs",
-        "label": {
-          "default": "Output Files"
-        },
-        "place_holder_text": {
-          "default": "One filename per line"
-        }
-      },
-      {
-        "parameter_ref": "vars",
-        "label": {
-          "default": "Env Vars"
-        },
-        "place_holder_text": {
-          "default": "One var per line in the format ENV_VAR=value"
+          "default": "Runtime Image (docker image used as execution environment)."
         }
       },
       {
@@ -62,13 +44,31 @@
           "default": "File Dependencies"
         },
         "place_holder_text": {
-          "default": "One filename or extension wildcard (eg. *.py) per line"
+          "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or extension wildcard (eg. *.py) per line."
         }
       },
       {
-        "parameter_ref": "recursive_dependencies",
+        "parameter_ref": "include_subdirectories",
         "label": {
-          "default": "Include subdirectories in dependencies (may increase submission time)"
+          "default": "Include subdirectories in dependencies (may increase submission time)."
+        }
+      },
+      {
+        "parameter_ref": "env_vars",
+        "label": {
+          "default": "Environment Variables"
+        },
+        "place_holder_text": {
+          "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
+        }
+      },
+      {
+        "parameter_ref": "outputs",
+        "label": {
+          "default": "Output Files"
+        },
+        "place_holder_text": {
+          "default": "Files generated during execution that will become available to all subsequent pipeline steps.\nOne filename (including subdirectory) per line."
         }
       }
     ]

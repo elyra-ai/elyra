@@ -16,6 +16,8 @@
 
 import '../style/index.css';
 
+import { ExpandableComponent } from '@elyra/ui-components';
+
 import {
   ReactWidget,
   UseSignal,
@@ -39,7 +41,6 @@ import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
-import { ExpandableComponent } from './ExpandableComponent';
 
 /**
  * The CSS class added to code snippet widget.
