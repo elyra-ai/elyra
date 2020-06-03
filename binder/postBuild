@@ -16,15 +16,15 @@
 #
 set -euo pipefail
 
-export VERSION=1.22.4
+export YARN_VERSION=1.22.4
 
 # Download and install Yarn Package Manager
 mkdir -p dist
-cd dist && wget https://github.com/yarnpkg/yarn/releases/download/v${VERSION}/yarn-v${VERSION}.tar.gz
-tar -zvxf yarn-v${VERSION}.tar.gz && rm -rf yarn-v${VERSION}.tar.gz
+cd dist && wget https://github.com/yarnpkg/yarn/releases/download/v${YARN_VERSION}/yarn-v${YARN_VERSION}.tar.gz
+tar -zvxf yarn-v${YARN_VERSION}.tar.gz && rm -rf yarn-v${YARN_VERSION}.tar.gz
 
 # Add to PATH
-export PATH=$(pwd)/yarn-v${VERSION}/bin/:$PATH && cd ..
+export PATH=$(pwd)/yarn-v${YARN_VERSION}/bin/:$PATH && cd ..
 
 # Build Elyra Distribution
 make release
@@ -36,4 +36,4 @@ pip install dist/*.whl
 jupyter labextension link --no-build packages/application/
 jupyter labextension link --no-build packages/ui-components/
 jupyter lab build --dev-build=False --minimize=False
-mkdir -p ./binder-demo && cd ./binder-demo
+mkdir -p /tmp/binder-demo
