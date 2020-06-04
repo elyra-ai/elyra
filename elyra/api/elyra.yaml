@@ -9,7 +9,7 @@ info:
 
 paths:
 
-  /api/elyra.yaml:
+  /elyra/elyra.yaml:
     get:
       tags:
       - api
@@ -24,7 +24,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/namespace:
+  /elyra/namespace:
     get:
       tags:
       - namespace
@@ -45,7 +45,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/schema/{namespace}:
+  /elyra/schema/{namespace}:
     get:
       tags:
       - schema
@@ -76,7 +76,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/schema/{namespace}/{resource}:
+  /elyra/schema/{namespace}/{resource}:
     get:
       tags:
       - schema
@@ -107,7 +107,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/metadata/{namespace}:
+  /elyra/metadata/{namespace}:
     get:
       tags:
       - metadata
@@ -177,7 +177,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/metadata/{namespace}/{resource}:
+  /elyra/metadata/{namespace}/{resource}:
     get:
       tags:
       - metadata
