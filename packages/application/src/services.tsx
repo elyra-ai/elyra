@@ -33,7 +33,7 @@ export class FrontendServices {
 
   static async getMetadata(namespace: string): Promise<any> {
     const metadataResponse: any = await RequestHandler.makeGetRequest(
-      'api/metadata/' + namespace,
+      'elyra/metadata/' + namespace,
       false
     );
 

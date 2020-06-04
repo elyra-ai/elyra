@@ -56,7 +56,7 @@ export class PipelineService {
     console.log(pipeline);
 
     const response = await RequestHandler.makePostRequest(
-      'api/pipeline/schedule',
+      'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
       true
     );
@@ -113,7 +113,7 @@ export class PipelineService {
     };
 
     await RequestHandler.makePostRequest(
-      'api/pipeline/export',
+      'elyra/pipeline/export',
       JSON.stringify(body),
       true
     );
