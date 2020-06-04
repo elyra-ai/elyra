@@ -65,7 +65,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
 
         self.set_status(201)
         self.set_header("Content-Type", 'application/json')
-        location = url_path_join(self.base_url, 'api', 'metadata', namespace, metadata.name)
+        location = url_path_join(self.base_url, 'elyra', 'metadata', namespace, metadata.name)
         self.set_header('Location', location)
         self.finish(metadata.to_dict(trim=True))
 
