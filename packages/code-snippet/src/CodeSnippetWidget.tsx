@@ -28,6 +28,8 @@ import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
 
+import { codeSnippetIcon } from '@elyra/ui-components';
+
 import React from 'react';
 
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
@@ -68,6 +70,7 @@ export class CodeSnippetWidget extends ReactWidget {
     this.app = app;
     this.restorer = restorer;
     this.fetchData = this.fetchData.bind(this);
+    this.updateSnippets = this.updateSnippets.bind(this);
   }
 
   // Request code snippets from server
@@ -107,7 +110,12 @@ export class CodeSnippetWidget extends ReactWidget {
       this.editorFactory
     );
     metadataEditorWidget.id = METADATA_EDITOR_ID;
-    metadataEditorWidget.title.caption = displayName;
+    if (newFile) {
+      metadataEditorWidget.title.label = 'New Snippet';
+    } else {
+      metadataEditorWidget.title.label = '[' + language + '] ' + displayName;
+    }
+    metadataEditorWidget.title.icon = codeSnippetIcon;
     this.restorer.add(metadataEditorWidget, METADATA_EDITOR_ID);
     this.app.shell.add(metadataEditorWidget, 'main');
   }

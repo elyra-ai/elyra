@@ -16,15 +16,19 @@
 
 import { ReactWidget } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import { Select, InputGroup, Button } from '@jupyterlab/ui-components';
 
 import { SubmissionHandler } from '@elyra/application';
 
-import React from 'react';
+import * as React from 'react';
 
 /**
  * API endpoint for code snippets
  */
 export const CODE_SNIPPET_ENDPOINT = 'api/metadata/code-snippets';
+
+// const LanguageSelect = Select.ofType<string>();
+let defaultLanguages = ['python', 'R'];
 
 /**
  * Metadata editor widget
@@ -115,38 +119,54 @@ export class MetadataEditor extends ReactWidget {
     };
   }
 
+  onItemSelect(language: string, options: any): void {
+    this.language = language;
+  }
+
+  itemRenderer(language: string, options: any): React.ReactElement {
+    console.log('itemRenderer');
+    return <p key={language}> language </p>;
+  }
+
+  handleChange(event: Event): void {
+    console.log(event);
+  }
+
   render(): React.ReactElement {
+    const nameInput = <InputGroup value={this.displayName} type="text-input" />;
+    const descriptionInput = (
+      <InputGroup
+        value={this.description}
+        type="text-input"
+        onChange={this.handleChange}
+      />
+    );
+    const lanaguageSelector = (
+      <Select
+        items={defaultLanguages}
+        onItemSelect={this.onItemSelect}
+        itemRenderer={this.itemRenderer}
+      />
+    );
     return (
       <div>
         <label htmlFor="display_name">Name:</label>
         <br />
-        <input
-          id="display_name"
-          className="elyra-form-inputtext"
-          defaultValue={this.displayName}
-        />
+        {nameInput}
         <br />
         <label htmlFor="description">Description (optional):</label>
         <br />
-        <input
-          id="description"
-          className="elyra-form-inputtext"
-          defaultValue={this.description}
-        />
+        {descriptionInput}
         <br />
         <label htmlFor="language">Coding language:</label>
         <br />
-        <input
-          id="language"
-          className="elyra-form-inputtext"
-          defaultValue={this.language}
-        />
+        {lanaguageSelector}
         <br />
         <label htmlFor="code">Code snippet:</label>
         <br />
         <div id="code" className="elyra-form-code"></div>
         <br />
-        <button onClick={this.saveSnippet}> Save snippet </button>
+        <Button onClick={this.saveSnippet}> Save snippet </Button>
       </div>
     );
   }
