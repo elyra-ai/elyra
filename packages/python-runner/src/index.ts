@@ -62,19 +62,20 @@ const extension: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     ICommandPalette,
     ISettingRegistry,
-    IFileBrowserFactory
+    IFileBrowserFactory,
+    ITableOfContentsRegistry
   ],
-  optional: [ILayoutRestorer, IMainMenu, ILauncher, ITableOfContentsRegistry],
+  optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
     app: JupyterFrontEnd,
     editorServices: IEditorServices,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
     browserFactory: IFileBrowserFactory,
+    tocRegistry: ITableOfContentsRegistry | null,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
-    launcher: ILauncher | null,
-    tocRegistry: ITableOfContentsRegistry | null
+    launcher: ILauncher | null
   ) => {
     console.log('Elyra - python-runner extension is activated!');
 
