@@ -68,7 +68,7 @@ class MetadataHandlerTest(MetadataTestBase):
         # Validate missing is not found
 
         # Remove self.request (and other 'self.' prefixes) once transition to jupyter_server occurs
-        r = fetch(self.request, 'api', 'metadata', 'bogus', 'missing',
+        r = fetch(self.request, 'elyra', 'metadata', 'bogus', 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
         assert "Namespace 'bogus' is not in the list of valid namespaces:" in r.text
@@ -76,21 +76,21 @@ class MetadataHandlerTest(MetadataTestBase):
 
     def test_missing_instance(self):
         # Validate missing is not found
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'missing',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
         assert "Metadata 'missing' in namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
 
     def test_invalid_instance(self):
         # Validate invalid throws 404 with validation message
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'invalid',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'invalid',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
         assert "Schema validation failed for metadata 'invalid'" in r.text
 
     def test_valid_instance(self):
         # Ensure valid metadata can be found
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   base_url=self.base_url(), headers=self.auth_headers())
 
         assert r.status_code == 200
@@ -100,7 +100,7 @@ class MetadataHandlerTest(MetadataTestBase):
 
     def test_get_instances(self):
         # Ensure all valid metadata can be found
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         metadata = r.json()
@@ -115,14 +115,14 @@ class MetadataHandlerTest(MetadataTestBase):
     def test_get_empty_namespace_instances(self):
         # Delete the metadata dir contents and attempt listing metadata
         shutil.rmtree(self.metadata_tests_dir)
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
         assert "Metadata namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
 
         # Now create empty namespace
         os.makedirs(self.metadata_tests_dir)
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         metadata = r.json()
@@ -157,7 +157,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
 
     def test_get_hierarchy_instances(self):
         # Ensure all valid metadata can be found
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         metadata = r.json()
@@ -179,7 +179,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         valid['name'] = 'valid'
         body = json.dumps(valid)
 
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, body=body,
                   method='POST', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 201
         assert r.headers.get('location') == r.request.path_url + '/valid'
@@ -194,13 +194,13 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         byo_instance['name'] = 'byo_2'
         body = json.dumps(byo_instance)
 
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, body=body,
                   method='POST', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 409
         assert "already exists" in r.text
 
         # Confirm the instance was not changed
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         metadata = r.json()
@@ -219,7 +219,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         invalid['name'] = 'invalid'
         body = json.dumps(invalid)
 
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, body=body,
                   method='POST', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 400
         assert "Schema validation failed for metadata" in r.text
@@ -233,7 +233,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         missing_schema.pop('display_name')
         body = json.dumps(missing_schema)
 
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, body=body,
                   method='POST', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
 
@@ -252,7 +252,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         body = json.dumps(valid)
 
         # Update instance
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
 
@@ -260,14 +260,14 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
 
         # Update instance
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         instance = r.json()
         assert instance['metadata']['number_range_test'] == 7
 
         # Confirm update via fetch
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         instance = r.json()
@@ -284,12 +284,12 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         body = json.dumps(byo_instance)
 
         # Because this is considered an update, replacement is enabled.
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
 
         # Confirm the instances and ensure byo_2 is in USER area
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         metadata = r.json()
@@ -306,13 +306,13 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         byo_2['name'] = 'byo_2_renamed'
         body = json.dumps(byo_2)
 
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 400
         assert "The attempt to rename instance" in r.text
 
         # Confirm no update occurred
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         instance = r.json()
@@ -322,33 +322,33 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         """Create a simple instance - not conflicting with factory instances and delete it. """
 
         # First, attempt to delete non-existent resource, exception expected.
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'missing',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'missing',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
 
         create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
 
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 204
         assert len(r.text) == 0
 
         # Confirm deletion
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
 
     def test_delete_hierarchy_instance(self):
         """Create a simple instance - that conflicts with factory instances and delete it only if local. """
 
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 403
 
         # create local instance, delete should succeed
         create_json_file(self.metadata_tests_dir, 'byo_2.json', byo_metadata_json)
 
-        r = fetch(self.request, 'api', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 204
         assert len(r.text) == 0
@@ -362,14 +362,14 @@ class SchemaHandlerTest(MetadataTestBase):
         # Validate missing is not found
 
         # Remove self.request (and other 'self.' prefixes) once transition to jupyter_server occurs
-        r = fetch(self.request, 'api', 'schema', 'bogus',
+        r = fetch(self.request, 'elyra', 'schema', 'bogus',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
         assert "Namespace 'bogus' is not in the list of valid namespaces:" in r.text
 
     def test_missing_runtimes_schema(self):
         # Validate missing is not found
-        r = fetch(self.request, 'api', 'schema', 'runtimes', 'missing',
+        r = fetch(self.request, 'elyra', 'schema', 'runtimes', 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
         assert "Schema 'missing' in namespace 'runtimes' was not found!" in r.text
@@ -399,7 +399,7 @@ class SchemaHandlerTest(MetadataTestBase):
         self._get_namespace_schema(METADATA_TEST_NAMESPACE, 'metadata-test')
 
     def _get_namespace_schemas(self, namespace, expected):
-        r = fetch(self.request, 'api', 'schema', namespace,
+        r = fetch(self.request, 'elyra', 'schema', namespace,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         namespace_schemas = r.json()
@@ -411,7 +411,7 @@ class SchemaHandlerTest(MetadataTestBase):
             assert get_instance(schemas, 'name', expected_schema)
 
     def _get_namespace_schema(self, namespace, expected):
-        r = fetch(self.request, 'api', 'schema', namespace, expected,
+        r = fetch(self.request, 'elyra', 'schema', namespace, expected,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         namespace_schema = r.json()
@@ -427,7 +427,7 @@ class NamespaceHandlerTest(MetadataTestBase):
     def test_get_namespaces(self):
         expected_namespaces = ['runtimes', 'code-snippets']
 
-        r = fetch(self.request, 'api', 'namespace',
+        r = fetch(self.request, 'elyra', 'namespace',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         namespaces = r.json()
