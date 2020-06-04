@@ -36,4 +36,4 @@ pip install dist/*.whl
 jupyter labextension link --no-build packages/application/
 jupyter labextension link --no-build packages/ui-components/
 jupyter lab build --dev-build=False --minimize=False
-mkdir -p /tmp/binder-demo
+mkdir -p binder-demo
