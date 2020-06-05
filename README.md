@@ -43,6 +43,11 @@ Elyra currently includes:
 The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting_started/overview.html)
 includes more details on these features.
 
+## Try Elyra
+
+ You can try out some Elyra features in the following sandbox environments without having to install anything. 
+  - [Binder](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) ([Learn more...](https://mybinder.readthedocs.io/en/latest/))
+
 ## Installation
 Elyra can be installed via PyPi:
 
