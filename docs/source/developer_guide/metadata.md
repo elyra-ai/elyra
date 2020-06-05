@@ -108,13 +108,13 @@ A REST API is available for easy integration with frontend components:
 Retrieve all metadata for a given namespace:
 
 ```REST
-GET /api/metadata/<namespace>
+GET /elyra/metadata/<namespace>
 ```
 
 Retrieve a given metadata resource from a given namespace:
 
 ```REST
-GET /api/metadata/<namespace>/<resource>
+GET /elyra/metadata/<namespace>/<resource>
 ```
 
 
