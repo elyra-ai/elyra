@@ -449,19 +449,19 @@ components:
     PipelineScheduleResponse:
       description: The set of properties comprising a pipeline processor response entity
       required:
-      - run-url
-      - object-storage-url
-      - object-storage-path
+      - run_url
+      - object_storage_url
+      - object_storage_path
       type: object
       properties:
-        run-url:
+        run_url:
           type: string
           description: The runtime URL to access the pipeline experiment
-        object-storage-url:
+        object_storage_url:
           type: string
           description: The object storage URL to access the pipeline outputs
             and processed notebooks
-        object-storage-path:
+        object_storage_path:
           type: string
           description: The object storage working directory path where the pipeline outputs
             and processed notebooks are located
