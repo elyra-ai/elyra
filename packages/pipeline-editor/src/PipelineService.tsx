@@ -56,7 +56,7 @@ export class PipelineService {
     console.log(pipeline);
 
     const response = await RequestHandler.makePostRequest(
-      'api/pipeline/schedule',
+      'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
       true
     );
@@ -65,16 +65,16 @@ export class PipelineService {
     const dialogBody = (
       <p>
         Check the status of your pipeline at{' '}
-        <a href={response['run-url']} target="_blank" rel="noopener noreferrer">
+        <a href={response['run_url']} target="_blank" rel="noopener noreferrer">
           Run Details.
         </a>
         <br />
         The results and outputs are in the {
-          response['object-storage-path']
+          response['object_storage_path']
         }{' '}
         working directory in{' '}
         <a
-          href={response['object-storage-url']}
+          href={response['object_storage_url']}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -113,7 +113,7 @@ export class PipelineService {
     };
 
     await RequestHandler.makePostRequest(
-      'api/pipeline/export',
+      'elyra/pipeline/export',
       JSON.stringify(body),
       true
     );

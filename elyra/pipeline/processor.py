@@ -109,9 +109,9 @@ class PipelineProcessorResponse(object):
         return self._object_storage_path
 
     def to_json(self):
-        return {"run-url": self.run_url,
-                "object-storage-url": self.object_storage_url,
-                "object-storage-path": self.object_storage_path
+        return {"run_url": self.run_url,
+                "object_storage_url": self.object_storage_url,
+                "object_storage_path": self.object_storage_path
                 }
 
 
