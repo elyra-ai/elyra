@@ -304,20 +304,22 @@ paths:
             schema:
               $ref: '#/components/schemas/PipelineExportBodyPost'
       responses:
-        200:
+        201:
           description: The pipeline export response
+          headers:
+            Location:
+              description: Resource endpoint
+              schema:
+                type: string
+                format: url
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
+                  export_path:
                     type: string
-                    description: Pipeline export status
-                  message:
-                    type: string
-                    description: Pipeline export message
-
+                    description: Pipeline export path
 
 components:
   schemas:
