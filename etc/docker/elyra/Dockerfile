@@ -43,6 +43,7 @@ RUN python -m pip install --upgrade pip && \
     cd /tmp/elyra && make install
 
 ENV NBGITPULLER_APP=lab
+WORKDIR /home/jovyan/work
 
 CMD ["/usr/local/bin/start-elyra.sh"]
 
