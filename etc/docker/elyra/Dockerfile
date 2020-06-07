@@ -30,7 +30,6 @@ RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
     rm -rf /var/lib/apt/lists/*
 
 USER $NB_USER
-#USER jovyan
 
 RUN python -m pip install --upgrade pip && \
     python -m pip install setuptools --ignore-installed --upgrade && \
@@ -42,7 +41,6 @@ RUN python -m pip install --upgrade pip && \
     cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
     cd /tmp/elyra && make install
 
-ENV NBGITPULLER_APP=lab
 WORKDIR /home/jovyan/work
 
 CMD ["/usr/local/bin/start-elyra.sh"]
