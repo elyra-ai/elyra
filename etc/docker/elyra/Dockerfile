@@ -40,7 +40,9 @@ RUN python -m pip install --upgrade pip && \
     npm install -g yarn && \
     npm install -g npm && \
     cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-    cd /tmp/elyra && make install
+    cd /tmp/elyra && make install && \
+    cd /home/jovyan/work && git clone https://github.com/lresende/sample-python && \
+    cd /home/jovyan/work && git clone https://github.com/codait/covid-notebooks
 
 ENV NBGITPULLER_APP=lab
 
