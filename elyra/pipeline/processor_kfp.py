@@ -40,7 +40,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
     def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
-        pipeline_name = f'{pipeline.name} - {timestamp}'
+        pipeline_name = f'{pipeline.name}-{timestamp}'
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']

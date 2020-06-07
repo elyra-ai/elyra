@@ -86,3 +86,60 @@
   align-self: flex-end;
   height: 100%;
 }
+
+.elyra-errorDialog-messageDisplay {
+  padding-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.elyra-errorDialog-errDisplayButton {
+  margin-right: 10px;
+  vertical-align: text-bottom;
+  background-color: white;
+  background-repeat: no-repeat;
+  border: none;
+}
+
+.elyra-errorDialog-errDisplayButton:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+button.elyra-errorDialog-errDisplayButton {
+  height: 20px;
+  width: 20px;
+  padding: 0;
+}
+
+.elyra-errorDialog-errDetails {
+  margin: 15px 0;
+  display: flex;
+  flex: 1;
+  min-height: 0px;
+  flex-direction: column;
+}
+
+.elyra-errorDialog-error-visible {
+  display: block;
+  overflow: auto;
+  border: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  background-color: #f6f8fa;
+  padding: 5px;
+  flex: 1;
+  overflow: auto;
+  margin: 5px 0 10px 30px;
+}
+
+.elyra-errorDialog-error-hidden {
+  display: none;
+}
+
+/* temporary fix until this is addressed in jupyterlab */
+.lm-TabBar-tabIcon svg {
+  height: auto;
+}
+
+.jp-Dialog-content {
+  resize: both;
+}

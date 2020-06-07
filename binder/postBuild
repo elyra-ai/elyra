@@ -16,18 +16,24 @@
 #
 set -euo pipefail
 
+export YARN_VERSION=1.22.4
+
 # Download and install Yarn Package Manager
-wget https://yarnpkg.com/latest.tar.gz
-tar -zvxf latest.tar.gz && rm -rf latest.tar.gz
+mkdir -p dist
+cd dist && wget https://github.com/yarnpkg/yarn/releases/download/v${YARN_VERSION}/yarn-v${YARN_VERSION}.tar.gz
+tar -zvxf yarn-v${YARN_VERSION}.tar.gz && rm -rf yarn-v${YARN_VERSION}.tar.gz
 
 # Add to PATH
-export PATH=$(pwd)/yarn-v1.22.4/bin/:$PATH
+export PATH=$(pwd)/yarn-v${YARN_VERSION}/bin/:$PATH && cd ..
 
 # Build Elyra Distribution
-make bdist
+make release
 
 # Install Elyra Wheel
 pip install dist/*.whl
 
 # Rebuild Jupyter Lab to enable extensions
-jupyter lab build
+jupyter labextension link --no-build packages/application/
+jupyter labextension link --no-build packages/ui-components/
+jupyter lab build --dev-build=False --minimize=False
+mkdir -p binder-demo

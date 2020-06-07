@@ -9,7 +9,7 @@ info:
 
 paths:
 
-  /api/elyra.yaml:
+  /elyra/elyra.yaml:
     get:
       tags:
       - api
@@ -24,7 +24,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/namespace:
+  /elyra/namespace:
     get:
       tags:
       - namespace
@@ -45,7 +45,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/schema/{namespace}:
+  /elyra/schema/{namespace}:
     get:
       tags:
       - schema
@@ -76,7 +76,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/schema/{namespace}/{resource}:
+  /elyra/schema/{namespace}/{resource}:
     get:
       tags:
       - schema
@@ -107,7 +107,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/metadata/{namespace}:
+  /elyra/metadata/{namespace}:
     get:
       tags:
       - metadata
@@ -177,7 +177,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/metadata/{namespace}/{resource}:
+  /elyra/metadata/{namespace}/{resource}:
     get:
       tags:
       - metadata
@@ -273,6 +273,53 @@ paths:
         500:
           description: Unexpected error.
 
+  /elyra/pipeline/schedule:
+    post:
+      tags:
+      - pipeline
+      summary: Execute pipelines as batch jobs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PipelineResource'
+      responses:
+        200:
+          description: The pipeline processor response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineScheduleResponse'
+
+  /elyra/pipeline/export:
+    post:
+      tags:
+      - pipeline
+      summary: Export pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PipelineExportBodyPost'
+      responses:
+        201:
+          description: The pipeline export response
+          headers:
+            Location:
+              description: Resource endpoint
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  export_path:
+                    type: string
+                    description: Pipeline export path
 
 components:
   schemas:
@@ -363,6 +410,84 @@ components:
           properties: {}
           description: A free-form dictionary consisting of additional information
             about the resource.
+
+    PipelineResource:
+      description: The set of properties comprising a pipeline resource entity
+      required:
+        - primary_pipeline
+        - pipelines
+      type: object
+      properties:
+        primary_pipeline:
+          type: string
+          description: The primary pipeline id
+        pipelines:
+          type: array
+          description: A set of pipeline definitions
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: The unique identifier of the pipeline
+              name:
+                type: string
+                description: The name of the pipeline
+              nodes:
+                type: array
+                description: The set of nodes in the pipeline
+                items:
+                  type: object
+                  properties: {}
+                  description: The node configuration
+              runtime:
+                type: string
+                description: The runtime type for the pipeline
+              runtime-config:
+                type: object
+                properties: {}
+                description: Runtime configuration that should be used to submit the pipeline
+
+    PipelineScheduleResponse:
+      description: The set of properties comprising a pipeline processor response entity
+      required:
+      - run_url
+      - object_storage_url
+      - object_storage_path
+      type: object
+      properties:
+        run_url:
+          type: string
+          description: The runtime URL to access the pipeline experiment
+        object_storage_url:
+          type: string
+          description: The object storage URL to access the pipeline outputs
+            and processed notebooks
+        object_storage_path:
+          type: string
+          description: The object storage working directory path where the pipeline outputs
+            and processed notebooks are located
+
+    PipelineExportBodyPost:
+      description: The set of properties comprising the request body for POST
+      required:
+        - pipeline
+        - export_format
+        - export_path
+        - overwrite
+      type: object
+      properties:
+        pipeline:
+          $ref: '#/components/schemas/PipelineResource'
+        export_format:
+          type: string
+          description: Pipeline export format
+        export_path:
+          type: string
+          description: Pipeline export path
+        overwrite:
+          type: boolean
+          description: True if existing export should be overwritten
 
   parameters:
     namespace:
