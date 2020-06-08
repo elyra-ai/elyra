@@ -25,7 +25,6 @@ import {
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-// import { CodeMirrorEditorFactory } from '@jupyterlab/codemirror';
 
 import { Widget } from '@lumino/widgets';
 

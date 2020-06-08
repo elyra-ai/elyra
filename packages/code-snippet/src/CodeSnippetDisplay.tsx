@@ -230,10 +230,6 @@ export class CodeSnippetDisplay extends React.Component<
     );
   };
 
-  // componentDidMount() {
-  //   this.editors = {};
-  // }
-
   componentDidUpdate(): void {
     this.props.codeSnippets.map((codeSnippet: ICodeSnippet) => {
       if (codeSnippet.name in this.editors) {

@@ -65,11 +65,6 @@
   overflow-x: scroll;
 }
 
-#code {
-  box-sizing: border-box;
-  border: var(--jp-border-width) solid var(--jp-border-color1);
-}
-
 .elyra-codeSnippet-saveButton {
   background-color: transparent;
   border: none;
