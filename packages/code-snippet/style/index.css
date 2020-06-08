@@ -50,7 +50,7 @@
   padding: 0;
 }
 
-.elyra-codeSnippet-item .CodeMirror-code {
+.elyra-codeSnippet-item .CodeMirror-wrap {
   background-color: inherit;
   border: none;
   font-family: var(--jp-code-font-family);

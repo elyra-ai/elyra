@@ -71,6 +71,9 @@ export class ExpandableComponent extends React.Component<
     // Switch expanded flag
     const newExpandFlag = !this.state.expanded;
     this.setState({ expanded: newExpandFlag });
+  }
+
+  componentDidUpdate(): void {
     this.props.onExpand();
   }
 

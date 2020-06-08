@@ -18,8 +18,9 @@ import '../style/index.css';
 
 // import { SubmissionHandler } from '@elyra/application';
 
+import { codeSnippetIcon, MetadataEditor } from '@elyra/ui-components';
 import { JupyterFrontEnd, ILayoutRestorer } from '@jupyterlab/application';
-import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
+import { ReactWidget, UseSignal, WidgetTracker } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
@@ -28,13 +29,10 @@ import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
 
-import { codeSnippetIcon } from '@elyra/ui-components';
-
 import React from 'react';
 
 import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
 import { CodeSnippetDisplay } from './CodeSnippetDisplay';
-import { MetadataEditor } from './MetadataEditor';
 
 /**
  * The CSS class added to code snippet widget.
@@ -43,6 +41,8 @@ const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
+
+export const CODE_SNIPPET_ENDPOINT = 'api/metadata/code-snippets';
 
 /**
  * A widget for Code Snippets.
@@ -54,6 +54,7 @@ export class CodeSnippetWidget extends ReactWidget {
   editorFactory: CodeEditor.Factory;
   app: JupyterFrontEnd;
   restorer: ILayoutRestorer;
+  editorTracker: WidgetTracker<MetadataEditor>;
 
   constructor(
     getCurrentWidget: () => Widget,
@@ -68,7 +69,37 @@ export class CodeSnippetWidget extends ReactWidget {
     this.editCodeSnippet = this.editCodeSnippet.bind(this);
     this.editorFactory = editorFactory;
     this.app = app;
+    this.app.commands.addCommand(METADATA_EDITOR_ID + ':open', {
+      isVisible: ({}) => {
+        return false;
+      },
+      execute: (args: any) => {
+        this.editCodeSnippet(
+          args.name,
+          args.description,
+          args.language,
+          args.code,
+          args.newFile
+        );
+      }
+    });
     this.restorer = restorer;
+    this.editorTracker = new WidgetTracker<MetadataEditor>({
+      namespace: METADATA_EDITOR_ID
+    });
+    this.restorer.restore(this.editorTracker, {
+      name: (metadataEditor: any) => {
+        return metadataEditor.name;
+      },
+      command: METADATA_EDITOR_ID + ':open',
+      args: (widget: MetadataEditor) => ({
+        name: widget.name,
+        description: widget.description,
+        language: widget.language,
+        code: widget.code,
+        newFile: widget.newFile
+      })
+    });
     this.fetchData = this.fetchData.bind(this);
     this.updateSnippets = this.updateSnippets.bind(this);
   }
@@ -80,11 +111,13 @@ export class CodeSnippetWidget extends ReactWidget {
 
   updateSnippets(): void {
     this.fetchData().then((codeSnippets: ICodeSnippet[]) => {
+      console.log(codeSnippets);
+      console.log('^^ fetched code snippets');
       this.renderCodeSnippetsSignal.emit(codeSnippets);
     });
   }
 
-  // Triggered when the widget button on side palette is clicked
+  // Triggered when the widget button on side panel is clicked
   onAfterShow(msg: Message): void {
     this.updateSnippets();
   }
@@ -107,7 +140,8 @@ export class CodeSnippetWidget extends ReactWidget {
       code,
       newFile,
       this.updateSnippets,
-      this.editorFactory
+      this.editorFactory,
+      CODE_SNIPPET_ENDPOINT
     );
     metadataEditorWidget.id = METADATA_EDITOR_ID;
     if (newFile) {
@@ -116,11 +150,12 @@ export class CodeSnippetWidget extends ReactWidget {
       metadataEditorWidget.title.label = '[' + language + '] ' + displayName;
     }
     metadataEditorWidget.title.icon = codeSnippetIcon;
-    this.restorer.add(metadataEditorWidget, METADATA_EDITOR_ID);
     this.app.shell.add(metadataEditorWidget, 'main');
+    this.editorTracker.add(metadataEditorWidget);
   }
 
   render(): React.ReactElement {
+    console.log('rendering');
     return (
       <div className={CODE_SNIPPETS_CLASS}>
         <header className={CODE_SNIPPETS_HEADER_CLASS}>

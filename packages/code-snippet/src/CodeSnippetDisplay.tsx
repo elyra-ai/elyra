@@ -23,21 +23,15 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import {
-  copyIcon,
-  addIcon,
-  editIcon,
-  saveIcon
-} from '@jupyterlab/ui-components';
+import { copyIcon, addIcon, editIcon } from '@jupyterlab/ui-components';
 
 import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { ICodeSnippet } from './CodeSnippet';
-import { CODE_SNIPPET_ENDPOINT } from './MetadataEditor';
+import { CODE_SNIPPET_ENDPOINT } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
-const SAVE_BUTTON_CLASS = 'elyra-codeSnippet-saveButton';
 
 /**
  * CodeSnippetDisplay props.
@@ -56,7 +50,7 @@ interface ICodeSnippetDisplayProps {
 export class CodeSnippetDisplay extends React.Component<
   ICodeSnippetDisplayProps
 > {
-  editors: { [codeSnippetId: string]: CodeEditor.IEditor };
+  editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
   // TODO: Use code mirror to display code
 
   // Handle code snippet insert into an editor
@@ -179,29 +173,6 @@ export class CodeSnippetDisplay extends React.Component<
     });
   };
 
-  private saveSnippet = (codeSnippet: ICodeSnippet): void => {
-    console.log(codeSnippet);
-    const newSnippet = {
-      schema_name: 'code-snippet',
-      name: codeSnippet.name,
-      display_name: codeSnippet.displayName,
-      metadata: {
-        description: codeSnippet.description,
-        language: codeSnippet.language,
-        code: this.editors[codeSnippet.name].model.value.text.split('\n')
-      }
-    };
-    const newSnippetString = JSON.stringify(newSnippet);
-    SubmissionHandler.makeServerRequest(
-      CODE_SNIPPET_ENDPOINT + '/' + newSnippet.name,
-      { method: 'PUT', body: newSnippetString },
-      'code snippets',
-      (response: any) => {
-        console.log('Updated snippet');
-      }
-    );
-  };
-
   // Render display of code snippet list
   private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
     const displayName =
@@ -251,41 +222,35 @@ export class CodeSnippetDisplay extends React.Component<
           tooltip={codeSnippet.description}
           actionButtons={actionButtons}
           onExpand={() => {
-            this.editors[codeSnippet.name].setCursorPosition({
-              column: 0,
-              line: 0
-            });
+            this.editors[codeSnippet.name].refresh();
           }}
         >
           <div id={codeSnippet.name}></div>
-          <button
-            onClick={() => {
-              this.saveSnippet(codeSnippet);
-            }}
-            className={SAVE_BUTTON_CLASS}
-          >
-            <saveIcon.react />
-          </button>
         </ExpandableComponent>
       </div>
     );
   };
 
-  componentDidMount() {
-    this.editors = {};
-  }
+  // componentDidMount() {
+  //   this.editors = {};
+  // }
 
   componentDidUpdate() {
     console.log('componentDidUpdate');
     console.log(this.props.codeSnippets);
     this.props.codeSnippets.map((codeSnippet: ICodeSnippet) => {
       console.log(codeSnippet);
-      if (!(codeSnippet.name in this.editors)) {
+      if (codeSnippet.name in this.editors) {
+        // Make sure code is up to date
+        this.editors[codeSnippet.name].model.value.text = codeSnippet.code.join(
+          '\n'
+        );
+      } else {
+        // Add new snippets
         this.editors[codeSnippet.name] = this.props.editorFactory({
           host: document.getElementById(codeSnippet.name),
           model: new CodeEditor.Model({ value: codeSnippet.code.join('\n') })
         });
-        this.editors[codeSnippet.name].refresh();
       }
     });
   }

@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 export * from './ExpandableComponent';
+export * from './MetadataEditor';
 export * from './icons';
