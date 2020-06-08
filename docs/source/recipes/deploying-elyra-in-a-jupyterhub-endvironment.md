@@ -42,7 +42,7 @@ singleuser:
   defaultUrl: "/lab"
   image:
     name: elyra/elyra
-    # change to a specific release version as appropriated
+    # change to a specific release version as appropriate
     tag: dev
     # disable this in a production environment
     pullPolicy: "Always"
