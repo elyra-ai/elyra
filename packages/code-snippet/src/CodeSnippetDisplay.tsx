@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SubmissionHandler } from '@elyra/application';
+import { RequestHandler } from '@elyra/application';
 import { ExpandableComponent, trashIcon } from '@elyra/ui-components';
 
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
@@ -28,7 +28,7 @@ import { copyIcon, addIcon, editIcon } from '@jupyterlab/ui-components';
 import { Widget } from '@lumino/widgets';
 import React from 'react';
 
-import { ICodeSnippet } from './CodeSnippet';
+import { ICodeSnippet } from './CodeSnippetService';
 import { CODE_SNIPPET_ENDPOINT } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
@@ -162,14 +162,13 @@ export class CodeSnippetDisplay extends React.Component<
         return;
       }
 
-      SubmissionHandler.makeServerRequest(
+      RequestHandler.makeServerRequest(
         CODE_SNIPPET_ENDPOINT + '/' + codeSnippet.name,
         { method: 'DELETE' },
-        'code snippets',
-        (response: any) => {
-          this.props.updateSnippets();
-        }
-      );
+        false
+      ).then((response: any): void => {
+        this.props.updateSnippets();
+      });
     });
   };
 
@@ -221,7 +220,7 @@ export class CodeSnippetDisplay extends React.Component<
           displayName={displayName}
           tooltip={codeSnippet.description}
           actionButtons={actionButtons}
-          onExpand={() => {
+          onExpand={(): void => {
             this.editors[codeSnippet.name].refresh();
           }}
         >
@@ -235,11 +234,8 @@ export class CodeSnippetDisplay extends React.Component<
   //   this.editors = {};
   // }
 
-  componentDidUpdate() {
-    console.log('componentDidUpdate');
-    console.log(this.props.codeSnippets);
+  componentDidUpdate(): void {
     this.props.codeSnippets.map((codeSnippet: ICodeSnippet) => {
-      console.log(codeSnippet);
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
         this.editors[codeSnippet.name].model.value.text = codeSnippet.code.join(
@@ -256,7 +252,6 @@ export class CodeSnippetDisplay extends React.Component<
   }
 
   render(): React.ReactElement {
-    console.log(this.props.codeSnippets);
     return (
       <div>
         <div id="codeSnippets">

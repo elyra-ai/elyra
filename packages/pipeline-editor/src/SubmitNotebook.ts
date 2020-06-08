@@ -13,12 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  FrontendServices,
-  IDictionary,
-  NotebookParser,
-  SubmissionHandler
-} from '@elyra/application';
+import { IDictionary, NotebookParser } from '@elyra/application';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -28,6 +23,7 @@ import { JSONObject, JSONValue } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
 import { Widget } from '@lumino/widgets';
 
+import { PipelineService } from './PipelineService';
 import Utils from './utils';
 
 /**
@@ -73,52 +69,33 @@ export class SubmitNotebookButtonExtension
 
   readonly app: JupyterFrontEnd;
 
-  showWidget = (): void => {
+  showWidget = async (): Promise<void> => {
     const envVars: string[] = NotebookParser.getEnvVars(
       this.panel.content.model.toString()
     );
 
-    SubmissionHandler.makeGetRequest(
-      'api/metadata/runtimes',
-      'pipeline',
-      (response: any) => {
-        if (Object.keys(response.runtimes).length === 0) {
-          return SubmissionHandler.noMetadataError('runtimes');
-        }
+    const runtimes = await PipelineService.getRuntimes();
+    const runtimeImages = await PipelineService.getRuntimeImages();
 
-        FrontendServices.getRuntimeImages().then(
-          (runtimeImages: IDictionary<string>) => {
-            showDialog({
-              title: 'Submit notebook',
-              body: new SubmitNotebook(
-                envVars,
-                response.runtimes,
-                runtimeImages
-              ),
-              buttons: [Dialog.cancelButton(), Dialog.okButton()]
-            }).then(result => {
-              if (result.value == null) {
-                // When Cancel is clicked on the dialog, just return
-                return;
-              }
-
-              // prepare notebook submission details
-              const notebookOptions: ISubmitNotebookOptions = result.value as ISubmitNotebookOptions;
-              const pipeline = Utils.generateNotebookPipeline(
-                this.panel.context.path,
-                notebookOptions
-              );
-
-              SubmissionHandler.submitPipeline(
-                pipeline,
-                result.value.runtime_config,
-                'notebook'
-              );
-            });
-          }
-        );
+    showDialog({
+      title: 'Submit notebook',
+      body: new SubmitNotebook(envVars, runtimes, runtimeImages),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+    }).then(result => {
+      if (result.value == null) {
+        // When Cancel is clicked on the dialog, just return
+        return;
       }
-    );
+
+      // prepare notebook submission details
+      const notebookOptions: ISubmitNotebookOptions = result.value as ISubmitNotebookOptions;
+      const pipeline = Utils.generateNotebookPipeline(
+        this.panel.context.path,
+        notebookOptions
+      );
+
+      PipelineService.submitPipeline(pipeline, result.value.runtime_config);
+    });
   };
 
   createNew(

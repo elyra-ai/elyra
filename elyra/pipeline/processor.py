@@ -71,6 +71,50 @@ class PipelineProcessorManager(SingletonConfigurable):
         return processor.export(pipeline, pipeline_export_format, pipeline_export_path, overwrite)
 
 
+class PipelineProcessorResponse(object):
+    def __init__(self, run_url, object_storage_url, object_storage_path):
+        # validate that the response has all required properties
+        if not run_url:
+            raise ValueError("Invalid Processor Response: Missing field 'run_url'.")
+        if not object_storage_url:
+            raise ValueError("Invalid Processor Response: Missing field 'object_storage_url'.")
+        if not object_storage_path:
+            raise ValueError("Invalid Processor Response: Missing field 'object_storage_path'.")
+
+        self._run_url = run_url
+        self._object_storage_url = object_storage_url
+        self._object_storage_path = object_storage_path
+
+    @property
+    def run_url(self):
+        """
+        :return: The runtime URL to access the pipeline experiment
+        """
+        return self._run_url
+
+    @property
+    def object_storage_url(self):
+        """
+        :return: The object storage URL to access the pipeline outputs
+                 and processed notebooks
+        """
+        return self._object_storage_url
+
+    @property
+    def object_storage_path(self):
+        """
+        :return: The object storage working directory path where the pipeline outputs
+                 and processed notebooks are located
+        """
+        return self._object_storage_path
+
+    def to_json(self):
+        return {"run_url": self.run_url,
+                "object_storage_url": self.object_storage_url,
+                "object_storage_path": self.object_storage_path
+                }
+
+
 class PipelineProcessor(LoggingConfigurable):  # ABC
 
     @property
@@ -79,7 +123,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         raise NotImplementedError()
 
     @abstractmethod
-    def process(self, pipeline):
+    def process(self, pipeline) -> PipelineProcessorResponse:
         raise NotImplementedError()
 
     @abstractmethod

@@ -16,9 +16,9 @@
 
 import '../style/index.css';
 
-// import { SubmissionHandler } from '@elyra/application';
-
+import { RequestHandler } from '@elyra/application';
 import { codeSnippetIcon, MetadataEditor } from '@elyra/ui-components';
+
 import { JupyterFrontEnd, ILayoutRestorer } from '@jupyterlab/application';
 import { ReactWidget, UseSignal, WidgetTracker } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
@@ -31,8 +31,9 @@ import { Widget } from '@lumino/widgets';
 
 import React from 'react';
 
-import { CodeSnippetManager, ICodeSnippet } from './CodeSnippet';
 import { CodeSnippetDisplay } from './CodeSnippetDisplay';
+
+import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
 
 /**
  * The CSS class added to code snippet widget.
@@ -42,13 +43,13 @@ const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
-export const CODE_SNIPPET_ENDPOINT = 'api/metadata/code-snippets';
+export const CODE_SNIPPET_ENDPOINT = 'elyra/metadata/code-snippets';
 
 /**
  * A widget for Code Snippets.
  */
 export class CodeSnippetWidget extends ReactWidget {
-  codeSnippetManager: CodeSnippetManager;
+  codeSnippetManager: CodeSnippetService;
   renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
   getCurrentWidget: () => Widget;
   editorFactory: CodeEditor.Factory;
@@ -64,13 +65,13 @@ export class CodeSnippetWidget extends ReactWidget {
   ) {
     super();
     this.getCurrentWidget = getCurrentWidget;
-    this.codeSnippetManager = new CodeSnippetManager();
+    this.codeSnippetManager = new CodeSnippetService();
     this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
     this.editCodeSnippet = this.editCodeSnippet.bind(this);
     this.editorFactory = editorFactory;
     this.app = app;
     this.app.commands.addCommand(METADATA_EDITOR_ID + ':open', {
-      isVisible: ({}) => {
+      isVisible: () => {
         return false;
       },
       execute: (args: any) => {
@@ -111,8 +112,6 @@ export class CodeSnippetWidget extends ReactWidget {
 
   updateSnippets(): void {
     this.fetchData().then((codeSnippets: ICodeSnippet[]) => {
-      console.log(codeSnippets);
-      console.log('^^ fetched code snippets');
       this.renderCodeSnippetsSignal.emit(codeSnippets);
     });
   }
@@ -124,6 +123,39 @@ export class CodeSnippetWidget extends ReactWidget {
 
   addCodeSnippet(): void {
     this.editCodeSnippet('', '', '', '', true);
+  }
+
+  saveSnippet(snippetEditor: MetadataEditor): void {
+    const newSnippet = {
+      schema_name: 'code-snippet',
+      name: snippetEditor.name,
+      display_name: snippetEditor.name,
+      metadata: {
+        description: snippetEditor.description,
+        language: snippetEditor.language,
+        code: snippetEditor.editor.model.value.text.split('\n')
+      }
+    };
+    const newSnippetString = JSON.stringify(newSnippet);
+
+    if (snippetEditor.newFile) {
+      RequestHandler.makePostRequest(
+        snippetEditor.endpoint,
+        JSON.stringify(newSnippet),
+        false
+      ).then((response: any): void => {
+        this.updateSnippets();
+      });
+      snippetEditor.newFile = false;
+    } else {
+      RequestHandler.makeServerRequest(
+        snippetEditor.endpoint + '/' + newSnippet.name,
+        { method: 'PUT', body: newSnippetString },
+        false
+      ).then((response: any): void => {
+        this.updateSnippets();
+      });
+    }
   }
 
   async editCodeSnippet(
@@ -140,6 +172,7 @@ export class CodeSnippetWidget extends ReactWidget {
       code,
       newFile,
       this.updateSnippets,
+      this.saveSnippet,
       this.editorFactory,
       CODE_SNIPPET_ENDPOINT
     );
@@ -155,7 +188,6 @@ export class CodeSnippetWidget extends ReactWidget {
   }
 
   render(): React.ReactElement {
-    console.log('rendering');
     return (
       <div className={CODE_SNIPPETS_CLASS}>
         <header className={CODE_SNIPPETS_HEADER_CLASS}>

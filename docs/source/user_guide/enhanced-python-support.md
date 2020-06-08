@@ -37,5 +37,5 @@ allowing users to run their scripts with remote kernels with more specialized re
 
 The Elyra python editor is based on the JupyterLab editor which is currently based on CodeMirror.
 
-<img src="../source/images/python-runner-components.png" alt="Python Editor Components" width="50%" height="50%">
+<img src="../images/python-runner-components.png" alt="Python Editor Components" width="50%" height="50%">
 

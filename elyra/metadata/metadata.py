@@ -162,7 +162,7 @@ class MetadataManager(LoggingConfigurable):
         return self.metadata_store.save(name, metadata, replace)
 
     def remove(self, name):
-        return self.metadata_store.remove(name)
+        self.metadata_store.remove(name)
 
 
 class MetadataStore(ABC):
@@ -309,7 +309,7 @@ class FileMetadataStore(MetadataStore):
             created_namespace_dir = True
 
         try:
-            with io.open(resource, 'w', encoding='utf-8') as f:
+            with jupyter_core.paths.secure_write(resource) as f:
                 f.write(metadata.prepare_write())  # Only persist necessary items
         except Exception:
             if created_namespace_dir:
@@ -345,8 +345,6 @@ class FileMetadataStore(MetadataStore):
                 raise PermissionError("Removal of metadata resource '{}' in namespace '{}' is not permitted!".
                                       format(resource, self.namespace))
             os.remove(resource)
-
-        return metadata
 
     def _remove_allowed(self, metadata):
         """Determines if the resource of the given instance is allowed to be removed. """
@@ -493,7 +491,6 @@ class SchemaManager(SingletonConfigurable):
         return schemas
 
     def get_schema(self, namespace, schema_name):
-        schema_json = None
         self.log.debug("SchemaManager: Fetching schema '{}' from namespace '{}'".format(schema_name, namespace))
         if not self.is_valid_namespace(namespace):
             raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
