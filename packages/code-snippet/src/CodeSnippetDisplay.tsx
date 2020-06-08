@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 import { RequestHandler } from '@elyra/application';
-import { ExpandableComponent, trashIcon } from '@elyra/ui-components';
+import {
+  ExpandableComponent,
+  trashIcon,
+  importIcon
+} from '@elyra/ui-components';
 
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
 import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
@@ -23,7 +27,7 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import { copyIcon, addIcon, editIcon } from '@jupyterlab/ui-components';
+import { copyIcon, editIcon } from '@jupyterlab/ui-components';
 
 import { Widget } from '@lumino/widgets';
 import React from 'react';
@@ -187,7 +191,7 @@ export class CodeSnippetDisplay extends React.Component<
       },
       {
         title: 'Insert',
-        icon: addIcon,
+        icon: importIcon,
         onClick: (): void => {
           this.insertCodeSnippet(codeSnippet);
         }
