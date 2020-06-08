@@ -21,19 +21,19 @@ limitations under the License.
 This document goes over how to integrate Elyra into a self-service Jupyter Notebook platform
 managed by JupyterHub.
 
-If you are looking for details on how to install/configure JupyterHub, please look at
+If you are looking for details on how to install/configure JupyterHub, look at
 [Zero to JupyterHub with Kubernetes](https://zero-to-jupyterhub.readthedocs.io/en/latest/index.html)
-or in this [Ansible scripts to deploy Elyra, JupyterHub, Jupyter Enterprise Gateway](https://github.com/lresende/ansible-kubernetes-cluster)
+or this [Ansible script to deploy Elyra, JupyterHub, Jupyter Enterprise Gateway](https://github.com/lresende/ansible-kubernetes-cluster)
 
 ![JupyterHub Deployment](https://raw.githubusercontent.com/lresende/ansible-kubernetes-cluster/master/docs/images/elyra-deployment-diagram.png)
 
 
 ## Configuring JupyterHub Deployment
 
-JupyterHub is the entry point for our solution, it will manage user authorization and provisioning
-of individual Notebook servers for each user.
+In this case, JupyterHub is the recommended entry point for Elyra, as it will manage the user
+authorization and provisioning of individual Notebook servers for each user.
 
-JupyterHub configuration is done via a config.yaml, and the following settings are required:
+JupyterHub is configured via a config.yaml file, and the following settings are required:
 
  * Configure JupyterHub to use Elyra docker image when instantiating the notebook environment for each user
 
@@ -42,6 +42,7 @@ singleuser:
   defaultUrl: "/lab"
   image:
     name: elyra/elyra
+    # change to a specific release version as appropriated
     tag: dev
     # disable this in a production environment
     pullPolicy: "Always"
@@ -52,12 +53,12 @@ singleuser:
 
 ## Deploying Jupyter Enterprise Gateway
 
-Jupyter Enterprise Gateway enable support for remote kernels in a Jupyter Deployment
+Jupyter Enterprise Gateway enables support for remote kernels in a Jupyter Deployment
 
  * Deploying Jupyter Enterprise gateway
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/jupyter/enterprise_gateway/master/etc/kubernetes/enterprise-gateway.yaml
+kubectl apply -f https://raw.githubusercontent.com/jupyter/enterprise_gateway/v2.1.1/etc/kubernetes/enterprise-gateway.yaml
 ```
 
 ## Connecting JupyterHub and Jupyter Enterprise Gateway
@@ -93,6 +94,7 @@ singleuser:
   defaultUrl: "/lab"
   image:
     name: elyra/elyra
+    # change to a specific release version as appropriated
     tag: dev
     # disable this in a production environment
     pullPolicy: "Always"
@@ -101,7 +103,7 @@ singleuser:
       storageClass: nfs-dynamic
   extraEnv:
     JUPYTER_GATEWAY_URL: <FQDN of Gateway Service Endpoint>
-    KG_REQUEST_TIMEOUT: "120"
+    JUPYTER_GATEWAY_REQUEST_TIMEOUT: "120"
 ```
 
 ## Customizing the docker image to be used
