@@ -154,8 +154,8 @@ export class MetadataEditor extends ReactWidget {
       <Select
         items={defaultLanguages}
         itemPredicate={this.filterLanguage}
-        createNewItemFromQuery={(newLanguage: string): void => {
-          newLanguage;
+        createNewItemFromQuery={(newLanguage: string): string => {
+          return newLanguage;
         }}
         createNewItemRenderer={this.renderCreateLanguageOption}
         onItemSelect={this.handleLanguageChange}
