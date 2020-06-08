@@ -67,7 +67,8 @@ export class CodeSnippetWidget extends ReactWidget {
     this.getCurrentWidget = getCurrentWidget;
     this.codeSnippetManager = new CodeSnippetService();
     this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
-    this.editCodeSnippet = this.editCodeSnippet.bind(this);
+    this.openCodeSnippetEditor = this.openCodeSnippetEditor.bind(this);
+    this.saveSnippet = this.saveSnippet.bind(this);
     this.editorFactory = editorFactory;
     this.app = app;
     this.app.commands.addCommand(METADATA_EDITOR_ID + ':open', {
@@ -75,7 +76,7 @@ export class CodeSnippetWidget extends ReactWidget {
         return false;
       },
       execute: (args: any) => {
-        this.editCodeSnippet(
+        this.openCodeSnippetEditor(
           args.name,
           args.description,
           args.language,
@@ -90,14 +91,14 @@ export class CodeSnippetWidget extends ReactWidget {
     });
     this.restorer.restore(this.editorTracker, {
       name: (metadataEditor: any) => {
-        return metadataEditor.name;
+        return metadataEditor.metadata.name;
       },
       command: METADATA_EDITOR_ID + ':open',
       args: (widget: MetadataEditor) => ({
-        name: widget.name,
-        description: widget.description,
-        language: widget.language,
-        code: widget.code,
+        name: widget.metadata.name,
+        description: widget.metadata.description,
+        language: widget.metadata.language,
+        code: widget.metadata.code,
         newFile: widget.newFile
       })
     });
@@ -122,17 +123,17 @@ export class CodeSnippetWidget extends ReactWidget {
   }
 
   addCodeSnippet(): void {
-    this.editCodeSnippet('', '', '', '', true);
+    this.openCodeSnippetEditor('', '', '', '', true);
   }
 
   saveSnippet(snippetEditor: MetadataEditor): void {
     const newSnippet = {
       schema_name: 'code-snippet',
-      name: snippetEditor.name,
-      display_name: snippetEditor.name,
+      name: snippetEditor.metadata.name,
+      display_name: snippetEditor.metadata.name,
       metadata: {
-        description: snippetEditor.description,
-        language: snippetEditor.language,
+        description: snippetEditor.metadata.description,
+        language: snippetEditor.metadata.language,
         code: snippetEditor.editor.model.value.text.split('\n')
       }
     };
@@ -158,7 +159,7 @@ export class CodeSnippetWidget extends ReactWidget {
     }
   }
 
-  async editCodeSnippet(
+  async openCodeSnippetEditor(
     displayName: string,
     description: string,
     language: string,
@@ -166,12 +167,13 @@ export class CodeSnippetWidget extends ReactWidget {
     newFile: boolean
   ): Promise<void> {
     const metadataEditorWidget = new MetadataEditor(
-      displayName,
-      description,
-      language,
-      code,
+      {
+        name: displayName,
+        description: description,
+        language: language,
+        code: code
+      },
       newFile,
-      this.updateSnippets,
       this.saveSnippet,
       this.editorFactory,
       CODE_SNIPPET_ENDPOINT
@@ -182,6 +184,7 @@ export class CodeSnippetWidget extends ReactWidget {
     } else {
       metadataEditorWidget.title.label = '[' + language + '] ' + displayName;
     }
+    metadataEditorWidget.title.closable = true;
     metadataEditorWidget.title.icon = codeSnippetIcon;
     this.app.shell.add(metadataEditorWidget, 'main');
     this.editorTracker.add(metadataEditorWidget);
@@ -203,7 +206,7 @@ export class CodeSnippetWidget extends ReactWidget {
           {(_, codeSnippets): React.ReactElement => (
             <CodeSnippetDisplay
               codeSnippets={codeSnippets}
-              editCodeSnippet={this.editCodeSnippet}
+              openCodeSnippetEditor={this.openCodeSnippetEditor}
               editorFactory={this.editorFactory}
               getCurrentWidget={this.getCurrentWidget}
               updateSnippets={this.updateSnippets}

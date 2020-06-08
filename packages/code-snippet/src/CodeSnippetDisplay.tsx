@@ -40,7 +40,7 @@ interface ICodeSnippetDisplayProps {
   codeSnippets: ICodeSnippet[];
   getCurrentWidget: () => Widget;
   editorFactory: CodeEditor.Factory;
-  editCodeSnippet: any;
+  openCodeSnippetEditor: any;
   updateSnippets: any;
 }
 
@@ -196,7 +196,7 @@ export class CodeSnippetDisplay extends React.Component<
         title: 'Edit',
         icon: editIcon,
         onClick: (): void => {
-          this.props.editCodeSnippet(
+          this.props.openCodeSnippetEditor(
             codeSnippet.displayName,
             codeSnippet.description,
             codeSnippet.language,

@@ -24,45 +24,32 @@ import * as React from 'react';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 
-// const LanguageSelect = Select.ofType<string>();
 const defaultLanguages = ['python', 'R', 'C#', 'scala'];
 
 /**
  * Metadata editor widget
  */
 export class MetadataEditor extends ReactWidget {
-  name: string;
-  description: string;
-  language: string;
+  metadata: any;
   newFile: boolean;
-  code: string;
-  updateSnippets: () => void;
-  saveSnippet: (snippetEditor: MetadataEditor) => void;
+  saveSignal: (metadataEditor: MetadataEditor) => void;
   editorFactory: CodeEditor.Factory;
   editor: CodeEditor.IEditor;
   endpoint: string;
 
   constructor(
-    displayName: string,
-    description: string,
-    language: string,
-    code: string,
+    metadata: any,
     newFile: boolean,
-    updateSnippets: () => void,
-    saveSnippet: (snippetEditor: MetadataEditor) => void,
-    editorFactory: CodeEditor.Factory,
+    saveSignal: (metadataEditor: MetadataEditor) => void,
+    editorFactory: CodeEditor.Factory | null,
     endpoint: string
   ) {
     super();
-    this.name = displayName;
-    this.description = description;
-    this.language = language;
-    this.code = code;
-    this.updateSnippets = updateSnippets;
+    this.metadata = metadata;
     this.editorFactory = editorFactory;
     this.endpoint = endpoint;
     this.newFile = newFile;
-    this.saveSnippet = saveSnippet.bind(this);
+    this.saveSignal = saveSignal;
     this.handleNameChange = this.handleNameChange.bind(this);
     this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
     this.handleLanguageChange = this.handleLanguageChange.bind(this);
@@ -99,29 +86,29 @@ export class MetadataEditor extends ReactWidget {
   };
 
   handleNameChange(event: any): void {
-    this.name = event.nativeEvent.srcElement.value;
+    this.metadata.name = event.nativeEvent.srcElement.value;
   }
 
   handleDescriptionChange(event: any): void {
-    this.description = event.nativeEvent.srcElement.value;
+    this.metadata.description = event.nativeEvent.srcElement.value;
   }
 
   handleLanguageChange = (language: string): void => {
-    this.language = language;
+    this.metadata.language = language;
     this.update();
   };
 
   onAfterShow(): void {
     if (!this.editor) {
       this.editor = this.editorFactory({
-        host: document.getElementById('code:' + this.name),
-        model: new CodeEditor.Model({ value: this.code })
+        host: document.getElementById('code:' + this.metadata.name),
+        model: new CodeEditor.Model({ value: this.metadata.code })
       });
     }
   }
 
   onItemSelect(language: string, options: any): void {
-    this.language = language;
+    this.metadata.language = language;
     this.update();
   }
 
@@ -139,14 +126,14 @@ export class MetadataEditor extends ReactWidget {
     const nameInput = (
       <InputGroup
         onChange={this.handleNameChange}
-        defaultValue={this.name}
+        defaultValue={this.metadata.name}
         type="text-input"
       />
     );
     const descriptionInput = (
       <InputGroup
         onChange={this.handleDescriptionChange}
-        defaultValue={this.description}
+        defaultValue={this.metadata.description}
         type="text-input"
       />
     );
@@ -164,13 +151,17 @@ export class MetadataEditor extends ReactWidget {
         <Button
           icon="code"
           rightIcon="caret-down"
-          text={this.language != '' ? this.language : '(No selection)'}
+          text={
+            this.metadata.language != ''
+              ? this.metadata.language
+              : '(No selection)'
+          }
         />
       </Select>
     );
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
-        <h1> Edit {this.name} Metadata </h1>
+        <h1> Edit {this.metadata.name} Metadata </h1>
         <br />
         <FormGroup label="Name" labelFor="text-input" labelInfo="(required)">
           {nameInput}
@@ -185,17 +176,20 @@ export class MetadataEditor extends ReactWidget {
         <FormGroup label="Coding Language" labelInfo="(required)">
           {languageInput}
         </FormGroup>
-        <label htmlFor={'code:' + this.name}>Code snippet:</label>
+        <label htmlFor={'code:' + this.metadata.name}>Code:</label>
         <br />
-        <div id={'code:' + this.name} className="elyra-form-code"></div>
+        <div
+          id={'code:' + this.metadata.name}
+          className="elyra-form-code"
+        ></div>
         <br />
         <Button
           onClick={(): void => {
-            this.saveSnippet(this);
+            this.saveSignal(this);
           }}
         >
           {' '}
-          Save snippet{' '}
+          Save{' '}
         </Button>
       </div>
     );
