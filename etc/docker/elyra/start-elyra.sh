@@ -1,4 +1,5 @@
 #!/bin/bash
+#!/bin/bash
 #
 # Copyright 2018-2020 IBM Corporation
 #
@@ -15,13 +16,13 @@
 # limitations under the License.
 #
 
-# Determine the directory from which to start the chmod operation
-data_dir=`jupyter --data-dir`
-metadata_dir=${data_dir}"/metadata"
+export NB_PORT=${NB_PORT:-8888}
+export KERNEL_USERNAME=${KERNEL_USERNAME:-${NB_USER}}
 
-# For each item (including directories) remove its permissions for groups
-# and others, leaving only the user (owner) permissions in place.
-echo "Changing permissions on metadata files under ${metadata_dir}..."
-find ${metadata_dir} -print -exec chmod go-rwx {} \;
+echo "Kernel user: " ${KERNEL_USERNAME}
+echo "JupyterLab port: " ${NB_PORT}
+echo "Gateway URL: " ${JUPYTER_GATEWAY_URL}
 
-exit 0
+echo "${@: -1}"
+
+exec /usr/local/bin/start-singleuser.sh $*
