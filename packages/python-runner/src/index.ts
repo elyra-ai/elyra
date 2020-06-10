@@ -142,18 +142,11 @@ const extension: JupyterFrontEndPlugin<void> = {
       });
     };
 
-    // editorTracker.currentChanged.connect((sender, widget) => {
-    //   console.log(" currentChanged: ");
-    //   console.log(widget);
-    // });
-
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
     const updateWidget = (widget: PythonFileEditor): void => {
       if (!editorTracker.has(widget)) {
-        // console.log("injecting widget: ");
-        // console.log(widget);
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
           widget
         );
