@@ -52,7 +52,7 @@ import { PythonRunner } from './PythonRunner';
 /**
  * The CSS class added to widgets.
  */
-const PYTHON_FILE_EDITOR_CLASS = 'elyra-PythonEditor jp-FileEditor';
+const PYTHON_FILE_EDITOR_CLASS = 'elyra-PythonEditor';
 const OUTPUT_AREA_CLASS = 'elyra-PythonEditor-OutputArea';
 const OUTPUT_AREA_ERROR_CLASS = 'elyra-PythonEditor-OutputArea-error';
 const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
