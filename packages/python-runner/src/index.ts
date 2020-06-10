@@ -132,7 +132,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateWidget = (widget: PythonFileEditor): void => {
       if (!editorTracker.has(widget)) {
-        (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
+        (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).inject(
           widget
         );
       }
