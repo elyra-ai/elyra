@@ -79,12 +79,12 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
             if field not in body:
                 raise SyntaxError("Insufficient information - '{}' is missing from request body.".format(field))
 
-        # Ensure there is a name or a display_name
-        included_fields = ['name', 'display_name']
-        if set(body).isdisjoint(included_fields):
+        # Ensure there is at least one of name or a display_name
+        one_of_fields = ['name', 'display_name']
+        if set(body).isdisjoint(one_of_fields):
             raise SyntaxError(
                 "Insufficient information - request body requires one of the following: {}.".format(
-                    included_fields
+                    one_of_fields
                 )
             )
 
