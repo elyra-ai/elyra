@@ -24,17 +24,11 @@ import {
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { ISettingRegistry } from '@jupyterlab/coreutils';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
-import { FileEditor } from '@jupyterlab/fileeditor';
+import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-
-import {
-  ITableOfContentsRegistry,
-  TableOfContentsRegistry
-} from '@jupyterlab/toc';
-
-import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
 
 import { JSONObject } from '@phosphor/coreutils';
 
@@ -60,21 +54,22 @@ const extension: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [
     IEditorServices,
+    IEditorTracker,
     ICommandPalette,
     ISettingRegistry,
     IFileBrowserFactory
   ],
-  optional: [ILayoutRestorer, IMainMenu, ILauncher, ITableOfContentsRegistry],
+  optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
     app: JupyterFrontEnd,
     editorServices: IEditorServices,
+    editorTracker: IEditorTracker,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
-    launcher: ILauncher | null,
-    tocRegistry: ITableOfContentsRegistry | null
+    launcher: ILauncher | null
   ) => {
     console.log('Elyra - python-runner extension is activated!');
 
@@ -95,13 +90,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     const tracker = new WidgetTracker<PythonFileEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
-
-    if (tocRegistry) {
-      const pythonGenerator = createPythonGenerator(tracker);
-      tocRegistry.add(
-        (pythonGenerator as unknown) as TableOfContentsRegistry.IGenerator
-      );
-    }
 
     let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
 
@@ -135,15 +123,20 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateTracker = (): void => {
       tracker.forEach(widget => {
-        updateWidget(widget.content);
+        updateWidget(widget);
       });
     };
 
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    const updateWidget = (widget: FileEditor): void => {
-      const editor = widget.editor;
+    const updateWidget = (widget: PythonFileEditor): void => {
+      if (!editorTracker.has(widget)) {
+        (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
+          widget
+        );
+      }
+      const editor = widget.content.editor;
       Object.keys(config).forEach((keyStr: string) => {
         const key = keyStr as keyof CodeEditor.IConfig;
         editor.setOption(key, config[key]);
@@ -177,12 +170,12 @@ const extension: JupyterFrontEndPlugin<void> = {
       widget.context.pathChanged.connect(() => {
         void tracker.save(widget);
       });
-      updateWidget(widget.content);
+      updateWidget(widget);
     });
 
     // Handle the settings of new widgets. Adapted from fileeditor-extension.
     tracker.widgetAdded.connect((sender, widget) => {
-      updateWidget(widget.content);
+      updateWidget(widget);
     });
 
     /**
@@ -204,43 +197,6 @@ const extension: JupyterFrontEndPlugin<void> = {
         [{ command: commandIDs.createNewPython }],
         30
       );
-
-      // Add undo/redo hooks to the edit menu. Adapted from fileeditor-extension.
-      menu.editMenu.undoers.add({
-        tracker,
-        undo: (widget: any) => {
-          widget.content.editor.undo();
-        },
-        redo: (widget: any) => {
-          widget.content.editor.redo();
-        }
-      });
-
-      // Add editor view options. Adapted from fileeditor-extension.
-      menu.viewMenu.editorViewers.add({
-        tracker,
-        toggleLineNumbers: (widget: any) => {
-          const lineNumbers = !widget.content.editor.getOption('lineNumbers');
-          widget.content.editor.setOption('lineNumbers', lineNumbers);
-        },
-        toggleWordWrap: (widget: any) => {
-          const oldValue = widget.content.editor.getOption('lineWrap');
-          const newValue = oldValue === 'off' ? 'on' : 'off';
-          widget.content.editor.setOption('lineWrap', newValue);
-        },
-        toggleMatchBrackets: (widget: any) => {
-          const matchBrackets = !widget.content.editor.getOption(
-            'matchBrackets'
-          );
-          widget.content.editor.setOption('matchBrackets', matchBrackets);
-        },
-        lineNumbersToggled: (widget: any) =>
-          widget.content.editor.getOption('lineNumbers'),
-        wordWrapToggled: (widget: any) =>
-          widget.content.editor.getOption('lineWrap') !== 'off',
-        matchBracketsToggled: (widget: any) =>
-          widget.content.editor.getOption('matchBrackets')
-      });
     }
 
     // Function to create a new untitled python file, given the current working directory
