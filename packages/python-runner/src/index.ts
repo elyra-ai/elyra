@@ -23,14 +23,9 @@ import {
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import {
-  CompleterModel,
-  Completer,
-  CompletionHandler,
-  KernelConnector
-} from '@jupyterlab/completer';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
-import { FileEditor } from '@jupyterlab/fileeditor';
+import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -44,7 +39,6 @@ import { createPythonGenerator } from '@jupyterlab/toc/lib/generators';
 import { pythonIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
-import { Widget } from '@lumino/widgets';
 
 import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
 
@@ -56,8 +50,7 @@ const commandIDs = {
   createNewPython: 'pyeditor:create-new-python-file',
   openPyEditor: 'pyeditor:open',
   openDocManager: 'docmanager:open',
-  newDocManager: 'docmanager:new-untitled',
-  invokeCompleter: 'invoke:completer'
+  newDocManager: 'docmanager:new-untitled'
 };
 
 /**
@@ -68,6 +61,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [
     IEditorServices,
+    IEditorTracker,
     ICommandPalette,
     ISettingRegistry,
     IFileBrowserFactory
@@ -76,6 +70,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   activate: (
     app: JupyterFrontEnd,
     editorServices: IEditorServices,
+    editorTracker: IEditorTracker,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
     browserFactory: IFileBrowserFactory,
@@ -103,9 +98,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     const tracker = new WidgetTracker<PythonFileEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
-
-    let completer: Completer = null;
-    let completionHandler: CompletionHandler = null;
 
     if (tocRegistry) {
       const pythonGenerator = createPythonGenerator(tracker);
@@ -146,21 +138,32 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateTracker = (): void => {
       tracker.forEach(widget => {
-        updateWidget(widget.content);
+        updateWidget(widget);
       });
     };
+
+    // editorTracker.currentChanged.connect((sender, widget) => {
+    //   console.log(" currentChanged: ");
+    //   console.log(widget);
+    // });
 
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    const updateWidget = (widget: FileEditor): void => {
-      const editor = widget.editor;
+    const updateWidget = (widget: PythonFileEditor): void => {
+      if (!editorTracker.has(widget)) {
+        // console.log("injecting widget: ");
+        // console.log(widget);
+        (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
+          widget
+        );
+      }
+
+      const editor = widget.content.editor;
       Object.keys(config).forEach((keyStr: string) => {
         const key = keyStr as keyof CodeEditor.IConfig;
         editor.setOption(key, config[key]);
       });
-
-      addCompleter(widget, editor);
     };
 
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
@@ -190,12 +193,12 @@ const extension: JupyterFrontEndPlugin<void> = {
       widget.context.pathChanged.connect(() => {
         void tracker.save(widget);
       });
-      updateWidget(widget.content);
+      updateWidget(widget);
     });
 
     // Handle the settings of new widgets. Adapted from fileeditor-extension.
     tracker.widgetAdded.connect((sender, widget) => {
-      updateWidget(widget.content);
+      updateWidget(widget);
     });
 
     /**
@@ -287,53 +290,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: commandIDs.createNewPython,
       args: { isPalette: true },
       category: 'Python Editor'
-    });
-
-    // Function to setup code auto-complete. Adapted from jupyterlab examples/notebook.
-    const addCompleter = (
-      widget: FileEditor,
-      editor: CodeEditor.IEditor
-    ): void => {
-      if (!completer) {
-        console.log('Setting up auto-complete...'); // TODO: remove debug line
-
-        const model = new CompleterModel();
-        completer = new Completer({ editor, model });
-        const sessionContext = widget.context.sessionContext;
-        const connector = new KernelConnector({
-          session: sessionContext.session
-        });
-        completionHandler = new CompletionHandler({ completer, connector });
-
-        void sessionContext.ready.then(() => {
-          completionHandler.connector = new KernelConnector({
-            session: sessionContext.session
-          });
-        });
-
-        // Set the handler's editor.
-        completionHandler.editor = editor;
-
-        // Hide the widget when it first loads.
-        completer.hide();
-
-        Widget.attach(completer, document.body);
-      }
-    };
-
-    // Add completer command.
-    app.commands.addCommand(commandIDs.invokeCompleter, {
-      execute: () => {
-        console.log('Invoke completer command'); // This is never executed
-        completionHandler && completionHandler.invoke();
-      }
-    });
-
-    // Bind tab key to completer.
-    app.commands.addKeyBinding({
-      selector: '.jp-InputArea-editor.jp-mod-completer-enabled',
-      keys: ['Tab'],
-      command: commandIDs.invokeCompleter
     });
   }
 };
