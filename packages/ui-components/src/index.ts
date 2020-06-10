@@ -15,5 +15,4 @@
  */
 export * from './ExpandableErrorDialog';
 export * from './ExpandableComponent';
-export * from './MetadataEditor';
 export * from './icons';

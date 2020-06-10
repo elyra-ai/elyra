@@ -89,7 +89,13 @@
 
 .elyra-metadataEditor .jp-InputGroup {
   margin-bottom: 12px;
-  width: 50%;
+  width: 100%;
+}
+
+.elyra-metadataEditor .bp3-form-group {
+  width: 40%;
+  float: left;
+  margin-right: 20px;
 }
 
 .elyra-metadataEditor {

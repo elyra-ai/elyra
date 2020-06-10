@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RequestHandler } from '@elyra/application';
+import { FrontendServices } from '@elyra/application';
 import {
   ExpandableComponent,
   trashIcon,
@@ -55,8 +55,6 @@ export class CodeSnippetDisplay extends React.Component<
   ICodeSnippetDisplayProps
 > {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
-  // TODO: Use code mirror to display code
-
   // Handle code snippet insert into an editor
   private insertCodeSnippet = async (snippet: ICodeSnippet): Promise<void> => {
     const widget: Widget = this.props.getCurrentWidget();
@@ -166,10 +164,8 @@ export class CodeSnippetDisplay extends React.Component<
         return;
       }
 
-      RequestHandler.makeServerRequest(
-        CODE_SNIPPET_ENDPOINT + '/' + codeSnippet.name,
-        { method: 'DELETE' },
-        false
+      FrontendServices.deleteMetadata(
+        CODE_SNIPPET_ENDPOINT + codeSnippet.name
       ).then((response: any): void => {
         this.props.updateSnippets();
       });
@@ -201,6 +197,7 @@ export class CodeSnippetDisplay extends React.Component<
         icon: editIcon,
         onClick: (): void => {
           this.props.openCodeSnippetEditor(
+            codeSnippet.name,
             codeSnippet.displayName,
             codeSnippet.description,
             codeSnippet.language,

@@ -20,6 +20,10 @@ import { ReactWidget } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Select, InputGroup, Button } from '@jupyterlab/ui-components';
 
+import { FrontendServices } from './services';
+
+import { Message } from '@lumino/messaging';
+
 import * as React from 'react';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
@@ -32,7 +36,7 @@ const defaultLanguages = ['python', 'R', 'C#', 'scala'];
 export class MetadataEditor extends ReactWidget {
   metadata: any;
   newFile: boolean;
-  saveSignal: (metadataEditor: MetadataEditor) => void;
+  updateSignal: () => void;
   editorFactory: CodeEditor.Factory;
   editor: CodeEditor.IEditor;
   endpoint: string;
@@ -40,19 +44,59 @@ export class MetadataEditor extends ReactWidget {
   constructor(
     metadata: any,
     newFile: boolean,
-    saveSignal: (metadataEditor: MetadataEditor) => void,
+    updateSignal: () => void,
     editorFactory: CodeEditor.Factory | null,
     endpoint: string
   ) {
     super();
     this.metadata = metadata;
+    this.metadata.displayName = metadata.name;
     this.editorFactory = editorFactory;
     this.endpoint = endpoint;
     this.newFile = newFile;
-    this.saveSignal = saveSignal;
+    this.updateSignal = updateSignal;
     this.handleNameChange = this.handleNameChange.bind(this);
     this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
     this.handleLanguageChange = this.handleLanguageChange.bind(this);
+  }
+
+  onCloseRequest(msg: Message) {
+    this.dispose();
+    super.onCloseRequest(msg);
+  }
+
+  saveMetadata(): void {
+    if (this.newFile) {
+      this.metadata.name = this.metadata.displayName.split(' ').join('_');
+    }
+    const newSnippet = {
+      schema_name: 'code-snippet',
+      name: this.metadata.name,
+      display_name: this.metadata.displayName,
+      metadata: {
+        description: this.metadata.description,
+        language: this.metadata.language,
+        code: this.editor.model.value.text.split('\n')
+      }
+    };
+    const newSnippetString = JSON.stringify(newSnippet);
+
+    if (this.newFile) {
+      FrontendServices.postMetadata(this.endpoint, newSnippetString).then(
+        (response: any): void => {
+          this.updateSignal();
+        }
+      );
+      this.newFile = false;
+      this.title.label = `[${this.metadata.language}] ${this.metadata.displayName}`;
+    } else {
+      FrontendServices.putMetadata(
+        this.endpoint + newSnippet.name,
+        newSnippetString
+      ).then((response: any): void => {
+        this.updateSignal();
+      });
+    }
   }
 
   renderCreateLanguageOption = (
@@ -86,7 +130,7 @@ export class MetadataEditor extends ReactWidget {
   };
 
   handleNameChange(event: any): void {
-    this.metadata.name = event.nativeEvent.srcElement.value;
+    this.metadata.displayName = event.nativeEvent.srcElement.value;
   }
 
   handleDescriptionChange(event: any): void {
@@ -159,9 +203,13 @@ export class MetadataEditor extends ReactWidget {
         />
       </Select>
     );
+    let headerText = `Edit ${this.metadata.name} Metadata`;
+    if (this.newFile) {
+      headerText = 'Add new metadata';
+    }
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
-        <h1> Edit {this.metadata.name} Metadata </h1>
+        <h3> {headerText} </h3>
         <br />
         <FormGroup label="Name" labelFor="text-input" labelInfo="(required)">
           {nameInput}
@@ -176,7 +224,12 @@ export class MetadataEditor extends ReactWidget {
         <FormGroup label="Coding Language" labelInfo="(required)">
           {languageInput}
         </FormGroup>
-        <label htmlFor={'code:' + this.metadata.name}>Code:</label>
+        <label
+          style={{ width: '100%', display: 'flex' }}
+          htmlFor={'code:' + this.metadata.name}
+        >
+          Code:
+        </label>
         <br />
         <div
           id={'code:' + this.metadata.name}
@@ -185,7 +238,7 @@ export class MetadataEditor extends ReactWidget {
         <br />
         <Button
           onClick={(): void => {
-            this.saveSignal(this);
+            this.saveMetadata();
           }}
         >
           {' '}

@@ -39,4 +39,33 @@ export class FrontendServices {
 
     return metadataResponse[namespace];
   }
+
+  static async postMetadata(namespace: string, requestBody: any): Promise<any> {
+    const metadataResponse: any = await RequestHandler.makePostRequest(
+      'elyra/metadata/' + namespace,
+      requestBody,
+      false
+    );
+
+    return metadataResponse[namespace];
+  }
+
+  static async putMetadata(namespace: string, requestBody: any): Promise<any> {
+    const metadataResponse: any = await RequestHandler.makePutRequest(
+      'elyra/metadata/' + namespace,
+      requestBody,
+      false
+    );
+
+    return metadataResponse[namespace];
+  }
+
+  static async deleteMetadata(namespace: string): Promise<any> {
+    const metadataResponse: any = await RequestHandler.makeDeleteRequest(
+      'elyra/metadata/' + namespace,
+      false
+    );
+
+    return metadataResponse[namespace];
+  }
 }

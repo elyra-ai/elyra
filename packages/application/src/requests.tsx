@@ -105,6 +105,51 @@ export class RequestHandler {
   }
 
   /**
+   * Make a PUT request to the jupyterlab server.
+   *
+   * @param requestPath - The url for the request.
+   *
+   * @param requestBody - The body of the request.
+   *
+   * @param longRequest - If the request is expected to take a long time.
+   * If true, displays a dialog warning that the request may take time.
+   *
+   * @returns a Promise that resolves with either the response or a Dialog.
+   */
+  static async makePutRequest(
+    requestPath: string,
+    requestBody: any,
+    longRequest: boolean
+  ): Promise<any> {
+    return this.makeServerRequest(
+      requestPath,
+      { method: 'PUT', body: requestBody },
+      longRequest
+    );
+  }
+
+  /**
+   * Make a DELETE request to the jupyterlab server.
+   *
+   * @param requestPath - The url for the request.
+   *
+   * @param longRequest - If the request is expected to take a long time.
+   * If true, displays a dialog warning that the request may take time.
+   *
+   * @returns a Promise that resolves with either the response or a Dialog.
+   */
+  static async makeDeleteRequest(
+    requestPath: string,
+    longRequest: boolean
+  ): Promise<any> {
+    return this.makeServerRequest(
+      requestPath,
+      { method: 'DELETE' },
+      longRequest
+    );
+  }
+
+  /**
    * Make an request to the jupyterlab server.
    *
    * @param requestPath - The url for the request.
