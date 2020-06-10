@@ -16,11 +16,8 @@
 
 import '../style/index.css';
 
-import { MetadataEditor } from '@elyra/application';
-import { codeSnippetIcon } from '@elyra/ui-components';
-
 import { JupyterFrontEnd, ILayoutRestorer } from '@jupyterlab/application';
-import { ReactWidget, UseSignal, WidgetTracker } from '@jupyterlab/apputils';
+import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
@@ -41,9 +38,10 @@ import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
 const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
-const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
 export const CODE_SNIPPET_ENDPOINT = 'code-snippets/';
+
+const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
 /**
  * A widget for Code Snippets.
@@ -52,55 +50,23 @@ export class CodeSnippetWidget extends ReactWidget {
   codeSnippetManager: CodeSnippetService;
   renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
   getCurrentWidget: () => Widget;
-  editorFactory: CodeEditor.Factory;
   app: JupyterFrontEnd;
-  editorTracker: WidgetTracker<MetadataEditor>;
+  editorFactory: CodeEditor.Factory;
 
   constructor(
     getCurrentWidget: () => Widget,
-    editorFactory: CodeEditor.Factory,
     app: JupyterFrontEnd,
-    restorer: ILayoutRestorer
+    restorer: ILayoutRestorer,
+    editorFactory: CodeEditor.Factory
   ) {
     super();
     this.getCurrentWidget = getCurrentWidget;
     this.codeSnippetManager = new CodeSnippetService();
     this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
     this.openCodeSnippetEditor = this.openCodeSnippetEditor.bind(this);
-    this.editorFactory = editorFactory;
     this.app = app;
-    this.app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
-      isVisible: () => {
-        return false;
-      },
-      execute: (args: any) => {
-        this.openCodeSnippetEditor(
-          args.name,
-          args.displayName,
-          args.description,
-          args.language,
-          args.code,
-          args.newFile
-        );
-      }
-    });
-    this.editorTracker = new WidgetTracker<MetadataEditor>({
-      namespace: METADATA_EDITOR_ID
-    });
-    restorer.restore(this.editorTracker, {
-      name: (metadataEditor: any) => {
-        return metadataEditor.metadata.name;
-      },
-      command: `${METADATA_EDITOR_ID}:open`,
-      args: (widget: MetadataEditor) => ({
-        name: widget.metadata.name,
-        displayName: widget.metadata.displayName,
-        description: widget.metadata.description,
-        language: widget.metadata.language,
-        code: widget.metadata.code,
-        newFile: widget.newFile
-      })
-    });
+    this.editorFactory = editorFactory;
+
     this.fetchData = this.fetchData.bind(this);
     this.updateSnippets = this.updateSnippets.bind(this);
   }
@@ -122,48 +88,22 @@ export class CodeSnippetWidget extends ReactWidget {
   }
 
   addCodeSnippet(): void {
-    this.openCodeSnippetEditor('', '', '', '', '', true);
+    this.openCodeSnippetEditor({
+      metadata: {
+        name: '',
+        displayName: '',
+        description: '',
+        language: '',
+        code: ''
+      },
+      newFile: true,
+      endpoint: CODE_SNIPPET_ENDPOINT,
+      updateSignal: this.updateSnippets
+    });
   }
 
-  async openCodeSnippetEditor(
-    name: string,
-    displayName: string,
-    description: string,
-    language: string,
-    code: string,
-    newFile: boolean
-  ): Promise<void> {
-    const metadataEditorWidget = new MetadataEditor(
-      {
-        name: name,
-        displayName: displayName,
-        description: description,
-        language: language,
-        code: code
-      },
-      newFile,
-      this.updateSnippets,
-      this.editorFactory,
-      CODE_SNIPPET_ENDPOINT
-    );
-    metadataEditorWidget.id = METADATA_EDITOR_ID;
-    if (newFile) {
-      metadataEditorWidget.title.label = 'New Snippet';
-    } else {
-      metadataEditorWidget.title.label = `[${language}] ${displayName}`;
-    }
-    metadataEditorWidget.title.closable = true;
-    metadataEditorWidget.title.icon = codeSnippetIcon;
-    const filterWidget = (widget: MetadataEditor): boolean => {
-      if (widget.metadata.name == name && !widget.isHidden) {
-        return true;
-      }
-    };
-    const openWidget = this.editorTracker.find(filterWidget);
-    if (name == '' || !openWidget) {
-      this.app.shell.add(metadataEditorWidget, 'main');
-      this.editorTracker.add(metadataEditorWidget);
-    }
+  openCodeSnippetEditor(args: any): void {
+    this.app.commands.execute(`${METADATA_EDITOR_ID}:open`, args);
   }
 
   render(): React.ReactElement {
@@ -183,8 +123,8 @@ export class CodeSnippetWidget extends ReactWidget {
             <CodeSnippetDisplay
               codeSnippets={codeSnippets}
               openCodeSnippetEditor={this.openCodeSnippetEditor}
-              editorFactory={this.editorFactory}
               getCurrentWidget={this.getCurrentWidget}
+              editorFactory={this.editorFactory}
               updateSnippets={this.updateSnippets}
             />
           )}

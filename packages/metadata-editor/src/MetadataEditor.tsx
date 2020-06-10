@@ -16,11 +16,10 @@
 
 import { FormGroup, MenuItem } from '@blueprintjs/core';
 import { ItemPredicate } from '@blueprintjs/select';
+import { FrontendServices } from '@elyra/application';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Select, InputGroup, Button } from '@jupyterlab/ui-components';
-
-import { FrontendServices } from './services';
 
 import { Message } from '@lumino/messaging';
 
@@ -50,7 +49,6 @@ export class MetadataEditor extends ReactWidget {
   ) {
     super();
     this.metadata = metadata;
-    this.metadata.displayName = metadata.name;
     this.editorFactory = editorFactory;
     this.endpoint = endpoint;
     this.newFile = newFile;

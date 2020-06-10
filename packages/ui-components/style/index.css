@@ -87,36 +87,6 @@
   height: 100%;
 }
 
-.elyra-metadataEditor .jp-InputGroup {
-  margin-bottom: 12px;
-  width: 100%;
-}
-
-.elyra-metadataEditor .bp3-form-group {
-  width: 40%;
-  float: left;
-  margin-right: 20px;
-}
-
-.elyra-metadataEditor {
-  margin: 20px;
-}
-
-.elyra-metadataEditor .CodeMirror-wrap {
-  background-color: inherit;
-  box-shadow: inset 0 0 0 var(--jp-border-width) var(--jp-input-border-color);
-  font-family: var(--jp-code-font-family);
-  font-size: var(--jp-code-font-size);
-  line-height: var(--jp-code-line-height);
-  min-height: 125px;
-  height: 100%;
-  width: 100%;
-  resize: vertical;
-  white-space: pre;
-  word-wrap: normal;
-  overflow-x: scroll;
-}
-
 .elyra-errorDialog-messageDisplay {
   padding-bottom: 5px;
   display: flex;

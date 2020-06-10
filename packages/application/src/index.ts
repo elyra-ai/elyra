@@ -18,5 +18,4 @@ import '../style/index.css';
 
 export * from './parsing';
 export * from './services';
-export * from './MetadataEditor';
 export * from './requests';

@@ -174,8 +174,7 @@ export class CodeSnippetDisplay extends React.Component<
 
   // Render display of code snippet list
   private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
-    const displayName =
-      '[' + codeSnippet.language + '] ' + codeSnippet.displayName;
+    const displayName = `[${codeSnippet.language}] ${codeSnippet.displayName}`;
 
     const actionButtons = [
       {
@@ -196,14 +195,18 @@ export class CodeSnippetDisplay extends React.Component<
         title: 'Edit',
         icon: editIcon,
         onClick: (): void => {
-          this.props.openCodeSnippetEditor(
-            codeSnippet.name,
-            codeSnippet.displayName,
-            codeSnippet.description,
-            codeSnippet.language,
-            codeSnippet.code.join('\n'),
-            false
-          );
+          this.props.openCodeSnippetEditor({
+            metadata: {
+              name: codeSnippet.name,
+              displayName: codeSnippet.displayName,
+              description: codeSnippet.description,
+              language: codeSnippet.language,
+              code: codeSnippet.code.join('\n')
+            },
+            newFile: false,
+            endpoint: CODE_SNIPPET_ENDPOINT,
+            updateSnippets: this.props.updateSnippets
+          });
         }
       },
       {

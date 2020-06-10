@@ -16,12 +16,12 @@
 
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import importSvg from '../style/icons/import.svg';
 import clearPipelineSvg from '../style/icons/clear-pipeline.svg';
 import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
 import codeSnippetSvg from '../style/icons/code-snippet.svg';
 import dragDropSvg from '../style/icons/dragdrop.svg';
 import exportPipelineSvg from '../style/icons/export-pipeline.svg';
+import importSvg from '../style/icons/import.svg';
 import newPipelineSvg from '../style/icons/new-pipeline.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
