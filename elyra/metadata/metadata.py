@@ -229,7 +229,7 @@ class FileMetadataStore(MetadataStore):
                        format(self.namespace, self.preferred_metadata_dir, self.metadata_paths))
 
     def _get_normalized_name(self, name):
-        # lowercase and replaces spaces with undersocre
+        # lowercase and replaces spaces with underscore
         name = re.sub('\\s+', '_', name.lower())
         # remove all invalid characters
         name = re.sub('[^a-z0-9-_]+', '', name)
