@@ -106,7 +106,7 @@ export class CodeSnippetWidget extends ReactWidget {
           type: 'Dropdown'
         },
         {
-          label: 'code',
+          label: 'Code',
           value: '',
           type: 'Code'
         }

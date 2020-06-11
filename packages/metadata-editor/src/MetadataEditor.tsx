@@ -166,7 +166,7 @@ export class MetadataEditor extends ReactWidget {
   onAfterShow(): void {
     if (!this.editor) {
       this.editor = this.editorFactory({
-        host: document.getElementById('code:' + this.id),
+        host: document.getElementById('Code:' + this.id),
         model: new CodeEditor.Model({
           value: this.getFormItem('Code', 'Code').value
         })
@@ -245,12 +245,12 @@ export class MetadataEditor extends ReactWidget {
         {inputElements}
         <label
           style={{ width: '100%', display: 'flex' }}
-          htmlFor={'code:' + this.id}
+          htmlFor={'Code:' + this.id}
         >
           Code:
         </label>
         <br />
-        <div id={'code:' + this.id} className="elyra-form-code"></div>
+        <div id={'Code:' + this.id} className="elyra-form-code"></div>
         <br />
         <Button
           onClick={(): void => {
