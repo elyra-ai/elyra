@@ -135,12 +135,7 @@ export class CodeSnippetDisplay extends React.Component<
   ): Promise<Dialog.IResult<string>> => {
     return showDialog({
       title: 'Warning',
-      body:
-        'Code snippet "' +
-        snippetName +
-        '" is incompatible with ' +
-        editorLanguage +
-        '. Continue?',
+      body: `Code snippet "${snippetName}" is incompatible with ${editorLanguage}. Continue?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     });
   };

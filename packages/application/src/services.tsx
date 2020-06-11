@@ -19,6 +19,8 @@ import * as React from 'react';
 
 import { RequestHandler } from './requests';
 
+const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
+
 /**
  * A utility class for handling elyra metadata calls.
  */
@@ -33,7 +35,7 @@ export class FrontendServices {
 
   static async getMetadata(namespace: string): Promise<any> {
     const metadataResponse: any = await RequestHandler.makeGetRequest(
-      'elyra/metadata/' + namespace,
+      ELYRA_METADATA_API_ENDPOINT + namespace,
       false
     );
 
@@ -42,7 +44,7 @@ export class FrontendServices {
 
   static async postMetadata(namespace: string, requestBody: any): Promise<any> {
     const metadataResponse: any = await RequestHandler.makePostRequest(
-      'elyra/metadata/' + namespace,
+      ELYRA_METADATA_API_ENDPOINT + namespace,
       requestBody,
       false
     );
@@ -52,7 +54,7 @@ export class FrontendServices {
 
   static async putMetadata(namespace: string, requestBody: any): Promise<any> {
     const metadataResponse: any = await RequestHandler.makePutRequest(
-      'elyra/metadata/' + namespace,
+      ELYRA_METADATA_API_ENDPOINT + namespace,
       requestBody,
       false
     );
@@ -62,7 +64,7 @@ export class FrontendServices {
 
   static async deleteMetadata(namespace: string): Promise<any> {
     const metadataResponse: any = await RequestHandler.makeDeleteRequest(
-      'elyra/metadata/' + namespace,
+      ELYRA_METADATA_API_ENDPOINT + namespace,
       false
     );
 
