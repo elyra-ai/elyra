@@ -131,7 +131,7 @@ export class RequestHandler {
   /**
    * Make a request to the jupyter lab server.
    *
-   * The method of request is set in the `method` value in `requestOptions`.
+   * The method of request is set in the `method` value in `requestInit`.
    * All errors returned by the server are handled by displaying a relevant
    * error dialog. If `longRequest` is true then a warning dialog is displayed
    * to users while waiting for the server response. On success a promise that
@@ -140,7 +140,7 @@ export class RequestHandler {
    * @param requestPath - The url path for the request.
    * This path is appended to the base path of the server for the request.
    *
-   * @param requestOptions - The initialization options for the request.
+   * @param requestInit - The initialization options for the request.
    * A RequestInit object to be passed directly to `ServerConnection.makeRequest`
    * that must include a value for `method`
    *
@@ -152,7 +152,7 @@ export class RequestHandler {
    */
   static async makeServerRequest(
     requestPath: string,
-    requestOptions: any,
+    requestInit: any,
     longRequest: boolean
   ): Promise<any> {
     // use ServerConnection utility to make calls to Jupyter Based services
@@ -160,7 +160,7 @@ export class RequestHandler {
     const settings = ServerConnection.makeSettings();
     const requestUrl = URLExt.join(settings.baseUrl, requestPath);
 
-    console.log(`Sending a ${requestOptions.method} request to ${requestUrl}`);
+    console.log(`Sending a ${requestInit.method} request to ${requestUrl}`);
 
     const waitDialog: Dialog<any> = new Dialog({
       title: 'Making server request...',
@@ -173,7 +173,7 @@ export class RequestHandler {
     }
 
     const getServerResponse: Promise<any> = new Promise((resolve, reject) => {
-      ServerConnection.makeRequest(requestUrl, requestOptions, settings).then(
+      ServerConnection.makeRequest(requestUrl, requestInit, settings).then(
         (response: any) => {
           if (longRequest) {
             waitDialog.resolve();
