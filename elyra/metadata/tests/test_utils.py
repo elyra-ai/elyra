@@ -58,6 +58,14 @@ invalid_no_display_name_json = {
     }
 }
 
+valid_display_name_json = {
+    'schema_name': 'metadata-test',
+    'display_name': '1 teste "rápido"',
+    'metadata': {
+        'required_test': "required_value"
+    }
+}
+
 # Contains all values corresponding to test schema...
 complete_metadata_json = {
     "schema_name": "metadata-test",
