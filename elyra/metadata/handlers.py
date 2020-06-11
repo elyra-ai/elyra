@@ -73,7 +73,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         """Validates the body issued for creates. """
         body = self.get_json_body()
 
-        # Ensure name, schema_name and metadata fields exist.
+        # Ensure schema_name and metadata fields exist.
         required_fields = ['schema_name', 'metadata']
         for field in required_fields:
             if field not in body:
