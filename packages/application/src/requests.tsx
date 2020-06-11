@@ -142,7 +142,10 @@ export class RequestHandler {
    *
    * @param requestInit - The initialization options for the request.
    * A RequestInit object to be passed directly to `ServerConnection.makeRequest`
-   * that must include a value for `method`
+   * that must include a value for `method`.
+   * This is based on "@typescript/lib/lib.dom.d/RequestInit"
+   * @see {@link https://github.com/Microsoft/TypeScript/blob/master/lib/lib.dom.d.ts#L1558}
+   * and {@link https://fetch.spec.whatwg.org/#requestinit}
    *
    * @param longRequest - Whether the request is expected to take a long time.
    * If true, displays a dialog warning that the request may take time.
