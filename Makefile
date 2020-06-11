@@ -136,8 +136,8 @@ release: dist-ui build-server ## Build wheel file for release
 
 docker-image: ## Build docker image
 	@mkdir -p build/docker
-	cp etc/docker/Dockerfile build/docker/Dockerfile
-	cp -r dist/*.whl build/docker/
+	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
+	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
 
 define UNLINK_LAB_EXTENSION
