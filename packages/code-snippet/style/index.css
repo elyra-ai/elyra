@@ -38,6 +38,10 @@
   align-self: flex-end;
 }
 
+.elyra-codeSnippetHeader-button svg {
+  transform: translate(-3px, 0px);
+}
+
 .elyra-codeSnippetHeader-button:hover {
   background-color: #eeeeee;
 }

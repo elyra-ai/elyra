@@ -25,14 +25,13 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 
 import { MetadataEditor } from './MetadataEditor';
 
-const METADATA_EDITOR_NAMESPACE = 'elyra-metadata-editor-extension';
 export const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
 /**
  * Initialization data for the metadata-editor-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: METADATA_EDITOR_NAMESPACE,
+  id: METADATA_EDITOR_ID,
   autoStart: true,
   requires: [IEditorServices],
   optional: [ILayoutRestorer],
@@ -53,53 +52,62 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
     restorer.restore(editorTracker, {
       name: (metadataEditor: any) => {
-        return metadataEditor.metadata.name;
+        return metadataEditor.metadataLabel;
       },
       command: `${METADATA_EDITOR_ID}:open`,
       args: (widget: MetadataEditor) => ({
-        name: widget.metadata.name,
-        displayName: widget.metadata.displayName,
-        description: widget.metadata.description,
-        language: widget.metadata.language,
-        code: widget.metadata.code,
+        metadata: widget.metadata,
         newFile: widget.newFile,
-        endpoint: widget.endpoint
+        metadataLabel: widget.getFormItem('Name', 'TextInput').value,
+        endpoint: widget.endpoint,
+        updateSignal: widget.updateSignal,
+        fileName: widget.fileName
       })
     });
     const openMetadataEditor = async (args: {
-      metadata: {
-        name: string;
-        displayName: string;
-        description: string;
-        language: string;
-        code: string;
-      };
+      metadata: any[];
       newFile: boolean;
+      metadataLabel: string;
       endpoint: string;
-      updateSignal: () => void;
+      updateSignal: any;
+      fileName: string;
     }): Promise<void> => {
       const metadataEditorWidget = new MetadataEditor(
         args.metadata,
         args.newFile,
         args.updateSignal,
         editorServices.factoryService.newInlineEditor,
-        args.endpoint
+        args.endpoint,
+        editorTracker,
+        args.fileName
       );
-      metadataEditorWidget.id = METADATA_EDITOR_ID;
+      // Make sure there aren't any other "Untitled" tabs open
       if (args.newFile) {
-        metadataEditorWidget.title.label = 'New Snippet';
+        metadataEditorWidget.title.label = 'Untitled';
+        let untitledId = 1;
+        while (
+          editorTracker.find((widget: MetadataEditor): boolean => {
+            return widget.title.label == metadataEditorWidget.title.label;
+          })
+        ) {
+          metadataEditorWidget.title.label = `Untitled${untitledId}`;
+          untitledId++;
+        }
       } else {
-        metadataEditorWidget.title.label = `[${args.metadata.language}] ${args.metadata.displayName}`;
+        metadataEditorWidget.title.label = `${args.metadataLabel}`;
       }
+      metadataEditorWidget.id = `${METADATA_EDITOR_ID}:${metadataEditorWidget.title.label}`;
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = codeSnippetIcon;
       const filterWidget = (widget: MetadataEditor): boolean => {
-        return widget.metadata.name == args.metadata.name;
+        return widget.id == metadataEditorWidget.id;
       };
       const openWidget = editorTracker.find(filterWidget);
-      if (args.metadata.name == '' || !openWidget) {
+      if (args.newFile || !openWidget) {
         app.shell.add(metadataEditorWidget, 'main');
         editorTracker.add(metadataEditorWidget);
+      } else if (openWidget) {
+        app.shell.activateById(openWidget.id);
       }
     };
   }

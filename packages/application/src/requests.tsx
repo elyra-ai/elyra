@@ -167,7 +167,7 @@ export class RequestHandler {
     longRequest: boolean
   ): Promise<any> {
     // use ServerConnection utility to make calls to Jupyter Based services
-    // which in this case are the in the extension installed by this package
+    // which in this case are in the extension installed by this package
     const settings = ServerConnection.makeSettings();
     const requestUrl = URLExt.join(settings.baseUrl, requestPath);
 

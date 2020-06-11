@@ -17,7 +17,7 @@
 import { FormGroup, MenuItem } from '@blueprintjs/core';
 import { ItemPredicate } from '@blueprintjs/select';
 import { FrontendServices } from '@elyra/application';
-import { ReactWidget } from '@jupyterlab/apputils';
+import { ReactWidget, WidgetTracker } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Select, InputGroup, Button } from '@jupyterlab/ui-components';
 
@@ -27,25 +27,35 @@ import * as React from 'react';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 
-const defaultLanguages = ['python', 'R', 'C#', 'scala'];
+type FormItemType = 'TextInput' | 'DropDown' | 'Code';
+
+type FormItem = {
+  value: any;
+  type: FormItemType;
+  label: string;
+};
 
 /**
  * Metadata editor widget
  */
 export class MetadataEditor extends ReactWidget {
-  metadata: any;
+  metadata: FormItem[];
   newFile: boolean;
-  updateSignal: () => void;
+  updateSignal: any;
+  fileName: string;
   editorFactory: CodeEditor.Factory;
   editor: CodeEditor.IEditor;
   endpoint: string;
+  tracker: WidgetTracker;
 
   constructor(
-    metadata: any,
+    metadata: FormItem[],
     newFile: boolean,
-    updateSignal: () => void,
+    updateSignal: any,
     editorFactory: CodeEditor.Factory | null,
-    endpoint: string
+    endpoint: string,
+    tracker: WidgetTracker,
+    fileName?: string
   ) {
     super();
     this.metadata = metadata;
@@ -53,40 +63,48 @@ export class MetadataEditor extends ReactWidget {
     this.endpoint = endpoint;
     this.newFile = newFile;
     this.updateSignal = updateSignal;
-    this.handleNameChange = this.handleNameChange.bind(this);
-    this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
-    this.handleLanguageChange = this.handleLanguageChange.bind(this);
+    this.handleTextInputChange = this.handleTextInputChange.bind(this);
+    this.handleDropdownChange = this.handleDropdownChange.bind(this);
+    this.tracker = tracker;
+    if (fileName) {
+      this.fileName = fileName;
+    }
   }
 
-  onCloseRequest(msg: Message) {
+  onCloseRequest(msg: Message): void {
     this.dispose();
     super.onCloseRequest(msg);
   }
 
   saveMetadata(): void {
-    if (this.newFile) {
-      this.metadata.name = this.metadata.displayName.split(' ').join('_');
-    }
-    const newSnippet = {
+    const newSnippet: any = {
       schema_name: 'code-snippet',
-      name: this.metadata.name,
-      display_name: this.metadata.displayName,
-      metadata: {
-        description: this.metadata.description,
-        language: this.metadata.language,
-        code: this.editor.model.value.text.split('\n')
-      }
+      name: this.fileName,
+      display_name: this.getFormItem('Name', 'TextInput').value,
+      metadata: {}
     };
+
+    for (const field of this.metadata) {
+      if (field.type == 'TextInput') {
+        newSnippet.metadata[field.label] = field.value;
+      } else if (field.type == 'DropDown') {
+        newSnippet.metadata[field.label] = field.value.choice;
+      } else if (field.type == 'Code') {
+        newSnippet.metadata[field.label] = this.editor.model.value.text.split(
+          '\n'
+        );
+      }
+    }
     const newSnippetString = JSON.stringify(newSnippet);
 
     if (this.newFile) {
       FrontendServices.postMetadata(this.endpoint, newSnippetString).then(
         (response: any): void => {
           this.updateSignal();
+          this.newFile = false;
+          this.title.label = this.getFormItem('Name', 'TextInput').value;
         }
       );
-      this.newFile = false;
-      this.title.label = `[${this.metadata.language}] ${this.metadata.displayName}`;
     } else {
       FrontendServices.putMetadata(
         this.endpoint + newSnippet.name,
@@ -97,7 +115,7 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
-  renderCreateLanguageOption = (
+  renderCreateOption = (
     query: string,
     active: boolean,
     handleClick: React.MouseEventHandler<HTMLElement>
@@ -111,97 +129,112 @@ export class MetadataEditor extends ReactWidget {
     />
   );
 
-  filterLanguage: ItemPredicate<string> = (
+  filterDropdown: ItemPredicate<string> = (
     query,
-    language,
+    value,
     _index,
     exactMatch
   ) => {
-    const normalizedTitle = language.toLowerCase();
+    const normalizedTitle = value.toLowerCase();
     const normalizedQuery = query.toLowerCase();
 
     if (normalizedQuery === normalizedTitle) {
       return normalizedTitle === normalizedQuery;
     } else {
-      return `${language}`.indexOf(normalizedQuery) >= 0;
+      return `${value}`.indexOf(normalizedQuery) >= 0;
     }
   };
 
-  handleNameChange(event: any): void {
-    this.metadata.displayName = event.nativeEvent.srcElement.value;
+  getFormItem(searchLabel: string, searchType: string): FormItem {
+    return this.metadata.find(({ value, type, label }) => {
+      return label == searchLabel && type == searchType;
+    });
   }
 
-  handleDescriptionChange(event: any): void {
-    this.metadata.description = event.nativeEvent.srcElement.value;
+  handleTextInputChange(event: any, label: string): void {
+    this.tracker.save(this);
+    this.getFormItem(label, 'TextInput').value =
+      event.nativeEvent.srcElement.value;
   }
 
-  handleLanguageChange = (language: string): void => {
-    this.metadata.language = language;
+  handleDropdownChange = (label: string, value: string): void => {
+    this.tracker.save(this);
+    this.getFormItem(label, 'DropDown').value.choice = value;
     this.update();
   };
 
   onAfterShow(): void {
     if (!this.editor) {
       this.editor = this.editorFactory({
-        host: document.getElementById('code:' + this.metadata.name),
-        model: new CodeEditor.Model({ value: this.metadata.code })
+        host: document.getElementById('code:' + this.id),
+        model: new CodeEditor.Model({
+          value: this.getFormItem('Code', 'Code').value
+        })
       });
     }
   }
 
-  onItemSelect(language: string, options: any): void {
-    this.metadata.language = language;
-    this.update();
-  }
-
-  itemRenderer(language: string, options: any): React.ReactElement {
+  itemRenderer(value: string, options: any): React.ReactElement {
     return (
-      <Button
-        onClick={options.handleClick}
-        key={language}
-        text={language}
-      ></Button>
+      <Button onClick={options.handleClick} key={value} text={value}></Button>
     );
   }
 
   render(): React.ReactElement {
-    const nameInput = (
-      <InputGroup
-        onChange={this.handleNameChange}
-        defaultValue={this.metadata.name}
-        type="text-input"
-      />
-    );
-    const descriptionInput = (
-      <InputGroup
-        onChange={this.handleDescriptionChange}
-        defaultValue={this.metadata.description}
-        type="text-input"
-      />
-    );
-    const languageInput = (
-      <Select
-        items={defaultLanguages}
-        itemPredicate={this.filterLanguage}
-        createNewItemFromQuery={(newLanguage: string): string => {
-          return newLanguage;
-        }}
-        createNewItemRenderer={this.renderCreateLanguageOption}
-        onItemSelect={this.handleLanguageChange}
-        itemRenderer={this.itemRenderer}
-      >
-        <Button
-          icon="code"
-          rightIcon="caret-down"
-          text={
-            this.metadata.language != ''
-              ? this.metadata.language
-              : '(No selection)'
-          }
-        />
-      </Select>
-    );
-    let headerText = `Edit ${this.metadata.name} Metadata`;
+    const inputElements = [];
+    for (const field of this.metadata) {
+      if (field.type == 'TextInput') {
+        inputElements.push(
+          <FormGroup
+            key={field.label}
+            label={field.label}
+            labelInfo="(required)"
+          >
+            <InputGroup
+              onChange={(event: any) => {
+                this.handleTextInputChange(event, field.label);
+              }}
+              defaultValue={field.value}
+              type="text-input"
+            />
+          </FormGroup>
+        );
+      } else if (field.type == 'DropDown') {
+        inputElements.push(
+          <FormGroup
+            key={field.label}
+            label={field.label}
+            labelInfo="(required)"
+          >
+            <Select
+              items={field.value.defaultChoices}
+              itemPredicate={this.filterDropdown}
+              createNewItemFromQuery={newValue => {
+                return newValue;
+              }}
+              createNewItemRenderer={this.renderCreateOption}
+              onItemSelect={(value: string): void => {
+                this.handleDropdownChange(field.label, value);
+              }}
+              itemRenderer={this.itemRenderer}
+            >
+              <Button
+                icon="code"
+                rightIcon="caret-down"
+                text={
+                  field.value.choice != ''
+                    ? field.value.choice
+                    : '(No selection)'
+                }
+              />
+            </Select>
+          </FormGroup>
+        );
+      }
+    }
+    let headerText = `Edit ${
+      this.getFormItem('Name', 'TextInput').value
+    } Metadata`;
     if (this.newFile) {
       headerText = 'Add new metadata';
     }
@@ -209,30 +242,15 @@ export class MetadataEditor extends ReactWidget {
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
         <br />
-        <FormGroup label="Name" labelFor="text-input" labelInfo="(required)">
-          {nameInput}
-        </FormGroup>
-        <FormGroup
-          label="Description"
-          labelFor="text-input"
-          labelInfo="(optional)"
-        >
-          {descriptionInput}
-        </FormGroup>
-        <FormGroup label="Coding Language" labelInfo="(required)">
-          {languageInput}
-        </FormGroup>
+        {inputElements}
         <label
           style={{ width: '100%', display: 'flex' }}
-          htmlFor={'code:' + this.metadata.name}
+          htmlFor={'code:' + this.id}
         >
           Code:
         </label>
         <br />
-        <div
-          id={'code:' + this.metadata.name}
-          className="elyra-form-code"
-        ></div>
+        <div id={'code:' + this.id} className="elyra-form-code"></div>
         <br />
         <Button
           onClick={(): void => {

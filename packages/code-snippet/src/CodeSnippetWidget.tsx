@@ -89,14 +89,30 @@ export class CodeSnippetWidget extends ReactWidget {
 
   addCodeSnippet(): void {
     this.openCodeSnippetEditor({
-      metadata: {
-        name: '',
-        displayName: '',
-        description: '',
-        language: '',
-        code: ''
-      },
+      metadata: [
+        {
+          label: 'Name',
+          value: '',
+          type: 'TextInput'
+        },
+        {
+          label: 'description',
+          value: '',
+          type: 'TextInput'
+        },
+        {
+          label: 'language',
+          value: '',
+          type: 'Dropdown'
+        },
+        {
+          label: 'code',
+          value: '',
+          type: 'Code'
+        }
+      ],
       newFile: true,
+      metadataLabel: '',
       endpoint: CODE_SNIPPET_ENDPOINT,
       updateSignal: this.updateSnippets
     });

@@ -196,16 +196,35 @@ export class CodeSnippetDisplay extends React.Component<
         icon: editIcon,
         onClick: (): void => {
           this.props.openCodeSnippetEditor({
-            metadata: {
-              name: codeSnippet.name,
-              displayName: codeSnippet.displayName,
-              description: codeSnippet.description,
-              language: codeSnippet.language,
-              code: codeSnippet.code.join('\n')
-            },
+            metadata: [
+              {
+                label: 'Name',
+                value: codeSnippet.displayName,
+                type: 'TextInput'
+              },
+              {
+                label: 'Description',
+                value: codeSnippet.description,
+                type: 'TextInput'
+              },
+              {
+                label: 'Language',
+                value: {
+                  choice: codeSnippet.language,
+                  defaultChoices: ['python', 'R', 'C#', 'scala']
+                },
+                type: 'DropDown'
+              },
+              {
+                label: 'Code',
+                value: codeSnippet.code.join('\n'),
+                type: 'Code'
+              }
+            ],
             newFile: false,
             endpoint: CODE_SNIPPET_ENDPOINT,
-            updateSnippets: this.props.updateSnippets
+            updateSignal: this.props.updateSnippets,
+            fileName: codeSnippet.name
           });
         }
       },
