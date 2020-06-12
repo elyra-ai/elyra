@@ -45,18 +45,16 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra 0.10.1 OK
+      elyra 1.0.0b0 OK
     jupyterlab  enabled
     - Validating...
-      jupyterlab 2.1.1 OK
+      jupyterlab 2.1.4 OK
     jupyterlab_git  enabled
     - Validating...
-      jupyterlab_git 0.20.0rc0 OK
+      jupyterlab_git 0.20.0 OK
     nbdime  enabled
     - Validating...
-      nbdime 2.0.0 OK
-
-```
+      nbdime 2.0.0 OK```
 
 NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable
 it with `jupyter serverextension enable elyra`
@@ -67,12 +65,12 @@ jupyter labextension list
 Should output:
 ```
 Known labextensions:
-   app dir: /Users/lresende/opt/anaconda/envs/dev/share/jupyter/lab
-        @elyra/application v0.10.1  enabled  OK*
-        @elyra/code-snippet-extension-experimental v0.10.1  enabled  OK
-        @elyra/pipeline-editor-extension v0.10.1  enabled  OK
-        @elyra/python-runner-extension v0.10.1  enabled  OK
-        @jupyterlab/git v0.20.0-rc.0  enabled  OK
-        @jupyterlab/toc v3.0.0  enabled  OK
+   app dir: /.../share/jupyter/lab
+        @elyra/code-snippet-extension-experimental v1.0.0-beta.0  enabled  OK*
+        @elyra/pipeline-editor-extension v1.0.0-beta.0  enabled  OK*
+        @elyra/python-runner-extension v1.0.0-beta.0  enabled  OK*
+        @elyra/theme-extension v1.0.0-beta.0  enabled  OK*
+        @jupyterlab/git v0.20.0  enabled  OK
+        @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```
