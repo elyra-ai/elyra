@@ -190,7 +190,7 @@ export class SubmitNotebook extends Widget
       '</select>' +
       '</td>' +
       td_colspan2 +
-      '<label for="framework">Deep Learning Framework:</label>' +
+      '<label for="framework">Runtime images:</label>' +
       '<br/>' +
       '<select id="framework" class="elyra-form-framework">' +
       runtimeImages_options +
