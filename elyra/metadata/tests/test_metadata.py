@@ -66,7 +66,7 @@ def test_validate_factory_schemas():
 # ########################## MetadataManager Tests ###########################
 def test_manager_add_invalid(tests_manager, data_dir):
 
-    with pytest.raises(ValueError):
+    with pytest.raises(FileNotFoundError):
         MetadataManager(namespace='invalid')
 
     # Attempt with non Metadata instance
@@ -401,6 +401,32 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
     assert byo_2.resource.startswith(str(shared_dir))
+
+
+def test_manager_bad_update(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):
+
+    # Create some metadata, then attempt to update it with a known schema violation
+    # and ensure the previous copy still exists...
+
+    # Create a user instance...
+    metadata = Metadata(**byo_metadata_json)
+    metadata.display_name = 'user1'
+    instance = tests_hierarchy_manager.add('bad_update', metadata)
+    assert instance is not None
+    assert instance.resource.startswith(str(metadata_tests_dir))
+
+    # Now, attempt to update the user instance, but include a schema violation.
+    # Verify the update failed, but also ensure the previous instance is still there.
+
+    instance2 = tests_hierarchy_manager.get('bad_update')
+    instance2.display_name = 'user2'
+    instance2.metadata['number_range_test'] = 42  # number is out of range
+    with pytest.raises(ValidationError):
+        tests_hierarchy_manager.add('bad_update', instance2, replace=True)
+
+    instance2 = tests_hierarchy_manager.get('bad_update')
+    assert instance2.display_name == instance.display_name
+    assert 'number_range_test' not in instance2.metadata
 
 
 def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):

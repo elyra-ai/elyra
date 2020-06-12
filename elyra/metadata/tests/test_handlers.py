@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import copy
 import json
 import jupyter_core.paths
 import os
@@ -85,7 +86,7 @@ class MetadataHandlerTest(MetadataTestBase):
         # Validate invalid throws 404 with validation message
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'invalid',
                   base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 404
+        assert r.status_code == 400
         assert "Schema validation failed for metadata 'invalid'" in r.text
 
     def test_valid_instance(self):
@@ -149,7 +150,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         system_path = getattr(jupyter_core.paths, 'SYSTEM_JUPYTER_PATH')
         self.shared_dir = os.path.join(system_path[0], 'metadata', METADATA_TEST_NAMESPACE)
 
-        byo_instance = byo_metadata_json.copy()
+        byo_instance = copy.deepcopy(byo_metadata_json)
         byo_instance['display_name'] = 'factory'
         create_json_file(self.factory_dir, 'byo_1.json', byo_instance)
         create_json_file(self.factory_dir, 'byo_2.json', byo_instance)
@@ -175,7 +176,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
     def test_create_instance(self):
         """Create a simple instance - not conflicting with factory instances. """
 
-        valid = valid_metadata_json.copy()
+        valid = copy.deepcopy(valid_metadata_json)
         valid['name'] = 'valid'
         body = json.dumps(valid)
 
@@ -189,7 +190,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
     def test_create_hierarchy_instance(self):
         """Attempts to create an instance from one in the hierarchy. """
 
-        byo_instance = byo_metadata_json.copy()
+        byo_instance = copy.deepcopy(byo_metadata_json)
         byo_instance['display_name'] = 'user'
         byo_instance['name'] = 'byo_2'
         body = json.dumps(byo_instance)
@@ -215,7 +216,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
     def test_create_invalid_instance(self):
         """Create a simple instance - not conflicting with factory instances. """
 
-        invalid = invalid_metadata_json.copy()
+        invalid = copy.deepcopy(invalid_metadata_json)
         invalid['name'] = 'invalid'
         body = json.dumps(invalid)
 
@@ -227,7 +228,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
     def test_create_instance_missing_schema(self):
         """Attempt to create an instance using an invalid schema """
 
-        missing_schema = valid_metadata_json.copy()
+        missing_schema = copy.deepcopy(valid_metadata_json)
         missing_schema['name'] = 'missing_schema'
         missing_schema['schema_name'] = 'missing_schema'
         missing_schema.pop('display_name')
@@ -246,12 +247,12 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         """Update a simple instance. """
 
         # First, try to update a non-existent instance - 404 expected...
-        valid = valid_metadata_json.copy()
+        valid = copy.deepcopy(valid_metadata_json)
         valid['name'] = 'valid'
         valid['metadata']['number_range_test'] = 7
         body = json.dumps(valid)
 
-        # Update instance
+        # Update (non-existent) instance
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
@@ -273,12 +274,40 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         instance = r.json()
         assert instance['metadata']['number_range_test'] == 7
 
+        # Now attempt the update again, but with bad metadata and ensure previous still exists
+        valid2 = copy.deepcopy(valid_metadata_json)
+        valid2['name'] = 'valid'
+        valid2['metadata']['number_range_test'] = 42
+        body2 = json.dumps(valid2)
+
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body2,
+                  method='PUT', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 400
+
+        # Fetch again and ensure it matches the previous instance
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+                  base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        instance2 = r.json()
+        assert instance2 == instance
+
+        # Add a new field (per schema) and remove another -
+        valid['metadata'].pop('number_range_test')
+        valid['metadata']['string_length_test'] = "valid len"
+        body = json.dumps(valid)
+
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
+                  method='PUT', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        instance = r.json()
+        assert instance['metadata']['string_length_test'] == "valid len"
+        assert 'number_range_test' not in instance['metadata']
+
     def test_update_hierarchy_instance(self):
         """Update a simple instance - that's conflicting with factory instances. """
 
-        # Do not provide schema_name (or name) intentionally, since this is an update
-        byo_instance = byo_metadata_json.copy()
-        byo_instance.pop('schema_name')
+        # Do not name intentionally, since this is an update
+        byo_instance = copy.deepcopy(byo_metadata_json)
         byo_instance['display_name'] = 'user'
         byo_instance['metadata']['number_range_test'] = 7
         body = json.dumps(byo_instance)

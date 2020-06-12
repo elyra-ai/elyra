@@ -132,6 +132,8 @@ paths:
                     description: The name of the namespace.
                     items:
                       $ref: '#/components/schemas/MetadataResource'
+        400:
+          description: An error (validation, syntax) occurred relative to the instance data
         404:
           description: Namespace not found
           content: {}
@@ -153,7 +155,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MetadataResourceBodyPost'
+              $ref: '#/components/schemas/MetadataResourceBody'
 
       responses:
         201:
@@ -202,6 +204,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetadataResource'
+        400:
+          description: An error (validation, syntax) occurred relative to the instance data
         404:
           description: Namespace/Resource not found
           content: {}
@@ -230,7 +234,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MetadataResourceBodyPut'
+              $ref: '#/components/schemas/MetadataResourceBody'
 
       responses:
         200:
@@ -240,7 +244,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/MetadataResource'
         400:
-          description: The operation is not supported
+          description: An error (validation, syntax, not supported) occurred relative to the instance data
         404:
           description: The resource to update was not found
         500:
@@ -266,6 +270,8 @@ paths:
       responses:
         204:
           description: The resource was successfully deleted
+        400:
+          description: An error (validation, syntax) occurred relative to the instance data
         403:
           description: Deletion of the resource is not permitted
         404:
@@ -323,40 +329,20 @@ paths:
 
 components:
   schemas:
-    MetadataResourceBodyPost:
+    MetadataResourceBody:
       description: The set of properties comprising the request body for POST
       required:
         - display_name
-        - name
         - schema_name
         - metadata
       type: object
       properties:
         name:
           type: string
-          description: The canonical name of the resource
+          description: The canonical name of the resource.  Will be derived from display_name if not provided on POST.
         display_name:
           type: string
-          description: The display name of the resource
-        schema_name:
-          type: string
-          description: The schema name used to validate the resource
-        metadata:
-          type: object
-          properties: {}
-          description: A free-form dictionary consisting of additional information
-            about the resource.
-
-    MetadataResourceBodyPut:
-      description: The set of properties comprising the request body for PUT; no field is required
-      type: object
-      properties:
-        name:
-          type: string
-          description: The canonical name of the resource
-        display_name:
-          type: string
-          description: The display name of the resource
+          description: The display name of the resource.
         schema_name:
           type: string
           description: The schema name used to validate the resource

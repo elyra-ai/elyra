@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import copy
 import io
 import json
 import jupyter_core.paths
 import os
 import re
 import shutil
+import time
 import warnings
 
 from abc import ABC, abstractmethod
@@ -169,8 +171,8 @@ class MetadataStore(ABC):
     def __init__(self, namespace, **kwargs):
         self.schema_mgr = SchemaManager.instance()
         if not self.schema_mgr.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: {}".
-                             format(namespace, self.schema_mgr.get_namespaces()))
+            raise FileNotFoundError("Namespace '{}' is not in the list of valid namespaces: {}".
+                                    format(namespace, self.schema_mgr.get_namespaces()))
 
         self.namespace = namespace
         self.log = log.get_logger()
@@ -295,13 +297,18 @@ class FileMetadataStore(MetadataStore):
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
                              "embedded hyphens ('-') and underscores ('_').")
 
+        # Validate the metadata prior to persistence.  We'll validate again after persistence.
+        self._validate_metadata(name, metadata.to_dict(trim=True))
+
         metadata_resource_name = '{}.json'.format(name)
         resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)
 
         # Handle replacement behavior for hierarchy.
+        renamed_resource = None
         if os.path.exists(resource):
-            if replace:
-                os.remove(resource)
+            if replace:  # If we're replacing (updating), we need to rename the current file to allow restore on errs
+                renamed_resource = resource + str(time.time())
+                os.rename(resource, renamed_resource)
             else:
                 msg = "Metadata resource '{}' already exists.".format(resource)
                 self.log.error(msg)
@@ -329,9 +336,12 @@ class FileMetadataStore(MetadataStore):
         try:
             with jupyter_core.paths.secure_write(resource) as f:
                 f.write(metadata.prepare_write())  # Only persist necessary items
-        except Exception:
+        except Exception as ex:
             if created_namespace_dir:
                 shutil.rmtree(self.preferred_metadata_dir)
+            elif renamed_resource:  # Restore the renamed file
+                os.rename(renamed_resource, resource)
+            raise ex
         else:
             self.log.debug("Created metadata resource: {}".format(resource))
 
@@ -345,6 +355,8 @@ class FileMetadataStore(MetadataStore):
                 shutil.rmtree(self.preferred_metadata_dir)
             else:
                 os.remove(resource)
+                if renamed_resource:  # Restore the renamed file
+                    os.rename(renamed_resource, resource)
             raise ve
 
         return metadata
@@ -441,6 +453,20 @@ class FileMetadataStore(MetadataStore):
 
         return schema_json
 
+    def _validate_metadata(self, name, metadata_json):
+        """Validate the metadata.  If no schema name is present, False is returned.
+           If schema_name is present and metadata is considered valid, True is returned,
+           otherwise a ValidationError is raised.
+        """
+        schema_name = metadata_json.get('schema_name')
+        if schema_name:
+            schema = self._get_schema(schema_name)  # returns a value or throws
+            self.validate(name, schema_name, schema, metadata_json)
+            return True
+        else:
+            raise ValidationError("Metadata instance '{}' in namespace '{}' is missing a 'schema_name' field!".
+                                  format(name, self.namespace))
+
     def _load_from_resource(self, resource, validate_metadata=True, include_invalid=False):
         # This is always called with an existing resource (path) so no need to check existence.
 
@@ -462,18 +488,13 @@ class FileMetadataStore(MetadataStore):
 
         reason = None
         if validate_metadata:
-            schema_name = metadata_json.get('schema_name')
-            if schema_name:
-                schema = self._get_schema(schema_name)  # returns a value or throws
-                try:
-                    self.validate(name, schema_name, schema, metadata_json)
-                except ValidationError as ve:
-                    if include_invalid:
-                        reason = ve.__class__.__name__
-                    else:
-                        raise ve
-            else:
-                self.log.debug("No schema found in metadata resource '{}' - skipping validation.".format(resource))
+            try:
+                self._validate_metadata(name, metadata_json)
+            except ValidationError as ve:
+                if include_invalid:
+                    reason = ve.__class__.__name__
+                else:
+                    raise ve
 
         metadata = Metadata(name=name,
                             display_name=metadata_json.get('display_name'),
@@ -583,4 +604,4 @@ class SchemaManager(SingletonConfigurable):
                 name = os.path.splitext(os.path.basename(schema_file))[0]
             namespace_schemas[namespace][name] = schema_json
 
-        return namespace_schemas.copy()
+        return copy.deepcopy(namespace_schemas)
