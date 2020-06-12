@@ -19,14 +19,13 @@ limitations under the License.
 # Deploying Elyra & JupyterHub in a Kubernetes environment
 
 This document goes over how to integrate Elyra into a self-service Jupyter Notebook platform
-managed by JupyterHub.
+managed by JupyterHub in a Kubernetes environment.
 
-If you are looking for details on how to install/configure JupyterHub, look at
-[Zero to JupyterHub with Kubernetes](https://zero-to-jupyterhub.readthedocs.io/en/latest/index.html)
-or this [Ansible script to deploy Elyra, JupyterHub, Jupyter Enterprise Gateway](https://github.com/lresende/ansible-kubernetes-cluster)
+The links below provide more details on how to install/configure JupyterHub:
+ - [Zero to JupyterHub with Kubernetes](https://zero-to-jupyterhub.readthedocs.io/en/latest/index.html)
+ - [Ansible script to deploy Elyra, JupyterHub, Jupyter Enterprise Gateway](https://github.com/lresende/ansible-kubernetes-cluster)
 
 ![JupyterHub Deployment](https://raw.githubusercontent.com/lresende/ansible-kubernetes-cluster/master/docs/images/elyra-deployment-diagram.png)
-
 
 ## Configuring JupyterHub Deployment
 
