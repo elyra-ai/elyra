@@ -20,17 +20,33 @@ import * as React from 'react';
 import { RequestHandler } from './requests';
 
 /**
- * A utility class for handling elyra metadata calls.
+ * A service class for accessing the elyra api.
  */
 export class FrontendServices {
-  static noMetadataError(metadataName: string): Promise<Dialog.IResult<any>> {
+  /**
+   * Displays a dialog for error cases during metadata calls.
+   *
+   * @param namespace - the metadata namespace that was being accessed when
+   * the error occurred
+   *
+   * @returns A promise that resolves with whether the dialog was accepted.
+   */
+  static noMetadataError(namespace: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error retrieving metadata',
-      body: <p>No {metadataName} metadata has been configured.</p>,
+      body: <p>No {namespace} metadata has been configured.</p>,
       buttons: [Dialog.okButton()]
     });
   }
 
+  /**
+   * Service function for making GET calls to the elyra metadata API.
+   *
+   * @param namespace - the metadata namespace being accessed
+   *
+   * @returns a promise that resolves with the requested metadata or
+   * an error dialog result
+   */
   static async getMetadata(namespace: string): Promise<any> {
     const metadataResponse: any = await RequestHandler.makeGetRequest(
       'elyra/metadata/' + namespace,
