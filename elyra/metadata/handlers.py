@@ -73,11 +73,20 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         """Validates the body issued for creates. """
         body = self.get_json_body()
 
-        # Ensure name, schema_name and metadata fields exist.
-        required_fields = ['name', 'schema_name', 'metadata']
+        # Ensure schema_name and metadata fields exist.
+        required_fields = ['schema_name', 'metadata']
         for field in required_fields:
             if field not in body:
                 raise SyntaxError("Insufficient information - '{}' is missing from request body.".format(field))
+
+        # Ensure there is at least one of name or a display_name
+        one_of_fields = ['name', 'display_name']
+        if set(body).isdisjoint(one_of_fields):
+            raise SyntaxError(
+                "Insufficient information - request body requires one of the following: {}.".format(
+                    one_of_fields
+                )
+            )
 
         instance = Metadata(**body)
         return instance
