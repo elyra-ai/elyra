@@ -29,10 +29,11 @@ const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 
 type FormItemType = 'TextInput' | 'DropDown' | 'Code';
 
-type FormItem = {
+export type FormItem = {
   value: any;
   type: FormItemType;
   label: string;
+  schemaField: string;
 };
 
 /**
@@ -80,19 +81,17 @@ export class MetadataEditor extends ReactWidget {
     const newSnippet: any = {
       schema_name: 'code-snippet',
       name: this.fileName,
-      display_name: this.getFormItem('Name', 'TextInput').value,
+      display_name: this.getFormItem('Name').value,
       metadata: {}
     };
 
     for (const field of this.metadata) {
       if (field.type == 'TextInput') {
-        newSnippet.metadata[field.label] = field.value;
+        newSnippet.metadata[field.schemaField] = field.value;
       } else if (field.type == 'DropDown') {
-        newSnippet.metadata[field.label] = field.value.choice;
+        newSnippet.metadata[field.schemaField] = field.value.choice;
       } else if (field.type == 'Code') {
-        newSnippet.metadata[field.label] = this.editor.model.value.text.split(
-          '\n'
-        );
+        newSnippet.metadata[field.schemaField] = field.value.split('\n');
       }
     }
     const newSnippetString = JSON.stringify(newSnippet);
@@ -102,7 +101,7 @@ export class MetadataEditor extends ReactWidget {
         (response: any): void => {
           this.updateSignal();
           this.newFile = false;
-          this.title.label = this.getFormItem('Name', 'TextInput').value;
+          this.title.label = this.getFormItem('Name').value;
         }
       );
     } else {
@@ -145,21 +144,20 @@ export class MetadataEditor extends ReactWidget {
     }
   };
 
-  getFormItem(searchLabel: string, searchType: string): FormItem {
-    return this.metadata.find(({ value, type, label }) => {
-      return label == searchLabel && type == searchType;
+  getFormItem(searchLabel: string): FormItem {
+    return this.metadata.find(({ value, type, label, schemaField }) => {
+      return label == searchLabel;
     });
   }
 
   handleTextInputChange(event: any, label: string): void {
     this.tracker.save(this);
-    this.getFormItem(label, 'TextInput').value =
-      event.nativeEvent.srcElement.value;
+    this.getFormItem(label).value = event.nativeEvent.srcElement.value;
   }
 
   handleDropdownChange = (label: string, value: string): void => {
     this.tracker.save(this);
-    this.getFormItem(label, 'DropDown').value.choice = value;
+    this.getFormItem(label).value.choice = value;
     this.update();
   };
 
@@ -168,8 +166,12 @@ export class MetadataEditor extends ReactWidget {
       this.editor = this.editorFactory({
         host: document.getElementById('Code:' + this.id),
         model: new CodeEditor.Model({
-          value: this.getFormItem('Code', 'Code').value
+          value: this.getFormItem('Code').value
         })
+      });
+      this.editor.model.value.changed.connect((args: any) => {
+        this.getFormItem('Code').value = args.text;
+        this.tracker.save(this);
       });
     }
   }
@@ -222,9 +224,7 @@ export class MetadataEditor extends ReactWidget {
                 icon="code"
                 rightIcon="caret-down"
                 text={
-                  field.value.choice != ''
-                    ? field.value.choice
-                    : '(No selection)'
+                  field.value.choice ? field.value.choice : '(No selection)'
                 }
               />
             </Select>
@@ -232,9 +232,7 @@ export class MetadataEditor extends ReactWidget {
         );
       }
     }
-    let headerText = `Edit ${
-      this.getFormItem('Name', 'TextInput').value
-    } Metadata`;
+    let headerText = `Edit "${this.getFormItem('Name').value}" Metadata`;
     if (this.newFile) {
       headerText = 'Add new metadata';
     }

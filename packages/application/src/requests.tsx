@@ -118,7 +118,7 @@ export class RequestHandler {
    */
   static async makePostRequest(
     requestPath: string,
-    requestBody: any,
+    requestBody: string,
     longRequest: boolean
   ): Promise<any> {
     return this.makeServerRequest(

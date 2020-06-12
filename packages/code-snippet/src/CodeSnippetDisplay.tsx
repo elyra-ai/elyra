@@ -33,7 +33,10 @@ import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { ICodeSnippet } from './CodeSnippetService';
-import { CODE_SNIPPET_ENDPOINT } from './CodeSnippetWidget';
+import {
+  CODE_SNIPPET_ENDPOINT,
+  defaultLanguageChoices
+} from './CodeSnippetWidget';
 
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 
@@ -195,25 +198,29 @@ export class CodeSnippetDisplay extends React.Component<
               {
                 label: 'Name',
                 value: codeSnippet.displayName,
-                type: 'TextInput'
+                type: 'TextInput',
+                schemaField: 'display_name'
               },
               {
                 label: 'Description',
                 value: codeSnippet.description,
-                type: 'TextInput'
+                type: 'TextInput',
+                schemaField: 'description'
               },
               {
                 label: 'Language',
                 value: {
                   choice: codeSnippet.language,
-                  defaultChoices: ['python', 'R', 'C#', 'scala']
+                  defaultChoices: defaultLanguageChoices
                 },
-                type: 'DropDown'
+                type: 'DropDown',
+                schemaField: 'language'
               },
               {
                 label: 'Code',
                 value: codeSnippet.code.join('\n'),
-                type: 'Code'
+                type: 'Code',
+                schemaField: 'code'
               }
             ],
             newFile: false,

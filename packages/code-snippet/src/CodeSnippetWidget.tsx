@@ -40,6 +40,16 @@ const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 
 export const CODE_SNIPPET_ENDPOINT = 'code-snippets/';
+export const defaultLanguageChoices = [
+  'Python',
+  'Java',
+  'R',
+  'Julia',
+  'Matlab',
+  'Octave',
+  'Scheme',
+  'Processing'
+];
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
@@ -93,22 +103,28 @@ export class CodeSnippetWidget extends ReactWidget {
         {
           label: 'Name',
           value: '',
-          type: 'TextInput'
+          type: 'TextInput',
+          schemaField: 'display_name'
         },
         {
-          label: 'description',
+          label: 'Description',
           value: '',
-          type: 'TextInput'
+          type: 'TextInput',
+          schemaField: 'description'
         },
         {
-          label: 'language',
-          value: '',
-          type: 'Dropdown'
+          label: 'Language',
+          value: {
+            defaultChoices: defaultLanguageChoices
+          },
+          type: 'DropDown',
+          schemaField: 'language'
         },
         {
           label: 'Code',
           value: '',
-          type: 'Code'
+          type: 'Code',
+          schemaField: 'code'
         }
       ],
       newFile: true,

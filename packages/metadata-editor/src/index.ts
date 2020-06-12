@@ -21,9 +21,9 @@ import {
   ILayoutRestorer
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
-import { IEditorServices } from '@jupyterlab/codeeditor';
+import { IEditorServices, CodeEditor } from '@jupyterlab/codeeditor';
 
-import { MetadataEditor } from './MetadataEditor';
+import { MetadataEditor, FormItem } from './MetadataEditor';
 
 export const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
@@ -51,26 +51,25 @@ const extension: JupyterFrontEndPlugin<void> = {
       namespace: METADATA_EDITOR_ID
     });
     restorer.restore(editorTracker, {
-      name: (metadataEditor: any) => {
-        return metadataEditor.metadataLabel;
+      name: (metadataEditor: MetadataEditor) => {
+        return metadataEditor.id;
       },
       command: `${METADATA_EDITOR_ID}:open`,
       args: (widget: MetadataEditor) => ({
         metadata: widget.metadata,
         newFile: widget.newFile,
-        metadataLabel: widget.getFormItem('Name', 'TextInput').value,
         endpoint: widget.endpoint,
         updateSignal: widget.updateSignal,
         fileName: widget.fileName
       })
     });
     const openMetadataEditor = async (args: {
-      metadata: any[];
+      metadata: FormItem[];
       newFile: boolean;
-      metadataLabel: string;
       endpoint: string;
       updateSignal: any;
       fileName: string;
+      editor: CodeEditor.IEditor;
     }): Promise<void> => {
       const metadataEditorWidget = new MetadataEditor(
         args.metadata,
@@ -94,7 +93,11 @@ const extension: JupyterFrontEndPlugin<void> = {
           untitledId++;
         }
       } else {
-        metadataEditorWidget.title.label = `${args.metadataLabel}`;
+        metadataEditorWidget.title.label = args.metadata.find(
+          (item: FormItem) => {
+            return item.label == 'Name';
+          }
+        ).value;
       }
       metadataEditorWidget.id = `${METADATA_EDITOR_ID}:${metadataEditorWidget.title.label}`;
       metadataEditorWidget.title.closable = true;
