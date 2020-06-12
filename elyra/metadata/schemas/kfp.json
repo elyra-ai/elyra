@@ -11,8 +11,7 @@
     },
     "display_name": {
       "description": "The display name of this KFP instance",
-      "type": "string",
-      "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+      "type": "string"
     },
     "metadata": {
       "description": "Additional data specific to this metadata",

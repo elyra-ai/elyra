@@ -15,7 +15,8 @@
 #
 
 .PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
-.PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release docker-image
+.PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
+.PHONY: docker-image, validate-runtime-images
 
 SHELL:=/bin/bash
 
@@ -24,6 +25,10 @@ TOC_VERSION:=4.0.0
 
 TAG:=dev
 IMAGE=elyra/elyra:$(TAG)
+
+# Contains the set of commands required to be used by elyra
+REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3" 
+REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -139,6 +144,33 @@ docker-image: ## Build docker image
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
+
+validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
+	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
+	for file in `find etc/config/metadata/runtime-images -name "*.json"` ; do \
+		image=`grep image_name $$file | awk '{print $$2}' | sed s/\"//g` ; \
+		fail=0; \
+		for cmd in $$required_commands ; do \
+			echo Checking $$image in $$file for $$cmd... ; \
+			docker inspect $$image > /dev/null 2>&1 ; \
+			if [ $$? -ne 0 ]; then \
+				echo Image $$image is not present, pulling... ; \
+			fi; \
+			docker run --rm $$image which $$cmd > /dev/null 2>&1 ; \
+			if [ $$? -ne 0 ]; then \
+				echo ERROR: Image $$image did not meet criteria for command: $$cmd ; \
+				fail=1; \
+			fi; \
+		done; \
+		if [ $(REMOVE_RUNTIME_IMAGE) -eq 1 ]; then \
+			echo Removing image $$image... ; \
+			docker rmi $$image > /dev/null ; \
+		fi; \
+		if [ $$fail -eq 1 ]; then \
+			exit 1; \
+		fi; \
+	done
+
 
 define UNLINK_LAB_EXTENSION
 	- jupyter labextension unlink --no-build $1

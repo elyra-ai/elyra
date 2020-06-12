@@ -1,7 +1,7 @@
 {
   "display_name": "Pandas",
   "metadata": {
-    "image_name": "amancevice/pandas:0.25.0-jupyter"
+    "image_name": "amancevice/pandas:1.0.3"
   },
   "schema_name": "runtime-image"
 }

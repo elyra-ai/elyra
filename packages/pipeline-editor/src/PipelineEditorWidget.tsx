@@ -27,7 +27,6 @@ import {
   clearPipelineIcon,
   dragDropIcon,
   exportPipelineIcon,
-  newPipelineIcon,
   pipelineIcon,
   savePipelineIcon
 } from '@elyra/ui-components';
@@ -214,7 +213,6 @@ export class PipelineEditor extends React.Component<
     };
     const toolbarConfig = [
       { action: 'run', label: 'Run Pipeline', enable: true },
-      { divider: true },
       {
         action: 'save',
         label: 'Save Pipeline',
@@ -222,7 +220,6 @@ export class PipelineEditor extends React.Component<
         iconEnabled: IconUtil.encode(savePipelineIcon),
         iconDisabled: IconUtil.encode(savePipelineIcon)
       },
-      { divider: true },
       {
         action: 'export',
         label: 'Export Pipeline',
@@ -230,15 +227,6 @@ export class PipelineEditor extends React.Component<
         iconEnabled: IconUtil.encode(exportPipelineIcon),
         iconDisabled: IconUtil.encode(exportPipelineIcon)
       },
-      { divider: true },
-      {
-        action: 'new',
-        label: 'New Pipeline',
-        enable: true,
-        iconEnabled: IconUtil.encode(newPipelineIcon),
-        iconDisabled: IconUtil.encode(newPipelineIcon)
-      },
-      { divider: true },
       {
         action: 'clear',
         label: 'Clear Pipeline',

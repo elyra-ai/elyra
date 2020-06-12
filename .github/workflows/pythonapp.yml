@@ -64,3 +64,12 @@ jobs:
     - name: Collect logs
       if: failure()
       run: cat /tmp/jupyterlab-debug-*.log
+  image_validation:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        clean: true
+    - name: Validate runtime images
+      run: make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images

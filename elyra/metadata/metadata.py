@@ -228,6 +228,20 @@ class FileMetadataStore(MetadataStore):
         self.log.debug("Namespace '{}' is using metadata directory: {} from list: {}".
                        format(self.namespace, self.preferred_metadata_dir, self.metadata_paths))
 
+    def _get_normalized_name(self, name):
+        # lowercase and replaces spaces with underscore
+        name = re.sub('\\s+', '_', name.lower())
+        # remove all invalid characters
+        name = re.sub('[^a-z0-9-_]+', '', name)
+        # begin with alpha
+        if not name[0].isalpha():
+            name = 'a_' + name
+        # end with alpha numeric
+        if not name[-1].isalnum():
+            name = name + '_0'
+
+        return name
+
     @property
     def get_metadata_locations(self):
         return self.metadata_paths
@@ -263,19 +277,23 @@ class FileMetadataStore(MetadataStore):
         return self._load_metadata_resources(name=name)
 
     def save(self, name, metadata, replace=False):
-        if not name:
-            raise ValueError('Name of metadata was not provided.')
-
-        match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
-        if match is None:
-            raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
-                             "embedded hyphens ('-') and underscores ('_').")
-
         if not metadata:
             raise ValueError("An instance of class 'Metadata' was not provided.")
 
         if not isinstance(metadata, Metadata):
             raise TypeError("'metadata' is not an instance of class 'Metadata'.")
+
+        if not name:
+            if metadata.display_name:
+                name = self._get_normalized_name(metadata.display_name)
+                metadata.name = name
+            else:
+                raise ValueError('Name of metadata was not provided.')
+
+        match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
+        if match is None:
+            raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
+                             "embedded hyphens ('-') and underscores ('_').")
 
         metadata_resource_name = '{}.json'.format(name)
         resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)

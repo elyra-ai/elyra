@@ -21,7 +21,8 @@ import pytest
 
 from jsonschema import validate, ValidationError, draft7_format_checker
 from elyra.metadata import Metadata, MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE
-from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, get_schema
+from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, \
+    get_schema, invalid_no_display_name_json, valid_display_name_json
 
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
@@ -70,14 +71,57 @@ def test_manager_add_invalid(tests_manager, data_dir):
 
     # Attempt with non Metadata instance
     with pytest.raises(TypeError):
-        tests_manager.add(invalid_metadata_json)
+        tests_manager.add(valid_metadata_json)
 
     # and invalid parameters
-    with pytest.raises(ValueError):
-        tests_manager.add(None, invalid_metadata_json)
+    with pytest.raises(TypeError):
+        tests_manager.add(None, invalid_no_display_name_json)
 
     with pytest.raises(ValueError):
         tests_manager.add("foo", None)
+
+
+def test_manager_add_no_name(tests_manager, metadata_tests_dir):
+    metadata_name = 'valid_metadata_instance'
+
+    metadata = Metadata(**valid_metadata_json)
+    instance = tests_manager.add(None, metadata)
+
+    assert instance is not None
+    assert instance.name == metadata_name
+
+    # Ensure file was created
+    metadata_file = os.path.join(metadata_tests_dir, '{}.json'.format(metadata_name))
+    assert os.path.exists(metadata_file)
+
+    # And finally, remove it.
+    tests_manager.remove(metadata_name)
+    assert not os.path.exists(metadata_file)
+
+
+def test_manager_add_display_name(tests_manager, metadata_tests_dir):
+    metadata_display_name = '1 teste "rápido"'
+    metadata_name = 'a_1_teste_rpido'
+
+    metadata = Metadata(**valid_display_name_json)
+    instance = tests_manager.add(None, metadata)
+
+    assert instance is not None
+    assert instance.name == metadata_name
+    assert instance.display_name == metadata_display_name
+
+    # Ensure file was created
+    metadata_file = os.path.join(metadata_tests_dir, '{}.json'.format(metadata_name))
+    assert os.path.exists(metadata_file)
+
+    with open(metadata_file, 'r', encoding='utf-8') as f:
+        valid_add = json.loads(f.read())
+        assert "display_name" in valid_add
+        assert valid_add['display_name'] == metadata_display_name
+
+    # And finally, remove it.
+    tests_manager.remove(metadata_name)
+    assert not os.path.exists(metadata_file)
 
 
 def test_manager_list_summary(tests_manager):

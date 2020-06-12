@@ -21,9 +21,16 @@ import { ServerConnection } from '@jupyterlab/services';
 
 import * as React from 'react';
 
+/**
+ * A service class for making requests to the jupyter lab server.
+ */
 export class RequestHandler {
   /**
-   * displays an error Dialog with an optional stack trace
+   * Displays an error dialog showing error data and stacktrace, if available.
+   *
+   * @param response - The server response containing the error data
+   *
+   * @returns A promise that resolves with whether the dialog was accepted.
    */
   private static serverError(response: any): Promise<Dialog.IResult<any>> {
     const reason = response.reason ? response.reason : '';
@@ -53,7 +60,9 @@ export class RequestHandler {
   }
 
   /**
-   * displays an error Dialog for a 404
+   * Displays an error dialog for when a server request returns a 404.
+   *
+   * @returns A promise that resolves with whether the dialog was accepted.
    */
   private static server404(): Promise<Dialog.IResult<any>> {
     return showDialog({
@@ -64,14 +73,21 @@ export class RequestHandler {
   }
 
   /**
-   * Make a GET request to the jupyterlab server.
+   * Make a GET request to the jupyter lab server.
    *
-   * @param requestPath - The url for the request.
+   * All errors returned by the server are handled by displaying a relevant
+   * error dialog. If `longRequest` is true then a warning dialog is displayed
+   * to users while waiting for the server response. On success a promise that
+   * resolves to the server response is returned.
    *
-   * @param longRequest - If the request is expected to take a long time.
+   * @param requestPath - The url path for the request.
+   * This path is appended to the base path of the server for the request.
+   *
+   * @param longRequest - Whether the request is expected to take a long time.
    * If true, displays a dialog warning that the request may take time.
    *
-   * @returns a Promise that resolves with either the response or a Dialog.
+   * @returns a promise that resolves with the server response on success or
+   * an error dialog result in cases of failure.
    */
   static async makeGetRequest(
     requestPath: string,
@@ -81,16 +97,24 @@ export class RequestHandler {
   }
 
   /**
-   * Make a POST request to the jupyterlab server.
+   * Make a POST request to the jupyter lab server.
    *
-   * @param requestPath - The url for the request.
+   * All errors returned by the server are handled by displaying a relevant
+   * error dialog. If `longRequest` is true then a warning dialog is displayed
+   * to users while waiting for the server response. On success a promise that
+   * resolves to the server response is returned.
+   *
+   * @param requestPath - The url path for the request.
+   * This path is appended to the base path of the server for the request.
    *
    * @param requestBody - The body of the request.
+   * Will be included in the RequestInit object passed to `makeServerRequest`
    *
-   * @param longRequest - If the request is expected to take a long time.
+   * @param longRequest - Whether the request is expected to take a long time.
    * If true, displays a dialog warning that the request may take time.
    *
-   * @returns a Promise that resolves with either the response or a Dialog.
+   * @returns a promise that resolves with the server response on success or
+   * an error dialog result in cases of failure.
    */
   static async makePostRequest(
     requestPath: string,
@@ -105,16 +129,24 @@ export class RequestHandler {
   }
 
   /**
-   * Make a PUT request to the jupyterlab server.
+   * Make a PUT request to the jupyter lab server.
    *
-   * @param requestPath - The url for the request.
+   * All errors returned by the server are handled by displaying a relevant
+   * error dialog. If `longRequest` is true then a warning dialog is displayed
+   * to users while waiting for the server response. On success a promise that
+   * resolves to the server response is returned.
+   *
+   * @param requestPath - The url path for the request.
+   * This path is appended to the base path of the server for the request.
    *
    * @param requestBody - The body of the request.
+   * Will be included in the RequestInit object passed to `makeServerRequest`
    *
-   * @param longRequest - If the request is expected to take a long time.
+   * @param longRequest - Whether the request is expected to take a long time.
    * If true, displays a dialog warning that the request may take time.
    *
-   * @returns a Promise that resolves with either the response or a Dialog.
+   * @returns a promise that resolves with the server response on success or
+   * an error dialog result in cases of failure.
    */
   static async makePutRequest(
     requestPath: string,
@@ -129,14 +161,21 @@ export class RequestHandler {
   }
 
   /**
-   * Make a DELETE request to the jupyterlab server.
+   * Make a DELETE request to the jupyter lab server.
    *
-   * @param requestPath - The url for the request.
+   * All errors returned by the server are handled by displaying a relevant
+   * error dialog. If `longRequest` is true then a warning dialog is displayed
+   * to users while waiting for the server response. On success a promise that
+   * resolves to the server response is returned.
    *
-   * @param longRequest - If the request is expected to take a long time.
+   * @param requestPath - The url path for the request.
+   * This path is appended to the base path of the server for the request.
+   *
+   * @param longRequest - Whether the request is expected to take a long time.
    * If true, displays a dialog warning that the request may take time.
    *
-   * @returns a Promise that resolves with either the response or a Dialog.
+   * @returns a promise that resolves with the server response on success or
+   * an error dialog result in cases of failure.
    */
   static async makeDeleteRequest(
     requestPath: string,
@@ -150,20 +189,33 @@ export class RequestHandler {
   }
 
   /**
-   * Make an request to the jupyterlab server.
+   * Make a request to the jupyter lab server.
    *
-   * @param requestPath - The url for the request.
+   * The method of request is set in the `method` value in `requestInit`.
+   * All errors returned by the server are handled by displaying a relevant
+   * error dialog. If `longRequest` is true then a warning dialog is displayed
+   * to users while waiting for the server response. On success a promise that
+   * resolves to the server response is returned.
    *
-   * @param requestOptions - The initialization options for the request.
+   * @param requestPath - The url path for the request.
+   * This path is appended to the base path of the server for the request.
    *
-   * @param longRequest - If the request is expected to take a long time.
+   * @param requestInit - The initialization options for the request.
+   * A RequestInit object to be passed directly to `ServerConnection.makeRequest`
+   * that must include a value for `method`.
+   * This is based on "@typescript/lib/lib.dom.d/RequestInit"
+   * @see {@link https://github.com/Microsoft/TypeScript/blob/master/lib/lib.dom.d.ts#L1558}
+   * and {@link https://fetch.spec.whatwg.org/#requestinit}
+   *
+   * @param longRequest - Whether the request is expected to take a long time.
    * If true, displays a dialog warning that the request may take time.
    *
-   * @returns a Promise that resolves with either the response or a Dialog.
+   * @returns a promise that resolves with the server response on success or
+   * an error dialog result in cases of failure.
    */
   static async makeServerRequest(
     requestPath: string,
-    requestOptions: any,
+    requestInit: any,
     longRequest: boolean
   ): Promise<any> {
     // use ServerConnection utility to make calls to Jupyter Based services
@@ -171,7 +223,7 @@ export class RequestHandler {
     const settings = ServerConnection.makeSettings();
     const requestUrl = URLExt.join(settings.baseUrl, requestPath);
 
-    console.log(`Sending a ${requestOptions.method} request to ${requestUrl}`);
+    console.log(`Sending a ${requestInit.method} request to ${requestUrl}`);
 
     const waitDialog: Dialog<any> = new Dialog({
       title: 'Making server request...',
@@ -184,7 +236,7 @@ export class RequestHandler {
     }
 
     const getServerResponse: Promise<any> = new Promise((resolve, reject) => {
-      ServerConnection.makeRequest(requestUrl, requestOptions, settings).then(
+      ServerConnection.makeRequest(requestUrl, requestInit, settings).then(
         (response: any) => {
           if (longRequest) {
             waitDialog.resolve();
