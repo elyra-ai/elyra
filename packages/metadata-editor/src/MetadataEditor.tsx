@@ -109,7 +109,8 @@ export class MetadataEditor extends ReactWidget {
       );
     } else {
       FrontendServices.putMetadata(
-        `${this.endpoint}/{newSnippet.name}`,
+        this.endpoint,
+        newSnippet.name,
         newSnippetString
       ).then((response: any): void => {
         this.updateSignal();
@@ -224,7 +225,6 @@ export class MetadataEditor extends ReactWidget {
               itemRenderer={this.itemRenderer}
             >
               <Button
-                icon="code"
                 rightIcon="caret-down"
                 text={
                   field.value.choice ? field.value.choice : '(No selection)'
