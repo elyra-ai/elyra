@@ -403,7 +403,43 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_2.resource.startswith(str(shared_dir))
 
 
-def test_manager_bad_update(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):
+def test_manager_update(tests_hierarchy_manager, metadata_tests_dir):
+
+    # Create some metadata, then attempt to update it with a known schema violation
+    # and ensure the previous copy still exists...
+
+    # Create a user instance...
+    metadata = Metadata(**byo_metadata_json)
+    metadata.display_name = 'user1'
+    instance = tests_hierarchy_manager.add('update', metadata)
+    assert instance is not None
+    assert instance.resource.startswith(str(metadata_tests_dir))
+
+    # Now update the user instance - add a field - and ensure that the original renamed file is not present.
+
+    instance2 = tests_hierarchy_manager.get('update')
+    instance2.display_name = 'user2'
+    instance2.metadata['number_range_test'] = 7
+    tests_hierarchy_manager.add('update', instance2, replace=True)
+
+    # Ensure only the actual metadata file exists.  The renamed file will start with 'update.json' but have
+    # a timestamp appended to it.
+    count = 0
+    actual = 0
+    for f in os.listdir(str(metadata_tests_dir)):
+        if "update.json" in f:
+            count = count + 1
+        if "update.json" == f:
+            actual = actual + 1
+    assert count == 1, "Renamed file was not removed"
+    assert actual == 1
+
+    instance2 = tests_hierarchy_manager.get('update')
+    assert instance2.display_name == 'user2'
+    assert instance2.metadata['number_range_test'] == 7
+
+
+def test_manager_bad_update(tests_hierarchy_manager, metadata_tests_dir):
 
     # Create some metadata, then attempt to update it with a known schema violation
     # and ensure the previous copy still exists...
@@ -427,6 +463,12 @@ def test_manager_bad_update(tests_hierarchy_manager, factory_dir, shared_dir, me
     instance2 = tests_hierarchy_manager.get('bad_update')
     assert instance2.display_name == instance.display_name
     assert 'number_range_test' not in instance2.metadata
+
+    # Now try update within providing a name, ValueError expected
+    instance2 = tests_hierarchy_manager.get('bad_update')
+    instance2.display_name = 'user update with no name'
+    with pytest.raises(ValueError):
+        tests_hierarchy_manager.add(None, instance2, replace=True)
 
 
 def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):

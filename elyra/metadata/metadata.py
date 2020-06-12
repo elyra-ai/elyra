@@ -285,12 +285,13 @@ class FileMetadataStore(MetadataStore):
         if not isinstance(metadata, Metadata):
             raise TypeError("'metadata' is not an instance of class 'Metadata'.")
 
-        if not name:
+        if not name and not replace:  # name is derived from display_name only on creates
             if metadata.display_name:
                 name = self._get_normalized_name(metadata.display_name)
                 metadata.name = name
-            else:
-                raise ValueError('Name of metadata was not provided.')
+
+        if not name:  # At this point, name must be set
+            raise ValueError('Name of metadata was not provided.')
 
         match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
         if match is None:
@@ -358,6 +359,9 @@ class FileMetadataStore(MetadataStore):
                 if renamed_resource:  # Restore the renamed file
                     os.rename(renamed_resource, resource)
             raise ve
+
+        if renamed_resource:  # Remove the renamed file
+            os.remove(renamed_resource)
 
         return metadata
 
