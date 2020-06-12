@@ -66,7 +66,7 @@ def test_validate_factory_schemas():
 # ########################## MetadataManager Tests ###########################
 def test_manager_add_invalid(tests_manager, data_dir):
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValueError):
         MetadataManager(namespace='invalid')
 
     # Attempt with non Metadata instance

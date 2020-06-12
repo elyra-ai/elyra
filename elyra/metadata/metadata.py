@@ -171,8 +171,8 @@ class MetadataStore(ABC):
     def __init__(self, namespace, **kwargs):
         self.schema_mgr = SchemaManager.instance()
         if not self.schema_mgr.is_valid_namespace(namespace):
-            raise FileNotFoundError("Namespace '{}' is not in the list of valid namespaces: {}".
-                                    format(namespace, self.schema_mgr.get_namespaces()))
+            raise ValueError("Namespace '{}' is not in the list of valid namespaces: {}".
+                             format(namespace, self.schema_mgr.get_namespaces()))
 
         self.namespace = namespace
         self.log = log.get_logger()

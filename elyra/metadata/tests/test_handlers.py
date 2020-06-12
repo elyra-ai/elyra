@@ -71,7 +71,7 @@ class MetadataHandlerTest(MetadataTestBase):
         # Remove self.request (and other 'self.' prefixes) once transition to jupyter_server occurs
         r = fetch(self.request, 'elyra', 'metadata', 'bogus', 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 404
+        assert r.status_code == 400
         assert "Namespace 'bogus' is not in the list of valid namespaces:" in r.text
         assert not os.path.exists(self.metadata_bogus_dir)
 
