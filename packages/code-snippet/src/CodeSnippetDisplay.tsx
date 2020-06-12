@@ -154,7 +154,7 @@ export class CodeSnippetDisplay extends React.Component<
 
   private deleteSnippet = (codeSnippet: ICodeSnippet): void => {
     showDialog({
-      title: 'Delete snippet?',
+      title: `Delete "${codeSnippet.displayName}" snippet?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       if (result.button.label == 'Cancel') {
@@ -163,7 +163,7 @@ export class CodeSnippetDisplay extends React.Component<
       }
 
       FrontendServices.deleteMetadata(
-        CODE_SNIPPET_ENDPOINT + codeSnippet.name
+        `${CODE_SNIPPET_ENDPOINT}/${codeSnippet.name}`
       ).then((response: any): void => {
         this.props.updateSnippets();
       });

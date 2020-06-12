@@ -25,6 +25,8 @@ import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
 
+import { METADATA_EDITOR_ID } from './index';
+
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 
 type FormItemType = 'TextInput' | 'DropDown' | 'Code';
@@ -102,11 +104,12 @@ export class MetadataEditor extends ReactWidget {
           this.updateSignal();
           this.newFile = false;
           this.title.label = this.getFormItem('Name').value;
+          this.id = `${METADATA_EDITOR_ID}:${this.title.label}`;
         }
       );
     } else {
       FrontendServices.putMetadata(
-        this.endpoint + newSnippet.name,
+        `${this.endpoint}/{newSnippet.name}`,
         newSnippetString
       ).then((response: any): void => {
         this.updateSignal();

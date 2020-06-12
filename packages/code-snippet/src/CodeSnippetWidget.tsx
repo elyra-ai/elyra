@@ -39,7 +39,7 @@ const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 
-export const CODE_SNIPPET_ENDPOINT = 'code-snippets/';
+export const CODE_SNIPPET_ENDPOINT = 'code-snippets';
 export const defaultLanguageChoices = [
   'Python',
   'Java',
