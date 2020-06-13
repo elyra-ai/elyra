@@ -243,10 +243,10 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         # missing schema).  Fixed by trapping the FileNotFoundError raised due to no schema.
         assert not os.path.exists(os.path.join(self.metadata_tests_dir, 'missing_schema.json'))
 
-    def test_update_instance(self):
-        """Update a simple instance. """
+    def test_update_non_existent(self):
+        """Attempt to update a non-existent instance. """
 
-        # First, try to update a non-existent instance - 404 expected...
+        # Try to update a non-existent instance - 404 expected...
         valid = copy.deepcopy(valid_metadata_json)
         valid['name'] = 'valid'
         valid['metadata']['number_range_test'] = 7
@@ -257,8 +257,15 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
 
-        # Now create an instance, then re-attempt the update
+    def test_update_instance(self):
+        """Update a simple instance. """
+
+        # Create an instance, then update
         create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
+        valid = copy.deepcopy(valid_metadata_json)
+        valid['name'] = 'valid'
+        valid['metadata']['number_range_test'] = 7
+        body = json.dumps(valid)
 
         # Update instance
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
@@ -274,29 +281,56 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         instance = r.json()
         assert instance['metadata']['number_range_test'] == 7
 
-        # Now attempt the update again, but with bad metadata and ensure previous still exists
+    def test_invalid_update(self):
+        """Update a simple instance with invalid metadata. """
+
+        # Create an instance, then update with invalid metadata
+        create_json_file(self.metadata_tests_dir, 'update_bad_md.json', valid_metadata_json)
+
+        # Fetch it to get the valid instance
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'update_bad_md',
+                  base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        instance = r.json()
+
+        # Now attempt the update with bad metadata and ensure previous still exists
         valid2 = copy.deepcopy(valid_metadata_json)
         valid2['name'] = 'valid'
         valid2['metadata']['number_range_test'] = 42
         body2 = json.dumps(valid2)
 
-        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body2,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'update_bad_md', body=body2,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 400
 
         # Fetch again and ensure it matches the previous instance
-        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'update_bad_md',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         instance2 = r.json()
         assert instance2 == instance
+
+    def test_update_fields(self):
+
+        # Create an instance, then update with a new field
+        create_json_file(self.metadata_tests_dir, 'update_fields.json', valid_metadata_json)
+        valid = copy.deepcopy(valid_metadata_json)
+        valid['metadata']['number_range_test'] = 7
+        body = json.dumps(valid)
+
+        # Update instance adding number_range_test
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'update_fields', body=body,
+                  method='PUT', base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 200
+        instance = r.json()
+        assert instance['metadata']['number_range_test'] == 7
 
         # Add a new field (per schema) and remove another -
         valid['metadata'].pop('number_range_test')
         valid['metadata']['string_length_test'] = "valid len"
         body = json.dumps(valid)
 
-        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid', body=body,
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'update_fields', body=body,
                   method='PUT', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
         instance = r.json()

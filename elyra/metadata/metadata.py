@@ -170,10 +170,7 @@ class MetadataManager(LoggingConfigurable):
 class MetadataStore(ABC):
     def __init__(self, namespace, **kwargs):
         self.schema_mgr = SchemaManager.instance()
-        if not self.schema_mgr.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: {}".
-                             format(namespace, self.schema_mgr.get_namespaces()))
-
+        self.schema_mgr.validate_namespace(namespace)
         self.namespace = namespace
         self.log = log.get_logger()
 
@@ -458,18 +455,19 @@ class FileMetadataStore(MetadataStore):
         return schema_json
 
     def _validate_metadata(self, name, metadata_json):
-        """Validate the metadata.  If no schema name is present, False is returned.
-           If schema_name is present and metadata is considered valid, True is returned,
-           otherwise a ValidationError is raised.
+        """
+        Validate the metadata.
+
+        If the corresponding schema cannot be determined or the JSON schema validation fails,
+        `ValidationError` will be raised.
         """
         schema_name = metadata_json.get('schema_name')
-        if schema_name:
-            schema = self._get_schema(schema_name)  # returns a value or throws
-            self.validate(name, schema_name, schema, metadata_json)
-            return True
-        else:
+        if not schema_name:
             raise ValidationError("Metadata instance '{}' in namespace '{}' is missing a 'schema_name' field!".
                                   format(name, self.namespace))
+
+        schema = self._get_schema(schema_name)  # returns a value or throws
+        self.validate(name, schema_name, schema, metadata_json)
 
     def _load_from_resource(self, resource, validate_metadata=True, include_invalid=False):
         # This is always called with an existing resource (path) so no need to check existence.
@@ -485,7 +483,7 @@ class FileMetadataStore(MetadataStore):
                 # If the JSON file cannot load, there's nothing we can do other than log and raise since
                 # we aren't able to even instantiate an instance of Metadata.  Because errors are ignored
                 # when getting multiple items, it's okay to raise.  The singleton searches (by handlers)
-                # already catch ValueError and map to 404, so we're good there as well.
+                # already catch ValueError and map to 400, so we're good there as well.
                 self.log.error("JSON failed to load for metadata '{}' in namespace '{}' with error: {}.".
                                format(name, self.namespace, jde))
                 raise jde
@@ -519,25 +517,24 @@ class SchemaManager(SingletonConfigurable):
         # namespace_schemas is a dict of namespace keys to dict of schema_name keys of JSON schema
         self.namespace_schemas = SchemaManager.load_namespace_schemas()
 
-    def is_valid_namespace(self, namespace):
-        return namespace in self.namespace_schemas.keys()
+    def validate_namespace(self, namespace):
+        """Ensures the namespace is valid and raises ValueError if it is not."""
+        if namespace not in self.namespace_schemas.keys():
+            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
+                             format(namespace, self.get_namespaces()))
 
     def get_namespaces(self):
         return list(self.namespace_schemas.keys())
 
     def get_namespace_schemas(self, namespace):
+        self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Fetching all schemas from namespace '{}'".format(namespace))
-        if not self.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
         schemas = self.namespace_schemas.get(namespace)
         return schemas
 
     def get_schema(self, namespace, schema_name):
+        self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Fetching schema '{}' from namespace '{}'".format(schema_name, namespace))
-        if not self.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
         schemas = self.namespace_schemas.get(namespace)
         if schema_name not in schemas.keys():
             raise FileNotFoundError("Schema '{}' in namespace '{}' was not found!".format(schema_name, namespace))
@@ -547,9 +544,7 @@ class SchemaManager(SingletonConfigurable):
 
     def add_schema(self, namespace, schema_name, schema):
         """Adds (updates) schema to set of stored schemas. """
-        if not self.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
+        self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Adding schema '{}' to namespace '{}'".format(schema_name, namespace))
         self.namespace_schemas[namespace][schema_name] = schema
 
@@ -560,10 +555,8 @@ class SchemaManager(SingletonConfigurable):
 
     def remove_schema(self, namespace, schema_name):
         """Removes the schema entry associated with namespace & schema_name. """
+        self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Removing schema '{}' from namespace '{}'".format(schema_name, namespace))
-        if not self.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
         self.namespace_schemas[namespace].pop(schema_name)
 
     @classmethod
