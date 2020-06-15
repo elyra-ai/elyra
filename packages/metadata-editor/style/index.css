@@ -9,6 +9,18 @@
   margin-right: 20px;
 }
 
+.bp3-select-popover {
+  width: min-content;
+}
+
+.elyra-form-DropDown-item {
+  width: 100%;
+  display: flex;
+  justify-content: left;
+  margin: 0;
+  border-radius: 0;
+}
+
 .elyra-metadataEditor {
   margin: 20px;
 }

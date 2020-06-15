@@ -28,6 +28,7 @@ import * as React from 'react';
 import { METADATA_EDITOR_ID } from './index';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
+const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
 type FormItemType = 'TextInput' | 'DropDown' | 'Code';
 
@@ -144,7 +145,7 @@ export class MetadataEditor extends ReactWidget {
     if (normalizedQuery === normalizedTitle) {
       return normalizedTitle === normalizedQuery;
     } else {
-      return `${value}`.indexOf(normalizedQuery) >= 0;
+      return `${normalizedTitle}`.indexOf(normalizedQuery) >= 0;
     }
   };
 
@@ -182,7 +183,12 @@ export class MetadataEditor extends ReactWidget {
 
   itemRenderer(value: string, options: any): React.ReactElement {
     return (
-      <Button onClick={options.handleClick} key={value} text={value}></Button>
+      <Button
+        className={DROPDOWN_ITEM_CLASS}
+        onClick={options.handleClick}
+        key={value}
+        text={value}
+      ></Button>
     );
   }
 
