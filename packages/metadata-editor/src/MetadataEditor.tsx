@@ -17,7 +17,12 @@
 import { FormGroup, MenuItem } from '@blueprintjs/core';
 import { ItemPredicate } from '@blueprintjs/select';
 import { FrontendServices } from '@elyra/application';
-import { ReactWidget, WidgetTracker } from '@jupyterlab/apputils';
+import {
+  ReactWidget,
+  WidgetTracker,
+  showDialog,
+  Dialog
+} from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Select, InputGroup, Button } from '@jupyterlab/ui-components';
 
@@ -29,6 +34,7 @@ import { METADATA_EDITOR_ID } from './index';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
+const DIRTY_CLASS = 'jp-mod-dirty';
 
 type FormItemType = 'TextInput' | 'DropDown' | 'Code';
 
@@ -49,22 +55,23 @@ export class MetadataEditor extends ReactWidget {
   fileName: string;
   editorFactory: CodeEditor.Factory;
   editor: CodeEditor.IEditor;
-  endpoint: string;
+  namespace: string;
   tracker: WidgetTracker;
+  dirty: boolean;
 
   constructor(
     metadata: FormItem[],
     newFile: boolean,
     updateSignal: any,
     editorFactory: CodeEditor.Factory | null,
-    endpoint: string,
+    namespace: string,
     tracker: WidgetTracker,
     fileName?: string
   ) {
     super();
     this.metadata = metadata;
     this.editorFactory = editorFactory;
-    this.endpoint = endpoint;
+    this.namespace = namespace;
     this.newFile = newFile;
     this.updateSignal = updateSignal;
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
@@ -76,8 +83,26 @@ export class MetadataEditor extends ReactWidget {
   }
 
   onCloseRequest(msg: Message): void {
-    this.dispose();
-    super.onCloseRequest(msg);
+    if (this.dirty) {
+      showDialog({
+        title: 'Close without saving?',
+        body: (
+          <p>
+            {' '}
+            {`Metadata "${this.fileName}" has unsaved changes, close without saving?`}{' '}
+          </p>
+        ),
+        buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      }).then((response: any): void => {
+        if (response.button.accept) {
+          this.dispose();
+          super.onCloseRequest(msg);
+        }
+      });
+    } else {
+      this.dispose();
+      super.onCloseRequest(msg);
+    }
   }
 
   saveMetadata(): void {
@@ -100,21 +125,27 @@ export class MetadataEditor extends ReactWidget {
     const newSnippetString = JSON.stringify(newSnippet);
 
     if (this.newFile) {
-      FrontendServices.postMetadata(this.endpoint, newSnippetString).then(
+      FrontendServices.postMetadata(this.namespace, newSnippetString).then(
         (response: any): void => {
-          this.updateSignal();
+          if (this.updateSignal) {
+            this.updateSignal();
+          }
           this.newFile = false;
           this.title.label = this.getFormItem('Name').value;
           this.id = `${METADATA_EDITOR_ID}:${this.title.label}`;
+          this.handleDirtyState(false);
         }
       );
     } else {
       FrontendServices.putMetadata(
-        this.endpoint,
+        this.namespace,
         newSnippet.name,
         newSnippetString
       ).then((response: any): void => {
-        this.updateSignal();
+        this.handleDirtyState(false);
+        if (this.updateSignal) {
+          this.updateSignal();
+        }
       });
     }
   }
@@ -156,15 +187,25 @@ export class MetadataEditor extends ReactWidget {
   }
 
   handleTextInputChange(event: any, label: string): void {
-    this.tracker.save(this);
+    this.handleDirtyState(true);
     this.getFormItem(label).value = event.nativeEvent.srcElement.value;
   }
 
   handleDropdownChange = (label: string, value: string): void => {
-    this.tracker.save(this);
+    this.handleDirtyState(true);
     this.getFormItem(label).value.choice = value;
     this.update();
   };
+
+  handleDirtyState(dirty: boolean): void {
+    this.dirty = dirty;
+    this.tracker.save(this);
+    if (this.dirty && !this.title.className.includes(DIRTY_CLASS)) {
+      this.title.className += ` ${DIRTY_CLASS}`;
+    } else if (!this.dirty) {
+      this.title.className = this.title.className.replace(DIRTY_CLASS, '');
+    }
+  }
 
   onAfterShow(): void {
     if (!this.editor) {
@@ -176,7 +217,7 @@ export class MetadataEditor extends ReactWidget {
       });
       this.editor.model.value.changed.connect((args: any) => {
         this.getFormItem('Code').value = args.text;
-        this.tracker.save(this);
+        this.handleDirtyState(true);
       });
     }
   }

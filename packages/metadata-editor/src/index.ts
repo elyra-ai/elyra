@@ -58,7 +58,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       args: (widget: MetadataEditor) => ({
         metadata: widget.metadata,
         newFile: widget.newFile,
-        endpoint: widget.endpoint,
+        namespace: widget.namespace,
         updateSignal: widget.updateSignal,
         fileName: widget.fileName
       })
@@ -66,7 +66,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const openMetadataEditor = async (args: {
       metadata: FormItem[];
       newFile: boolean;
-      endpoint: string;
+      namespace: string;
       updateSignal: any;
       fileName: string;
       editor: CodeEditor.IEditor;
@@ -76,7 +76,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         args.newFile,
         args.updateSignal,
         editorServices.factoryService.newInlineEditor,
-        args.endpoint,
+        args.namespace,
         editorTracker,
         args.fileName
       );

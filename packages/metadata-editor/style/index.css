@@ -11,6 +11,9 @@
 
 .bp3-select-popover {
   width: min-content;
+  border: 5px solid #eeeeee;
+  height: 150px;
+  overflow: scroll;
 }
 
 .elyra-form-DropDown-item {

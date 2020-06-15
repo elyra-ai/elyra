@@ -23,7 +23,7 @@ import {
   importIcon
 } from '@elyra/ui-components';
 
-import { JupyterFrontEnd, ILayoutRestorer } from '@jupyterlab/application';
+import { JupyterFrontEnd } from '@jupyterlab/application';
 import {
   Clipboard,
   Dialog,
@@ -57,7 +57,7 @@ const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 
-export const CODE_SNIPPET_ENDPOINT = 'code-snippets';
+export const CODE_SNIPPET_NAMESPACE = 'code-snippets';
 export const defaultLanguageChoices = [
   'Python',
   'Java',
@@ -194,7 +194,7 @@ export class CodeSnippetDisplay extends React.Component<
       }
 
       FrontendServices.deleteMetadata(
-        CODE_SNIPPET_ENDPOINT,
+        CODE_SNIPPET_NAMESPACE,
         codeSnippet.name
       ).then((response: any): void => {
         this.props.updateSnippets();
@@ -256,7 +256,7 @@ export class CodeSnippetDisplay extends React.Component<
               }
             ],
             newFile: false,
-            endpoint: CODE_SNIPPET_ENDPOINT,
+            namespace: CODE_SNIPPET_NAMESPACE,
             updateSignal: this.props.updateSnippets,
             fileName: codeSnippet.name
           });
@@ -328,7 +328,6 @@ export class CodeSnippetWidget extends ReactWidget {
   constructor(
     getCurrentWidget: () => Widget,
     app: JupyterFrontEnd,
-    restorer: ILayoutRestorer,
     editorFactory: CodeEditor.Factory
   ) {
     super();
@@ -391,7 +390,7 @@ export class CodeSnippetWidget extends ReactWidget {
       ],
       newFile: true,
       metadataLabel: '',
-      endpoint: CODE_SNIPPET_ENDPOINT,
+      namespace: CODE_SNIPPET_NAMESPACE,
       updateSignal: this.updateSnippets
     });
   }
