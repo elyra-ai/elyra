@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #
 # Copyright 2018-2020 IBM Corporation
@@ -43,13 +42,13 @@ mkdir -p binder-demo
 set -x
 
 # Add getting started assets to Docker image
-# (1) Clone the examples repository
+# (1) Clone the examples repository.
 git clone https://github.com/elyra-ai/examples.git 
 
 EXAMPLES_BASE_DIR=examples
 
-# (2) Copy all getting started assets to the working directory
-#     which is referenced when binder is invoked, w.g. 
+# (2) Copy all getting started assets to the working directory,
+#     which is referenced when binder is invoked, e.g. 
 #     https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo
 cp -r $EXAMPLES_BASE_DIR/binder/getting-started/* binder-demo/
 
