@@ -1,0 +1,37 @@
+{
+  "base_args": {
+    "metadata": [
+      {
+        "label": "Name",
+        "value": "",
+        "type": "TextInput",
+        "schemaField": "name"
+      },
+      {
+        "label": "Description",
+        "value": "",
+        "type": "TextInput",
+        "schemaField": "description"
+      },
+      {
+        "label": "Language",
+        "value": {
+          "choice": "",
+          "defaultChoices": ["Python", "Java", "R", "Scala", "Markdown"]
+        },
+        "type": "DropDown",
+        "schemaField": "language"
+      },
+      {
+        "label": "Code",
+        "value": "",
+        "type": "Code",
+        "schemaField": "code"
+      }
+    ],
+    "newFile": true,
+    "namespace": "code-snippets",
+    "updateSignal": null,
+    "name": ""
+  }
+}

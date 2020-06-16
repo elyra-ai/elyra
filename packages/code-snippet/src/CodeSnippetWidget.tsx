@@ -199,7 +199,7 @@ export class CodeSnippetDisplay extends React.Component<
         title: 'Edit',
         icon: editIcon,
         onClick: (): void => {
-          let editSnippetArgs = JSON.parse(
+          const editSnippetArgs = JSON.parse(
             JSON.stringify(properties.base_args)
           );
           editSnippetArgs.metadata[0].value = codeSnippet.displayName;
@@ -322,7 +322,7 @@ export class CodeSnippetWidget extends ReactWidget {
   }
 
   addCodeSnippet(): void {
-    let newSnippetArgs = JSON.parse(JSON.stringify(properties.base_args));
+    const newSnippetArgs = JSON.parse(JSON.stringify(properties.base_args));
     newSnippetArgs.updateSignal = this.updateSnippets;
     this.openCodeSnippetEditor(newSnippetArgs);
   }
