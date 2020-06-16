@@ -27,7 +27,7 @@ TAG:=dev
 IMAGE=elyra/elyra:$(TAG)
 
 # Contains the set of commands required to be used by elyra
-REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3" 
+REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 
 help:
