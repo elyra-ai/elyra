@@ -37,3 +37,30 @@ jupyter labextension link --no-build packages/application/
 jupyter labextension link --no-build packages/ui-components/
 jupyter lab build --dev-build=False --minimize=False
 mkdir -p binder-demo
+
+# Enable debug output
+set -x
+
+# Add getting started assets to Docker image
+# (1) Clone the examples repository.
+git clone https://github.com/elyra-ai/examples.git 
+
+EXAMPLES_BASE_DIR=examples
+
+# (2) Copy all getting started assets to the working directory,
+#     which is referenced when binder is invoked, e.g. 
+#     https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo
+cp -r $EXAMPLES_BASE_DIR/binder/getting-started/* binder-demo/
+
+# (3) Remove the code snippets from the working directory.
+#     They need to reside in a different location to be usable.
+rm -rf binder-demo/code-snippets
+
+# (4) Add code snippet files to the appropriate location
+DATA_DIR=`jupyter --data-dir`
+CODE_SNIPPETS_DIR="$DATA_DIR/metadata/code-snippets/"
+mkdir -p $CODE_SNIPPETS_DIR
+cp $EXAMPLES_BASE_DIR/binder/getting-started/code-snippets/*.json $CODE_SNIPPETS_DIR
+
+# (5) Remove cloned examples directory
+rm -rf $EXAMPLES_BASE_DIR
