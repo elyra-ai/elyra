@@ -20,7 +20,7 @@ from notebook.utils import url_path_join
 from .api.handlers import YamlSpecHandler
 from .metadata.handlers import MetadataHandler, MetadataResourceHandler, SchemaHandler, SchemaResourceHandler, \
     NamespaceHandler
-from .pipeline import PipelineExportHandler, PipelineSchedulerHandler
+from .pipeline import PipelineExportHandler, PipelineSchedulerHandler, PipelineConfigHandler
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
@@ -46,5 +46,7 @@ def load_jupyter_server_extension(nb_server_app):
         (url_path_join(web_app.settings['base_url'], r'/elyra/namespace'), NamespaceHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/schedule'), PipelineSchedulerHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/export'), PipelineExportHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/config/%s' % (resource_regex)),
+         PipelineConfigHandler),
     ])
 

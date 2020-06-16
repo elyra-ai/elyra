@@ -1,0 +1,77 @@
+{
+  "current_parameters": {
+    "runtime_image": "",
+    "outputs": [],
+    "env_vars": [],
+    "dependencies": [],
+    "include_subdirectories": false
+  },
+  "parameters": [
+    {
+      "id": "runtime_image",
+      "enum": []
+    },
+    {
+      "id": "dependencies",
+      "type": "array[string]"
+    },
+    {
+      "id": "include_subdirectories",
+      "type": "boolean"
+    },
+    {
+      "id": "env_vars",
+      "type": "array[string]"
+    },
+    {
+      "id": "outputs",
+      "type": "array[string]"
+    }
+  ],
+  "uihints": {
+    "id": "nodeProperties",
+    "parameter_info": [
+      {
+        "parameter_ref": "runtime_image",
+        "control": "oneofselect",
+        "label": {
+          "default": "Runtime Image (docker image used as execution environment)."
+        }
+      },
+      {
+        "parameter_ref": "dependencies",
+        "label": {
+          "default": "File Dependencies"
+        },
+        "place_holder_text": {
+          "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or extension wildcard (eg. *.py) per line."
+        }
+      },
+      {
+        "parameter_ref": "include_subdirectories",
+        "label": {
+          "default": "Include subdirectories in dependencies (may increase submission time)."
+        }
+      },
+      {
+        "parameter_ref": "env_vars",
+        "label": {
+          "default": "Environment Variables"
+        },
+        "place_holder_text": {
+          "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
+        }
+      },
+      {
+        "parameter_ref": "outputs",
+        "label": {
+          "default": "Output Files"
+        },
+        "place_holder_text": {
+          "default": "Files generated during execution that will become available to all subsequent pipeline steps.\nOne filename (including subdirectory) per line."
+        }
+      }
+    ]
+  },
+  "resources": {}
+}

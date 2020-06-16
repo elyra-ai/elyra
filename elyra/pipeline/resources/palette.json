@@ -1,0 +1,56 @@
+{
+  "version": "3.0",
+  "categories": [
+    {
+      "label": "NOTEBOOKS",
+      "image": "",
+      "id": "notebooks",
+      "description": "Notebook Pipeline",
+      "node_types": [
+        {
+          "id": "",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": 1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ],
+          "parameters": {},
+          "app_data": {
+            "ui_data": {
+              "label": "Notebook",
+              "description": "Notebook file",
+              "image": "",
+              "x_pos": 0,
+              "y_pos": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
