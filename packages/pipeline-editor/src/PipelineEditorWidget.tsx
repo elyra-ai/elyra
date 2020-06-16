@@ -371,6 +371,12 @@ export class PipelineEditor extends React.Component<
     return customMenu;
   }
 
+  /*
+   * Handles context menu actions
+   * Pipeline specific actions are:
+   *  - Open the associated Notebook
+   *  - Open node properties dialog
+   */
   contextMenuActionHandler(action: any, source: any): void {
     if (action === 'openNotebook' && source.type === 'node') {
       this.handleOpenNotebook(source.selectedObjectIds);
@@ -383,7 +389,11 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  /*
+   * Handles mouse click actions
+   */
   clickActionHandler(source: any): void {
+    // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
       this.handleOpenNotebook(source.selectedObjectIds);
     }
@@ -406,7 +416,7 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  handleAdd(x?: number, y?: number): Promise<any> {
+  handleAddFileToPipelineCanvas(x?: number, y?: number): Promise<any> {
     let failedAdd = 0;
     let position = 0;
     const missingXY = !(x && y);
@@ -421,7 +431,7 @@ export class PipelineEditor extends React.Component<
     const fileBrowser = this.browserFactory.defaultBrowser;
 
     toArray(fileBrowser.selectedItems()).map(item => {
-      // if the selected item is a file
+      // if the selected item is a notebook file
       if (item.type == 'notebook') {
         //add each selected notebook
         console.log('Adding ==> ' + item.path);
@@ -498,7 +508,7 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  async handleExport(): Promise<void> {
+  async handleExportPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
 
     showDialog({
@@ -541,7 +551,7 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  async handleRun(): Promise<void> {
+  async handleRunPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
 
     showDialog({
@@ -570,12 +580,12 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  handleSave(): void {
+  handleSavePipeline(): void {
     this.updateModel();
     this.widgetContext.save();
   }
 
-  handleClear(): Promise<any> {
+  handleClearPipeline(): Promise<any> {
     return showDialog({
       title: 'Clear Pipeline?',
       body: 'Are you sure you want to clear? You can not undo this.',
@@ -596,13 +606,13 @@ export class PipelineEditor extends React.Component<
     console.log('Handling action: ' + action);
     if (action == 'run') {
       // When executing the pipeline
-      this.handleRun();
+      this.handleRunPipeline();
     } else if (action == 'export') {
-      this.handleExport();
+      this.handleExportPipeline();
     } else if (action == 'save') {
-      this.handleSave();
+      this.handleSavePipeline();
     } else if (action == 'clear') {
-      this.handleClear();
+      this.handleClearPipeline();
     }
   }
 
@@ -648,7 +658,7 @@ export class PipelineEditor extends React.Component<
       case 'lm-drop':
         event.preventDefault();
         event.stopPropagation();
-        this.handleAdd(
+        this.handleAddFileToPipelineCanvas(
           (event as IDragEvent).offsetX,
           (event as IDragEvent).offsetY
         );
