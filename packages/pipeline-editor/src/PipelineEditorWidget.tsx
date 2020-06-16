@@ -347,26 +347,36 @@ export class PipelineEditor extends React.Component<
     this.setState({ showPropertiesDialog: false, propertiesInfo: {} });
   }
 
+  /*
+   * Add options to the node context menu
+   * Pipeline specific context menu items are:
+   *  - Enable opening selected notebook(s)
+   *  - Enable node properties for single node
+   */
   contextMenuHandler(source: any, defaultMenu: any): any {
     let customMenu = defaultMenu;
     // Remove option to create super node
     customMenu.splice(4, 2);
     if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
+        // multiple nodes selected
         customMenu = customMenu.concat({
           action: 'openNotebook',
           label: 'Open Notebooks'
         });
       } else {
-        customMenu = customMenu.concat({
-          action: 'openNotebook',
-          label: 'Open Notebook'
-        });
+        // single node selected
+        customMenu = customMenu.concat(
+          {
+            action: 'openNotebook',
+            label: 'Open Notebook'
+          },
+          {
+            action: 'properties',
+            label: 'Properties'
+          }
+        );
       }
-      customMenu = customMenu.concat({
-        action: 'properties',
-        label: 'Properties'
-      });
     }
     return customMenu;
   }
