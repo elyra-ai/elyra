@@ -33,7 +33,9 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
             metadata_manager = MetadataManager(namespace=namespace)
             self.log.debug("MetadataHandler: Fetching all metadata resources from namespace '{}'...".format(namespace))
             metadata = yield maybe_future(metadata_manager.get_all())
-        except (ValidationError, ValueError, FileNotFoundError) as err:
+        except (ValidationError, ValueError) as err:
+            raise web.HTTPError(400, str(err))
+        except FileNotFoundError as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
@@ -106,7 +108,9 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             self.log.debug("MetadataResourceHandler: Fetching metadata resource '{}' from namespace '{}'...".
                            format(resource, namespace))
             metadata = yield maybe_future(metadata_manager.get(resource))
-        except (ValidationError, ValueError, FileNotFoundError) as err:
+        except (ValidationError, ValueError, NotImplementedError) as err:
+            raise web.HTTPError(400, str(err))
+        except FileNotFoundError as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
@@ -122,23 +126,20 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
 
         try:
             payload = self.get_json_body()
-            # get the current resource...
+            # Get the current resource to ensure its pre-existence
             metadata_manager = MetadataManager(namespace=namespace)
-            current = metadata_manager.get(resource)
-            # convert to dictionary and update current with desired changes
-            updates = current.to_dict()
-            updates.update(payload)
+            metadata_manager.get(resource)
             # Check if name is in the payload and varies from resource, if so, raise 400
             if 'name' in payload and payload['name'] != resource:
                 raise NotImplementedError("The attempt to rename instance '{}' to '{}' is not supported.".
                                           format(resource, payload['name']))
-            instance = Metadata(**updates)
+            instance = Metadata(**payload)
             self.log.debug("MetadataHandler: Updating metadata instance '{}' in namespace '{}'...".
                            format(resource, namespace))
             metadata = metadata_manager.add(resource, instance, replace=True)
-        except (NotImplementedError) as err:
+        except (ValidationError, ValueError, NotImplementedError) as err:
             raise web.HTTPError(400, str(err))
-        except (ValidationError, ValueError, FileNotFoundError) as err:
+        except FileNotFoundError as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))
@@ -158,9 +159,11 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
                            format(resource, namespace))
             metadata_manager = MetadataManager(namespace=namespace)
             metadata_manager.remove(resource)
+        except (ValidationError, ValueError) as err:
+            raise web.HTTPError(400, str(err))
         except PermissionError as err:
             raise web.HTTPError(403, str(err))
-        except (ValidationError, ValueError, FileNotFoundError) as err:
+        except FileNotFoundError as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
             raise web.HTTPError(500, repr(ex))

@@ -403,6 +403,86 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_2.resource.startswith(str(shared_dir))
 
 
+def _ensure_single_file(metadata_tests_dir, filename, expected_count=1):
+    """Because updates can trigger the copy of the original, this methods ensures that
+       only the name file (`filename`) exists after the operation.  The expected_count
+       can be altered so that it can also be used to ensure clean removals.
+    """
+    # Ensure only the actual metadata file exists.  The renamed file will start with 'filename' but have
+    # a timestamp appended to it.
+    count = 0
+    actual = 0
+    for f in os.listdir(str(metadata_tests_dir)):
+        if filename in f:
+            count = count + 1
+        if filename == f:
+            actual = actual + 1
+    assert count == expected_count, "Temporarily renamed file was not removed"
+    assert actual == expected_count
+
+
+def test_manager_update(tests_hierarchy_manager, metadata_tests_dir):
+
+    # Create some metadata, then attempt to update it with a known schema violation
+    # and ensure the previous copy still exists...
+
+    # Create a user instance...
+    metadata = Metadata(**byo_metadata_json)
+    metadata.display_name = 'user1'
+    instance = tests_hierarchy_manager.add('update', metadata)
+    assert instance is not None
+    assert instance.resource.startswith(str(metadata_tests_dir))
+
+    # Now update the user instance - add a field - and ensure that the original renamed file is not present.
+
+    instance2 = tests_hierarchy_manager.get('update')
+    instance2.display_name = 'user2'
+    instance2.metadata['number_range_test'] = 7
+    tests_hierarchy_manager.add('update', instance2, replace=True)
+
+    _ensure_single_file(metadata_tests_dir, "update.json")
+
+    instance2 = tests_hierarchy_manager.get('update')
+    assert instance2.display_name == 'user2'
+    assert instance2.metadata['number_range_test'] == 7
+
+
+def test_manager_bad_update(tests_hierarchy_manager, metadata_tests_dir):
+
+    # Create some metadata, then attempt to update it with a known schema violation
+    # and ensure the previous copy still exists...
+
+    # Create a user instance...
+    metadata = Metadata(**byo_metadata_json)
+    metadata.display_name = 'user1'
+    instance = tests_hierarchy_manager.add('bad_update', metadata)
+    assert instance is not None
+    assert instance.resource.startswith(str(metadata_tests_dir))
+
+    # Now, attempt to update the user instance, but include a schema violation.
+    # Verify the update failed, but also ensure the previous instance is still there.
+
+    instance2 = tests_hierarchy_manager.get('bad_update')
+    instance2.display_name = 'user2'
+    instance2.metadata['number_range_test'] = 42  # number is out of range
+    with pytest.raises(ValidationError):
+        tests_hierarchy_manager.add('bad_update', instance2, replace=True)
+
+    _ensure_single_file(metadata_tests_dir, "bad_update.json")
+
+    instance2 = tests_hierarchy_manager.get('bad_update')
+    assert instance2.display_name == instance.display_name
+    assert 'number_range_test' not in instance2.metadata
+
+    # Now try update without providing a name, ValueError expected
+    instance2 = tests_hierarchy_manager.get('bad_update')
+    instance2.display_name = 'user update with no name'
+    with pytest.raises(ValueError):
+        tests_hierarchy_manager.add(None, instance2, replace=True)
+
+    _ensure_single_file(metadata_tests_dir, "bad_update.json")
+
+
 def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_dir, metadata_tests_dir):
 
     # Create additional instances in shared and user areas
@@ -433,6 +513,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_d
 
     # Now remove instance.  Should be allowed since it resides in user area
     tests_hierarchy_manager.remove('byo_2')
+    _ensure_single_file(metadata_tests_dir, "byo_2.json", expected_count=0)
 
     # Attempt to remove instance from shared area and its protected
     with pytest.raises(PermissionError) as pe:

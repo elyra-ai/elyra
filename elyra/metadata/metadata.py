@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import copy
 import io
 import json
 import jupyter_core.paths
 import os
 import re
 import shutil
+import time
 import warnings
 
 from abc import ABC, abstractmethod
@@ -168,10 +170,7 @@ class MetadataManager(LoggingConfigurable):
 class MetadataStore(ABC):
     def __init__(self, namespace, **kwargs):
         self.schema_mgr = SchemaManager.instance()
-        if not self.schema_mgr.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: {}".
-                             format(namespace, self.schema_mgr.get_namespaces()))
-
+        self.schema_mgr.validate_namespace(namespace)
         self.namespace = namespace
         self.log = log.get_logger()
 
@@ -283,25 +282,31 @@ class FileMetadataStore(MetadataStore):
         if not isinstance(metadata, Metadata):
             raise TypeError("'metadata' is not an instance of class 'Metadata'.")
 
-        if not name:
+        if not name and not replace:  # name is derived from display_name only on creates
             if metadata.display_name:
                 name = self._get_normalized_name(metadata.display_name)
                 metadata.name = name
-            else:
-                raise ValueError('Name of metadata was not provided.')
+
+        if not name:  # At this point, name must be set
+            raise ValueError('Name of metadata was not provided.')
 
         match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
         if match is None:
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
                              "embedded hyphens ('-') and underscores ('_').")
 
+        # Validate the metadata prior to persistence.  We'll validate again after persistence.
+        self._validate_metadata(name, metadata.to_dict(trim=True))
+
         metadata_resource_name = '{}.json'.format(name)
         resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)
 
         # Handle replacement behavior for hierarchy.
+        renamed_resource = None
         if os.path.exists(resource):
-            if replace:
-                os.remove(resource)
+            if replace:  # If we're replacing (updating), we need to rename the current file to allow restore on errs
+                renamed_resource = resource + str(time.time())
+                os.rename(resource, renamed_resource)
             else:
                 msg = "Metadata resource '{}' already exists.".format(resource)
                 self.log.error(msg)
@@ -329,9 +334,12 @@ class FileMetadataStore(MetadataStore):
         try:
             with jupyter_core.paths.secure_write(resource) as f:
                 f.write(metadata.prepare_write())  # Only persist necessary items
-        except Exception:
+        except Exception as ex:
             if created_namespace_dir:
                 shutil.rmtree(self.preferred_metadata_dir)
+            elif renamed_resource:  # Restore the renamed file
+                os.rename(renamed_resource, resource)
+            raise ex
         else:
             self.log.debug("Created metadata resource: {}".format(resource))
 
@@ -345,7 +353,12 @@ class FileMetadataStore(MetadataStore):
                 shutil.rmtree(self.preferred_metadata_dir)
             else:
                 os.remove(resource)
+                if renamed_resource:  # Restore the renamed file
+                    os.rename(renamed_resource, resource)
             raise ve
+
+        if renamed_resource:  # Remove the renamed file
+            os.remove(renamed_resource)
 
         return metadata
 
@@ -441,6 +454,21 @@ class FileMetadataStore(MetadataStore):
 
         return schema_json
 
+    def _validate_metadata(self, name, metadata_json):
+        """
+        Validate the metadata.
+
+        If the corresponding schema cannot be determined or the JSON schema validation fails,
+        `ValidationError` will be raised.
+        """
+        schema_name = metadata_json.get('schema_name')
+        if not schema_name:
+            raise ValidationError("Metadata instance '{}' in namespace '{}' is missing a 'schema_name' field!".
+                                  format(name, self.namespace))
+
+        schema = self._get_schema(schema_name)  # returns a value or throws
+        self.validate(name, schema_name, schema, metadata_json)
+
     def _load_from_resource(self, resource, validate_metadata=True, include_invalid=False):
         # This is always called with an existing resource (path) so no need to check existence.
 
@@ -455,25 +483,20 @@ class FileMetadataStore(MetadataStore):
                 # If the JSON file cannot load, there's nothing we can do other than log and raise since
                 # we aren't able to even instantiate an instance of Metadata.  Because errors are ignored
                 # when getting multiple items, it's okay to raise.  The singleton searches (by handlers)
-                # already catch ValueError and map to 404, so we're good there as well.
+                # already catch ValueError and map to 400, so we're good there as well.
                 self.log.error("JSON failed to load for metadata '{}' in namespace '{}' with error: {}.".
                                format(name, self.namespace, jde))
                 raise jde
 
         reason = None
         if validate_metadata:
-            schema_name = metadata_json.get('schema_name')
-            if schema_name:
-                schema = self._get_schema(schema_name)  # returns a value or throws
-                try:
-                    self.validate(name, schema_name, schema, metadata_json)
-                except ValidationError as ve:
-                    if include_invalid:
-                        reason = ve.__class__.__name__
-                    else:
-                        raise ve
-            else:
-                self.log.debug("No schema found in metadata resource '{}' - skipping validation.".format(resource))
+            try:
+                self._validate_metadata(name, metadata_json)
+            except ValidationError as ve:
+                if include_invalid:
+                    reason = ve.__class__.__name__
+                else:
+                    raise ve
 
         metadata = Metadata(name=name,
                             display_name=metadata_json.get('display_name'),
@@ -494,25 +517,24 @@ class SchemaManager(SingletonConfigurable):
         # namespace_schemas is a dict of namespace keys to dict of schema_name keys of JSON schema
         self.namespace_schemas = SchemaManager.load_namespace_schemas()
 
-    def is_valid_namespace(self, namespace):
-        return namespace in self.namespace_schemas.keys()
+    def validate_namespace(self, namespace):
+        """Ensures the namespace is valid and raises ValueError if it is not."""
+        if namespace not in self.namespace_schemas.keys():
+            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
+                             format(namespace, self.get_namespaces()))
 
     def get_namespaces(self):
         return list(self.namespace_schemas.keys())
 
     def get_namespace_schemas(self, namespace):
+        self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Fetching all schemas from namespace '{}'".format(namespace))
-        if not self.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
         schemas = self.namespace_schemas.get(namespace)
         return schemas
 
     def get_schema(self, namespace, schema_name):
+        self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Fetching schema '{}' from namespace '{}'".format(schema_name, namespace))
-        if not self.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
         schemas = self.namespace_schemas.get(namespace)
         if schema_name not in schemas.keys():
             raise FileNotFoundError("Schema '{}' in namespace '{}' was not found!".format(schema_name, namespace))
@@ -522,9 +544,7 @@ class SchemaManager(SingletonConfigurable):
 
     def add_schema(self, namespace, schema_name, schema):
         """Adds (updates) schema to set of stored schemas. """
-        if not self.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
+        self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Adding schema '{}' to namespace '{}'".format(schema_name, namespace))
         self.namespace_schemas[namespace][schema_name] = schema
 
@@ -535,10 +555,8 @@ class SchemaManager(SingletonConfigurable):
 
     def remove_schema(self, namespace, schema_name):
         """Removes the schema entry associated with namespace & schema_name. """
+        self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Removing schema '{}' from namespace '{}'".format(schema_name, namespace))
-        if not self.is_valid_namespace(namespace):
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
         self.namespace_schemas[namespace].pop(schema_name)
 
     @classmethod
@@ -583,4 +601,4 @@ class SchemaManager(SingletonConfigurable):
                 name = os.path.splitext(os.path.basename(schema_file))[0]
             namespace_schemas[namespace][name] = schema_json
 
-        return namespace_schemas.copy()
+        return copy.deepcopy(namespace_schemas)
