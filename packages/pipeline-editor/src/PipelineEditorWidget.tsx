@@ -575,25 +575,6 @@ export class PipelineEditor extends React.Component<
     this.widgetContext.save();
   }
 
-  handleOpen(): void {
-    console.log('>>> handleOpen');
-    toArray(this.browserFactory.defaultBrowser.selectedItems()).map(item => {
-      console.log('Opening ==> ' + item.path);
-      // if the selected item is a file
-      if (item.type != 'directory') {
-        console.log('Opening ==> ' + item.path);
-        this.app.commands.execute(commandIDs.openDocManager, {
-          path: item.path
-        });
-      }
-    });
-  }
-
-  handleNew(): void {
-    // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name.
-    this.app.commands.execute(commandIDs.openPipelineEditor);
-  }
-
   handleClear(): Promise<any> {
     return showDialog({
       title: 'Clear Pipeline?',
@@ -620,10 +601,6 @@ export class PipelineEditor extends React.Component<
       this.handleExport();
     } else if (action == 'save') {
       this.handleSave();
-    } else if (action == 'open') {
-      this.handleOpen();
-    } else if (action == 'new') {
-      this.handleNew();
     } else if (action == 'clear') {
       this.handleClear();
     }
