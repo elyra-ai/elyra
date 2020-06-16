@@ -373,11 +373,7 @@ export class PipelineEditor extends React.Component<
 
   contextMenuActionHandler(action: any, source: any): void {
     if (action === 'openNotebook' && source.type === 'node') {
-      const nodes = source.selectedObjectIds;
-      for (let i = 0; i < nodes.length; i++) {
-        const path = this.canvasController.getNode(nodes[i]).app_data.filename;
-        this.app.commands.execute(commandIDs.openDocManager, { path });
-      }
+      this.handleOpenNotebook(source.selectedObjectIds);
     } else if (action === 'properties' && source.type === 'node') {
       if (this.state.showPropertiesDialog) {
         this.closePropertiesDialog();
@@ -389,11 +385,7 @@ export class PipelineEditor extends React.Component<
 
   clickActionHandler(source: any): void {
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
-      const nodes = source.selectedObjectIds;
-      for (let i = 0; i < nodes.length; i++) {
-        const path = this.canvasController.getNode(nodes[i]).app_data.filename;
-        this.app.commands.execute(commandIDs.openDocManager, { path });
-      }
+      this.handleOpenNotebook(source.selectedObjectIds);
     }
   }
 
@@ -404,6 +396,9 @@ export class PipelineEditor extends React.Component<
     this.updateModel();
   }
 
+  /*
+   * Handles displaying node properties
+   */
   tipHandler(tipType: string, data: any): any {
     if (tipType === TIP_TYPE_NODE) {
       const properties = this.canvasController.getNode(data.node.id).app_data;
@@ -492,6 +487,17 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  /*
+   * Open node associated notebook
+   */
+  handleOpenNotebook(selectedNodes: any): void {
+    for (let i = 0; i < selectedNodes.length; i++) {
+      const path = this.canvasController.getNode(selectedNodes[i]).app_data
+        .filename;
+      this.app.commands.execute(commandIDs.openDocManager, { path });
+    }
+  }
+
   async handleExport(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
 
@@ -570,7 +576,9 @@ export class PipelineEditor extends React.Component<
   }
 
   handleOpen(): void {
+    console.log('>>> handleOpen');
     toArray(this.browserFactory.defaultBrowser.selectedItems()).map(item => {
+      console.log('Opening ==> ' + item.path);
       // if the selected item is a file
       if (item.type != 'directory') {
         console.log('Opening ==> ' + item.path);
