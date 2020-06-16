@@ -65,7 +65,7 @@ export class FrontendServices {
       false
     );
 
-    return metadataResponse[namespace];
+    return metadataResponse;
   }
 
   static async putMetadata(
@@ -79,15 +79,15 @@ export class FrontendServices {
       false
     );
 
-    return metadataResponse[namespace];
+    return metadataResponse;
   }
 
-  static async deleteMetadata(namespace: string, name: string): Promise<any> {
+  static async deleteMetadata(namespace: string, name: string): Promise<void> {
     const metadataResponse: any = await RequestHandler.makeDeleteRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
       false
     );
 
-    return metadataResponse[namespace];
+    return metadataResponse;
   }
 }

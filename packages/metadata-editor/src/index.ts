@@ -20,7 +20,6 @@ import {
   JupyterFrontEndPlugin,
   ILayoutRestorer
 } from '@jupyterlab/application';
-import { WidgetTracker } from '@jupyterlab/apputils';
 import { IEditorServices, CodeEditor } from '@jupyterlab/codeeditor';
 
 import { MetadataEditor, FormItem } from './MetadataEditor';
@@ -47,22 +46,6 @@ const extension: JupyterFrontEndPlugin<void> = {
         openMetadataEditor(args);
       }
     });
-    const editorTracker = new WidgetTracker<MetadataEditor>({
-      namespace: METADATA_EDITOR_ID
-    });
-    restorer.restore(editorTracker, {
-      name: (metadataEditor: MetadataEditor) => {
-        return metadataEditor.id;
-      },
-      command: `${METADATA_EDITOR_ID}:open`,
-      args: (widget: MetadataEditor) => ({
-        metadata: widget.metadata,
-        newFile: widget.newFile,
-        namespace: widget.namespace,
-        updateSignal: widget.updateSignal,
-        name: widget.name
-      })
-    });
     const openMetadataEditor = async (args: {
       metadata: FormItem[];
       newFile: boolean;
@@ -77,21 +60,11 @@ const extension: JupyterFrontEndPlugin<void> = {
         args.updateSignal,
         editorServices.factoryService.newInlineEditor,
         args.namespace,
-        editorTracker,
         args.name
       );
       // Make sure there aren't any other "Untitled" tabs open
       if (args.newFile) {
-        metadataEditorWidget.title.label = 'Untitled';
-        let untitledId = 1;
-        while (
-          editorTracker.find((widget: MetadataEditor): boolean => {
-            return widget.title.label == metadataEditorWidget.title.label;
-          })
-        ) {
-          metadataEditorWidget.title.label = `Untitled${untitledId}`;
-          untitledId++;
-        }
+        metadataEditorWidget.title.label = 'New Metadata';
       } else {
         metadataEditorWidget.title.label = args.metadata.find(
           (item: FormItem) => {
@@ -102,16 +75,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.id = `${METADATA_EDITOR_ID}:${metadataEditorWidget.title.label}`;
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = codeSnippetIcon;
-      const filterWidget = (widget: MetadataEditor): boolean => {
-        return widget.id == metadataEditorWidget.id;
-      };
-      const openWidget = editorTracker.find(filterWidget);
-      if (args.newFile || !openWidget) {
-        app.shell.add(metadataEditorWidget, 'main');
-        editorTracker.add(metadataEditorWidget);
-      } else if (openWidget) {
-        app.shell.activateById(openWidget.id);
-      }
+      app.shell.add(metadataEditorWidget, 'main');
     };
   }
 };

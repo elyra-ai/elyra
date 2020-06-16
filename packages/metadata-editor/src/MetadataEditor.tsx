@@ -19,12 +19,7 @@ import { FormGroup } from '@blueprintjs/core';
 import { FrontendServices } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
 
-import {
-  ReactWidget,
-  WidgetTracker,
-  showDialog,
-  Dialog
-} from '@jupyterlab/apputils';
+import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { InputGroup, Button } from '@jupyterlab/ui-components';
 
@@ -58,7 +53,6 @@ export class MetadataEditor extends ReactWidget {
   editor: CodeEditor.IEditor;
   namespace: string;
   name: string;
-  tracker: WidgetTracker;
   dirty: boolean;
 
   constructor(
@@ -67,7 +61,6 @@ export class MetadataEditor extends ReactWidget {
     updateSignal: any,
     editorFactory: CodeEditor.Factory | null,
     namespace: string,
-    tracker: WidgetTracker,
     name?: string
   ) {
     super();
@@ -78,7 +71,6 @@ export class MetadataEditor extends ReactWidget {
     this.updateSignal = updateSignal;
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
-    this.tracker = tracker;
     this.name = name;
   }
 
@@ -128,9 +120,8 @@ export class MetadataEditor extends ReactWidget {
     if (this.newFile) {
       FrontendServices.postMetadata(this.namespace, newMetadataString).then(
         (response: any): void => {
-          if (this.updateSignal) {
-            this.updateSignal();
-          }
+          this.name = response.name;
+          this.updateSignal();
           this.newFile = false;
           this.title.label = this.getFormItem('Name').value;
           this.id = `${METADATA_EDITOR_ID}:${this.title.label}`;
@@ -170,7 +161,6 @@ export class MetadataEditor extends ReactWidget {
 
   handleDirtyState(dirty: boolean): void {
     this.dirty = dirty;
-    this.tracker.save(this);
     if (this.dirty && !this.title.className.includes(DIRTY_CLASS)) {
       this.title.className += ` ${DIRTY_CLASS}`;
     } else if (!this.dirty) {
