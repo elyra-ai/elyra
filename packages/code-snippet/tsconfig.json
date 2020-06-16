@@ -4,6 +4,7 @@
     "outDir": "lib",
     "rootDir": "src"
   },
+  "files": ["src/properties.json"],
   "include": ["src/*"],
   "references": [
     {

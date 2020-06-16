@@ -44,6 +44,7 @@ export type FormItem = {
   type: FormItemType;
   label: string;
   schemaField: string;
+  description?: string;
 };
 
 /**
@@ -53,10 +54,10 @@ export class MetadataEditor extends ReactWidget {
   metadata: FormItem[];
   newFile: boolean;
   updateSignal: any;
-  fileName: string;
   editorFactory: CodeEditor.Factory;
   editor: CodeEditor.IEditor;
   namespace: string;
+  name: string;
   tracker: WidgetTracker;
   dirty: boolean;
 
@@ -67,7 +68,7 @@ export class MetadataEditor extends ReactWidget {
     editorFactory: CodeEditor.Factory | null,
     namespace: string,
     tracker: WidgetTracker,
-    fileName?: string
+    name?: string
   ) {
     super();
     this.metadata = metadata;
@@ -78,9 +79,7 @@ export class MetadataEditor extends ReactWidget {
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.tracker = tracker;
-    if (fileName) {
-      this.fileName = fileName;
-    }
+    this.name = name;
   }
 
   onCloseRequest(msg: Message): void {
@@ -90,7 +89,9 @@ export class MetadataEditor extends ReactWidget {
         body: (
           <p>
             {' '}
-            {`Metadata "${this.fileName}" has unsaved changes, close without saving?`}{' '}
+            {`"${
+              this.getFormItem('Name').value
+            }" has unsaved changes, close without saving?`}{' '}
           </p>
         ),
         buttons: [Dialog.cancelButton(), Dialog.okButton()]
@@ -109,7 +110,6 @@ export class MetadataEditor extends ReactWidget {
   saveMetadata(): void {
     const newMetadata: any = {
       schema_name: 'code-snippet',
-      name: this.fileName,
       display_name: this.getFormItem('Name').value,
       metadata: {}
     };
@@ -140,7 +140,7 @@ export class MetadataEditor extends ReactWidget {
     } else {
       FrontendServices.putMetadata(
         this.namespace,
-        newMetadata.name,
+        this.name,
         newMetadataString
       ).then((response: any): void => {
         this.handleDirtyState(false);
@@ -202,6 +202,7 @@ export class MetadataEditor extends ReactWidget {
             key={field.label}
             label={field.label}
             labelInfo="(required)"
+            helperText={field.description}
           >
             <InputGroup
               onChange={(event: any): void => {
@@ -221,7 +222,7 @@ export class MetadataEditor extends ReactWidget {
         );
       }
     }
-    let headerText = `Edit "${this.getFormItem('Name').value}" Metadata`;
+    let headerText = `Edit "${this.getFormItem('Name').value}"`;
     if (this.newFile) {
       headerText = 'Add new metadata';
     }

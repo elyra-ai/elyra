@@ -46,11 +46,8 @@ import { Widget } from '@lumino/widgets';
 
 import React from 'react';
 
-import {
-  CodeSnippetService,
-  ICodeSnippet,
-  CODE_SNIPPET_NAMESPACE
-} from './CodeSnippetService';
+import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
+import * as properties from './properties.json';
 
 /**
  * The CSS class added to code snippet widget.
@@ -60,18 +57,9 @@ const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 
-export const defaultLanguageChoices = [
-  'Python',
-  'Java',
-  'R',
-  'Julia',
-  'Matlab',
-  'Octave',
-  'Scheme',
-  'Processing'
-];
-
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
+
+const defaultLanguages = ['Python', 'Java', 'R', 'Scala', 'Markdown'];
 
 /**
  * CodeSnippetDisplay props.
@@ -92,6 +80,8 @@ export class CodeSnippetDisplay extends React.Component<
   ICodeSnippetDisplayProps
 > {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
+  languageOptions: string[] = defaultLanguages;
+
   // Handle code snippet insert into an editor
   private insertCodeSnippet = async (snippet: ICodeSnippet): Promise<void> => {
     const widget: Widget = this.props.getCurrentWidget();
@@ -209,41 +199,20 @@ export class CodeSnippetDisplay extends React.Component<
         title: 'Edit',
         icon: editIcon,
         onClick: (): void => {
-          this.props.openCodeSnippetEditor({
-            metadata: [
-              {
-                label: 'Name',
-                value: codeSnippet.displayName,
-                type: 'TextInput',
-                schemaField: 'display_name'
-              },
-              {
-                label: 'Description',
-                value: codeSnippet.description,
-                type: 'TextInput',
-                schemaField: 'description'
-              },
-              {
-                label: 'Language',
-                value: {
-                  choice: codeSnippet.language,
-                  defaultChoices: defaultLanguageChoices
-                },
-                type: 'DropDown',
-                schemaField: 'language'
-              },
-              {
-                label: 'Code',
-                value: codeSnippet.code.join('\n'),
-                type: 'Code',
-                schemaField: 'code'
-              }
-            ],
-            newFile: false,
-            namespace: CODE_SNIPPET_NAMESPACE,
-            updateSignal: this.props.updateSnippets,
-            fileName: codeSnippet.name
-          });
+          let editSnippetArgs = JSON.parse(
+            JSON.stringify(properties.base_args)
+          );
+          editSnippetArgs.metadata[0].value = codeSnippet.displayName;
+          editSnippetArgs.metadata[1].value = codeSnippet.description;
+          editSnippetArgs.metadata[2].value = {
+            choice: codeSnippet.language,
+            defaultChoices: this.languageOptions
+          };
+          editSnippetArgs.metadata[3].value = codeSnippet.code.join('\n');
+          editSnippetArgs.newFile = false;
+          editSnippetArgs.updateSignal = this.props.updateSnippets;
+          editSnippetArgs.name = codeSnippet.name;
+          this.props.openCodeSnippetEditor(editSnippetArgs);
         }
       },
       {
@@ -275,6 +244,13 @@ export class CodeSnippetDisplay extends React.Component<
   };
 
   componentDidUpdate(): void {
+    // Add any languages that are in existing snippets to the default list of languages.
+    this.languageOptions = defaultLanguages;
+    for (const codeSnippet of this.props.codeSnippets) {
+      if (!this.languageOptions.includes(codeSnippet.language)) {
+        this.languageOptions.push(codeSnippet.language);
+      }
+    }
     this.props.codeSnippets.map((codeSnippet: ICodeSnippet) => {
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
@@ -346,40 +322,9 @@ export class CodeSnippetWidget extends ReactWidget {
   }
 
   addCodeSnippet(): void {
-    this.openCodeSnippetEditor({
-      metadata: [
-        {
-          label: 'Name',
-          value: '',
-          type: 'TextInput',
-          schemaField: 'display_name'
-        },
-        {
-          label: 'Description',
-          value: '',
-          type: 'TextInput',
-          schemaField: 'description'
-        },
-        {
-          label: 'Language',
-          value: {
-            defaultChoices: defaultLanguageChoices
-          },
-          type: 'DropDown',
-          schemaField: 'language'
-        },
-        {
-          label: 'Code',
-          value: '',
-          type: 'Code',
-          schemaField: 'code'
-        }
-      ],
-      newFile: true,
-      metadataLabel: '',
-      namespace: CODE_SNIPPET_NAMESPACE,
-      updateSignal: this.updateSnippets
-    });
+    let newSnippetArgs = JSON.parse(JSON.stringify(properties.base_args));
+    newSnippetArgs.updateSignal = this.updateSnippets;
+    this.openCodeSnippetEditor(newSnippetArgs);
   }
 
   openCodeSnippetEditor(args: any): void {

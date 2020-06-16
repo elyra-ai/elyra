@@ -60,7 +60,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         newFile: widget.newFile,
         namespace: widget.namespace,
         updateSignal: widget.updateSignal,
-        fileName: widget.fileName
+        name: widget.name
       })
     });
     const openMetadataEditor = async (args: {
@@ -68,7 +68,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       newFile: boolean;
       namespace: string;
       updateSignal: any;
-      fileName: string;
+      name: string;
       editor: CodeEditor.IEditor;
     }): Promise<void> => {
       const metadataEditorWidget = new MetadataEditor(
@@ -78,7 +78,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         editorServices.factoryService.newInlineEditor,
         args.namespace,
         editorTracker,
-        args.fileName
+        args.name
       );
       // Make sure there aren't any other "Untitled" tabs open
       if (args.newFile) {
