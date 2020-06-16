@@ -16,3 +16,4 @@
 export * from './ExpandableErrorDialog';
 export * from './ExpandableComponent';
 export * from './icons';
+export * from './DropDown';

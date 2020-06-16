@@ -16,7 +16,6 @@
 
 import '../style/index.css';
 
-import { FrontendServices } from '@elyra/application';
 import {
   ExpandableComponent,
   trashIcon,
@@ -47,7 +46,11 @@ import { Widget } from '@lumino/widgets';
 
 import React from 'react';
 
-import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
+import {
+  CodeSnippetService,
+  ICodeSnippet,
+  CODE_SNIPPET_NAMESPACE
+} from './CodeSnippetService';
 
 /**
  * The CSS class added to code snippet widget.
@@ -57,7 +60,6 @@ const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 
-export const CODE_SNIPPET_NAMESPACE = 'code-snippets';
 export const defaultLanguageChoices = [
   'Python',
   'Java',
@@ -80,6 +82,7 @@ interface ICodeSnippetDisplayProps {
   editorFactory: CodeEditor.Factory;
   openCodeSnippetEditor: any;
   updateSnippets: any;
+  codeSnippetManager: CodeSnippetService;
 }
 
 /**
@@ -183,25 +186,6 @@ export class CodeSnippetDisplay extends React.Component<
     });
   };
 
-  private deleteSnippet = (codeSnippet: ICodeSnippet): void => {
-    showDialog({
-      title: `Delete "${codeSnippet.displayName}" snippet?`,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    }).then((result: any) => {
-      if (result.button.label == 'Cancel') {
-        // When Cancel is clicked on the dialog, just return
-        return;
-      }
-
-      FrontendServices.deleteMetadata(
-        CODE_SNIPPET_NAMESPACE,
-        codeSnippet.name
-      ).then((response: any): void => {
-        this.props.updateSnippets();
-      });
-    });
-  };
-
   // Render display of code snippet list
   private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
     const displayName = `[${codeSnippet.language}] ${codeSnippet.displayName}`;
@@ -266,7 +250,10 @@ export class CodeSnippetDisplay extends React.Component<
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
-          this.deleteSnippet(codeSnippet);
+          this.props.codeSnippetManager.deleteCodeSnippet(
+            codeSnippet,
+            this.props.updateSnippets
+          );
         }
       }
     ];
@@ -419,6 +406,7 @@ export class CodeSnippetWidget extends ReactWidget {
               getCurrentWidget={this.getCurrentWidget}
               editorFactory={this.editorFactory}
               updateSnippets={this.updateSnippets}
+              codeSnippetManager={this.codeSnippetManager}
             />
           )}
         </UseSignal>

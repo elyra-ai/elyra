@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import { FormGroup, MenuItem } from '@blueprintjs/core';
-import { ItemPredicate } from '@blueprintjs/select';
+import { FormGroup } from '@blueprintjs/core';
+
 import { FrontendServices } from '@elyra/application';
+import { DropDown } from '@elyra/ui-components';
+
 import {
   ReactWidget,
   WidgetTracker,
@@ -24,7 +26,7 @@ import {
   Dialog
 } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { Select, InputGroup, Button } from '@jupyterlab/ui-components';
+import { InputGroup, Button } from '@jupyterlab/ui-components';
 
 import { Message } from '@lumino/messaging';
 
@@ -33,7 +35,6 @@ import * as React from 'react';
 import { METADATA_EDITOR_ID } from './index';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
-const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
 type FormItemType = 'TextInput' | 'DropDown' | 'Code';
@@ -106,7 +107,7 @@ export class MetadataEditor extends ReactWidget {
   }
 
   saveMetadata(): void {
-    const newSnippet: any = {
+    const newMetadata: any = {
       schema_name: 'code-snippet',
       name: this.fileName,
       display_name: this.getFormItem('Name').value,
@@ -115,17 +116,17 @@ export class MetadataEditor extends ReactWidget {
 
     for (const field of this.metadata) {
       if (field.type == 'TextInput') {
-        newSnippet.metadata[field.schemaField] = field.value;
+        newMetadata.metadata[field.schemaField] = field.value;
       } else if (field.type == 'DropDown') {
-        newSnippet.metadata[field.schemaField] = field.value.choice;
+        newMetadata.metadata[field.schemaField] = field.value.choice;
       } else if (field.type == 'Code') {
-        newSnippet.metadata[field.schemaField] = field.value.split('\n');
+        newMetadata.metadata[field.schemaField] = field.value.split('\n');
       }
     }
-    const newSnippetString = JSON.stringify(newSnippet);
+    const newMetadataString = JSON.stringify(newMetadata);
 
     if (this.newFile) {
-      FrontendServices.postMetadata(this.namespace, newSnippetString).then(
+      FrontendServices.postMetadata(this.namespace, newMetadataString).then(
         (response: any): void => {
           if (this.updateSignal) {
             this.updateSignal();
@@ -139,8 +140,8 @@ export class MetadataEditor extends ReactWidget {
     } else {
       FrontendServices.putMetadata(
         this.namespace,
-        newSnippet.name,
-        newSnippetString
+        newMetadata.name,
+        newMetadataString
       ).then((response: any): void => {
         this.handleDirtyState(false);
         if (this.updateSignal) {
@@ -149,36 +150,6 @@ export class MetadataEditor extends ReactWidget {
       });
     }
   }
-
-  renderCreateOption = (
-    query: string,
-    active: boolean,
-    handleClick: React.MouseEventHandler<HTMLElement>
-  ): React.ReactElement => (
-    <MenuItem
-      icon="add"
-      text={`Create "${query}"`}
-      active={active}
-      onClick={handleClick}
-      shouldDismissPopover={false}
-    />
-  );
-
-  filterDropdown: ItemPredicate<string> = (
-    query,
-    value,
-    _index,
-    exactMatch
-  ) => {
-    const normalizedTitle = value.toLowerCase();
-    const normalizedQuery = query.toLowerCase();
-
-    if (normalizedQuery === normalizedTitle) {
-      return normalizedTitle === normalizedQuery;
-    } else {
-      return `${normalizedTitle}`.indexOf(normalizedQuery) >= 0;
-    }
-  };
 
   getFormItem(searchLabel: string): FormItem {
     return this.metadata.find(({ value, type, label, schemaField }) => {
@@ -222,17 +193,6 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
-  itemRenderer(value: string, options: any): React.ReactElement {
-    return (
-      <Button
-        className={DROPDOWN_ITEM_CLASS}
-        onClick={options.handleClick}
-        key={value}
-        text={value}
-      ></Button>
-    );
-  }
-
   render(): React.ReactElement {
     const inputElements = [];
     for (const field of this.metadata) {
@@ -244,7 +204,7 @@ export class MetadataEditor extends ReactWidget {
             labelInfo="(required)"
           >
             <InputGroup
-              onChange={(event: any) => {
+              onChange={(event: any): void => {
                 this.handleTextInputChange(event, field.label);
               }}
               defaultValue={field.value}
@@ -254,31 +214,10 @@ export class MetadataEditor extends ReactWidget {
         );
       } else if (field.type == 'DropDown') {
         inputElements.push(
-          <FormGroup
-            key={field.label}
-            label={field.label}
-            labelInfo="(required)"
-          >
-            <Select
-              items={field.value.defaultChoices}
-              itemPredicate={this.filterDropdown}
-              createNewItemFromQuery={newValue => {
-                return newValue;
-              }}
-              createNewItemRenderer={this.renderCreateOption}
-              onItemSelect={(value: string): void => {
-                this.handleDropdownChange(field.label, value);
-              }}
-              itemRenderer={this.itemRenderer}
-            >
-              <Button
-                rightIcon="caret-down"
-                text={
-                  field.value.choice ? field.value.choice : '(No selection)'
-                }
-              />
-            </Select>
-          </FormGroup>
+          <DropDown
+            field={field}
+            handleDropdownChange={this.handleDropdownChange}
+          ></DropDown>
         );
       }
     }
