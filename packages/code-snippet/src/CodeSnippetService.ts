@@ -69,7 +69,7 @@ export class CodeSnippetService {
     updateSnippets: () => void
   ): void {
     showDialog({
-      title: `Delete "${codeSnippet.displayName}" snippet?`,
+      title: `Delete snippet: ${codeSnippet.displayName}?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       if (result.button.label == 'Cancel') {
