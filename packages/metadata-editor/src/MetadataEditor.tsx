@@ -20,7 +20,7 @@ import { FrontendServices } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
 
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
-import { CodeEditor } from '@jupyterlab/codeeditor';
+import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { InputGroup, Button } from '@jupyterlab/ui-components';
 
 import { Message } from '@lumino/messaging';
@@ -44,7 +44,7 @@ interface IMetadataEditorProps {
   metadata: FormItem[];
   newFile: boolean;
   updateSignal: any;
-  editorFactory: CodeEditor.Factory | null;
+  editorServices: IEditorServices | null;
   namespace: string;
   name?: string;
 }
@@ -56,7 +56,7 @@ export class MetadataEditor extends ReactWidget {
   metadata: FormItem[];
   newFile: boolean;
   updateSignal: any;
-  editorFactory: CodeEditor.Factory;
+  editorServices: IEditorServices;
   editor: CodeEditor.IEditor;
   namespace: string;
   name: string;
@@ -65,7 +65,7 @@ export class MetadataEditor extends ReactWidget {
   constructor(props: IMetadataEditorProps) {
     super();
     this.metadata = props.metadata;
-    this.editorFactory = props.editorFactory;
+    this.editorServices = props.editorServices;
     this.namespace = props.namespace;
     this.newFile = props.newFile;
     this.updateSignal = props.updateSignal;
@@ -167,10 +167,16 @@ export class MetadataEditor extends ReactWidget {
 
   onAfterShow(): void {
     if (!this.editor) {
-      this.editor = this.editorFactory({
+      const getMimeTypeByLanguage = this.editorServices.mimeTypeService
+        .getMimeTypeByLanguage;
+      this.editor = this.editorServices.factoryService.newInlineEditor({
         host: document.getElementById('Code:' + this.name),
         model: new CodeEditor.Model({
-          value: this.getFormItem('Code').value
+          value: this.getFormItem('Code').value,
+          mimeType: getMimeTypeByLanguage({
+            name: this.getFormItem('Language').value.choice,
+            codemirror_mode: this.getFormItem('Language').value.choice
+          })
         })
       });
       this.editor.model.value.changed.connect((args: any) => {

@@ -31,7 +31,7 @@ import {
   UseSignal
 } from '@jupyterlab/apputils';
 import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
-import { CodeEditor } from '@jupyterlab/codeeditor';
+import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentWidget } from '@jupyterlab/docregistry';
@@ -67,7 +67,7 @@ const defaultLanguages = ['Python', 'Java', 'R', 'Scala', 'Markdown'];
 interface ICodeSnippetDisplayProps {
   codeSnippets: ICodeSnippet[];
   getCurrentWidget: () => Widget;
-  editorFactory: CodeEditor.Factory;
+  editorServices: IEditorServices;
   openCodeSnippetEditor: any;
   updateSnippets: any;
   codeSnippetManager: CodeSnippetService;
@@ -250,6 +250,11 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         this.languageOptions.push(codeSnippet.language);
       }
     }
+
+    const editorFactory = this.props.editorServices.factoryService
+      .newInlineEditor;
+    const getMimeTypeByLanguage = this.props.editorServices.mimeTypeService
+      .getMimeTypeByLanguage;
     this.props.codeSnippets.map((codeSnippet: ICodeSnippet) => {
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
@@ -258,9 +263,16 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         );
       } else {
         // Add new snippets
-        this.editors[codeSnippet.name] = this.props.editorFactory({
+        this.editors[codeSnippet.name] = editorFactory({
+          config: { readOnly: true },
           host: document.getElementById(codeSnippet.name),
-          model: new CodeEditor.Model({ value: codeSnippet.code.join('\n') })
+          model: new CodeEditor.Model({
+            value: codeSnippet.code.join('\n'),
+            mimeType: getMimeTypeByLanguage({
+              name: codeSnippet.language,
+              codemirror_mode: codeSnippet.language
+            })
+          })
         });
       }
     });
@@ -285,12 +297,12 @@ export class CodeSnippetWidget extends ReactWidget {
   renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
   getCurrentWidget: () => Widget;
   app: JupyterFrontEnd;
-  editorFactory: CodeEditor.Factory;
+  editorServices: IEditorServices;
 
   constructor(
     getCurrentWidget: () => Widget,
     app: JupyterFrontEnd,
-    editorFactory: CodeEditor.Factory
+    editorServices: IEditorServices
   ) {
     super();
     this.getCurrentWidget = getCurrentWidget;
@@ -298,7 +310,7 @@ export class CodeSnippetWidget extends ReactWidget {
     this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
     this.openCodeSnippetEditor = this.openCodeSnippetEditor.bind(this);
     this.app = app;
-    this.editorFactory = editorFactory;
+    this.editorServices = editorServices;
 
     this.fetchData = this.fetchData.bind(this);
     this.updateSnippets = this.updateSnippets.bind(this);
@@ -348,7 +360,7 @@ export class CodeSnippetWidget extends ReactWidget {
               codeSnippets={codeSnippets}
               openCodeSnippetEditor={this.openCodeSnippetEditor}
               getCurrentWidget={this.getCurrentWidget}
-              editorFactory={this.editorFactory}
+              editorServices={this.editorServices}
               updateSnippets={this.updateSnippets}
               codeSnippetManager={this.codeSnippetManager}
             />

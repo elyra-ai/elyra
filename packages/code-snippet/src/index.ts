@@ -54,7 +54,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     const codeSnippetWidget = new CodeSnippetWidget(
       getCurrentWidget,
       app,
-      editorServices.factoryService.newInlineEditor
+      editorServices
     );
     codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
     codeSnippetWidget.title.icon = codeSnippetIcon;

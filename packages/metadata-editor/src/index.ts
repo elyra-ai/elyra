@@ -48,7 +48,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         metadata: args.metadata,
         newFile: args.newFile,
         updateSignal: args.updateSignal,
-        editorFactory: editorServices.factoryService.newInlineEditor,
+        editorServices: editorServices,
         namespace: args.namespace,
         name: args.name
       });
