@@ -64,7 +64,7 @@ In this example, we will be performing the steps on a MacOS system
 export PIPELINE_VERSION=0.5.1
 kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
 kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.io
-kubectl apply -k "github.com/akchinSTC/elyra-1/etc/kubernetes/kubeflow?ref=update-dd-kfp"
+kubectl apply -k "github.com/elyra-ai/elyra/etc/kubernetes/kubeflow-pipelines?ref=master"
 ```
 - Get status of the Kubeflow deployment and ensure all pods are running before proceeding.  
 Deployment times vary from system to system so please be patient when the pods are starting up.
