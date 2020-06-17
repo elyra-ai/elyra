@@ -65,7 +65,7 @@
           "enum": ["elyra", "rocks"],
           "uihints": {
             "field_type": "dropdown",
-            "defaultChoices": ["elyra"]
+            "default_choices": ["elyra"]
           }
         },
         "array_test": {
