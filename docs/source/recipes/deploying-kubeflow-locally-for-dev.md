@@ -60,7 +60,6 @@ In this example, we will be performing the steps on a MacOS system
 
 - Deploy Kubeflow  
 
-From the root directory of Elyra:
 ```bash
 export PIPELINE_VERSION=0.5.1
 kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
