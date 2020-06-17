@@ -23,11 +23,18 @@
         },
         "language": {
           "description": "Code snippet implementation language",
-          "type": "string"
+          "type": "string",
+          "ui_hints": {
+            "field_type": "dropdown",
+            "defaultChoices": ["Python", "Java", "R", "Scala", "Markdown"]
+          }
         },
         "code": {
           "description": "Code snippet code lines",
-          "type": "array"
+          "type": "array",
+          "ui_hints": {
+            "field_type": "code"
+          }
         }
       },
       "required": ["language", "code"]

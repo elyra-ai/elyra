@@ -257,20 +257,13 @@ export class RequestHandler {
             },
             // handle 404 if the server is not found
             (reason: any) => {
-              if (response.status >= 200 && response.status < 300) {
-                resolve();
-              } else if (response.status == 404) {
+              if (response.status == 404) {
                 return this.server404(requestPath);
+              } else if (response.status == 204) {
+                resolve();
               } else {
                 return this.serverError(reason);
-            
-             if (response.status == 404) {
-                return this.server404(requestPath);
-             } else if (response.status == 204) {
-                resolve(); 
-             } else {
-                return this.serverError(reason);
-             }
+              }
             }
           );
         },
