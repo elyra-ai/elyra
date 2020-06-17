@@ -19,20 +19,25 @@
       "properties": {
         "description": {
           "description": "Code snippet description",
-          "type": "string"
+          "type": "string",
+          "ui_hints": {
+            "label": "Description"
+          }
         },
         "language": {
           "description": "Code snippet implementation language",
           "type": "string",
           "ui_hints": {
+            "label": "Language",
             "field_type": "dropdown",
-            "defaultChoices": ["Python", "Java", "R", "Scala", "Markdown"]
+            "default_choices": ["Python", "Java", "R", "Scala", "Markdown"]
           }
         },
         "code": {
           "description": "Code snippet code lines",
           "type": "array",
           "ui_hints": {
+            "label": "Code",
             "field_type": "code"
           }
         }

@@ -34,11 +34,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [IEditorServices],
   optional: [ILayoutRestorer],
-  activate: (
-    app: JupyterFrontEnd,
-    editorServices: IEditorServices,
-    restorer: ILayoutRestorer
-  ) => {
+  activate: (app: JupyterFrontEnd, editorServices: IEditorServices) => {
     console.log('Elyra - metadata-editor extension is activated!');
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
@@ -54,14 +50,14 @@ const extension: JupyterFrontEndPlugin<void> = {
       name: string;
       editor: CodeEditor.IEditor;
     }): Promise<void> => {
-      const metadataEditorWidget = new MetadataEditor(
-        args.metadata,
-        args.newFile,
-        args.updateSignal,
-        editorServices.factoryService.newInlineEditor,
-        args.namespace,
-        args.name
-      );
+      const metadataEditorWidget = new MetadataEditor({
+        metadata: args.metadata,
+        newFile: args.newFile,
+        updateSignal: args.updateSignal,
+        editorFactory: editorServices.factoryService.newInlineEditor,
+        namespace: args.namespace,
+        name: args.name
+      });
       // Make sure there aren't any other "Untitled" tabs open
       if (args.newFile) {
         metadataEditorWidget.title.label = 'New Metadata';

@@ -42,6 +42,14 @@ export type FormItem = {
   description?: string;
 };
 
+interface IMetadataEditorProps {
+  metadata: FormItem[];
+  newFile: boolean;
+  updateSignal: any;
+  editorFactory: CodeEditor.Factory | null;
+  namespace: string;
+  name?: string;
+}
 /**
  * Metadata editor widget
  */
@@ -55,23 +63,16 @@ export class MetadataEditor extends ReactWidget {
   name: string;
   dirty: boolean;
 
-  constructor(
-    metadata: FormItem[],
-    newFile: boolean,
-    updateSignal: any,
-    editorFactory: CodeEditor.Factory | null,
-    namespace: string,
-    name?: string
-  ) {
+  constructor(props: IMetadataEditorProps) {
     super();
-    this.metadata = metadata;
-    this.editorFactory = editorFactory;
-    this.namespace = namespace;
-    this.newFile = newFile;
-    this.updateSignal = updateSignal;
+    this.metadata = props.metadata;
+    this.editorFactory = props.editorFactory;
+    this.namespace = props.namespace;
+    this.newFile = props.newFile;
+    this.updateSignal = props.updateSignal;
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
-    this.name = name;
+    this.name = props.name;
   }
 
   onCloseRequest(msg: Message): void {
