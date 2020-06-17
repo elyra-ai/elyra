@@ -76,9 +76,7 @@ interface ICodeSnippetDisplayProps {
 /**
  * A React Component for code-snippets display list.
  */
-export class CodeSnippetDisplay extends React.Component<
-  ICodeSnippetDisplayProps
-> {
+class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
   languageOptions: string[] = defaultLanguages;
 
@@ -219,10 +217,11 @@ export class CodeSnippetDisplay extends React.Component<
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
-          this.props.codeSnippetManager.deleteCodeSnippet(
-            codeSnippet,
-            this.props.updateSnippets
-          );
+          this.props.codeSnippetManager
+            .deleteCodeSnippet(codeSnippet, this.props.updateSnippets)
+            .then((response: any): void => {
+              this.props.updateSnippets();
+            });
         }
       }
     ];

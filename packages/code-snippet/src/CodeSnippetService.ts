@@ -67,22 +67,18 @@ export class CodeSnippetService {
   deleteCodeSnippet(
     codeSnippet: ICodeSnippet,
     updateSnippets: () => void
-  ): void {
-    showDialog({
+  ): Promise<void> {
+    return showDialog({
       title: `Delete snippet: ${codeSnippet.displayName}?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
-      if (result.button.label == 'Cancel') {
-        // When Cancel is clicked on the dialog, just return
-        return;
+      // Do nothing if the cancel button is pressed
+      if (result.button.accept) {
+        FrontendServices.deleteMetadata(
+          CODE_SNIPPET_NAMESPACE,
+          codeSnippet.name
+        );
       }
-
-      FrontendServices.deleteMetadata(
-        CODE_SNIPPET_NAMESPACE,
-        codeSnippet.name
-      ).then((response: any): void => {
-        updateSnippets();
-      });
     });
   }
 }

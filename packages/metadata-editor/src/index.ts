@@ -17,8 +17,7 @@
 import { codeSnippetIcon } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin,
-  ILayoutRestorer
+  JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { IEditorServices, CodeEditor } from '@jupyterlab/codeeditor';
 
@@ -33,15 +32,9 @@ const extension: JupyterFrontEndPlugin<void> = {
   id: METADATA_EDITOR_ID,
   autoStart: true,
   requires: [IEditorServices],
-  optional: [ILayoutRestorer],
   activate: (app: JupyterFrontEnd, editorServices: IEditorServices) => {
     console.log('Elyra - metadata-editor extension is activated!');
 
-    app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
-      execute: (args: any) => {
-        openMetadataEditor(args);
-      }
-    });
     const openMetadataEditor = async (args: {
       metadata: FormItem[];
       newFile: boolean;
@@ -50,6 +43,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       name: string;
       editor: CodeEditor.IEditor;
     }): Promise<void> => {
+      console.log('Elyra - metadata-editor extension is activated!');
       const metadataEditorWidget = new MetadataEditor({
         metadata: args.metadata,
         newFile: args.newFile,
@@ -58,7 +52,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         namespace: args.namespace,
         name: args.name
       });
-      // Make sure there aren't any other "Untitled" tabs open
+
       if (args.newFile) {
         metadataEditorWidget.title.label = 'New Metadata';
       } else {
@@ -68,11 +62,17 @@ const extension: JupyterFrontEndPlugin<void> = {
           }
         ).value;
       }
-      metadataEditorWidget.id = `${METADATA_EDITOR_ID}:${metadataEditorWidget.title.label}`;
+      metadataEditorWidget.id = METADATA_EDITOR_ID;
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = codeSnippetIcon;
       app.shell.add(metadataEditorWidget, 'main');
     };
+
+    app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
+      execute: (args: any) => {
+        openMetadataEditor(args);
+      }
+    });
   }
 };
 

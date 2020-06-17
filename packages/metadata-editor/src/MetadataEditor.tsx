@@ -27,8 +27,6 @@ import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
 
-import { METADATA_EDITOR_ID } from './index';
-
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
@@ -50,6 +48,7 @@ interface IMetadataEditorProps {
   namespace: string;
   name?: string;
 }
+
 /**
  * Metadata editor widget
  */
@@ -116,29 +115,26 @@ export class MetadataEditor extends ReactWidget {
         newMetadata.metadata[field.schemaField] = field.value.split('\n');
       }
     }
-    const newMetadataString = JSON.stringify(newMetadata);
 
     if (this.newFile) {
-      FrontendServices.postMetadata(this.namespace, newMetadataString).then(
-        (response: any): void => {
-          this.name = response.name;
-          this.updateSignal();
-          this.newFile = false;
-          this.title.label = this.getFormItem('Name').value;
-          this.id = `${METADATA_EDITOR_ID}:${this.title.label}`;
-          this.handleDirtyState(false);
-        }
-      );
+      FrontendServices.postMetadata(
+        this.namespace,
+        JSON.stringify(newMetadata)
+      ).then((response: any): void => {
+        this.name = response.name;
+        this.newFile = false;
+        this.title.label = this.getFormItem('Name').value;
+        this.handleDirtyState(false);
+        this.updateSignal();
+      });
     } else {
       FrontendServices.putMetadata(
         this.namespace,
         this.name,
-        newMetadataString
+        JSON.stringify(newMetadata)
       ).then((response: any): void => {
         this.handleDirtyState(false);
-        if (this.updateSignal) {
-          this.updateSignal();
-        }
+        this.updateSignal();
       });
     }
   }
@@ -172,7 +168,7 @@ export class MetadataEditor extends ReactWidget {
   onAfterShow(): void {
     if (!this.editor) {
       this.editor = this.editorFactory({
-        host: document.getElementById('Code:' + this.id),
+        host: document.getElementById('Code:' + this.name),
         model: new CodeEditor.Model({
           value: this.getFormItem('Code').value
         })
@@ -224,12 +220,12 @@ export class MetadataEditor extends ReactWidget {
         {inputElements}
         <label
           style={{ width: '100%', display: 'flex' }}
-          htmlFor={'Code:' + this.id}
+          htmlFor={'Code:' + this.name}
         >
           Code:
         </label>
         <br />
-        <div id={'Code:' + this.id} className="elyra-form-code"></div>
+        <div id={'Code:' + this.name} className="elyra-form-code"></div>
         <br />
         <Button
           onClick={(): void => {
