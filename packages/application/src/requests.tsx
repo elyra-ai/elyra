@@ -263,7 +263,14 @@ export class RequestHandler {
                 return this.server404(requestPath);
               } else {
                 return this.serverError(reason);
-              }
+            
+             if (response.status == 404) {
+                return this.server404(requestPath);
+             } else if (response.status == 204) {
+                resolve(); 
+             } else {
+                return this.serverError(reason);
+             }
             }
           );
         },
