@@ -63,7 +63,7 @@
           "description": "Property used to test properties with enums",
           "type": "string",
           "enum": ["elyra", "rocks"],
-          "ui_hints": {
+          "uihints": {
             "field_type": "dropdown",
             "defaultChoices": ["elyra"]
           }
@@ -74,7 +74,7 @@
           "minItems": 3,
           "maxItems": 10,
           "uniqueItems": true,
-          "ui_hints": {
+          "uihints": {
             "field_type": "code"
           }
         },

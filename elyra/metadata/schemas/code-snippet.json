@@ -20,14 +20,14 @@
         "description": {
           "description": "Code snippet description",
           "type": "string",
-          "ui_hints": {
+          "uihints": {
             "label": "Description"
           }
         },
         "language": {
           "description": "Code snippet implementation language",
           "type": "string",
-          "ui_hints": {
+          "uihints": {
             "label": "Language",
             "field_type": "dropdown",
             "default_choices": ["Python", "Java", "R", "Scala", "Markdown"]
@@ -36,7 +36,7 @@
         "code": {
           "description": "Code snippet code lines",
           "type": "array",
-          "ui_hints": {
+          "uihints": {
             "label": "Code",
             "field_type": "code"
           }
