@@ -16,10 +16,11 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# Deploying Kubeflow Locally for Elyra
+# Deploying Kubeflow Pipelines Locally for Elyra
 
 Elyra's pipeline editor depends on runtimes like Kubeflow to properly execute its pipelines. In the example, 
-we will be deploying Kubeflow on Kubernetes using Docker Desktop
+we will be deploying Kubeflow Pipelines on Kubernetes using Docker Desktop. Note that these instructions will 
+ONLY install the Kubeflow Pipelines component.
 
 ## Requirements
 - Docker Desktop
@@ -27,11 +28,7 @@ we will be deploying Kubeflow on Kubernetes using Docker Desktop
                     [Windows](https://hub.docker.com/editions/community/docker-ce-desktop-windows)
 - kubectl
     - Available for [MacOS](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-macos)
-    - Note: Windows users should skip this step since Docker Desktop adds its own version of `kubectl` to `PATH`
-- kfctl
-    - Available for [MacOS and Linux](https://github.com/kubeflow/kfctl/releases)
-    - Note: Support for Windows is still ongoing. Suggest using WSL(Windows Subsystem for Linux) and using the  
-    Linux binary as a workaround [here](https://github.com/kubeflow/kubeflow/issues/3735#issuecomment-519800064)      
+    - Note: Windows users should skip this step since Docker Desktop adds its own version of `kubectl` to `PATH`      
     
     
 ### Enabling Kubernetes on Docker Desktop
@@ -59,36 +56,24 @@ In this example, we will be performing the steps on a MacOS system
 `kubectl get all --all-namespaces` and verifying that the Docker Desktop pods are present and in `Running` state   
 ![Elyra](../images/docker-desktop-kubectl.png)  
   
-## Install KubeFlow
+## Install KubeFlow Pipelines 
 
-- Add the `kfctl` binary to your `PATH`. Downloading `kfctl` was part of the [Requirements](#Requirements) setup.
-```bash
-export PATH=$PATH:"<location of where you extracted kfctl>"
-```
-- Create a name for your Kubeflow deployment
-```bash
-export KF_NAME=<pick a name>
-```
-- Add a location to where you want to store your deployment files on your local system  
-NOTE: These are just configuration files about the deployment itself, not the running applications.
-```bash
-export BASE_DIR=<local place to store deployment files>
-export KF_DIR=${BASE_DIR}/${KF_NAME}
-```
-- Set the configuration file used to deploy Kubeflow, in this example we are using v1.0.2
-```bash
-export CONFIG_URI="https://raw.githubusercontent.com/kubeflow/manifests/v1.0-branch/kfdef/kfctl_k8s_istio.v1.0.2.yaml"
-```
 - Deploy Kubeflow  
+
 ```bash
-mkdir -p ${KF_DIR}
-cd ${KF_DIR}
-kfctl apply -V -f ${CONFIG_URI}
+export PIPELINE_VERSION=0.5.1
+kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
+kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.io
+kubectl apply -k "github.com/elyra-ai/elyra/etc/kubernetes/kubeflow-pipelines?ref=master"
 ```
 - Get status of the Kubeflow deployment and ensure all pods are running before proceeding.  
 Deployment times vary from system to system so please be patient when the pods are starting up.
 ```bash
 kubectl get all -n kubeflow
+```
+- Setup port forwarding to use the Kubeflow Pipelines UI / API
+```bash
+kubectl port-forward $(kubectl get pods -n kubeflow | grep ml-pipeline-ui | cut -d' ' -f1) 31380:3000 -n kubeflow &
 ```
 - Add minio-service to your local hosts file
 ```bash
@@ -96,7 +81,7 @@ echo '127.0.0.1  minio-service' | sudo tee -a /etc/hosts
 ```
 - Setup port forwarding to use the Minio Object Service with Kubeflow
 ```bash
-kubectl port-forward $(kubectl get pods -n kubeflow | grep minio | cut -d' ' -f1) 9000:9000 -n kubeflow
+kubectl port-forward $(kubectl get pods -n kubeflow | grep minio | cut -d' ' -f1) 9000:9000 -n kubeflow &
 ```
 - Your Kubeflow Pipelines API and Minio Object Store endpoints should be respectively
 ```bash
