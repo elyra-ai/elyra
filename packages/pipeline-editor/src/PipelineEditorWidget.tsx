@@ -173,7 +173,10 @@ export class PipelineEditor extends React.Component<
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
     this.widgetContext.ready.then(() => {
-      this.canvasController.setPipelineFlow(this.widgetContext.model.toJSON());
+      const pipelineFlow = PipelineService.convertPipeline(
+        this.widgetContext.model.toJSON()
+      );
+      this.canvasController.setPipelineFlow(pipelineFlow);
     });
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
     this.contextMenuHandler = this.contextMenuHandler.bind(this);

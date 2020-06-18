@@ -19,10 +19,15 @@ import {
   IDictionary,
   RequestHandler
 } from '@elyra/application';
+
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 
+import Utils from './utils';
+
 export class PipelineService {
+  static CURRENT_PIPELINE_VERSION = 1;
+
   static async getRuntimes(): Promise<any> {
     const runtimes = await FrontendServices.getMetadata('runtimes');
 
@@ -123,5 +128,55 @@ export class PipelineService {
       body: <p></p>,
       buttons: [Dialog.okButton()]
     });
+  }
+
+  static convertPipeline(pipelineDefinition: any): any {
+    const pipelineJSON = JSON.parse(JSON.stringify(pipelineDefinition));
+
+    if (!Utils.hasPipelineAppdataField(pipelineJSON.pipelines[0], 'version')) {
+      // original pipeline definition without a version
+      console.log(
+        'Migrating pipeline to version: ' + this.CURRENT_PIPELINE_VERSION
+      );
+
+      Utils.renamePipelineAppdataField(
+        pipelineJSON.pipelines[0],
+        'title',
+        'name'
+      );
+      Utils.deletePipelineAppdataField(pipelineJSON.pipelines[0], 'export');
+      Utils.deletePipelineAppdataField(
+        pipelineJSON.pipelines[0],
+        'export_format'
+      );
+      Utils.deletePipelineAppdataField(
+        pipelineJSON.pipelines[0],
+        'export_path'
+      );
+
+      // look into nodes
+      for (const nodeKey in pipelineJSON.pipelines[0]['nodes']) {
+        const node = pipelineJSON.pipelines[0]['nodes'][nodeKey];
+        Utils.renamePipelineAppdataField(node, 'artifact', 'filename');
+        Utils.renamePipelineAppdataField(node, 'image', 'runtime_image');
+        Utils.renamePipelineAppdataField(node, 'vars', 'env_vars');
+        Utils.renamePipelineAppdataField(
+          node,
+          'file_dependencies',
+          'dependencies'
+        );
+        Utils.renamePipelineAppdataField(
+          node,
+          'recursive_dependencies',
+          'include_subdirectories'
+        );
+      }
+
+      pipelineJSON.pipelines[0]['app_data'][
+        'version'
+      ] = this.CURRENT_PIPELINE_VERSION;
+    }
+
+    return pipelineJSON;
   }
 }

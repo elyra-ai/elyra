@@ -26,6 +26,9 @@ export default class Utils {
     return uuid4();
   }
 
+  /*
+   *
+   */
   static generateNotebookPipeline(
     filename: string,
     options: ISubmitNotebookOptions
@@ -51,5 +54,53 @@ export default class Utils {
     template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
 
     return template;
+  }
+
+  /*
+   * Read an application specific field from the pipeline definition
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static getPipelineAppdataField(node: any, fieldName: string): string {
+    return node['app_data'][fieldName] as string;
+  }
+
+  /*
+   * Check if an application specific field from the pipeline defintion exists
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static hasPipelineAppdataField(node: any, fieldName: string): boolean {
+    let isPresent = false;
+    if (node['app_data']) {
+      if (node['app_data'][fieldName]) {
+        isPresent = true;
+      }
+    }
+    return isPresent;
+  }
+
+  /*
+   * Delete an application specific field from the pipeline definition
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static deletePipelineAppdataField(node: any, fieldName: string): void {
+    if (this.hasPipelineAppdataField(node, fieldName)) {
+      delete node['app_data'][fieldName];
+    }
+  }
+
+  /*
+   * Rename an application specific field from the pepileine definition if it exists by
+   * by copying the field value to the new field name and then deleting the previously
+   * existing field
+   */
+  static renamePipelineAppdataField(
+    node: any,
+    currentFieldName: string,
+    newFieldName: string
+  ): void {
+    if (this.hasPipelineAppdataField(node, currentFieldName)) {
+      node['app_data'][newFieldName] = node['app_data'][currentFieldName];
+      this.deletePipelineAppdataField(node, currentFieldName);
+    }
   }
 }

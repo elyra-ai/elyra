@@ -1,9 +1,10 @@
 {
   "extends": "../../tsconfig-base",
   "compilerOptions": {
+    "module": "commonjs",
     "outDir": "lib",
     "rootDir": "src",
-    "module": "commonjs",
+    "suppressImplicitAnyIndexErrors": true,
     "target": "es6",
     "types": ["node"],
     "typeRoots": ["./node_modules/@types"]
