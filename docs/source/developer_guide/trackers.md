@@ -50,7 +50,3 @@ where `PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension'`
 In this case, Pipeline Editor tracker has a broader scope when compared to the Python Editor tracker, as it allows other Document Widget instances to be added to it. For instance, if Pipeline Editor is further extended, its API would allow it to have a new File Editor widget, which actually is a `DocumentWidget<FileEditor>` type.
 
 More information about the architecture of Document Widgets can be found in [JupyterLab documentation](https://jupyterlab.readthedocs.io/en/stable/developer/documents.html#overview-of-document-architecture)
-
-<!--
-TODO: ### Code Snippets Trackers
--->
