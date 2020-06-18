@@ -57,6 +57,6 @@ describe('PythonEditor', () => {
   });
 
   it('check select kernel dropdown exists and has python3', () => {
-    cy.get('.elyra-PythonEditor .jp-Toolbar select > option[value=python3]');
+    cy.get('.elyra-PythonEditor .jp-Toolbar select > option[value*=python]');
   });
 });
