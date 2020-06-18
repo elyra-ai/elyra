@@ -421,8 +421,25 @@ export class PipelineEditor extends React.Component<
    */
   tipHandler(tipType: string, data: any): any {
     if (tipType === TIP_TYPE_NODE) {
-      const properties = this.canvasController.getNode(data.node.id).app_data;
-      return <NodeProperties {...properties} />;
+      const appData = this.canvasController.getNode(data.node.id).app_data;
+      const nodeProps = Object.assign({}, appData);
+      const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
+
+      propsInfo.forEach(
+        (info: {
+          parameter_ref: string | number;
+          label: { default: string | number };
+        }) => {
+          if (
+            Object.prototype.hasOwnProperty.call(nodeProps, info.parameter_ref)
+          ) {
+            nodeProps[info.label.default] = nodeProps[info.parameter_ref];
+            delete nodeProps[info.parameter_ref];
+          }
+        }
+      );
+
+      return <NodeProperties {...nodeProps} />;
     }
   }
 
