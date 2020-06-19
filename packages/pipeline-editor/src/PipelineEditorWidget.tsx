@@ -586,13 +586,12 @@ export class PipelineEditor extends React.Component<
           // in this case, pipeline was last edited in a "more recent release" and
           // the user should update his version of Elyra to consume the pipeline
           showDialog({
-            title: 'Load pipeline failed !',
+            title: 'Load pipeline failed!',
             body: (
               <p>
-                The current pipeline was created/edited with a more recent
-                version of Elyra.
+                This pipeline corresponds to a more recent version of Elyra{' '}
                 <br />
-                Upgrade Elyra before editing this pipeline.
+                and cannot be used until Elyra has been upgraded.
               </p>
             ),
             buttons: [Dialog.okButton()]
@@ -602,14 +601,18 @@ export class PipelineEditor extends React.Component<
           // in this case, pipeline was last edited in a "old" version of Elyra and
           // it needs to be updated/migrated.
           showDialog({
-            title: 'Migrate pipeline ?',
+            title: 'Migrate pipeline?',
             body: (
               <p>
-                The current pipeline was created/edited in an older version of
-                Elyra and needs to be migrated.
+                This pipeline corresponds to an older version of Elyra and needs
+                to be migrated.
                 <br />
-                Note that the current file will only be overridden upon being
-                saved on the pipeline on the editor.
+                Although the pipeline can be further edited and/or submitted
+                after its update,
+                <br />
+                the migration will not be completed until the pipeline has been
+                saved within the editor.
+                <br />
                 <br />
                 Proceed with migration?
               </p>
