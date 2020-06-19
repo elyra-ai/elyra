@@ -44,7 +44,7 @@ import {
   stopIcon,
   TabBarSvg
 } from '@jupyterlab/ui-components';
-import { BoxLayout, DockPanel, PanelLayout, Widget } from '@lumino/widgets';
+import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 
 import { KernelDropdown } from './KernelDropdown';
 import { PythonRunner } from './PythonRunner';
@@ -131,8 +131,7 @@ export class PythonFileEditor extends DocumentWidget<
    */
   private createOutputAreaWidget = (): void => {
     // Add dockpanel wrapper for output area
-    const dockPanelOptions: DockPanel.IOptions = { tabsMovable: false };
-    this.dockPanel = new DockPanelSvg(dockPanelOptions);
+    this.dockPanel = new DockPanelSvg({ tabsMovable: false });
     Widget.attach(this.dockPanel, document.body);
     window.addEventListener('resize', () => {
       this.dockPanel.fit();
