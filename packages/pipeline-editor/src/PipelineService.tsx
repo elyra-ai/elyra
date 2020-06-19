@@ -26,8 +26,6 @@ import * as React from 'react';
 import Utils from './utils';
 
 export class PipelineService {
-  static CURRENT_PIPELINE_VERSION = 1;
-
   static async getRuntimes(): Promise<any> {
     const runtimes = await FrontendServices.getMetadata('runtimes');
 
@@ -133,50 +131,47 @@ export class PipelineService {
   static convertPipeline(pipelineDefinition: any): any {
     const pipelineJSON = JSON.parse(JSON.stringify(pipelineDefinition));
 
-    if (!Utils.hasPipelineAppdataField(pipelineJSON.pipelines[0], 'version')) {
+    const currentVersion: number =
+      +Utils.hasPipelineAppdataField(pipelineJSON.pipelines[0], 'version') || 0;
+    if (currentVersion < 1) {
       // original pipeline definition without a version
-      console.log(
-        'Migrating pipeline to version: ' + this.CURRENT_PIPELINE_VERSION
-      );
+      console.log('Migrating pipeline to version 1');
+      return this.convertPipelineV0toV1(pipelineJSON);
+    }
+  }
 
+  private static convertPipelineV0toV1(pipelineJSON: any): any {
+    Utils.renamePipelineAppdataField(
+      pipelineJSON.pipelines[0],
+      'title',
+      'name'
+    );
+    Utils.deletePipelineAppdataField(pipelineJSON.pipelines[0], 'export');
+    Utils.deletePipelineAppdataField(
+      pipelineJSON.pipelines[0],
+      'export_format'
+    );
+    Utils.deletePipelineAppdataField(pipelineJSON.pipelines[0], 'export_path');
+
+    // look into nodes
+    for (const nodeKey in pipelineJSON.pipelines[0]['nodes']) {
+      const node = pipelineJSON.pipelines[0]['nodes'][nodeKey];
+      Utils.renamePipelineAppdataField(node, 'artifact', 'filename');
+      Utils.renamePipelineAppdataField(node, 'image', 'runtime_image');
+      Utils.renamePipelineAppdataField(node, 'vars', 'env_vars');
       Utils.renamePipelineAppdataField(
-        pipelineJSON.pipelines[0],
-        'title',
-        'name'
+        node,
+        'file_dependencies',
+        'dependencies'
       );
-      Utils.deletePipelineAppdataField(pipelineJSON.pipelines[0], 'export');
-      Utils.deletePipelineAppdataField(
-        pipelineJSON.pipelines[0],
-        'export_format'
+      Utils.renamePipelineAppdataField(
+        node,
+        'recursive_dependencies',
+        'include_subdirectories'
       );
-      Utils.deletePipelineAppdataField(
-        pipelineJSON.pipelines[0],
-        'export_path'
-      );
-
-      // look into nodes
-      for (const nodeKey in pipelineJSON.pipelines[0]['nodes']) {
-        const node = pipelineJSON.pipelines[0]['nodes'][nodeKey];
-        Utils.renamePipelineAppdataField(node, 'artifact', 'filename');
-        Utils.renamePipelineAppdataField(node, 'image', 'runtime_image');
-        Utils.renamePipelineAppdataField(node, 'vars', 'env_vars');
-        Utils.renamePipelineAppdataField(
-          node,
-          'file_dependencies',
-          'dependencies'
-        );
-        Utils.renamePipelineAppdataField(
-          node,
-          'recursive_dependencies',
-          'include_subdirectories'
-        );
-      }
-
-      pipelineJSON.pipelines[0]['app_data'][
-        'version'
-      ] = this.CURRENT_PIPELINE_VERSION;
     }
 
+    pipelineJSON.pipelines[0]['app_data']['version'] = 1;
     return pipelineJSON;
   }
 }

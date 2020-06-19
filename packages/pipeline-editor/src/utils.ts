@@ -61,7 +61,11 @@ export default class Utils {
    * (e.g. pipelines[0][app_data][fieldName])
    */
   static getPipelineAppdataField(node: any, fieldName: string): string {
-    return node['app_data'][fieldName] as string;
+    if (this.hasPipelineAppdataField(node, fieldName)) {
+      return node['app_data'][fieldName] as string;
+    } else {
+      return null;
+    }
   }
 
   /*
