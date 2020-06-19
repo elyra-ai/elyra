@@ -303,7 +303,7 @@ export class PipelineEditor extends React.Component<
         'runtime_image.' + runtimeImage + '.label'
       ] = runtimeImages[runtimeImage];
     }
-    properties.parameters[0].enum = imageEnum;
+    properties.parameters[1].enum = imageEnum;
 
     this.propertiesInfo = {
       parameterDef: properties,
@@ -319,6 +319,7 @@ export class PipelineEditor extends React.Component<
     const node_props = this.propertiesInfo;
     node_props.appData.id = node_id;
 
+    node_props.parameterDef.current_parameters.filename = app_data.filename;
     node_props.parameterDef.current_parameters.runtime_image =
       app_data.runtime_image;
     node_props.parameterDef.current_parameters.outputs = app_data.outputs;
@@ -421,8 +422,21 @@ export class PipelineEditor extends React.Component<
    */
   tipHandler(tipType: string, data: any): any {
     if (tipType === TIP_TYPE_NODE) {
-      const properties = this.canvasController.getNode(data.node.id).app_data;
-      return <NodeProperties {...properties} />;
+      const appData = this.canvasController.getNode(data.node.id).app_data;
+      const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
+      const tooltipProps: any = {};
+
+      propsInfo.forEach(
+        (info: { parameter_ref: string; label: { default: string } }) => {
+          if (
+            Object.prototype.hasOwnProperty.call(appData, info.parameter_ref)
+          ) {
+            tooltipProps[info.label.default] = appData[info.parameter_ref];
+          }
+        }
+      );
+
+      return <NodeProperties {...tooltipProps} />;
     }
   }
 
