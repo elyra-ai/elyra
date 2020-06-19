@@ -16,7 +16,11 @@
 
 import * as path from 'path';
 
-import { IDictionary, NotebookParser } from '@elyra/application';
+import {
+  IDictionary,
+  NotebookParser,
+  RequestHandler
+} from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,
@@ -56,11 +60,9 @@ import * as React from 'react';
 import { IntlProvider } from 'react-intl';
 
 import * as i18nData from './en.json';
-import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineService } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
-import * as properties from './properties.json';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
@@ -163,18 +165,15 @@ export class PipelineEditor extends React.Component<
   widgetContext: DocumentRegistry.Context;
   position = 10;
   node: React.RefObject<HTMLDivElement>;
+  properties: any;
   propertiesInfo: any;
 
   constructor(props: any) {
     super(props);
     this.app = props.app;
     this.browserFactory = props.browserFactory;
-    this.canvasController = new CanvasController();
-    this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
-    this.widgetContext.ready.then(() => {
-      this.canvasController.setPipelineFlow(this.widgetContext.model.toJSON());
-    });
+
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
@@ -182,13 +181,43 @@ export class PipelineEditor extends React.Component<
     this.editActionHandler = this.editActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
 
-    this.state = { showPropertiesDialog: false, propertiesInfo: {} };
+    // Read config from the backend
+    const palette: any = null;
 
-    this.initPropertiesInfo();
+    Promise.resolve([
+      RequestHandler.makeGetRequest('elyra/pipeline/config/palette', false)
+    ])
+      .then(([palette]) => {
+        console.log(palette);
+      })
+      .catch((reason: Error) => {
+        console.error(reason.message);
+      });
+
+    this.canvasController = new CanvasController();
+    this.canvasController.setPipelineFlowPalette(palette);
+    this.widgetContext.ready.then(() => {
+      this.canvasController.setPipelineFlow(this.widgetContext.model.toJSON());
+    });
+
+    this.state = { showPropertiesDialog: false, propertiesInfo: {} };
 
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
     this.openPropertiesDialog = this.openPropertiesDialog.bind(this);
+
+    Promise.resolve([
+      RequestHandler.makeGetRequest('elyra/pipeline/config/properties', false)
+    ])
+      .then(([properties]) => {
+        console.log(properties);
+        this.properties = properties;
+      })
+      .catch((reason: Error) => {
+        console.error(reason.message);
+      });
+
+    this.initPropertiesInfo();
 
     this.node = React.createRef();
     this.handleEvent = this.handleEvent.bind(this);
@@ -299,14 +328,14 @@ export class PipelineEditor extends React.Component<
     const imageEnum = [];
     for (const runtimeImage in runtimeImages) {
       imageEnum.push(runtimeImage);
-      (properties.resources as IDictionary<string>)[
+      (this.properties.resources as IDictionary<string>)[
         'runtime_image.' + runtimeImage + '.label'
       ] = runtimeImages[runtimeImage];
     }
-    properties.parameters[0].enum = imageEnum;
+    this.properties.parameters[0].enum = imageEnum;
 
     this.propertiesInfo = {
-      parameterDef: properties,
+      parameterDef: this.properties,
       appData: { id: '' }
     };
   }
