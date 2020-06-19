@@ -74,7 +74,7 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 html_theme_options = {
     'description': "Elyra extends JupyterLab Notebooks with an AI centric approach",
-    'analytics_id': 'UA-130853690-2',
+    'analytics_id': 'UA-169426804-1',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

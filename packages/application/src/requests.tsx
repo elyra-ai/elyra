@@ -64,10 +64,14 @@ export class RequestHandler {
    *
    * @returns A promise that resolves with whether the dialog was accepted.
    */
-  private static server404(): Promise<Dialog.IResult<any>> {
+  private static server404(endpoint: string): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error contacting server',
-      body: <p>Elyra service endpoint not found.</p>,
+      body: (
+        <p>
+          Endpoint <code>{endpoint}</code> not found.
+        </p>
+      ),
       buttons: [Dialog.okButton()]
     });
   }
@@ -193,7 +197,7 @@ export class RequestHandler {
             },
             // handle 404 if the server is not found
             (reason: any) => {
-              return this.server404();
+              return this.server404(requestPath);
             }
           );
         },
