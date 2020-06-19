@@ -596,6 +596,9 @@ export class PipelineEditor extends React.Component<
             ),
             buttons: [Dialog.okButton()]
           });
+          if (this.app.shell.currentWidget) {
+            this.app.shell.currentWidget.close();
+          }
           return;
         } else {
           // in this case, pipeline was last edited in a "old" version of Elyra and
@@ -624,7 +627,9 @@ export class PipelineEditor extends React.Component<
               pipelineJson = PipelineService.convertPipeline(pipelineJson);
               this.canvasController.setPipelineFlow(pipelineJson);
             } else {
-              return;
+              if (this.app.shell.currentWidget) {
+                this.app.shell.currentWidget.close();
+              }
             }
           });
         }
