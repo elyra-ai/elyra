@@ -35,7 +35,7 @@
         "parameter_ref": "runtime_image",
         "control": "oneofselect",
         "label": {
-          "default": "Runtime Image (docker image used as execution environment)."
+          "default": "Runtime Image (docker image used as execution environment)"
         }
       },
       {
@@ -50,7 +50,7 @@
       {
         "parameter_ref": "include_subdirectories",
         "label": {
-          "default": "Include subdirectories in dependencies (may increase submission time)."
+          "default": "Include Subdirectories in Dependencies (may increase submission time)"
         }
       },
       {
