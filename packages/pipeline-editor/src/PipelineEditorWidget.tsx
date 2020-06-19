@@ -303,7 +303,7 @@ export class PipelineEditor extends React.Component<
         'runtime_image.' + runtimeImage + '.label'
       ] = runtimeImages[runtimeImage];
     }
-    properties.parameters[0].enum = imageEnum;
+    properties.parameters[1].enum = imageEnum;
 
     this.propertiesInfo = {
       parameterDef: properties,
@@ -319,6 +319,7 @@ export class PipelineEditor extends React.Component<
     const node_props = this.propertiesInfo;
     node_props.appData.id = node_id;
 
+    node_props.parameterDef.current_parameters.filename = app_data.filename;
     node_props.parameterDef.current_parameters.runtime_image =
       app_data.runtime_image;
     node_props.parameterDef.current_parameters.outputs = app_data.outputs;
