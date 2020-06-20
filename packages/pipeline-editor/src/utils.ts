@@ -27,7 +27,7 @@ export default class Utils {
   }
 
   /*
-   *
+   * Utility to create a one node pipeline to submit a single Notebook as a pipeline
    */
   static generateNotebookPipeline(
     filename: string,
@@ -54,6 +54,19 @@ export default class Utils {
     template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
 
     return template;
+  }
+
+  /*
+   * Read the version of a Pipeline. If no version is found return 0
+   */
+  static getPipelineVersion(pipelineDefinition: any): number {
+    const version: number =
+      +this.getPipelineAppdataField(
+        pipelineDefinition.pipelines[0],
+        'version'
+      ) || 0;
+
+    return version;
   }
 
   /*

@@ -577,9 +577,8 @@ export class PipelineEditor extends React.Component<
 
   async handleLoadPipeline(): Promise<void> {
     this.widgetContext.ready.then(() => {
-      let pipelineJson = this.widgetContext.model.toJSON();
-      const pipelineVersion: number =
-        +Utils.getPipelineAppdataField(pipelineJson, 'version') || 0;
+      let pipelineJson: any = this.widgetContext.model.toJSON();
+      const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
       if (pipelineVersion !== PIPELINE_CURRENT_VERSION) {
         // pipeline version and current version are divergent
         if (pipelineVersion > PIPELINE_CURRENT_VERSION) {

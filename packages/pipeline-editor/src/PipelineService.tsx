@@ -131,8 +131,8 @@ export class PipelineService {
   static convertPipeline(pipelineDefinition: any): any {
     const pipelineJSON = JSON.parse(JSON.stringify(pipelineDefinition));
 
-    const currentVersion: number =
-      +Utils.hasPipelineAppdataField(pipelineJSON.pipelines[0], 'version') || 0;
+    const currentVersion: number = Utils.getPipelineVersion(pipelineJSON);
+
     if (currentVersion < 1) {
       // original pipeline definition without a version
       console.log('Migrating pipeline to version 1');
