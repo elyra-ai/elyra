@@ -4,7 +4,6 @@
     "module": "commonjs",
     "outDir": "lib",
     "rootDir": "src",
-    "suppressImplicitAnyIndexErrors": true,
     "target": "es6",
     "types": ["node"],
     "typeRoots": ["./node_modules/@types"]
