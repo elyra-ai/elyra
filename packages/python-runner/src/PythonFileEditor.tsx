@@ -131,7 +131,7 @@ export class PythonFileEditor extends DocumentWidget<
    */
   private createOutputAreaWidget = (): void => {
     // Add dockpanel wrapper for output area
-    this.dockPanel = new DockPanelSvg();
+    this.dockPanel = new DockPanelSvg({ tabsMovable: false });
     Widget.attach(this.dockPanel, document.body);
     window.addEventListener('resize', () => {
       this.dockPanel.fit();
