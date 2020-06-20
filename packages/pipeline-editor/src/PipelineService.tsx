@@ -135,7 +135,7 @@ export class PipelineService {
 
     if (currentVersion < 1) {
       // original pipeline definition without a version
-      console.log('Migrating pipeline to version 1');
+      console.info('Migrating pipeline to the current version.');
       return this.convertPipelineV0toV1(pipelineJSON);
     }
   }
