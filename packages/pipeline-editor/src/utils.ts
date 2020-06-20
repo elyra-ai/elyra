@@ -26,7 +26,7 @@ export default class Utils {
     return uuid4();
   }
 
-  /*
+  /**
    * Utility to create a one node pipeline to submit a single Notebook as a pipeline
    */
   static generateNotebookPipeline(
@@ -56,7 +56,7 @@ export default class Utils {
     return template;
   }
 
-  /*
+  /**
    * Read the version of a Pipeline. If no version is found return 0
    */
   static getPipelineVersion(pipelineDefinition: any): number {
@@ -69,7 +69,7 @@ export default class Utils {
     return version;
   }
 
-  /*
+  /**
    * Read an application specific field from the pipeline definition
    * (e.g. pipelines[0][app_data][fieldName])
    */
@@ -81,7 +81,7 @@ export default class Utils {
     }
   }
 
-  /*
+  /**
    * Check if an application specific field from the pipeline defintion exists
    * (e.g. pipelines[0][app_data][fieldName])
    */
@@ -95,7 +95,7 @@ export default class Utils {
     return isPresent;
   }
 
-  /*
+  /**
    * Delete an application specific field from the pipeline definition
    * (e.g. pipelines[0][app_data][fieldName])
    */
@@ -105,7 +105,7 @@ export default class Utils {
     }
   }
 
-  /*
+  /**
    * Rename an application specific field from the pepileine definition if it exists by
    * by copying the field value to the new field name and then deleting the previously
    * existing field
