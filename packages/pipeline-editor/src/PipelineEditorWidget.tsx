@@ -575,7 +575,7 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  async handleLoadPipeline(): Promise<void> {
+  async handleOpenPipeline(): Promise<void> {
     this.widgetContext.ready.then(() => {
       let pipelineJson: any = this.widgetContext.model.toJSON();
       const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
@@ -714,7 +714,7 @@ export class PipelineEditor extends React.Component<
     node.addEventListener('lm-dragover', this.handleEvent);
     node.addEventListener('lm-drop', this.handleEvent);
 
-    this.handleLoadPipeline();
+    this.handleOpenPipeline();
   }
 
   componentWillUnmount(): void {
