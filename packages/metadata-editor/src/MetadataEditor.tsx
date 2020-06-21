@@ -43,7 +43,7 @@ export type FormItem = {
 interface IMetadataEditorProps {
   metadata: FormItem[];
   newFile: boolean;
-  updateSignal: any;
+  onSaveCallback: any;
   editorServices: IEditorServices | null;
   namespace: string;
   name?: string;
@@ -55,7 +55,7 @@ interface IMetadataEditorProps {
 export class MetadataEditor extends ReactWidget {
   metadata: FormItem[];
   newFile: boolean;
-  updateSignal: any;
+  onSaveCallback: any;
   editorServices: IEditorServices;
   editor: CodeEditor.IEditor;
   namespace: string;
@@ -68,7 +68,7 @@ export class MetadataEditor extends ReactWidget {
     this.editorServices = props.editorServices;
     this.namespace = props.namespace;
     this.newFile = props.newFile;
-    this.updateSignal = props.updateSignal;
+    this.onSaveCallback = props.onSaveCallback;
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.name = props.name;
@@ -121,11 +121,8 @@ export class MetadataEditor extends ReactWidget {
         this.namespace,
         JSON.stringify(newMetadata)
       ).then((response: any): void => {
-        this.name = response.name;
-        this.newFile = false;
-        this.title.label = this.getFormItem('Name').value;
-        this.handleDirtyState(false);
-        this.updateSignal();
+        this.onSaveCallback();
+        this.close();
       });
     } else {
       FrontendServices.putMetadata(
@@ -133,8 +130,8 @@ export class MetadataEditor extends ReactWidget {
         this.name,
         JSON.stringify(newMetadata)
       ).then((response: any): void => {
-        this.handleDirtyState(false);
-        this.updateSignal();
+        this.onSaveCallback();
+        this.close();
       });
     }
   }
@@ -239,7 +236,7 @@ export class MetadataEditor extends ReactWidget {
           }}
         >
           {' '}
-          Save{' '}
+          Save & Close{' '}
         </Button>
       </div>
     );

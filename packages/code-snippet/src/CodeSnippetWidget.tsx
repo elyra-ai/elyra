@@ -70,7 +70,6 @@ interface ICodeSnippetDisplayProps {
   editorServices: IEditorServices;
   openCodeSnippetEditor: any;
   updateSnippets: any;
-  codeSnippetManager: CodeSnippetService;
 }
 
 /**
@@ -208,7 +207,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
           };
           editSnippetArgs.metadata[3].value = codeSnippet.code.join('\n');
           editSnippetArgs.newFile = false;
-          editSnippetArgs.updateSignal = this.props.updateSnippets;
+          editSnippetArgs.onSaveCallback = this.props.updateSnippets;
           editSnippetArgs.name = codeSnippet.name;
           this.props.openCodeSnippetEditor(editSnippetArgs);
         }
@@ -217,11 +216,11 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
-          this.props.codeSnippetManager
-            .deleteCodeSnippet(codeSnippet, this.props.updateSnippets)
-            .then((response: any): void => {
+          CodeSnippetService.deleteCodeSnippet(codeSnippet).then(
+            (response: any): void => {
               this.props.updateSnippets();
-            });
+            }
+          );
         }
       }
     ];
@@ -293,7 +292,6 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
  * A widget for Code Snippets.
  */
 export class CodeSnippetWidget extends ReactWidget {
-  codeSnippetManager: CodeSnippetService;
   renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
   getCurrentWidget: () => Widget;
   app: JupyterFrontEnd;
@@ -306,7 +304,6 @@ export class CodeSnippetWidget extends ReactWidget {
   ) {
     super();
     this.getCurrentWidget = getCurrentWidget;
-    this.codeSnippetManager = new CodeSnippetService();
     this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
     this.openCodeSnippetEditor = this.openCodeSnippetEditor.bind(this);
     this.app = app;
@@ -318,7 +315,7 @@ export class CodeSnippetWidget extends ReactWidget {
 
   // Request code snippets from server
   async fetchData(): Promise<ICodeSnippet[]> {
-    return await this.codeSnippetManager.findAll();
+    return await CodeSnippetService.findAll();
   }
 
   updateSnippets(): void {
@@ -334,7 +331,7 @@ export class CodeSnippetWidget extends ReactWidget {
 
   addCodeSnippet(): void {
     const newSnippetArgs = JSON.parse(JSON.stringify(properties.base_args));
-    newSnippetArgs.updateSignal = this.updateSnippets;
+    newSnippetArgs.onSaveCallback = this.updateSnippets;
     this.openCodeSnippetEditor(newSnippetArgs);
   }
 
@@ -362,7 +359,6 @@ export class CodeSnippetWidget extends ReactWidget {
               getCurrentWidget={this.getCurrentWidget}
               editorServices={this.editorServices}
               updateSnippets={this.updateSnippets}
-              codeSnippetManager={this.codeSnippetManager}
             />
           )}
         </UseSignal>

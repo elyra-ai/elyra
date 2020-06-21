@@ -43,11 +43,10 @@ const extension: JupyterFrontEndPlugin<void> = {
       name: string;
       editor: CodeEditor.IEditor;
     }): Promise<void> => {
-      console.log('Elyra - metadata-editor extension is activated!');
       const metadataEditorWidget = new MetadataEditor({
         metadata: args.metadata,
         newFile: args.newFile,
-        updateSignal: args.updateSignal,
+        onSaveCallback: args.updateSignal,
         editorServices: editorServices,
         namespace: args.namespace,
         name: args.name
