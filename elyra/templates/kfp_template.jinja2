@@ -10,7 +10,8 @@ from kfp_notebook.pipeline import NotebookOp
 def create_pipeline():
     {% for key, operation in operations_list.items() %}
         {% set op_name = operation.notebook_name.split('.') %}
-            notebook_op_{{ op_name[0] }} = NotebookOp(name='{{ op_name[0] }}',
+        {% set operation_id = op_name[0] | replace ("/","_") %}
+            notebook_op_{{ operation_id }} = NotebookOp(name='{{ operation_id }}',
                                                           notebook='{{ operation.notebook_name }}',
                                                           cos_endpoint='{{ operation.cos_endpoint }}',
                                                           cos_bucket='{{ operation.cos_bucket }}',
@@ -20,9 +21,9 @@ def create_pipeline():
                                                           pipeline_outputs='{{ operation.pipeline_outputs }}',
                                                           image='{{ operation.image }}')
 
-            notebook_op_{{ op_name[0] }}.name = '{{ operation.name }}'
-            notebook_op_{{ op_name[0] }}.env_variables = {{ operation.env_variables }}
-            notebook_op_{{ op_name[0] }}.dependent_names = {{ operation.dependent_names }}
+            notebook_op_{{ operation_id }}.name = '{{ operation.name }}'
+            notebook_op_{{ operation_id }}.env_variables = {{ operation.env_variables }}
+            notebook_op_{{ operation_id }}.dependent_names = {{ operation.dependent_names }}
 
     {% endfor %}
 
