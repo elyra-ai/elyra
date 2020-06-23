@@ -86,13 +86,10 @@ export default class Utils {
    * (e.g. pipelines[0][app_data][fieldName])
    */
   static hasPipelineAppdataField(node: any, fieldName: string): boolean {
-    let isPresent = false;
-    if (node['app_data']) {
-      if (node['app_data'][fieldName]) {
-        isPresent = true;
-      }
-    }
-    return isPresent;
+    return (
+      Object.prototype.hasOwnProperty.call(node, 'app_data') &&
+      Object.prototype.hasOwnProperty.call(node['app_data'], fieldName)
+    );
   }
 
   /**
