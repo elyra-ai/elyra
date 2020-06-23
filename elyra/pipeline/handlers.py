@@ -49,7 +49,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
 
         pipeline = PipelineParser.parse(pipeline_definition)
 
-        pipeline_exported_path = PipelineProcessorManager.export(
+        pipeline_exported_path = PipelineProcessorManager.instance().export(
             pipeline,
             pipeline_export_format,
             pipeline_export_path,
@@ -90,7 +90,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
 
         pipeline = PipelineParser.parse(pipeline_definition)
 
-        response = PipelineProcessorManager.process(pipeline)
+        response = PipelineProcessorManager.instance().process(pipeline)
         json_msg = json.dumps(response.to_json())
 
         self.set_status(200)
