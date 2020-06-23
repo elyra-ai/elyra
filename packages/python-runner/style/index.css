@@ -64,3 +64,7 @@ button.elyra-PythonEditor-scrollTop:hover {
 button.elyra-PythonEditor-scrollBottom:hover {
   background-color: var(--jp-layout-color2);
 }
+
+.jp-Document .jp-Toolbar.elyra-PythonEditor-Toolbar {
+  justify-content: flex-start;
+}
