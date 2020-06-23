@@ -42,11 +42,10 @@ export type FormItem = {
 
 interface IMetadataEditorProps {
   metadata: FormItem[];
-  newFile: boolean;
-  onSaveCallback: any;
-  editorServices: IEditorServices | null;
   namespace: string;
   name?: string;
+  onSave: () => void;
+  editorServices: IEditorServices | null;
 }
 
 /**
@@ -54,8 +53,7 @@ interface IMetadataEditorProps {
  */
 export class MetadataEditor extends ReactWidget {
   metadata: FormItem[];
-  newFile: boolean;
-  onSaveCallback: any;
+  onSave: () => void;
   editorServices: IEditorServices;
   editor: CodeEditor.IEditor;
   namespace: string;
@@ -67,8 +65,7 @@ export class MetadataEditor extends ReactWidget {
     this.metadata = props.metadata;
     this.editorServices = props.editorServices;
     this.namespace = props.namespace;
-    this.newFile = props.newFile;
-    this.onSaveCallback = props.onSaveCallback;
+    this.onSave = props.onSave;
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.name = props.name;
@@ -116,12 +113,13 @@ export class MetadataEditor extends ReactWidget {
       }
     }
 
-    if (this.newFile) {
+    if (!this.name) {
       FrontendServices.postMetadata(
         this.namespace,
         JSON.stringify(newMetadata)
       ).then((response: any): void => {
-        this.onSaveCallback();
+        this.handleDirtyState(false);
+        this.onSave();
         this.close();
       });
     } else {
@@ -130,7 +128,8 @@ export class MetadataEditor extends ReactWidget {
         this.name,
         JSON.stringify(newMetadata)
       ).then((response: any): void => {
-        this.onSaveCallback();
+        this.handleDirtyState(false);
+        this.onSave();
         this.close();
       });
     }
@@ -213,7 +212,7 @@ export class MetadataEditor extends ReactWidget {
       }
     }
     let headerText = `Edit "${this.getFormItem('Name').value}"`;
-    if (this.newFile) {
+    if (!this.name) {
       headerText = 'Add new metadata';
     }
     return (

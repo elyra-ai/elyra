@@ -206,8 +206,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
             defaultChoices: this.languageOptions
           };
           editSnippetArgs.metadata[3].value = codeSnippet.code.join('\n');
-          editSnippetArgs.newFile = false;
-          editSnippetArgs.onSaveCallback = this.props.updateSnippets;
+          editSnippetArgs.onSave = this.props.updateSnippets;
           editSnippetArgs.name = codeSnippet.name;
           this.props.openCodeSnippetEditor(editSnippetArgs);
         }
@@ -331,7 +330,7 @@ export class CodeSnippetWidget extends ReactWidget {
 
   addCodeSnippet(): void {
     const newSnippetArgs = JSON.parse(JSON.stringify(properties.base_args));
-    newSnippetArgs.onSaveCallback = this.updateSnippets;
+    newSnippetArgs.onSave = this.updateSnippets;
     this.openCodeSnippetEditor(newSnippetArgs);
   }
 

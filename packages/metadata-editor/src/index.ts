@@ -19,7 +19,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { IEditorServices, CodeEditor } from '@jupyterlab/codeeditor';
+import { IEditorServices } from '@jupyterlab/codeeditor';
 
 import { MetadataEditor, FormItem } from './MetadataEditor';
 
@@ -37,22 +37,16 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const openMetadataEditor = async (args: {
       metadata: FormItem[];
-      newFile: boolean;
       namespace: string;
-      updateSignal: any;
-      name: string;
-      editor: CodeEditor.IEditor;
+      name?: string;
+      onSave: () => void;
     }): Promise<void> => {
       const metadataEditorWidget = new MetadataEditor({
-        metadata: args.metadata,
-        newFile: args.newFile,
-        onSaveCallback: args.updateSignal,
-        editorServices: editorServices,
-        namespace: args.namespace,
-        name: args.name
+        ...args,
+        editorServices
       });
 
-      if (args.newFile) {
+      if (!args.name) {
         metadataEditorWidget.title.label = 'New Metadata';
       } else {
         metadataEditorWidget.title.label = args.metadata.find(
