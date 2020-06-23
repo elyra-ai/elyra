@@ -588,9 +588,8 @@ export class PipelineEditor extends React.Component<
             title: 'Load pipeline failed!',
             body: (
               <p>
-                This pipeline corresponds to a more recent version of Elyra{' '}
-                <br />
-                and cannot be used until Elyra has been upgraded.
+                This pipeline corresponds to a more recent version of Elyra and
+                cannot be used until Elyra has been upgraded.
               </p>
             ),
             buttons: [Dialog.okButton()]
