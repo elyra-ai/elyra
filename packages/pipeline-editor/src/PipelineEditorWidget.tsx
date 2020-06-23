@@ -61,11 +61,13 @@ import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineService } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
+import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
+const PIPELINE_CURRENT_VERSION = 1;
 
 const NodeProperties = (properties: any): React.ReactElement => {
   return (
@@ -172,9 +174,7 @@ export class PipelineEditor extends React.Component<
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
-    this.widgetContext.ready.then(() => {
-      this.canvasController.setPipelineFlow(this.widgetContext.model.toJSON());
-    });
+
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
@@ -303,7 +303,7 @@ export class PipelineEditor extends React.Component<
         'runtime_image.' + runtimeImage + '.label'
       ] = runtimeImages[runtimeImage];
     }
-    properties.parameters[0].enum = imageEnum;
+    properties.parameters[1].enum = imageEnum;
 
     this.propertiesInfo = {
       parameterDef: properties,
@@ -319,6 +319,7 @@ export class PipelineEditor extends React.Component<
     const node_props = this.propertiesInfo;
     node_props.appData.id = node_id;
 
+    node_props.parameterDef.current_parameters.filename = app_data.filename;
     node_props.parameterDef.current_parameters.runtime_image =
       app_data.runtime_image;
     node_props.parameterDef.current_parameters.outputs = app_data.outputs;
@@ -347,37 +348,49 @@ export class PipelineEditor extends React.Component<
     this.setState({ showPropertiesDialog: false, propertiesInfo: {} });
   }
 
+  /*
+   * Add options to the node context menu
+   * Pipeline specific context menu items are:
+   *  - Enable opening selected notebook(s)
+   *  - Enable node properties for single node
+   */
   contextMenuHandler(source: any, defaultMenu: any): any {
     let customMenu = defaultMenu;
     // Remove option to create super node
     customMenu.splice(4, 2);
     if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
+        // multiple nodes selected
         customMenu = customMenu.concat({
           action: 'openNotebook',
           label: 'Open Notebooks'
         });
       } else {
-        customMenu = customMenu.concat({
-          action: 'openNotebook',
-          label: 'Open Notebook'
-        });
+        // single node selected
+        customMenu = customMenu.concat(
+          {
+            action: 'openNotebook',
+            label: 'Open Notebook'
+          },
+          {
+            action: 'properties',
+            label: 'Properties'
+          }
+        );
       }
-      customMenu = customMenu.concat({
-        action: 'properties',
-        label: 'Properties'
-      });
     }
     return customMenu;
   }
 
+  /*
+   * Handles context menu actions
+   * Pipeline specific actions are:
+   *  - Open the associated Notebook
+   *  - Open node properties dialog
+   */
   contextMenuActionHandler(action: any, source: any): void {
     if (action === 'openNotebook' && source.type === 'node') {
-      const nodes = source.selectedObjectIds;
-      for (let i = 0; i < nodes.length; i++) {
-        const path = this.canvasController.getNode(nodes[i]).app_data.filename;
-        this.app.commands.execute(commandIDs.openDocManager, { path });
-      }
+      this.handleOpenNotebook(source.selectedObjectIds);
     } else if (action === 'properties' && source.type === 'node') {
       if (this.state.showPropertiesDialog) {
         this.closePropertiesDialog();
@@ -387,13 +400,13 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  /*
+   * Handles mouse click actions
+   */
   clickActionHandler(source: any): void {
+    // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
-      const nodes = source.selectedObjectIds;
-      for (let i = 0; i < nodes.length; i++) {
-        const path = this.canvasController.getNode(nodes[i]).app_data.filename;
-        this.app.commands.execute(commandIDs.openDocManager, { path });
-      }
+      this.handleOpenNotebook(source.selectedObjectIds);
     }
   }
 
@@ -404,14 +417,30 @@ export class PipelineEditor extends React.Component<
     this.updateModel();
   }
 
+  /*
+   * Handles displaying node properties
+   */
   tipHandler(tipType: string, data: any): any {
     if (tipType === TIP_TYPE_NODE) {
-      const properties = this.canvasController.getNode(data.node.id).app_data;
-      return <NodeProperties {...properties} />;
+      const appData = this.canvasController.getNode(data.node.id).app_data;
+      const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
+      const tooltipProps: any = {};
+
+      propsInfo.forEach(
+        (info: { parameter_ref: string; label: { default: string } }) => {
+          if (
+            Object.prototype.hasOwnProperty.call(appData, info.parameter_ref)
+          ) {
+            tooltipProps[info.label.default] = appData[info.parameter_ref];
+          }
+        }
+      );
+
+      return <NodeProperties {...tooltipProps} />;
     }
   }
 
-  handleAdd(x?: number, y?: number): Promise<any> {
+  handleAddFileToPipelineCanvas(x?: number, y?: number): Promise<any> {
     let failedAdd = 0;
     let position = 0;
     const missingXY = !(x && y);
@@ -426,7 +455,7 @@ export class PipelineEditor extends React.Component<
     const fileBrowser = this.browserFactory.defaultBrowser;
 
     toArray(fileBrowser.selectedItems()).map(item => {
-      // if the selected item is a file
+      // if the selected item is a notebook file
       if (item.type == 'notebook') {
         //add each selected notebook
         console.log('Adding ==> ' + item.path);
@@ -492,7 +521,18 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  async handleExport(): Promise<void> {
+  /*
+   * Open node associated notebook
+   */
+  handleOpenNotebook(selectedNodes: any): void {
+    for (let i = 0; i < selectedNodes.length; i++) {
+      const path = this.canvasController.getNode(selectedNodes[i]).app_data
+        .filename;
+      this.app.commands.execute(commandIDs.openDocManager, { path });
+    }
+  }
+
+  async handleExportPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
 
     showDialog({
@@ -535,7 +575,66 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  async handleRun(): Promise<void> {
+  async handleOpenPipeline(): Promise<void> {
+    this.widgetContext.ready.then(() => {
+      let pipelineJson: any = this.widgetContext.model.toJSON();
+      const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
+      if (pipelineVersion !== PIPELINE_CURRENT_VERSION) {
+        // pipeline version and current version are divergent
+        if (pipelineVersion > PIPELINE_CURRENT_VERSION) {
+          // in this case, pipeline was last edited in a "more recent release" and
+          // the user should update his version of Elyra to consume the pipeline
+          showDialog({
+            title: 'Load pipeline failed!',
+            body: (
+              <p>
+                This pipeline corresponds to a more recent version of Elyra and
+                cannot be used until Elyra has been upgraded.
+              </p>
+            ),
+            buttons: [Dialog.okButton()]
+          });
+          this.handleClosePipeline();
+          return;
+        } else {
+          // in this case, pipeline was last edited in a "old" version of Elyra and
+          // it needs to be updated/migrated.
+          showDialog({
+            title: 'Migrate pipeline?',
+            body: (
+              <p>
+                This pipeline corresponds to an older version of Elyra and needs
+                to be migrated.
+                <br />
+                Although the pipeline can be further edited and/or submitted
+                after its update,
+                <br />
+                the migration will not be completed until the pipeline has been
+                saved within the editor.
+                <br />
+                <br />
+                Proceed with migration?
+              </p>
+            ),
+            buttons: [Dialog.cancelButton(), Dialog.okButton()]
+          }).then(result => {
+            if (result.button.accept) {
+              // proceed with migration
+              pipelineJson = PipelineService.convertPipeline(pipelineJson);
+              this.canvasController.setPipelineFlow(pipelineJson);
+            } else {
+              this.handleClosePipeline();
+            }
+          });
+        }
+      } else {
+        // in this case, pipeline version is current
+        this.canvasController.setPipelineFlow(pipelineJson);
+      }
+    });
+  }
+
+  async handleRunPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
 
     showDialog({
@@ -564,29 +663,12 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  handleSave(): void {
+  handleSavePipeline(): void {
     this.updateModel();
     this.widgetContext.save();
   }
 
-  handleOpen(): void {
-    toArray(this.browserFactory.defaultBrowser.selectedItems()).map(item => {
-      // if the selected item is a file
-      if (item.type != 'directory') {
-        console.log('Opening ==> ' + item.path);
-        this.app.commands.execute(commandIDs.openDocManager, {
-          path: item.path
-        });
-      }
-    });
-  }
-
-  handleNew(): void {
-    // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name.
-    this.app.commands.execute(commandIDs.openPipelineEditor);
-  }
-
-  handleClear(): Promise<any> {
+  handleClearPipeline(): Promise<any> {
     return showDialog({
       title: 'Clear Pipeline?',
       body: 'Are you sure you want to clear? You can not undo this.',
@@ -600,6 +682,12 @@ export class PipelineEditor extends React.Component<
     });
   }
 
+  handleClosePipeline(): void {
+    if (this.app.shell.currentWidget) {
+      this.app.shell.currentWidget.close();
+    }
+  }
+
   /**
    * Handles submitting pipeline runs
    */
@@ -607,17 +695,13 @@ export class PipelineEditor extends React.Component<
     console.log('Handling action: ' + action);
     if (action == 'run') {
       // When executing the pipeline
-      this.handleRun();
+      this.handleRunPipeline();
     } else if (action == 'export') {
-      this.handleExport();
+      this.handleExportPipeline();
     } else if (action == 'save') {
-      this.handleSave();
-    } else if (action == 'open') {
-      this.handleOpen();
-    } else if (action == 'new') {
-      this.handleNew();
+      this.handleSavePipeline();
     } else if (action == 'clear') {
-      this.handleClear();
+      this.handleClearPipeline();
     }
   }
 
@@ -628,6 +712,8 @@ export class PipelineEditor extends React.Component<
     node.addEventListener('lm-dragenter', this.handleEvent);
     node.addEventListener('lm-dragover', this.handleEvent);
     node.addEventListener('lm-drop', this.handleEvent);
+
+    this.handleOpenPipeline();
   }
 
   componentWillUnmount(): void {
@@ -663,7 +749,7 @@ export class PipelineEditor extends React.Component<
       case 'lm-drop':
         event.preventDefault();
         event.stopPropagation();
-        this.handleAdd(
+        this.handleAddFileToPipelineCanvas(
           (event as IDragEvent).offsetX,
           (event as IDragEvent).offsetY
         );

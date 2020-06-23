@@ -127,6 +127,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       args: { isPalette: true },
       category: 'Extensions'
     });
+    // Add the command to the launcher
     if (launcher) {
       launcher.add({
         command: openPipelineEditorCommand,

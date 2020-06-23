@@ -59,6 +59,7 @@ const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
 const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
 const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
+const TOOLBAR_CLASS = 'elyra-PythonEditor-Toolbar';
 
 /**
  * A widget for python editors.
@@ -122,6 +123,8 @@ export class PythonFileEditor extends DocumentWidget<
     toolbar.addItem('stop', stopButton);
     toolbar.addItem('select', dropDown);
 
+    this.toolbar.addClass(TOOLBAR_CLASS);
+
     // Create output area widget
     this.createOutputAreaWidget();
   }
@@ -131,7 +134,7 @@ export class PythonFileEditor extends DocumentWidget<
    */
   private createOutputAreaWidget = (): void => {
     // Add dockpanel wrapper for output area
-    this.dockPanel = new DockPanelSvg();
+    this.dockPanel = new DockPanelSvg({ tabsMovable: false });
     Widget.attach(this.dockPanel, document.body);
     window.addEventListener('resize', () => {
       this.dockPanel.fit();
