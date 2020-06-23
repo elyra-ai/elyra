@@ -26,6 +26,9 @@ export default class Utils {
     return uuid4();
   }
 
+  /**
+   * Utility to create a one node pipeline to submit a single Notebook as a pipeline
+   */
   static generateNotebookPipeline(
     filename: string,
     options: ISubmitNotebookOptions
@@ -51,5 +54,67 @@ export default class Utils {
     template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
 
     return template;
+  }
+
+  /**
+   * Read the version of a Pipeline. If no version is found return 0
+   */
+  static getPipelineVersion(pipelineDefinition: any): number {
+    const version: number =
+      +this.getPipelineAppdataField(
+        pipelineDefinition.pipelines[0],
+        'version'
+      ) || 0;
+
+    return version;
+  }
+
+  /**
+   * Read an application specific field from the pipeline definition
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static getPipelineAppdataField(node: any, fieldName: string): string {
+    if (this.hasPipelineAppdataField(node, fieldName)) {
+      return node['app_data'][fieldName] as string;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Check if an application specific field from the pipeline defintion exists
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static hasPipelineAppdataField(node: any, fieldName: string): boolean {
+    return (
+      Object.prototype.hasOwnProperty.call(node, 'app_data') &&
+      Object.prototype.hasOwnProperty.call(node['app_data'], fieldName)
+    );
+  }
+
+  /**
+   * Delete an application specific field from the pipeline definition
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static deletePipelineAppdataField(node: any, fieldName: string): void {
+    if (this.hasPipelineAppdataField(node, fieldName)) {
+      delete node['app_data'][fieldName];
+    }
+  }
+
+  /**
+   * Rename an application specific field from the pepileine definition if it exists by
+   * by copying the field value to the new field name and then deleting the previously
+   * existing field
+   */
+  static renamePipelineAppdataField(
+    node: any,
+    currentFieldName: string,
+    newFieldName: string
+  ): void {
+    if (this.hasPipelineAppdataField(node, currentFieldName)) {
+      node['app_data'][newFieldName] = node['app_data'][currentFieldName];
+      this.deletePipelineAppdataField(node, currentFieldName);
+    }
   }
 }
