@@ -34,7 +34,6 @@
   font-family: var(--jp-code-font-family);
   font-size: var(--jp-code-font-size);
   line-height: var(--jp-code-line-height);
-  min-height: 125px;
   height: 100%;
   width: 100%;
   resize: vertical;

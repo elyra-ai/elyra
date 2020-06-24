@@ -21,6 +21,9 @@ import {
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon } from '@jupyterlab/ui-components';
 
+import { find } from '@lumino/algorithm';
+import { Widget } from '@lumino/widgets';
+
 import { MetadataEditor, FormItem } from './MetadataEditor';
 
 export const METADATA_EDITOR_ID = 'elyra-metadata-editor';
@@ -47,15 +50,28 @@ const extension: JupyterFrontEndPlugin<void> = {
         editorServices
       });
 
+      let idName = args.name;
       if (args.name) {
         metadataEditorWidget.title.label = args.name;
       } else {
-        metadataEditorWidget.title.label = 'New Metadata';
+        idName = `new:${args.schema}`;
+        metadataEditorWidget.title.label = `new ${args.schema}`;
       }
-      metadataEditorWidget.id = METADATA_EDITOR_ID;
+      metadataEditorWidget.id = `METADATA_EDITOR_ID:${args.namespace}:${args.schema}:${idName}`;
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = textEditorIcon;
-      app.shell.add(metadataEditorWidget, 'main');
+      let openWidget = find(
+        app.shell.widgets('main'),
+        (widget: Widget, index: Number) => {
+          return widget.id == metadataEditorWidget.id;
+        }
+      );
+      if (openWidget) {
+        console.log(openWidget);
+        app.shell.activateById(metadataEditorWidget.id);
+      } else {
+        app.shell.add(metadataEditorWidget, 'main');
+      }
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {

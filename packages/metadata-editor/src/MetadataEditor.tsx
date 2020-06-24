@@ -86,6 +86,7 @@ export class MetadataEditor extends ReactWidget {
     for (const schema of schemas) {
       if (this.schemaName == schema.name) {
         this.schema = schema;
+        break;
       }
     }
 
@@ -95,6 +96,7 @@ export class MetadataEditor extends ReactWidget {
         if (this.name == metadata.name) {
           this.metadata = metadata;
           this.title.label = this.metadata.display_name;
+          break;
         }
       }
     }
@@ -184,7 +186,7 @@ export class MetadataEditor extends ReactWidget {
   handleDirtyState(dirty: boolean): void {
     this.dirty = dirty;
     if (this.dirty && !this.title.className.includes(DIRTY_CLASS)) {
-      this.title.className += ` ${DIRTY_CLASS}`;
+      this.title.className += DIRTY_CLASS;
     } else if (!this.dirty) {
       this.title.className = this.title.className.replace(DIRTY_CLASS, '');
     }
@@ -242,7 +244,7 @@ export class MetadataEditor extends ReactWidget {
     }
     let headerText = `Edit "${this.getFormItem('Name').value}"`;
     if (!this.name) {
-      headerText = 'Add new metadata';
+      headerText = `Add new ${this.schemaName}`;
     }
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
