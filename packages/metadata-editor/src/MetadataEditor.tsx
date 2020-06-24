@@ -16,7 +16,7 @@
 
 import { FormGroup } from '@blueprintjs/core';
 
-import { FrontendServices } from '@elyra/application';
+import { FrontendServices, IDictionary } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
 
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
@@ -42,36 +42,62 @@ export type FormItem = {
 
 interface IMetadataEditorProps {
   metadata: FormItem[];
-  newFile: boolean;
-  updateSignal: any;
-  editorServices: IEditorServices | null;
+  schema: string;
   namespace: string;
   name?: string;
+  onSave: () => void;
+  editorServices: IEditorServices | null;
 }
 
 /**
  * Metadata editor widget
  */
 export class MetadataEditor extends ReactWidget {
-  metadata: FormItem[];
-  newFile: boolean;
-  updateSignal: any;
+  metadataForm: FormItem[];
+  onSave: () => void;
   editorServices: IEditorServices;
   editor: CodeEditor.IEditor;
+  schemaName: string;
   namespace: string;
   name: string;
   dirty: boolean;
 
+  schema: IDictionary<any> = {};
+  allMetadata: IDictionary<any>[] = [];
+  metadata: IDictionary<any> = {};
+
   constructor(props: IMetadataEditorProps) {
     super();
-    this.metadata = props.metadata;
+    this.metadataForm = props.metadata;
     this.editorServices = props.editorServices;
     this.namespace = props.namespace;
-    this.newFile = props.newFile;
-    this.updateSignal = props.updateSignal;
+    this.schemaName = props.schema;
+    this.onSave = props.onSave;
+    this.name = props.name;
+
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
-    this.name = props.name;
+
+    this.initializeMetadata();
+  }
+
+  async initializeMetadata() {
+    const schemas = await FrontendServices.getSchema(this.namespace);
+    for (const schema of schemas) {
+      if (this.schemaName == schema.name) {
+        this.schema = schema;
+      }
+    }
+
+    this.allMetadata = await FrontendServices.getMetadata(this.namespace);
+    if (this.name) {
+      for (const metadata of this.allMetadata) {
+        if (this.name == metadata.name) {
+          this.metadata = metadata;
+          this.title.label = this.metadata.display_name;
+        }
+      }
+    }
   }
 
   onCloseRequest(msg: Message): void {
@@ -101,12 +127,12 @@ export class MetadataEditor extends ReactWidget {
 
   saveMetadata(): void {
     const newMetadata: any = {
-      schema_name: 'code-snippet',
+      schema_name: this.schemaName,
       display_name: this.getFormItem('Name').value,
-      metadata: {}
+      metadata: this.metadata
     };
 
-    for (const field of this.metadata) {
+    for (const field of this.metadataForm) {
       if (field.type == 'TextInput') {
         newMetadata.metadata[field.schemaField] = field.value;
       } else if (field.type == 'DropDown') {
@@ -116,16 +142,14 @@ export class MetadataEditor extends ReactWidget {
       }
     }
 
-    if (this.newFile) {
+    if (!this.name) {
       FrontendServices.postMetadata(
         this.namespace,
         JSON.stringify(newMetadata)
       ).then((response: any): void => {
-        this.name = response.name;
-        this.newFile = false;
-        this.title.label = this.getFormItem('Name').value;
         this.handleDirtyState(false);
-        this.updateSignal();
+        this.onSave();
+        this.close();
       });
     } else {
       FrontendServices.putMetadata(
@@ -134,13 +158,14 @@ export class MetadataEditor extends ReactWidget {
         JSON.stringify(newMetadata)
       ).then((response: any): void => {
         this.handleDirtyState(false);
-        this.updateSignal();
+        this.onSave();
+        this.close();
       });
     }
   }
 
   getFormItem(searchLabel: string): FormItem {
-    return this.metadata.find(({ value, type, label, schemaField }) => {
+    return this.metadataForm.find(({ value, type, label, schemaField }) => {
       return label == searchLabel;
     });
   }
@@ -188,7 +213,7 @@ export class MetadataEditor extends ReactWidget {
 
   render(): React.ReactElement {
     const inputElements = [];
-    for (const field of this.metadata) {
+    for (const field of this.metadataForm) {
       if (field.type == 'TextInput') {
         inputElements.push(
           <FormGroup
@@ -216,7 +241,7 @@ export class MetadataEditor extends ReactWidget {
       }
     }
     let headerText = `Edit "${this.getFormItem('Name').value}"`;
-    if (this.newFile) {
+    if (!this.name) {
       headerText = 'Add new metadata';
     }
     return (
@@ -238,8 +263,7 @@ export class MetadataEditor extends ReactWidget {
             this.saveMetadata();
           }}
         >
-          {' '}
-          Save{' '}
+          Save & Close
         </Button>
       </div>
     );

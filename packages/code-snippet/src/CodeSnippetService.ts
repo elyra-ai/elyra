@@ -29,7 +29,7 @@ export interface ICodeSnippet {
 }
 
 export class CodeSnippetService {
-  async findAll(): Promise<ICodeSnippet[]> {
+  static async findAll(): Promise<ICodeSnippet[]> {
     const codeSnippetsResponse = await FrontendServices.getMetadata(
       'code-snippets'
     );
@@ -51,7 +51,7 @@ export class CodeSnippetService {
   }
 
   // TODO: Test this function
-  async findByLanguage(language: string): Promise<ICodeSnippet[]> {
+  static async findByLanguage(language: string): Promise<ICodeSnippet[]> {
     const allCodeSnippets: ICodeSnippet[] = await this.findAll();
     const codeSnippetsByLanguage: ICodeSnippet[] = [];
 
@@ -64,10 +64,7 @@ export class CodeSnippetService {
     return codeSnippetsByLanguage;
   }
 
-  deleteCodeSnippet(
-    codeSnippet: ICodeSnippet,
-    updateSnippets: () => void
-  ): Promise<void> {
+  static deleteCodeSnippet(codeSnippet: ICodeSnippet): Promise<void> {
     return showDialog({
       title: `Delete snippet: ${codeSnippet.displayName}?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]

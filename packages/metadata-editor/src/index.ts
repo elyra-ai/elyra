@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { codeSnippetIcon } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { IEditorServices, CodeEditor } from '@jupyterlab/codeeditor';
+import { IEditorServices } from '@jupyterlab/codeeditor';
+import { textEditorIcon } from '@jupyterlab/ui-components';
 
 import { MetadataEditor, FormItem } from './MetadataEditor';
 
@@ -35,36 +35,26 @@ const extension: JupyterFrontEndPlugin<void> = {
   activate: (app: JupyterFrontEnd, editorServices: IEditorServices) => {
     console.log('Elyra - metadata-editor extension is activated!');
 
-    const openMetadataEditor = async (args: {
+    const openMetadataEditor = (args: {
       metadata: FormItem[];
-      newFile: boolean;
+      schema: string;
       namespace: string;
-      updateSignal: any;
-      name: string;
-      editor: CodeEditor.IEditor;
-    }): Promise<void> => {
-      console.log('Elyra - metadata-editor extension is activated!');
+      name?: string;
+      onSave: () => void;
+    }): void => {
       const metadataEditorWidget = new MetadataEditor({
-        metadata: args.metadata,
-        newFile: args.newFile,
-        updateSignal: args.updateSignal,
-        editorServices: editorServices,
-        namespace: args.namespace,
-        name: args.name
+        ...args,
+        editorServices
       });
 
-      if (args.newFile) {
-        metadataEditorWidget.title.label = 'New Metadata';
+      if (args.name) {
+        metadataEditorWidget.title.label = args.name;
       } else {
-        metadataEditorWidget.title.label = args.metadata.find(
-          (item: FormItem) => {
-            return item.label == 'Name';
-          }
-        ).value;
+        metadataEditorWidget.title.label = 'New Metadata';
       }
       metadataEditorWidget.id = METADATA_EDITOR_ID;
       metadataEditorWidget.title.closable = true;
-      metadataEditorWidget.title.icon = codeSnippetIcon;
+      metadataEditorWidget.title.icon = textEditorIcon;
       app.shell.add(metadataEditorWidget, 'main');
     };
 
