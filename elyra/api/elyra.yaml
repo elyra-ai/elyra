@@ -355,9 +355,10 @@ components:
     MetadataResource:
       description: The set of properties comprising a metadata resource entity.
       required:
-      - display_name
       - name
+      - display_name
       - schema_name
+      - metadata
       type: object
       properties:
         name:
