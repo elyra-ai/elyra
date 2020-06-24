@@ -29,6 +29,7 @@
         "schemaField": "code"
       }
     ],
-    "namespace": "code-snippets"
+    "namespace": "code-snippets",
+    "schema": "code-snippet"
   }
 }
