@@ -115,3 +115,11 @@ td {
   padding-left: 10px;
   padding-right: 10px;
 }
+
+.elyra-PipelineOkButton.jp-mod-styled:hover:disabled,
+.elyra-PipelineOkButton.jp-mod-styled:active:disabled,
+.elyra-PipelineOkButton.jp-mod-styled:focus:disabled,
+.elyra-PipelineOkButton.jp-mod-styled:disabled {
+  background-color: lightgray;
+  pointer-events: none;
+}

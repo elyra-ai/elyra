@@ -65,6 +65,7 @@ import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
+const OK_BUTTON_CLASS = 'elyra-PipelineOkButton';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
 const PIPELINE_CURRENT_VERSION = 1;
@@ -532,15 +533,39 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  async handleExportPipeline(): Promise<void> {
+  async showPipelineExportDialog(): Promise<Dialog.IResult<any>> {
     const runtimes = await PipelineService.getRuntimes();
-
-    showDialog({
+    const dialogBody = new PipelineExportDialog({ runtimes });
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
-      body: new PipelineExportDialog({ runtimes }),
-      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      body: dialogBody,
+      buttons: [
+        Dialog.cancelButton(),
+        Dialog.okButton({ className: OK_BUTTON_CLASS })
+      ],
       focusNodeSelector: '#runtime_config'
-    }).then(result => {
+    };
+    const dialog = new Dialog(dialogOptions);
+
+    // Disable ok button as default
+    const okButton = dialog.node.querySelector('.' + OK_BUTTON_CLASS);
+    okButton.setAttribute('disabled', 'disabled');
+
+    // Listen for runtime config valid selection and enable okButton accordingly
+    const runtimesDropDown = dialogBody.node.querySelector(
+      '[name="runtime_config"]'
+    );
+    runtimesDropDown.addEventListener('change', (event: any) => {
+      if (event.target.value) {
+        okButton.removeAttribute('disabled');
+      }
+    });
+
+    return dialog.launch();
+  }
+
+  async handleExportPipeline(): Promise<void> {
+    this.showPipelineExportDialog().then(result => {
       if (result.value == null) {
         // When Cancel is clicked on the dialog, just return
         return;
