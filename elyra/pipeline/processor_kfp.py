@@ -252,7 +252,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         return name + '-' + operation.id + ".tar.gz"
 
     def _get_dependency_source_dir(self, operation):
-        return os.path.join(os.getcwd(), os.path.dirname(operation.filename))
+        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
 
     def _generate_dependency_archive(self, operation):
         archive_artifact_name = self._get_dependency_archive_name(operation)
