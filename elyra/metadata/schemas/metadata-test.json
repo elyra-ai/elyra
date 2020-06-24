@@ -89,5 +89,5 @@
       "required": ["required_test"]
     }
   },
-  "required": ["schema_name", "display_name"]
+  "required": ["schema_name", "display_name", "metadata"]
 }
