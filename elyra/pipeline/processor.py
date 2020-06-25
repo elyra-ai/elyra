@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 import entrypoints
+import os
+
 from abc import abstractmethod
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
@@ -22,6 +24,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     __processors = {}
 
     def __init__(self):
+
         # Register all known processors based on entrypoint configuration
         for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
             try:
@@ -46,28 +49,34 @@ class PipelineProcessorRegistry(SingletonConfigurable):
 
 
 class PipelineProcessorManager(SingletonConfigurable):
-    @staticmethod
-    def process(pipeline):
+
+    def __init__(self, **kwargs):
+        super(PipelineProcessorManager, self).__init__()
+        # Since root_dir may contain '~' for user home, use expanduser()
+        self.root_dir = os.path.expanduser(kwargs.get('root_dir', os.getcwd()))
+
+    def process(self, pipeline):
         registry = PipelineProcessorRegistry()
 
         processor_type = pipeline.runtime
         processor = registry.get_processor(processor_type)
 
         if not processor:
-            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.platform))
+            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
 
+        processor.root_dir = self.root_dir
         return processor.process(pipeline)
 
-    @staticmethod
-    def export(pipeline, pipeline_export_format, pipeline_export_path, overwrite):
+    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         registry = PipelineProcessorRegistry()
 
         processor_type = pipeline.runtime
         processor = registry.get_processor(processor_type)
 
         if not processor:
-            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.platform))
+            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
 
+        processor.root_dir = self.root_dir
         return processor.export(pipeline, pipeline_export_format, pipeline_export_path, overwrite)
 
 
@@ -116,6 +125,14 @@ class PipelineProcessorResponse(object):
 
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
+
+    @property
+    def root_dir(self):
+        return self._root_dir
+
+    @root_dir.setter
+    def root_dir(self, value):
+        self._root_dir = value
 
     @property
     @abstractmethod

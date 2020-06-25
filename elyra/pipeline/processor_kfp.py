@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 import kfp
 import os
 import tempfile
@@ -197,9 +196,12 @@ class KfpPipelineProcessor(PipelineProcessor):
                                      cos_bucket=cos_bucket,
                                      cos_directory=cos_directory,
                                      cos_dependencies_archive=operation_artifact_archive,
-                                     pipeline_inputs=self._artifact_list_to_str(operation.inputs),
-                                     pipeline_outputs=self._artifact_list_to_str(operation.outputs),
                                      image=operation.runtime_image)
+
+            if operation.inputs:
+                notebook_op.add_pipeline_inputs(self._artifact_list_to_str(operation.inputs))
+            if operation.outputs:
+                notebook_op.add_pipeline_outputs(self._artifact_list_to_str(operation.outputs))
 
             notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
             notebook_op.container.add_env_variable(V1EnvVar(name='AWS_SECRET_ACCESS_KEY', value=cos_password))
@@ -241,10 +243,10 @@ class KfpPipelineProcessor(PipelineProcessor):
         return notebook_ops
 
     def _artifact_list_to_str(self, pipeline_array):
-        if not pipeline_array:
-            return "None"
-        else:
-            return ','.join(pipeline_array)
+        trimmed_artifact_list = []
+        for artifact_name in pipeline_array:
+            trimmed_artifact_list.append(artifact_name.strip())
+        return ','.join(trimmed_artifact_list)
 
     def _get_dependency_archive_name(self, operation):
         archive_name = os.path.basename(operation.filename)
@@ -252,7 +254,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         return name + '-' + operation.id + ".tar.gz"
 
     def _get_dependency_source_dir(self, operation):
-        return os.path.join(os.getcwd(), os.path.dirname(operation.filename))
+        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
 
     def _generate_dependency_archive(self, operation):
         archive_artifact_name = self._get_dependency_archive_name(operation)

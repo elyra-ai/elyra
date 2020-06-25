@@ -45,5 +45,5 @@
       "required": ["language", "code"]
     }
   },
-  "required": ["schema_name", "display_name"]
+  "required": ["schema_name", "display_name", "metadata"]
 }
