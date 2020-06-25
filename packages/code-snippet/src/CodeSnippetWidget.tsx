@@ -56,7 +56,9 @@ const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 
-const METADATA_EDITOR_ID = 'elyra-metadata-editor';
+const commands = {
+  OPEN_METADATA_EDITOR: `elyra-metadata-editor:open`
+};
 const CODE_SNIPPET_NAMESPACE = 'code-snippets';
 const CODE_SNIPPET_SCHEMA = 'code-snippet';
 
@@ -320,7 +322,7 @@ export class CodeSnippetWidget extends ReactWidget {
   }
 
   openCodeSnippetEditor(args: any): void {
-    this.app.commands.execute(`${METADATA_EDITOR_ID}:open`, args);
+    this.app.commands.execute(commands.OPEN_METADATA_EDITOR, args);
   }
 
   render(): React.ReactElement {

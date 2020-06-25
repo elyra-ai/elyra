@@ -187,11 +187,13 @@ export class MetadataEditor extends ReactWidget {
 
   onUpdateRequest(msg: Message): void {
     super.onUpdateRequest(msg);
-    // Creates editor after the schema is retrieved and update is called
+    // If the update request triggered rendering a 'code' input, and the editor hasn't
+    // been initialized yet, create the editor and attach it to the 'code' node
     if (!this.editor && document.getElementById('code:' + this.id) != null) {
       let initialCodeValue;
       const getMimeTypeByLanguage = this.editorServices.mimeTypeService
         .getMimeTypeByLanguage;
+      // If the file already exists, initialize the code editor with the existing code
       if (this.name) {
         initialCodeValue = this.metadata['code'].join('\n');
       } else {
