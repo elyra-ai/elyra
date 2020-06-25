@@ -222,7 +222,7 @@ export class MetadataEditor extends ReactWidget {
     label: string,
     description: string,
     fieldName: string,
-    defaultValue
+    defaultValue: string
   ) {
     return (
       <FormGroup
