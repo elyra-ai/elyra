@@ -22,7 +22,11 @@ import * as React from 'react';
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
 export interface IDropDownProps {
-  field: any;
+  label: string;
+  schemaField: string;
+  description?: string;
+  choice?: string;
+  defaultChoices?: string[];
   handleDropdownChange: any;
 }
 
@@ -45,6 +49,7 @@ export class DropDown extends React.Component<IDropDownProps> {
   ): React.ReactElement => (
     <MenuItem
       icon="add"
+      key="createOption"
       text={`Create "${query}"`}
       active={active}
       onClick={handleClick}
@@ -71,30 +76,26 @@ export class DropDown extends React.Component<IDropDownProps> {
   render(): React.ReactElement {
     return (
       <FormGroup
-        key={this.props.field.label}
-        label={this.props.field.label}
+        key={this.props.label}
+        label={this.props.label}
         labelInfo="(required)"
-        helperText={this.props.field.description}
+        helperText={this.props.description}
       >
         <Select
-          items={this.props.field.value.defaultChoices}
+          items={this.props.defaultChoices}
           itemPredicate={this.filterDropdown}
           createNewItemFromQuery={(newValue: any): void => {
             return newValue;
           }}
           createNewItemRenderer={this.renderCreateOption}
           onItemSelect={(value: string): void => {
-            this.props.handleDropdownChange(this.props.field.label, value);
+            this.props.handleDropdownChange(this.props.schemaField, value);
           }}
           itemRenderer={this.itemRenderer}
         >
           <Button
             rightIcon="caret-down"
-            text={
-              this.props.field.value.choice
-                ? this.props.field.value.choice
-                : '(No selection)'
-            }
+            text={this.props.choice ? this.props.choice : '(No selection)'}
           />
         </Select>
       </FormGroup>

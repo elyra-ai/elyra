@@ -24,7 +24,7 @@ import { textEditorIcon } from '@jupyterlab/ui-components';
 import { find } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
 
-import { MetadataEditor, FormItem } from './MetadataEditor';
+import { MetadataEditor } from './MetadataEditor';
 
 export const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
@@ -39,7 +39,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     console.log('Elyra - metadata-editor extension is activated!');
 
     const openMetadataEditor = (args: {
-      metadata: FormItem[];
       schema: string;
       namespace: string;
       name?: string;
@@ -57,12 +56,12 @@ const extension: JupyterFrontEndPlugin<void> = {
         idName = `new:${args.schema}`;
         metadataEditorWidget.title.label = `new ${args.schema}`;
       }
-      metadataEditorWidget.id = `METADATA_EDITOR_ID:${args.namespace}:${args.schema}:${idName}`;
+      metadataEditorWidget.id = `${METADATA_EDITOR_ID}:${args.namespace}:${args.schema}:${idName}`;
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = textEditorIcon;
-      let openWidget = find(
+      const openWidget = find(
         app.shell.widgets('main'),
-        (widget: Widget, index: Number) => {
+        (widget: Widget, index: number) => {
           return widget.id == metadataEditorWidget.id;
         }
       );

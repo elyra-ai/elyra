@@ -30,7 +30,7 @@ import * as React from 'react';
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
-type FormItemType = 'TextInput' | 'DropDown' | 'Code';
+type FormItemType = 'textinput' | 'dropdown' | 'code';
 
 export type FormItem = {
   value: any;
@@ -41,7 +41,6 @@ export type FormItem = {
 };
 
 interface IMetadataEditorProps {
-  metadata: FormItem[];
   schema: string;
   namespace: string;
   name?: string;
@@ -53,8 +52,8 @@ interface IMetadataEditorProps {
  * Metadata editor widget
  */
 export class MetadataEditor extends ReactWidget {
-  metadataForm: FormItem[];
   onSave: () => void;
+  displayName: string;
   editorServices: IEditorServices;
   editor: CodeEditor.IEditor;
   schemaName: string;
@@ -68,7 +67,6 @@ export class MetadataEditor extends ReactWidget {
 
   constructor(props: IMetadataEditorProps) {
     super();
-    this.metadataForm = props.metadata;
     this.editorServices = props.editorServices;
     this.namespace = props.namespace;
     this.schemaName = props.schema;
@@ -77,6 +75,7 @@ export class MetadataEditor extends ReactWidget {
 
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
+    this.renderField = this.renderField.bind(this);
 
     this.initializeMetadata();
   }
@@ -85,7 +84,9 @@ export class MetadataEditor extends ReactWidget {
     const schemas = await FrontendServices.getSchema(this.namespace);
     for (const schema of schemas) {
       if (this.schemaName == schema.name) {
-        this.schema = schema;
+        this.schema = schema.properties.metadata.properties;
+        // All metadata has a display_name field
+        this.displayName = schema.properties.display_name;
         break;
       }
     }
@@ -94,12 +95,15 @@ export class MetadataEditor extends ReactWidget {
     if (this.name) {
       for (const metadata of this.allMetadata) {
         if (this.name == metadata.name) {
-          this.metadata = metadata;
-          this.title.label = this.metadata.display_name;
+          this.metadata = metadata['metadata'];
+          this.displayName = metadata['display_name'];
+          this.title.label = this.displayName;
           break;
         }
       }
     }
+
+    this.update();
   }
 
   onCloseRequest(msg: Message): void {
@@ -109,9 +113,7 @@ export class MetadataEditor extends ReactWidget {
         body: (
           <p>
             {' '}
-            {`"${
-              this.getFormItem('Name').value
-            }" has unsaved changes, close without saving?`}{' '}
+            {`"${this.displayName}" has unsaved changes, close without saving?`}{' '}
           </p>
         ),
         buttons: [Dialog.cancelButton(), Dialog.okButton()]
@@ -130,19 +132,9 @@ export class MetadataEditor extends ReactWidget {
   saveMetadata(): void {
     const newMetadata: any = {
       schema_name: this.schemaName,
-      display_name: this.getFormItem('Name').value,
+      display_name: this.displayName,
       metadata: this.metadata
     };
-
-    for (const field of this.metadataForm) {
-      if (field.type == 'TextInput') {
-        newMetadata.metadata[field.schemaField] = field.value;
-      } else if (field.type == 'DropDown') {
-        newMetadata.metadata[field.schemaField] = field.value.choice;
-      } else if (field.type == 'Code') {
-        newMetadata.metadata[field.schemaField] = field.value.split('\n');
-      }
-    }
 
     if (!this.name) {
       FrontendServices.postMetadata(
@@ -166,20 +158,19 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
-  getFormItem(searchLabel: string): FormItem {
-    return this.metadataForm.find(({ value, type, label, schemaField }) => {
-      return label == searchLabel;
-    });
+  handleTextInputChange(event: any, schemaField: string): void {
+    this.handleDirtyState(true);
+    // Special case because all metadata has a display name
+    if (schemaField == 'display_name') {
+      this.displayName = event.nativeEvent.srcElement.value;
+    } else {
+      this.metadata[schemaField] = event.nativeEvent.srcElement.value;
+    }
   }
 
-  handleTextInputChange(event: any, label: string): void {
+  handleDropdownChange = (schemaField: string, value: string): void => {
     this.handleDirtyState(true);
-    this.getFormItem(label).value = event.nativeEvent.srcElement.value;
-  }
-
-  handleDropdownChange = (label: string, value: string): void => {
-    this.handleDirtyState(true);
-    this.getFormItem(label).value.choice = value;
+    this.metadata[schemaField] = value;
     this.update();
   };
 
@@ -192,57 +183,115 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
-  onAfterShow(): void {
-    if (!this.editor) {
+  onUpdateRequest(msg: Message): void {
+    super.onUpdateRequest(msg);
+    if (!this.editor && this.metadata['code']) {
       const getMimeTypeByLanguage = this.editorServices.mimeTypeService
         .getMimeTypeByLanguage;
       this.editor = this.editorServices.factoryService.newInlineEditor({
-        host: document.getElementById('Code:' + this.name),
+        host: document.getElementById('code:' + this.id),
         model: new CodeEditor.Model({
-          value: this.getFormItem('Code').value,
+          value: this.metadata['code'].join('\n'),
           mimeType: getMimeTypeByLanguage({
-            name: this.getFormItem('Language').value.choice,
-            codemirror_mode: this.getFormItem('Language').value.choice
+            name: this.metadata['language'],
+            codemirror_mode: this.metadata['language']
           })
         })
       });
       this.editor.model.value.changed.connect((args: any) => {
-        this.getFormItem('Code').value = args.text;
+        this.metadata['code'] = args.text.split('\n');
         this.handleDirtyState(true);
       });
     }
   }
 
-  render(): React.ReactElement {
-    const inputElements = [];
-    for (const field of this.metadataForm) {
-      if (field.type == 'TextInput') {
-        inputElements.push(
-          <FormGroup
-            key={field.label}
-            label={field.label}
-            labelInfo="(required)"
-            helperText={field.description}
-          >
-            <InputGroup
-              onChange={(event: any): void => {
-                this.handleTextInputChange(event, field.label);
-              }}
-              defaultValue={field.value}
-              type="text-input"
-            />
-          </FormGroup>
-        );
-      } else if (field.type == 'DropDown') {
-        inputElements.push(
-          <DropDown
-            field={field}
-            handleDropdownChange={this.handleDropdownChange}
-          ></DropDown>
-        );
+  getDefaultChoices(fieldName: string) {
+    let defaultChoices = this.schema[fieldName].uihints.default_choices;
+    if (defaultChoices == undefined) {
+      defaultChoices = [];
+    }
+    for (const otherMetadata of this.allMetadata) {
+      if (!defaultChoices.includes(otherMetadata.metadata[fieldName])) {
+        defaultChoices.push(otherMetadata.metadata[fieldName]);
       }
     }
-    let headerText = `Edit "${this.getFormItem('Name').value}"`;
+    return defaultChoices;
+  }
+
+  renderTextInput(
+    label: string,
+    description: string,
+    fieldName: string,
+    defaultValue
+  ) {
+    return (
+      <FormGroup
+        key={label}
+        label={label}
+        labelInfo="(required)"
+        helperText={description}
+      >
+        <InputGroup
+          onChange={(event: any): void => {
+            this.handleTextInputChange(event, fieldName);
+          }}
+          defaultValue={defaultValue}
+          type="text-input"
+        />
+      </FormGroup>
+    );
+  }
+
+  renderField(fieldName: string) {
+    const uihints = this.schema[fieldName].uihints;
+    if (uihints == undefined) {
+      return;
+    } else if (
+      uihints.field_type == 'textinput' ||
+      uihints.field_type == undefined
+    ) {
+      return this.renderTextInput(
+        uihints.label,
+        uihints.description,
+        fieldName,
+        this.metadata[fieldName]
+      );
+    } else if (uihints.field_type == 'dropdown') {
+      return (
+        <DropDown
+          label={uihints.label}
+          schemaField={fieldName}
+          description={uihints.description}
+          choice={this.metadata[fieldName]}
+          defaultChoices={this.getDefaultChoices(fieldName)}
+          handleDropdownChange={this.handleDropdownChange}
+        ></DropDown>
+      );
+    } else if (uihints.field_type == 'code') {
+      return (
+        <>
+          <label
+            style={{ width: '100%', display: 'flex' }}
+            htmlFor={'code:' + this.id}
+          >
+            Code:
+          </label>
+          <br />
+          <div id={'code:' + this.id} className="elyra-form-code"></div>
+          <br />
+        </>
+      );
+    } else {
+      return;
+    }
+  }
+
+  render(): React.ReactElement {
+    const inputElements = [];
+    for (const schemaProperty in this.schema) {
+      inputElements.push(this.renderField(schemaProperty));
+    }
+    let headerText = `Edit "${this.displayName}"`;
     if (!this.name) {
       headerText = `Add new ${this.schemaName}`;
     }
@@ -250,16 +299,8 @@ export class MetadataEditor extends ReactWidget {
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
         <br />
+        {this.renderTextInput('Name', '', 'display_name', this.displayName)}
         {inputElements}
-        <label
-          style={{ width: '100%', display: 'flex' }}
-          htmlFor={'Code:' + this.name}
-        >
-          Code:
-        </label>
-        <br />
-        <div id={'Code:' + this.name} className="elyra-form-code"></div>
-        <br />
         <Button
           onClick={(): void => {
             this.saveMetadata();

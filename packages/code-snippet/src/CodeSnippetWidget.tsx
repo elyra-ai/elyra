@@ -47,7 +47,6 @@ import { Widget } from '@lumino/widgets';
 import React from 'react';
 
 import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
-import * as properties from './properties.json';
 
 /**
  * The CSS class added to code snippet widget.
@@ -58,8 +57,8 @@ const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
-
-const defaultLanguages = ['Python', 'Java', 'R', 'Scala', 'Markdown'];
+const CODE_SNIPPET_NAMESPACE = 'code-snippets';
+const CODE_SNIPPET_SCHEMA = 'code-snippet';
 
 /**
  * CodeSnippetDisplay props.
@@ -77,7 +76,6 @@ interface ICodeSnippetDisplayProps {
  */
 class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
-  languageOptions: string[] = defaultLanguages;
 
   // Handle code snippet insert into an editor
   private insertCodeSnippet = async (snippet: ICodeSnippet): Promise<void> => {
@@ -196,19 +194,12 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         title: 'Edit',
         icon: editIcon,
         onClick: (): void => {
-          const editSnippetArgs = JSON.parse(
-            JSON.stringify(properties.base_args)
-          );
-          editSnippetArgs.metadata[0].value = codeSnippet.displayName;
-          editSnippetArgs.metadata[1].value = codeSnippet.description;
-          editSnippetArgs.metadata[2].value = {
-            choice: codeSnippet.language,
-            defaultChoices: this.languageOptions
-          };
-          editSnippetArgs.metadata[3].value = codeSnippet.code.join('\n');
-          editSnippetArgs.onSave = this.props.updateSnippets;
-          editSnippetArgs.name = codeSnippet.name;
-          this.props.openCodeSnippetEditor(editSnippetArgs);
+          this.props.openCodeSnippetEditor({
+            onSave: this.props.updateSnippets,
+            namespace: CODE_SNIPPET_NAMESPACE,
+            schema: CODE_SNIPPET_SCHEMA,
+            name: codeSnippet.name
+          });
         }
       },
       {
@@ -241,14 +232,6 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
   };
 
   componentDidUpdate(): void {
-    // Add any languages that are in existing snippets to the default list of languages.
-    this.languageOptions = defaultLanguages;
-    for (const codeSnippet of this.props.codeSnippets) {
-      if (!this.languageOptions.includes(codeSnippet.language)) {
-        this.languageOptions.push(codeSnippet.language);
-      }
-    }
-
     const editorFactory = this.props.editorServices.factoryService
       .newInlineEditor;
     const getMimeTypeByLanguage = this.props.editorServices.mimeTypeService
@@ -304,12 +287,12 @@ export class CodeSnippetWidget extends ReactWidget {
     super();
     this.getCurrentWidget = getCurrentWidget;
     this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
-    this.openCodeSnippetEditor = this.openCodeSnippetEditor.bind(this);
     this.app = app;
     this.editorServices = editorServices;
 
     this.fetchData = this.fetchData.bind(this);
     this.updateSnippets = this.updateSnippets.bind(this);
+    this.openCodeSnippetEditor = this.openCodeSnippetEditor.bind(this);
   }
 
   // Request code snippets from server
@@ -329,9 +312,11 @@ export class CodeSnippetWidget extends ReactWidget {
   }
 
   addCodeSnippet(): void {
-    const newSnippetArgs = JSON.parse(JSON.stringify(properties.base_args));
-    newSnippetArgs.onSave = this.updateSnippets;
-    this.openCodeSnippetEditor(newSnippetArgs);
+    this.openCodeSnippetEditor({
+      onSave: this.updateSnippets,
+      namespace: CODE_SNIPPET_NAMESPACE,
+      schema: CODE_SNIPPET_SCHEMA
+    });
   }
 
   openCodeSnippetEditor(args: any): void {
