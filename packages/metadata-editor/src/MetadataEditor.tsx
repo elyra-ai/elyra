@@ -101,6 +101,8 @@ export class MetadataEditor extends ReactWidget {
           break;
         }
       }
+    } else {
+      this.displayName = '';
     }
 
     this.update();
@@ -185,13 +187,20 @@ export class MetadataEditor extends ReactWidget {
 
   onUpdateRequest(msg: Message): void {
     super.onUpdateRequest(msg);
-    if (!this.editor && this.metadata['code']) {
+    // Creates editor after the schema is retrieved and update is called
+    if (!this.editor && document.getElementById('code:' + this.id) != null) {
+      let initialCodeValue;
       const getMimeTypeByLanguage = this.editorServices.mimeTypeService
         .getMimeTypeByLanguage;
+      if (this.name) {
+        initialCodeValue = this.metadata['code'].join('\n');
+      } else {
+        initialCodeValue = '';
+      }
       this.editor = this.editorServices.factoryService.newInlineEditor({
         host: document.getElementById('code:' + this.id),
         model: new CodeEditor.Model({
-          value: this.metadata['code'].join('\n'),
+          value: initialCodeValue,
           mimeType: getMimeTypeByLanguage({
             name: this.metadata['language'],
             codemirror_mode: this.metadata['language']
@@ -269,7 +278,7 @@ export class MetadataEditor extends ReactWidget {
       );
     } else if (uihints.field_type == 'code') {
       return (
-        <>
+        <div>
           <label
             style={{ width: '100%', display: 'flex' }}
             htmlFor={'code:' + this.id}
@@ -279,7 +288,7 @@ export class MetadataEditor extends ReactWidget {
           <br />
           <div id={'code:' + this.id} className="elyra-form-code"></div>
           <br />
-        </>
+        </div>
       );
     } else {
       return;
