@@ -78,6 +78,7 @@ export class MetadataEditor extends ReactWidget {
         this.schema = schema.properties.metadata.properties;
         // All metadata has a display_name field
         this.displayName = schema.properties.display_name;
+        this.requiredFields = schema.properties.required;
         break;
       }
     }
@@ -88,7 +89,6 @@ export class MetadataEditor extends ReactWidget {
         if (this.name == metadata.name) {
           this.metadata = metadata['metadata'];
           this.displayName = metadata['display_name'];
-          this.requiredFields = metadata['required'];
           this.title.label = this.displayName;
           break;
         }
@@ -280,14 +280,13 @@ export class MetadataEditor extends ReactWidget {
     } else if (uihints.field_type == 'code') {
       return (
         <div>
-          <label
+          <FormGroup
             style={{ width: '100%', display: 'flex' }}
-            htmlFor={'code:' + this.id}
+            labelInfo={required}
+            label={'Code'}
           >
-            Code {required}
-          </label>
-          <br />
-          <div id={'code:' + this.id} className="elyra-form-code"></div>
+            <div id={'code:' + this.id} className="elyra-form-code"></div>
+          </FormGroup>
           <br />
         </div>
       );
