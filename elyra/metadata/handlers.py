@@ -15,9 +15,9 @@
 #
 
 from jsonschema import ValidationError
-from tornado import web, gen
+from tornado import web
 from notebook.base.handlers import APIHandler
-from notebook.utils import maybe_future, url_unescape, url_path_join
+from notebook.utils import url_unescape, url_path_join
 from .metadata import MetadataManager, SchemaManager, Metadata
 from ..util.http import HttpErrorMixin
 
@@ -26,13 +26,12 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
     """Handler for metadata configurations collection. """
 
     @web.authenticated
-    @gen.coroutine
-    def get(self, namespace):
+    async def get(self, namespace):
         namespace = url_unescape(namespace)
         try:
             metadata_manager = MetadataManager(namespace=namespace)
             self.log.debug("MetadataHandler: Fetching all metadata resources from namespace '{}'...".format(namespace))
-            metadata = yield maybe_future(metadata_manager.get_all())
+            metadata = metadata_manager.get_all()
         except (ValidationError, ValueError) as err:
             raise web.HTTPError(400, str(err))
         except FileNotFoundError as err:
@@ -46,8 +45,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         self.finish(metadata_model)
 
     @web.authenticated
-    @gen.coroutine
-    def post(self, namespace):
+    async def post(self, namespace):
 
         namespace = url_unescape(namespace)
         try:
@@ -98,8 +96,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     """Handler for metadata configuration specific resource (e.g. a runtime element). """
 
     @web.authenticated
-    @gen.coroutine
-    def get(self, namespace, resource):
+    async def get(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
 
@@ -107,7 +104,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             metadata_manager = MetadataManager(namespace=namespace)
             self.log.debug("MetadataResourceHandler: Fetching metadata resource '{}' from namespace '{}'...".
                            format(resource, namespace))
-            metadata = yield maybe_future(metadata_manager.get(resource))
+            metadata = metadata_manager.get(resource)
         except (ValidationError, ValueError, NotImplementedError) as err:
             raise web.HTTPError(400, str(err))
         except FileNotFoundError as err:
@@ -119,8 +116,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
         self.finish(metadata.to_dict(trim=True))
 
     @web.authenticated
-    @gen.coroutine
-    def put(self, namespace, resource):
+    async def put(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
 
@@ -149,8 +145,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
         self.finish(metadata.to_dict(trim=True))
 
     @web.authenticated
-    @gen.coroutine
-    def delete(self, namespace, resource):
+    async def delete(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
 
@@ -176,13 +171,12 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
     """Handler for namespace schemas. """
 
     @web.authenticated
-    @gen.coroutine
-    def get(self, namespace):
+    async def get(self, namespace):
         namespace = url_unescape(namespace)
         schema_manager = SchemaManager()
         try:
             self.log.debug("SchemaHandler: Fetching all schemas for namespace '{}'...".format(namespace))
-            schemas = yield maybe_future(schema_manager.get_namespace_schemas(namespace))
+            schemas = schema_manager.get_namespace_schemas(namespace)
         except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
@@ -198,15 +192,14 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
     """Handler for a specific schema (resource) for a given namespace. """
 
     @web.authenticated
-    @gen.coroutine
-    def get(self, namespace, resource):
+    async def get(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
         schema_manager = SchemaManager()
         try:
             self.log.debug("SchemaResourceHandler: Fetching schema '{}' for namespace '{}'...".
                            format(resource, namespace))
-            schema = yield maybe_future(schema_manager.get_schema(namespace, resource))
+            schema = schema_manager.get_schema(namespace, resource)
         except (ValidationError, ValueError, FileNotFoundError) as err:
             raise web.HTTPError(404, str(err))
         except Exception as ex:
@@ -220,8 +213,7 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
     """Handler for retrieving namespaces """
 
     @web.authenticated
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         schema_manager = SchemaManager()
         try:
             self.log.debug("NamespaceHandler: Fetching namespaces...")
