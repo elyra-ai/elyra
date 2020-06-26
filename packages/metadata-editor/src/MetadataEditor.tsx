@@ -30,16 +30,6 @@ import * as React from 'react';
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
-type FormItemType = 'textinput' | 'dropdown' | 'code';
-
-export type FormItem = {
-  value: any;
-  type: FormItemType;
-  label: string;
-  schemaField: string;
-  description?: string;
-};
-
 interface IMetadataEditorProps {
   schema: string;
   namespace: string;
@@ -80,7 +70,7 @@ export class MetadataEditor extends ReactWidget {
     this.initializeMetadata();
   }
 
-  async initializeMetadata() {
+  async initializeMetadata(): Promise<void> {
     const schemas = await FrontendServices.getSchema(this.namespace);
     for (const schema of schemas) {
       if (this.schemaName == schema.name) {
@@ -216,7 +206,7 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
-  getDefaultChoices(fieldName: string) {
+  getDefaultChoices(fieldName: string): any[] {
     let defaultChoices = this.schema[fieldName].uihints.default_choices;
     if (defaultChoices == undefined) {
       defaultChoices = [];
@@ -234,7 +224,7 @@ export class MetadataEditor extends ReactWidget {
     description: string,
     fieldName: string,
     defaultValue: string
-  ) {
+  ): React.ReactElement {
     return (
       <FormGroup
         key={label}
@@ -253,7 +243,7 @@ export class MetadataEditor extends ReactWidget {
     );
   }
 
-  renderField(fieldName: string) {
+  renderField(fieldName: string): React.ReactElement {
     const uihints = this.schema[fieldName].uihints;
     if (uihints == undefined) {
       return;

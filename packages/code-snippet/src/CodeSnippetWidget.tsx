@@ -70,7 +70,7 @@ interface ICodeSnippetDisplayProps {
   getCurrentWidget: () => Widget;
   editorServices: IEditorServices;
   openCodeSnippetEditor: any;
-  updateSnippets: any;
+  updateSnippets: () => void;
 }
 
 /**

@@ -26,7 +26,10 @@ import { Widget } from '@lumino/widgets';
 
 import { MetadataEditor } from './MetadataEditor';
 
-export const METADATA_EDITOR_ID = 'elyra-metadata-editor';
+const METADATA_EDITOR_ID = 'elyra-metadata-editor';
+const commands = {
+  OPEN_METADATA_EDITOR: `${METADATA_EDITOR_ID}:open`
+};
 
 /**
  * Initialization data for the metadata-editor-extension extension.
@@ -73,7 +76,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     };
 
-    app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
+    app.commands.addCommand(commands.OPEN_METADATA_EDITOR, {
       execute: (args: any) => {
         openMetadataEditor(args);
       }
