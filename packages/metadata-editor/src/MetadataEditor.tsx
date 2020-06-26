@@ -230,7 +230,7 @@ export class MetadataEditor extends ReactWidget {
   ): React.ReactElement {
     return (
       <FormGroup
-        key={label}
+        key={fieldName}
         label={label}
         labelInfo={required}
         helperText={description}
@@ -279,16 +279,13 @@ export class MetadataEditor extends ReactWidget {
       );
     } else if (uihints.field_type == 'code') {
       return (
-        <div>
-          <FormGroup
-            style={{ width: '100%', display: 'flex' }}
-            labelInfo={required}
-            label={'Code'}
-          >
-            <div id={'code:' + this.id} className="elyra-form-code"></div>
-          </FormGroup>
-          <br />
-        </div>
+        <FormGroup
+          style={{ width: '100%', display: 'flex' }}
+          labelInfo={required}
+          label={'Code'}
+        >
+          <div id={'code:' + this.id} className="elyra-form-code"></div>
+        </FormGroup>
       );
     } else {
       return;
@@ -316,13 +313,15 @@ export class MetadataEditor extends ReactWidget {
           '(required)'
         )}
         {inputElements}
-        <Button
-          onClick={(): void => {
-            this.saveMetadata();
-          }}
-        >
-          Save & Close
-        </Button>
+        <FormGroup>
+          <Button
+            onClick={(): void => {
+              this.saveMetadata();
+            }}
+          >
+            Save & Close
+          </Button>
+        </FormGroup>
       </div>
     );
   }
