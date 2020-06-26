@@ -24,7 +24,6 @@ from elyra.metadata import MetadataManager
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
-from kubernetes.client.models import V1EnvVar
 from kfp_notebook.pipeline import NotebookOp
 from urllib3.exceptions import MaxRetryError
 from jinja2 import Environment, PackageLoader
@@ -203,8 +202,8 @@ class KfpPipelineProcessor(PipelineProcessor):
             if operation.outputs:
                 notebook_op.add_pipeline_outputs(self._artifact_list_to_str(operation.outputs))
 
-            notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
-            notebook_op.container.add_env_variable(V1EnvVar(name='AWS_SECRET_ACCESS_KEY', value=cos_password))
+            notebook_op.add_environment_variable('AWS_ACCESS_KEY_ID', cos_username)
+            notebook_op.add_environment_variable('AWS_SECRET_ACCESS_KEY', cos_password)
 
             # Set ENV variables
             if operation.env_vars:
@@ -214,7 +213,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                     result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
                     # Should be non empty key with a value
                     if len(result) == 2 and result[0] != '':
-                        notebook_op.container.add_env_variable(V1EnvVar(name=result[0], value=result[1]))
+                        notebook_op.add_environment_variable(result[0], result[1])
 
             notebook_ops[operation.id] = notebook_op
 
