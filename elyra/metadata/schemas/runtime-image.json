@@ -11,7 +11,8 @@
     },
     "display_name": {
       "description": "The display name of the Runtime Image",
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "metadata": {
       "description": "Additional data specific to this Runtime Image",
@@ -19,7 +20,8 @@
       "properties": {
         "image_name": {
           "description": "Runtime Image description",
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": ["image_name"]
