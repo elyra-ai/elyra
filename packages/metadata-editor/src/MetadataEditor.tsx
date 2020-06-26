@@ -50,6 +50,7 @@ export class MetadataEditor extends ReactWidget {
   namespace: string;
   name: string;
   dirty: boolean;
+  requiredFields: string[];
 
   schema: IDictionary<any> = {};
   allMetadata: IDictionary<any>[] = [];
@@ -87,6 +88,7 @@ export class MetadataEditor extends ReactWidget {
         if (this.name == metadata.name) {
           this.metadata = metadata['metadata'];
           this.displayName = metadata['display_name'];
+          this.requiredFields = metadata['required'];
           this.title.label = this.displayName;
           break;
         }
@@ -223,13 +225,14 @@ export class MetadataEditor extends ReactWidget {
     label: string,
     description: string,
     fieldName: string,
-    defaultValue: string
+    defaultValue: string,
+    required: string
   ): React.ReactElement {
     return (
       <FormGroup
         key={label}
         label={label}
-        labelInfo="(required)"
+        labelInfo={required}
         helperText={description}
       >
         <InputGroup
@@ -245,6 +248,10 @@ export class MetadataEditor extends ReactWidget {
 
   renderField(fieldName: string): React.ReactElement {
     const uihints = this.schema[fieldName].uihints;
+    let required = '(optional)';
+    if (this.requiredFields && this.requiredFields.includes(fieldName)) {
+      required = '(required)';
+    }
     if (uihints == undefined) {
       return;
     } else if (
@@ -255,7 +262,8 @@ export class MetadataEditor extends ReactWidget {
         uihints.label,
         uihints.description,
         fieldName,
-        this.metadata[fieldName]
+        this.metadata[fieldName],
+        required
       );
     } else if (uihints.field_type == 'dropdown') {
       return (
@@ -263,6 +271,7 @@ export class MetadataEditor extends ReactWidget {
           label={uihints.label}
           schemaField={fieldName}
           description={uihints.description}
+          required={required}
           choice={this.metadata[fieldName]}
           defaultChoices={this.getDefaultChoices(fieldName)}
           handleDropdownChange={this.handleDropdownChange}
@@ -275,7 +284,7 @@ export class MetadataEditor extends ReactWidget {
             style={{ width: '100%', display: 'flex' }}
             htmlFor={'code:' + this.id}
           >
-            Code:
+            Code {required}
           </label>
           <br />
           <div id={'code:' + this.id} className="elyra-form-code"></div>
@@ -300,7 +309,13 @@ export class MetadataEditor extends ReactWidget {
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
         <br />
-        {this.renderTextInput('Name', '', 'display_name', this.displayName)}
+        {this.renderTextInput(
+          'Name',
+          '',
+          'display_name',
+          this.displayName,
+          '(required)'
+        )}
         {inputElements}
         <Button
           onClick={(): void => {

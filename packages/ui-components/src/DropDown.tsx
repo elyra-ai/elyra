@@ -26,6 +26,7 @@ export interface IDropDownProps {
   schemaField: string;
   description?: string;
   choice?: string;
+  required?: string;
   defaultChoices?: string[];
   handleDropdownChange: any;
 }
@@ -78,7 +79,7 @@ export class DropDown extends React.Component<IDropDownProps> {
       <FormGroup
         key={this.props.label}
         label={this.props.label}
-        labelInfo="(required)"
+        labelInfo={this.props.required}
         helperText={this.props.description}
       >
         <Select
