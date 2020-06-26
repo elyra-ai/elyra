@@ -78,7 +78,7 @@ export class MetadataEditor extends ReactWidget {
         this.schema = schema.properties.metadata.properties;
         // All metadata has a display_name field
         this.displayName = schema.properties.display_name;
-        this.requiredFields = schema.properties.required;
+        this.requiredFields = schema.properties.metadata.required;
         break;
       }
     }
