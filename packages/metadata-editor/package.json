@@ -31,6 +31,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
+    "@blueprintjs/core": "^3.22.2",
     "@elyra/application": "^1.0.0-dev",
     "@elyra/ui-components": "^1.0.0-dev",
     "@jupyterlab/application": "^2.0.2",

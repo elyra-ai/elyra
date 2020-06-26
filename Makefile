@@ -52,7 +52,7 @@ uninstall:
 	$(call UNLINK_LAB_EXTENSION,@elyra/application)
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension-experimental)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-runner-extension)
