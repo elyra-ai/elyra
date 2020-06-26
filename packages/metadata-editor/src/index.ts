@@ -44,33 +44,34 @@ const extension: JupyterFrontEndPlugin<void> = {
       name?: string;
       onSave: () => void;
     }): void => {
-      const metadataEditorWidget = new MetadataEditor({
-        ...args,
-        editorServices
-      });
-
-      let idName = args.name;
+      let widgetLabel: string;
       if (args.name) {
-        metadataEditorWidget.title.label = args.name;
+        widgetLabel = args.name;
       } else {
-        idName = `new:${args.schema}`;
-        metadataEditorWidget.title.label = `new ${args.schema}`;
+        widgetLabel = `new:${args.schema}`;
       }
-      metadataEditorWidget.id = `${METADATA_EDITOR_ID}:${args.namespace}:${args.schema}:${idName}`;
-      metadataEditorWidget.title.closable = true;
-      metadataEditorWidget.title.icon = textEditorIcon;
+      const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${args.schema}:${args.name}`;
       const openWidget = find(
         app.shell.widgets('main'),
         (widget: Widget, index: number) => {
-          return widget.id == metadataEditorWidget.id;
+          return widget.id == widgetId;
         }
       );
       if (openWidget) {
         console.log(openWidget);
-        app.shell.activateById(metadataEditorWidget.id);
-      } else {
-        app.shell.add(metadataEditorWidget, 'main');
+        app.shell.activateById(widgetId);
+        return;
       }
+
+      const metadataEditorWidget = new MetadataEditor({
+        ...args,
+        editorServices
+      });
+      metadataEditorWidget.title.label = widgetLabel;
+      metadataEditorWidget.id = widgetId;
+      metadataEditorWidget.title.closable = true;
+      metadataEditorWidget.title.icon = textEditorIcon;
+      app.shell.add(metadataEditorWidget, 'main');
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {

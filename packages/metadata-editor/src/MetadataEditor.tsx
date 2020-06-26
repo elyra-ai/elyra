@@ -24,6 +24,7 @@ import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { InputGroup, Button } from '@jupyterlab/ui-components';
 
 import { Message } from '@lumino/messaging';
+import { find } from '@lumino/algorithm';
 
 import * as React from 'react';
 
@@ -214,7 +215,14 @@ export class MetadataEditor extends ReactWidget {
       defaultChoices = [];
     }
     for (const otherMetadata of this.allMetadata) {
-      if (!defaultChoices.includes(otherMetadata.metadata[fieldName])) {
+      if (
+        !find(defaultChoices, (choice: String) => {
+          return (
+            choice.toLowerCase() ==
+            otherMetadata.metadata[fieldName].toLowerCase()
+          );
+        })
+      ) {
         defaultChoices.push(otherMetadata.metadata[fieldName]);
       }
     }
