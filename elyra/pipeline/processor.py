@@ -146,3 +146,12 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     @abstractmethod
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError()
+
+    def get_absolute_path(self, path):
+        """Checks if path is absolute or not.  If not absolute, `path` is appended to `root_dir`. """
+
+        absolute_path = path
+        if not os.path.isabs(path):
+            absolute_path = os.path.join(self.root_dir, path)
+
+        return absolute_path
