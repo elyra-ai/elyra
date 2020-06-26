@@ -166,6 +166,14 @@ export class MetadataEditor extends ReactWidget {
   handleDropdownChange = (schemaField: string, value: string): void => {
     this.handleDirtyState(true);
     this.metadata[schemaField] = value;
+    if (schemaField == 'language') {
+      const getMimeTypeByLanguage = this.editorServices.mimeTypeService
+        .getMimeTypeByLanguage;
+      this.editor.model.mimeType = getMimeTypeByLanguage({
+        name: value,
+        codemirror_mode: value
+      });
+    }
     this.update();
   };
 
