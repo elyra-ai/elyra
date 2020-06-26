@@ -217,7 +217,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             notebook_ops[operation.id] = notebook_op
 
-            self.log.info("NotebookOp Created for Component '%s' (%s) \n", operation.name, operation.id)
+            self.log.info("NotebookOp Created for Component '%s' (%s)", operation.name, operation.id)
 
             # upload operation dependencies to object storage
             try:
