@@ -136,6 +136,25 @@ class Operation(object):
                 self.inputs == other.inputs and \
                 self.parent_operations == other.parent_operations
 
+    def __str__(self) -> str:
+        return "componentID : {id} \n " \
+               "name : {name} \n " \
+               "parent_operations : {parent_op} \n " \
+               "dependencies : {depends} \n " \
+               "dependencies include subdirectories : {inc_subdirs} \n " \
+               "filename : {filename} \n " \
+               "inputs : {inputs} \n " \
+               "outputs : {outputs} \n " \
+               "runtime image : {image} \n ".format(id=self.id,
+                                                    name=self.name,
+                                                    parent_op=self.parent_operations,
+                                                    depends=self.dependencies,
+                                                    inc_subdirs=self.include_subdirectories,
+                                                    filename=self.filename,
+                                                    inputs=self.inputs,
+                                                    outputs=self.outputs,
+                                                    image=self.runtime_image)
+
     @staticmethod
     def __initialize_empty_array_if_none(value):
         if value:
