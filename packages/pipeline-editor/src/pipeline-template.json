@@ -26,6 +26,7 @@
         "name": "{{name}}",
         "runtime": "{{runtime}}",
         "runtime-config": "{{runtime-config}}",
+        "version": "{{version}}",
         "ui_data": {
           "comments": []
         }
