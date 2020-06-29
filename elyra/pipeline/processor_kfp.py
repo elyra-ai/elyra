@@ -269,12 +269,13 @@ class KfpPipelineProcessor(PipelineProcessor):
         archive_artifact_name = self._get_dependency_archive_name(operation)
         archive_source_dir = self._get_dependency_source_dir(operation)
 
-        files = [os.path.basename(operation.filename)]
-        files.extend(operation.dependencies)
+        files = [os.path.basename(operation.filename)]  # Always include the notebook for this op
+        files.extend(operation.dependencies)            # and any dependencies
 
         archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
                                                source_dir=archive_source_dir,
                                                files=files,
+                                               has_dependencies=len(operation.dependencies) > 0,
                                                recursive=operation.include_subdirectories)
 
         return archive_artifact

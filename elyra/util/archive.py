@@ -17,6 +17,7 @@
 import os
 import tarfile
 import tempfile
+import fnmatch
 
 
 def create_project_temp_dir():
@@ -27,12 +28,29 @@ def create_project_temp_dir():
     return project_temp_dir
 
 
-def create_temp_archive(archive_name, source_dir, files=None, recursive=False):
+def has_directory(directory, files):
+    """Checks if any entries in the files list starts with the given directory."""
+    return any(file.startswith(directory + os.sep) or fnmatch.fnmatch(directory, file) for file in files)
+
+
+def has_wildcards(file):
+    """Returns True if the file contains wildcard characters per https://docs.python.org/3/library/fnmatch.html """
+    wildcard_chars = ['*', '?', '[']
+    return any(wc in file for wc in wildcard_chars)
+
+
+def in_subdir(file):
+    """Returns True if file is within a sub-directory."""
+    return os.sep in file and not file.startswith(os.sep) and not file.endswith(os.sep)
+
+
+def create_temp_archive(archive_name, source_dir, files=None, has_dependencies=False, recursive=False):
     """
     Create archive file with specified list of files
     :param archive_name: the name of the archive to be created
     :param source_dir: the root folder containing source files
     :param files: list of files, or masks, used to select contents of the archive
+    :param has_dependencies: boolean value reflecting that files list contains a non-zero set of dependencies
     :param recursive: flag to include sub directories recursively
     :return: full path of the created archive
     """
@@ -49,23 +67,30 @@ def create_temp_archive(archive_name, source_dir, files=None, recursive=False):
             # only include subdirectories if enabled in common properties
             elif recursive:
                 return tarinfo
-            else:
+            else:  # We have a directory, check if any dependencies start with this value and allow if found
+                if has_dependencies and has_directory(tarinfo.name, files):
+                    return tarinfo
                 return None
 
-        if '*' in files:
+        # We have a file, include it since include subdirs + no dependencies
+        if recursive and not has_dependencies:
             return tarinfo
 
+        # Process dependency
         for dependency in files:
-            if dependency:
-                if dependency.startswith('*'):
-                    # handle check for extension wildcard
-                    if tarinfo.name.endswith(dependency.replace('*', '')):
-                        return tarinfo
-                elif tarinfo.name == dependency:
-                    # handle check for specific file
-                    return tarinfo
-                elif recursive:
-                    # handle recursive
+            if not dependency or dependency in processed_files:  # Skip processing
+                continue
+
+            # Match dependency against candidate file - handling wildcards
+            if fnmatch.fnmatch(tarinfo.name, dependency):
+                if not has_wildcards(dependency):  # if this is a simple match, record that its been processed
+                    processed_files.append(dependency)
+                return tarinfo
+
+            # If the dependency is a "flat" wildcarded value (i.e., isn't prefixed with a directory name)
+            # then we should take the basename of the candidate file to perform the match against.
+            if has_wildcards(dependency) and not in_subdir(dependency):
+                if fnmatch.fnmatch(os.path.basename(tarinfo.name), dependency):
                     return tarinfo
 
         return None
@@ -73,6 +98,7 @@ def create_temp_archive(archive_name, source_dir, files=None, recursive=False):
     if files is None:
         files = ['*']
 
+    processed_files = []
     temp_dir = create_project_temp_dir()
     archive = os.path.join(temp_dir, archive_name)
 
