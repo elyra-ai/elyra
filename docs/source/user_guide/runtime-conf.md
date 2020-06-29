@@ -47,7 +47,7 @@ This produces the following content in `my_kfp.json`:
     "schema_name": "kfp",
     "metadata": {
         "api_endpoint": "https://kubernetes-service.ibm.com/pipeline",
-        "cos_endpoint": "minio-service.kubeflow:9000",
+        "cos_endpoint": "http://minio-service.kubeflow:9000",
         "cos_username": "minio",
         "cos_password": "minio123",
         "cos_bucket": "test-bucket"
