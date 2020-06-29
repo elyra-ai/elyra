@@ -11,7 +11,8 @@
     },
     "display_name": {
       "description": "The display name of the metadata",
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "metadata": {
       "description": "Additional data specific to this metadata",
@@ -19,7 +20,8 @@
       "properties": {
         "required_test": {
           "description": "Property used to test required enforcement",
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "uri_test": {
           "description": "Property used to test uri formatting",
