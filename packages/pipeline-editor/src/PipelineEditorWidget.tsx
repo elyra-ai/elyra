@@ -28,7 +28,8 @@ import {
   dragDropIcon,
   exportPipelineIcon,
   pipelineIcon,
-  savePipelineIcon
+  savePipelineIcon,
+  showFormDialog
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -65,7 +66,6 @@ import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
-const OK_BUTTON_CLASS = 'elyra-PipelineOkButton';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
 const PIPELINE_CURRENT_VERSION = 1;
@@ -533,71 +533,49 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  async showPipelineExportDialog(): Promise<Dialog.IResult<any>> {
+  async handleExportPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
     const dialogBody = new PipelineExportDialog({ runtimes });
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
       body: dialogBody,
-      buttons: [
-        Dialog.cancelButton(),
-        Dialog.okButton({ className: OK_BUTTON_CLASS })
-      ],
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
       focusNodeSelector: '#runtime_config'
     };
-    const dialog = new Dialog(dialogOptions);
 
-    // Disable ok button as default
-    const okButton = dialog.node.querySelector('.' + OK_BUTTON_CLASS);
-    okButton.setAttribute('disabled', 'disabled');
+    const dialogResult = await showFormDialog(dialogOptions, '');
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
 
-    // Listen for runtime config valid selection and enable okButton accordingly
-    const runtimesDropDown = dialogBody.node.querySelector(
-      '[name="runtime_config"]'
+    // prepare pipeline submission details
+    const pipelineFlow = this.canvasController.getPipelineFlow();
+    const pipeline_path = this.widgetContext.path;
+
+    const pipeline_dir = path.dirname(pipeline_path);
+    const pipeline_name = path.basename(
+      pipeline_path,
+      path.extname(pipeline_path)
     );
-    runtimesDropDown.addEventListener('change', (event: any) => {
-      if (event.target.value) {
-        okButton.removeAttribute('disabled');
-      }
-    });
+    const pipeline_export_format = dialogResult.value.pipeline_filetype;
+    const pipeline_export_path =
+      pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
 
-    return dialog.launch();
-  }
+    const overwrite = dialogResult.value.overwrite;
 
-  async handleExportPipeline(): Promise<void> {
-    this.showPipelineExportDialog().then(result => {
-      if (result.value == null) {
-        // When Cancel is clicked on the dialog, just return
-        return;
-      }
+    pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+      dialogResult.value.runtime_config;
 
-      // prepare pipeline submission details
-      const pipelineFlow = this.canvasController.getPipelineFlow();
-      const pipeline_path = this.widgetContext.path;
-
-      const pipeline_dir = path.dirname(pipeline_path);
-      const pipeline_name = path.basename(
-        pipeline_path,
-        path.extname(pipeline_path)
-      );
-      const pipeline_export_format = result.value.pipeline_filetype;
-      const pipeline_export_path =
-        pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
-
-      const overwrite = result.value.overwrite;
-
-      pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
-      pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-      pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-        result.value.runtime_config;
-
-      PipelineService.exportPipeline(
-        pipelineFlow,
-        pipeline_export_format,
-        pipeline_export_path,
-        overwrite
-      );
-    });
+    PipelineService.exportPipeline(
+      pipelineFlow,
+      pipeline_export_format,
+      pipeline_export_path,
+      overwrite
+    );
   }
 
   async handleOpenPipeline(): Promise<void> {

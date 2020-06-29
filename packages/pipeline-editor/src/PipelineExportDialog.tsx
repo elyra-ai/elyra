@@ -72,12 +72,12 @@ export class PipelineExportDialog extends Widget
     const content =
       '<label for="runtime_config">Runtime Config:</label>' +
       br +
-      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config">' +
+      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config" data-required="required">' +
       runtime_options +
       '</select>' +
       '<label for="pipeline_filetype">Export Pipeline as:</label>' +
       br +
-      '<select id="pipeline_filetype" name="pipeline_filetype" class="elyra-form-export-filetype">' +
+      '<select id="pipeline_filetype" name="pipeline_filetype" class="elyra-form-export-filetype" data-required="required">' +
       filetype_options +
       '</select>' +
       '<input type="checkbox" id="overwrite"/>' +
