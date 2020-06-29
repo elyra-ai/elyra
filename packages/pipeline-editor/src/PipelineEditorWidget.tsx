@@ -55,6 +55,7 @@ import * as React from 'react';
 
 import { IntlProvider } from 'react-intl';
 
+import { PIPELINE_CURRENT_VERSION } from './constants';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
@@ -67,7 +68,6 @@ const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
-const PIPELINE_CURRENT_VERSION = 1;
 
 const NodeProperties = (properties: any): React.ReactElement => {
   return (
@@ -582,7 +582,9 @@ export class PipelineEditor extends React.Component<
         // creating new pipeline
         pipelineJson = this.canvasController.getPipelineFlow();
         if (Utils.isNewPipeline(pipelineJson)) {
-          pipelineJson.pipelines[0]['app_data']['version'] = 1;
+          pipelineJson.pipelines[0]['app_data'][
+            'version'
+          ] = PIPELINE_CURRENT_VERSION;
           this.canvasController.setPipelineFlow(pipelineJson);
         }
       } else {

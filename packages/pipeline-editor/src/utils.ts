@@ -15,6 +15,7 @@
  */
 import uuid4 from 'uuid/v4';
 
+import { PIPELINE_CURRENT_VERSION } from './constants';
 import pipeline_template from './pipeline-template.json';
 import { ISubmitNotebookOptions } from './SubmitNotebook';
 
@@ -33,7 +34,7 @@ export default class Utils {
     filename: string,
     options: ISubmitNotebookOptions
   ): any {
-    const template = pipeline_template;
+    const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid: string = Utils.getUUID();
 
     const artifactFileName = filename.replace(/^.*[\\/]/, '');
@@ -52,6 +53,7 @@ export default class Utils {
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = 'kfp';
     template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
+    template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
 
     return template;
   }
