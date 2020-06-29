@@ -11,7 +11,8 @@
     },
     "display_name": {
       "description": "The display name of the Code Snippet",
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "metadata": {
       "description": "Additional data specific to this Code Snippet",
@@ -23,7 +24,8 @@
         },
         "language": {
           "description": "Code snippet implementation language",
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "code": {
           "description": "Code snippet code lines",

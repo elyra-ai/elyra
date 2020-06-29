@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import asyncio
 import entrypoints
 import os
 
@@ -24,6 +25,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     __processors = {}
 
     def __init__(self):
+        super(PipelineProcessorRegistry, self).__init__()
 
         # Register all known processors based on entrypoint configuration
         for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
@@ -55,7 +57,7 @@ class PipelineProcessorManager(SingletonConfigurable):
         # Since root_dir may contain '~' for user home, use expanduser()
         self.root_dir = os.path.expanduser(kwargs.get('root_dir', os.getcwd()))
 
-    def process(self, pipeline):
+    async def process(self, pipeline):
         registry = PipelineProcessorRegistry()
 
         processor_type = pipeline.runtime
@@ -65,9 +67,10 @@ class PipelineProcessorManager(SingletonConfigurable):
             raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
 
         processor.root_dir = self.root_dir
-        return processor.process(pipeline)
+        res = await asyncio.get_running_loop().run_in_executor(None, processor.process, pipeline)
+        return res
 
-    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
+    async def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         registry = PipelineProcessorRegistry()
 
         processor_type = pipeline.runtime
@@ -77,7 +80,9 @@ class PipelineProcessorManager(SingletonConfigurable):
             raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
 
         processor.root_dir = self.root_dir
-        return processor.export(pipeline, pipeline_export_format, pipeline_export_path, overwrite)
+        res = await asyncio.get_running_loop().run_in_executor(
+            None, processor.export, pipeline, pipeline_export_format, pipeline_export_path, overwrite)
+        return res
 
 
 class PipelineProcessorResponse(object):
@@ -146,3 +151,12 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     @abstractmethod
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError()
+
+    def get_absolute_path(self, path):
+        """Checks if path is absolute or not.  If not absolute, `path` is appended to `root_dir`. """
+
+        absolute_path = path
+        if not os.path.isabs(path):
+            absolute_path = os.path.join(self.root_dir, path)
+
+        return absolute_path

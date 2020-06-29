@@ -84,7 +84,7 @@ config dir: /usr/local/etc/jupyter
       elyra <VERSION> OK
     jupyterlab  enabled
     - Validating...
-      jupyterlab 2.1.4 OK
+      jupyterlab 2.1.5 OK
     jupyterlab_git  enabled
     - Validating...
       jupyterlab_git 0.20.0 OK

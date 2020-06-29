@@ -99,6 +99,36 @@ def test_manager_add_no_name(tests_manager, metadata_tests_dir):
     assert not os.path.exists(metadata_file)
 
 
+def test_manager_add_short_name(tests_manager, metadata_tests_dir):
+    # Found that single character names were failing validation
+    name = 'a'
+    metadata = Metadata(**valid_metadata_json)
+    instance = tests_manager.add(name, metadata)
+
+    assert instance is not None
+    assert instance.name == name
+
+    # Ensure file was created
+    metadata_file = os.path.join(metadata_tests_dir, '{}.json'.format(name))
+    assert os.path.exists(metadata_file)
+
+    # And finally, remove it.
+    tests_manager.remove(name)
+    assert not os.path.exists(metadata_file)
+
+
+def test_manager_add_empty_display_name(tests_manager, metadata_tests_dir):
+    # Found that empty display_name values were passing validation, so minLength=1 was added
+    metadata = Metadata(**valid_metadata_json)
+    metadata.display_name = ''
+    with pytest.raises(ValidationError):
+        tests_manager.add('empty_display_name', metadata)
+
+    # Ensure file was not created
+    metadata_file = os.path.join(metadata_tests_dir, '{}.json'.format('empty_display_name'))
+    assert not os.path.exists(metadata_file)
+
+
 def test_manager_add_display_name(tests_manager, metadata_tests_dir):
     metadata_display_name = '1 teste "rápido"'
     metadata_name = 'a_1_teste_rpido'
