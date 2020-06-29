@@ -57,14 +57,32 @@ export default class Utils {
   }
 
   /**
+   * Check if the provided pipeline is a newly created pipeline
+   *
+   * @param pipelineDefinition
+   */
+  static isNewPipeline(pipelineDefinition: any): boolean {
+    if (Object.keys(pipelineDefinition.pipelines[0].nodes).length == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
    * Read the version of a Pipeline. If no version is found return 0
+   *
+   * @param pipelineDefinition
    */
   static getPipelineVersion(pipelineDefinition: any): number {
-    const version: number =
-      +this.getPipelineAppdataField(
-        pipelineDefinition.pipelines[0],
-        'version'
-      ) || 0;
+    let version = 0;
+
+    if (pipelineDefinition)
+      version =
+        +this.getPipelineAppdataField(
+          pipelineDefinition.pipelines[0],
+          'version'
+        ) || 0;
 
     return version;
   }
