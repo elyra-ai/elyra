@@ -55,6 +55,7 @@ import * as React from 'react';
 
 import { IntlProvider } from 'react-intl';
 
+import { PIPELINE_CURRENT_VERSION } from './constants';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
@@ -67,7 +68,6 @@ const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
-const PIPELINE_CURRENT_VERSION = 1;
 
 const NodeProperties = (properties: any): React.ReactElement => {
   return (
@@ -578,58 +578,70 @@ export class PipelineEditor extends React.Component<
   async handleOpenPipeline(): Promise<void> {
     this.widgetContext.ready.then(() => {
       let pipelineJson: any = this.widgetContext.model.toJSON();
-      const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
-      if (pipelineVersion !== PIPELINE_CURRENT_VERSION) {
-        // pipeline version and current version are divergent
-        if (pipelineVersion > PIPELINE_CURRENT_VERSION) {
-          // in this case, pipeline was last edited in a "more recent release" and
-          // the user should update his version of Elyra to consume the pipeline
-          showDialog({
-            title: 'Load pipeline failed!',
-            body: (
-              <p>
-                This pipeline corresponds to a more recent version of Elyra and
-                cannot be used until Elyra has been upgraded.
-              </p>
-            ),
-            buttons: [Dialog.okButton()]
-          });
-          this.handleClosePipeline();
-          return;
-        } else {
-          // in this case, pipeline was last edited in a "old" version of Elyra and
-          // it needs to be updated/migrated.
-          showDialog({
-            title: 'Migrate pipeline?',
-            body: (
-              <p>
-                This pipeline corresponds to an older version of Elyra and needs
-                to be migrated.
-                <br />
-                Although the pipeline can be further edited and/or submitted
-                after its update,
-                <br />
-                the migration will not be completed until the pipeline has been
-                saved within the editor.
-                <br />
-                <br />
-                Proceed with migration?
-              </p>
-            ),
-            buttons: [Dialog.cancelButton(), Dialog.okButton()]
-          }).then(result => {
-            if (result.button.accept) {
-              // proceed with migration
-              pipelineJson = PipelineService.convertPipeline(pipelineJson);
-              this.canvasController.setPipelineFlow(pipelineJson);
-            } else {
-              this.handleClosePipeline();
-            }
-          });
+      if (pipelineJson == null) {
+        // creating new pipeline
+        pipelineJson = this.canvasController.getPipelineFlow();
+        if (Utils.isNewPipeline(pipelineJson)) {
+          pipelineJson.pipelines[0]['app_data'][
+            'version'
+          ] = PIPELINE_CURRENT_VERSION;
+          this.canvasController.setPipelineFlow(pipelineJson);
         }
       } else {
-        // in this case, pipeline version is current
-        this.canvasController.setPipelineFlow(pipelineJson);
+        // opening an existing pipeline
+        const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
+        if (pipelineVersion !== PIPELINE_CURRENT_VERSION) {
+          // pipeline version and current version are divergent
+          if (pipelineVersion > PIPELINE_CURRENT_VERSION) {
+            // in this case, pipeline was last edited in a "more recent release" and
+            // the user should update his version of Elyra to consume the pipeline
+            showDialog({
+              title: 'Load pipeline failed!',
+              body: (
+                <p>
+                  This pipeline corresponds to a more recent version of Elyra
+                  and cannot be used until Elyra has been upgraded.
+                </p>
+              ),
+              buttons: [Dialog.okButton()]
+            });
+            this.handleClosePipeline();
+            return;
+          } else {
+            // in this case, pipeline was last edited in a "old" version of Elyra and
+            // it needs to be updated/migrated.
+            showDialog({
+              title: 'Migrate pipeline?',
+              body: (
+                <p>
+                  This pipeline corresponds to an older version of Elyra and
+                  needs to be migrated.
+                  <br />
+                  Although the pipeline can be further edited and/or submitted
+                  after its update,
+                  <br />
+                  the migration will not be completed until the pipeline has
+                  been saved within the editor.
+                  <br />
+                  <br />
+                  Proceed with migration?
+                </p>
+              ),
+              buttons: [Dialog.cancelButton(), Dialog.okButton()]
+            }).then(result => {
+              if (result.button.accept) {
+                // proceed with migration
+                pipelineJson = PipelineService.convertPipeline(pipelineJson);
+                this.canvasController.setPipelineFlow(pipelineJson);
+              } else {
+                this.handleClosePipeline();
+              }
+            });
+          }
+        } else {
+          // in this case, pipeline version is current
+          this.canvasController.setPipelineFlow(pipelineJson);
+        }
       }
     });
   }

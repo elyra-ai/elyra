@@ -24,6 +24,7 @@ class CosClient(LoggingConfigurable):
     client = None
 
     def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, secure=False, bucket=None):
+        super().__init__()
         if config:
             self.endpoint = urlparse(config.metadata['cos_endpoint'])
             self.access_key = config.metadata['cos_username']
@@ -54,15 +55,15 @@ class CosClient(LoggingConfigurable):
         try:
             if not self.client.bucket_exists(self.bucket):
                 self.client.make_bucket(self.bucket)
-        except BucketAlreadyOwnedByYou:
+        except BucketAlreadyOwnedByYou as ex:
             self.log.warning("Object Storage bucket already owned by you", exc_info=True)
-            raise
-        except BucketAlreadyExists:
+            raise ex from ex
+        except BucketAlreadyExists as ex:
             self.log.warning("Object Storage bucket already exists", exc_info=True)
-            raise
-        except ResponseError:
+            raise ex from ex
+        except ResponseError as ex:
             self.log.error("Object Storage error", exc_info=True)
-            raise
+            raise ex from ex
 
         return self.client
 
@@ -78,9 +79,9 @@ class CosClient(LoggingConfigurable):
             self.client.fput_object(bucket_name=self.bucket,
                                     object_name=file_name,
                                     file_path=file_path)
-        except BaseException:
+        except BaseException as ex:
             self.log.error('Error uploading file {} to bucket {}'.format(file_path, self.bucket), exc_info=True)
-            raise
+            raise ex from ex
 
     def upload_file_to_dir(self, dir, file_name, file_path):
         """
@@ -104,9 +105,9 @@ class CosClient(LoggingConfigurable):
             self.client.fget_object(bucket_name=self.bucket,
                                     object_name=file_name,
                                     file_path=file_path)
-        except BaseException:
+        except BaseException as ex:
             self.log.error('Error reading file {} from bucket {}'.format(file_name, self.bucket), exc_info=True)
-            raise
+            raise ex from ex
 
     def download_file_from_dir(self, dir, file_name, file_path):
         """

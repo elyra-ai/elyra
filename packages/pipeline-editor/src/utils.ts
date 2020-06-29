@@ -15,6 +15,7 @@
  */
 import uuid4 from 'uuid/v4';
 
+import { PIPELINE_CURRENT_VERSION } from './constants';
 import pipeline_template from './pipeline-template.json';
 import { ISubmitNotebookOptions } from './SubmitNotebook';
 
@@ -33,7 +34,7 @@ export default class Utils {
     filename: string,
     options: ISubmitNotebookOptions
   ): any {
-    const template = pipeline_template;
+    const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid: string = Utils.getUUID();
 
     const artifactFileName = filename.replace(/^.*[\\/]/, '');
@@ -52,19 +53,38 @@ export default class Utils {
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = 'kfp';
     template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
+    template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
 
     return template;
   }
 
   /**
+   * Check if the provided pipeline is a newly created pipeline
+   *
+   * @param pipelineDefinition
+   */
+  static isNewPipeline(pipelineDefinition: any): boolean {
+    if (Object.keys(pipelineDefinition.pipelines[0].nodes).length == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
    * Read the version of a Pipeline. If no version is found return 0
+   *
+   * @param pipelineDefinition
    */
   static getPipelineVersion(pipelineDefinition: any): number {
-    const version: number =
-      +this.getPipelineAppdataField(
-        pipelineDefinition.pipelines[0],
-        'version'
-      ) || 0;
+    let version = 0;
+
+    if (pipelineDefinition)
+      version =
+        +this.getPipelineAppdataField(
+          pipelineDefinition.pipelines[0],
+          'version'
+        ) || 0;
 
     return version;
   }

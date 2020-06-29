@@ -221,7 +221,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             notebook_ops[operation.id] = notebook_op
 
-            self.log.info("NotebookOp Created for Component '%s' (%s) \n", operation.name, operation.id)
+            self.log.info("NotebookOp Created for Component '%s' (%s)", operation.name, operation.id)
 
             # upload operation dependencies to object storage
             try:
@@ -230,9 +230,9 @@ class KfpPipelineProcessor(PipelineProcessor):
                 cos_client.upload_file_to_dir(dir=cos_directory,
                                               file_name=operation_artifact_archive,
                                               file_path=dependency_archive_path)
-            except BaseException:
+            except BaseException as ex:
                 self.log.error("Error uploading artifacts to object storage.", exc_info=True)
-                raise
+                raise ex from ex
 
             self.log.info("Pipeline dependencies have been uploaded to object storage")
 
