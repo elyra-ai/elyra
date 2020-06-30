@@ -14,10 +14,11 @@
 # limitations under the License.
 #
 import os
-import unittest
+import pytest
 import shutil
 import tarfile
 import tempfile
+import unittest
 
 from datetime import datetime
 
@@ -84,6 +85,22 @@ class ArchiveTestCase(unittest.TestCase):
         test_archive_name = 'multiple-' + self.test_timestamp + '.tar.gz'
         archive_path = create_temp_archive(test_archive_name, self.test_dir, filenames=['*.json', '*.txt'])
         self.assertArchivedContent(archive_path, ['c.json', 'd.txt'])
+
+    def test_archive_require_complete(self):
+        test_archive_name = 'multiple-' + self.test_timestamp + '.tar.gz'
+        archive_path = create_temp_archive(test_archive_name, self.test_dir,
+                                           filenames=['*.json', '*.txt', 'a.py'],
+                                           require_complete=True)
+        self.assertArchivedContent(archive_path, ['c.json', 'd.txt', 'a.py'])
+
+    def test_archive_require_complete_fail(self):
+        test_archive_name = 'multiple-' + self.test_timestamp + '.tar.gz'
+        # c.py does not exist and exception is expected
+        with pytest.raises(FileNotFoundError) as ex:
+            create_temp_archive(test_archive_name, self.test_dir,
+                                filenames=['*.json', '*.txt', 'a.py', 'c.py'],
+                                require_complete=True)
+        assert 'c.py' in str(ex)
 
     def test_archive_nonexistent_filter(self):
         test_archive_name = 'empty-' + self.test_timestamp + '.tar.gz'

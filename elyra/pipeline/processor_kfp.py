@@ -58,7 +58,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 t0 = time.time()
                 kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
                 t1 = time.time()
-                self.log.debug("process: Compilation of pipeline '{name}' took {duration:.3f} secs.".
+                self.log.debug("Compilation of pipeline '{name}' took {duration:.3f} secs.".
                                format(name=pipeline_name, duration=(t1 - t0)))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} at {}'.
@@ -73,7 +73,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 t0 = time.time()
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
                 t1 = time.time()
-                self.log.debug("process: Upload of pipeline '{name}' took {duration:.3f} secs.".
+                self.log.debug("Upload of pipeline '{name}' took {duration:.3f} secs.".
                                format(name=pipeline_name, duration=(t1 - t0)))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
@@ -117,7 +117,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 t0 = time.time()
                 kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
                 t1 = time.time()
-                self.log.debug("export: Compilation of pipeline '{name}' took {duration:.3f} secs.".
+                self.log.debug("Compilation of pipeline '{name}' took {duration:.3f} secs.".
                                format(name=pipeline_name, duration=(t1 - t0)))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
@@ -222,8 +222,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 t0 = time.time()
                 dependency_archive_path = self._generate_dependency_archive(operation)
                 t1 = time.time()
-                self.log.debug("_cc_pipeline: Generation of dependency archive for operation '{name}' "
-                               "took {duration:.3f} secs.".
+                self.log.debug("Generation of dependency archive for operation '{name}' took {duration:.3f} secs.".
                                format(name=operation.name, duration=(t1 - t0)))
 
                 cos_client = CosClient(config=runtime_configuration)
@@ -232,12 +231,18 @@ class KfpPipelineProcessor(PipelineProcessor):
                                               file_name=operation_artifact_archive,
                                               file_path=dependency_archive_path)
                 t1 = time.time()
-                self.log.debug("_cc_pipeline: Upload of dependency archive for operation '{name}' "
-                               "took {duration:.3f} secs.".
+                self.log.debug("Upload of dependency archive for operation '{name}' took {duration:.3f} secs.".
                                format(name=operation.name, duration=(t1 - t0)))
 
+            except FileNotFoundError as ex:
+                self.log.error("Dependencies were not found building archive for operation: {}".
+                               format(operation.name), exc_info=True)
+                raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
+                                        format(operation.name, ex))
+
             except BaseException as ex:
-                self.log.error("Error uploading artifacts to object storage.", exc_info=True)
+                self.log.error("Error uploading artifacts to object storage for operation: {}".
+                               format(operation.name), exc_info=True)
                 raise ex from ex
 
             self.log.info("Pipeline dependencies have been uploaded to object storage")
@@ -275,7 +280,8 @@ class KfpPipelineProcessor(PipelineProcessor):
         archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
                                                source_dir=archive_source_dir,
                                                filenames=dependencies,
-                                               recursive=operation.include_subdirectories)
+                                               recursive=operation.include_subdirectories,
+                                               require_complete=True)
 
         return archive_artifact
 

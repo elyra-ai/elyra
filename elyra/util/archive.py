@@ -46,13 +46,14 @@ def directory_prefixed(filename):
     return os.sep in filename and not filename.startswith(os.sep) and not filename.endswith(os.sep)
 
 
-def create_temp_archive(archive_name, source_dir, filenames=None, recursive=False):
+def create_temp_archive(archive_name, source_dir, filenames=None, recursive=False, require_complete=False):
     """
     Create archive file with specified list of files
     :param archive_name: the name of the archive to be created
     :param source_dir: the root folder containing source files
     :param filenames: the list of filenames, each of which can contain wildcards and/or specify subdirectories
     :param recursive: flag to include sub directories recursively
+    :param require_complete: flag to indicate an exception should be raise if all filenames are not included
     :return: full path of the created archive
     """
 
@@ -93,6 +94,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
                     # if this is a direct match, record that its been processed
                     if not has_wildcards(filename) and not recursive:
                         processed_filenames.append(filename)
+                    matched_filenames.append(filename)
                     return tarinfo
 
                 # If the filename is a "flat" wildcarded value (i.e., isn't prefixed with a directory name)
@@ -100,20 +102,25 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
                 # occurs for dependencies like *.py when include-subdirectories is enabled.
                 if not directory_prefixed(filename) and has_wildcards(filename):
                     if fnmatch.fnmatch(os.path.basename(tarinfo.name), filename):
+                        matched_filenames.append(filename)
                         return tarinfo
             return None
 
     # If there's a '*' - less things to check.
     include_all = filenames and len(set([WILDCARDS[0]]) & set(filenames)) > 0
-
     processed_filenames = []
+    matched_filenames = []
     temp_dir = create_project_temp_dir()
     archive = os.path.join(temp_dir, archive_name)
 
     with tarfile.open(archive, "w:gz") as tar:
         tar.add(source_dir, arcname="", filter=tar_filter)
 
-    if not archive:
-        raise RuntimeError('Internal error creating archive: {}'.format(archive_name))
+    if require_complete and not include_all:
+        # convert filenames and matched_filenames to sets and ensure they're the same.
+        filenames_set = set(filenames)
+        matched_set = set(matched_filenames)
+        if len(filenames_set) > len(matched_set):
+            raise FileNotFoundError(filenames_set - matched_set)  # Only include the missing filenames
 
     return archive
