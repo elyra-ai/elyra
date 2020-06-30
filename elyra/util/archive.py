@@ -20,6 +20,9 @@ import tempfile
 import fnmatch
 
 
+WILDCARDS = ['*', '?', '[']
+
+
 def create_project_temp_dir():
     temp_dir = tempfile.gettempdir()
     project_temp_dir = os.path.join(temp_dir, 'elyra')
@@ -28,29 +31,28 @@ def create_project_temp_dir():
     return project_temp_dir
 
 
-def has_directory(directory, files):
-    """Checks if any entries in the files list starts with the given directory."""
-    return any(file.startswith(directory + os.sep) or fnmatch.fnmatch(directory, file) for file in files)
+def directory_in_list(directory, filenames):
+    """Checks if any entries in the filenames list starts with the given directory."""
+    return any(name.startswith(directory + os.sep) or fnmatch.fnmatch(directory, name) for name in filenames)
 
 
-def has_wildcards(file):
-    """Returns True if the file contains wildcard characters per https://docs.python.org/3/library/fnmatch.html """
-    wildcard_chars = ['*', '?', '[']
-    return any(wc in file for wc in wildcard_chars)
+def has_wildcards(filename):
+    """Returns True if the filename contains wildcard characters per https://docs.python.org/3/library/fnmatch.html """
+    return len(set(WILDCARDS) & set(list(filename))) > 0
 
 
-def in_subdir(file):
-    """Returns True if file is within a sub-directory."""
-    return os.sep in file and not file.startswith(os.sep) and not file.endswith(os.sep)
+def directory_prefixed(filename):
+    """Returns True if filename is prefixed by a directory (i.e., in a sub-directory."""
+    return os.sep in filename and not filename.startswith(os.sep) and not filename.endswith(os.sep)
 
 
-def create_temp_archive(archive_name, source_dir, files=None, has_dependencies=False, recursive=False):
+def create_temp_archive(archive_name, source_dir, primary_file, dependencies=None, recursive=False):
     """
     Create archive file with specified list of files
     :param archive_name: the name of the archive to be created
     :param source_dir: the root folder containing source files
-    :param files: list of files, or masks, used to select contents of the archive
-    :param has_dependencies: boolean value reflecting that files list contains a non-zero set of dependencies
+    :param primary_file: the filename corresponding to the operation's primary object (notebook file for NotebookOp)
+    :param dependencies: the list of dependencies, each of which can contain wildcards
     :param recursive: flag to include sub directories recursively
     :return: full path of the created archive
     """
@@ -67,38 +69,47 @@ def create_temp_archive(archive_name, source_dir, files=None, has_dependencies=F
             # only include subdirectories if enabled in common properties
             elif recursive:
                 return tarinfo
-            else:  # We have a directory, check if any dependencies start with this value and allow if found
-                if has_dependencies and has_directory(tarinfo.name, files):
-                    return tarinfo
-                return None
+            # We have a directory, check if any dependencies start with this value and
+            # allow if found - except if a single '*' is listed (i.e., include_all) in
+            # which case we don't want to add this directory since recursive is False.
+            # This occurs with dependencies like `data/util.py` or `data/*.py`.
+            elif directory_in_list(tarinfo.name, dependencies) and not include_all:
+                return tarinfo
+            return None
 
-        # We have a file, include it since include subdirs + no dependencies
-        if recursive and not has_dependencies:
+        # We have a file at this point...
+
+        # If primary, ensure its included
+        if fnmatch.fnmatch(tarinfo.name, primary_file):
+            return tarinfo
+
+        # Special case for single wildcard entries ('*')
+        if include_all:
             return tarinfo
 
         # Process dependency
-        for dependency in files:
-            if not dependency or dependency in processed_files:  # Skip processing
+        for dependency in dependencies:
+            if not dependency or dependency in processed_dependencies:  # Skip processing
                 continue
 
-            # Match dependency against candidate file - handling wildcards
+            # Match dependency against candidate filename - handling wildcards
             if fnmatch.fnmatch(tarinfo.name, dependency):
-                if not has_wildcards(dependency):  # if this is a simple match, record that its been processed
-                    processed_files.append(dependency)
+                if not has_wildcards(dependency):  # if this is a direct match, record that its been processed
+                    processed_dependencies.append(dependency)
                 return tarinfo
 
             # If the dependency is a "flat" wildcarded value (i.e., isn't prefixed with a directory name)
-            # then we should take the basename of the candidate file to perform the match against.
-            if has_wildcards(dependency) and not in_subdir(dependency):
+            # then we should take the basename of the candidate file to perform the match against.  This
+            # occurs for dependencies like *.py when include-subdirectories is enabled.
+            if not directory_prefixed(dependency) and has_wildcards(dependency):
                 if fnmatch.fnmatch(os.path.basename(tarinfo.name), dependency):
                     return tarinfo
-
         return None
 
-    if files is None:
-        files = ['*']
+    # If there's a '*' - less things to check.
+    include_all = len(set([WILDCARDS[0]]) & set(dependencies)) > 0
 
-    processed_files = []
+    processed_dependencies = []
     temp_dir = create_project_temp_dir()
     archive = os.path.join(temp_dir, archive_name)
 
