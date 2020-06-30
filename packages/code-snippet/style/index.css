@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+.elyra-CodeSnippets {
+  color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+}
+
 .elyra-codeSnippetsHeader {
   font-weight: bold;
   padding: 8px 10px;
