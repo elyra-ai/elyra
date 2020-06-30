@@ -58,24 +58,37 @@ export const showFormDialog = async (
         disableDialogButton(defaultButton);
 
         // Keep track of all validated elements tagged as required
-        let validatedFields = new Set();
+        const validatedFields = new Set();
 
         requiredFields.forEach((element: any) => {
+          // First deal with the case the field has already been pre-selected
+          validateField(element, validatedFields);
+
           const fieldType = element.tagName;
 
-          // For now elyra dialogs only have select field types as required. Update this code with extra fieldType handlers as needed.
+          // Update extra fieldType handlers as needed.
           if (fieldType == 'SELECT') {
-            // First deal with the case the field has already been pre-selected
-            validateField(element, validatedFields);
-
             // Add appropriate change event listener to each required field
             element.addEventListener('change', (event: any) => {
               validateField(event.target, validatedFields);
+              handleAllValidated(
+                requiredFields,
+                validatedFields,
+                defaultButton
+              );
+            });
+          } else if (fieldType == 'INPUT') {
+            element.addEventListener('keyup', (event: any) => {
+              // TODO: Filter valid key codes and do basic input validation
+              // (NOTE: Dialog will skip anything upon pressing 'enter' and resolve the dialog as is)
+              // console.log(event.which || event.keyCode);
 
-              // Only enable default button if all required fields are validated
-              if (requiredFields.length === validatedFields.size) {
-                enableDialogButton(defaultButton);
-              }
+              validateField(event.target, validatedFields);
+              handleAllValidated(
+                requiredFields,
+                validatedFields,
+                defaultButton
+              );
             });
           }
         });
@@ -85,20 +98,33 @@ export const showFormDialog = async (
   return dialog.launch();
 };
 
-export const disableDialogButton = (button: HTMLButtonElement) => {
+export const disableDialogButton = (button: HTMLButtonElement): void => {
   button.setAttribute('disabled', 'disabled');
   button.className += ' ' + DEFAULT_BUTTON_CLASS;
 };
 
-export const enableDialogButton = (button: HTMLButtonElement) => {
+export const enableDialogButton = (button: HTMLButtonElement): void => {
   button.removeAttribute('disabled');
 };
 
 // Update validatedFields according to element value
-const validateField = (element: any, validatedFields: Set<any>) => {
+const validateField = (element: any, validatedFields: Set<any>): void => {
   if (element.value) {
     validatedFields.add(element);
   } else {
     validatedFields.delete(element);
+  }
+};
+
+// Only enable dialog action button when all required fields have been validated
+const handleAllValidated = (
+  required: any,
+  validated: any,
+  button: HTMLButtonElement
+): void => {
+  if (required.length === validated.size) {
+    enableDialogButton(button);
+  } else {
+    disableDialogButton(button);
   }
 };

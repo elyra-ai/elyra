@@ -535,16 +535,15 @@ export class PipelineEditor extends React.Component<
 
   async handleExportPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
-    const dialogBody = new PipelineExportDialog({ runtimes });
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
-      body: dialogBody,
+      body: new PipelineExportDialog({ runtimes }),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#runtime_config'
     };
-
     const dialogResult = await showFormDialog(dialogOptions, '');
+
     if (dialogResult.value == null) {
       // When Cancel is clicked on the dialog, just return
       return;
@@ -651,31 +650,35 @@ export class PipelineEditor extends React.Component<
 
   async handleRunPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
-
-    showDialog({
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
       body: new PipelineSubmissionDialog({ runtimes }),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
       focusNodeSelector: '#pipeline_name'
-    }).then(result => {
-      if (result.value == null) {
-        // When Cancel is clicked on the dialog, just return
-        return;
-      }
+    };
+    const dialogResult = await showFormDialog(dialogOptions, '');
 
-      // prepare pipeline submission details
-      const pipelineFlow = this.canvasController.getPipelineFlow();
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
 
-      pipelineFlow.pipelines[0]['app_data']['name'] =
-        result.value.pipeline_name;
+    // prepare pipeline submission details
+    const pipelineFlow = this.canvasController.getPipelineFlow();
 
-      // TODO: Be more flexible and remove hardcoded runtime type
-      pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-      pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-        result.value.runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['name'] =
+      dialogResult.value.pipeline_name;
 
-      PipelineService.submitPipeline(pipelineFlow, result.value.runtime_config);
-    });
+    // TODO: Be more flexible and remove hardcoded runtime type
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+      dialogResult.value.runtime_config;
+
+    PipelineService.submitPipeline(
+      pipelineFlow,
+      dialogResult.value.runtime_config
+    );
   }
 
   handleSavePipeline(): void {
