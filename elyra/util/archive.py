@@ -73,7 +73,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
             # allow if found - except if a single '*' is listed (i.e., include_all) in
             # which case we don't want to add this directory since recursive is False.
             # This occurs with filenames like `data/util.py` or `data/*.py`.
-            elif directory_in_list(tarinfo.name, filenames) and not include_all:
+            elif not include_all and directory_in_list(tarinfo.name, filenames):
                 return tarinfo
             return None
 

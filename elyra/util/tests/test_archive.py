@@ -100,7 +100,7 @@ class ArchiveTestCase(unittest.TestCase):
             create_temp_archive(test_archive_name, self.test_dir,
                                 filenames=['*.json', '*.txt', 'a.py', 'c.py'],
                                 require_complete=True)
-        assert 'c.py' in str(ex)
+        assert "{'c.py'}" in str(ex)  # ensure c.py is the only item not matched
 
     def test_archive_nonexistent_filter(self):
         test_archive_name = 'empty-' + self.test_timestamp + '.tar.gz'
