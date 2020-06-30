@@ -428,11 +428,7 @@ export class PipelineEditor extends React.Component<
 
       propsInfo.forEach(
         (info: { parameter_ref: string; label: { default: string } }) => {
-          if (
-            Object.prototype.hasOwnProperty.call(appData, info.parameter_ref)
-          ) {
-            tooltipProps[info.label.default] = appData[info.parameter_ref];
-          }
+          tooltipProps[info.label.default] = appData[info.parameter_ref] || '';
         }
       );
 
