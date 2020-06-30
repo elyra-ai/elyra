@@ -62,12 +62,12 @@ export class PipelineSubmissionDialog extends Widget
       '' +
       '<label for="pipeline_name">Pipeline Name:</label>' +
       br +
-      '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name" data-required="required"/>' +
+      '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name" data-form-required/>' +
       br +
       br +
       '<label for="runtime_config">Runtime Config:</label>' +
       br +
-      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config" data-required="required">' +
+      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config" data-form-required>' +
       runtime_options +
       '</select>';
 
