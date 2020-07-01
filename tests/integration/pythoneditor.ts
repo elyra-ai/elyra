@@ -20,11 +20,11 @@ describe('PythonEditor', () => {
 
   it('opens blank python from launcher', () => {
     cy.get('[title="Create a new python file"][tabindex="100"]').click();
-    // TODO: Check it opened
+    cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 
   it('close python editor', () => {
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click({ multiple: true });
+    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
   });
 
   it('opens blank python from new menu', () => {
