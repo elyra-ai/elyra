@@ -542,7 +542,7 @@ export class PipelineEditor extends React.Component<
       defaultButton: 1,
       focusNodeSelector: '#runtime_config'
     };
-    const dialogResult = await showFormDialog(dialogOptions, '');
+    const dialogResult = await showFormDialog(dialogOptions);
 
     if (dialogResult.value == null) {
       // When Cancel is clicked on the dialog, just return
@@ -657,7 +657,7 @@ export class PipelineEditor extends React.Component<
       defaultButton: 1,
       focusNodeSelector: '#pipeline_name'
     };
-    const dialogResult = await showFormDialog(dialogOptions, '');
+    const dialogResult = await showFormDialog(dialogOptions);
 
     if (dialogResult.value == null) {
       // When Cancel is clicked on the dialog, just return

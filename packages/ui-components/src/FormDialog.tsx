@@ -34,29 +34,30 @@ const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
  */
 export const showFormDialog = async (
   options: Partial<Dialog.IOptions<any>>,
-  formValidationFunction: any
+  formValidationFunction?: (dialog: Dialog<any>) => void
 ): Promise<Dialog.IResult<any>> => {
   const dialogBody = options.body;
   const dialog = new Dialog(options);
 
-  if (formValidationFunction && typeof formValidationFunction === 'function') {
+  if (formValidationFunction) {
     formValidationFunction(dialog);
   } else {
-    if (typeof dialogBody !== 'string') {
-      const requiredFields = (dialogBody as Widget).node.querySelectorAll(
+    if (dialogBody instanceof Widget) {
+      const requiredFields: NodeListOf<any> = dialogBody.node.querySelectorAll(
         '[data-form-required]'
       );
 
       if (requiredFields && requiredFields.length > 0) {
         // Keep track of all fields already validated. Start with an empty set.
-        let fieldsValidated = new Set();
+        const fieldsValidated = new Set();
 
         // Override Dialog.handleEvent to prevent user from bypassing validation upon pressing the 'Enter' key
         const dialogHandleEvent = dialog.handleEvent;
         dialog.handleEvent = (event: Event): void => {
           if (
+            event instanceof KeyboardEvent &&
             event.type === 'keydown' &&
-            (event as KeyboardEvent).keyCode === 13 &&
+            event.keyCode === 13 &&
             fieldsValidated.size !== requiredFields.length
           ) {
             // prevent action since Enter key is pressed and all fields are not validated
@@ -74,14 +75,11 @@ export const showFormDialog = async (
           .querySelector('.jp-Dialog-footer')
           .getElementsByTagName('button')[defaultButtonIndex];
 
+        defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+
         requiredFields.forEach((element: any) => {
           // First deal with the case the field has already been pre-populated
           handleSingleFieldValidation(element, fieldsValidated);
-          handleAllFieldsValidation(
-            fieldsValidated,
-            requiredFields,
-            defaultButton
-          );
 
           const fieldType = element.tagName.toLowerCase();
 
@@ -105,6 +103,11 @@ export const showFormDialog = async (
             });
           }
         });
+        handleAllFieldsValidation(
+          fieldsValidated,
+          requiredFields,
+          defaultButton
+        );
       }
     }
   }
@@ -113,7 +116,6 @@ export const showFormDialog = async (
 
 export const disableDialogButton = (button: HTMLButtonElement): void => {
   button.setAttribute('disabled', 'disabled');
-  button.className += ' ' + DEFAULT_BUTTON_CLASS;
 };
 
 export const enableDialogButton = (button: HTMLButtonElement): void => {
