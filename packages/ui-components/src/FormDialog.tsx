@@ -52,13 +52,28 @@ export const showFormDialog = async (
         // Keep track of all fields already validated. Start with an empty set.
         let fieldsValidated = new Set();
 
+        // Override Dialog.handleEvent to prevent user from bypassing validation upon pressing the 'Enter' key
+        const dialogHandleEvent = dialog.handleEvent;
+        dialog.handleEvent = (event: Event): void => {
+          if (
+            event.type === 'keydown' &&
+            (event as KeyboardEvent).keyCode === 13 &&
+            fieldsValidated.size !== requiredFields.length
+          ) {
+            // prevent action since Enter key is pressed and all fields are not validated
+            event.stopPropagation();
+            event.preventDefault();
+          } else {
+            dialogHandleEvent.call(dialog, event);
+          }
+        };
+
+        // Get dialog default action button
         const defaultButtonIndex =
           options.defaultButton || options.buttons.length - 1;
         const defaultButton = dialog.node
           .querySelector('.jp-Dialog-footer')
           .getElementsByTagName('button')[defaultButtonIndex];
-
-        disableDialogButton(defaultButton);
 
         requiredFields.forEach((element: any) => {
           // First deal with the case the field has already been pre-populated
@@ -72,7 +87,7 @@ export const showFormDialog = async (
           const fieldType = element.tagName.toLowerCase();
 
           if (fieldType === 'select') {
-            element.addEventListener('change', (event: any) => {
+            element.addEventListener('change', (event: Event) => {
               handleSingleFieldValidation(event.target, fieldsValidated);
               handleAllFieldsValidation(
                 fieldsValidated,
@@ -81,7 +96,7 @@ export const showFormDialog = async (
               );
             });
           } else if (fieldType === 'input' || fieldType === 'textarea') {
-            element.addEventListener('keyup', (event: any) => {
+            element.addEventListener('keyup', (event: Event) => {
               handleSingleFieldValidation(event.target, fieldsValidated);
               handleAllFieldsValidation(
                 fieldsValidated,
