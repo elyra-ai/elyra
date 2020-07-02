@@ -24,7 +24,7 @@ import sys
 from traitlets.config import Config
 from notebook.tests.launchnotebook import NotebookTestBase
 
-from ..metadata import METADATA_TEST_NAMESPACE
+from ..manager import METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
     create_json_file, get_instance
 from .conftest import fetch  # FIXME - remove once jupyter_server is used
@@ -118,8 +118,12 @@ class MetadataHandlerTest(MetadataTestBase):
         shutil.rmtree(self.metadata_tests_dir)
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 404
-        assert "Metadata namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
+        assert r.status_code == 200
+        metadata = r.json()
+        assert isinstance(metadata, dict)
+        assert len(metadata) == 1
+        instances = metadata[METADATA_TEST_NAMESPACE]
+        assert len(instances) == 0
 
         # Now create empty namespace
         os.makedirs(self.metadata_tests_dir)
@@ -242,6 +246,10 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         # even though an instance was created and not removed due to failure to validate (due to
         # missing schema).  Fixed by trapping the FileNotFoundError raised due to no schema.
         assert not os.path.exists(os.path.join(self.metadata_tests_dir, 'missing_schema.json'))
+
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'missing_schema',
+                  base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 404
 
     def test_update_non_existent(self):
         """Attempt to update a non-existent instance. """

@@ -18,7 +18,8 @@ import sys
 from jsonschema import ValidationError
 
 from .metadata_app_utils import AppBase, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
-from .metadata import Metadata, MetadataManager, SchemaManager
+from .metadata import Metadata
+from .manager import MetadataManager, SchemaManager
 
 
 class NamespaceBase(AppBase):
@@ -66,13 +67,12 @@ class NamespaceList(NamespaceBase):
 
         include_invalid = not self.valid_only_flag.value
         try:
-            metadata_instances = self.metadata_manager.get_all_metadata_summary(include_invalid=include_invalid)
+            metadata_instances = self.metadata_manager.get_all(include_invalid=include_invalid)
         except FileNotFoundError:
             metadata_instances = None
 
         if not metadata_instances:
-            print("No metadata instances available for {} in: '{}'"
-                  .format(self.namespace, self.metadata_manager.get_metadata_locations))
+            print("No metadata instances found for {}".format(self.namespace))
             return
 
         validity_clause = "includes invalid" if include_invalid else "valid only"
@@ -201,7 +201,10 @@ class NamespaceInstall(NamespaceBase):
         ex_msg = None
         new_instance = None
         try:
-            new_instance = self.metadata_manager.add(name, instance, replace=self.replace_flag.value)
+            if self.replace_flag.value:
+                new_instance = self.metadata_manager.update(name, instance)
+            else:
+                new_instance = self.metadata_manager.create(name, instance)
         except Exception as ex:
             ex_msg = str(ex)
 

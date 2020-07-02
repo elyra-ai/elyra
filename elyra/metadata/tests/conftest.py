@@ -21,7 +21,8 @@ import jupyter_core.paths
 
 from notebook.utils import url_path_join
 from tornado.escape import url_escape
-from elyra.metadata import MetadataManager, FileMetadataStore, SchemaManager, METADATA_TEST_NAMESPACE
+from elyra.metadata import MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE, FileMetadataStore  # noqa: F401
+
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
     create_json_file
 
@@ -131,9 +132,9 @@ def tests_hierarchy_manager(setup_hierarchy):
     return MetadataManager(namespace=METADATA_TEST_NAMESPACE)
 
 
-@pytest.fixture
-def filestore(setup_namespace):
-    return FileMetadataStore(namespace=METADATA_TEST_NAMESPACE)
+@pytest.fixture(params=["FileMetadataStore"])  # Add types as needed
+def store_manager(setup_namespace, request):
+    return globals()[request.param](namespace=METADATA_TEST_NAMESPACE)
 
 
 @pytest.fixture

@@ -19,7 +19,7 @@ import json
 import os
 
 from jsonschema import ValidationError
-from ..metadata import METADATA_TEST_NAMESPACE
+from ..manager import METADATA_TEST_NAMESPACE
 
 valid_metadata_json = {
     'schema_name': 'metadata-test',

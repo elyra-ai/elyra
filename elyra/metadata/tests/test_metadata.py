@@ -20,7 +20,8 @@ import shutil
 import pytest
 
 from jsonschema import validate, ValidationError, draft7_format_checker
-from elyra.metadata import Metadata, MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE
+from elyra.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager, \
+    MetadataNotFoundError, SchemaNotFoundError, METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, \
     get_schema, invalid_no_display_name_json, valid_display_name_json
 
@@ -71,21 +72,21 @@ def test_manager_add_invalid(tests_manager, data_dir):
 
     # Attempt with non Metadata instance
     with pytest.raises(TypeError):
-        tests_manager.add(valid_metadata_json)
+        tests_manager.create(valid_metadata_json)
 
     # and invalid parameters
     with pytest.raises(TypeError):
-        tests_manager.add(None, invalid_no_display_name_json)
+        tests_manager.create(None, invalid_no_display_name_json)
 
     with pytest.raises(ValueError):
-        tests_manager.add("foo", None)
+        tests_manager.create("foo", None)
 
 
 def test_manager_add_no_name(tests_manager, metadata_tests_dir):
     metadata_name = 'valid_metadata_instance'
 
     metadata = Metadata(**valid_metadata_json)
-    instance = tests_manager.add(None, metadata)
+    instance = tests_manager.create(None, metadata)
 
     assert instance is not None
     assert instance.name == metadata_name
@@ -103,7 +104,7 @@ def test_manager_add_short_name(tests_manager, metadata_tests_dir):
     # Found that single character names were failing validation
     name = 'a'
     metadata = Metadata(**valid_metadata_json)
-    instance = tests_manager.add(name, metadata)
+    instance = tests_manager.create(name, metadata)
 
     assert instance is not None
     assert instance.name == name
@@ -122,7 +123,7 @@ def test_manager_add_empty_display_name(tests_manager, metadata_tests_dir):
     metadata = Metadata(**valid_metadata_json)
     metadata.display_name = ''
     with pytest.raises(ValidationError):
-        tests_manager.add('empty_display_name', metadata)
+        tests_manager.create('empty_display_name', metadata)
 
     # Ensure file was not created
     metadata_file = os.path.join(metadata_tests_dir, '{}.json'.format('empty_display_name'))
@@ -134,7 +135,7 @@ def test_manager_add_display_name(tests_manager, metadata_tests_dir):
     metadata_name = 'a_1_teste_rpido'
 
     metadata = Metadata(**valid_display_name_json)
-    instance = tests_manager.add(None, metadata)
+    instance = tests_manager.create(None, metadata)
 
     assert instance is not None
     assert instance.name == metadata_name
@@ -155,9 +156,9 @@ def test_manager_add_display_name(tests_manager, metadata_tests_dir):
 
 
 def test_manager_list_summary(tests_manager):
-    metadata_summary_list = tests_manager.get_all_metadata_summary(include_invalid=False)
+    metadata_summary_list = tests_manager.get_all(include_invalid=False)
     assert len(metadata_summary_list) == 2
-    metadata_summary_list = tests_manager.get_all_metadata_summary(include_invalid=True)
+    metadata_summary_list = tests_manager.get_all(include_invalid=True)
     assert len(metadata_summary_list) == 3
 
 
@@ -179,7 +180,7 @@ def test_manager_list_summary_none(tests_manager, metadata_tests_dir):
     os.makedirs(metadata_tests_dir)
     assert tests_manager.namespace_exists()
 
-    metadata_summary_list = tests_manager.get_all_metadata_summary()
+    metadata_summary_list = tests_manager.get_all()
     assert len(metadata_summary_list) == 0
 
 
@@ -202,7 +203,7 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
 
     metadata = Metadata(**valid_metadata_json)
 
-    instance = tests_manager.add(metadata_name, metadata)
+    instance = tests_manager.create(metadata_name, metadata)
     assert instance is not None
     dir_mode = oct(os.stat(metadata_tests_dir).st_mode & 0o777777)  # Be sure to include other attributes
     assert dir_mode == "0o40700"  # and ensure this is a directory with only rwx by owner enabled
@@ -224,9 +225,9 @@ def test_manager_add_remove_valid(tests_manager, metadata_tests_dir):
 
     # Attempt to create again w/o replace, then replace it.
     with pytest.raises(FileExistsError):
-        tests_manager.add(metadata_name, metadata)
+        tests_manager.create(metadata_name, metadata)
 
-    instance = tests_manager.add(metadata_name, metadata, replace=True)
+    instance = tests_manager.update(metadata_name, metadata)
     assert instance is not None
 
     # And finally, remove it.
@@ -246,7 +247,7 @@ def test_manager_remove_invalid(tests_manager, metadata_tests_dir):
 def test_manager_remove_missing(tests_manager):
     # Ensure removal of missing metadata file is handled.
     metadata_name = 'missing'
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(MetadataNotFoundError):
         tests_manager.remove(metadata_name)
 
 
@@ -266,7 +267,7 @@ def test_manager_read_invalid_by_name(tests_manager):
 
 def test_manager_read_missing_by_name(tests_manager):
     metadata_name = 'missing'
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(MetadataNotFoundError):
         tests_manager.get(metadata_name)
 
 
@@ -361,9 +362,9 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
     with pytest.raises(FileExistsError):
-        tests_hierarchy_manager.add('byo_2', metadata)
+        tests_hierarchy_manager.create('byo_2', metadata)
 
-    instance = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
+    instance = tests_hierarchy_manager.update('byo_2', metadata)
     assert instance is not None
     assert instance.resource.startswith(str(metadata_tests_dir))
 
@@ -383,7 +384,7 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, metadata_tests_dir):
 
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    instance = tests_hierarchy_manager.add('byo_3', metadata, replace=True)
+    instance = tests_hierarchy_manager.update('byo_3', metadata)
     assert instance is not None
     assert instance.resource.startswith(str(metadata_tests_dir))
 
@@ -410,10 +411,10 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_dir, shared_d
 
     byo_2.display_name = 'user'
     with pytest.raises(FileExistsError):
-        tests_hierarchy_manager.add('byo_2', byo_2)
+        tests_hierarchy_manager.create('byo_2', byo_2)
 
     # Repeat with replacement enabled
-    instance = tests_hierarchy_manager.add('byo_2', byo_2, replace=True)
+    instance = tests_hierarchy_manager.update('byo_2', byo_2)
     assert instance is not None
     assert instance.resource.startswith(str(metadata_tests_dir))
 
@@ -459,7 +460,7 @@ def test_manager_update(tests_hierarchy_manager, metadata_tests_dir):
     # Create a user instance...
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user1'
-    instance = tests_hierarchy_manager.add('update', metadata)
+    instance = tests_hierarchy_manager.create('update', metadata)
     assert instance is not None
     assert instance.resource.startswith(str(metadata_tests_dir))
 
@@ -468,7 +469,7 @@ def test_manager_update(tests_hierarchy_manager, metadata_tests_dir):
     instance2 = tests_hierarchy_manager.get('update')
     instance2.display_name = 'user2'
     instance2.metadata['number_range_test'] = 7
-    tests_hierarchy_manager.add('update', instance2, replace=True)
+    tests_hierarchy_manager.update('update', instance2)
 
     _ensure_single_file(metadata_tests_dir, "update.json")
 
@@ -485,7 +486,7 @@ def test_manager_bad_update(tests_hierarchy_manager, metadata_tests_dir):
     # Create a user instance...
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user1'
-    instance = tests_hierarchy_manager.add('bad_update', metadata)
+    instance = tests_hierarchy_manager.create('bad_update', metadata)
     assert instance is not None
     assert instance.resource.startswith(str(metadata_tests_dir))
 
@@ -496,7 +497,7 @@ def test_manager_bad_update(tests_hierarchy_manager, metadata_tests_dir):
     instance2.display_name = 'user2'
     instance2.metadata['number_range_test'] = 42  # number is out of range
     with pytest.raises(ValidationError):
-        tests_hierarchy_manager.add('bad_update', instance2, replace=True)
+        tests_hierarchy_manager.update('bad_update', instance2)
 
     _ensure_single_file(metadata_tests_dir, "bad_update.json")
 
@@ -508,7 +509,7 @@ def test_manager_bad_update(tests_hierarchy_manager, metadata_tests_dir):
     instance2 = tests_hierarchy_manager.get('bad_update')
     instance2.display_name = 'user update with no name'
     with pytest.raises(ValueError):
-        tests_hierarchy_manager.add(None, instance2, replace=True)
+        tests_hierarchy_manager.update(None, instance2)
 
     _ensure_single_file(metadata_tests_dir, "bad_update.json")
 
@@ -522,7 +523,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_d
 
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    instance = tests_hierarchy_manager.add('byo_2', metadata, replace=True)
+    instance = tests_hierarchy_manager.update('byo_2', metadata)
     assert instance is not None
     assert instance.resource.startswith(str(metadata_tests_dir))
 
@@ -563,57 +564,94 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_dir, shared_d
     assert byo_1.resource.startswith(str(factory_dir))
 
 
-# ########################## FileMetadataStore Tests ###########################
-def test_filestore_list_summary(filestore):
-    metadata_summary_list = filestore.get_all_metadata_summary(include_invalid=False)
-    assert len(metadata_summary_list) == 2
-    metadata_summary_list = filestore.get_all_metadata_summary(include_invalid=True)
-    assert len(metadata_summary_list) == 3
-
-
-def test_filestore_list_all(filestore):
-    metadata_list = filestore.get_all()
-    assert len(metadata_list) == 2
-
-
-def test_filestore_list_summary_none(filestore, metadata_tests_dir):
+# ########################## MetadataStore Tests ###########################
+def test_store_manager_namespace(store_manager, metadata_tests_dir):
     # Delete the metadata dir contents and attempt listing metadata
     shutil.rmtree(metadata_tests_dir)
-    assert filestore.namespace_exists() is False
+    assert store_manager.namespace_exists() is False
+
+    # create some metadata - FIXME - use metadata manager
     os.makedirs(metadata_tests_dir)
-    assert filestore.namespace_exists()
-
-    metadata_summary_list = filestore.get_all_metadata_summary(include_invalid=True)
-    assert len(metadata_summary_list) == 0
+    assert store_manager.namespace_exists()
 
 
-def test_filestore_list_all_none(filestore, metadata_tests_dir):
+def test_store_manager_fetch_instances(store_manager):
+    instances_list = store_manager.fetch_instances()
+    assert len(instances_list) == 3
+
+
+def test_store_manager_fetch_no_namespace(request, store_manager, metadata_tests_dir):
     # Delete the metadata dir contents and attempt listing metadata
-    shutil.rmtree(metadata_tests_dir)
-    assert filestore.namespace_exists() is False
-    os.makedirs(metadata_tests_dir)
-    assert filestore.namespace_exists()
+    if isinstance(store_manager, FileMetadataStore):
+        shutil.rmtree(metadata_tests_dir)
 
-    metadata_list = filestore.get_all()
-    assert len(metadata_list) == 0
+    instance_list = store_manager.fetch_instances()
+    assert len(instance_list) == 0
 
 
-def test_filestore_read_valid_by_name(filestore):
+def test_store_manager_fetch_by_name(store_manager):
     metadata_name = 'valid'
-    some_metadata = filestore.read(metadata_name)
-    assert some_metadata.name == metadata_name
+    instance_list = store_manager.fetch_instances(name=metadata_name)
+    assert instance_list[0].name == metadata_name
 
 
-def test_filestore_read_invalid_by_name(filestore):
-    metadata_name = 'invalid'
-    with pytest.raises(ValidationError):
-        filestore.read(metadata_name)
-
-
-def test_filestore_read_missing_by_name(filestore):
+def test_store_manager_fetch_missing(store_manager):
     metadata_name = 'missing'
-    with pytest.raises(FileNotFoundError):
-        filestore.read(metadata_name)
+    with pytest.raises(MetadataNotFoundError):
+        store_manager.fetch_instances(name=metadata_name)
+
+
+def test_store_manager_persist(store_manager, metadata_tests_dir):
+
+    metadata_name = 'persist'
+
+    metadata = Metadata(**valid_metadata_json)
+
+    shutil.rmtree(metadata_tests_dir)  # Remove namespace to test raw creation
+    instance = store_manager.persist_instance(metadata_name, metadata)
+    assert instance is not None
+
+    if isinstance(store_manager, FileMetadataStore):
+        dir_mode = oct(os.stat(metadata_tests_dir).st_mode & 0o777777)  # Be sure to include other attributes
+        assert dir_mode == "0o40700"  # and ensure this is a directory with only rwx by owner enabled
+
+        # Ensure file was created
+        metadata_file = os.path.join(metadata_tests_dir, 'persist.json')
+        assert os.path.exists(metadata_file)
+        file_mode = oct(os.stat(metadata_file).st_mode & 0o777777)  # Be sure to include other attributes
+        assert file_mode == "0o100600"  # and ensure this is a regular file with only rw by owner enabled
+
+        with open(metadata_file, 'r', encoding='utf-8') as f:
+            valid_add = json.loads(f.read())
+            assert "resource" not in valid_add
+            assert "name" not in valid_add
+            assert "display_name" in valid_add
+            assert valid_add['display_name'] == "valid metadata instance"
+            assert "schema_name" in valid_add
+            assert valid_add['schema_name'] == "metadata-test"
+
+    # Attempt to create again w/o replace, then replace it.
+    with pytest.raises(FileExistsError):
+        store_manager.persist_instance(metadata_name, metadata)
+
+    metadata.metadata['number_range_test'] = 10
+    instance = store_manager.persist_instance(metadata_name, metadata, for_update=True)
+    assert instance is not None
+    assert instance.metadata['number_range_test'] == 10
+
+
+def test_store_manager_delete(store_manager, metadata_tests_dir):
+    metadata_name = 'valid'
+
+    store_manager.delete_instance(metadata_name)
+
+    with pytest.raises(MetadataNotFoundError):
+        store_manager.fetch_instances(name=metadata_name)
+
+    if isinstance(store_manager, FileMetadataStore):
+        # Ensure file was physically deleted
+        metadata_file = os.path.join(metadata_tests_dir, 'valid.json')
+        assert not os.path.exists(metadata_file)
 
 
 # ########################## SchemaManager Tests ###########################
@@ -645,7 +683,7 @@ def test_schema_manager_all(schema_manager):
     assert bar_schema == modified_schema
 
     schema_manager.remove_schema(METADATA_TEST_NAMESPACE, "metadata-test")
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(SchemaNotFoundError):
         schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
 
     schema_manager.clear_all()  # Ensure test schema has been restored
