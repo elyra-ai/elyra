@@ -26,7 +26,7 @@
 }
 
 .elyra-codeSnippet-item {
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
   display: flex;
   flex-direction: column;
   margin: 0;
