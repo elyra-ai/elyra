@@ -29,7 +29,7 @@ const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
  * @params
  *
  * options - The dialog setup options
- * formValidationFunction - Optional validation function
+ * formValidationFunction - Optional custom validation function
  *
  * returns a call to dialog display
  */
@@ -62,32 +62,32 @@ export const showFormDialog = async (
 
         requiredFields.forEach((element: any) => {
           // First deal with the case the field has already been pre-populated
-          element.value
-            ? fieldsValidated.add(element)
-            : fieldsValidated.delete(element);
+          handleSingleFieldValidation(element, fieldsValidated);
+          handleAllFieldsValidation(
+            fieldsValidated,
+            requiredFields,
+            defaultButton
+          );
 
           const fieldType = element.tagName.toLowerCase();
 
           if (fieldType === 'select') {
             element.addEventListener('change', (event: any) => {
-              // Update fieldsValidated set accordingly
-              event.target.value
-                ? fieldsValidated.add(element)
-                : fieldsValidated.delete(element);
-
-              // Only enable defaultButton if all required fields are validated
-              fieldsValidated.size === requiredFields.length
-                ? enableDialogButton(defaultButton)
-                : disableDialogButton(defaultButton);
+              handleSingleFieldValidation(event.target, fieldsValidated);
+              handleAllFieldsValidation(
+                fieldsValidated,
+                requiredFields,
+                defaultButton
+              );
             });
           } else if (fieldType === 'input' || fieldType === 'textarea') {
             element.addEventListener('keyup', (event: any) => {
-              event.target.value.trim()
-                ? fieldsValidated.add(element)
-                : fieldsValidated.delete(element);
-              fieldsValidated.size === requiredFields.length
-                ? enableDialogButton(defaultButton)
-                : disableDialogButton(defaultButton);
+              handleSingleFieldValidation(event.target, fieldsValidated);
+              handleAllFieldsValidation(
+                fieldsValidated,
+                requiredFields,
+                defaultButton
+              );
             });
           }
         });
@@ -104,4 +104,25 @@ export const disableDialogButton = (button: HTMLButtonElement): void => {
 
 export const enableDialogButton = (button: HTMLButtonElement): void => {
   button.removeAttribute('disabled');
+};
+
+// Update set of validated fields according to element value
+const handleSingleFieldValidation = (
+  element: any,
+  fieldsValidated: Set<any>
+): void => {
+  element.value.trim()
+    ? fieldsValidated.add(element)
+    : fieldsValidated.delete(element);
+};
+
+// Only enable dialog button if all required fields are validated
+const handleAllFieldsValidation = (
+  fieldsValidated: Set<any>,
+  requiredFields: NodeListOf<any>,
+  button: HTMLButtonElement
+): void => {
+  fieldsValidated.size === requiredFields.length
+    ? enableDialogButton(button)
+    : disableDialogButton(button);
 };
