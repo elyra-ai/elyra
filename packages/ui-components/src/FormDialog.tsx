@@ -24,7 +24,6 @@ const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
  * Validate required dialog fields upon display
  * - Provides a generic validation by checking if required form fields are populated
  * - Expect required fields in dialog body to contain attribute: data-form-required
- * - NOTE: The Dialog widget will skip any validation upon pressing 'enter' key and resolve the dialog as is
  *
  * @params
  *
