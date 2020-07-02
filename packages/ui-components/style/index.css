@@ -102,7 +102,7 @@
 .elyra-errorDialog-errDisplayButton {
   margin-right: 10px;
   vertical-align: text-bottom;
-  background-color: white;
+  background-color: transparent;
   background-repeat: no-repeat;
   border: none;
 }
@@ -129,7 +129,8 @@ button.elyra-errorDialog-errDisplayButton {
   display: block;
   overflow: auto;
   border: var(--jp-border-width) solid var(--jp-toolbar-border-color);
-  background-color: #f6f8fa;
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
   padding: 5px;
   flex: 1;
   overflow: auto;
