@@ -584,7 +584,7 @@ def test_store_manager_fetch_by_name(setup_namespace, store_manager):
     assert instance_list[0].name == metadata_name
 
 
-def test_store_manager_fetch_missing(store_manager):
+def test_store_manager_fetch_missing(setup_namespace, store_manager):
     metadata_name = 'missing'
     with pytest.raises(MetadataNotFoundError):
         store_manager.fetch_instances(name=metadata_name)

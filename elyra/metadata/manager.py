@@ -21,7 +21,7 @@ import re
 from jsonschema import validate, ValidationError, draft7_format_checker
 from traitlets import Type
 from traitlets.config import LoggingConfigurable
-from typing import Optional
+from typing import Optional, List
 
 from .metadata import Metadata
 from .schema import SchemaManager
@@ -61,7 +61,7 @@ class MetadataManager(LoggingConfigurable):
         """Returns True if the namespace for this instance exists"""
         return self.metadata_store.namespace_exists()
 
-    def get_all(self, include_invalid: bool = False) -> list:
+    def get_all(self, include_invalid: bool = False) -> List[Metadata]:
         """Returns all metadata instances in summary form (name, display_name, location)"""
 
         instances = []

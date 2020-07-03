@@ -21,7 +21,7 @@ import time
 
 from abc import ABC, abstractmethod
 from traitlets import log
-from typing import Optional
+from typing import Optional, List
 
 from .metadata import Metadata
 from .error import MetadataNotFoundError, MetadataExistsError
@@ -38,7 +38,7 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def fetch_instances(self, name: Optional[str] = None) -> list:
+    def fetch_instances(self, name: Optional[str] = None) -> List[Metadata]:
         """Fetch metadata instances"""
         pass
 
@@ -48,7 +48,7 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def delete_instance(self, name: str):
+    def delete_instance(self, name: str) -> None:
         """Deletes the metadata instance corresponding to the given name."""
         pass
 
@@ -71,7 +71,7 @@ class FileMetadataStore(MetadataStore):
                 break
         return namespace_dir_exists
 
-    def fetch_instances(self, name: Optional[str] = None) -> list:
+    def fetch_instances(self, name: Optional[str] = None) -> List[Metadata]:
         """Returns a list of metadata instances.
 
         If name is provided, the single instance will be returned in a list of one item.
