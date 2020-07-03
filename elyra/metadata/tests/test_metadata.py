@@ -21,7 +21,7 @@ import pytest
 
 from jsonschema import validate, ValidationError, draft7_format_checker
 from elyra.metadata import Metadata, MetadataManager, FileMetadataStore, SchemaManager, \
-    MetadataNotFoundError, SchemaNotFoundError, METADATA_TEST_NAMESPACE
+    MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError, METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, \
     get_schema, invalid_no_display_name_json, valid_display_name_json
 
@@ -690,3 +690,43 @@ def test_schema_manager_all(schema_manager):
     test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
     assert test_schema is not None
     assert test_schema == test_schema_json
+
+
+# ########################## Error Tests ###########################
+def test_error_metadata_not_found():
+    namespace = METADATA_TEST_NAMESPACE
+    resource = 'missing_metadata'
+    try:
+        raise MetadataNotFoundError(namespace, resource)
+    except MetadataNotFoundError as mnfe:
+        assert isinstance(mnfe, MetadataNotFoundError)
+        assert mnfe.filename == resource
+        assert mnfe.strerror == "No such metadata instance found in namespace '{}'".format(namespace)
+        assert str(mnfe) == "[Errno 2] No such metadata instance found in namespace '{}': '{}'".\
+            format(namespace, resource)
+
+
+def test_error_metadata_exists():
+    namespace = METADATA_TEST_NAMESPACE
+    resource = 'existing_metadata'
+    try:
+        raise MetadataExistsError(namespace, resource)
+    except MetadataExistsError as mee:
+        assert isinstance(mee, MetadataExistsError)
+        assert mee.filename == resource
+        assert mee.strerror == "Metadata instance already exists in namespace '{}'".format(namespace)
+        assert str(mee) == "[Errno 17] Metadata instance already exists in namespace '{}': '{}'".\
+            format(namespace, resource)
+
+
+def test_error_schema_not_found():
+    namespace = METADATA_TEST_NAMESPACE
+    resource = 'missing_schema'
+    try:
+        raise SchemaNotFoundError(namespace, resource)
+    except SchemaNotFoundError as snfe:
+        assert isinstance(snfe, SchemaNotFoundError)
+        assert snfe.filename == resource
+        assert snfe.strerror == "No such schema instance found in namespace '{}'".format(namespace)
+        assert str(snfe) == "[Errno 2] No such schema instance found in namespace '{}': '{}'".\
+            format(namespace, resource)

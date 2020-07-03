@@ -80,7 +80,7 @@ class MetadataHandlerTest(MetadataTestBase):
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "Metadata 'missing' in namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
+        assert "No such metadata instance found in namespace '{}': 'missing'".format(METADATA_TEST_NAMESPACE) in r.text
 
     def test_invalid_instance(self):
         # Validate invalid throws 404 with validation message
@@ -443,7 +443,7 @@ class SchemaHandlerTest(MetadataTestBase):
         r = fetch(self.request, 'elyra', 'schema', 'runtimes', 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "Schema 'missing' in namespace 'runtimes' was not found!" in r.text
+        assert "No such schema instance found in namespace 'runtimes': 'missing'" in r.text
 
     def test_get_runtimes_schemas(self):
         # Ensure all schema for runtimes can be found

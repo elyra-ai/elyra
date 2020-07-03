@@ -270,8 +270,9 @@ def test_remove_missing(script_runner):
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=missing')
     assert ret.success is False
-    assert ret.stdout.startswith("Metadata \'missing\' in namespace \'{}\' was not found!".
+    assert ret.stdout.startswith("[Errno 2] No such metadata instance found in namespace '{}': 'missing'".
                                  format(METADATA_TEST_NAMESPACE))
+
     assert ret.stderr == ''
 
     # Now cleanup original instance.

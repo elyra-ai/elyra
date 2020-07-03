@@ -105,7 +105,7 @@ class FileMetadataStore(MetadataStore):
                 return [resources[name]]
 
             # If we're looking for a single metadata and we're here, then its not found
-            raise MetadataNotFoundError("Metadata '{}' in namespace '{}' was not found!".format(name, self.namespace))
+            raise MetadataNotFoundError(self.namespace, name)
 
         # We're here only if loading all resources, so only return list of values.
         return list(resources.values())
@@ -164,7 +164,7 @@ class FileMetadataStore(MetadataStore):
         if os.path.exists(resource):
             msg = "Metadata resource '{}' already exists.".format(resource)
             self.log.error(msg)
-            raise MetadataExistsError(msg)
+            raise MetadataExistsError(self.namespace, resource)
 
         # Although the resource doesn't exist in the preferred dir, it may exist at other levels.
         # If creating, then existence at other levels should also prevent the operation.
@@ -173,7 +173,7 @@ class FileMetadataStore(MetadataStore):
             # Instance exists at other (protected) level and this is a create - throw exception
             msg = "Metadata instance '{}' already exists.".format(name)
             self.log.error(msg)
-            raise MetadataExistsError(msg)
+            raise MetadataExistsError(self.namespace, resource)
         except MetadataNotFoundError:  # doesn't exist elsewhere, so we're good.
             pass
         return ''  # Always return the empty string for now to keep signature similar to update

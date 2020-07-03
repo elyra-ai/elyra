@@ -13,15 +13,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""This module includes custom error classes pertaining to the metadata service."""
+import errno
 
 
 class MetadataNotFoundError(FileNotFoundError):
-    pass
+    """Raised when a metadata instance is not found.
 
-
-class SchemaNotFoundError(FileNotFoundError):
-    pass
+       Overrides FileNotFoundError to set contextual message text
+       and includes the corresponding namespace.
+    """
+    def __init__(self, namespace: str, name: str):
+        super().__init__(errno.ENOENT, "No such metadata instance found in namespace '{}'".format(namespace), name)
 
 
 class MetadataExistsError(FileExistsError):
-    pass
+    """Raised when a metadata instance unexpectedly exists.
+
+       Overrides FileExistsError to set contextual message text
+       and includes the corresponding namespace.
+    """
+
+    def __init__(self, namespace: str, name: str):
+        super().__init__(errno.EEXIST, "Metadata instance already exists in namespace '{}'".format(namespace), name)
+
+
+class SchemaNotFoundError(FileNotFoundError):
+    """Raised when a schema instance is not found.
+
+       Overrides FileNotFoundError to set contextual message text
+       and includes the corresponding namespace.
+    """
+
+    def __init__(self, namespace: str, name: str):
+        super().__init__(errno.ENOENT, "No such schema instance found in namespace '{}'".format(namespace), name)

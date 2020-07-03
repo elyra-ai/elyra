@@ -58,7 +58,7 @@ class SchemaManager(SingletonConfigurable):
         self.log.debug("SchemaManager: Fetching schema '{}' from namespace '{}'".format(schema_name, namespace))
         schemas = self.namespace_schemas.get(namespace)
         if schema_name not in schemas.keys():
-            raise SchemaNotFoundError("Schema '{}' in namespace '{}' was not found!".format(schema_name, namespace))
+            raise SchemaNotFoundError(namespace, schema_name)
         schema_json = schemas.get(schema_name)
 
         return schema_json
