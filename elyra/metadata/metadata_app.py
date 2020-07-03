@@ -19,7 +19,8 @@ from jsonschema import ValidationError
 
 from .metadata_app_utils import AppBase, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
 from .metadata import Metadata
-from .manager import MetadataManager, SchemaManager
+from .manager import MetadataManager
+from .schema import SchemaManager
 
 
 class NamespaceBase(AppBase):

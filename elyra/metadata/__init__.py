@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 from .error import MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError
-from .manager import MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE
+from .manager import MetadataManager
 from .metadata import Metadata
+from .schema import SchemaManager, METADATA_TEST_NAMESPACE
 from .storage import FileMetadataStore, MetadataStore

@@ -23,8 +23,8 @@ import sys
 
 from traitlets.config import Config
 from notebook.tests.launchnotebook import NotebookTestBase
+from elyra.metadata import METADATA_TEST_NAMESPACE
 
-from ..manager import METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
     create_json_file, get_instance
 from .conftest import fetch  # FIXME - remove once jupyter_server is used

@@ -21,7 +21,8 @@ from notebook.utils import url_unescape, url_path_join
 
 from .error import MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError
 from .metadata import Metadata
-from .manager import MetadataManager, SchemaManager
+from .manager import MetadataManager
+from .schema import SchemaManager
 from ..util.http import HttpErrorMixin
 
 
