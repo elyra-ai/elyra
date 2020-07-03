@@ -93,7 +93,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
                 # if this is a direct match, record that its been processed
                 if not has_wildcards(filename) and not recursive:
                     processed_filenames.append(filename)
-                matched_filenames.append(filename)
+                matched_set.add(filename)
                 return tarinfo
 
             # If the filename is a "flat" wildcarded value (i.e., isn't prefixed with a directory name)
@@ -101,7 +101,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
             # occurs for dependencies like *.py when include-subdirectories is enabled.
             if not directory_prefixed(filename) and has_wildcards(filename):
                 if fnmatch.fnmatch(os.path.basename(tarinfo.name), filename):
-                    matched_filenames.append(filename)
+                    matched_set.add(filename)
                     return tarinfo
         return None
 
@@ -111,7 +111,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
     # If there's a '*' - less things to check.
     include_all = len(set([WILDCARDS[0]]) & filenames_set) > 0
     processed_filenames = []
-    matched_filenames = []
+    matched_set = set()
     temp_dir = create_project_temp_dir()
     archive = os.path.join(temp_dir, archive_name)
 
@@ -119,8 +119,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
         tar.add(source_dir, arcname="", filter=tar_filter)
 
     if require_complete and not include_all:
-        # convert matched_filenames to a set and compare against filenames_set to ensure they're the same.
-        matched_set = set(matched_filenames)
+        # compare matched_set against filenames_set to ensure they're the same.
         if len(filenames_set) > len(matched_set):
             raise FileNotFoundError(filenames_set - matched_set)  # Only include the missing filenames
 
