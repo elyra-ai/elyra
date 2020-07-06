@@ -48,14 +48,10 @@ body[data-jp-theme-light='false'] .properties-wrapper {
 }
 .d3-comment-selection-highlight[data-selected='yes'] {
   stroke: var(--inverse-link);
-  stroke-dasharray: 5 5;
-  stroke-width: 2;
   fill: transparent;
 }
 .d3-comment-selection-highlight-austin[data-selected='yes'] {
   stroke: var(--inverse-link);
-  stroke-dasharray: none;
-  stroke-width: 3;
   fill: transparent;
 }
 .d3-comment-text {
@@ -77,14 +73,10 @@ body[data-jp-theme-light='false'] .properties-wrapper {
 .d3-comment-link {
   stroke: var(--ui-04);
   fill: none;
-  stroke-width: 1;
-  stroke-dasharray: 7.3;
 }
 .d3-comment-link-arrow-head {
   stroke: var(--ui-04);
-  stroke-width: 2;
   fill: transparent;
-  stroke-dasharray: 0;
 }
 g .d3-comment-link:hover,
 g .d3-data-link:hover,
