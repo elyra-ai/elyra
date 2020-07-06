@@ -215,7 +215,7 @@ class MetadataStore(ABC):
             msg = "Schema validation failed for metadata '{}' in namespace '{}' with error: {}.".\
                 format(name, self.namespace, first_line)
             self.log.error(msg)
-            raise ValidationError(msg)
+            raise ValidationError(msg) from ve
 
 
 class FileMetadataStore(MetadataStore):
@@ -290,7 +290,7 @@ class FileMetadataStore(MetadataStore):
         if not name:  # At this point, name must be set
             raise ValueError('Name of metadata was not provided.')
 
-        match = re.search("^[a-z][a-z0-9-_]*[a-z,0-9]$", name)
+        match = re.search("^[a-z]([a-z0-9-_]*[a-z,0-9])?$", name)
         if match is None:
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
                              "embedded hyphens ('-') and underscores ('_').")
@@ -339,7 +339,7 @@ class FileMetadataStore(MetadataStore):
                 shutil.rmtree(self.preferred_metadata_dir)
             elif renamed_resource:  # Restore the renamed file
                 os.rename(renamed_resource, resource)
-            raise ex
+            raise ex from ex
         else:
             self.log.debug("Created metadata resource: {}".format(resource))
 
@@ -355,7 +355,7 @@ class FileMetadataStore(MetadataStore):
                 os.remove(resource)
                 if renamed_resource:  # Restore the renamed file
                     os.rename(renamed_resource, resource)
-            raise ve
+            raise ve from ve
 
         if renamed_resource:  # Remove the renamed file
             os.remove(renamed_resource)
@@ -409,7 +409,7 @@ class FileMetadataStore(MetadataStore):
                         except Exception as ex:
                             # Ignore ValidationError and others when loading all resources
                             if name:
-                                # we may need to raise this exception if, at the end we don't find a valid instance
+                                # we may need to raise this exception if, at the end, we don't find a valid instance
                                 saved_ex = ex
 
                         if metadata is not None:
@@ -486,7 +486,7 @@ class FileMetadataStore(MetadataStore):
                 # already catch ValueError and map to 400, so we're good there as well.
                 self.log.error("JSON failed to load for metadata '{}' in namespace '{}' with error: {}.".
                                format(name, self.namespace, jde))
-                raise jde
+                raise jde from jde
 
         reason = None
         if validate_metadata:
@@ -496,7 +496,7 @@ class FileMetadataStore(MetadataStore):
                 if include_invalid:
                     reason = ve.__class__.__name__
                 else:
-                    raise ve
+                    raise ve from ve
 
         metadata = Metadata(name=name,
                             display_name=metadata_json.get('display_name'),

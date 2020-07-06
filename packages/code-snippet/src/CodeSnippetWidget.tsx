@@ -211,6 +211,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
           CodeSnippetService.deleteCodeSnippet(codeSnippet).then(
             (response: any): void => {
               this.props.updateSnippets();
+              delete this.editors[codeSnippet.name];
             }
           );
         }

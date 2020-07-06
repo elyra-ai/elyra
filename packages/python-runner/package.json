@@ -1,6 +1,6 @@
 {
   "name": "@elyra/python-runner-extension",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-dev",
   "description": "JupyterLab extension - Run python files using a kernel runtime",
   "keywords": [
     "jupyter",

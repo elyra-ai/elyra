@@ -1,6 +1,6 @@
 {
   "name": "@elyra/theme-extension",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-dev",
   "description": "JupyterLab extension - Elyra theme",
   "keywords": [
     "jupyter",
@@ -31,8 +31,8 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/application": "^1.0.0-beta.1",
-    "@elyra/ui-components": "^1.0.0-beta.1",
+    "@elyra/application": "^1.0.0-dev",
+    "@elyra/ui-components": "^1.0.0-dev",
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/mainmenu": "^2.0.2"
   },

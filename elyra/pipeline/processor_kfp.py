@@ -57,7 +57,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} at {}'.
-                                   format(pipeline_name, pipeline_path), str(ex))
+                                   format(pipeline_name, pipeline_path), str(ex)) from ex
 
             self.log.info("Kubeflow Pipeline successfully compiled.")
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
@@ -66,8 +66,8 @@ class KfpPipelineProcessor(PipelineProcessor):
             client = kfp.Client(host=api_endpoint)
             try:
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
-            except MaxRetryError:
-                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
+            except MaxRetryError as ex:
+                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
 
             self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
@@ -91,20 +91,24 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         pipeline_name = pipeline.name
 
+        # Since pipeline_export_path may be relative to the notebook directory, ensure
+        # we're using its absolute form.
+        absolute_pipeline_export_path = self.get_absolute_path(pipeline_export_path)
+
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
 
-        if os.path.exists(pipeline_export_path) and not overwrite:
-            raise ValueError("File " + pipeline_export_path + " already exists.")
+        if os.path.exists(absolute_pipeline_export_path) and not overwrite:
+            raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
 
         self.log.info('Creating pipeline definition as a .' + pipeline_export_format + ' file')
         if pipeline_export_format != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
-                kfp.compiler.Compiler().compile(pipeline_function, pipeline_export_path)
+                kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
-                                   format(pipeline_name, pipeline_export_path), str(ex))
+                                   format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
         else:
             # Load template from installed elyra package
             loader = PackageLoader('elyra', 'templates')
@@ -129,10 +133,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                                             pipeline_description="Elyra Pipeline")
 
             # Write to python file and fix formatting
-            with open(pipeline_export_path, "w") as fh:
+            with open(absolute_pipeline_export_path, "w") as fh:
                 fh.write(autopep8.fix_code(python_output))
 
-        return pipeline_export_path
+        return pipeline_export_path  # Return the input value, not its absolute form
 
     def _cc_pipeline(self, pipeline, pipeline_name):
 
@@ -226,9 +230,9 @@ class KfpPipelineProcessor(PipelineProcessor):
                 cos_client.upload_file_to_dir(dir=cos_directory,
                                               file_name=operation_artifact_archive,
                                               file_path=dependency_archive_path)
-            except BaseException:
+            except BaseException as ex:
                 self.log.error("Error uploading artifacts to object storage.", exc_info=True)
-                raise
+                raise ex from ex
 
             self.log.info("Pipeline dependencies have been uploaded to object storage")
 
@@ -279,4 +283,4 @@ class KfpPipelineProcessor(PipelineProcessor):
             return runtime_configuration
         except BaseException as err:
             self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
-            raise RuntimeError('Error retrieving runtime configuration for {}', err)
+            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err

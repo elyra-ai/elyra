@@ -23,8 +23,8 @@ import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { InputGroup, Button } from '@jupyterlab/ui-components';
 
-import { Message } from '@lumino/messaging';
 import { find } from '@lumino/algorithm';
+import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
 
@@ -224,7 +224,7 @@ export class MetadataEditor extends ReactWidget {
     }
     for (const otherMetadata of this.allMetadata) {
       if (
-        !find(defaultChoices, (choice: String) => {
+        !find(defaultChoices, (choice: string) => {
           return (
             choice.toLowerCase() ==
             otherMetadata.metadata[fieldName].toLowerCase()
