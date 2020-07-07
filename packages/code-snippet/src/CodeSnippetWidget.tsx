@@ -43,6 +43,7 @@ import { addIcon, copyIcon, editIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
+import { find } from '@lumino/algorithm';
 
 import React from 'react';
 
@@ -56,8 +57,9 @@ const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
 
+const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 const commands = {
-  OPEN_METADATA_EDITOR: `elyra-metadata-editor:open`
+  OPEN_METADATA_EDITOR: `${METADATA_EDITOR_ID}:open`
 };
 const CODE_SNIPPET_NAMESPACE = 'code-snippets';
 const CODE_SNIPPET_SCHEMA = 'code-snippet';
@@ -71,6 +73,7 @@ interface ICodeSnippetDisplayProps {
   editorServices: IEditorServices;
   openCodeSnippetEditor: (args: any) => void;
   updateSnippets: () => void;
+  shell: JupyterFrontEnd.IShell;
 }
 
 /**
@@ -212,6 +215,18 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
             (response: any): void => {
               this.props.updateSnippets();
               delete this.editors[codeSnippet.name];
+              let editorWidget = find(
+                this.props.shell.widgets('main'),
+                (value: Widget, index: number) => {
+                  return (
+                    value.id ==
+                    `${METADATA_EDITOR_ID}:${CODE_SNIPPET_NAMESPACE}:${CODE_SNIPPET_SCHEMA}:${codeSnippet.name}`
+                  );
+                }
+              );
+              if (editorWidget) {
+                editorWidget.dispose();
+              }
             }
           );
         }
@@ -346,6 +361,7 @@ export class CodeSnippetWidget extends ReactWidget {
               getCurrentWidget={this.getCurrentWidget}
               editorServices={this.editorServices}
               updateSnippets={this.updateSnippets}
+              shell={this.app.shell}
             />
           )}
         </UseSignal>
