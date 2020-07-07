@@ -21,7 +21,8 @@ import jupyter_core.paths
 
 from notebook.utils import url_path_join
 from tornado.escape import url_escape
-from elyra.metadata import MetadataManager, FileMetadataStore, SchemaManager, METADATA_TEST_NAMESPACE
+from elyra.metadata import MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE, FileMetadataStore  # noqa: F401
+
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
     create_json_file
 
@@ -98,42 +99,47 @@ def fetch(request, *parts, **kwargs):
 # END - Remove once transition to jupyter_server occurs
 
 
-metadata_tests_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", METADATA_TEST_NAMESPACE))
-metadata_bogus_dir = pytest.fixture(lambda data_dir: mkdir(data_dir, "metadata", "bogus"))
-shared_dir = pytest.fixture(lambda system_jupyter_path: mkdir(system_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
-factory_dir = pytest.fixture(lambda env_jupyter_path: mkdir(env_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
+# These location fixtures will need to be revisited once we support multiple metadata storage types.
+namespace_location = pytest.fixture(lambda data_dir:
+                                    mkdir(data_dir, "metadata", METADATA_TEST_NAMESPACE))
+bogus_location = pytest.fixture(lambda data_dir:
+                                mkdir(data_dir, "metadata", "bogus"))
+shared_location = pytest.fixture(lambda system_jupyter_path:
+                                 mkdir(system_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
+factory_location = pytest.fixture(lambda env_jupyter_path:
+                                  mkdir(env_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
 
 
 @pytest.fixture
-def setup_namespace(environ, metadata_tests_dir):
-    create_json_file(metadata_tests_dir, 'valid.json', valid_metadata_json)
-    create_json_file(metadata_tests_dir, 'another.json', another_metadata_json)
-    create_json_file(metadata_tests_dir, 'invalid.json', invalid_metadata_json)
+def setup_namespace(environ, namespace_location):
+    create_json_file(namespace_location, 'valid.json', valid_metadata_json)
+    create_json_file(namespace_location, 'another.json', another_metadata_json)
+    create_json_file(namespace_location, 'invalid.json', invalid_metadata_json)
 
 
 @pytest.fixture
-def setup_hierarchy(environ, factory_dir):
+def setup_hierarchy(environ, factory_location):
     # Only populate factory info
     byo_instance = byo_metadata_json
     byo_instance['display_name'] = 'factory'
-    create_json_file(factory_dir, 'byo_1.json', byo_instance)
-    create_json_file(factory_dir, 'byo_2.json', byo_instance)
-    create_json_file(factory_dir, 'byo_3.json', byo_instance)
+    create_json_file(factory_location, 'byo_1.json', byo_instance)
+    create_json_file(factory_location, 'byo_2.json', byo_instance)
+    create_json_file(factory_location, 'byo_3.json', byo_instance)
+
+
+@pytest.fixture(params=["FileMetadataStore"])  # Add types as needed
+def store_manager(request):
+    return globals()[request.param](namespace=METADATA_TEST_NAMESPACE)
 
 
 @pytest.fixture
-def tests_manager(setup_namespace):
-    return MetadataManager(namespace=METADATA_TEST_NAMESPACE)
+def tests_manager(setup_namespace, store_manager):
+    return MetadataManager(namespace=METADATA_TEST_NAMESPACE, store=store_manager)
 
 
 @pytest.fixture
-def tests_hierarchy_manager(setup_hierarchy):
-    return MetadataManager(namespace=METADATA_TEST_NAMESPACE)
-
-
-@pytest.fixture
-def filestore(setup_namespace):
-    return FileMetadataStore(namespace=METADATA_TEST_NAMESPACE)
+def tests_hierarchy_manager(setup_hierarchy, store_manager):
+    return MetadataManager(namespace=METADATA_TEST_NAMESPACE, store=store_manager)
 
 
 @pytest.fixture

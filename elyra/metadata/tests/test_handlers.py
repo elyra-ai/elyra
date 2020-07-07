@@ -23,8 +23,8 @@ import sys
 
 from traitlets.config import Config
 from notebook.tests.launchnotebook import NotebookTestBase
+from elyra.metadata import METADATA_TEST_NAMESPACE
 
-from ..metadata import METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
     create_json_file, get_instance
 from .conftest import fetch  # FIXME - remove once jupyter_server is used
@@ -58,12 +58,12 @@ class MetadataHandlerTest(MetadataTestBase):
     def setUp(self):
         # The _dir names here are fixtures that should be referenced by the appropriate
         # test methods once transition to jupyter_server occurs.
-        self.metadata_tests_dir = os.path.join(self.data_dir, 'metadata', METADATA_TEST_NAMESPACE)
-        self.metadata_bogus_dir = os.path.join(self.data_dir, 'metadata', 'bogus')
+        self.namespace_location = os.path.join(self.data_dir, 'metadata', METADATA_TEST_NAMESPACE)
+        self.bogus_location = os.path.join(self.data_dir, 'metadata', 'bogus')
 
-        create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
-        create_json_file(self.metadata_tests_dir, 'another.json', another_metadata_json)
-        create_json_file(self.metadata_tests_dir, 'invalid.json', invalid_metadata_json)
+        create_json_file(self.namespace_location, 'valid.json', valid_metadata_json)
+        create_json_file(self.namespace_location, 'another.json', another_metadata_json)
+        create_json_file(self.namespace_location, 'invalid.json', invalid_metadata_json)
 
     def test_bogus_namespace(self):
         # Validate missing is not found
@@ -73,14 +73,14 @@ class MetadataHandlerTest(MetadataTestBase):
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 400
         assert "Namespace 'bogus' is not in the list of valid namespaces:" in r.text
-        assert not os.path.exists(self.metadata_bogus_dir)
+        assert not os.path.exists(self.bogus_location)
 
     def test_missing_instance(self):
         # Validate missing is not found
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "Metadata 'missing' in namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
+        assert "No such metadata instance found in namespace '{}': 'missing'".format(METADATA_TEST_NAMESPACE) in r.text
 
     def test_invalid_instance(self):
         # Validate invalid throws 404 with validation message
@@ -115,14 +115,18 @@ class MetadataHandlerTest(MetadataTestBase):
 
     def test_get_empty_namespace_instances(self):
         # Delete the metadata dir contents and attempt listing metadata
-        shutil.rmtree(self.metadata_tests_dir)
+        shutil.rmtree(self.namespace_location)
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
-        assert r.status_code == 404
-        assert "Metadata namespace '{}' was not found!".format(METADATA_TEST_NAMESPACE) in r.text
+        assert r.status_code == 200
+        metadata = r.json()
+        assert isinstance(metadata, dict)
+        assert len(metadata) == 1
+        instances = metadata[METADATA_TEST_NAMESPACE]
+        assert len(instances) == 0
 
         # Now create empty namespace
-        os.makedirs(self.metadata_tests_dir)
+        os.makedirs(self.namespace_location)
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 200
@@ -141,20 +145,20 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
     def setUp(self):
         # The _dir names here are fixtures that should be referenced by the appropriate
         # test methods once transition to jupyter_server occurs.
-        self.metadata_tests_dir = os.path.join(jupyter_core.paths.jupyter_data_dir(),
+        self.namespace_location = os.path.join(jupyter_core.paths.jupyter_data_dir(),
                                                'metadata', METADATA_TEST_NAMESPACE)
 
         env_path = getattr(jupyter_core.paths, 'ENV_JUPYTER_PATH')
-        self.factory_dir = os.path.join(env_path[0], 'metadata', METADATA_TEST_NAMESPACE)
+        self.factory_location = os.path.join(env_path[0], 'metadata', METADATA_TEST_NAMESPACE)
 
         system_path = getattr(jupyter_core.paths, 'SYSTEM_JUPYTER_PATH')
-        self.shared_dir = os.path.join(system_path[0], 'metadata', METADATA_TEST_NAMESPACE)
+        self.shared_location = os.path.join(system_path[0], 'metadata', METADATA_TEST_NAMESPACE)
 
         byo_instance = copy.deepcopy(byo_metadata_json)
         byo_instance['display_name'] = 'factory'
-        create_json_file(self.factory_dir, 'byo_1.json', byo_instance)
-        create_json_file(self.factory_dir, 'byo_2.json', byo_instance)
-        create_json_file(self.factory_dir, 'byo_3.json', byo_instance)
+        create_json_file(self.factory_location, 'byo_1.json', byo_instance)
+        create_json_file(self.factory_location, 'byo_2.json', byo_instance)
+        create_json_file(self.factory_location, 'byo_3.json', byo_instance)
 
     def test_get_hierarchy_instances(self):
         # Ensure all valid metadata can be found
@@ -241,7 +245,11 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         # Ensure instance was not created.  Can't use REST here since it will correctly trigger 404
         # even though an instance was created and not removed due to failure to validate (due to
         # missing schema).  Fixed by trapping the FileNotFoundError raised due to no schema.
-        assert not os.path.exists(os.path.join(self.metadata_tests_dir, 'missing_schema.json'))
+        assert not os.path.exists(os.path.join(self.namespace_location, 'missing_schema.json'))
+
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'missing_schema',
+                  base_url=self.base_url(), headers=self.auth_headers())
+        assert r.status_code == 404
 
     def test_update_non_existent(self):
         """Attempt to update a non-existent instance. """
@@ -261,7 +269,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         """Update a simple instance. """
 
         # Create an instance, then update
-        create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
+        create_json_file(self.namespace_location, 'valid.json', valid_metadata_json)
         valid = copy.deepcopy(valid_metadata_json)
         valid['name'] = 'valid'
         valid['metadata']['number_range_test'] = 7
@@ -285,7 +293,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         """Update a simple instance with invalid metadata. """
 
         # Create an instance, then update with invalid metadata
-        create_json_file(self.metadata_tests_dir, 'update_bad_md.json', valid_metadata_json)
+        create_json_file(self.namespace_location, 'update_bad_md.json', valid_metadata_json)
 
         # Fetch it to get the valid instance
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'update_bad_md',
@@ -313,7 +321,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
     def test_update_fields(self):
 
         # Create an instance, then update with a new field
-        create_json_file(self.metadata_tests_dir, 'update_fields.json', valid_metadata_json)
+        create_json_file(self.namespace_location, 'update_fields.json', valid_metadata_json)
         valid = copy.deepcopy(valid_metadata_json)
         valid['metadata']['number_range_test'] = 7
         body = json.dumps(valid)
@@ -389,7 +397,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
 
-        create_json_file(self.metadata_tests_dir, 'valid.json', valid_metadata_json)
+        create_json_file(self.namespace_location, 'valid.json', valid_metadata_json)
 
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
@@ -409,7 +417,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert r.status_code == 403
 
         # create local instance, delete should succeed
-        create_json_file(self.metadata_tests_dir, 'byo_2.json', byo_metadata_json)
+        create_json_file(self.namespace_location, 'byo_2.json', byo_metadata_json)
 
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'byo_2',
                   method='DELETE', base_url=self.base_url(), headers=self.auth_headers())
@@ -435,7 +443,7 @@ class SchemaHandlerTest(MetadataTestBase):
         r = fetch(self.request, 'elyra', 'schema', 'runtimes', 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "Schema 'missing' in namespace 'runtimes' was not found!" in r.text
+        assert "No such schema instance found in namespace 'runtimes': 'missing'" in r.text
 
     def test_get_runtimes_schemas(self):
         # Ensure all schema for runtimes can be found

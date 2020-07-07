@@ -18,7 +18,11 @@ from jsonschema import ValidationError
 from tornado import web
 from notebook.base.handlers import APIHandler
 from notebook.utils import url_unescape, url_path_join
-from .metadata import MetadataManager, SchemaManager, Metadata
+
+from .error import MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError
+from .metadata import Metadata
+from .manager import MetadataManager
+from .schema import SchemaManager
 from ..util.http import HttpErrorMixin
 
 
@@ -34,7 +38,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
             metadata = metadata_manager.get_all()
         except (ValidationError, ValueError) as err:
             raise web.HTTPError(400, str(err)) from err
-        except FileNotFoundError as err:
+        except MetadataNotFoundError as err:
             raise web.HTTPError(404, str(err)) from err
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
@@ -53,12 +57,12 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
             self.log.debug("MetadataHandler: Creating metadata instance '{}' in namespace '{}'...".
                            format(instance.name, namespace))
             metadata_manager = MetadataManager(namespace=namespace)
-            metadata = metadata_manager.add(instance.name, instance, replace=False)
+            metadata = metadata_manager.create(instance.name, instance)
         except (ValidationError, ValueError, SyntaxError) as err:
             raise web.HTTPError(400, str(err)) from err
-        except FileNotFoundError as err:
+        except (MetadataNotFoundError, SchemaNotFoundError) as err:
             raise web.HTTPError(404, str(err)) from err
-        except FileExistsError as err:
+        except MetadataExistsError as err:
             raise web.HTTPError(409, str(err)) from err
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
@@ -107,7 +111,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             metadata = metadata_manager.get(resource)
         except (ValidationError, ValueError, NotImplementedError) as err:
             raise web.HTTPError(400, str(err)) from err
-        except FileNotFoundError as err:
+        except MetadataNotFoundError as err:
             raise web.HTTPError(404, str(err)) from err
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
@@ -132,10 +136,10 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             instance = Metadata(**payload)
             self.log.debug("MetadataHandler: Updating metadata instance '{}' in namespace '{}'...".
                            format(resource, namespace))
-            metadata = metadata_manager.add(resource, instance, replace=True)
+            metadata = metadata_manager.update(resource, instance)
         except (ValidationError, ValueError, NotImplementedError) as err:
             raise web.HTTPError(400, str(err)) from err
-        except FileNotFoundError as err:
+        except MetadataNotFoundError as err:
             raise web.HTTPError(404, str(err)) from err
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
@@ -158,7 +162,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, str(err)) from err
         except PermissionError as err:
             raise web.HTTPError(403, str(err)) from err
-        except FileNotFoundError as err:
+        except MetadataNotFoundError as err:
             raise web.HTTPError(404, str(err)) from err
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
@@ -177,7 +181,7 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
         try:
             self.log.debug("SchemaHandler: Fetching all schemas for namespace '{}'...".format(namespace))
             schemas = schema_manager.get_namespace_schemas(namespace)
-        except (ValidationError, ValueError, FileNotFoundError) as err:
+        except (ValidationError, ValueError, SchemaNotFoundError) as err:
             raise web.HTTPError(404, str(err)) from err
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
@@ -200,7 +204,7 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
             self.log.debug("SchemaResourceHandler: Fetching schema '{}' for namespace '{}'...".
                            format(resource, namespace))
             schema = schema_manager.get_schema(namespace, resource)
-        except (ValidationError, ValueError, FileNotFoundError) as err:
+        except (ValidationError, ValueError, SchemaNotFoundError) as err:
             raise web.HTTPError(404, str(err)) from err
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
@@ -218,7 +222,7 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
         try:
             self.log.debug("NamespaceHandler: Fetching namespaces...")
             namespaces = schema_manager.get_namespaces()
-        except (ValidationError, ValueError, FileNotFoundError) as err:
+        except (ValidationError, ValueError) as err:
             raise web.HTTPError(404, str(err)) from err
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
