@@ -66,8 +66,9 @@ class MetadataManager(LoggingConfigurable):
 
         instances = []
         instance_list = self.metadata_store.fetch_instances()
-        for metadata in instance_list:
+        for metadata_dict in instance_list:
             # validate the instance prior to return, include invalid instances as appropriate
+            metadata = Metadata.from_dict(metadata_dict)
             try:
                 self.validate(metadata.name, metadata)
                 instances.append(metadata)
@@ -83,7 +84,8 @@ class MetadataManager(LoggingConfigurable):
     def get(self, name: str) -> Metadata:
         """Returns the metadata instance corresponding to the given name"""
         instance_list = self.metadata_store.fetch_instances(name=name)
-        metadata = instance_list[0]
+        metadata_dict = instance_list[0]
+        metadata = Metadata.from_dict(metadata_dict)
         # validate the instance prior to return...
         self.validate(name, metadata)
         return metadata
@@ -126,7 +128,8 @@ class MetadataManager(LoggingConfigurable):
             self.log.error(msg)
             raise ValidationError(msg) from ve
 
-    def _get_normalized_name(self, name: str) -> str:
+    @staticmethod
+    def _get_normalized_name(name: str) -> str:
         # lowercase and replaces spaces with underscore
         name = re.sub('\\s+', '_', name.lower())
         # remove all invalid characters
@@ -176,6 +179,7 @@ class MetadataManager(LoggingConfigurable):
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
                              "embedded hyphens ('-') and underscores ('_').")
 
-        # Validate the metadata prior to persistence.  We'll validate again after persistence.
+        # Validate the metadata prior to storage then store the instance.
         self.validate(name, metadata)
-        return self.metadata_store.persist_instance(name, metadata, for_update=for_update)
+        metadata_dict = self.metadata_store.store_instance(name, metadata.prepare_write(), for_update=for_update)
+        return Metadata.from_dict(metadata_dict)

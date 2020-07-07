@@ -16,6 +16,12 @@
 
 import json
 
+from typing import Type, TypeVar
+
+# Setup forward reference for type hint on return from class factory method.  See
+# https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
+M = TypeVar('M', bound='Metadata')
+
 
 class Metadata(object):
     name = None
@@ -33,10 +39,19 @@ class Metadata(object):
         self.resource = kwargs.get('resource')
         self.reason = kwargs.get('reason')
 
+    @classmethod
+    def from_dict(cls: Type[M], metadata_dict: dict) -> M:
+        """Creates an instance of Metadata from a dictionary instance """
+        return cls(name=metadata_dict.get('name'),
+                   display_name=metadata_dict.get('display_name'),
+                   schema_name=metadata_dict.get('schema_name'),
+                   metadata=metadata_dict.get('metadata', {}),
+                   resource=metadata_dict.get('resource'),
+                   reason=metadata_dict.get('reason'))
+
     def to_dict(self, trim: bool = False) -> dict:
         # Exclude resource, and reason only if trim is True since we don't want to persist that information.
-        # Only include schema_name if it has a value (regardless of trim). Method prepare_write will be used
-        # to trim out name prior to writes.
+        #  Method prepare_write will be used to remove name prior to writes.
         d = dict(name=self.name, display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
         if not trim:
             if self.resource:
@@ -49,8 +64,8 @@ class Metadata(object):
     def to_json(self, trim: bool = False) -> str:
         return json.dumps(self.to_dict(trim=trim), indent=2)
 
-    def prepare_write(self) -> str:
-        """Prepares this instance for writes, stripping name, reason, and resource"""
-        prepared = self.to_dict(trim=True)  # we should also trim 'name' when writing
+    def prepare_write(self) -> dict:
+        """Prepares this instance for storage, stripping name, reason, and resource and converting to a dict"""
+        prepared = self.to_dict(trim=True)  # we should also trim 'name' when storing
         prepared.pop('name', None)
-        return json.dumps(prepared, indent=2)
+        return prepared

@@ -23,7 +23,6 @@ from abc import ABC, abstractmethod
 from traitlets import log
 from typing import Optional, List
 
-from .metadata import Metadata
 from .error import MetadataNotFoundError, MetadataExistsError
 
 
@@ -38,13 +37,13 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def fetch_instances(self, name: Optional[str] = None) -> List[Metadata]:
+    def fetch_instances(self, name: Optional[str] = None) -> List[dict]:
         """Fetch metadata instances"""
         pass
 
     @abstractmethod
-    def persist_instance(self, name: str, metadata: Metadata, for_update: bool = False) -> Metadata:
-        """Persists the named metadata instance."""
+    def store_instance(self, name: str, metadata: dict, for_update: bool = False) -> dict:
+        """Stores the named metadata instance."""
         pass
 
     @abstractmethod
@@ -71,7 +70,7 @@ class FileMetadataStore(MetadataStore):
                 break
         return namespace_dir_exists
 
-    def fetch_instances(self, name: Optional[str] = None) -> List[Metadata]:
+    def fetch_instances(self, name: Optional[str] = None) -> List[dict]:
         """Returns a list of metadata instances.
 
         If name is provided, the single instance will be returned in a list of one item.
@@ -87,18 +86,18 @@ class FileMetadataStore(MetadataStore):
                 for f in os.listdir(metadata_dir):
                     path = os.path.join(metadata_dir, f)
                     if path.endswith(".json"):
-                        if name:  # if looking for a specific resource, and this is it, continue
+                        if name:  # if looking for a specific instance, and this is it, continue
                             if os.path.splitext(os.path.basename(path))[0] != name:
                                 continue
 
                         metadata = self._load_resource(path)
-                        if metadata.name in resources.keys():
+                        if metadata.get('name') in resources.keys():
                             # If we're replacing an instance, let that be known via debug
-                            self.log.debug("Replacing metadata resource '{}' from '{}' with '{}'."
-                                           .format(metadata.name,
-                                                   resources[metadata.name].resource,
-                                                   metadata.resource))
-                        resources[metadata.name] = metadata
+                            self.log.debug("Replacing metadata instance '{}' from '{}' with '{}'."
+                                           .format(metadata.get('name'),
+                                                   resources[metadata.get('name')].get('resource'),
+                                                   metadata.get('resource')))
+                        resources[metadata.get('name')] = metadata
 
         if name:
             if name in resources.keys():  # check if we have a match.
@@ -110,8 +109,8 @@ class FileMetadataStore(MetadataStore):
         # We're here only if loading all resources, so only return list of values.
         return list(resources.values())
 
-    def persist_instance(self, name: str, metadata: Metadata, for_update: bool = False) -> Metadata:
-        """Persist the named metadata instance
+    def store_instance(self, name: str, metadata: dict, for_update: bool = False) -> dict:
+        """Store the named metadata instance
 
         Create is the default behavior, while updates are performed when for_update is True.
         """
@@ -132,12 +131,12 @@ class FileMetadataStore(MetadataStore):
         # Write out the instance
         try:
             with jupyter_core.paths.secure_write(resource) as f:
-                f.write(metadata.prepare_write())  # Only persist necessary items
+                f.write(json.dumps(metadata, indent=2))  # Only persist necessary items
         except Exception as ex:
             self._rollback(resource, renamed_resource)
             raise ex from ex
         else:
-            self.log.debug("{action} metadata resource: {resource}".
+            self.log.debug("{action} metadata instance: {resource}".
                            format(action="Updated" if for_update else "Created", resource=resource))
 
         # Confirm persistence so in case there are issues, we can rollback
@@ -150,19 +149,19 @@ class FileMetadataStore(MetadataStore):
 
         instance_list = self.fetch_instances(name=name)  # Let exceptions (FileNotFound) propagate
         metadata = instance_list[0]
-        resource = metadata.resource
+        resource = metadata.get('resource')
         if resource:
             # Since multiple folders are in play, we only allow removal if the resource is in
             # the first directory in the list (i.e., most "near" the user)
             if not self._remove_allowed(metadata):
-                raise PermissionError("Removal of metadata resource '{}' in namespace '{}' is not permitted!".
+                raise PermissionError("Removal of metadata instance '{}' in namespace '{}' is not permitted!".
                                       format(resource, self.namespace))
             os.remove(resource)
 
-    def _prepare_create(self, name: str, resource: str) -> str:
+    def _prepare_create(self, name: str, resource: str) -> None:
         """Prepare to create resource, ensure it doesn't exist in the hierarchy."""
         if os.path.exists(resource):
-            msg = "Metadata resource '{}' already exists.".format(resource)
+            msg = "Metadata instance '{}' already exists.".format(resource)
             self.log.error(msg)
             raise MetadataExistsError(self.namespace, resource)
 
@@ -176,7 +175,7 @@ class FileMetadataStore(MetadataStore):
             raise MetadataExistsError(self.namespace, resource)
         except MetadataNotFoundError:  # doesn't exist elsewhere, so we're good.
             pass
-        return ''  # Always return the empty string for now to keep signature similar to update
+        return None
 
     def _prepare_update(self, name: str, resource: str) -> str:
         """Prepare to update resource, rename current."""
@@ -194,12 +193,12 @@ class FileMetadataStore(MetadataStore):
         if renamed_resource:  # Restore the renamed file
             os.rename(renamed_resource, resource)
 
-    def _confirm_persistence(self, resource: str, renamed_resource: str) -> Metadata:
-        """Confirms persistence by loading/returning the resource and cleans up renamed resource, if applicable."""
+    def _confirm_persistence(self, resource: str, renamed_resource: str) -> dict:
+        """Confirms persistence by loading the instance and cleans up renamed instance, if applicable."""
         try:
             metadata = self._load_resource(resource)
         except Exception as ex:
-            self.log.error("Removing metadata resource '{}' due to previous error.".format(resource))
+            self.log.error("Removing metadata instance '{}' due to previous error.".format(resource))
             self._rollback(resource, renamed_resource)
             raise ex from ex
 
@@ -207,19 +206,19 @@ class FileMetadataStore(MetadataStore):
             os.remove(renamed_resource)
         return metadata
 
-    def _remove_allowed(self, metadata: Metadata) -> bool:
+    def _remove_allowed(self, metadata: dict) -> bool:
         """Determines if the resource of the given instance is allowed to be removed. """
-        allowed_resource = os.path.join(self.preferred_metadata_dir, metadata.name)
-        current_resource = os.path.splitext(metadata.resource)[0]
+        allowed_resource = os.path.join(self.preferred_metadata_dir, metadata.get('name'))
+        current_resource = os.path.splitext(metadata.get('resource'))[0]
         return allowed_resource == current_resource
 
-    def _load_resource(self, resource) -> Metadata:
+    def _load_resource(self, resource: str) -> dict:
         # This is always called with an existing resource (path) so no need to check existence.
 
         # Always take name from resource so resources can be copied w/o having to change content
         name = os.path.splitext(os.path.basename(resource))[0]
 
-        self.log.debug("Loading metadata resource from: '{}'".format(resource))
+        self.log.debug("Loading metadata instance from: '{}'".format(resource))
         with io.open(resource, 'r', encoding='utf-8') as f:
             try:
                 metadata_json = json.load(f)
@@ -232,12 +231,10 @@ class FileMetadataStore(MetadataStore):
                                format(name, self.namespace, jde))
                 raise jde from jde
 
-        metadata = Metadata(name=name,
-                            display_name=metadata_json.get('display_name'),
-                            schema_name=metadata_json.get('schema_name'),
-                            resource=resource,
-                            metadata=metadata_json.get('metadata'))
-        return metadata
+            metadata_json['name'] = name
+            metadata_json['resource'] = resource
+
+        return metadata_json
 
     @staticmethod
     def metadata_path(*subdirs):

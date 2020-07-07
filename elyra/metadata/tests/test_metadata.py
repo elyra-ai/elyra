@@ -94,7 +94,7 @@ def test_manager_add_no_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = instance_list[0]
+    instance = Metadata.from_dict(instance_list[0])
     metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
     assert instance.resource == metadata_location
 
@@ -118,7 +118,7 @@ def test_manager_add_short_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = instance_list[0]
+    instance = Metadata.from_dict(instance_list[0])
     metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
     assert instance.resource == metadata_location
 
@@ -130,7 +130,7 @@ def test_manager_add_short_name(tests_manager, namespace_location):
         tests_manager.metadata_store.fetch_instances(metadata_name)
 
 
-def test_manager_add_empty_display_name(tests_manager, namespace_location):
+def test_manager_add_empty_display_name(tests_manager):
     # Found that empty display_name values were passing validation, so minLength=1 was added
     metadata_name = 'empty_display_name'
     metadata = Metadata(**valid_metadata_json)
@@ -157,7 +157,7 @@ def test_manager_add_display_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = instance_list[0]
+    instance = Metadata.from_dict(instance_list[0])
     metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
     assert instance.resource == metadata_location
     assert instance.display_name == metadata_display_name
@@ -539,7 +539,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
     # Attempt to remove instance from shared area and its protected
     with pytest.raises(PermissionError) as pe:
         tests_hierarchy_manager.remove('byo_2')
-    assert "Removal of metadata resource" in str(pe.value)
+    assert "Removal of metadata instance" in str(pe.value)
 
     # Ensure the one that exists is the one in the shared area
     byo_2 = tests_hierarchy_manager.get('byo_2')
@@ -548,7 +548,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
     # Attempt to remove instance from factory area and its protected as well
     with pytest.raises(PermissionError) as pe:
         tests_hierarchy_manager.remove('byo_1')
-    assert "Removal of metadata resource" in str(pe.value)
+    assert "Removal of metadata instance" in str(pe.value)
 
     byo_1 = tests_hierarchy_manager.get('byo_1')
     assert byo_1.resource.startswith(str(factory_location))
@@ -561,7 +561,7 @@ def test_store_manager_namespace(setup_namespace, store_manager, namespace_locat
     assert store_manager.namespace_exists() is False
 
     # create some metadata
-    store_manager.persist_instance('ensure_namespace_exists', Metadata(**valid_metadata_json))
+    store_manager.store_instance('ensure_namespace_exists', Metadata(**valid_metadata_json).prepare_write())
     assert store_manager.namespace_exists()
 
 
@@ -581,7 +581,7 @@ def test_store_manager_fetch_no_namespace(setup_namespace, store_manager, namesp
 def test_store_manager_fetch_by_name(setup_namespace, store_manager):
     metadata_name = 'valid'
     instance_list = store_manager.fetch_instances(name=metadata_name)
-    assert instance_list[0].name == metadata_name
+    assert instance_list[0].get('name') == metadata_name
 
 
 def test_store_manager_fetch_missing(setup_namespace, store_manager):
@@ -590,13 +590,15 @@ def test_store_manager_fetch_missing(setup_namespace, store_manager):
         store_manager.fetch_instances(name=metadata_name)
 
 
-def test_store_manager_persist(setup_namespace, store_manager, namespace_location):
+def test_store_manager_store_instance(setup_namespace, store_manager, namespace_location):
+
+    _remove_namespace(store_manager, namespace_location)  # Remove namespace to test raw creation and confirm perms
 
     metadata_name = 'persist'
     metadata = Metadata(**valid_metadata_json)
+    metadata_dict = metadata.prepare_write()
 
-    _remove_namespace(store_manager, namespace_location)  # Remove namespace to test raw creation and confirm perms
-    instance = store_manager.persist_instance(metadata_name, metadata)
+    instance = store_manager.store_instance(metadata_name, metadata_dict)
     assert instance is not None
 
     if isinstance(store_manager, FileMetadataStore):
@@ -620,15 +622,15 @@ def test_store_manager_persist(setup_namespace, store_manager, namespace_locatio
 
     # Attempt to create again w/o replace, then replace it.
     with pytest.raises(FileExistsError):
-        store_manager.persist_instance(metadata_name, metadata)
+        store_manager.store_instance(metadata_name, metadata.prepare_write())
 
     metadata.metadata['number_range_test'] = 10
-    instance = store_manager.persist_instance(metadata_name, metadata, for_update=True)
+    instance = store_manager.store_instance(metadata_name, metadata.prepare_write(), for_update=True)
     assert instance is not None
-    assert instance.metadata['number_range_test'] == 10
+    assert instance.get('metadata')['number_range_test'] == 10
 
 
-def test_store_manager_delete(setup_namespace, store_manager, namespace_location):
+def test_store_manager_delete_instance(setup_namespace, store_manager, namespace_location):
     metadata_name = 'valid'
 
     store_manager.delete_instance(metadata_name)
