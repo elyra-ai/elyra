@@ -154,7 +154,8 @@ button.elyra-errorDialog-errDisplayButton {
 .elyra-DialogDefaultButton.jp-mod-styled:active:disabled,
 .elyra-DialogDefaultButton.jp-mod-styled:focus:disabled,
 .elyra-DialogDefaultButton.jp-mod-styled:disabled {
-  background-color: lightgray;
+  background-color: var(--jp-layout-color3);
+  opacity: 0.3;
   pointer-events: none;
 }
 
