@@ -33,6 +33,11 @@
 .elyra-metadataEditor h3 {
   width: 100%;
   margin-bottom: 10px;
+  color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadataEditor label.bp3-label {
+  color: var(--jp-ui-font-color1);
 }
 
 .elyra-metadataEditor .CodeMirror-wrap {
