@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FormGroup, MenuItem } from '@blueprintjs/core';
+import { FormGroup, MenuItem, Intent } from '@blueprintjs/core';
 import { ItemPredicate } from '@blueprintjs/select';
 import { Select, Button } from '@jupyterlab/ui-components';
 import * as React from 'react';
@@ -29,6 +29,7 @@ export interface IDropDownProps {
   required?: string;
   defaultChoices?: string[];
   handleDropdownChange: any;
+  intent: Intent;
 }
 
 export class DropDown extends React.Component<IDropDownProps> {
@@ -75,12 +76,17 @@ export class DropDown extends React.Component<IDropDownProps> {
   };
 
   render(): React.ReactElement {
+    let helperText = this.props.description ? this.props.description : '';
+    if (this.props.intent == Intent.DANGER) {
+      helperText += '\nThis field is required.';
+    }
     return (
       <FormGroup
         key={this.props.label}
         label={this.props.label}
         labelInfo={this.props.required}
-        helperText={this.props.description}
+        helperText={helperText}
+        intent={this.props.intent}
       >
         <Select
           items={this.props.defaultChoices}

@@ -40,10 +40,10 @@ import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { addIcon, copyIcon, editIcon } from '@jupyterlab/ui-components';
 
+import { find } from '@lumino/algorithm';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
-import { find } from '@lumino/algorithm';
 
 import React from 'react';
 
@@ -214,7 +214,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
             (response: any): void => {
               this.props.updateSnippets();
               delete this.editors[codeSnippet.name];
-              let editorWidget = find(
+              const editorWidget = find(
                 this.props.shell.widgets('main'),
                 (value: Widget, index: number) => {
                   return (

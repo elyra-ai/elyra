@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FormGroup } from '@blueprintjs/core';
+import { FormGroup, Intent } from '@blueprintjs/core';
 
 import { FrontendServices, IDictionary } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
@@ -52,6 +52,7 @@ export class MetadataEditor extends ReactWidget {
   name: string;
   dirty: boolean;
   requiredFields: string[];
+  invalidForm: boolean;
 
   schema: IDictionary<any> = {};
   allMetadata: IDictionary<any>[] = [];
@@ -68,6 +69,8 @@ export class MetadataEditor extends ReactWidget {
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.renderField = this.renderField.bind(this);
+
+    this.invalidForm = false;
 
     this.initializeMetadata();
   }
@@ -101,6 +104,33 @@ export class MetadataEditor extends ReactWidget {
     this.update();
   }
 
+  /**
+   * Checks that all required fields have a value before submitting the form.
+   * Returns false if the form is valid. Sets any invalid fields' intent to danger
+   * so that the form will highlight the input(s) causing issues in red.
+   */
+  hasInvalidFields(): boolean {
+    this.invalidForm = false;
+    if (this.displayName == null || this.displayName == '') {
+      this.invalidForm = true;
+    }
+    for (const schemaField in this.schema) {
+      if (
+        this.requiredFields.includes(schemaField) &&
+        (this.metadata[schemaField] == null ||
+          this.metadata[schemaField] == '' ||
+          this.metadata[schemaField] == [] ||
+          this.metadata[schemaField] == '(No selection)')
+      ) {
+        this.invalidForm = true;
+        this.schema[schemaField].uihints.intent = Intent.DANGER;
+      } else {
+        this.schema[schemaField].uihints.intent = Intent.NONE;
+      }
+    }
+    return this.invalidForm;
+  }
+
   onCloseRequest(msg: Message): void {
     if (this.dirty) {
       showDialog({
@@ -130,6 +160,11 @@ export class MetadataEditor extends ReactWidget {
       display_name: this.displayName,
       metadata: this.metadata
     };
+
+    if (this.hasInvalidFields()) {
+      this.update();
+      return;
+    }
 
     if (!this.name) {
       FrontendServices.postMetadata(
@@ -242,14 +277,20 @@ export class MetadataEditor extends ReactWidget {
     description: string,
     fieldName: string,
     defaultValue: string,
-    required: string
+    required: string,
+    intent?: Intent
   ): React.ReactElement {
+    let helperText = description;
+    if (intent == Intent.DANGER) {
+      helperText += 'This field is required.';
+    }
     return (
       <FormGroup
         key={fieldName}
         label={label}
         labelInfo={required}
-        helperText={description}
+        helperText={helperText}
+        intent={intent}
       >
         <InputGroup
           onChange={(event: any): void => {
@@ -279,7 +320,8 @@ export class MetadataEditor extends ReactWidget {
         uihints.description,
         fieldName,
         this.metadata[fieldName],
-        required
+        required,
+        this.schema[fieldName].uihints.intent
       );
     } else if (uihints.field_type == 'dropdown') {
       return (
@@ -288,17 +330,24 @@ export class MetadataEditor extends ReactWidget {
           schemaField={fieldName}
           description={uihints.description}
           required={required}
+          intent={this.schema[fieldName].uihints.intent}
           choice={this.metadata[fieldName]}
           defaultChoices={this.getDefaultChoices(fieldName)}
           handleDropdownChange={this.handleDropdownChange}
         ></DropDown>
       );
     } else if (uihints.field_type == 'code') {
+      let helperText: string;
+      if (this.schema[fieldName].uihints.intent == Intent.DANGER) {
+        helperText = 'This field is required.';
+      }
       return (
         <FormGroup
           style={{ width: '100%', display: 'flex' }}
           labelInfo={required}
           label={'Code'}
+          intent={this.schema[fieldName].uihints.intent}
+          helperText={helperText}
         >
           <div id={'code:' + this.id} className="elyra-form-code"></div>
         </FormGroup>
@@ -317,6 +366,10 @@ export class MetadataEditor extends ReactWidget {
     if (!this.name) {
       headerText = `Add new ${this.schemaName}`;
     }
+    let intent: Intent = Intent.NONE;
+    if (this.displayName == '' && this.invalidForm) {
+      intent = Intent.DANGER;
+    }
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
@@ -326,7 +379,8 @@ export class MetadataEditor extends ReactWidget {
           '',
           'display_name',
           this.displayName,
-          '(required)'
+          '(required)',
+          intent
         )}
         {inputElements}
         <FormGroup>
