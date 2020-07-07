@@ -47,10 +47,8 @@ import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
-
-import '@elyra/canvas/dist/common-canvas.min.css';
-
 import 'carbon-components/css/carbon-components.min.css';
+import '../style/canvas.css';
 
 import * as React from 'react';
 
