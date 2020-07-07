@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import autopep8
 import kfp
 import os
 import tempfile
-import autopep8
+import time
 
 from datetime import datetime
 
@@ -54,7 +55,11 @@ class KfpPipelineProcessor(PipelineProcessor):
             # Compile the new pipeline
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8 E731
+                t0 = time.time()
                 kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
+                t1 = time.time()
+                self.log.debug("Compilation of pipeline '{name}' took {duration:.3f} secs.".
+                               format(name=pipeline_name, duration=(t1 - t0)))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} at {}'.
                                    format(pipeline_name, pipeline_path), str(ex)) from ex
@@ -65,7 +70,11 @@ class KfpPipelineProcessor(PipelineProcessor):
             # Upload the compiled pipeline and create an experiment and run
             client = kfp.Client(host=api_endpoint)
             try:
+                t0 = time.time()
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
+                t1 = time.time()
+                self.log.debug("Upload of pipeline '{name}' took {duration:.3f} secs.".
+                               format(name=pipeline_name, duration=(t1 - t0)))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
 
@@ -105,7 +114,11 @@ class KfpPipelineProcessor(PipelineProcessor):
         if pipeline_export_format != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
+                t0 = time.time()
                 kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
+                t1 = time.time()
+                self.log.debug("Compilation of pipeline '{name}' took {duration:.3f} secs.".
+                               format(name=pipeline_name, duration=(t1 - t0)))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
                                    format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
@@ -155,42 +168,23 @@ class KfpPipelineProcessor(PipelineProcessor):
         # In order to process this recursively, the current operation's inputs should be combined
         # from its parent's inputs (which, themselves are derived from the outputs of their parent)
         # and its parent's outputs.
-        for pipeline_operation in pipeline.operations.values():
-            parent_inputs_and_outputs = []
-            for parent_operation_id in pipeline_operation.parent_operations:
+        for operation in pipeline.operations.values():
+            parent_io = []  # gathers inputs & outputs relative to parent
+            for parent_operation_id in operation.parent_operations:
                 parent_operation = pipeline.operations[parent_operation_id]
                 if parent_operation.inputs:
-                    parent_inputs_and_outputs.extend(parent_operation.inputs)
+                    parent_io.extend(parent_operation.inputs)
                 if parent_operation.outputs:
-                    parent_inputs_and_outputs.extend(parent_operation.outputs)
+                    parent_io.extend(parent_operation.outputs)
 
-                if parent_inputs_and_outputs:
-                    pipeline_operation.inputs = parent_inputs_and_outputs
+                if parent_io:
+                    operation.inputs = parent_io
 
         for operation in pipeline.operations.values():
             operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-            self.log.debug("Creating pipeline component :\n "
-                           "componentID : %s \n "
-                           "name : %s \n "
-                           "parent_operations : %s \n "
-                           "dependencies : %s \n "
-                           "dependencies include subdirectories : %s \n "
-                           "filename : %s \n "
-                           "archive : %s \n "
-                           "inputs : %s \n "
-                           "outputs : %s \n "
-                           "runtime image : %s \n ",
-                           operation.id,
-                           operation.name,
-                           operation.parent_operations,
-                           operation.dependencies,
-                           operation.include_subdirectories,
-                           operation.filename,
-                           operation_artifact_archive,
-                           operation.inputs,
-                           operation.outputs,
-                           operation.runtime_image)
+            self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                           op=operation, archive=operation_artifact_archive))
 
             # create pipeline operation
             notebook_op = NotebookOp(name=operation.name,
@@ -225,21 +219,38 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             # upload operation dependencies to object storage
             try:
+                t0 = time.time()
                 dependency_archive_path = self._generate_dependency_archive(operation)
+                t1 = time.time()
+                self.log.debug("Generation of dependency archive for operation '{name}' took {duration:.3f} secs.".
+                               format(name=operation.name, duration=(t1 - t0)))
+
                 cos_client = CosClient(config=runtime_configuration)
+                t0 = time.time()
                 cos_client.upload_file_to_dir(dir=cos_directory,
                                               file_name=operation_artifact_archive,
                                               file_path=dependency_archive_path)
+                t1 = time.time()
+                self.log.debug("Upload of dependency archive for operation '{name}' took {duration:.3f} secs.".
+                               format(name=operation.name, duration=(t1 - t0)))
+
+            except FileNotFoundError as ex:
+                self.log.error("Dependencies were not found building archive for operation: {}".
+                               format(operation.name), exc_info=True)
+                raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
+                                        format(operation.name, ex))
+
             except BaseException as ex:
-                self.log.error("Error uploading artifacts to object storage.", exc_info=True)
+                self.log.error("Error uploading artifacts to object storage for operation: {}".
+                               format(operation.name), exc_info=True)
                 raise ex from ex
 
             self.log.info("Pipeline dependencies have been uploaded to object storage")
 
         # Process dependencies after all the operations have been created
-        for pipeline_operation in pipeline.operations.values():
-            op = notebook_ops[pipeline_operation.id]
-            for parent_operation_id in pipeline_operation.parent_operations:
+        for operation in pipeline.operations.values():
+            op = notebook_ops[operation.id]
+            for parent_operation_id in operation.parent_operations:
                 parent_op = notebook_ops[parent_operation_id]  # Parent Operation
                 op.after(parent_op)
 
@@ -263,13 +274,14 @@ class KfpPipelineProcessor(PipelineProcessor):
         archive_artifact_name = self._get_dependency_archive_name(operation)
         archive_source_dir = self._get_dependency_source_dir(operation)
 
-        files = [os.path.basename(operation.filename)]
-        files.extend(operation.dependencies)
+        dependencies = [os.path.basename(operation.filename)]
+        dependencies.extend(operation.dependencies)
 
         archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
                                                source_dir=archive_source_dir,
-                                               files=files,
-                                               recursive=operation.include_subdirectories)
+                                               filenames=dependencies,
+                                               recursive=operation.include_subdirectories,
+                                               require_complete=True)
 
         return archive_artifact
 

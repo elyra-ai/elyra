@@ -52,7 +52,6 @@ import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
 /**
  * The CSS class added to code snippet widget.
  */
-const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
 const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
 const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
@@ -343,7 +342,7 @@ export class CodeSnippetWidget extends ReactWidget {
 
   render(): React.ReactElement {
     return (
-      <div className={CODE_SNIPPETS_CLASS}>
+      <div>
         <header className={CODE_SNIPPETS_HEADER_CLASS}>
           <p> {'</> Code Snippets'} </p>
           <button
