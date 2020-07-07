@@ -37,7 +37,7 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def fetch_instances(self, name: Optional[str] = None) -> List[dict]:
+    def fetch_instances(self, name: Optional[str] = None, include_invalid: bool = False) -> List[dict]:
         """Fetch metadata instances"""
         pass
 
@@ -70,7 +70,7 @@ class FileMetadataStore(MetadataStore):
                 break
         return namespace_dir_exists
 
-    def fetch_instances(self, name: Optional[str] = None) -> List[dict]:
+    def fetch_instances(self, name: Optional[str] = None, include_invalid: bool = False) -> List[dict]:
         """Returns a list of metadata instances.
 
         If name is provided, the single instance will be returned in a list of one item.
@@ -86,11 +86,22 @@ class FileMetadataStore(MetadataStore):
                 for f in os.listdir(metadata_dir):
                     path = os.path.join(metadata_dir, f)
                     if path.endswith(".json"):
-                        if name:  # if looking for a specific instance, and this is it, continue
+                        if name:  # if looking for a specific instance, and this is not it, continue
                             if os.path.splitext(os.path.basename(path))[0] != name:
                                 continue
+                        try:
+                            metadata = self._load_resource(path)
+                        except Exception as ex:
+                            if name:  # if we're looking for this instance, re-raise exception
+                                raise ex from ex
+                            # else create a dictionary from what we have if including invalid, else continue
+                            if include_invalid:
+                                metadata = {'name': os.path.splitext(os.path.basename(path))[0],
+                                            'resource': path,
+                                            'reason': ex.__class__.__name__}
+                            else:
+                                continue
 
-                        metadata = self._load_resource(path)
                         if metadata.get('name') in resources.keys():
                             # If we're replacing an instance, let that be known via debug
                             self.log.debug("Replacing metadata instance '{}' from '{}' with '{}'."
@@ -123,10 +134,11 @@ class FileMetadataStore(MetadataStore):
             os.makedirs(self.preferred_metadata_dir, mode=0o700, exist_ok=True)
 
         # Prepare for persistence, check existence, etc.
+        renamed_resource = None
         if for_update:
             renamed_resource = self._prepare_update(name, resource)
         else:  # create
-            renamed_resource = self._prepare_create(name, resource)
+            self._prepare_create(name, resource)
 
         # Write out the instance
         try:
@@ -175,7 +187,6 @@ class FileMetadataStore(MetadataStore):
             raise MetadataExistsError(self.namespace, resource)
         except MetadataNotFoundError:  # doesn't exist elsewhere, so we're good.
             pass
-        return None
 
     def _prepare_update(self, name: str, resource: str) -> str:
         """Prepare to update resource, rename current."""
@@ -184,9 +195,11 @@ class FileMetadataStore(MetadataStore):
             # We're updating so we need to rename the current file to allow restore on errs
             renamed_resource = resource + str(time.time())
             os.rename(resource, renamed_resource)
+            self.log.debug("Renamed resource for instance '{}' to: '{}'".format(name, renamed_resource))
         return renamed_resource
 
-    def _rollback(self, resource: str, renamed_resource: str) -> None:
+    @staticmethod
+    def _rollback(resource: str, renamed_resource: str) -> None:
         """Rollback changes made during persistence (typically updates) and exceptions are encountered """
         if os.path.exists(resource):
             os.remove(resource)
@@ -227,9 +240,10 @@ class FileMetadataStore(MetadataStore):
                 # we aren't able to even instantiate an instance of Metadata.  Because errors are ignored
                 # when getting multiple items, it's okay to raise.  The singleton searches (by handlers)
                 # already catch ValueError and map to 400, so we're good there as well.
-                self.log.error("JSON failed to load for metadata '{}' in namespace '{}' with error: {}.".
-                               format(name, self.namespace, jde))
-                raise jde from jde
+                msg = "JSON failed to load for metadata '{}' in namespace '{}' with error: {}.".\
+                    format(name, self.namespace, jde)
+                self.log.error(msg)
+                raise ValueError(msg) from jde
 
             metadata_json['name'] = name
             metadata_json['resource'] = resource

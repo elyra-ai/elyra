@@ -170,14 +170,20 @@ def test_manager_add_display_name(tests_manager, namespace_location):
         tests_manager.metadata_store.fetch_instances(metadata_name)
 
 
-def test_manager_list_summary(tests_manager):
-    metadata_summary_list = tests_manager.get_all(include_invalid=False)
-    assert len(metadata_summary_list) == 2
-    metadata_summary_list = tests_manager.get_all(include_invalid=True)
-    assert len(metadata_summary_list) == 3
+def test_manager_get_include_invalid(tests_manager):
+    metadata_list = tests_manager.get_all(include_invalid=False)
+    assert len(metadata_list) == 2
+    metadata_list = tests_manager.get_all(include_invalid=True)
+    assert len(metadata_list) == 4
 
 
-def test_manager_list_all(tests_manager):
+def test_manager_get_bad_json(tests_manager):
+    with pytest.raises(ValueError) as ve:
+        tests_manager.get("bad")
+    assert "JSON failed to load for metadata 'bad'" in str(ve.value)
+
+
+def test_manager_get_all(tests_manager):
     metadata_list = tests_manager.get_all()
     assert len(metadata_list) == 2
     # Ensure name is getting derived from resource and not from contents
@@ -188,18 +194,18 @@ def test_manager_list_all(tests_manager):
             assert metadata.name == "valid"
 
 
-def test_manager_list_summary_none(tests_manager, namespace_location):
+def test_manager_get_none(tests_manager, namespace_location):
     # Delete the namespace contents and attempt listing metadata
     _remove_namespace(tests_manager.metadata_store, namespace_location)
     assert tests_manager.namespace_exists() is False
     _create_namespace(tests_manager.metadata_store, namespace_location)
     assert tests_manager.namespace_exists()
 
-    metadata_summary_list = tests_manager.get_all()
-    assert len(metadata_summary_list) == 0
+    metadata_list = tests_manager.get_all()
+    assert len(metadata_list) == 0
 
 
-def test_manager_list_all_none(tests_manager, namespace_location):
+def test_manager_get_all_none(tests_manager, namespace_location):
     # Delete the namespace contents and attempt listing metadata
     _remove_namespace(tests_manager.metadata_store, namespace_location)
     assert tests_manager.namespace_exists() is False
