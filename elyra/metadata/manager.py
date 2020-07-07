@@ -65,13 +65,20 @@ class MetadataManager(LoggingConfigurable):
         """Returns all metadata instances in summary form (name, display_name, location)"""
 
         instances = []
-        instance_list = self.metadata_store.fetch_instances()
+        instance_list = self.metadata_store.fetch_instances(include_invalid=include_invalid)
         for metadata_dict in instance_list:
             # validate the instance prior to return, include invalid instances as appropriate
             metadata = Metadata.from_dict(metadata_dict)
             try:
-                self.validate(metadata.name, metadata)
-                instances.append(metadata)
+                # if we're including invalid and there was an issue on retrieval, add it to the list
+                if include_invalid and metadata.reason:
+                    # If no schema-name is present, set to '{unknown}' since we can't make that determination.
+                    if not metadata.schema_name:
+                        metadata.schema_name = '{unknown}'
+                    instances.append(metadata)
+                else:  # go ahead and validate against the schema
+                    self.validate(metadata.name, metadata)
+                    instances.append(metadata)
             except Exception as ex:  # Ignore ValidationError and others when fetching all instances
                 self.log.debug("Fetch of instance '{}' of namespace '{}' encountered an exception: {}".
                                format(metadata.name, self.namespace, ex))

@@ -24,7 +24,7 @@ from tornado.escape import url_escape
 from elyra.metadata import MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE, FileMetadataStore  # noqa: F401
 
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
-    create_json_file
+    invalid_json, create_json_file, create_file
 
 
 # BEGIN - Remove once transition to jupyter_server occurs
@@ -115,6 +115,7 @@ def setup_namespace(environ, namespace_location):
     create_json_file(namespace_location, 'valid.json', valid_metadata_json)
     create_json_file(namespace_location, 'another.json', another_metadata_json)
     create_json_file(namespace_location, 'invalid.json', invalid_metadata_json)
+    create_file(namespace_location, 'bad.json', invalid_json)
 
 
 @pytest.fixture

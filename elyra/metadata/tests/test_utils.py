@@ -43,12 +43,21 @@ another_metadata_json = {
 
 invalid_metadata_json = {
     'schema_name': 'metadata-test',
-    'display_name': 'Invalid Metadata Instance',
+    'display_name': 'Invalid Metadata Instance - bad uri',
     'metadata': {
         'uri_test': '//localhost:8081/',
         'required_test': "required_value"
     }
 }
+
+invalid_json = "{\
+    'schema_name': 'metadata-test',\
+    'display_name': 'Invalid Metadata Instance - missing comma'\
+    'metadata': {\
+        'uri_test': '//localhost:8081/',\
+        'required_test': 'required_value'\
+    }\
+}"
 
 invalid_no_display_name_json = {
     'schema_name': 'metadata-test',
@@ -115,6 +124,10 @@ byo_metadata_json = {
 
 
 def create_json_file(location, file_name, content):
+    create_file(location, file_name, json.dumps(content))
+
+
+def create_file(location, file_name, content):
     try:
         os.makedirs(location)
     except OSError as e:
@@ -123,7 +136,7 @@ def create_json_file(location, file_name, content):
 
     resource = os.path.join(location, file_name)
     with open(resource, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(content))
+        f.write(content)
 
 
 def get_schema(schema_name):
