@@ -1,7 +1,22 @@
+#
+# Copyright 2017-2020 IBM Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 openapi: 3.0.1
 info:
   title: Elyra API
-  description: The API for the Elyra extensions
+  description: The API for the Elyra extensions.
   contact:
     name: Elyra
     url: https://github.com/elyra-ai/elyra
@@ -9,14 +24,14 @@ info:
 
 paths:
 
-  /api/elyra.yaml:
+  /elyra/elyra.yaml:
     get:
       tags:
       - api
-      summary: Get API information (yaml)
+      summary: Get API information (yaml).
       responses:
         200:
-          description: Returns a swagger specification in yaml
+          description: Returns a swagger specification in yaml.
           content:
             text/x-yaml:
               schema:
@@ -24,14 +39,14 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/namespace:
+  /elyra/namespace:
     get:
       tags:
       - namespace
-      summary: Get current namespaces
+      summary: Get current namespaces.
       responses:
         200:
-          description: Returns the list of current namespaces
+          description: Returns the list of current namespaces.
           content:
             application/json:
               schema:
@@ -45,7 +60,7 @@ paths:
         500:
           description: Unexpected error.
 
-  /api/schema/{namespace}:
+  /elyra/schema/{namespace}:
     get:
       tags:
       - schema
@@ -59,7 +74,7 @@ paths:
           type: string
       responses:
         200:
-          description: Returns the schema instances for a given namespace
+          description: Returns the schema instances for a given namespace.
           content:
             application/json:
               schema:
@@ -67,61 +82,61 @@ paths:
                 properties:
                   namespace:
                     type: array
-                    description: The schema instances within the namespace
+                    description: The schema instances within the namespace.
                     items:
                       $ref: '#/components/schemas/SchemaResource'
         404:
-          description: Namespace not found
+          description: Namespace not found.
           content: {}
         500:
           description: Unexpected error.
 
-  /api/schema/{namespace}/{resource}:
+  /elyra/schema/{namespace}/{resource}:
     get:
       tags:
       - schema
-      summary: Get a given schema instance from a given namespace
+      summary: Get a given schema instance from a given namespace.
       parameters:
       - name: namespace
         in: path
-        description: The name of the namespace
+        description: The name of the namespace.
         required: true
         schema:
           type: string
       - name: resource
         in: path
-        description: The name of the resource in a given namespace
+        description: The name of the resource in a given namespace.
         required: true
         schema:
           type: string
       responses:
         200:
-          description: The named schema instance within the namespace
+          description: The named schema instance within the namespace.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SchemaResource'
         404:
-          description: Namespace/Resource not found
+          description: Namespace/Resource not found.
           content: {}
         500:
           description: Unexpected error.
 
-  /api/metadata/{namespace}:
+  /elyra/metadata/{namespace}:
     get:
       tags:
       - metadata
-      summary: Get metadata for a given namespace
+      summary: Get metadata for a given namespace.
       parameters:
       - name: namespace
         in: path
-        description: The name of the namespace
+        description: The name of the namespace.
         required: true
         schema:
           type: string
       responses:
         200:
-          description: The metadata instances within the namespace
+          description: The metadata instances within the namespace.
           content:
             application/json:
               schema:
@@ -132,19 +147,21 @@ paths:
                     description: The name of the namespace.
                     items:
                       $ref: '#/components/schemas/MetadataResource'
+        400:
+          description: An error (validation, syntax) occurred relative to the instance data.
         404:
-          description: Namespace not found
+          description: Namespace not found.
           content: {}
         500:
           description: Unexpected error.
     post:
       tags:
       - metadata
-      summary: Create a metadata instance in a given namespace
+      summary: Create a metadata instance in a given namespace.
       parameters:
       - name: namespace
         in: path
-        description: The name of the namespace
+        description: The name of the namespace.
         required: true
         schema:
           type: string
@@ -153,51 +170,59 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MetadataResourceBodyPost'
+              $ref: '#/components/schemas/MetadataResourceBody'
 
       responses:
         201:
-          description: The newly-created metadata instance
+          description: The newly-created metadata instance.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetadataResource'
+          headers:
+            Location:
+              description: Resource endpoint
+              schema:
+                type: string
+                format: url
         400:
-          description: An error (validation, syntax) occurred relative to the instance data
+          description: An error (validation, syntax) occurred relative to the instance data.
         404:
-          description: Namespace not found
+          description: Namespace not found.
         409:
-          description: Resource already exists
+          description: Resource already exists.
         500:
           description: Unexpected error.
 
-  /api/metadata/{namespace}/{resource}:
+  /elyra/metadata/{namespace}/{resource}:
     get:
       tags:
       - metadata
-      summary: Get a given metadata instance from a given namespace
+      summary: Get a given metadata instance from a given namespace.
       parameters:
       - name: namespace
         in: path
-        description: The name of the namespace
+        description: The name of the namespace.
         required: true
         schema:
           type: string
       - name: resource
         in: path
-        description: The name of the resource in a given namespace
+        description: The name of the resource in a given namespace.
         required: true
         schema:
           type: string
       responses:
         200:
-          description: The named metadata instance within the namespace
+          description: The named metadata instance within the namespace.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetadataResource'
+        400:
+          description: An error (validation, syntax) occurred relative to the instance data.
         404:
-          description: Namespace/Resource not found
+          description: Namespace/Resource not found.
           content: {}
         500:
           description: Unexpected error.
@@ -205,17 +230,17 @@ paths:
     put:
       tags:
         - metadata
-      summary: Update a given metadata resource within a given namespace
+      summary: Update a given metadata resource within a given namespace.
       parameters:
         - name: namespace
           in: path
-          description: The name of the namespace
+          description: The name of the namespace.
           required: true
           schema:
             type: string
         - name: resource
           in: path
-          description: The name of the resource in a given namespace
+          description: The name of the resource in a given namespace.
           required: true
           schema:
             type: string
@@ -224,93 +249,118 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MetadataResourceBodyPut'
+              $ref: '#/components/schemas/MetadataResourceBody'
 
       responses:
         200:
-          description: The updated metadata instance
+          description: The updated metadata instance.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetadataResource'
         400:
-          description: The operation is not supported
+          description: An error (validation, syntax, not supported) occurred relative to the instance data.
         404:
-          description: The resource to update was not found
+          description: The resource to update was not found.
         500:
           description: Unexpected error.
 
     delete:
       tags:
       - metadata
-      summary: Delete a given metadata resource from a given namespace
+      summary: Delete a given metadata resource from a given namespace.
       parameters:
       - name: namespace
         in: path
-        description: The name of the namespace
+        description: The name of the namespace.
         required: true
         schema:
           type: string
       - name: resource
         in: path
-        description: The name of the resource in a given namespace
+        description: The name of the resource in a given namespace.
         required: true
         schema:
           type: string
       responses:
-        200:
-          description: The deleted metadata instance
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MetadataResource'
+        204:
+          description: The resource was successfully deleted.
+        400:
+          description: An error (validation, syntax) occurred relative to the instance data.
         403:
-          description: Deletion of the resource is not permitted
+          description: Deletion of the resource is not permitted.
         404:
-          description: The resource was not found
+          description: The resource was not found.
         500:
           description: Unexpected error.
 
+  /elyra/pipeline/schedule:
+    post:
+      tags:
+      - pipeline
+      summary: Execute pipelines as batch jobs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PipelineResource'
+      responses:
+        200:
+          description: The pipeline processor response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineScheduleResponse'
+
+  /elyra/pipeline/export:
+    post:
+      tags:
+      - pipeline
+      summary: Export a pipeline.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PipelineExportBodyPost'
+      responses:
+        201:
+          description: The pipeline export response.
+          headers:
+            Location:
+              description: The resource endpoint.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  export_path:
+                    type: string
+                    description: The pipeline export path.
 
 components:
   schemas:
-    MetadataResourceBodyPost:
-      description: The set of properties comprising the request body for POST
+    MetadataResourceBody:
+      description: The set of properties comprising the request body for POST and PUT requests.
       required:
         - display_name
-        - name
         - schema_name
         - metadata
       type: object
       properties:
         name:
           type: string
-          description: The canonical name of the resource
+          description: The canonical name of the resource.  Will be derived from display_name if not provided on POST.
         display_name:
           type: string
-          description: The display name of the resource
+          description: The display name of the resource.
         schema_name:
           type: string
-          description: The schema name used to validate the resource
-        metadata:
-          type: object
-          properties: {}
-          description: A free-form dictionary consisting of additional information
-            about the resource.
-
-    MetadataResourceBodyPut:
-      description: The set of properties comprising the request body for PUT; no field is required
-      type: object
-      properties:
-        name:
-          type: string
-          description: The canonical name of the resource
-        display_name:
-          type: string
-          description: The display name of the resource
-        schema_name:
-          type: string
-          description: The schema name used to validate the resource
+          description: The schema name used to validate the resource.
         metadata:
           type: object
           properties: {}
@@ -318,22 +368,23 @@ components:
             about the resource.
 
     MetadataResource:
-      description: The set of properties comprising a metadata resource entity
+      description: The set of properties comprising a metadata resource entity.
       required:
-      - display_name
       - name
+      - display_name
       - schema_name
+      - metadata
       type: object
       properties:
         name:
           type: string
-          description: The canonical name of the metadata resource
+          description: The canonical name of the metadata resource.
         display_name:
           type: string
-          description: The display name of the metadata resource
+          description: The display name of the metadata resource.
         schema_name:
           type: string
-          description: The schema name used to validate the metadata resource
+          description: The schema name used to validate the metadata resource.
         metadata:
           type: object
           properties: {}
@@ -341,7 +392,7 @@ components:
             about the resource.
 
     SchemaResource:
-      description: The set of properties comprising a schema resource entity
+      description: The set of properties comprising a schema resource entity.
       required:
       - name
       - namespace
@@ -349,31 +400,109 @@ components:
       properties:
         namespace:
           type: string
-          description: The namespace of the schema resource
+          description: The namespace of the schema resource.
         name:
           type: string
-          description: The canonical name of the schema resource
+          description: The canonical name of the schema resource.
         title:
           type: string
-          description: The title of the schema resource
+          description: The title of the schema resource.
         properties:
           type: object
           properties: {}
           description: A free-form dictionary consisting of additional information
             about the resource.
 
+    PipelineResource:
+      description: The set of properties comprising a pipeline resource entity.
+      required:
+        - primary_pipeline
+        - pipelines
+      type: object
+      properties:
+        primary_pipeline:
+          type: string
+          description: The primary pipeline id.
+        pipelines:
+          type: array
+          description: A set of pipeline definitions.
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: The unique identifier of the pipeline.
+              name:
+                type: string
+                description: The name of the pipeline.
+              nodes:
+                type: array
+                description: The set of nodes in the pipeline.
+                items:
+                  type: object
+                  properties: {}
+                  description: The node configuration.
+              runtime:
+                type: string
+                description: The runtime type for the pipeline.
+              runtime-config:
+                type: object
+                properties: {}
+                description: The runtime configuration that should be used to submit the pipeline.
+
+    PipelineScheduleResponse:
+      description: The set of properties comprising a pipeline processor response entity.
+      required:
+      - run_url
+      - object_storage_url
+      - object_storage_path
+      type: object
+      properties:
+        run_url:
+          type: string
+          description: The runtime URL to access the pipeline experiment.
+        object_storage_url:
+          type: string
+          description: The object storage URL to access the pipeline outputs
+            and processed notebooks.
+        object_storage_path:
+          type: string
+          description: The object storage working directory path where the pipeline outputs
+            and processed notebooks are located.
+
+    PipelineExportBodyPost:
+      description: The set of properties comprising the request body for POST request.
+      required:
+        - pipeline
+        - export_format
+        - export_path
+        - overwrite
+      type: object
+      properties:
+        pipeline:
+          $ref: '#/components/schemas/PipelineResource'
+        export_format:
+          type: string
+          description: The pipeline export format.
+        export_path:
+          type: string
+          description: The pipeline export path.
+        overwrite:
+          type: boolean
+          description: Determines if the existing export should be overwritten.
+
   parameters:
     namespace:
       name: namespace
       in: path
-      description: The name of the namespace
+      description: The name of the namespace.
       required: true
       schema:
         type: string
     resource:
       name: resource
       in: path
-      description: The name of the resource in a given namespace
+      description: The name of the resource in a given namespace.
       required: true
       schema:
         type: string

@@ -12,7 +12,7 @@
     "display_name": {
       "description": "The display name of this KFP instance",
       "type": "string",
-      "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+      "minLength": 1
     },
     "metadata": {
       "description": "Additional data specific to this metadata",
@@ -58,5 +58,5 @@
       ]
     }
   },
-  "required": ["schema_name", "display_name"]
+  "required": ["schema_name", "display_name", "metadata"]
 }

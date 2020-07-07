@@ -18,11 +18,11 @@ limitations under the License.
 
 
 [![PyPI version](https://badge.fury.io/py/elyra.svg)](https://badge.fury.io/py/elyra)
-[![Downloads](https://pepy.tech/badge/elyra/month)](https://pepy.tech/project/jupyterlab/month)
+[![Downloads](https://pepy.tech/badge/elyra/month)](https://pepy.tech/project/elyra/month)
 [![Documentation Status](https://readthedocs.org/projects/elyra/badge/?version=latest)](https://elyra.readthedocs.io/en/latest/?badge=latest)
 [![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
 [![Gitter](https://badges.gitter.im/elyra-ai/community.svg)](https://gitter.im/elyra-ai/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo)
 
 # Elyra
 
@@ -42,6 +42,14 @@ Elyra currently includes:
 
 The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting_started/overview.html)
 includes more details on these features.
+
+## Try Elyra
+
+ You can try out some of Elyra features using the [My Binder](https://mybinder.readthedocs.io/en/latest/) service.
+
+ Click on the link below to try Elyra, on a sandbox environment, without having to install anything.
+
+ [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo)
 
 ## Installation
 Elyra can be installed via PyPi:
@@ -73,17 +81,16 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra 0.10.1 OK
+      elyra <VERSION> OK
     jupyterlab  enabled
     - Validating...
-      jupyterlab 2.1.1 OK
+      jupyterlab 2.1.5 OK
     jupyterlab_git  enabled
     - Validating...
-      jupyterlab_git 0.20.0rc0 OK
+      jupyterlab_git 0.20.0 OK
     nbdime  enabled
     - Validating...
       nbdime 2.0.0 OK
-
 ```
 ```bash
 jupyter labextension list
@@ -91,13 +98,13 @@ jupyter labextension list
 Should output:
 ```
 Known labextensions:
-   app dir: /Users/lresende/opt/anaconda/envs/dev/share/jupyter/lab
-        @elyra/application v0.11.0-dev  enabled  OK*
-        @elyra/code-snippet-extension-experimental v0.11.0-dev  enabled  OK
-        @elyra/pipeline-editor-extension v0.11.0-dev  enabled  OK
-        @elyra/python-runner-extension v0.11.0-dev  enabled  OK
-        @jupyterlab/git v0.20.0-rc.0  enabled  OK
-        @jupyterlab/toc v3.0.0  enabled  OK
+   app dir: /.../share/jupyter/lab
+        @elyra/code-snippet-extension-experimental <VERSION>  enabled  OK*
+        @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
+        @elyra/python-runner-extension <VERSION>  enabled  OK*
+        @elyra/theme-extension <VERSION>  enabled  OK*
+        @jupyterlab/git v0.20.0  enabled  OK
+        @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```
 NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable

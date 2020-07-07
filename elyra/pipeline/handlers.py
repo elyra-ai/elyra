@@ -16,9 +16,10 @@
 import json
 
 from notebook.base.handlers import APIHandler
+from notebook.utils import url_path_join
 from .parser import PipelineParser
 from .processor import PipelineProcessorManager
-from tornado import web, gen
+from tornado import web
 from ..util.http import HttpErrorMixin
 
 
@@ -26,15 +27,13 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to export pipelines"""
 
     @web.authenticated
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         msg_json = dict(title="Operation not supported.")
         self.write(msg_json)
         self.flush()
 
     @web.authenticated
-    @gen.coroutine
-    def post(self, *args, **kwargs):
+    async def post(self, *args, **kwargs):
         self.log.debug("Pipeline Export handler now executing post request")
 
         payload = self.get_json_body()
@@ -48,11 +47,23 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
 
         pipeline = PipelineParser.parse(pipeline_definition)
 
-        PipelineProcessorManager.export(pipeline, pipeline_export_format, pipeline_export_path, pipeline_overwrite)
-        json_msg = json.dumps({"status": "ok",
-                               "message": "Pipeline successfully exported"})
+        pipeline_exported_path = await PipelineProcessorManager.instance().export(
+            pipeline,
+            pipeline_export_format,
+            pipeline_export_path,
+            pipeline_overwrite
+        )
+        json_msg = json.dumps({"export_path": pipeline_export_path})
 
         self.set_status(201)
+        self.set_header("Content-Type", 'application/json')
+        location = url_path_join(
+            self.base_url,
+            'api',
+            'contents',
+            pipeline_exported_path
+        )
+        self.set_header('Location', location)
         self.write(json_msg)
         self.flush()
 
@@ -61,29 +72,22 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to execute pipelines as batch jobs"""
 
     @web.authenticated
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         msg_json = dict(title="Operation not supported.")
         self.write(msg_json)
         self.flush()
 
     @web.authenticated
-    @gen.coroutine
-    def post(self, *args, **kwargs):
+    async def post(self, *args, **kwargs):
         self.log.debug("Pipeline SchedulerHandler now executing post request")
 
-        try:
-            pipeline_definition = self.get_json_body()
-            self.log.debug("JSON payload: %s", pipeline_definition)
+        pipeline_definition = self.get_json_body()
+        self.log.debug("JSON payload: %s", pipeline_definition)
 
-            pipeline = PipelineParser.parse(pipeline_definition)
+        pipeline = PipelineParser.parse(pipeline_definition)
 
-            response = PipelineProcessorManager.process(pipeline)
-            json_msg = json.dumps(response.to_json())
-        except (ValueError) as se:
-            raise web.HTTPError(400, str(se))
-        except Exception as ex:
-            raise web.HTTPError(500, repr(ex))
+        response = await PipelineProcessorManager.instance().process(pipeline)
+        json_msg = json.dumps(response.to_json())
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')

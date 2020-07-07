@@ -20,31 +20,6 @@
   text-align: center;
 }
 
-.save .toolbar-icons:not(.overflow) {
-  height: auto;
-  width: 80%;
-}
-
-.export .toolbar-icons:not(.overflow) {
-  height: auto;
-  width: 100%;
-}
-
-.new .toolbar-icons:not(.overflow) {
-  height: 100%;
-  width: auto;
-}
-
-.clear .toolbar-icons:not(.overflow) {
-  height: auto;
-  width: 100%;
-}
-
-.history .toolbar-icons:not(.overflow) {
-  height: auto;
-  width: 100%;
-}
-
 .elyra-PipelineEditor .properties-modal {
   position: absolute;
 }

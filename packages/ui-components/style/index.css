@@ -26,11 +26,11 @@
 }
 
 .elyra-expandableContainer-actionButton:hover {
-  background-color: #ffffff;
+  background-color: var(--jp-layout-color1);
 }
 
 .elyra-expandableContainer-actionButton:active {
-  background-color: #eeeeee;
+  background-color: var(--jp-layout-color2);
 }
 
 .elyra-expandableContainer-title {
@@ -42,7 +42,7 @@
 }
 
 .elyra-expandableContainer-title:hover {
-  background-color: #eeeeee;
+  background: var(--jp-layout-color2);
 }
 
 .elyra-expandableContainer-name {
@@ -72,9 +72,14 @@
   display: block;
   padding: 5px;
   margin: 5px;
-  border: 1px solid #eeeeee;
+  border: 1px solid var(--jp-border-color2);
   border-radius: 2px;
-  background-color: #f6f8fa;
+  color: var(--jp-ui-font-color1);
+  background-color: var(--jp-layout-color1);
+}
+
+.elyra-expandableContainer-details-visible textarea {
+  color: var(--jp-ui-font-color1);
 }
 
 .elyra-expandableContainer-details-hidden {
@@ -85,4 +90,86 @@
   display: inline-flex;
   align-self: flex-end;
   height: 100%;
+}
+
+.elyra-errorDialog-messageDisplay {
+  padding-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.elyra-errorDialog-errDisplayButton {
+  margin-right: 10px;
+  vertical-align: text-bottom;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border: none;
+}
+
+.elyra-errorDialog-errDisplayButton:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+button.elyra-errorDialog-errDisplayButton {
+  height: 20px;
+  width: 20px;
+  padding: 0;
+}
+
+.elyra-errorDialog-errDetails {
+  margin: 15px 0;
+  display: flex;
+  flex: 1;
+  min-height: 0px;
+  flex-direction: column;
+}
+
+.elyra-errorDialog-error-visible {
+  display: block;
+  overflow: auto;
+  border: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
+  padding: 5px;
+  flex: 1;
+  overflow: auto;
+  margin: 5px 0 10px 30px;
+}
+
+.elyra-errorDialog-error-hidden {
+  display: none;
+}
+
+/* temporary fix until this is addressed in jupyterlab */
+.lm-TabBar-tabIcon svg {
+  height: auto;
+}
+
+.jp-Dialog-content {
+  resize: both;
+}
+
+.elyra-DialogDefaultButton.jp-mod-styled:hover:disabled,
+.elyra-DialogDefaultButton.jp-mod-styled:active:disabled,
+.elyra-DialogDefaultButton.jp-mod-styled:focus:disabled,
+.elyra-DialogDefaultButton.jp-mod-styled:disabled {
+  background-color: var(--jp-layout-color3);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* icons */
+
+[data-jp-theme-light='false'] .elyra-pieBrain-icon rect.st1,
+[data-jp-theme-light='false'] .elyra-pieBrain-icon rect.st2 {
+  fill: var(--jp-inverse-layout-color3);
+}
+
+.elyra-codeSnippet-icon polygon[fill] {
+  fill: var(--jp-inverse-layout-color3);
+}
+
+.elyra-pipelineEditor-icon path[fill] {
+  fill: var(--jp-inverse-layout-color3);
 }

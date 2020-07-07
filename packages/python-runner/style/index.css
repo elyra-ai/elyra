@@ -49,7 +49,7 @@
   position: absolute;
   right: 21px;
   z-index: 1;
-  background-color: white;
+  background-color: transparent;
   width: 30px;
   height: 30px;
   border-width: 0px;
@@ -63,4 +63,13 @@ button.elyra-PythonEditor-scrollTop:hover {
 
 button.elyra-PythonEditor-scrollBottom:hover {
   background-color: var(--jp-layout-color2);
+}
+
+.elyra-PythonEditor-scrollBottom g[fill],
+.elyra-PythonEditor-scrollTop g[fill] {
+  fill: var(--jp-inverse-layout-color3);
+}
+
+.jp-Document .jp-Toolbar.elyra-PythonEditor-Toolbar {
+  justify-content: flex-start;
 }

@@ -1,5 +1,6 @@
 {
   "current_parameters": {
+    "filename": "",
     "runtime_image": "",
     "outputs": [],
     "env_vars": [],
@@ -7,6 +8,10 @@
     "include_subdirectories": false
   },
   "parameters": [
+    {
+      "id": "filename",
+      "type": "string"
+    },
     {
       "id": "runtime_image",
       "enum": []
@@ -32,10 +37,17 @@
     "id": "nodeProperties",
     "parameter_info": [
       {
+        "parameter_ref": "filename",
+        "control": "readonly",
+        "label": {
+          "default": "Filename"
+        }
+      },
+      {
         "parameter_ref": "runtime_image",
         "control": "oneofselect",
         "label": {
-          "default": "Runtime Image (docker image used as execution environment)."
+          "default": "Runtime Image (docker image used as execution environment)"
         }
       },
       {
@@ -50,7 +62,7 @@
       {
         "parameter_ref": "include_subdirectories",
         "label": {
-          "default": "Include subdirectories in dependencies (may increase submission time)."
+          "default": "Include Subdirectories in Dependencies (may increase submission time)"
         }
       },
       {

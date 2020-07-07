@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import autopep8
 import kfp
 import os
 import tempfile
-import autopep8
+import time
 
 from datetime import datetime
 
@@ -25,8 +25,7 @@ from elyra.metadata import MetadataManager
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
-from kubernetes.client.models import V1EnvVar
-from notebook.pipeline import NotebookOp
+from kfp_notebook.pipeline import NotebookOp
 from urllib3.exceptions import MaxRetryError
 from jinja2 import Environment, PackageLoader
 
@@ -40,7 +39,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
     def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
-        pipeline_name = f'{pipeline.name} - {timestamp}'
+        pipeline_name = f'{pipeline.name}-{timestamp}'
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
@@ -56,10 +55,14 @@ class KfpPipelineProcessor(PipelineProcessor):
             # Compile the new pipeline
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8 E731
+                t0 = time.time()
                 kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
+                t1 = time.time()
+                self.log.debug("Compilation of pipeline '{name}' took {duration:.3f} secs.".
+                               format(name=pipeline_name, duration=(t1 - t0)))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} at {}'.
-                                   format(pipeline_name, pipeline_path), str(ex))
+                                   format(pipeline_name, pipeline_path), str(ex)) from ex
 
             self.log.info("Kubeflow Pipeline successfully compiled.")
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
@@ -67,9 +70,13 @@ class KfpPipelineProcessor(PipelineProcessor):
             # Upload the compiled pipeline and create an experiment and run
             client = kfp.Client(host=api_endpoint)
             try:
+                t0 = time.time()
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
-            except MaxRetryError:
-                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint))
+                t1 = time.time()
+                self.log.debug("Upload of pipeline '{name}' took {duration:.3f} secs.".
+                               format(name=pipeline_name, duration=(t1 - t0)))
+            except MaxRetryError as ex:
+                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
 
             self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
@@ -93,20 +100,28 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         pipeline_name = pipeline.name
 
+        # Since pipeline_export_path may be relative to the notebook directory, ensure
+        # we're using its absolute form.
+        absolute_pipeline_export_path = self.get_absolute_path(pipeline_export_path)
+
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
 
-        if os.path.exists(pipeline_export_path) and not overwrite:
-            raise ValueError("File " + pipeline_export_path + " already exists.")
+        if os.path.exists(absolute_pipeline_export_path) and not overwrite:
+            raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
 
         self.log.info('Creating pipeline definition as a .' + pipeline_export_format + ' file')
         if pipeline_export_format != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
-                kfp.compiler.Compiler().compile(pipeline_function, pipeline_export_path)
+                t0 = time.time()
+                kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
+                t1 = time.time()
+                self.log.debug("Compilation of pipeline '{name}' took {duration:.3f} secs.".
+                               format(name=pipeline_name, duration=(t1 - t0)))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
-                                   format(pipeline_name, pipeline_export_path), str(ex))
+                                   format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
         else:
             # Load template from installed elyra package
             loader = PackageLoader('elyra', 'templates')
@@ -131,10 +146,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                                             pipeline_description="Elyra Pipeline")
 
             # Write to python file and fix formatting
-            with open(pipeline_export_path, "w") as fh:
+            with open(absolute_pipeline_export_path, "w") as fh:
                 fh.write(autopep8.fix_code(python_output))
 
-        return pipeline_export_path
+        return pipeline_export_path  # Return the input value, not its absolute form
 
     def _cc_pipeline(self, pipeline, pipeline_name):
 
@@ -153,42 +168,23 @@ class KfpPipelineProcessor(PipelineProcessor):
         # In order to process this recursively, the current operation's inputs should be combined
         # from its parent's inputs (which, themselves are derived from the outputs of their parent)
         # and its parent's outputs.
-        for pipeline_operation in pipeline.operations.values():
-            parent_inputs_and_outputs = []
-            for parent_operation_id in pipeline_operation.parent_operations:
+        for operation in pipeline.operations.values():
+            parent_io = []  # gathers inputs & outputs relative to parent
+            for parent_operation_id in operation.parent_operations:
                 parent_operation = pipeline.operations[parent_operation_id]
                 if parent_operation.inputs:
-                    parent_inputs_and_outputs.extend(parent_operation.inputs)
+                    parent_io.extend(parent_operation.inputs)
                 if parent_operation.outputs:
-                    parent_inputs_and_outputs.extend(parent_operation.outputs)
+                    parent_io.extend(parent_operation.outputs)
 
-                if parent_inputs_and_outputs:
-                    pipeline_operation.inputs = parent_inputs_and_outputs
+                if parent_io:
+                    operation.inputs = parent_io
 
         for operation in pipeline.operations.values():
             operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-            self.log.debug("Creating pipeline component :\n "
-                           "componentID : %s \n "
-                           "name : %s \n "
-                           "parent_operations : %s \n "
-                           "dependencies : %s \n "
-                           "dependencies include subdirectories : %s \n "
-                           "filename : %s \n "
-                           "archive : %s \n "
-                           "inputs : %s \n "
-                           "outputs : %s \n "
-                           "runtime image : %s \n ",
-                           operation.id,
-                           operation.name,
-                           operation.parent_operations,
-                           operation.dependencies,
-                           operation.include_subdirectories,
-                           operation.filename,
-                           operation_artifact_archive,
-                           operation.inputs,
-                           operation.outputs,
-                           operation.runtime_image)
+            self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                           op=operation, archive=operation_artifact_archive))
 
             # create pipeline operation
             notebook_op = NotebookOp(name=operation.name,
@@ -197,12 +193,15 @@ class KfpPipelineProcessor(PipelineProcessor):
                                      cos_bucket=cos_bucket,
                                      cos_directory=cos_directory,
                                      cos_dependencies_archive=operation_artifact_archive,
-                                     pipeline_inputs=self._artifact_list_to_str(operation.inputs),
-                                     pipeline_outputs=self._artifact_list_to_str(operation.outputs),
                                      image=operation.runtime_image)
 
-            notebook_op.container.add_env_variable(V1EnvVar(name='AWS_ACCESS_KEY_ID', value=cos_username))
-            notebook_op.container.add_env_variable(V1EnvVar(name='AWS_SECRET_ACCESS_KEY', value=cos_password))
+            if operation.inputs:
+                notebook_op.add_pipeline_inputs(self._artifact_list_to_str(operation.inputs))
+            if operation.outputs:
+                notebook_op.add_pipeline_outputs(self._artifact_list_to_str(operation.outputs))
+
+            notebook_op.add_environment_variable('AWS_ACCESS_KEY_ID', cos_username)
+            notebook_op.add_environment_variable('AWS_SECRET_ACCESS_KEY', cos_password)
 
             # Set ENV variables
             if operation.env_vars:
@@ -212,39 +211,56 @@ class KfpPipelineProcessor(PipelineProcessor):
                     result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
                     # Should be non empty key with a value
                     if len(result) == 2 and result[0] != '':
-                        notebook_op.container.add_env_variable(V1EnvVar(name=result[0], value=result[1]))
+                        notebook_op.add_environment_variable(result[0], result[1])
 
             notebook_ops[operation.id] = notebook_op
 
-            self.log.info("NotebookOp Created for Component '%s' (%s) \n", operation.name, operation.id)
+            self.log.info("NotebookOp Created for Component '%s' (%s)", operation.name, operation.id)
 
             # upload operation dependencies to object storage
             try:
+                t0 = time.time()
                 dependency_archive_path = self._generate_dependency_archive(operation)
+                t1 = time.time()
+                self.log.debug("Generation of dependency archive for operation '{name}' took {duration:.3f} secs.".
+                               format(name=operation.name, duration=(t1 - t0)))
+
                 cos_client = CosClient(config=runtime_configuration)
+                t0 = time.time()
                 cos_client.upload_file_to_dir(dir=cos_directory,
                                               file_name=operation_artifact_archive,
                                               file_path=dependency_archive_path)
-            except BaseException:
-                self.log.error("Error uploading artifacts to object storage.", exc_info=True)
-                raise
+                t1 = time.time()
+                self.log.debug("Upload of dependency archive for operation '{name}' took {duration:.3f} secs.".
+                               format(name=operation.name, duration=(t1 - t0)))
+
+            except FileNotFoundError as ex:
+                self.log.error("Dependencies were not found building archive for operation: {}".
+                               format(operation.name), exc_info=True)
+                raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
+                                        format(operation.name, ex))
+
+            except BaseException as ex:
+                self.log.error("Error uploading artifacts to object storage for operation: {}".
+                               format(operation.name), exc_info=True)
+                raise ex from ex
 
             self.log.info("Pipeline dependencies have been uploaded to object storage")
 
         # Process dependencies after all the operations have been created
-        for pipeline_operation in pipeline.operations.values():
-            op = notebook_ops[pipeline_operation.id]
-            for parent_operation_id in pipeline_operation.parent_operations:
+        for operation in pipeline.operations.values():
+            op = notebook_ops[operation.id]
+            for parent_operation_id in operation.parent_operations:
                 parent_op = notebook_ops[parent_operation_id]  # Parent Operation
                 op.after(parent_op)
 
         return notebook_ops
 
     def _artifact_list_to_str(self, pipeline_array):
-        if not pipeline_array:
-            return "None"
-        else:
-            return ','.join(pipeline_array)
+        trimmed_artifact_list = []
+        for artifact_name in pipeline_array:
+            trimmed_artifact_list.append(artifact_name.strip())
+        return ','.join(trimmed_artifact_list)
 
     def _get_dependency_archive_name(self, operation):
         archive_name = os.path.basename(operation.filename)
@@ -252,19 +268,20 @@ class KfpPipelineProcessor(PipelineProcessor):
         return name + '-' + operation.id + ".tar.gz"
 
     def _get_dependency_source_dir(self, operation):
-        return os.path.join(os.getcwd(), os.path.dirname(operation.filename))
+        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
 
     def _generate_dependency_archive(self, operation):
         archive_artifact_name = self._get_dependency_archive_name(operation)
         archive_source_dir = self._get_dependency_source_dir(operation)
 
-        files = [os.path.basename(operation.filename)]
-        files.extend(operation.dependencies)
+        dependencies = [os.path.basename(operation.filename)]
+        dependencies.extend(operation.dependencies)
 
         archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
                                                source_dir=archive_source_dir,
-                                               files=files,
-                                               recursive=operation.include_subdirectories)
+                                               filenames=dependencies,
+                                               recursive=operation.include_subdirectories,
+                                               require_complete=True)
 
         return archive_artifact
 
@@ -278,4 +295,4 @@ class KfpPipelineProcessor(PipelineProcessor):
             return runtime_configuration
         except BaseException as err:
             self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
-            raise RuntimeError('Error retrieving runtime configuration for {}', err)
+            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err

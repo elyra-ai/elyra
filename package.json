@@ -1,6 +1,6 @@
 {
   "name": "elyra",
-  "version": "0.11.0-dev",
+  "version": "1.0.0-dev",
   "private": true,
   "workspaces": {
     "packages": [
@@ -45,11 +45,14 @@
     "webpack": "^4.42.0"
   },
   "resolutions": {
+    "@blueprintjs/core": "3.28.1",
+    "@blueprintjs/select": "3.13.2",
     "react": "~16.8.6",
     "@types/react": "~16.8.6",
     "react-dom": "~16.8.5",
     "@types/react-dom": "~16.8.5",
     "react-intl": "^2.3.0",
-    "@types/react-intl": "^2.3.0"
+    "@types/react-intl": "^2.3.0",
+    "@lumino/coreutils": "1.5.0"
   }
 }

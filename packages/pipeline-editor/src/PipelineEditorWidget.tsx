@@ -16,12 +16,7 @@
 
 import * as path from 'path';
 
-import {
-  FrontendServices,
-  NotebookParser,
-  SubmissionHandler,
-  IDictionary
-} from '@elyra/application';
+import { IDictionary, NotebookParser } from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,
@@ -32,10 +27,10 @@ import {
   clearPipelineIcon,
   dragDropIcon,
   exportPipelineIcon,
-  newPipelineIcon,
   pipelineIcon,
   savePipelineIcon,
-  historyIcon
+  historyIcon,
+  showFormDialog
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -53,22 +48,22 @@ import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
-
-import '@elyra/canvas/dist/common-canvas.min.css';
-
 import 'carbon-components/css/carbon-components.min.css';
+import '../style/canvas.css';
 
 import * as React from 'react';
 
 import { IntlProvider } from 'react-intl';
 
+import { PIPELINE_CURRENT_VERSION } from './constants';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelinesSubmissionHistoryDialog } from './PipelinesSubmissionHistoryDialog';
+import { PipelineService } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
-import { PipelineSubmissionHandler } from './submission';
+import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
@@ -180,9 +175,7 @@ export class PipelineEditor extends React.Component<
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
-    this.widgetContext.ready.then(() => {
-      this.canvasController.setPipelineFlow(this.widgetContext.model.toJSON());
-    });
+
     this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
@@ -221,7 +214,6 @@ export class PipelineEditor extends React.Component<
     };
     const toolbarConfig = [
       { action: 'run', label: 'Run Pipeline', enable: true },
-      { divider: true },
       {
         action: 'save',
         label: 'Save Pipeline',
@@ -229,7 +221,6 @@ export class PipelineEditor extends React.Component<
         iconEnabled: IconUtil.encode(savePipelineIcon),
         iconDisabled: IconUtil.encode(savePipelineIcon)
       },
-      { divider: true },
       {
         action: 'export',
         label: 'Export Pipeline',
@@ -237,15 +228,6 @@ export class PipelineEditor extends React.Component<
         iconEnabled: IconUtil.encode(exportPipelineIcon),
         iconDisabled: IconUtil.encode(exportPipelineIcon)
       },
-      { divider: true },
-      {
-        action: 'new',
-        label: 'New Pipeline',
-        enable: true,
-        iconEnabled: IconUtil.encode(newPipelineIcon),
-        iconDisabled: IconUtil.encode(newPipelineIcon)
-      },
-      { divider: true },
       {
         action: 'clear',
         label: 'Clear Pipeline',
@@ -314,24 +296,28 @@ export class PipelineEditor extends React.Component<
     );
   }
 
-  initPropertiesInfo(): void {
-    FrontendServices.getRuntimeImages().then(
-      (runtimeImages: IDictionary<string>) => {
-        const imageEnum = [];
-        for (const runtimeImage in runtimeImages) {
-          imageEnum.push(runtimeImage);
-          (properties.resources as IDictionary<string>)[
-            'runtime_image.' + runtimeImage + '.label'
-          ] = runtimeImages[runtimeImage];
-        }
-        properties.parameters[0].enum = imageEnum;
-
-        this.propertiesInfo = {
-          parameterDef: properties,
-          appData: { id: '' }
-        };
-      }
+  updateModel(): void {
+    this.widgetContext.model.fromString(
+      JSON.stringify(this.canvasController.getPipelineFlow(), null, 2)
     );
+  }
+
+  async initPropertiesInfo(): Promise<void> {
+    const runtimeImages = await PipelineService.getRuntimeImages();
+
+    const imageEnum = [];
+    for (const runtimeImage in runtimeImages) {
+      imageEnum.push(runtimeImage);
+      (properties.resources as IDictionary<string>)[
+        'runtime_image.' + runtimeImage + '.label'
+      ] = runtimeImages[runtimeImage];
+    }
+    properties.parameters[1].enum = imageEnum;
+
+    this.propertiesInfo = {
+      parameterDef: properties,
+      appData: { id: '' }
+    };
   }
 
   openPropertiesDialog(source: any): void {
@@ -342,6 +328,7 @@ export class PipelineEditor extends React.Component<
     const node_props = this.propertiesInfo;
     node_props.appData.id = node_id;
 
+    node_props.parameterDef.current_parameters.filename = app_data.filename;
     node_props.parameterDef.current_parameters.runtime_image =
       app_data.runtime_image;
     node_props.parameterDef.current_parameters.outputs = app_data.outputs;
@@ -370,37 +357,49 @@ export class PipelineEditor extends React.Component<
     this.setState({ showPropertiesDialog: false, propertiesInfo: {} });
   }
 
+  /*
+   * Add options to the node context menu
+   * Pipeline specific context menu items are:
+   *  - Enable opening selected notebook(s)
+   *  - Enable node properties for single node
+   */
   contextMenuHandler(source: any, defaultMenu: any): any {
     let customMenu = defaultMenu;
     // Remove option to create super node
     customMenu.splice(4, 2);
     if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
+        // multiple nodes selected
         customMenu = customMenu.concat({
           action: 'openNotebook',
           label: 'Open Notebooks'
         });
       } else {
-        customMenu = customMenu.concat({
-          action: 'openNotebook',
-          label: 'Open Notebook'
-        });
+        // single node selected
+        customMenu = customMenu.concat(
+          {
+            action: 'openNotebook',
+            label: 'Open Notebook'
+          },
+          {
+            action: 'properties',
+            label: 'Properties'
+          }
+        );
       }
-      customMenu = customMenu.concat({
-        action: 'properties',
-        label: 'Properties'
-      });
     }
     return customMenu;
   }
 
+  /*
+   * Handles context menu actions
+   * Pipeline specific actions are:
+   *  - Open the associated Notebook
+   *  - Open node properties dialog
+   */
   contextMenuActionHandler(action: any, source: any): void {
     if (action === 'openNotebook' && source.type === 'node') {
-      const nodes = source.selectedObjectIds;
-      for (let i = 0; i < nodes.length; i++) {
-        const path = this.canvasController.getNode(nodes[i]).app_data.filename;
-        this.app.commands.execute(commandIDs.openDocManager, { path });
-      }
+      this.handleOpenNotebook(source.selectedObjectIds);
     } else if (action === 'properties' && source.type === 'node') {
       if (this.state.showPropertiesDialog) {
         this.closePropertiesDialog();
@@ -410,13 +409,13 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  /*
+   * Handles mouse click actions
+   */
   clickActionHandler(source: any): void {
+    // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
-      const nodes = source.selectedObjectIds;
-      for (let i = 0; i < nodes.length; i++) {
-        const path = this.canvasController.getNode(nodes[i]).app_data.filename;
-        this.app.commands.execute(commandIDs.openDocManager, { path });
-      }
+      this.handleOpenNotebook(source.selectedObjectIds);
     }
   }
 
@@ -424,17 +423,29 @@ export class PipelineEditor extends React.Component<
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any): void {
-    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
+    this.updateModel();
   }
 
+  /*
+   * Handles displaying node properties
+   */
   tipHandler(tipType: string, data: any): any {
     if (tipType === TIP_TYPE_NODE) {
-      const properties = this.canvasController.getNode(data.node.id).app_data;
-      return <NodeProperties {...properties} />;
+      const appData = this.canvasController.getNode(data.node.id).app_data;
+      const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
+      const tooltipProps: any = {};
+
+      propsInfo.forEach(
+        (info: { parameter_ref: string; label: { default: string } }) => {
+          tooltipProps[info.label.default] = appData[info.parameter_ref] || '';
+        }
+      );
+
+      return <NodeProperties {...tooltipProps} />;
     }
   }
 
-  handleAdd(x?: number, y?: number): Promise<any> {
+  handleAddFileToPipelineCanvas(x?: number, y?: number): Promise<any> {
     let failedAdd = 0;
     let position = 0;
     const missingXY = !(x && y);
@@ -449,7 +460,7 @@ export class PipelineEditor extends React.Component<
     const fileBrowser = this.browserFactory.defaultBrowser;
 
     toArray(fileBrowser.selectedItems()).map(item => {
-      // if the selected item is a file
+      // if the selected item is a notebook file
       if (item.type == 'notebook') {
         //add each selected notebook
         console.log('Adding ==> ' + item.path);
@@ -515,125 +526,171 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  handleExport(): void {
-    SubmissionHandler.makeGetRequest(
-      'api/metadata/runtimes',
-      'pipeline',
-      (response: any) => {
-        if (Object.keys(response.runtimes).length === 0) {
-          return SubmissionHandler.noMetadataError('runtimes');
-        }
+  /*
+   * Open node associated notebook
+   */
+  handleOpenNotebook(selectedNodes: any): void {
+    for (let i = 0; i < selectedNodes.length; i++) {
+      const path = this.canvasController.getNode(selectedNodes[i]).app_data
+        .filename;
+      this.app.commands.execute(commandIDs.openDocManager, { path });
+    }
+  }
 
-        showDialog({
-          title: 'Export pipeline',
-          body: new PipelineExportDialog({
-            runtimes: response.runtimes
-          }),
-          buttons: [Dialog.cancelButton(), Dialog.okButton()],
-          focusNodeSelector: '#runtime_config'
-        }).then(result => {
-          if (result.value == null) {
-            // When Cancel is clicked on the dialog, just return
-            return;
-          }
+  async handleExportPipeline(): Promise<void> {
+    const runtimes = await PipelineService.getRuntimes();
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
+      title: 'Export pipeline',
+      body: new PipelineExportDialog({ runtimes }),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
+      focusNodeSelector: '#runtime_config'
+    };
+    const dialogResult = await showFormDialog(dialogOptions);
 
-          // prepare pipeline submission details
-          const pipelineFlow = this.canvasController.getPipelineFlow();
-          const pipeline_path = this.widgetContext.path;
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
 
-          const pipeline_dir = path.dirname(pipeline_path);
-          const pipeline_name = path.basename(
-            pipeline_path,
-            path.extname(pipeline_path)
-          );
-          const pipeline_export_format = result.value.pipeline_filetype;
-          const pipeline_export_path =
-            pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
+    // prepare pipeline submission details
+    const pipelineFlow = this.canvasController.getPipelineFlow();
+    const pipeline_path = this.widgetContext.path;
 
-          const overwrite = result.value.overwrite;
+    const pipeline_dir = path.dirname(pipeline_path);
+    const pipeline_name = path.basename(
+      pipeline_path,
+      path.extname(pipeline_path)
+    );
+    const pipeline_export_format = dialogResult.value.pipeline_filetype;
+    const pipeline_export_path =
+      pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
 
-          pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
-          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-            result.value.runtime_config;
+    const overwrite = dialogResult.value.overwrite;
 
-          PipelineSubmissionHandler.exportPipeline(
-            pipelineFlow,
-            pipeline_export_format,
-            pipeline_export_path,
-            overwrite
-          );
-        });
-      }
+    pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+      dialogResult.value.runtime_config;
+
+    PipelineService.exportPipeline(
+      pipelineFlow,
+      pipeline_export_format,
+      pipeline_export_path,
+      overwrite
     );
   }
 
-  handleRun(): void {
-    SubmissionHandler.makeGetRequest(
-      'api/metadata/runtimes',
-      'pipeline',
-      (response: any) => {
-        if (Object.keys(response.runtimes).length === 0) {
-          return SubmissionHandler.noMetadataError('runtimes');
+  async handleOpenPipeline(): Promise<void> {
+    this.widgetContext.ready.then(() => {
+      let pipelineJson: any = this.widgetContext.model.toJSON();
+      if (pipelineJson == null) {
+        // creating new pipeline
+        pipelineJson = this.canvasController.getPipelineFlow();
+        if (Utils.isNewPipeline(pipelineJson)) {
+          pipelineJson.pipelines[0]['app_data'][
+            'version'
+          ] = PIPELINE_CURRENT_VERSION;
+          this.canvasController.setPipelineFlow(pipelineJson);
         }
-
-        showDialog({
-          title: 'Run pipeline',
-          body: new PipelineSubmissionDialog({
-            runtimes: response.runtimes
-          }),
-          buttons: [Dialog.cancelButton(), Dialog.okButton()],
-          focusNodeSelector: '#pipeline_name'
-        }).then(result => {
-          if (result.value == null) {
-            // When Cancel is clicked on the dialog, just return
+      } else {
+        // opening an existing pipeline
+        const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
+        if (pipelineVersion !== PIPELINE_CURRENT_VERSION) {
+          // pipeline version and current version are divergent
+          if (pipelineVersion > PIPELINE_CURRENT_VERSION) {
+            // in this case, pipeline was last edited in a "more recent release" and
+            // the user should update his version of Elyra to consume the pipeline
+            showDialog({
+              title: 'Load pipeline failed!',
+              body: (
+                <p>
+                  This pipeline corresponds to a more recent version of Elyra
+                  and cannot be used until Elyra has been upgraded.
+                </p>
+              ),
+              buttons: [Dialog.okButton()]
+            });
+            this.handleClosePipeline();
             return;
+          } else {
+            // in this case, pipeline was last edited in a "old" version of Elyra and
+            // it needs to be updated/migrated.
+            showDialog({
+              title: 'Migrate pipeline?',
+              body: (
+                <p>
+                  This pipeline corresponds to an older version of Elyra and
+                  needs to be migrated.
+                  <br />
+                  Although the pipeline can be further edited and/or submitted
+                  after its update,
+                  <br />
+                  the migration will not be completed until the pipeline has
+                  been saved within the editor.
+                  <br />
+                  <br />
+                  Proceed with migration?
+                </p>
+              ),
+              buttons: [Dialog.cancelButton(), Dialog.okButton()]
+            }).then(result => {
+              if (result.button.accept) {
+                // proceed with migration
+                pipelineJson = PipelineService.convertPipeline(pipelineJson);
+                this.canvasController.setPipelineFlow(pipelineJson);
+              } else {
+                this.handleClosePipeline();
+              }
+            });
           }
-
-          // prepare pipeline submission details
-          const pipelineFlow = this.canvasController.getPipelineFlow();
-
-          pipelineFlow.pipelines[0]['app_data']['name'] =
-            result.value.pipeline_name;
-
-          // TODO: Be more flexible and remove hardcoded runtime type
-          pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-          pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-            result.value.runtime_config;
-
-          SubmissionHandler.submitPipeline(
-            pipelineFlow,
-            result.value.runtime_config,
-            'pipeline'
-          );
-        });
-      }
-    );
-  }
-
-  handleSave(): void {
-    this.widgetContext.model.fromJSON(this.canvasController.getPipelineFlow());
-    this.widgetContext.save();
-  }
-
-  handleOpen(): void {
-    toArray(this.browserFactory.defaultBrowser.selectedItems()).map(item => {
-      // if the selected item is a file
-      if (item.type != 'directory') {
-        console.log('Opening ==> ' + item.path);
-        this.app.commands.execute(commandIDs.openDocManager, {
-          path: item.path
-        });
+        } else {
+          // in this case, pipeline version is current
+          this.canvasController.setPipelineFlow(pipelineJson);
+        }
       }
     });
   }
 
-  handleNew(): void {
-    // Clears the canvas, then creates a new file and sets the pipeline_name field to the new name.
-    this.app.commands.execute(commandIDs.openPipelineEditor);
+  async handleRunPipeline(): Promise<void> {
+    const runtimes = await PipelineService.getRuntimes();
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
+      title: 'Run pipeline',
+      body: new PipelineSubmissionDialog({ runtimes }),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
+      focusNodeSelector: '#pipeline_name'
+    };
+    const dialogResult = await showFormDialog(dialogOptions);
+
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
+
+    // prepare pipeline submission details
+    const pipelineFlow = this.canvasController.getPipelineFlow();
+
+    pipelineFlow.pipelines[0]['app_data']['name'] =
+      dialogResult.value.pipeline_name;
+
+    // TODO: Be more flexible and remove hardcoded runtime type
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+      dialogResult.value.runtime_config;
+
+    PipelineService.submitPipeline(
+      pipelineFlow,
+      dialogResult.value.runtime_config
+    );
   }
 
-  handleClear(): Promise<any> {
+  handleSavePipeline(): void {
+    this.updateModel();
+    this.widgetContext.save();
+  }
+
+  handleClearPipeline(): Promise<any> {
     return showDialog({
       title: 'Clear Pipeline?',
       body: 'Are you sure you want to clear? You can not undo this.',
@@ -641,9 +698,7 @@ export class PipelineEditor extends React.Component<
     }).then(result => {
       if (result.button.accept) {
         this.canvasController.clearPipelineFlow();
-        this.widgetContext.model.fromJSON(
-          this.canvasController.getPipelineFlow()
-        );
+        this.updateModel();
         this.position = 10;
       }
     });
@@ -673,6 +728,12 @@ export class PipelineEditor extends React.Component<
     );
   }
 
+  handleClosePipeline(): void {
+    if (this.app.shell.currentWidget) {
+      this.app.shell.currentWidget.close();
+    }
+  }
+
   /**
    * Handles submitting pipeline runs
    */
@@ -680,17 +741,13 @@ export class PipelineEditor extends React.Component<
     console.log('Handling action: ' + action);
     if (action == 'run') {
       // When executing the pipeline
-      this.handleRun();
+      this.handleRunPipeline();
     } else if (action == 'export') {
-      this.handleExport();
+      this.handleExportPipeline();
     } else if (action == 'save') {
-      this.handleSave();
-    } else if (action == 'open') {
-      this.handleOpen();
-    } else if (action == 'new') {
-      this.handleNew();
+      this.handleSavePipeline();
     } else if (action == 'clear') {
-      this.handleClear();
+      this.handleClearPipeline();
     } else if (action == 'history') {
       this.handleHistory();
     }
@@ -703,6 +760,8 @@ export class PipelineEditor extends React.Component<
     node.addEventListener('lm-dragenter', this.handleEvent);
     node.addEventListener('lm-dragover', this.handleEvent);
     node.addEventListener('lm-drop', this.handleEvent);
+
+    this.handleOpenPipeline();
   }
 
   componentWillUnmount(): void {
@@ -738,7 +797,7 @@ export class PipelineEditor extends React.Component<
       case 'lm-drop':
         event.preventDefault();
         event.stopPropagation();
-        this.handleAdd(
+        this.handleAddFileToPipelineCanvas(
           (event as IDragEvent).offsetX,
           (event as IDragEvent).offsetY
         );

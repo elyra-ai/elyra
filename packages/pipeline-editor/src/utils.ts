@@ -15,6 +15,7 @@
  */
 import uuid4 from 'uuid/v4';
 
+import { PIPELINE_CURRENT_VERSION } from './constants';
 import pipeline_template from './pipeline-template.json';
 import { ISubmitNotebookOptions } from './SubmitNotebook';
 
@@ -26,11 +27,14 @@ export default class Utils {
     return uuid4();
   }
 
+  /**
+   * Utility to create a one node pipeline to submit a single Notebook as a pipeline
+   */
   static generateNotebookPipeline(
     filename: string,
     options: ISubmitNotebookOptions
   ): any {
-    const template = pipeline_template;
+    const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid: string = Utils.getUUID();
 
     const artifactFileName = filename.replace(/^.*[\\/]/, '');
@@ -49,7 +53,88 @@ export default class Utils {
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = 'kfp';
     template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
+    template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
 
     return template;
+  }
+
+  /**
+   * Check if the provided pipeline is a newly created pipeline
+   *
+   * @param pipelineDefinition
+   */
+  static isNewPipeline(pipelineDefinition: any): boolean {
+    if (Object.keys(pipelineDefinition.pipelines[0].nodes).length == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Read the version of a Pipeline. If no version is found return 0
+   *
+   * @param pipelineDefinition
+   */
+  static getPipelineVersion(pipelineDefinition: any): number {
+    let version = 0;
+
+    if (pipelineDefinition)
+      version =
+        +this.getPipelineAppdataField(
+          pipelineDefinition.pipelines[0],
+          'version'
+        ) || 0;
+
+    return version;
+  }
+
+  /**
+   * Read an application specific field from the pipeline definition
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static getPipelineAppdataField(node: any, fieldName: string): string {
+    if (this.hasPipelineAppdataField(node, fieldName)) {
+      return node['app_data'][fieldName] as string;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Check if an application specific field from the pipeline defintion exists
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static hasPipelineAppdataField(node: any, fieldName: string): boolean {
+    return (
+      Object.prototype.hasOwnProperty.call(node, 'app_data') &&
+      Object.prototype.hasOwnProperty.call(node['app_data'], fieldName)
+    );
+  }
+
+  /**
+   * Delete an application specific field from the pipeline definition
+   * (e.g. pipelines[0][app_data][fieldName])
+   */
+  static deletePipelineAppdataField(node: any, fieldName: string): void {
+    if (this.hasPipelineAppdataField(node, fieldName)) {
+      delete node['app_data'][fieldName];
+    }
+  }
+
+  /**
+   * Rename an application specific field from the pepileine definition if it exists by
+   * by copying the field value to the new field name and then deleting the previously
+   * existing field
+   */
+  static renamePipelineAppdataField(
+    node: any,
+    currentFieldName: string,
+    newFieldName: string
+  ): void {
+    if (this.hasPipelineAppdataField(node, currentFieldName)) {
+      node['app_data'][newFieldName] = node['app_data'][currentFieldName];
+      this.deletePipelineAppdataField(node, currentFieldName);
+    }
   }
 }

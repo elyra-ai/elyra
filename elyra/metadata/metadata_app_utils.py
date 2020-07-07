@@ -215,7 +215,7 @@ class AppBase(object):
     @staticmethod
     def schema_to_options(schema):
         """Takes a JSON schema and builds a list of SchemaProperty instances corresponding to each
-           property in the schema.  There are two section of properties, one that includes
+           property in the schema.  There are two sections of properties, one that includes
            schema_name and display_name and another within the metadata container - which
            will be separated by class type - SchemaProperty vs. MetadataSchemaProperty.
         """
@@ -238,7 +238,8 @@ class AppBase(object):
 
         required_props = schema.get('required')
         for required in required_props:
-            if required != 'schema_name':  # skip schema_name, already required
+            # skip schema_name & metadata, already required, and metadata is not an option to be presented
+            if required not in ['schema_name', 'metadata']:
                 options.get(required).required = True
         return list(options.values())
 

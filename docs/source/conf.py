@@ -1,3 +1,18 @@
+#
+# Copyright 2018-2020 IBM Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -74,7 +89,7 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 html_theme_options = {
     'description': "Elyra extends JupyterLab Notebooks with an AI centric approach",
-    'analytics_id': 'UA-130853690-2',
+    'analytics_id': 'UA-169426804-1',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

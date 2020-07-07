@@ -19,7 +19,7 @@ import json
 import os
 
 from jsonschema import ValidationError
-from ..metadata import METADATA_TEST_NAMESPACE
+from elyra.metadata import METADATA_TEST_NAMESPACE
 
 valid_metadata_json = {
     'schema_name': 'metadata-test',
@@ -43,17 +43,34 @@ another_metadata_json = {
 
 invalid_metadata_json = {
     'schema_name': 'metadata-test',
-    'display_name': 'Invalid Metadata Instance',
+    'display_name': 'Invalid Metadata Instance - bad uri',
     'metadata': {
         'uri_test': '//localhost:8081/',
         'required_test': "required_value"
     }
 }
 
+invalid_json = "{\
+    'schema_name': 'metadata-test',\
+    'display_name': 'Invalid Metadata Instance - missing comma'\
+    'metadata': {\
+        'uri_test': '//localhost:8081/',\
+        'required_test': 'required_value'\
+    }\
+}"
+
 invalid_no_display_name_json = {
     'schema_name': 'metadata-test',
     'metadata': {
         'uri_test': '//localhost:8081/',
+        'required_test': "required_value"
+    }
+}
+
+valid_display_name_json = {
+    'schema_name': 'metadata-test',
+    'display_name': '1 teste "rápido"',
+    'metadata': {
         'required_test': "required_value"
     }
 }
@@ -107,6 +124,10 @@ byo_metadata_json = {
 
 
 def create_json_file(location, file_name, content):
+    create_file(location, file_name, json.dumps(content))
+
+
+def create_file(location, file_name, content):
     try:
         os.makedirs(location)
     except OSError as e:
@@ -115,7 +136,7 @@ def create_json_file(location, file_name, content):
 
     resource = os.path.join(location, file_name)
     with open(resource, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(content))
+        f.write(content)
 
 
 def get_schema(schema_name):

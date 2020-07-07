@@ -20,7 +20,7 @@ from notebook.utils import url_path_join
 from .api.handlers import YamlSpecHandler
 from .metadata.handlers import MetadataHandler, MetadataResourceHandler, SchemaHandler, SchemaResourceHandler, \
     NamespaceHandler
-from .pipeline import PipelineExportHandler, PipelineSchedulerHandler
+from .pipeline import PipelineExportHandler, PipelineSchedulerHandler, PipelineProcessorManager
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
@@ -35,16 +35,18 @@ def load_jupyter_server_extension(nb_server_app):
     web_app = nb_server_app.web_app
     host_pattern = '.*$'
     web_app.add_handlers(host_pattern, [
-        (url_path_join(web_app.settings['base_url'], r'/api/{}'.format(YamlSpecHandler.get_resource_metadata()[0])),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/{}'.format(YamlSpecHandler.get_resource_metadata()[0])),
          YamlSpecHandler),
-        (url_path_join(web_app.settings['base_url'], r'/api/metadata/%s' % (namespace_regex)), MetadataHandler),
-        (url_path_join(web_app.settings['base_url'], r'/api/metadata/%s/%s' % (namespace_regex, resource_regex)),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/metadata/%s' % (namespace_regex)), MetadataHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/metadata/%s/%s' % (namespace_regex, resource_regex)),
          MetadataResourceHandler),
-        (url_path_join(web_app.settings['base_url'], r'/api/schema/%s' % (namespace_regex)), SchemaHandler),
-        (url_path_join(web_app.settings['base_url'], r'/api/schema/%s/%s' % (namespace_regex, resource_regex)),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/schema/%s' % (namespace_regex)), SchemaHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/schema/%s/%s' % (namespace_regex, resource_regex)),
          SchemaResourceHandler),
-        (url_path_join(web_app.settings['base_url'], r'/api/namespace'), NamespaceHandler),
-        (url_path_join(web_app.settings['base_url'], r'/api/pipeline/schedule'), PipelineSchedulerHandler),
-        (url_path_join(web_app.settings['base_url'], r'/api/pipeline/export'), PipelineExportHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/namespace'), NamespaceHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/schedule'), PipelineSchedulerHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/export'), PipelineExportHandler),
     ])
+    # Create PipelineProcessorManager instance passing root directory
+    PipelineProcessorManager.instance(root_dir=web_app.settings['server_root_dir'])
 
