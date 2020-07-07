@@ -150,6 +150,14 @@ button.elyra-errorDialog-errDisplayButton {
   resize: both;
 }
 
+.elyra-DialogDefaultButton.jp-mod-styled:hover:disabled,
+.elyra-DialogDefaultButton.jp-mod-styled:active:disabled,
+.elyra-DialogDefaultButton.jp-mod-styled:focus:disabled,
+.elyra-DialogDefaultButton.jp-mod-styled:disabled {
+  background-color: lightgray;
+  pointer-events: none;
+}
+
 /* icons */
 
 [data-jp-theme-light='false'] .elyra-pieBrain-icon rect.st1,

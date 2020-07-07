@@ -28,7 +28,8 @@ import {
   dragDropIcon,
   exportPipelineIcon,
   pipelineIcon,
-  savePipelineIcon
+  savePipelineIcon,
+  showFormDialog
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -528,45 +529,46 @@ export class PipelineEditor extends React.Component<
 
   async handleExportPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
-
-    showDialog({
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
       body: new PipelineExportDialog({ runtimes }),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
       focusNodeSelector: '#runtime_config'
-    }).then(result => {
-      if (result.value == null) {
-        // When Cancel is clicked on the dialog, just return
-        return;
-      }
+    };
+    const dialogResult = await showFormDialog(dialogOptions);
 
-      // prepare pipeline submission details
-      const pipelineFlow = this.canvasController.getPipelineFlow();
-      const pipeline_path = this.widgetContext.path;
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
 
-      const pipeline_dir = path.dirname(pipeline_path);
-      const pipeline_name = path.basename(
-        pipeline_path,
-        path.extname(pipeline_path)
-      );
-      const pipeline_export_format = result.value.pipeline_filetype;
-      const pipeline_export_path =
-        pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
+    // prepare pipeline submission details
+    const pipelineFlow = this.canvasController.getPipelineFlow();
+    const pipeline_path = this.widgetContext.path;
 
-      const overwrite = result.value.overwrite;
+    const pipeline_dir = path.dirname(pipeline_path);
+    const pipeline_name = path.basename(
+      pipeline_path,
+      path.extname(pipeline_path)
+    );
+    const pipeline_export_format = dialogResult.value.pipeline_filetype;
+    const pipeline_export_path =
+      pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
 
-      pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
-      pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-      pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-        result.value.runtime_config;
+    const overwrite = dialogResult.value.overwrite;
 
-      PipelineService.exportPipeline(
-        pipelineFlow,
-        pipeline_export_format,
-        pipeline_export_path,
-        overwrite
-      );
-    });
+    pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+      dialogResult.value.runtime_config;
+
+    PipelineService.exportPipeline(
+      pipelineFlow,
+      pipeline_export_format,
+      pipeline_export_path,
+      overwrite
+    );
   }
 
   async handleOpenPipeline(): Promise<void> {
@@ -642,31 +644,35 @@ export class PipelineEditor extends React.Component<
 
   async handleRunPipeline(): Promise<void> {
     const runtimes = await PipelineService.getRuntimes();
-
-    showDialog({
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
       body: new PipelineSubmissionDialog({ runtimes }),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
       focusNodeSelector: '#pipeline_name'
-    }).then(result => {
-      if (result.value == null) {
-        // When Cancel is clicked on the dialog, just return
-        return;
-      }
+    };
+    const dialogResult = await showFormDialog(dialogOptions);
 
-      // prepare pipeline submission details
-      const pipelineFlow = this.canvasController.getPipelineFlow();
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
 
-      pipelineFlow.pipelines[0]['app_data']['name'] =
-        result.value.pipeline_name;
+    // prepare pipeline submission details
+    const pipelineFlow = this.canvasController.getPipelineFlow();
 
-      // TODO: Be more flexible and remove hardcoded runtime type
-      pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-      pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-        result.value.runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['name'] =
+      dialogResult.value.pipeline_name;
 
-      PipelineService.submitPipeline(pipelineFlow, result.value.runtime_config);
-    });
+    // TODO: Be more flexible and remove hardcoded runtime type
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
+      dialogResult.value.runtime_config;
+
+    PipelineService.submitPipeline(
+      pipelineFlow,
+      dialogResult.value.runtime_config
+    );
   }
 
   handleSavePipeline(): void {

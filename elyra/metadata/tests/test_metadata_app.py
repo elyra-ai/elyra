@@ -187,17 +187,17 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert lines[0].startswith("No metadata instances available for {} in:".format(METADATA_TEST_NAMESPACE))
+    assert lines[0].startswith("No metadata instances found for {}".format(METADATA_TEST_NAMESPACE))
 
     valid = Metadata(**valid_metadata_json)
-    resource = metadata_manager.add('valid', valid)
+    resource = metadata_manager.create('valid', valid)
     assert resource is not None
-    resource = metadata_manager.add('valid2', valid)
+    resource = metadata_manager.create('valid2', valid)
     assert resource is not None
     another = Metadata(**another_metadata_json)
-    resource = metadata_manager.add('another', another)
+    resource = metadata_manager.create('another', another)
     assert resource is not None
-    resource = metadata_manager.add('another2', another)
+    resource = metadata_manager.create('another2', another)
     assert resource is not None
 
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE)
@@ -266,12 +266,13 @@ def test_remove_missing(script_runner):
     # Create an instance so that the namespace exists.
     metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
     valid = Metadata(**valid_metadata_json)
-    metadata_manager.add('valid', valid, replace=True)
+    metadata_manager.update('valid', valid)
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=missing')
     assert ret.success is False
-    assert ret.stdout.startswith("Metadata \'missing\' in namespace \'{}\' was not found!".
+    assert ret.stdout.startswith("[Errno 2] No such metadata instance found in namespace '{}': 'missing'".
                                  format(METADATA_TEST_NAMESPACE))
+
     assert ret.stderr == ''
 
     # Now cleanup original instance.
@@ -283,14 +284,14 @@ def test_remove_instance(script_runner, mock_data_dir):
     metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
 
     valid = Metadata(**valid_metadata_json)
-    resource = metadata_manager.add('valid', valid)
+    resource = metadata_manager.create('valid', valid)
     assert resource is not None
-    resource = metadata_manager.add('valid2', valid)
+    resource = metadata_manager.create('valid2', valid)
     assert resource is not None
     another = Metadata(**another_metadata_json)
-    resource = metadata_manager.add('another', another)
+    resource = metadata_manager.create('another', another)
     assert resource is not None
-    resource = metadata_manager.add('another2', another)
+    resource = metadata_manager.create('another2', another)
     assert resource is not None
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=valid')
@@ -299,7 +300,7 @@ def test_remove_instance(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=another')
     assert ret.success
 
-    instances = metadata_manager.get_all_metadata_summary()
+    instances = metadata_manager.get_all()
     assert len(instances) == 2
     assert instances[0].name.endswith('2')
     assert instances[1].name.endswith('2')

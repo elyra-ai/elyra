@@ -17,6 +17,10 @@
 import os
 import tarfile
 import tempfile
+import fnmatch
+
+
+WILDCARDS = ['*', '?', '[']
 
 
 def create_project_temp_dir():
@@ -27,13 +31,29 @@ def create_project_temp_dir():
     return project_temp_dir
 
 
-def create_temp_archive(archive_name, source_dir, files=None, recursive=False):
+def directory_in_list(directory, filenames):
+    """Checks if any entries in the filenames list starts with the given directory."""
+    return any(name.startswith(directory + os.sep) or fnmatch.fnmatch(directory, name) for name in filenames)
+
+
+def has_wildcards(filename):
+    """Returns True if the filename contains wildcard characters per https://docs.python.org/3/library/fnmatch.html """
+    return len(set(WILDCARDS) & set(list(filename))) > 0
+
+
+def directory_prefixed(filename):
+    """Returns True if filename is prefixed by a directory (i.e., in a sub-directory."""
+    return os.sep in filename and not filename.startswith(os.sep) and not filename.endswith(os.sep)
+
+
+def create_temp_archive(archive_name, source_dir, filenames=None, recursive=False, require_complete=False):
     """
     Create archive file with specified list of files
     :param archive_name: the name of the archive to be created
     :param source_dir: the root folder containing source files
-    :param files: list of files, or masks, used to select contents of the archive
+    :param filenames: the list of filenames, each of which can contain wildcards and/or specify subdirectories
     :param recursive: flag to include sub directories recursively
+    :param require_complete: flag to indicate an exception should be raise if all filenames are not included
     :return: full path of the created archive
     """
 
@@ -49,37 +69,58 @@ def create_temp_archive(archive_name, source_dir, files=None, recursive=False):
             # only include subdirectories if enabled in common properties
             elif recursive:
                 return tarinfo
-            else:
-                return None
+            # We have a directory, check if any filenames start with this value and
+            # allow if found - except if a single '*' is listed (i.e., include_all) in
+            # which case we don't want to add this directory since recursive is False.
+            # This occurs with filenames like `data/util.py` or `data/*.py`.
+            elif not include_all and directory_in_list(tarinfo.name, filenames_set):
+                return tarinfo
+            return None
 
-        if '*' in files:
+        # We have a file at this point...
+
+        # Special case for single wildcard entries ('*')
+        if include_all:
             return tarinfo
 
-        for dependency in files:
-            if dependency:
-                if dependency.startswith('*'):
-                    # handle check for extension wildcard
-                    if tarinfo.name.endswith(dependency.replace('*', '')):
-                        return tarinfo
-                elif tarinfo.name == dependency:
-                    # handle check for specific file
-                    return tarinfo
-                elif recursive:
-                    # handle recursive
-                    return tarinfo
+        # Process filename
+        for filename in filenames_set:
+            if not filename or filename in processed_filenames:  # Skip processing
+                continue
 
+            # Match filename against candidate filename - handling wildcards
+            if fnmatch.fnmatch(tarinfo.name, filename):
+                # if this is a direct match, record that its been processed
+                if not has_wildcards(filename) and not recursive:
+                    processed_filenames.append(filename)
+                matched_set.add(filename)
+                return tarinfo
+
+            # If the filename is a "flat" wildcarded value (i.e., isn't prefixed with a directory name)
+            # then we should take the basename of the candidate file to perform the match against.  This
+            # occurs for dependencies like *.py when include-subdirectories is enabled.
+            if not directory_prefixed(filename) and has_wildcards(filename):
+                if fnmatch.fnmatch(os.path.basename(tarinfo.name), filename):
+                    matched_set.add(filename)
+                    return tarinfo
         return None
 
-    if files is None:
-        files = ['*']
+    # Since filenames is essentially static, convert to set immediately and use the set
+    filenames_set = set(filenames or [])
 
+    # If there's a '*' - less things to check.
+    include_all = len(set([WILDCARDS[0]]) & filenames_set) > 0
+    processed_filenames = []
+    matched_set = set()
     temp_dir = create_project_temp_dir()
     archive = os.path.join(temp_dir, archive_name)
 
     with tarfile.open(archive, "w:gz") as tar:
         tar.add(source_dir, arcname="", filter=tar_filter)
 
-    if not archive:
-        raise RuntimeError('Internal error creating archive: {}'.format(archive_name))
+    if require_complete and not include_all:
+        # compare matched_set against filenames_set to ensure they're the same.
+        if len(filenames_set) > len(matched_set):
+            raise FileNotFoundError(filenames_set - matched_set)  # Only include the missing filenames
 
     return archive
