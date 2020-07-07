@@ -5,3 +5,8 @@
 div.wy-side-nav-search {
   background: #f37626;
 }
+
+img[alt='Python Editor Components'] {
+  width: 50%;
+  height: 50%;
+}
