@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { ExpandableComponent } from './ExpandableComponent';
-
 import * as React from 'react';
+
+import { ExpandableComponent } from './ExpandableComponent';
 
 const MESSAGE_DISPLAY = 'elyra-errorDialog-messageDisplay';
 const ERROR_DIALOG_WIDTH = 600;
@@ -64,7 +64,7 @@ export class ExpandableErrorDialog extends React.Component<
       <ExpandableComponent
         displayName={'Error details: '}
         tooltip={'Error stack trace'}
-        onToggle={(expanded: boolean) => {
+        onToggle={(expanded: boolean): void => {
           this.updateDialogSize(expanded);
         }}
       >
