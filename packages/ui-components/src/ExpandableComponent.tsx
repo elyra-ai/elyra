@@ -47,7 +47,8 @@ export interface IExpandableActionButton {
 export interface IExpandableComponentProps {
   displayName: string;
   tooltip: string;
-  actionButtons?: IExpandableActionButton[];
+  actionButtons: IExpandableActionButton[];
+  onExpand: () => void;
   onToggle?: Function;
 }
 
@@ -74,6 +75,10 @@ export class ExpandableComponent extends React.Component<
     if (this.props.onToggle) {
       this.props.onToggle(newExpandFlag);
     }
+  }
+
+  componentDidUpdate(): void {
+    this.props.onExpand();
   }
 
   render(): React.ReactElement {

@@ -1,10 +1,11 @@
 {
-  "name": "@elyra/ui-components",
-  "version": "1.0.0-dev",
-  "description": "JupyterLab - UI components for use in elyra",
+  "name": "@elyra/metadata-editor-extension",
+  "version": "1.0.0-beta.1",
+  "description": "JupyterLab extension - Edit metadata",
   "keywords": [
     "jupyter",
-    "jupyterlab"
+    "jupyterlab",
+    "jupyterlab-extension"
   ],
   "homepage": "https://github.com/elyra-ai/elyra",
   "bugs": {
@@ -31,14 +32,23 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^3.22.2",
-    "@blueprintjs/select": "^3.11.2",
+    "@elyra/application": "^1.0.0-beta.1",
+    "@elyra/ui-components": "^1.0.0-beta.1",
+    "@jupyterlab/application": "^2.0.2",
+    "@jupyterlab/apputils": "^2.0.2",
+    "@jupyterlab/codeeditor": "^2.0.2",
     "@jupyterlab/ui-components": "^2.0.2",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6"
+    "@lumino/algorithm": "^1.2.3",
+    "@lumino/messaging": "^1.3.3",
+    "@lumino/widgets": "^1.11.1",
+    "react": "~16.9.0"
   },
   "devDependencies": {
     "rimraf": "~3.0.0",
     "typescript": "~3.7.3"
+  },
+  "jupyterlab": {
+    "extension": true
   },
   "publishConfig": {
     "access": "public"

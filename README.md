@@ -33,11 +33,11 @@ Elyra currently includes:
 * Ability to run a notebook as a batch job
 * Hybrid runtime support
 * Python script execution capabilities within the editor
-* Reusable Code Snippets (Experimental)
+* Reusable Code Snippets
 * Notebook versioning based on git integration
 * Notebook navigation using auto-generated **Table of Contents**
 * Reusable configuration for runtimes
-  
+
 ![Elyra](docs/source/images/elyra-main-page.png)
 
 The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting_started/overview.html)
@@ -99,9 +99,10 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension-experimental <VERSION>  enabled  OK*
+        @elyra/code-snippet-extension <VERSION>  enabled  OK*
+        @elyra/metadata-editor-extension <VERSION>  enabled  OK*
         @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
-        @elyra/python-runner-extension <VERSION>  enabled  OK*
+        @elyra/python-editor-extension <VERSION>  enabled  OK*
         @elyra/theme-extension <VERSION>  enabled  OK*
         @jupyterlab/git v0.20.0  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK

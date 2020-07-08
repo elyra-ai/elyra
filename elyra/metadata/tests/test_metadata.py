@@ -23,7 +23,7 @@ from jsonschema import validate, ValidationError, draft7_format_checker
 from elyra.metadata import Metadata, MetadataManager, MetadataStore, FileMetadataStore, SchemaManager, \
     MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError, METADATA_TEST_NAMESPACE
 from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, \
-    get_schema, invalid_no_display_name_json, valid_display_name_json
+    create_instance, get_schema, invalid_no_display_name_json, valid_display_name_json, MockMetadataStore
 
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
@@ -244,7 +244,7 @@ def test_manager_add_remove_valid(tests_manager, namespace_location):
 
 def test_manager_remove_invalid(tests_manager, namespace_location):
     # Ensure invalid metadata file isn't validated and is removed.
-    create_json_file(namespace_location, 'remove_invalid.json', invalid_metadata_json)
+    create_instance(tests_manager.metadata_store, namespace_location, 'remove_invalid', invalid_metadata_json)
     metadata_name = 'remove_invalid'
     tests_manager.remove(metadata_name)
 
@@ -265,7 +265,8 @@ def test_manager_read_valid_by_name(tests_manager, namespace_location):
     some_metadata = tests_manager.get(metadata_name)
     assert some_metadata.name == metadata_name
     assert some_metadata.schema_name == "metadata-test"
-    assert str(namespace_location) in some_metadata.resource
+    metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
+    assert metadata_location == some_metadata.resource
 
 
 def test_manager_read_invalid_by_name(tests_manager):
@@ -561,7 +562,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
 
 
 # ########################## MetadataStore Tests ###########################
-def test_store_manager_namespace(setup_namespace, store_manager, namespace_location):
+def test_store_namespace(store_manager, namespace_location):
     # Delete the metadata dir contents and attempt listing metadata
     _remove_namespace(store_manager, namespace_location)
     assert store_manager.namespace_exists() is False
@@ -571,12 +572,12 @@ def test_store_manager_namespace(setup_namespace, store_manager, namespace_locat
     assert store_manager.namespace_exists()
 
 
-def test_store_manager_fetch_instances(setup_namespace, store_manager):
+def test_store_fetch_instances(store_manager):
     instances_list = store_manager.fetch_instances()
     assert len(instances_list) == 3
 
 
-def test_store_manager_fetch_no_namespace(setup_namespace, store_manager, namespace_location):
+def test_store_fetch_no_namespace(store_manager, namespace_location):
     # Delete the namespace contents and attempt listing metadata
     _remove_namespace(store_manager, namespace_location)
 
@@ -584,19 +585,19 @@ def test_store_manager_fetch_no_namespace(setup_namespace, store_manager, namesp
     assert len(instance_list) == 0
 
 
-def test_store_manager_fetch_by_name(setup_namespace, store_manager):
+def test_store_fetch_by_name(store_manager):
     metadata_name = 'valid'
     instance_list = store_manager.fetch_instances(name=metadata_name)
     assert instance_list[0].get('name') == metadata_name
 
 
-def test_store_manager_fetch_missing(setup_namespace, store_manager):
+def test_store_fetch_missing(store_manager):
     metadata_name = 'missing'
     with pytest.raises(MetadataNotFoundError):
         store_manager.fetch_instances(name=metadata_name)
 
 
-def test_store_manager_store_instance(setup_namespace, store_manager, namespace_location):
+def test_store_store_instance(store_manager, namespace_location):
 
     _remove_namespace(store_manager, namespace_location)  # Remove namespace to test raw creation and confirm perms
 
@@ -636,7 +637,7 @@ def test_store_manager_store_instance(setup_namespace, store_manager, namespace_
     assert instance.get('metadata')['number_range_test'] == 10
 
 
-def test_store_manager_delete_instance(setup_namespace, store_manager, namespace_location):
+def test_store_delete_instance(store_manager, namespace_location):
     metadata_name = 'valid'
 
     store_manager.delete_instance(metadata_name)
@@ -748,21 +749,27 @@ def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, e
 
 
 def _create_namespace(store_manager: MetadataStore, namespace_location: str):
-    """Creates namespace in a storage-indendepent manner"""
+    """Creates namespace in a storage-independent manner"""
     if isinstance(store_manager, FileMetadataStore):
         os.makedirs(namespace_location)
+    elif isinstance(store_manager, MockMetadataStore):
+        instances = getattr(store_manager, 'instances')
+        if instances is None:
+            setattr(store_manager, 'instances', dict())
 
 
 def _remove_namespace(store_manager: MetadataStore, namespace_location: str):
-    """Removes namespace in a storage-indendepent manner"""
+    """Removes namespace in a storage-independent manner"""
     if isinstance(store_manager, FileMetadataStore):
         shutil.rmtree(namespace_location)
+    elif isinstance(store_manager, MockMetadataStore):
+        setattr(store_manager, 'instances', None)
 
 
 def _compose_instance_location(store_manager: MetadataStore, location: str, name: str) -> str:
     """Compose location of the named instance in a storage-independent manner"""
     if isinstance(store_manager, FileMetadataStore):
         location = os.path.join(location, '{}.json'.format(name))
-    else:  # Using the same approach for now (using separator)
-        location = os.path.join(location, '{}.json'.format(name))
+    elif isinstance(store_manager, MockMetadataStore):
+        location = None
     return location

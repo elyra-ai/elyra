@@ -21,7 +21,7 @@ Elyra provides **Enhanced Python Support** where Python scripts can be developed
 executed. It also leverages the **Hybrid Runtime Support** to enable running
 these scripts in remote environments.
 
-![Enhanced Python Support](../images/python-runner.gif)
+![Enhanced Python Support](../images/python-editor.gif)
 
 The execution of the python script leverages the available `Python based Kernels`. This enables
 users to run their scripts in different configurations and environments.
@@ -37,4 +37,4 @@ allowing users to run their scripts with remote kernels with more specialized re
 
 The Elyra python editor is based on the JupyterLab editor which is currently based on CodeMirror.
 
-![Python Editor Components](../images/python-runner-components.png)
+![Python Editor Components](../images/python-editor-components.png)
