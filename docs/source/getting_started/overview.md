@@ -76,7 +76,7 @@ create python scripts directly from the workspace launcher, and leveraging the
 **Hybrid Runtime Support** to allow users to locally edit their scripts and execute
 them against local or cloud-based resources seamlessly.
 
-![Enhanced Python Support](../images/python-runner.png)
+![Enhanced Python Support](../images/python-editor.png)
 
 #### Reusable Code Snippets
 

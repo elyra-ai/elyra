@@ -102,7 +102,7 @@ Known labextensions:
         @elyra/code-snippet-extension <VERSION>  enabled  OK*
         @elyra/metadata-editor-extension <VERSION>  enabled  OK*
         @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
-        @elyra/python-runner-extension <VERSION>  enabled  OK*
+        @elyra/python-editor-extension <VERSION>  enabled  OK*
         @elyra/theme-extension <VERSION>  enabled  OK*
         @jupyterlab/git v0.20.0  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK

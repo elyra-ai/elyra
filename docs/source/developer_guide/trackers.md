@@ -35,7 +35,7 @@ const tracker = new WidgetTracker<PythonFileEditor>({
   namespace: PYTHON_EDITOR_NAMESPACE
 });
 ```
-where `PYTHON_EDITOR_NAMESPACE = 'elyra-python-runner-extension'`
+where `PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension'`
 
 
 ### Pipeline Editor Trackers

@@ -37,7 +37,7 @@ import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
 
 const PYTHON_FACTORY = 'PyEditor';
 const PYTHON = 'python';
-const PYTHON_EDITOR_NAMESPACE = 'elyra-python-runner-extension';
+const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
 
 const commandIDs = {
   createNewPython: 'pyeditor:create-new-python-file',
@@ -71,7 +71,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     menu: IMainMenu | null,
     launcher: ILauncher | null
   ) => {
-    console.log('Elyra - python-runner extension is activated!');
+    console.log('Elyra - python-editor extension is activated!');
 
     const factory = new PythonFileEditorFactory({
       editorServices,
