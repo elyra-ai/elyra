@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 {% endcomment %}
 -->
-## Code Snippets - Experimental
+## Code Snippets
 
 The ability to reuse pieces of code allows users to avoid doing repetitive work,
 making the programming workflow much more simple and productive.

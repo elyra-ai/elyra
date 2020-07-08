@@ -1,0 +1,62 @@
+.elyra-metadataEditor .jp-InputGroup {
+  width: 100%;
+}
+
+.elyra-metadataEditor .bp3-form-group {
+  width: 40%;
+  float: left;
+  margin-bottom: 12px;
+  margin-right: 20px;
+}
+
+.bp3-select-popover {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.elyra-form-DropDown-item {
+  width: 100%;
+  display: flex;
+  justify-content: left;
+  margin: 0;
+  border-radius: 0;
+}
+
+.elyra-metadataEditor {
+  margin: 20px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.elyra-metadataEditor h3 {
+  width: 100%;
+  margin-bottom: 10px;
+  color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadataEditor label.bp3-label {
+  color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadataEditor .CodeMirror-wrap {
+  background-color: inherit;
+  box-shadow: inset 0 0 0 var(--jp-border-width) var(--jp-input-border-color);
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
+  height: 100%;
+  width: 100%;
+  resize: vertical;
+  white-space: pre;
+  word-wrap: normal;
+  overflow: scroll;
+}
+
+.bp3-dark .bp3-input {
+  border: var(--jp-border-width) solid var(--jp-input-border-color);
+  color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadata-editor.bp3-dark {
+  background-color: var(--jp-border-color3);
+}

@@ -25,7 +25,7 @@ Elyra currently includes:
 * [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
 * [Hybrid runtime support](#hybrid-runtime-support)
 * [Python script execution support](#python-script-execution-support)
-* [Reusable Code Snippets (Experimental)](#reusable-code-snippets-experimental)
+* [Reusable Code Snippets](#reusable-code-snippets)
 * [Notebook versioning based on git integration](#notebook-versioning-based-on-git-integration)
 * [Notebook navigation using auto-generated **Table of Contents**](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
@@ -64,10 +64,10 @@ Elyra also extends the notebook UI to simplify the submission of a single notebo
 #### Hybrid runtime support
 
 Elyra leverages Jupyter Enterprise Gateway to enable Jupyter Notebooks
-to share resources across distributed clusters such as Apache Spark, Kubernetes, OpenShift, and the like. 
+to share resources across distributed clusters such as Apache Spark, Kubernetes, OpenShift, and the like.
 
 It simplifies the task of running notebooks interactively on cloud machines,
-seamlessly leveraging the power of cloud-based resources such as GPUs and TPUs.  
+seamlessly leveraging the power of cloud-based resources such as GPUs and TPUs.
 
 #### Python script execution support
 
@@ -76,11 +76,11 @@ create python scripts directly from the workspace launcher, and leveraging the
 **Hybrid Runtime Support** to allow users to locally edit their scripts and execute
 them against local or cloud-based resources seamlessly.
 
-![Enhanced Python Support](../images/python-runner.png)
+![Enhanced Python Support](../images/python-editor.png)
 
-#### Reusable Code Snippets (Experimental)
+#### Reusable Code Snippets
 
-Elyra supports a beta version of the **Code Snippet** feature. 
+Elyra supports a beta version of the **Code Snippet** feature.
 This allows users to add custom pieces of code that can be reused, making programming in JupyterLab more efficient
 by reducing repetitive work.
 
