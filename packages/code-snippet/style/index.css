@@ -48,7 +48,7 @@
 }
 
 .elyra-codeSnippetHeader-button:hover {
-  background-color: #eeeeee;
+  background-color: var(--jp-layout-color2);
 }
 
 .elyra-codeSnippet-item {
