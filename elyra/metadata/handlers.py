@@ -53,7 +53,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
 
         namespace = url_unescape(namespace)
         try:
-            instance = self._validate_body()
+            instance = self._validate_body(namespace)
             self.log.debug("MetadataHandler: Creating metadata instance '{}' in namespace '{}'...".
                            format(instance.name, namespace))
             metadata_manager = MetadataManager(namespace=namespace)
@@ -73,7 +73,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         self.set_header('Location', location)
         self.finish(metadata.to_dict(trim=True))
 
-    def _validate_body(self):
+    def _validate_body(self, namespace: str):
         """Validates the body issued for creates. """
         body = self.get_json_body()
 
@@ -92,7 +92,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
                 )
             )
 
-        instance = Metadata(**body)
+        instance = Metadata.from_dict(namespace, {**body})
         return instance
 
 
@@ -133,7 +133,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             if 'name' in payload and payload['name'] != resource:
                 raise NotImplementedError("The attempt to rename instance '{}' to '{}' is not supported.".
                                           format(resource, payload['name']))
-            instance = Metadata(**payload)
+            instance = Metadata.from_dict(namespace, {**payload})
             self.log.debug("MetadataHandler: Updating metadata instance '{}' in namespace '{}'...".
                            format(resource, namespace))
             metadata = metadata_manager.update(resource, instance)

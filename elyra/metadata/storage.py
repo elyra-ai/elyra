@@ -47,7 +47,7 @@ class MetadataStore(ABC):
         pass
 
     @abstractmethod
-    def delete_instance(self, name: str) -> None:
+    def delete_instance(self, metadata: dict) -> None:
         """Deletes the metadata instance corresponding to the given name."""
         pass
 
@@ -155,11 +155,9 @@ class FileMetadataStore(MetadataStore):
 
         return metadata
 
-    def delete_instance(self, name: str) -> None:
+    def delete_instance(self, metadata: dict) -> None:
         """Delete the named instance"""
 
-        instance_list = self.fetch_instances(name=name)  # Let exceptions (FileNotFound) propagate
-        metadata = instance_list[0]
         resource = metadata.get('resource')
         if resource:
             # Since multiple folders are in play, we only allow removal if the resource is in
