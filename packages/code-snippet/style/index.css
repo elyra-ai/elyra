@@ -25,6 +25,10 @@
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }
 
+.elyra-codeSnippetsHeader .elyra-codeSnippet-icon polygon[fill] {
+  fill: var(--jp-ui-font-color1);
+}
+
 .elyra-codeSnippet-item {
   border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
   display: flex;

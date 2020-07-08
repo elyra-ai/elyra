@@ -16,7 +16,7 @@
 
 import '../style/index.css';
 
-import { ExpandableComponent } from '@elyra/ui-components';
+import { codeSnippetIcon, ExpandableComponent } from '@elyra/ui-components';
 import {
   ReactWidget,
   UseSignal,
@@ -237,7 +237,15 @@ export class CodeSnippetWidget extends ReactWidget {
     return (
       <div>
         <header className={CODE_SNIPPETS_HEADER_CLASS}>
-          {'</> Code Snippets'}
+          <codeSnippetIcon.react
+            tag="span"
+            width="24px"
+            height="auto"
+            verticalAlign="middle"
+            marginRight="5px"
+            paddingBottom="2px"
+          />
+          {'Code Snippets'}
         </header>
         <UseSignal signal={this.renderCodeSnippetsSignal} initialArgs={[]}>
           {(_, codeSnippets): React.ReactElement => (
