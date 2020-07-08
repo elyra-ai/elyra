@@ -56,3 +56,7 @@
   border: var(--jp-border-width) solid var(--jp-input-border-color);
   color: var(--jp-ui-font-color1);
 }
+
+.elyra-metadata-editor.bp3-dark {
+  background-color: var(--jp-border-color3);
+}
