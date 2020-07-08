@@ -239,10 +239,11 @@ export class CodeSnippetWidget extends ReactWidget {
         <header className={CODE_SNIPPETS_HEADER_CLASS}>
           <codeSnippetIcon.react
             tag="span"
-            width="20px"
+            width="24px"
             height="auto"
-            verticalAlign="text-top"
+            verticalAlign="middle"
             marginRight="5px"
+            paddingBottom="2px"
           />
           {'Code Snippets'}
         </header>
