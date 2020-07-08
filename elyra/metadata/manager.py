@@ -43,11 +43,11 @@ class MetadataManager(LoggingConfigurable):
 
     def __init__(self, namespace: str, **kwargs):
         """
-        Generic object to read Notebook related metadata
-        :param namespace: the partition where it is stored, this might have
-        a unique meaning for each of the supported metadata storage
-        :param store: the metadata store to be used
-        :param kwargs: additional arguments to be used to instantiate a metadata store
+        Generic object to manage metadata instances.
+        :param namespace (str): the partition where metadata instances are stored
+        :param kwargs: additional arguments to be used to instantiate a metadata manager
+        Keyword Args:
+            metadata_store_class (str): the name of the MetadataStore subclass to use for storing managed instances
         """
         super(MetadataManager, self).__init__(**kwargs)
 
