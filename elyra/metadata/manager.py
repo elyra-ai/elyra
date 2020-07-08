@@ -39,7 +39,7 @@ class MetadataManager(LoggingConfigurable):
     metadata_store_class = Type(default_value=FileMetadataStore, config=True,
                                 klass=MetadataStore,
                                 help="""The metadata store class.  This is configurable to allow subclassing of
-                                the MetadataManager for customized behavior.""")
+                                the MetadataStore for customized behavior.""")
 
     def __init__(self, namespace: str, **kwargs):
         """
