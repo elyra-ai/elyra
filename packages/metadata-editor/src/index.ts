@@ -18,6 +18,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { IThemeManager } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon } from '@jupyterlab/ui-components';
 
@@ -26,6 +27,7 @@ import { Widget } from '@lumino/widgets';
 
 import { MetadataEditor } from './MetadataEditor';
 
+const BP_DARK_THEME_CLASS = 'bp3-dark';
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
 /**
@@ -35,7 +37,12 @@ const extension: JupyterFrontEndPlugin<void> = {
   id: METADATA_EDITOR_ID,
   autoStart: true,
   requires: [IEditorServices],
-  activate: (app: JupyterFrontEnd, editorServices: IEditorServices) => {
+  optional: [IThemeManager],
+  activate: (
+    app: JupyterFrontEnd,
+    editorServices: IEditorServices,
+    themeManager: IThemeManager | null
+  ) => {
     console.log('Elyra - metadata-editor extension is activated!');
 
     const openMetadataEditor = (args: {
@@ -71,7 +78,10 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.id = widgetId;
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = textEditorIcon;
+      metadataEditorWidget.addClass(METADATA_EDITOR_ID);
       app.shell.add(metadataEditorWidget, 'main');
+
+      updateTheme();
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
@@ -79,6 +89,27 @@ const extension: JupyterFrontEndPlugin<void> = {
         openMetadataEditor(args);
       }
     });
+
+    const updateTheme = () => {
+      const bpDark = ` ${BP_DARK_THEME_CLASS}`;
+      const isLight =
+        themeManager.theme && themeManager.isLight(themeManager.theme);
+      document
+        .querySelectorAll(`.${METADATA_EDITOR_ID}`)
+        .forEach((element: any) => {
+          if (isLight) {
+            element.className = element.className.replace(
+              new RegExp(bpDark, 'gi'),
+              ''
+            );
+          } else {
+            element.className += bpDark;
+          }
+        });
+    };
+    if (themeManager) {
+      themeManager.themeChanged.connect(updateTheme);
+    }
   }
 };
 

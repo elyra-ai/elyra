@@ -10,10 +10,8 @@
 }
 
 .bp3-select-popover {
-  width: min-content;
-  border: 5px solid #eeeeee;
-  height: 150px;
-  overflow: scroll;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 .elyra-form-DropDown-item {
@@ -52,4 +50,9 @@
   white-space: pre;
   word-wrap: normal;
   overflow: scroll;
+}
+
+.bp3-dark .bp3-input {
+  border: var(--jp-border-width) solid var(--jp-input-border-color);
+  color: var(--jp-ui-font-color1);
 }
