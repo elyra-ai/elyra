@@ -47,7 +47,8 @@ export interface IExpandableActionButton {
 export interface IExpandableComponentProps {
   displayName: string;
   tooltip: string;
-  actionButtons: IExpandableActionButton[];
+  actionButtons?: IExpandableActionButton[];
+  onToggle?: Function;
 }
 
 export interface IExpandableComponentState {
@@ -70,10 +71,14 @@ export class ExpandableComponent extends React.Component<
     // Switch expanded flag
     const newExpandFlag = !this.state.expanded;
     this.setState({ expanded: newExpandFlag });
+    if (this.props.onToggle) {
+      this.props.onToggle(newExpandFlag);
+    }
   }
 
   render(): React.ReactElement {
     const buttonClasses = [ELYRA_BUTTON_CLASS, BUTTON_CLASS].join(' ');
+    const actionButtons = this.props.actionButtons || [];
 
     return (
       <div>
@@ -109,7 +114,7 @@ export class ExpandableComponent extends React.Component<
           </span>
 
           <div className={ACTION_BUTTONS_WRAPPER_CLASS}>
-            {this.props.actionButtons.map((btn: IExpandableActionButton) => {
+            {actionButtons.map((btn: IExpandableActionButton) => {
               return (
                 <button
                   key={btn.title}

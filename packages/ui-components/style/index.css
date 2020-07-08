@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-.elyra-expandableContainer-button {
+.elyra-expandableContainer-button,
+.elyra-expandableContainer-button.jp-mod-styled {
   background-color: transparent;
   vertical-align: middle;
   padding: 0;
@@ -43,6 +44,10 @@
 
 .elyra-expandableContainer-title:hover {
   background: var(--jp-layout-color2);
+}
+
+.elyra-expandableContainer-title:hover .elyra-expandableContainer-button {
+  background-color: var(--jp-layout-color2);
 }
 
 .elyra-expandableContainer-name {
@@ -92,6 +97,14 @@
   height: 100%;
 }
 
+.elyra-errorDialog-messageDisplay pre {
+  min-height: 125px;
+  height: 100%;
+  width: 100%;
+  resize: none;
+  overflow-x: scroll;
+}
+
 .elyra-errorDialog-messageDisplay {
   padding-bottom: 5px;
   display: flex;
@@ -99,46 +112,12 @@
   height: 100%;
 }
 
-.elyra-errorDialog-errDisplayButton {
-  margin-right: 10px;
-  vertical-align: text-bottom;
-  background-color: transparent;
-  background-repeat: no-repeat;
-  border: none;
-}
-
-.elyra-errorDialog-errDisplayButton:hover {
-  background-color: var(--jp-layout-color2);
-}
-
-button.elyra-errorDialog-errDisplayButton {
-  height: 20px;
-  width: 20px;
-  padding: 0;
-}
-
-.elyra-errorDialog-errDetails {
+.elyra-errorDialog-messageDisplay > div:nth-child(2) {
   margin: 15px 0;
   display: flex;
   flex: 1;
   min-height: 0px;
   flex-direction: column;
-}
-
-.elyra-errorDialog-error-visible {
-  display: block;
-  overflow: auto;
-  border: var(--jp-border-width) solid var(--jp-toolbar-border-color);
-  background-color: var(--jp-layout-color2);
-  color: var(--jp-ui-font-color2);
-  padding: 5px;
-  flex: 1;
-  overflow: auto;
-  margin: 5px 0 10px 30px;
-}
-
-.elyra-errorDialog-error-hidden {
-  display: none;
 }
 
 /* temporary fix until this is addressed in jupyterlab */

@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-import { caretDownIcon, caretRightIcon } from '@jupyterlab/ui-components';
+import { ExpandableComponent } from './ExpandableComponent';
 
 import * as React from 'react';
 
 const MESSAGE_DISPLAY = 'elyra-errorDialog-messageDisplay';
-const ERROR_DISPLAY_BUTTON = 'elyra-errorDialog-errDisplayButton';
-const ERROR_DETAILS = 'elyra-errorDialog-errDetails';
-const ERROR_DETAILS_VISIBLE = 'elyra-errorDialog-error-visible';
-const ERROR_DETAILS_HIDDEN = 'elyra-errorDialog-error-hidden';
 const ERROR_DIALOG_WIDTH = 600;
 const ERROR_DIALOG_HEIGHT = 400;
 const JP_DIALOG_CONTENT = 'jp-Dialog-content';
@@ -43,7 +39,6 @@ export class ExpandableErrorDialog extends React.Component<
 
   constructor(props: any) {
     super(props);
-    this.state = { expanded: false };
   }
 
   updateDialogSize(expanded: boolean): void {
@@ -58,44 +53,23 @@ export class ExpandableErrorDialog extends React.Component<
       expanded &&
       (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
     ) {
-      this.dialogNode.style.width = ERROR_DIALOG_WIDTH + 'px';
-      this.dialogNode.style.height = ERROR_DIALOG_HEIGHT + 'px';
+      this.dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
+      this.dialogNode.style.height =
+        Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
     }
-  }
-
-  toggleMsgDisplay(): void {
-    // Switch expanded flag
-    const expanded = !this.state.expanded;
-    this.updateDialogSize(expanded);
-    this.setState({ expanded: expanded });
   }
 
   render(): React.ReactElement {
     const details = this.props.traceback ? (
-      <div className={ERROR_DETAILS}>
-        <div>
-          <button
-            className={ERROR_DISPLAY_BUTTON}
-            onClick={(): void => {
-              this.toggleMsgDisplay();
-            }}
-          >
-            {this.state.expanded ? (
-              <caretDownIcon.react tag="span" elementPosition="center" />
-            ) : (
-              <caretRightIcon.react tag="span" elementPosition="center" />
-            )}
-          </button>
-          {'Error details: '}
-        </div>
-        <div
-          className={
-            this.state.expanded ? ERROR_DETAILS_VISIBLE : ERROR_DETAILS_HIDDEN
-          }
-        >
-          <pre>{this.props.traceback}</pre>
-        </div>
-      </div>
+      <ExpandableComponent
+        displayName={'Error details: '}
+        tooltip={'Error stack trace'}
+        onToggle={(expanded: boolean) => {
+          this.updateDialogSize(expanded);
+        }}
+      >
+        <pre>{this.props.traceback}</pre>
+      </ExpandableComponent>
     ) : null;
 
     return (
