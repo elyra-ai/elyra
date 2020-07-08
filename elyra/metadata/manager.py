@@ -21,7 +21,7 @@ import re
 from jsonschema import validate, ValidationError, draft7_format_checker
 from traitlets import Type
 from traitlets.config import LoggingConfigurable
-from typing import Optional, List
+from typing import List
 
 from .metadata import Metadata
 from .schema import SchemaManager
@@ -29,17 +29,19 @@ from .storage import MetadataStore, FileMetadataStore
 
 
 class MetadataManager(LoggingConfigurable):
+    """Manages metadata instances"""
 
     # System-owned namespaces
     NAMESPACE_RUNTIMES = "runtimes"
     NAMESPACE_CODE_SNIPPETS = "code-snippets"
     NAMESPACE_RUNTIME_IMAGES = "runtime-images"
 
-    metadata_class = Type(Metadata, config=True,
-                          help="""The metadata class.  This is configurable to allow subclassing of
-                          the MetadataManager for customized behavior.""")
+    metadata_store_class = Type(default_value=FileMetadataStore, config=True,
+                                klass=MetadataStore,
+                                help="""The metadata store class.  This is configurable to allow subclassing of
+                                the MetadataManager for customized behavior.""")
 
-    def __init__(self, namespace: str, store: Optional[MetadataStore] = None, **kwargs):
+    def __init__(self, namespace: str, **kwargs):
         """
         Generic object to read Notebook related metadata
         :param namespace: the partition where it is stored, this might have
@@ -52,10 +54,7 @@ class MetadataManager(LoggingConfigurable):
         self.schema_mgr = SchemaManager.instance()
         self.schema_mgr.validate_namespace(namespace)
         self.namespace = namespace
-        if store:
-            self.metadata_store = store
-        else:
-            self.metadata_store = FileMetadataStore(namespace, **kwargs)
+        self.metadata_store = self.metadata_store_class(namespace, **kwargs)
 
     def namespace_exists(self) -> bool:
         """Returns True if the namespace for this instance exists"""
