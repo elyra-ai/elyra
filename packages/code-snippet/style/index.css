@@ -26,7 +26,7 @@
 }
 
 .elyra-codeSnippetsHeader .elyra-codeSnippet-icon polygon[fill] {
-  fill: var(--jp-inverse-layout-color1);
+  fill: var(--jp-ui-font-color1);
 }
 
 .elyra-codeSnippet-item {
