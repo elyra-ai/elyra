@@ -90,20 +90,18 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    const updateTheme = () => {
-      const bpDark = ` ${BP_DARK_THEME_CLASS}`;
+    const updateTheme = (): void => {
       const isLight =
         themeManager.theme && themeManager.isLight(themeManager.theme);
       document
         .querySelectorAll(`.${METADATA_EDITOR_ID}`)
         .forEach((element: any) => {
           if (isLight) {
-            element.className = element.className.replace(
-              new RegExp(bpDark, 'gi'),
-              ''
-            );
+            element.className = element.className
+              .replace(new RegExp(`${BP_DARK_THEME_CLASS}`, 'gi'), '')
+              .trim();
           } else {
-            element.className += bpDark;
+            element.className += ` ${BP_DARK_THEME_CLASS}`;
           }
         });
     };
