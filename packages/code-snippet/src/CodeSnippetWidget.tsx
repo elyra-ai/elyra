@@ -17,6 +17,7 @@
 import '../style/index.css';
 
 import {
+  codeSnippetIcon,
   ExpandableComponent,
   trashIcon,
   importIcon
@@ -344,7 +345,17 @@ export class CodeSnippetWidget extends ReactWidget {
     return (
       <div>
         <header className={CODE_SNIPPETS_HEADER_CLASS}>
-          <p> {'</> Code Snippets'} </p>
+          <div style={{ display: 'flex' }}>
+            <codeSnippetIcon.react
+              tag="span"
+              width="24px"
+              height="auto"
+              verticalAlign="middle"
+              marginRight="5px"
+              paddingBottom="2px"
+            />
+            <p> Code Snippets </p>
+          </div>
           <button
             className={CODE_SNIPPETS_HEADER_BUTTON_CLASS}
             onClick={this.addCodeSnippet.bind(this)}

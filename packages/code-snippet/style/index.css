@@ -24,11 +24,11 @@
   padding: 8px 10px;
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
 }
 
 .elyra-codeSnippetsHeader p {
-  position: absolute;
+  font-weight: bold;
 }
 
 .elyra-codeSnippetHeader-button {
@@ -49,6 +49,10 @@
 
 .elyra-codeSnippetHeader-button:hover {
   background-color: var(--jp-layout-color2);
+}
+
+.elyra-codeSnippetsHeader .elyra-codeSnippet-icon polygon[fill] {
+  fill: var(--jp-ui-font-color1);
 }
 
 .elyra-codeSnippet-item {
