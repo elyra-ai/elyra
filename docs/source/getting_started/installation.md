@@ -23,7 +23,7 @@ Elyra can be installed via PyPI:
 * [Python 3.x](https://www.python.org/downloads/)
 
 ##### Optional
-* [Anaconda](https://www.anaconda.com/distribution/) 
+* [Anaconda](https://www.anaconda.com/distribution/)
 
 #### JupyterLab support
 
@@ -66,7 +66,8 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension-experimental <VERSION>  enabled  OK*
+        @elyra/code-snippet-extension <VERSION>  enabled  OK*
+        @elyra/metadata-editor-extension <VERSION>  enabled  OK*
         @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
         @elyra/python-runner-extension <VERSION>  enabled  OK*
         @elyra/theme-extension <VERSION>  enabled  OK*

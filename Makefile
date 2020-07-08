@@ -52,7 +52,8 @@ uninstall:
 	$(call UNLINK_LAB_EXTENSION,@elyra/application)
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension-experimental)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-runner-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@jupyterlab/toc)
@@ -93,6 +94,7 @@ install-ui: build-ui
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call INSTALL_LAB_EXTENSION,theme)
 	$(call INSTALL_LAB_EXTENSION,code-snippet)
+	$(call INSTALL_LAB_EXTENSION,metadata-editor)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,python-runner)
 
@@ -129,6 +131,7 @@ dist-ui: build-ui
 	mkdir -p dist
 	$(call PACKAGE_LAB_EXTENSION,theme)
 	$(call PACKAGE_LAB_EXTENSION,code-snippet)
+	$(call PACKAGE_LAB_EXTENSION,metadata-editor)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-runner)
 	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -

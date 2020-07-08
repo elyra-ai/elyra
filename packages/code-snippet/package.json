@@ -1,5 +1,5 @@
 {
-  "name": "@elyra/code-snippet-extension-experimental",
+  "name": "@elyra/code-snippet-extension",
   "version": "1.0.0-dev",
   "description": "JupyterLab extension - Reusable code snippets for your Notebook and Python Scripts",
   "keywords": [
