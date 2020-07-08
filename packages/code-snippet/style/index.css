@@ -25,7 +25,7 @@
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }
 
-.elyra-codeSnippetsHeader .elyra-codeSnippet-icon polygon[fill] {
+.elyra-codeSnippetsHeader polygon[fill] {
   fill: var(--jp-ui-font-color1);
 }
 
