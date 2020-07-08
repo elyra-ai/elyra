@@ -36,6 +36,7 @@ export class ExpandableErrorDialog extends React.Component<
   any
 > {
   dialogNode: HTMLDivElement;
+  collapsedDimensions: number[];
 
   constructor(props: any) {
     super(props);
@@ -53,9 +54,13 @@ export class ExpandableErrorDialog extends React.Component<
       expanded &&
       (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
     ) {
+      this.collapsedDimensions = [width, height];
       this.dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
       this.dialogNode.style.height =
         Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
+    } else if (!expanded && this.collapsedDimensions) {
+      this.dialogNode.style.width = this.collapsedDimensions[0] + 'px';
+      this.dialogNode.style.height = this.collapsedDimensions[1] + 'px';
     }
   }
 
