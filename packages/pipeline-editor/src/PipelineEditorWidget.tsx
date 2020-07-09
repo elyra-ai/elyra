@@ -45,6 +45,9 @@ import { notebookIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
+import { Collapse, IconButton } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
+import Alert from '@material-ui/lab/Alert';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
@@ -148,6 +151,16 @@ export namespace PipelineEditor {
      * The form contents of the properties dialog.
      */
     propertiesInfo: any;
+
+    /*
+     * Whether the warning for invalid operations is visible.
+     */
+    showValidationError: boolean;
+
+    /*
+     * Message to present for an invalid operation
+     */
+    errorMessage: string;
   }
 }
 
@@ -181,7 +194,15 @@ export class PipelineEditor extends React.Component<
     this.editActionHandler = this.editActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
 
-    this.state = { showPropertiesDialog: false, propertiesInfo: {} };
+    this.invalidLink = this.invalidLink.bind(this);
+    this.nodesConnected = this.nodesConnected.bind(this);
+
+    this.state = {
+      showPropertiesDialog: false,
+      propertiesInfo: {},
+      showValidationError: false,
+      errorMessage: 'Invalid operation.'
+    };
 
     this.initPropertiesInfo();
 
@@ -195,6 +216,27 @@ export class PipelineEditor extends React.Component<
 
   render(): any {
     const style = { height: '100%' };
+    const validationAlert = (
+      <Collapse in={this.state.showValidationError}>
+        <Alert
+          severity="error"
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                this.setState({ showValidationError: false });
+              }}
+            >
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+        >
+          {this.state.errorMessage}
+        </Alert>
+      </Collapse>
+    );
     const emptyCanvasContent = (
       <div>
         <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
@@ -270,6 +312,7 @@ export class PipelineEditor extends React.Component<
 
     return (
       <div style={style} ref={this.node}>
+        {validationAlert}
         <CommonCanvas
           canvasController={this.canvasController}
           toolbarMenuActionHandler={this.toolbarMenuActionHandler}
@@ -410,9 +453,72 @@ export class PipelineEditor extends React.Component<
   }
 
   /*
+   * Checks if there is a path from sourceNode to targetNode in the graph.
+   */
+  nodesConnected(
+    sourceNode: string,
+    targetNode: string,
+    links: any[]
+  ): boolean {
+    if (
+      links.find((value: any, index: number) => {
+        return value.srcNodeId == sourceNode && value.trgNodeId == targetNode;
+      })
+    ) {
+      return true;
+    } else {
+      for (const link of links) {
+        if (
+          link.srcNodeId == sourceNode &&
+          this.nodesConnected(link.trgNodeId, targetNode, links)
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /*
+   * Validates the new link before adding it.
+   * Returns true if invalid
+   * TODO: when we update canvas to 8, we can change the name of
+   * this function to beforeEditActionHandler and use it as a handler
+   * instead of calling this function in editActionHandler.
+   */
+  invalidLink(data: any): boolean {
+    if (data.editType == 'linkNodes') {
+      // Remove the link that was just added for the purposes of checking validity
+      const links = this.canvasController
+        .getLinks()
+        .filter((value: any, index: number) => {
+          return value.id != data.linkIds[0];
+        });
+      return this.nodesConnected(
+        data.targetNodes[0].id,
+        data.nodes[0].id,
+        links
+      );
+    } else {
+      return false;
+    }
+  }
+
+  /*
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any): void {
+    // Checks validity of links before adding
+    if (this.invalidLink(data)) {
+      this.canvasController.deleteLink(
+        this.canvasController.getLink(data.linkIds[0]),
+        data.pipelineId
+      );
+      this.setState({
+        errorMessage: 'Invalid operation: circular references in pipeline.',
+        showValidationError: true
+      });
+    }
     this.updateModel();
   }
 
