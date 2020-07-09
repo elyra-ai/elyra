@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve"
-	id="elyra-pie-brain-icon" class="elyra-pieBrain-icon" x="0px" y="0px" viewBox="0 0 243 225">
+	id="elyra-pie-brain-icon" x="0px" y="0px" viewBox="0 0 243 225">
 <style type="text/css">
 	.st0{clip-path:url(#SVGID_2_);}
 	.st1{fill:#706E6F;stroke:#706E6F;stroke-width:1.9754;stroke-miterlimit:10;}
 	.st2{fill:#706E6F;}
 	.st3{fill:#f37726;}
 </style>
-<g>
+<g class="elyra-pieBrain-icon">
 	<g>
 		<defs>
 			<path id="SVGID_1_" d="M234,116.8c0,50.3-38.4,95.2-96,95.2l-0.3-95.2L203,48.1C221.7,65.4,234,89.8,234,116.8z"/>

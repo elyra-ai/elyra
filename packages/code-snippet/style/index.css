@@ -51,7 +51,7 @@
   background-color: var(--jp-layout-color2);
 }
 
-.elyra-codeSnippetsHeader .elyra-codeSnippet-icon polygon[fill] {
+.elyra-codeSnippetsHeader polygon[fill] {
   fill: var(--jp-ui-font-color1);
 }
 
