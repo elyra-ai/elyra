@@ -343,13 +343,15 @@ export class MetadataEditor extends ReactWidget {
       }
       return (
         <FormGroup
-          style={{ width: '100%', display: 'flex' }}
+          className={'elyra-metadataEditor-code'}
           labelInfo={required}
           label={'Code'}
           intent={this.schema[fieldName].uihints.intent}
           helperText={helperText}
         >
-          <div id={'code:' + this.id} className="elyra-form-code"></div>
+          <div>
+            <div id={'code:' + this.id} className="elyra-form-code"></div>
+          </div>
         </FormGroup>
       );
     } else {
@@ -373,7 +375,6 @@ export class MetadataEditor extends ReactWidget {
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
-        <br />
         {this.renderTextInput(
           'Name',
           '',

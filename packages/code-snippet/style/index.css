@@ -55,6 +55,11 @@
   fill: var(--jp-ui-font-color1);
 }
 
+.elyra-codeSnippetsHeader + div:first-of-type {
+  overflow-y: auto;
+  height: calc(100vh - 95px);
+}
+
 .elyra-codeSnippet-item {
   border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
   display: flex;
@@ -63,18 +68,18 @@
   padding: 0;
 }
 
-.elyra-codeSnippet-item .CodeMirror-wrap {
+.elyra-codeSnippet-item .elyra-expandableContainer-details-visible {
+  background-color: var(--jp-cell-editor-background);
+  resize: vertical;
+  height: 100px;
+}
+
+.elyra-codeSnippet-item .CodeMirror.cm-s-jupyter {
   background-color: inherit;
   border: none;
   font-family: var(--jp-code-font-family);
   font-size: var(--jp-code-font-size);
   line-height: var(--jp-code-line-height);
-  height: 100%;
-  width: 100%;
-  resize: vertical;
-  white-space: pre;
-  word-wrap: normal;
-  overflow-x: scroll;
 }
 
 .elyra-codeSnippet-saveButton {
