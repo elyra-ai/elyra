@@ -144,11 +144,3 @@
 [data-jp-theme-light='false'] .elyra-pieBrain-icon rect.st2 {
   fill: var(--jp-inverse-layout-color3);
 }
-
-.elyra-codeSnippet-icon polygon[fill] {
-  fill: var(--jp-inverse-layout-color3);
-}
-
-.elyra-pipelineEditor-icon path[fill] {
-  fill: var(--jp-inverse-layout-color3);
-}
