@@ -1,6 +1,6 @@
 {
   "name": "@elyra/application",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-dev",
   "description": "JupyterLab - Utilities for use in elyra",
   "keywords": [
     "jupyter",
@@ -30,7 +30,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/ui-components": "^1.0.0-rc.0",
+    "@elyra/ui-components": "^1.0.0-dev",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/coreutils": "^4.0.2",
     "@jupyterlab/services": "^5.0.2",
