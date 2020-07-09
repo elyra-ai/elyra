@@ -273,8 +273,8 @@ export class PipelineEditor extends React.Component<
         iconDisabled: IconUtil.encode(clearPipelineIcon)
       },
       { divider: true },
-      { action: 'undo', label: 'Undo', enable: true },
-      { action: 'redo', label: 'Redo', enable: true },
+      { action: 'undo', label: 'Undo', enable: !this.state.emptyPipeline },
+      { action: 'redo', label: 'Redo', enable: !this.state.emptyPipeline },
       { action: 'cut', label: 'Cut', enable: !this.state.emptyPipeline },
       { action: 'copy', label: 'Copy', enable: !this.state.emptyPipeline },
       { action: 'paste', label: 'Paste', enable: false },
@@ -283,9 +283,13 @@ export class PipelineEditor extends React.Component<
       {
         action: 'arrangeHorizontally',
         label: 'Arrange Horizontally',
-        enable: true
+        enable: !this.state.emptyPipeline
       },
-      { action: 'arrangeVertically', label: 'Arrange Vertically', enable: true }
+      {
+        action: 'arrangeVertically',
+        label: 'Arrange Vertically',
+        enable: !this.state.emptyPipeline
+      }
     ];
 
     const propertiesCallbacks = {

@@ -269,3 +269,6 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .react-contextmenu-item.contextmenu-divider {
   background-color: var(--ui-03);
 }
+img.toolbar-icons[disabled] {
+  opacity: 0.5;
+}
