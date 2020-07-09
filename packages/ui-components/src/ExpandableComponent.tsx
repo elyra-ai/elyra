@@ -49,6 +49,7 @@ export interface IExpandableComponentProps {
   tooltip: string;
   actionButtons?: IExpandableActionButton[];
   onExpand?: Function;
+  onBeforeExpand?: Function;
 }
 
 export interface IExpandableComponentState {
@@ -70,6 +71,9 @@ export class ExpandableComponent extends React.Component<
   toggleDetailsDisplay(): void {
     // Switch expanded flag
     const newExpandFlag = !this.state.expanded;
+    if (this.props.onBeforeExpand) {
+      this.props.onBeforeExpand(newExpandFlag);
+    }
     this.setState({ expanded: newExpandFlag });
   }
 
