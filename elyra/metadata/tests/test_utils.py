@@ -19,7 +19,10 @@ import json
 import os
 
 from jsonschema import ValidationError
-from elyra.metadata import METADATA_TEST_NAMESPACE
+from elyra.metadata import METADATA_TEST_NAMESPACE, MetadataStore, FileMetadataStore, \
+    MetadataNotFoundError, MetadataExistsError
+from typing import Optional, List, Any
+
 
 valid_metadata_json = {
     'schema_name': 'metadata-test',
@@ -139,6 +142,22 @@ def create_file(location, file_name, content):
         f.write(content)
 
 
+def create_instance(metadata_store: MetadataStore, location: str, name: str, content: Any):
+    if isinstance(metadata_store, FileMetadataStore):
+        if isinstance(content, dict):
+            create_json_file(location, name + '.json', content)
+        else:
+            create_file(location, name + '.json', content)
+    elif isinstance(metadata_store, MockMetadataStore):
+        instances = getattr(metadata_store, 'instances')
+        if instances is None:
+            setattr(metadata_store, 'instances', dict())
+            instances = getattr(metadata_store, 'instances')
+        if not isinstance(content, dict):
+            content = {'display_name': name, 'reason': "JSON failed to load for metadata '{}'".format(name)}
+        instances[name] = content
+
+
 def get_schema(schema_name):
     schema_file = os.path.join(os.path.dirname(__file__), '..', 'schemas', schema_name + '.json')
     if not os.path.exists(schema_file):
@@ -205,3 +224,60 @@ class PropertyTester(object):
             assert instance_json["schema_name"] == 'metadata-test'
             assert instance_json["display_name"] == self.name
             assert instance_json["metadata"][self.property] == self.positive_value
+
+
+class MockMetadataStore(MetadataStore):
+    def __init__(self, namespace, **kwargs):
+        super().__init__(namespace, **kwargs)
+        self.instances = None
+
+    def namespace_exists(self) -> bool:
+        """Returns True if the namespace for this instance exists"""
+        if self.instances is not None:
+            return True
+        return False
+
+    def fetch_instances(self, name: Optional[str] = None, include_invalid: bool = False) -> List[dict]:
+        """Fetch metadata instances"""
+
+        if name:
+            if self.instances is not None:
+                if name in self.instances:
+                    instance = self.instances.get(name)
+                    if instance.get('reason'):
+                        raise ValueError(instance.get('reason'))
+                    instance['name'] = name
+                    return [instance]
+            raise MetadataNotFoundError(self.namespace, name)
+
+        # all instances are wanted, filter based on include-invalid and reason ...
+        instance_list = []
+        if self.instances is not None:
+            for name, instance in self.instances.items():
+                if include_invalid or not instance.get('reason'):
+                    instance['name'] = name
+                    instance_list.append(instance)
+        return instance_list
+
+    def store_instance(self, name: str, metadata: dict, for_update: bool = False) -> dict:
+        """Stores the named metadata instance."""
+        try:
+            instance = self.fetch_instances(name)
+            if not for_update:  # Create - already exists
+                raise MetadataExistsError(self.namespace, instance[0].get('resource'))
+        except MetadataNotFoundError as mnfe:
+            if for_update:  # Update - doesn't exist
+                raise mnfe from mnfe
+
+        if self.instances is None:
+            self.instances = dict()
+        self.instances[name] = metadata  # persisted, now fetch
+
+        instance = self.fetch_instances(name)  # confirm persistence
+        return instance[0]
+
+    def delete_instance(self, name: str) -> None:
+        """Deletes the metadata instance corresponding to the given name."""
+
+        self.fetch_instances(name)  # confirm it exists
+        self.instances.pop(name)

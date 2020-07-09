@@ -64,14 +64,21 @@
         "enum_test": {
           "description": "Property used to test properties with enums",
           "type": "string",
-          "enum": ["elyra", "rocks"]
+          "enum": ["elyra", "rocks"],
+          "uihints": {
+            "field_type": "dropdown",
+            "default_choices": ["elyra"]
+          }
         },
         "array_test": {
           "description": "Property used to test array with item restrictions",
           "type": "array",
           "minItems": 3,
           "maxItems": 10,
-          "uniqueItems": true
+          "uniqueItems": true,
+          "uihints": {
+            "field_type": "code"
+          }
         },
         "object_test": {
           "description": "Property used to test object elements with properties restrictions",
