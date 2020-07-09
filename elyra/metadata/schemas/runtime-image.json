@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Runtime Image metadata",
   "name": "runtime-image",
+  "display_name": "Runtime Image",
   "namespace": "runtime-images",
   "properties": {
     "schema_name": {

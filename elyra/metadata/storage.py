@@ -75,7 +75,6 @@ class FileMetadataStore(MetadataStore):
 
         If name is provided, the single instance will be returned in a list of one item.
         """
-
         if not self.namespace_exists():  # namespace doesn't exist - return empty list
             return []
 
@@ -166,25 +165,27 @@ class FileMetadataStore(MetadataStore):
             # Since multiple folders are in play, we only allow removal if the resource is in
             # the first directory in the list (i.e., most "near" the user)
             if not self._remove_allowed(metadata):
-                raise PermissionError("Removal of metadata instance '{}' in namespace '{}' is not permitted!".
-                                      format(resource, self.namespace))
+                self.log.error("Removal of instance '{}' from the {} namespace is not permitted!  "
+                               "Resource conflict at '{}' ".format(name, self.namespace, resource))
+                raise PermissionError("Removal of instance '{}' from the {} namespace is not permitted!".
+                                      format(name, self.namespace))
             os.remove(resource)
 
     def _prepare_create(self, name: str, resource: str) -> None:
         """Prepare to create resource, ensure it doesn't exist in the hierarchy."""
         if os.path.exists(resource):
-            msg = "Metadata instance '{}' already exists.".format(resource)
-            self.log.error(msg)
-            raise MetadataExistsError(self.namespace, resource)
+            self.log.error("An instance named '{}' already exists in the {} namespace at {}.".
+                           format(name, self.namespace, resource))
+            raise MetadataExistsError(self.namespace, name)
 
         # Although the resource doesn't exist in the preferred dir, it may exist at other levels.
         # If creating, then existence at other levels should also prevent the operation.
         try:
-            self.fetch_instances(name)
+            resources = self.fetch_instances(name)
             # Instance exists at other (protected) level and this is a create - throw exception
-            msg = "Metadata instance '{}' already exists.".format(name)
-            self.log.error(msg)
-            raise MetadataExistsError(self.namespace, resource)
+            self.log.error("An instance named '{}' already exists in the {} namespace at {}.".
+                           format(name, self.namespace, resources[0].get('resource')))
+            raise MetadataExistsError(self.namespace, name)
         except MetadataNotFoundError:  # doesn't exist elsewhere, so we're good.
             pass
 
@@ -240,10 +241,10 @@ class FileMetadataStore(MetadataStore):
                 # we aren't able to even instantiate an instance of Metadata.  Because errors are ignored
                 # when getting multiple items, it's okay to raise.  The singleton searches (by handlers)
                 # already catch ValueError and map to 400, so we're good there as well.
-                msg = "JSON failed to load for metadata '{}' in namespace '{}' with error: {}.".\
-                    format(name, self.namespace, jde)
-                self.log.error(msg)
-                raise ValueError(msg) from jde
+                self.log.error("JSON failed to load for resource '{}' in the {} namespace with error: {}.".
+                               format(resource, self.namespace, jde))
+                raise ValueError("JSON failed to load for instance '{}' in the {} namespace with error: {}.".
+                                 format(name, self.namespace, jde)) from jde
 
             metadata_json['name'] = name
             metadata_json['resource'] = resource
