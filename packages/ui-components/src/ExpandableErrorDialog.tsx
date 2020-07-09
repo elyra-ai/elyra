@@ -69,7 +69,7 @@ export class ExpandableErrorDialog extends React.Component<
       <ExpandableComponent
         displayName={'Error details: '}
         tooltip={'Error stack trace'}
-        onToggle={(expanded: boolean): void => {
+        onExpand={(expanded: boolean): void => {
           this.updateDialogSize(expanded);
         }}
       >
