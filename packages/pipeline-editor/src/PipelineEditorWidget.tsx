@@ -171,6 +171,11 @@ export namespace PipelineEditor {
      * The form contents of the properties dialog.
      */
     propertiesInfo: any;
+
+    /**
+     * Whether pipeline is empty.
+     */
+    emptyPipeline: boolean;
   }
 }
 
@@ -204,7 +209,13 @@ export class PipelineEditor extends React.Component<
     this.editActionHandler = this.editActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
 
-    this.state = { showPropertiesDialog: false, propertiesInfo: {} };
+    this.state = {
+      showPropertiesDialog: false,
+      propertiesInfo: {},
+      emptyPipeline: Utils.isNewPipeline(
+        this.canvasController.getPipelineFlow()
+      )
+    };
 
     this.initPropertiesInfo();
 
@@ -216,7 +227,7 @@ export class PipelineEditor extends React.Component<
     this.handleEvent = this.handleEvent.bind(this);
   }
 
-  render(): any {
+  render(): React.ReactElement {
     const style = { height: '100%' };
     const darkmode = !!document.querySelector("[data-jp-theme-light='false']");
     const emptyCanvasContent = (
@@ -235,7 +246,11 @@ export class PipelineEditor extends React.Component<
       paletteInitialState: false
     };
     const toolbarConfig = [
-      { action: 'run', label: 'Run Pipeline', enable: true },
+      {
+        action: 'run',
+        label: 'Run Pipeline',
+        enable: !this.state.emptyPipeline
+      },
       {
         action: 'save',
         label: 'Save Pipeline',
@@ -246,25 +261,25 @@ export class PipelineEditor extends React.Component<
       {
         action: 'export',
         label: 'Export Pipeline',
-        enable: true,
-        iconEnabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode),
-        iconDisabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode)
+        enable: !this.state.emptyPipeline,
+        iconEnabled: IconUtil.encode(exportPipelineIcon),
+        iconDisabled: IconUtil.encode(exportPipelineIcon)
       },
       {
         action: 'clear',
         label: 'Clear Pipeline',
-        enable: true,
-        iconEnabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode),
-        iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
+        enable: !this.state.emptyPipeline,
+        iconEnabled: IconUtil.encode(clearPipelineIcon),
+        iconDisabled: IconUtil.encode(clearPipelineIcon)
       },
       { divider: true },
       { action: 'undo', label: 'Undo', enable: true },
       { action: 'redo', label: 'Redo', enable: true },
-      { action: 'cut', label: 'Cut', enable: false },
-      { action: 'copy', label: 'Copy', enable: false },
+      { action: 'cut', label: 'Cut', enable: !this.state.emptyPipeline },
+      { action: 'copy', label: 'Copy', enable: !this.state.emptyPipeline },
       { action: 'paste', label: 'Paste', enable: false },
       { action: 'addComment', label: 'Add Comment', enable: true },
-      { action: 'delete', label: 'Delete', enable: true },
+      { action: 'delete', label: 'Delete', enable: !this.state.emptyPipeline },
       {
         action: 'arrangeHorizontally',
         label: 'Arrange Horizontally',
@@ -311,9 +326,11 @@ export class PipelineEditor extends React.Component<
   }
 
   updateModel(): void {
-    this.widgetContext.model.fromString(
-      JSON.stringify(this.canvasController.getPipelineFlow(), null, 2)
-    );
+    const pipelineFlow = this.canvasController.getPipelineFlow();
+
+    this.widgetContext.model.fromString(JSON.stringify(pipelineFlow, null, 2));
+
+    this.setState({ emptyPipeline: Utils.isNewPipeline(pipelineFlow) });
   }
 
   async initPropertiesInfo(): Promise<void> {
@@ -663,6 +680,7 @@ export class PipelineEditor extends React.Component<
           this.canvasController.setPipelineFlow(pipelineJson);
         }
       }
+      this.setState({ emptyPipeline: Utils.isNewPipeline(pipelineJson) });
     });
   }
 

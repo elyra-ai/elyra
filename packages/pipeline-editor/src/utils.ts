@@ -67,11 +67,7 @@ export default class Utils {
    * @param pipelineDefinition
    */
   static isNewPipeline(pipelineDefinition: any): boolean {
-    if (Object.keys(pipelineDefinition.pipelines[0].nodes).length == 0) {
-      return true;
-    } else {
-      return false;
-    }
+    return Object.keys(pipelineDefinition.pipelines[0].nodes).length === 0;
   }
 
   /**
