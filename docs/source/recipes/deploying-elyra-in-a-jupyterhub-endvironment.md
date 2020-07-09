@@ -42,7 +42,7 @@ singleuser:
   image:
     name: elyra/elyra
     # change to a specific release version as appropriate
-    tag: <VERSION>
+    tag: 1.0.0rc0
     # disable this in a production environment
     pullPolicy: "Always"
   storage:
@@ -94,7 +94,7 @@ singleuser:
   image:
     name: elyra/elyra
     # change to a specific release version as appropriated
-    tag: <VERSION>
+    tag: 1.0.0rc0
     # disable this in a production environment
     pullPolicy: "Always"
   storage:
@@ -112,9 +112,8 @@ required to run elyra, and that could be used to customize your environment with
 packages required by your workloads, or any other customizations needed.
 
 ```dockerfile
-FROM elyra/elyra:<VERSION>
+FROM elyra/elyra:1.0.0rc0
 
 ...
-
 
 ```

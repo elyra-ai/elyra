@@ -1,6 +1,6 @@
 {
   "name": "@elyra/metadata-editor-extension",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-rc.0",
   "description": "JupyterLab extension - Edit metadata",
   "keywords": [
     "jupyter",
@@ -32,8 +32,8 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^3.22.2",
-    "@elyra/application": "^1.0.0-beta.1",
-    "@elyra/ui-components": "^1.0.0-beta.1",
+    "@elyra/application": "^1.0.0-rc.0",
+    "@elyra/ui-components": "^1.0.0-rc.0",
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/codeeditor": "^2.0.2",

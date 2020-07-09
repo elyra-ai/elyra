@@ -81,7 +81,7 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra <VERSION> OK
+      elyra 1.0.0rc0 OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.1.5 OK
@@ -99,16 +99,16 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension <VERSION>  enabled  OK*
-        @elyra/metadata-editor-extension <VERSION>  enabled  OK*
-        @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
-        @elyra/python-editor-extension <VERSION>  enabled  OK*
-        @elyra/theme-extension <VERSION>  enabled  OK*
+        @elyra/code-snippet-extension v1.0.0-rc.0  enabled  OK*
+        @elyra/metadata-editor-extension v1.0.0-rc.0  enabled  OK*
+        @elyra/pipeline-editor-extension v1.0.0-rc.0  enabled  OK*
+        @elyra/python-editor-extension v1.0.0-rc.0  enabled  OK*
+        @elyra/theme-extension v1.0.0-rc.0  enabled  OK*
         @jupyterlab/git v0.20.0  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```
-NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable
+NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable
 it with `jupyter serverextension enable elyra`
 
 ## Configuring Runtimes for Pipeline execution

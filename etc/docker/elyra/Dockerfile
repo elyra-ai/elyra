@@ -39,7 +39,7 @@ RUN python -m pip install --upgrade pip && \
     npm install -g yarn && \
     npm install -g npm && \
     cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-    cd /tmp/elyra && make install
+    cd /tmp/elyra && git checkout tags/v1.0.0rc0 -b v1.0.0rc0 && make install
 
 WORKDIR /home/jovyan/work
 
