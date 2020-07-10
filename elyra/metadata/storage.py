@@ -157,7 +157,7 @@ class FileMetadataStore(MetadataStore):
 
     def delete_instance(self, metadata: dict) -> None:
         """Delete the named instance"""
-
+        name = metadata.get('name')
         resource = metadata.get('resource')
         if resource:
             # Since multiple folders are in play, we only allow removal if the resource is in
