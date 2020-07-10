@@ -248,6 +248,53 @@ def test_list_instances(script_runner, mock_data_dir):
     assert line_elements[1][1] == "valid"
 
 
+def test_list_json_instances(script_runner, mock_data_dir):
+    metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
+
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json')
+    assert ret.success
+    lines = ret.stdout.split('\n')
+    assert len(lines) == 2  # always 2 more than the actual runtime count
+    assert lines[0].startswith("No metadata instances found for {}".format(METADATA_TEST_NAMESPACE))
+
+    valid = Metadata(**valid_metadata_json)
+    resource = metadata_manager.create('valid', valid)
+    assert resource is not None
+    resource = metadata_manager.create('valid2', valid)
+    assert resource is not None
+    another = Metadata(**another_metadata_json)
+    resource = metadata_manager.create('another', another)
+    assert resource is not None
+    resource = metadata_manager.create('another2', another)
+    assert resource is not None
+
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json')
+    assert ret.success
+    assert ret.stderr == ''
+    # Consume results
+    results = json.loads(ret.stdout)
+    assert len(results) == 4
+
+    # Remove the '2' runtimes and reconfirm smaller set
+    metadata_manager.remove('valid2')
+    metadata_manager.remove('another2')
+
+    # Include two additional invalid files as well - one for uri failure, andother missing display_name
+    metadata_dir = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE)
+    create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
+    create_json_file(metadata_dir, 'no_display_name.json', invalid_no_display_name_json)
+
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json')
+    assert ret.success
+    results = json.loads(ret.stdout)
+    assert len(results) == 4
+
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json', '--valid-only')
+    assert ret.success
+    results = json.loads(ret.stdout)
+    assert len(results) == 2
+
+
 def test_remove_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--help')
     assert ret.success is False
