@@ -245,6 +245,8 @@ export class PipelineEditor extends React.Component<
       enablePaletteLayout: 'Modal',
       paletteInitialState: false
     };
+    const pipelineDefinition = this.canvasController.getPipelineFlow();
+    const emptyCanvas = Utils.isEmptyCanvas(pipelineDefinition);
     const toolbarConfig = [
       {
         action: 'run',
@@ -268,27 +270,27 @@ export class PipelineEditor extends React.Component<
       {
         action: 'clear',
         label: 'Clear Pipeline',
-        enable: !this.state.emptyPipeline,
+        enable: !this.state.emptyPipeline || !emptyCanvas,
         iconEnabled: IconUtil.encode(clearPipelineIcon),
         iconDisabled: IconUtil.encode(clearPipelineIcon)
       },
       { divider: true },
-      { action: 'undo', label: 'Undo', enable: !this.state.emptyPipeline },
-      { action: 'redo', label: 'Redo', enable: !this.state.emptyPipeline },
-      { action: 'cut', label: 'Cut', enable: !this.state.emptyPipeline },
-      { action: 'copy', label: 'Copy', enable: !this.state.emptyPipeline },
-      { action: 'paste', label: 'Paste', enable: false },
+      { action: 'undo', label: 'Undo' },
+      { action: 'redo', label: 'Redo' },
+      { action: 'cut', label: 'Cut' },
+      { action: 'copy', label: 'Copy' },
+      { action: 'paste', label: 'Paste' },
       { action: 'addComment', label: 'Add Comment', enable: true },
-      { action: 'delete', label: 'Delete', enable: !this.state.emptyPipeline },
+      { action: 'delete', label: 'Delete' },
       {
         action: 'arrangeHorizontally',
         label: 'Arrange Horizontally',
-        enable: !this.state.emptyPipeline
+        enable: !this.state.emptyPipeline || !emptyCanvas
       },
       {
         action: 'arrangeVertically',
         label: 'Arrange Vertically',
-        enable: !this.state.emptyPipeline
+        enable: !this.state.emptyPipeline || !emptyCanvas
       }
     ];
 
@@ -760,6 +762,13 @@ export class PipelineEditor extends React.Component<
       this.handleSavePipeline();
     } else if (action == 'clear') {
       this.handleClearPipeline();
+    } else if (
+      action == 'undo' ||
+      action == 'redo' ||
+      action == 'delete' ||
+      action == 'addComment'
+    ) {
+      this.updateModel();
     }
   }
 
