@@ -160,36 +160,6 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
   fill: var(--icon-01);
 }
 
-[data-jp-theme-light='false'] .common-canvas img#toolbar-icon-save {
-  background: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%3E%3Crect%20id%3D%22backgroundrect%22%20width%3D%22100%25%22%20height%3D%22100%25%22%20x%3D%220%22%20y%3D%220%22%20fill%3D%22none%22%20stroke%3D%22none%22%2F%3E%3Cg%20class%3D%22currentLayer%22%20style%3D%22%22%3E%3Ctitle%3ELayer%201%3C%2Ftitle%3E%3Cpath%20d%3D%22M15.003%2C3%20h2.997%20v5%20h-2.997%20v-5%20zm8.997%2C1%20v20%20h-24%20v-24%20h20%20l4%2C4%20zm-19%2C5%20h14%20v-7%20h-14%20v7%20zm16%2C4%20h-18%20v9%20h18%20v-9%20z%22%20id%3D%22svg_1%22%20class%3D%22selected%22%20fill%3D%22%23f4f4f4%22%20fill-opacity%3D%221%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E');
-  background-size: 16px 16px;
-  display: block;
-  box-sizing: border-box;
-  width: 16px;
-  height: 16px;
-  padding-left: 16px;
-}
-
-[data-jp-theme-light='false'] .common-canvas img#toolbar-icon-export {
-  background: url('data:image/svg+xml;utf8,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.0%22%20id%3D%22icon%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20viewBox%3D%222%202%2028%2028%22%20enable-background%3D%22new%200%200%2032%2032%22%20xml%3Aspace%3D%22preserve%22%3E%3Cpolygon%20points%3D%2213%2C21%2026.2%2C21%2023.6%2C23.6%2025%2C25%2030%2C20%2025%2C15%2023.6%2C16.4%2026.2%2C19%2013%2C19%20%22%20fill%3D%22%23f4f4f4%22%2F%3E%3Cpath%20d%3D%22M22%2C14v-4c0-0.3-0.1-0.5-0.3-0.7l-7-7C14.5%2C2.1%2C14.3%2C2%2C14%2C2H4C2.9%2C2%2C2%2C2.9%2C2%2C4v24c0%2C1.1%2C0.9%2C2%2C2%2C2h16c1.1%2C0%2C2-0.9%2C2-2v-2h-2%20v2H4V4h8v6c0%2C1.1%2C0.9%2C2%2C2%2C2h6v2H22z%20M14%2C10V4.4l5.6%2C5.6H14z%22%20fill%3D%22%23f4f4f4%22%2F%3E%3C%2Fsvg%3E');
-  background-size: 16px 16px;
-  display: block;
-  box-sizing: border-box;
-  width: 16px;
-  height: 16px;
-  padding-left: 16px;
-}
-
-[data-jp-theme-light='false'] .common-canvas img#toolbar-icon-clear {
-  background: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2222%22%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20style%3D%22%22%3E%3Crect%20id%3D%22backgroundrect%22%20width%3D%22100%25%22%20height%3D%22100%25%22%20x%3D%220%22%20y%3D%220%22%20fill%3D%22none%22%20stroke%3D%22none%22%2F%3E%3Cg%20class%3D%22currentLayer%22%20style%3D%22%22%3E%3Ctitle%3ELayer%201%3C%2Ftitle%3E%3Cpath%20d%3D%22M5.661999791383743%2C22.000001668930054%20l-5.369%2C-5.365%20c-0.19500000000000003%2C-0.19500000000000003%20-0.29300000000000004%2C-0.45%20-0.29300000000000004%2C-0.7070000000000001%20c0%2C-0.256%200.09800000000000003%2C-0.512%200.29300000000000004%2C-0.7070000000000001%20l14.929%2C-14.928%20c0.19500000000000003%2C-0.19400000000000003%200.451%2C-0.29300000000000004%200.7070000000000001%2C-0.29300000000000004%20c0.255%2C0%200.512%2C0.09900000000000003%200.7070000000000001%2C0.29300000000000004%20l7.071%2C7.073%20c0.19600000000000004%2C0.19500000000000003%200.29300000000000004%2C0.451%200.29300000000000004%2C0.7080000000000001%20c0%2C0.256%20-0.09700000000000003%2C0.511%20-0.29300000000000004%2C0.7070000000000001%20l-11.216%2C11.219%20h5.514%20v2%20h-12.343%20zm3.657%2C-2%20l-5.486%2C-5.486%20l-1.419%2C1.4140000000000001%20l4.076%2C4.072%20h2.829%20zm6.605%2C-17.581%20l-10.677%2C10.68%20l5.658%2C5.659%20l10.676%2C-10.682%20l-5.657%2C-5.657%20z%22%20id%3D%22svg_1%22%20class%3D%22selected%22%20fill-opacity%3D%221%22%20fill%3D%22%23f4f4f4%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E');
-  background-size: 16px 16px;
-  display: block;
-  box-sizing: border-box;
-  width: 16px;
-  height: 16px;
-  padding-left: 16px;
-}
-
 .list-item-containers .list-item:hover {
   background-color: var(--ui-03);
 }
