@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FormGroup, Intent } from '@blueprintjs/core';
+import { FormGroup, Intent, ResizeSensor } from '@blueprintjs/core';
 
 import { FrontendServices, IDictionary } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
@@ -349,9 +349,13 @@ export class MetadataEditor extends ReactWidget {
           intent={this.schema[fieldName].uihints.intent}
           helperText={helperText}
         >
-          <div>
-            <div id={'code:' + this.id} className="elyra-form-code"></div>
-          </div>
+          <ResizeSensor
+            onResize={(): void => {
+              this.editor.refresh();
+            }}
+          >
+            <div id={'code:' + this.id} className="elyra-form-code va-va"></div>
+          </ResizeSensor>
         </FormGroup>
       );
     } else {

@@ -23,14 +23,13 @@
 }
 
 .elyra-metadataEditor {
-  margin: 20px;
+  padding: 20px;
   display: flex;
   flex-wrap: wrap;
   height: 100%;
   align-content: flex-start;
   align-items: flex-start;
   justify-content: flex-start;
-  overflow-y: auto;
 }
 
 .elyra-metadataEditor h3 {
@@ -45,16 +44,16 @@
 
 .elyra-metadataEditor .elyra-form-code.jp-CodeMirrorEditor {
   background-color: var(--jp-cell-editor-background);
+  border: var(--jp-border-width) solid var(--jp-input-border-color);
+  overflow-y: auto;
+  resize: vertical;
+  height: 200px;
+  padding-bottom: 10px;
 }
 
 .elyra-metadataEditor .CodeMirror.cm-s-jupyter {
   background-color: inherit;
-  line-height: var(--jp-code-line-height);
-  font-size: var(--jp-code-font-size);
-  font-family: var(--jp-code-font-family);
-  border: 0;
-  border-radius: 0;
-  height: auto;
+  height: 100%;
 }
 
 .elyra-metadataEditor .bp3-form-group.elyra-metadataEditor-code {
@@ -67,18 +66,13 @@
   height: 100%;
 }
 
-.elyra-metadataEditor-code .bp3-form-content > div:first-of-type {
-  background-color: var(--jp-cell-editor-background);
-  overflow-y: auto;
-  min-height: 100px;
-  max-height: calc(100vh - 400px);
-  resize: vertical;
-  border: var(--jp-border-width) solid var(--jp-input-border-color);
-}
-
 .bp3-dark .bp3-input {
   border: var(--jp-border-width) solid var(--jp-input-border-color);
   color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadata-editor {
+  overflow-y: auto;
 }
 
 .elyra-metadata-editor.bp3-dark {
