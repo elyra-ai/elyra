@@ -145,8 +145,9 @@ def test_install_and_replace(script_runner, mock_data_dir):
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success is False
-    assert "The following exception occurred saving metadata instance 'test-metadata_42_valid-name'" \
-           " for schema 'metadata-test':" in ret.stdout
+    assert ret.stdout == ''
+    assert "An instance named 'test-metadata_42_valid-name' already exists in the metadata-tests " \
+           "namespace" in ret.stderr
 
     # Re-attempt with replace flag - success expected
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
@@ -317,10 +318,8 @@ def test_remove_missing(script_runner):
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=missing')
     assert ret.success is False
-    assert ret.stdout.startswith("[Errno 2] No such metadata instance found in namespace '{}': 'missing'".
-                                 format(METADATA_TEST_NAMESPACE))
-
-    assert ret.stderr == ''
+    assert ret.stdout == ''
+    assert "No such instance named 'missing' was found in the metadata-tests namespace." in ret.stderr
 
     # Now cleanup original instance.
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=valid')

@@ -23,6 +23,7 @@ from traitlets import Type
 from traitlets.config import LoggingConfigurable
 from typing import List
 
+from .error import SchemaNotFoundError
 from .metadata import Metadata
 from .schema import SchemaManager
 from .storage import MetadataStore, FileMetadataStore
@@ -84,7 +85,6 @@ class MetadataManager(LoggingConfigurable):
                 if include_invalid:
                     metadata.reason = ex.__class__.__name__
                     instances.append(metadata)
-
         return instances
 
     def get(self, name: str) -> Metadata:
@@ -106,7 +106,7 @@ class MetadataManager(LoggingConfigurable):
 
     def remove(self, name: str) -> None:
         """Removes the metadata instance corresponding to the given name"""
-        self.log.info("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
+        self.log.debug("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
         self.metadata_store.delete_instance(name)
 
     def validate(self, name: str, metadata: Metadata) -> None:
@@ -118,19 +118,17 @@ class MetadataManager(LoggingConfigurable):
         metadata_dict = metadata.to_dict(trim=True)
         schema_name = metadata_dict.get('schema_name')
         if not schema_name:
-            raise ValidationError("Metadata instance '{}' in namespace '{}' is missing a 'schema_name' field!".
-                                  format(name, self.namespace))
+            raise ValueError("Instance '{}' in the {} namespace is missing a 'schema_name' field!".
+                             format(name, self.namespace))
 
         schema = self._get_schema(schema_name)  # returns a value or throws
-
-        self.log.debug("Validating metadata resource '{}' against schema '{}'...".format(name, schema_name))
         try:
             validate(instance=metadata_dict, schema=schema, format_checker=draft7_format_checker)
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
             first_line = str(ve).partition('\n')[0]
-            msg = "Schema validation failed for metadata '{}' in namespace '{}' with error: {}.".\
-                format(name, self.namespace, first_line)
+            msg = "Validation failed for instance '{}' using the {} schema with error: {}.".\
+                format(name, schema_name, first_line)
             self.log.error(msg)
             raise ValidationError(msg) from ve
 
@@ -156,9 +154,9 @@ class MetadataManager(LoggingConfigurable):
         if schema_json is None:
             schema_file = os.path.join(os.path.dirname(__file__), 'schemas', schema_name + '.json')
             if not os.path.exists(schema_file):
-                raise ValidationError("Metadata schema file '{}' is missing!".format(schema_file))
-
-            self.log.debug("Loading metadata schema from: '{}'".format(schema_file))
+                self.log.error("The file for schema '{}' is missing from its expected location: '{}'".
+                               format(schema_name, schema_file))
+                raise SchemaNotFoundError("The file for schema '{}' is missing!".format(schema_name))
             with io.open(schema_file, 'r', encoding='utf-8') as f:
                 schema_json = json.load(f)
             self.schema_mgr.add_schema(self.namespace, schema_name, schema_json)
