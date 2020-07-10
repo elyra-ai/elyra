@@ -76,14 +76,12 @@ class NamespaceList(NamespaceBase):
             print("No metadata instances found for {}".format(self.namespace))
             return
 
-        validity_clause = "includes invalid" if include_invalid else "valid only"
-        print("Available metadata instances for {} ({}):".format(self.namespace, validity_clause))
         if self.json_flag.value:
-            print()
-            [print('Instance: {} {}\n{}'.
-                   format(rt.name, "**INVALID**" if rt.reason and len(rt.reason) > 0 else "", rt.to_json()))
-             for rt in metadata_instances]
+            print(metadata_instances)
         else:
+            validity_clause = "includes invalid" if include_invalid else "valid only"
+            print("Available metadata instances for {} ({}):".format(self.namespace, validity_clause))
+
             sorted_instances = sorted(metadata_instances, key=lambda inst: (inst.schema_name, inst.name))
             # pad to width of longest instance
             max_schema_name_len = len('Schema')
