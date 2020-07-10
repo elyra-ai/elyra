@@ -69,3 +69,6 @@ class Metadata(object):
         prepared = self.to_dict(trim=True)  # we should also trim 'name' when storing
         prepared.pop('name', None)
         return prepared
+
+    def __repr__(self):
+        return self.to_json()

@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Code Snippet metadata",
   "name": "code-snippet",
+  "display_name": "Code Snippet",
   "namespace": "code-snippets",
   "properties": {
     "schema_name": {

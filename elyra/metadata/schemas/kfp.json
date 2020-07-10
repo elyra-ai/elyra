@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Kubeflow Pipeline runtime metadata",
   "name": "kfp",
+  "display_name": "KFP",
   "namespace": "runtimes",
   "properties": {
     "schema_name": {

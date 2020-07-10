@@ -180,7 +180,7 @@ def test_manager_get_include_invalid(tests_manager):
 def test_manager_get_bad_json(tests_manager):
     with pytest.raises(ValueError) as ve:
         tests_manager.get("bad")
-    assert "JSON failed to load for metadata 'bad'" in str(ve.value)
+    assert "JSON failed to load for instance 'bad'" in str(ve.value)
 
 
 def test_manager_get_all(tests_manager):
@@ -228,7 +228,7 @@ def test_manager_add_remove_valid(tests_manager, namespace_location):
     assert instance is not None
 
     # Attempt to create again w/o replace, then replace it.
-    with pytest.raises(FileExistsError):
+    with pytest.raises(MetadataExistsError):
         tests_manager.create(metadata_name, metadata)
 
     instance = tests_manager.update(metadata_name, metadata)
@@ -376,7 +376,7 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, namespace_location):
 
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
-    with pytest.raises(FileExistsError):
+    with pytest.raises(MetadataExistsError):
         tests_hierarchy_manager.create('byo_2', metadata)
 
     instance = tests_hierarchy_manager.update('byo_2', metadata)
@@ -425,7 +425,7 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_location, sha
     assert byo_2.resource.startswith(str(factory_location))
 
     byo_2.display_name = 'user'
-    with pytest.raises(FileExistsError):
+    with pytest.raises(MetadataExistsError):
         tests_hierarchy_manager.create('byo_2', byo_2)
 
     # Repeat with replacement enabled
@@ -546,7 +546,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
     # Attempt to remove instance from shared area and its protected
     with pytest.raises(PermissionError) as pe:
         tests_hierarchy_manager.remove('byo_2')
-    assert "Removal of metadata instance" in str(pe.value)
+    assert "Removal of instance 'byo_2'" in str(pe.value)
 
     # Ensure the one that exists is the one in the shared area
     byo_2 = tests_hierarchy_manager.get('byo_2')
@@ -555,7 +555,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
     # Attempt to remove instance from factory area and its protected as well
     with pytest.raises(PermissionError) as pe:
         tests_hierarchy_manager.remove('byo_1')
-    assert "Removal of metadata instance" in str(pe.value)
+    assert "Removal of instance 'byo_1'" in str(pe.value)
 
     byo_1 = tests_hierarchy_manager.get('byo_1')
     assert byo_1.resource.startswith(str(factory_location))
@@ -628,7 +628,7 @@ def test_store_store_instance(store_manager, namespace_location):
             assert valid_add['schema_name'] == "metadata-test"
 
     # Attempt to create again w/o replace, then replace it.
-    with pytest.raises(FileExistsError):
+    with pytest.raises(MetadataExistsError):
         store_manager.store_instance(metadata_name, metadata.prepare_write())
 
     metadata.metadata['number_range_test'] = 10
@@ -696,11 +696,7 @@ def test_error_metadata_not_found():
     try:
         raise MetadataNotFoundError(namespace, resource)
     except MetadataNotFoundError as mnfe:
-        assert isinstance(mnfe, MetadataNotFoundError)
-        assert mnfe.filename == resource
-        assert mnfe.strerror == "No such metadata instance found in namespace '{}'".format(namespace)
-        assert str(mnfe) == "[Errno 2] No such metadata instance found in namespace '{}': '{}'".\
-            format(namespace, resource)
+        assert str(mnfe) == "No such instance named '{}' was found in the {} namespace.".format(resource, namespace)
 
 
 def test_error_metadata_exists():
@@ -709,11 +705,7 @@ def test_error_metadata_exists():
     try:
         raise MetadataExistsError(namespace, resource)
     except MetadataExistsError as mee:
-        assert isinstance(mee, MetadataExistsError)
-        assert mee.filename == resource
-        assert mee.strerror == "Metadata instance already exists in namespace '{}'".format(namespace)
-        assert str(mee) == "[Errno 17] Metadata instance already exists in namespace '{}': '{}'".\
-            format(namespace, resource)
+        assert str(mee) == "An instance named '{}' already exists in the {} namespace.".format(resource, namespace)
 
 
 def test_error_schema_not_found():
@@ -722,11 +714,7 @@ def test_error_schema_not_found():
     try:
         raise SchemaNotFoundError(namespace, resource)
     except SchemaNotFoundError as snfe:
-        assert isinstance(snfe, SchemaNotFoundError)
-        assert snfe.filename == resource
-        assert snfe.strerror == "No such schema instance found in namespace '{}'".format(namespace)
-        assert str(snfe) == "[Errno 2] No such schema instance found in namespace '{}': '{}'".\
-            format(namespace, resource)
+        assert str(snfe) == "No such schema named '{}' was found in the {} namespace.".format(resource, namespace)
 
 
 def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, expected_count=1):
