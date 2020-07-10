@@ -64,7 +64,7 @@ export class CodeSnippetService {
     return codeSnippetsByLanguage;
   }
 
-  static deleteCodeSnippet(codeSnippet: ICodeSnippet): Promise<void> {
+  static deleteCodeSnippet(codeSnippet: ICodeSnippet): Promise<boolean> {
     return showDialog({
       title: `Delete snippet: ${codeSnippet.displayName}?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
@@ -75,6 +75,9 @@ export class CodeSnippetService {
           CODE_SNIPPET_NAMESPACE,
           codeSnippet.name
         );
+        return true;
+      } else {
+        return false;
       }
     });
   }
