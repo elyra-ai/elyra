@@ -65,13 +65,8 @@ export const trashIcon = new LabIcon({
  * A utilities class for handling LabIcons.
  */
 export class IconUtil {
-  static encode(icon: LabIcon, darkTheme?: boolean): string {
-    return (
-      'data:image/svg+xml;utf8,' +
-      encodeURIComponent(
-        darkTheme ? this.colorize(icon, '#f4f4f4').svgstr : icon.svgstr
-      )
-    );
+  static encode(icon: LabIcon): string {
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(icon.svgstr);
   }
 
   static colorize(
@@ -92,7 +87,7 @@ export class IconUtil {
     }
 
     return new LabIcon({
-      name: `${icon.name}:color`,
+      name: `${icon.name}:${fillColor || ''}:${strokeColor || ''}`,
       svgstr: svgstr
     });
   }
