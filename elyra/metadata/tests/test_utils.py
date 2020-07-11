@@ -19,7 +19,7 @@ import json
 import os
 
 from jsonschema import ValidationError
-from elyra.metadata import METADATA_TEST_NAMESPACE, MetadataStore, FileMetadataStore, \
+from elyra.metadata import METADATA_TEST_NAMESPACE, Metadata, MetadataStore, FileMetadataStore, \
     MetadataNotFoundError, MetadataExistsError
 from typing import Optional, List, Any
 
@@ -227,7 +227,9 @@ class PropertyTester(object):
 
 
 class MockMetadataStore(MetadataStore):
-    def __init__(self, namespace, **kwargs):
+    """Hypothetical class used to demonstrate (and test) use of custom storage classes."""
+
+    def __init__(self, namespace: str, **kwargs: Any) -> None:
         super().__init__(namespace, **kwargs)
         self.instances = None
 
@@ -276,8 +278,51 @@ class MockMetadataStore(MetadataStore):
         instance = self.fetch_instances(name)  # confirm persistence
         return instance[0]
 
-    def delete_instance(self, name: str) -> None:
-        """Deletes the metadata instance corresponding to the given name."""
-
-        self.fetch_instances(name)  # confirm it exists
+    def delete_instance(self, metadata: dict) -> None:
+        """Deletes the metadata instance."""
+        name = metadata.get('name')
         self.instances.pop(name)
+
+
+class MockMetadataTest(Metadata):
+    """Hypothetical class used to demonstrate (and test) use of custom instance classes.
+
+    This class name is referenced in the metadata-test schema.
+    """
+    for_update = None
+    special_property = None
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.for_update = kwargs.get('for_update')
+        self.special_property = kwargs.get('special_property')
+
+    def to_dict(self, trim: bool = False) -> dict:
+        d = super().to_dict(trim=trim)
+        if self.for_update is not None:
+            d['for_update'] = self.for_update
+        if self.special_property is not None:
+            d['special_property'] = self.special_property
+        return d
+
+    def post_load(self, **kwargs: Any) -> None:
+        super().post_load(**kwargs)
+        self.special_property = self.display_name
+
+    def pre_save(self, **kwargs: Any) -> None:
+        super().pre_save(**kwargs)
+        self.for_update = kwargs['for_update']
+        self.special_property = self.metadata['required_test']
+
+    def pre_delete(self, **kwargs: Any) -> None:
+        super().pre_delete(**kwargs)
+        self.special_property = self.display_name
+
+
+class MockMetadataTestInvalid(object):
+    """Invalid metadata instance class that doesn't derive from Metadata.
+
+    This requires an update to schema and is only used for manual testing.
+    """
+    def __init__(self, **kwargs: Any) -> None:
+        pass

@@ -21,7 +21,7 @@ import re
 from jsonschema import validate, ValidationError, draft7_format_checker
 from traitlets import Type
 from traitlets.config import LoggingConfigurable
-from typing import List
+from typing import List, Any
 
 from .error import SchemaNotFoundError
 from .metadata import Metadata
@@ -42,7 +42,7 @@ class MetadataManager(LoggingConfigurable):
                                 help="""The metadata store class.  This is configurable to allow subclassing of
                                 the MetadataStore for customized behavior.""")
 
-    def __init__(self, namespace: str, **kwargs):
+    def __init__(self, namespace: str, **kwargs: Any):
         """
         Generic object to manage metadata instances.
         :param namespace (str): the partition where metadata instances are stored
@@ -68,17 +68,17 @@ class MetadataManager(LoggingConfigurable):
         instance_list = self.metadata_store.fetch_instances(include_invalid=include_invalid)
         for metadata_dict in instance_list:
             # validate the instance prior to return, include invalid instances as appropriate
-            metadata = Metadata.from_dict(metadata_dict)
+            metadata = Metadata.from_dict(self.namespace, metadata_dict)
+            metadata.post_load()  # Allow class instances to handle loads
             try:
                 # if we're including invalid and there was an issue on retrieval, add it to the list
                 if include_invalid and metadata.reason:
                     # If no schema-name is present, set to '{unknown}' since we can't make that determination.
                     if not metadata.schema_name:
                         metadata.schema_name = '{unknown}'
-                    instances.append(metadata)
                 else:  # go ahead and validate against the schema
                     self.validate(metadata.name, metadata)
-                    instances.append(metadata)
+                instances.append(metadata)
             except Exception as ex:  # Ignore ValidationError and others when fetching all instances
                 self.log.debug("Fetch of instance '{}' of namespace '{}' encountered an exception: {}".
                                format(metadata.name, self.namespace, ex))
@@ -91,7 +91,9 @@ class MetadataManager(LoggingConfigurable):
         """Returns the metadata instance corresponding to the given name"""
         instance_list = self.metadata_store.fetch_instances(name=name)
         metadata_dict = instance_list[0]
-        metadata = Metadata.from_dict(metadata_dict)
+        metadata = Metadata.from_dict(self.namespace, metadata_dict)
+        metadata.post_load()  # Allow class instances to handle loads
+
         # validate the instance prior to return...
         self.validate(name, metadata)
         return metadata
@@ -106,8 +108,16 @@ class MetadataManager(LoggingConfigurable):
 
     def remove(self, name: str) -> None:
         """Removes the metadata instance corresponding to the given name"""
+
+        instance_list = self.metadata_store.fetch_instances(name=name)
+        metadata_dict = instance_list[0]
+
         self.log.debug("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
-        self.metadata_store.delete_instance(name)
+
+        metadata = Metadata.from_dict(self.namespace, metadata_dict)
+        metadata.pre_delete()  # Allow class instances to handle delete
+
+        self.metadata_store.delete_instance(metadata_dict)
 
     def validate(self, name: str, metadata: Metadata) -> None:
         """Validate metadata against its schema.
@@ -115,7 +125,7 @@ class MetadataManager(LoggingConfigurable):
         Ensure metadata is valid based on its schema.  If invalid or schema
         is not found, ValidationError will be raised.
         """
-        metadata_dict = metadata.to_dict(trim=True)
+        metadata_dict = metadata.to_dict()
         schema_name = metadata_dict.get('schema_name')
         if not schema_name:
             raise ValueError("Instance '{}' in the {} namespace is missing a 'schema_name' field!".
@@ -185,5 +195,10 @@ class MetadataManager(LoggingConfigurable):
 
         # Validate the metadata prior to storage then store the instance.
         self.validate(name, metadata)
+
+        # Allow class instances to handle saves
+        metadata.pre_save(for_update=for_update)
+
         metadata_dict = self.metadata_store.store_instance(name, metadata.prepare_write(), for_update=for_update)
-        return Metadata.from_dict(metadata_dict)
+
+        return Metadata.from_dict(self.namespace, metadata_dict)

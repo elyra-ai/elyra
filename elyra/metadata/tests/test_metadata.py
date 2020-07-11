@@ -85,7 +85,7 @@ def test_manager_add_invalid(tests_manager):
 def test_manager_add_no_name(tests_manager, namespace_location):
     metadata_name = 'valid_metadata_instance'
 
-    metadata = Metadata(**valid_metadata_json)
+    metadata = Metadata.from_dict(METADATA_TEST_NAMESPACE, {**valid_metadata_json})
     instance = tests_manager.create(None, metadata)
 
     assert instance is not None
@@ -94,9 +94,10 @@ def test_manager_add_no_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = Metadata.from_dict(instance_list[0])
+    instance = Metadata.from_dict(METADATA_TEST_NAMESPACE, instance_list[0])
     metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
     assert instance.resource == metadata_location
+    assert instance.special_property == instance.metadata['required_test']
 
     # And finally, remove it.
     tests_manager.remove(metadata_name)
@@ -118,7 +119,7 @@ def test_manager_add_short_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = Metadata.from_dict(instance_list[0])
+    instance = Metadata.from_dict(METADATA_TEST_NAMESPACE, instance_list[0])
     metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
     assert instance.resource == metadata_location
 
@@ -157,7 +158,7 @@ def test_manager_add_display_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = Metadata.from_dict(instance_list[0])
+    instance = Metadata.from_dict(METADATA_TEST_NAMESPACE, instance_list[0])
     metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
     assert instance.resource == metadata_location
     assert instance.display_name == metadata_display_name
@@ -334,7 +335,7 @@ def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_location, shar
     assert byo_2.resource.startswith(str(namespace_location))
 
     # delete the user instance and ensure its shared copy is now exposed
-    tests_hierarchy_manager.metadata_store.delete_instance('byo_2')
+    tests_hierarchy_manager.metadata_store.delete_instance(byo_2.to_dict())
 
     metadata_list = tests_hierarchy_manager.get_all()
     assert len(metadata_list) == 3
@@ -455,18 +456,22 @@ def test_manager_update(tests_hierarchy_manager, namespace_location):
     # and ensure the previous copy still exists...
 
     # Create a user instance...
-    metadata = Metadata(**byo_metadata_json)
+    metadata = Metadata.from_dict(METADATA_TEST_NAMESPACE, {**byo_metadata_json})
     metadata.display_name = 'user1'
     instance = tests_hierarchy_manager.create('update', metadata)
     assert instance is not None
     assert instance.resource.startswith(str(namespace_location))
+    assert instance.for_update is False
+    assert instance.special_property == instance.metadata['required_test']
 
     # Now update the user instance - add a field - and ensure that the original renamed file is not present.
 
     instance2 = tests_hierarchy_manager.get('update')
     instance2.display_name = 'user2'
     instance2.metadata['number_range_test'] = 7
-    tests_hierarchy_manager.update('update', instance2)
+    instance = tests_hierarchy_manager.update('update', instance2)
+    assert instance.for_update is True
+    assert instance.special_property == instance.metadata['required_test']
 
     _ensure_single_instance(tests_hierarchy_manager, namespace_location, "update.json")
 
@@ -639,8 +644,9 @@ def test_store_store_instance(store_manager, namespace_location):
 
 def test_store_delete_instance(store_manager, namespace_location):
     metadata_name = 'valid'
-
-    store_manager.delete_instance(metadata_name)
+    instance_list = store_manager.fetch_instances(name=metadata_name)
+    metadata = instance_list[0]
+    store_manager.delete_instance(metadata)
 
     with pytest.raises(MetadataNotFoundError):
         store_manager.fetch_instances(name=metadata_name)

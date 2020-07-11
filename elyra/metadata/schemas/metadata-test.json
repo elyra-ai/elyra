@@ -4,6 +4,7 @@
   "name": "metadata-test",
   "display_name": "Metadata Test",
   "namespace": "metadata-tests",
+  "metadata_class_name": "elyra.metadata.tests.MockMetadataTest",
   "properties": {
     "schema_name": {
       "type": "string",

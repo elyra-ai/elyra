@@ -191,6 +191,10 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert r.status_code == 201
         assert r.headers.get('location') == r.request.path_url + '/valid'
         metadata = r.json()
+        # Add expected "extra" fields to 'valid' so whole-object comparison is satisfied.
+        # These are added during the pre_save() hook on the MockMetadataTest class instance.
+        valid['for_update'] = False
+        valid['special_property'] = valid['metadata']['required_test']
         assert metadata == valid
 
     def test_create_hierarchy_instance(self):
