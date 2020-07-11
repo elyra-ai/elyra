@@ -86,9 +86,11 @@ export class IconUtil {
       );
     }
 
-    return new LabIcon({
-      name: `${icon.name}:${fillColor || ''}:${strokeColor || ''}`,
-      svgstr: svgstr
+    return LabIcon.resolve({
+      icon: {
+        name: `${icon.name}:${fillColor || ''}:${strokeColor || ''}`,
+        svgstr: svgstr
+      }
     });
   }
 }
