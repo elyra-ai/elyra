@@ -49,6 +49,7 @@
   resize: vertical;
   height: 200px;
   padding-bottom: 10px;
+  cursor: initial;
 }
 
 .elyra-metadataEditor .CodeMirror.cm-s-jupyter {
