@@ -47,7 +47,8 @@
   border: var(--jp-border-width) solid var(--jp-input-border-color);
   overflow-y: auto;
   resize: vertical;
-  height: 200px;
+  min-height: 150px;
+  height: 150px;
   padding-bottom: 10px;
   cursor: initial;
 }
