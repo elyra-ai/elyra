@@ -33,7 +33,7 @@ def valid_operation():
 
 
 def test_valid_pipeline(valid_operation):
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
@@ -45,7 +45,7 @@ def test_valid_pipeline(valid_operation):
 
 
 def test_missing_primary():
-    pipeline_definitions = _read_pipeline_resource('pipeline_invalid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
     pipeline_definitions.pop('primary_pipeline')
 
     with pytest.raises(ValueError):
@@ -53,7 +53,7 @@ def test_missing_primary():
 
 
 def test_missing_pipelines():
-    pipeline_definitions = _read_pipeline_resource('pipeline_invalid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
     pipeline_definitions.pop('pipelines')
 
     with pytest.raises(ValueError):
@@ -61,7 +61,7 @@ def test_missing_pipelines():
 
 
 def test_missing_primary_id():
-    pipeline_definitions = _read_pipeline_resource('pipeline_invalid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
     # Replace pipeline id with non-matching guid so primary is not found
     pipeline_definitions['pipelines'][0]['id'] = "deadbeef-dead-beef-dead-beefdeadbeef"
 
@@ -70,7 +70,7 @@ def test_missing_primary_id():
 
 
 def test_zero_nodes():
-    pipeline_definitions = _read_pipeline_resource('pipeline_invalid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
     pipeline_definitions['pipelines'][0]['nodes'] = []
 
     with pytest.raises(ValueError):
@@ -78,7 +78,7 @@ def test_zero_nodes():
 
 
 def test_multinode_pipeline():
-    pipeline_definitions = _read_pipeline_resource('pipeline_3_node_sample.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_3_node_sample.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
@@ -86,7 +86,7 @@ def test_multinode_pipeline():
 
 
 def test_supernode_pipeline():
-    pipeline_definitions = _read_pipeline_resource('pipeline_with_supernode.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_with_supernode.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
@@ -123,14 +123,15 @@ def test_supernode_pipeline():
 
 
 def test_multiple_pipeline_definition():
-    pipeline_definitions = _read_pipeline_resource('pipeline_multiple_pipeline_definitions.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/'
+                                                   'pipeline_multiple_pipeline_definitions.json')
 
     with pytest.raises(ValueError):
         PipelineParser().parse(pipeline_definitions)
 
 
 def test_pipeline_operations_and_handle_artifact_file_details():
-    pipeline_definitions = _read_pipeline_resource('pipeline_3_node_sample.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_3_node_sample.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
@@ -141,7 +142,8 @@ def test_pipeline_operations_and_handle_artifact_file_details():
 
 
 def test_pipeline_with_dependencies():
-    pipeline_definitions = _read_pipeline_resource('pipeline_3_node_sample_with_dependencies.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/'
+                                                   'pipeline_3_node_sample_with_dependencies.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
@@ -149,7 +151,7 @@ def test_pipeline_with_dependencies():
 
 
 def test_pipeline_global_attributes():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
@@ -159,7 +161,7 @@ def test_pipeline_global_attributes():
 
 
 def test_missing_pipeline_name_should_default_to_untitled():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
     pipeline_definitions['pipelines'][0]['app_data'].pop('name')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
@@ -168,7 +170,7 @@ def test_missing_pipeline_name_should_default_to_untitled():
 
 
 def test_missing_pipeline_runtime():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
     pipeline_definitions['pipelines'][0]['app_data'].pop('runtime')
 
     with pytest.raises(ValueError) as e:
@@ -178,7 +180,7 @@ def test_missing_pipeline_runtime():
 
 
 def test_missing_pipeline_runtime_configuration():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
     pipeline_definitions['pipelines'][0]['app_data'].pop('runtime-config')
 
     with pytest.raises(ValueError) as e:
@@ -188,7 +190,7 @@ def test_missing_pipeline_runtime_configuration():
 
 
 def test_missing_operation_id():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
     pipeline_definitions['pipelines'][0]['nodes'][0].pop('id')
 
     with pytest.raises(ValueError) as e:
@@ -198,7 +200,7 @@ def test_missing_operation_id():
 
 
 def test_missing_operation_type():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
     pipeline_definitions['pipelines'][0]['nodes'][0].pop('type')
 
     with pytest.raises(ValueError) as e:
@@ -208,7 +210,7 @@ def test_missing_operation_type():
 
 
 def test_invalid_node_type():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
     pipeline_definitions['pipelines'][0]['nodes'][0]['type'] = 'foo'
 
     with pytest.raises(ValueError) as e:
@@ -218,7 +220,7 @@ def test_invalid_node_type():
 
 
 def test_missing_operation_filename():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
     pipeline_definitions['pipelines'][0]['nodes'][0]['app_data'].pop('filename')
 
     with pytest.raises(ValueError) as e:

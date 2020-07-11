@@ -21,8 +21,9 @@ class Operation(object):
     """
     Represents a single operation in a pipeline
     """
+
     def __init__(self, id, type, classifier, filename, runtime_image, dependencies=None,
-                 include_subdirectories=False, env_vars=None, inputs=None, outputs=None,
+                 include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
                  parent_operations=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -230,7 +231,8 @@ class Pipeline(object):
 
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
-            return self.name == other.name and \
-                self.runtime_type == other.runtime_type and \
+            return self.id == other.id and \
+                self.name == other.name and \
+                self.runtime == other.runtime and \
                 self.runtime_config == other.runtime_config and \
                 self.operations == other.operations
