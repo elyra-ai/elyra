@@ -77,17 +77,19 @@ class MetadataHandlerTest(MetadataTestBase):
 
     def test_missing_instance(self):
         # Validate missing is not found
-        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'missing',
+        name = 'missing'
+        r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, name,
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "No such metadata instance found in namespace '{}': 'missing'".format(METADATA_TEST_NAMESPACE) in r.text
+        assert "No such instance named '{}' was found in the {} namespace.".\
+               format(name, METADATA_TEST_NAMESPACE) in r.text
 
     def test_invalid_instance(self):
         # Validate invalid throws 404 with validation message
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, 'invalid',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 400
-        assert "Schema validation failed for metadata 'invalid'" in r.text
+        assert "Validation failed for instance 'invalid'" in r.text
 
     def test_valid_instance(self):
         # Ensure valid metadata can be found
@@ -189,6 +191,10 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         assert r.status_code == 201
         assert r.headers.get('location') == r.request.path_url + '/valid'
         metadata = r.json()
+        # Add expected "extra" fields to 'valid' so whole-object comparison is satisfied.
+        # These are added during the pre_save() hook on the MockMetadataTest class instance.
+        valid['for_update'] = False
+        valid['special_property'] = valid['metadata']['required_test']
         assert metadata == valid
 
     def test_create_hierarchy_instance(self):
@@ -227,7 +233,7 @@ class MetadataHandlerHierarchyTest(MetadataTestBase):
         r = fetch(self.request, 'elyra', 'metadata', METADATA_TEST_NAMESPACE, body=body,
                   method='POST', base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 400
-        assert "Schema validation failed for metadata" in r.text
+        assert "Validation failed for instance 'invalid'" in r.text
 
     def test_create_instance_missing_schema(self):
         """Attempt to create an instance using an invalid schema """
@@ -443,7 +449,7 @@ class SchemaHandlerTest(MetadataTestBase):
         r = fetch(self.request, 'elyra', 'schema', 'runtimes', 'missing',
                   base_url=self.base_url(), headers=self.auth_headers())
         assert r.status_code == 404
-        assert "No such schema instance found in namespace 'runtimes': 'missing'" in r.text
+        assert "No such schema named 'missing' was found in the runtimes namespace." in r.text
 
     def test_get_runtimes_schemas(self):
         # Ensure all schema for runtimes can be found
