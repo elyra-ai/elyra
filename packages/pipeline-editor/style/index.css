@@ -20,6 +20,10 @@
   text-align: center;
 }
 
+.elyra-tooltipWarning {
+  color: red;
+}
+
 .elyra-PipelineEditor .properties-modal {
   position: absolute;
 }

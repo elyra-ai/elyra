@@ -29,7 +29,8 @@ import {
   exportPipelineIcon,
   pipelineIcon,
   savePipelineIcon,
-  showFormDialog
+  showFormDialog,
+  warnIcon
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -78,10 +79,14 @@ const NodeProperties = (properties: any): React.ReactElement => {
         } else if (typeof value === 'boolean') {
           value = value ? 'Yes' : 'No';
         }
+        let tooltipTextClass = '';
+        if (key == 'Warning') {
+          tooltipTextClass = 'elyra-tooltipWarning';
+        }
         return (
           <React.Fragment key={idx}>
-            <dd>{key}</dd>
-            <dt>{value}</dt>
+            <dd className={tooltipTextClass}>{key}</dd>
+            <dt className={tooltipTextClass}>{value}</dt>
           </React.Fragment>
         );
       })}
@@ -333,13 +338,16 @@ export class PipelineEditor extends React.Component<
 
   applyPropertyChanges(propertySet: any, appData: any): void {
     console.log('Applying changes to properties');
-    const app_data = this.canvasController.getNode(appData.id).app_data;
+    const node = this.canvasController.getNode(appData.id);
+    const app_data = node.app_data;
 
     app_data.runtime_image = propertySet.runtime_image;
     app_data.outputs = propertySet.outputs;
     app_data.env_vars = propertySet.env_vars;
     app_data.dependencies = propertySet.dependencies;
     app_data.include_subdirectories = propertySet.include_subdirectories;
+    this.updateDecorations(node);
+    this.updateModel();
   }
 
   closePropertiesDialog(): void {
@@ -413,6 +421,9 @@ export class PipelineEditor extends React.Component<
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any): void {
+    if (data.editType == 'createNode') {
+      this.updateDecorations(data.newNode);
+    }
     this.updateModel();
   }
 
@@ -424,6 +435,10 @@ export class PipelineEditor extends React.Component<
       const appData = this.canvasController.getNode(data.node.id).app_data;
       const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
       const tooltipProps: any = {};
+
+      if (appData.invalidWarning != null) {
+        tooltipProps['Warning'] = appData.invalidWarning;
+      }
 
       propsInfo.forEach(
         (info: { parameter_ref: string; label: { default: string } }) => {
@@ -637,9 +652,52 @@ export class PipelineEditor extends React.Component<
         } else {
           // in this case, pipeline version is current
           this.canvasController.setPipelineFlow(pipelineJson);
+          for (const node of this.canvasController.getNodes()) {
+            this.updateDecorations(node);
+          }
         }
       }
     });
+  }
+
+  // Adds a warning decoration if a node has any invalid properties.
+  updateDecorations(node: any): void {
+    node.app_data.invalidWarning = this.invalidProperties(node);
+    if (node.app_data.invalidWarning != null) {
+      this.canvasController.setNodeDecorations(node.id, [
+        {
+          id: 'warning',
+          image: IconUtil.encode(warnIcon),
+          outline: false,
+          class_name: 'elyra-canvasWarnIcon',
+          position: 'topRight',
+          x_pos: -30,
+          y_pos: -5
+        }
+      ]);
+    } else {
+      this.canvasController.setNodeDecorations(node.id, []);
+    }
+  }
+
+  /**
+   * Validates the properties of a given node.
+   *
+   * @param node: node to check properties for
+   *
+   * @returns a warning message to display in the tooltip
+   * if there are invalid properties. If there are none,
+   * returns null.
+   */
+  invalidProperties(node: any): string {
+    if (
+      node.app_data.runtime_image == null ||
+      node.app_data.runtime_image == ''
+    ) {
+      return 'Invalid node: no runtime image.';
+    } else {
+      return null;
+    }
   }
 
   async handleRunPipeline(): Promise<void> {
