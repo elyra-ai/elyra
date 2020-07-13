@@ -157,9 +157,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     const updateTheme = (widget: any): void => {
-      const pipelineEditor = widget.content;
-      pipelineEditor.themeChanged(themeManager.isLight(themeManager.theme));
+      widget.content.themeChanged(themeManager.isLight(themeManager.theme));
     };
+
     if (themeManager) {
       themeManager.themeChanged.connect((): void => {
         tracker.forEach(widget => updateTheme(widget));

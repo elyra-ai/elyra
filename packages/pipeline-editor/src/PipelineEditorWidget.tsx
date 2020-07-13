@@ -41,7 +41,7 @@ import {
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { notebookIcon, LabIcon } from '@jupyterlab/ui-components';
+import { notebookIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
@@ -71,11 +71,6 @@ const TIP_TYPE_NODE = 'tipTypeNode';
 const SAVE_ICON_ID = 'toolbar-icon-save';
 const EXPORT_ICON_ID = 'toolbar-icon-export';
 const CLEAR_ICON_ID = 'toolbar-icon-clear';
-
-const getEncodedIcon = (icon: LabIcon, darkTheme: boolean): string => {
-  const themedIcon = darkTheme ? IconUtil.colorize(icon, '#f4f4f4') : icon;
-  return IconUtil.encode(themedIcon);
-};
 
 const NodeProperties = (properties: any): React.ReactElement => {
   return (
@@ -126,13 +121,13 @@ export class PipelineEditorWidget extends ReactWidget {
       if (element) {
         switch (element.id) {
           case SAVE_ICON_ID:
-            element.src = getEncodedIcon(savePipelineIcon, !isLight);
+            element.src = Utils.getEncodedIcon(savePipelineIcon, !isLight);
             break;
           case EXPORT_ICON_ID:
-            element.src = getEncodedIcon(exportPipelineIcon, !isLight);
+            element.src = Utils.getEncodedIcon(exportPipelineIcon, !isLight);
             break;
           case CLEAR_ICON_ID:
-            element.src = getEncodedIcon(clearPipelineIcon, !isLight);
+            element.src = Utils.getEncodedIcon(clearPipelineIcon, !isLight);
             break;
         }
       }
@@ -245,22 +240,22 @@ export class PipelineEditor extends React.Component<
         action: 'save',
         label: 'Save Pipeline',
         enable: true,
-        iconEnabled: getEncodedIcon(savePipelineIcon, darkmode),
-        iconDisabled: getEncodedIcon(savePipelineIcon, darkmode)
+        iconEnabled: Utils.getEncodedIcon(savePipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(savePipelineIcon, darkmode)
       },
       {
         action: 'export',
         label: 'Export Pipeline',
         enable: true,
-        iconEnabled: getEncodedIcon(exportPipelineIcon, darkmode),
-        iconDisabled: getEncodedIcon(exportPipelineIcon, darkmode)
+        iconEnabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode)
       },
       {
         action: 'clear',
         label: 'Clear Pipeline',
         enable: true,
-        iconEnabled: getEncodedIcon(clearPipelineIcon, darkmode),
-        iconDisabled: getEncodedIcon(clearPipelineIcon, darkmode)
+        iconEnabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
       },
       { divider: true },
       { action: 'undo', label: 'Undo', enable: true },

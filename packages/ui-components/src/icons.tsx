@@ -71,7 +71,7 @@ export class IconUtil {
 
   static colorize(
     icon: LabIcon,
-    fillColor: string,
+    fillColor?: string,
     strokeColor?: string
   ): LabIcon {
     let svgstr = icon.svgstr;
@@ -88,7 +88,9 @@ export class IconUtil {
 
     return LabIcon.resolve({
       icon: {
-        name: `${icon.name}:${fillColor || ''}:${strokeColor || ''}`,
+        name: `${icon.name}${fillColor ? ':' + fillColor : ''}${
+          strokeColor ? ':' + strokeColor : ''
+        }`,
         svgstr: svgstr
       }
     });
