@@ -3,10 +3,10 @@
 }
 
 .elyra-metadataEditor .bp3-form-group {
-  width: 40%;
-  float: left;
   margin-bottom: 12px;
   margin-right: 20px;
+  flex-basis: 40%;
+  height: 65px;
 }
 
 .bp3-select-popover {
@@ -23,14 +23,18 @@
 }
 
 .elyra-metadataEditor {
-  margin: 20px;
+  padding: 20px;
   display: flex;
   flex-wrap: wrap;
+  height: 100%;
+  align-content: flex-start;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .elyra-metadataEditor h3 {
-  width: 100%;
-  margin-bottom: 10px;
+  flex-basis: 100%;
+  margin-bottom: 15px;
   color: var(--jp-ui-font-color1);
 }
 
@@ -38,23 +42,39 @@
   color: var(--jp-ui-font-color1);
 }
 
-.elyra-metadataEditor .CodeMirror-wrap {
-  background-color: inherit;
-  box-shadow: inset 0 0 0 var(--jp-border-width) var(--jp-input-border-color);
-  font-family: var(--jp-code-font-family);
-  font-size: var(--jp-code-font-size);
-  line-height: var(--jp-code-line-height);
-  height: 100%;
-  width: 100%;
+.elyra-metadataEditor .elyra-form-code.jp-CodeMirrorEditor {
+  background-color: var(--jp-cell-editor-background);
+  border: var(--jp-border-width) solid var(--jp-input-border-color);
+  overflow-y: auto;
   resize: vertical;
-  white-space: pre;
-  word-wrap: normal;
-  overflow: scroll;
+  min-height: 150px;
+  height: 150px;
+  padding-bottom: 10px;
+  cursor: initial;
+}
+
+.elyra-metadataEditor .CodeMirror.cm-s-jupyter {
+  background-color: inherit;
+  height: 100%;
+}
+
+.elyra-metadataEditor .bp3-form-group.elyra-metadataEditor-code {
+  height: auto;
+  flex-basis: 100%;
+  display: flex;
+}
+
+.elyra-metadataEditor-code .bp3-form-content {
+  height: 100%;
 }
 
 .bp3-dark .bp3-input {
   border: var(--jp-border-width) solid var(--jp-input-border-color);
   color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadata-editor {
+  overflow-y: auto;
 }
 
 .elyra-metadata-editor.bp3-dark {
