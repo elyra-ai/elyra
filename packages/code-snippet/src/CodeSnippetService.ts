@@ -64,6 +64,15 @@ export class CodeSnippetService {
     return codeSnippetsByLanguage;
   }
 
+  /**
+   * Opens a dialog to confirm that the given code snippet
+   * should be deleted, then sends a delete request to the metadata server.
+   *
+   * @param codeSnippet: code snippet to be deleted
+   *
+   * @returns A boolean promise that is true if the dialog confirmed
+   * the deletion, and false if the deletion was cancelled.
+   */
   static deleteCodeSnippet(codeSnippet: ICodeSnippet): Promise<boolean> {
     return showDialog({
       title: `Delete snippet: ${codeSnippet.displayName}?`,

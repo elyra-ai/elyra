@@ -212,8 +212,8 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         icon: trashIcon,
         onClick: (): void => {
           CodeSnippetService.deleteCodeSnippet(codeSnippet).then(
-            (response: any): void => {
-              if (response) {
+            (deleted: any): void => {
+              if (deleted) {
                 this.props.updateSnippets();
                 delete this.editors[codeSnippet.name];
                 const editorWidget = find(
