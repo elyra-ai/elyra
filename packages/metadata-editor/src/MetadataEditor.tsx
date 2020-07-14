@@ -304,17 +304,17 @@ export class MetadataEditor extends ReactWidget {
   }
 
   renderField(fieldName: string): React.ReactElement {
-    const uihints = this.schema[fieldName].uihints;
+    let uihints = this.schema[fieldName].uihints;
     let required = '(optional)';
     if (this.requiredFields && this.requiredFields.includes(fieldName)) {
       required = '(required)';
     }
     if (uihints == undefined) {
-      return;
-    } else if (
-      uihints.field_type == 'textinput' ||
-      uihints.field_type == undefined
-    ) {
+      uihints = {};
+      uihints.label = fieldName;
+      this.schema[fieldName].uihints = uihints;
+    }
+    if (uihints.field_type == 'textinput' || uihints.field_type == undefined) {
       return this.renderTextInput(
         uihints.label,
         uihints.description,

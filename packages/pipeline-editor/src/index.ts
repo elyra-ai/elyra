@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { pipelineIcon } from '@elyra/ui-components';
+import { historyIcon, pipelineIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -28,6 +28,7 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
+import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebook';
 
 import '../style/index.css';
@@ -35,6 +36,7 @@ import '../style/index.css';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
+const RUNTIMES_WIDGET_ID = 'elyra-pipeline-runtimes';
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -148,6 +150,26 @@ const extension: JupyterFrontEndPlugin<void> = {
       selector: '.jp-Notebook',
       command: commandIDs.submitNotebook,
       rank: -0.5
+    });
+
+    // RuntimesWidget initalization
+    const runtimesWidget = new RuntimesWidget(app);
+    runtimesWidget.id = RUNTIMES_WIDGET_ID;
+    runtimesWidget.title.icon = historyIcon;
+    runtimesWidget.title.caption = 'Runtimes';
+    runtimesWidget.addClass('elyra-CodeSnippets');
+
+    restorer.add(runtimesWidget, RUNTIMES_WIDGET_ID);
+
+    const openRuntimesCommand: string = commandIDs.openRuntimes;
+    app.commands.addCommand(openRuntimesCommand, {
+      label: args => (args['isPalette'] ? 'Open Runtimes' : 'Runtimes'),
+      icon: args => (args['isPalette'] ? undefined : historyIcon),
+      execute: () => {
+        // Rank has been chosen somewhat arbitrarily to give priority
+        // to the running sessions widget in the sidebar.
+        app.shell.add(runtimesWidget, 'left', { rank: 950 });
+      }
     });
   }
 };

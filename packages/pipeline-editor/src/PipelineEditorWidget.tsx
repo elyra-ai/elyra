@@ -59,7 +59,6 @@ import { PIPELINE_CURRENT_VERSION } from './constants';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
-import { PipelinesSubmissionHistoryDialog } from './PipelinesSubmissionHistoryDialog';
 import { PipelineService } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
@@ -95,7 +94,8 @@ export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
-  submitNotebook: 'notebook:submit'
+  submitNotebook: 'notebook:submit',
+  openRuntimes: 'pipeline-runtimes:open'
 };
 
 /**
@@ -235,7 +235,6 @@ export class PipelineEditor extends React.Component<
         iconEnabled: IconUtil.encode(clearPipelineIcon),
         iconDisabled: IconUtil.encode(clearPipelineIcon)
       },
-      { divider: true },
       {
         action: 'history',
         label: 'Pipelines Submission History',
@@ -705,27 +704,7 @@ export class PipelineEditor extends React.Component<
   }
 
   handleHistory(): void {
-    SubmissionHandler.makeGetRequest(
-      'api/metadata/runtimes',
-      'metadata',
-      (response: any) => {
-        if (Object.keys(response.runtimes).length === 0) {
-          return SubmissionHandler.noMetadataError('runtimes');
-        }
-
-        showDialog({
-          title: 'Open Pipelines Submission History',
-          body: new PipelinesSubmissionHistoryDialog({
-            runtimes: response.runtimes
-          }),
-          buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Open' })]
-        }).then(result => {
-          if (result.button.accept) {
-            window.open(result.value.runtime_url, '_blank');
-          }
-        });
-      }
-    );
+    this.app.commands.execute(commandIDs.openRuntimes);
   }
 
   handleClosePipeline(): void {
