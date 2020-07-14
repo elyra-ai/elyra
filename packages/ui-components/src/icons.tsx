@@ -21,9 +21,15 @@ import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
 import codeSnippetSvg from '../style/icons/code-snippet.svg';
 import dragDropSvg from '../style/icons/dragdrop.svg';
 import exportPipelineSvg from '../style/icons/export-pipeline.svg';
+import importSvg from '../style/icons/import.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
+import trashIconSvg from '../style/icons/trashIcon.svg';
 
+export const importIcon = new LabIcon({
+  name: 'elyra:import',
+  svgstr: importSvg
+});
 export const codeSnippetIcon = new LabIcon({
   name: 'elyra:code-snippet',
   svgstr: codeSnippetSvg
@@ -50,6 +56,10 @@ export const savePipelineIcon = new LabIcon({
   name: 'elyra:save-pipeline',
   svgstr: savePipelineSvg
 });
+export const trashIcon = new LabIcon({
+  name: 'elyra:trashIcon',
+  svgstr: trashIconSvg
+});
 
 /**
  * A utilities class for handling LabIcons.
@@ -57,5 +67,32 @@ export const savePipelineIcon = new LabIcon({
 export class IconUtil {
   static encode(icon: LabIcon): string {
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(icon.svgstr);
+  }
+
+  static colorize(
+    icon: LabIcon,
+    fillColor?: string,
+    strokeColor?: string
+  ): LabIcon {
+    let svgstr = icon.svgstr;
+
+    if (fillColor) {
+      svgstr = svgstr.replace(/fill="[^(none)]+?"/gi, `fill="${fillColor}"`);
+    }
+    if (strokeColor) {
+      svgstr = svgstr.replace(
+        /stroke="[^(none)]+?"/gi,
+        `stroke="${strokeColor}"`
+      );
+    }
+
+    return LabIcon.resolve({
+      icon: {
+        name: `${icon.name}${fillColor ? ':' + fillColor : ''}${
+          strokeColor ? ':' + strokeColor : ''
+        }`,
+        svgstr: svgstr
+      }
+    });
   }
 }

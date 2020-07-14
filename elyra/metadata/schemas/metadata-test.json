@@ -2,7 +2,9 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Testing metadata",
   "name": "metadata-test",
+  "display_name": "Metadata Test",
   "namespace": "metadata-tests",
+  "metadata_class_name": "elyra.metadata.tests.MockMetadataTest",
   "properties": {
     "schema_name": {
       "type": "string",
@@ -64,14 +66,21 @@
         "enum_test": {
           "description": "Property used to test properties with enums",
           "type": "string",
-          "enum": ["elyra", "rocks"]
+          "enum": ["elyra", "rocks"],
+          "uihints": {
+            "field_type": "dropdown",
+            "default_choices": ["elyra"]
+          }
         },
         "array_test": {
           "description": "Property used to test array with item restrictions",
           "type": "array",
           "minItems": 3,
           "maxItems": 10,
-          "uniqueItems": true
+          "uniqueItems": true,
+          "uihints": {
+            "field_type": "code"
+          }
         },
         "object_test": {
           "description": "Property used to test object elements with properties restrictions",

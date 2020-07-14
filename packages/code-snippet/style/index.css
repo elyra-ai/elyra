@@ -23,10 +23,41 @@
   font-weight: bold;
   padding: 8px 10px;
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  display: flex;
+  justify-content: space-between;
 }
 
-.elyra-codeSnippetsHeader .elyra-codeSnippet-icon polygon[fill] {
+.elyra-codeSnippetsHeader p {
+  font-weight: bold;
+}
+
+.elyra-codeSnippetHeader-button {
+  background-color: transparent;
+  vertical-align: middle;
+  padding: 5px;
+  width: 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  display: inline-flex;
+  align-self: flex-end;
+}
+
+.elyra-codeSnippetHeader-button svg {
+  transform: translate(-3px, 0px);
+}
+
+.elyra-codeSnippetHeader-button:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+.elyra-codeSnippetsHeader polygon[fill] {
   fill: var(--jp-ui-font-color1);
+}
+
+.elyra-codeSnippetsHeader + div:first-of-type {
+  overflow-y: auto;
+  height: calc(100vh - 95px);
 }
 
 .elyra-codeSnippet-item {
@@ -37,17 +68,25 @@
   padding: 0;
 }
 
-.elyra-codeSnippet-item textarea {
+.elyra-codeSnippet-item .elyra-expandableContainer-details-visible {
+  background-color: var(--jp-cell-editor-background);
+  resize: vertical;
+  height: 100px;
+}
+
+.elyra-codeSnippet-item .CodeMirror.cm-s-jupyter {
   background-color: inherit;
   border: none;
   font-family: var(--jp-code-font-family);
   font-size: var(--jp-code-font-size);
   line-height: var(--jp-code-line-height);
-  min-height: 125px;
-  height: 100%;
-  width: 100%;
-  resize: vertical;
-  white-space: pre;
-  word-wrap: normal;
-  overflow-x: scroll;
+}
+
+.elyra-codeSnippet-saveButton {
+  background-color: transparent;
+  border: none;
+}
+
+.elyra-codeSnippet-saveButton:hover {
+  background-color: #eeeeee;
 }

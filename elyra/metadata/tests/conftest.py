@@ -126,7 +126,7 @@ def store_manager(tests_manager):
 
 
 @pytest.fixture(params=["elyra.metadata.storage.FileMetadataStore",
-                        "elyra.metadata.tests.test_utils.MockMetadataStore"])  # Add types as needed
+                        "elyra.metadata.tests.MockMetadataStore"])  # Add types as needed
 def tests_manager(environ, namespace_location, request):
     metadata_mgr = MetadataManager(namespace=METADATA_TEST_NAMESPACE, metadata_store_class=request.param)
     store_mgr = metadata_mgr.metadata_store

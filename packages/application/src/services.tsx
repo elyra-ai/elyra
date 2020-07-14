@@ -19,6 +19,9 @@ import * as React from 'react';
 
 import { RequestHandler } from './requests';
 
+const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
+const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
+
 /**
  * A service class for accessing the elyra api.
  */
@@ -49,10 +52,87 @@ export class FrontendServices {
    */
   static async getMetadata(namespace: string): Promise<any> {
     const metadataResponse: any = await RequestHandler.makeGetRequest(
-      'elyra/metadata/' + namespace,
+      ELYRA_METADATA_API_ENDPOINT + namespace,
       false
     );
 
     return metadataResponse[namespace];
+  }
+
+  /**
+   * Service function for making POST calls to the elyra metadata API.
+   *
+   * @param namespace - the metadata namespace being accessed
+   * @param requestBody - the body of the request
+   *
+   * @returns a promise that resolves with the newly created metadata or
+   * an error dialog result
+   */
+  static async postMetadata(namespace: string, requestBody: any): Promise<any> {
+    const metadataResponse: any = await RequestHandler.makePostRequest(
+      ELYRA_METADATA_API_ENDPOINT + namespace,
+      requestBody,
+      false
+    );
+
+    return metadataResponse;
+  }
+
+  /**
+   * Service function for making PUT calls to the elyra metadata API.
+   *
+   * @param namespace - the metadata namespace being accessed
+   * @param name - the metadata name being updated
+   * @param requestBody - the body of the request
+   *
+   * @returns a promise that resolves with the updated metadata or
+   * an error dialog result
+   */
+  static async putMetadata(
+    namespace: string,
+    name: string,
+    requestBody: any
+  ): Promise<any> {
+    const metadataResponse: any = await RequestHandler.makePutRequest(
+      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
+      requestBody,
+      false
+    );
+
+    return metadataResponse;
+  }
+
+  /**
+   * Service function for making DELETE calls to the elyra metadata API.
+   *
+   * @param namespace - the metadata namespace being accessed
+   * @param name - the metadata name being updated
+   *
+   * @returns void or an error dialog result
+   */
+  static async deleteMetadata(namespace: string, name: string): Promise<any> {
+    const metadataResponse: any = await RequestHandler.makeDeleteRequest(
+      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
+      false
+    );
+
+    return metadataResponse;
+  }
+
+  /**
+   * Service function for making GET calls to the elyra schema API.
+   *
+   * @param namespace - the schema namespace being requested
+   *
+   * @returns a promise that resolves with the requested schemas or
+   * an error dialog result
+   */
+  static async getSchema(namespace: string): Promise<any> {
+    const schemaResponse: any = await RequestHandler.makeGetRequest(
+      ELYRA_SCHEMA_API_ENDPOINT + namespace,
+      false
+    );
+
+    return schemaResponse[namespace];
   }
 }

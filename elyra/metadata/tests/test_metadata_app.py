@@ -145,8 +145,9 @@ def test_install_and_replace(script_runner, mock_data_dir):
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success is False
-    assert "The following exception occurred saving metadata instance 'test-metadata_42_valid-name'" \
-           " for schema 'metadata-test':" in ret.stdout
+    assert ret.stdout == ''
+    assert "An instance named 'test-metadata_42_valid-name' already exists in the metadata-tests " \
+           "namespace" in ret.stderr
 
     # Re-attempt with replace flag - success expected
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
@@ -248,6 +249,53 @@ def test_list_instances(script_runner, mock_data_dir):
     assert line_elements[1][1] == "valid"
 
 
+def test_list_json_instances(script_runner, mock_data_dir):
+    metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
+
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json')
+    assert ret.success
+    lines = ret.stdout.split('\n')
+    assert len(lines) == 2  # always 2 more than the actual runtime count
+    assert lines[0].startswith("No metadata instances found for {}".format(METADATA_TEST_NAMESPACE))
+
+    valid = Metadata(**valid_metadata_json)
+    resource = metadata_manager.create('valid', valid)
+    assert resource is not None
+    resource = metadata_manager.create('valid2', valid)
+    assert resource is not None
+    another = Metadata(**another_metadata_json)
+    resource = metadata_manager.create('another', another)
+    assert resource is not None
+    resource = metadata_manager.create('another2', another)
+    assert resource is not None
+
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json')
+    assert ret.success
+    assert ret.stderr == ''
+    # Consume results
+    results = json.loads(ret.stdout)
+    assert len(results) == 4
+
+    # Remove the '2' runtimes and reconfirm smaller set
+    metadata_manager.remove('valid2')
+    metadata_manager.remove('another2')
+
+    # Include two additional invalid files as well - one for uri failure, andother missing display_name
+    metadata_dir = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE)
+    create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
+    create_json_file(metadata_dir, 'no_display_name.json', invalid_no_display_name_json)
+
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json')
+    assert ret.success
+    results = json.loads(ret.stdout)
+    assert len(results) == 4
+
+    ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json', '--valid-only')
+    assert ret.success
+    results = json.loads(ret.stdout)
+    assert len(results) == 2
+
+
 def test_remove_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--help')
     assert ret.success is False
@@ -270,10 +318,8 @@ def test_remove_missing(script_runner):
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=missing')
     assert ret.success is False
-    assert ret.stdout.startswith("[Errno 2] No such metadata instance found in namespace '{}': 'missing'".
-                                 format(METADATA_TEST_NAMESPACE))
-
-    assert ret.stderr == ''
+    assert ret.stdout == ''
+    assert "No such instance named 'missing' was found in the metadata-tests namespace." in ret.stderr
 
     # Now cleanup original instance.
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=valid')

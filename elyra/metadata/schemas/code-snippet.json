@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Code Snippet metadata",
   "name": "code-snippet",
+  "display_name": "Code Snippet",
   "namespace": "code-snippets",
   "properties": {
     "schema_name": {
@@ -20,16 +21,28 @@
       "properties": {
         "description": {
           "description": "Code snippet description",
-          "type": "string"
+          "type": "string",
+          "uihints": {
+            "label": "Description"
+          }
         },
         "language": {
           "description": "Code snippet implementation language",
           "type": "string",
+          "uihints": {
+            "label": "Language",
+            "field_type": "dropdown",
+            "default_choices": ["Python", "Java", "R", "Scala", "Markdown"]
+          },
           "minLength": 1
         },
         "code": {
           "description": "Code snippet code lines",
-          "type": "array"
+          "type": "array",
+          "uihints": {
+            "label": "Code",
+            "field_type": "code"
+          }
         }
       },
       "required": ["language", "code"]

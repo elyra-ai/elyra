@@ -48,6 +48,7 @@ import { IDragEvent } from '@lumino/dragdrop';
 import { Collapse, IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 import Alert from '@material-ui/lab/Alert';
+import { Color } from '@material-ui/lab/Alert';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
@@ -70,6 +71,10 @@ const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
+
+const SAVE_ICON_ID = 'toolbar-icon-save';
+const EXPORT_ICON_ID = 'toolbar-icon-export';
+const CLEAR_ICON_ID = 'toolbar-icon-clear';
 
 const NodeProperties = (properties: any): React.ReactElement => {
   return (
@@ -112,6 +117,25 @@ export class PipelineEditorWidget extends ReactWidget {
     this.app = props.app;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
+  }
+
+  themeChanged(isLight: boolean): void {
+    [SAVE_ICON_ID, EXPORT_ICON_ID, CLEAR_ICON_ID].forEach((id: string) => {
+      const element = document.getElementById(id) as HTMLImageElement;
+      if (element) {
+        switch (element.id) {
+          case SAVE_ICON_ID:
+            element.src = Utils.getEncodedIcon(savePipelineIcon, !isLight);
+            break;
+          case EXPORT_ICON_ID:
+            element.src = Utils.getEncodedIcon(exportPipelineIcon, !isLight);
+            break;
+          case CLEAR_ICON_ID:
+            element.src = Utils.getEncodedIcon(clearPipelineIcon, !isLight);
+            break;
+        }
+      }
+    });
   }
 
   render(): React.ReactElement {
@@ -161,6 +185,12 @@ export namespace PipelineEditor {
      * Message to present for an invalid operation
      */
     errorMessage: string;
+
+    /*
+     * Severity of error message - options are 'error', 'warning',
+     * 'info', 'success'
+     */
+    errorSeverity: Color;
   }
 }
 
@@ -201,7 +231,8 @@ export class PipelineEditor extends React.Component<
       showPropertiesDialog: false,
       propertiesInfo: {},
       showValidationError: false,
-      errorMessage: 'Invalid operation.'
+      errorMessage: '',
+      errorSeverity: 'error'
     };
 
     this.initPropertiesInfo();
@@ -219,7 +250,7 @@ export class PipelineEditor extends React.Component<
     const validationAlert = (
       <Collapse in={this.state.showValidationError}>
         <Alert
-          severity="error"
+          severity={this.state.errorSeverity}
           action={
             <IconButton
               aria-label="close"
@@ -237,6 +268,7 @@ export class PipelineEditor extends React.Component<
         </Alert>
       </Collapse>
     );
+    const darkmode = !!document.querySelector("[data-jp-theme-light='false']");
     const emptyCanvasContent = (
       <div>
         <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
@@ -258,22 +290,22 @@ export class PipelineEditor extends React.Component<
         action: 'save',
         label: 'Save Pipeline',
         enable: true,
-        iconEnabled: IconUtil.encode(savePipelineIcon),
-        iconDisabled: IconUtil.encode(savePipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(savePipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(savePipelineIcon, darkmode)
       },
       {
         action: 'export',
         label: 'Export Pipeline',
         enable: true,
-        iconEnabled: IconUtil.encode(exportPipelineIcon),
-        iconDisabled: IconUtil.encode(exportPipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode)
       },
       {
         action: 'clear',
         label: 'Clear Pipeline',
         enable: true,
-        iconEnabled: IconUtil.encode(clearPipelineIcon),
-        iconDisabled: IconUtil.encode(clearPipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
       },
       { divider: true },
       { action: 'undo', label: 'Undo', enable: true },
@@ -479,9 +511,13 @@ export class PipelineEditor extends React.Component<
     return false;
   }
 
-  /*
+  /**
    * Validates the new link before adding it.
-   * Returns true if invalid
+   *
+   * @param data: data struct given by the canvas controller handler
+   *
+   * @returns boolean indicating if given data is valid. (true if invalid)
+   *
    * TODO: when we update canvas to 8, we can change the name of
    * this function to beforeEditActionHandler and use it as a handler
    * instead of calling this function in editActionHandler.
@@ -516,7 +552,8 @@ export class PipelineEditor extends React.Component<
       );
       this.setState({
         errorMessage: 'Invalid operation: circular references in pipeline.',
-        showValidationError: true
+        showValidationError: true,
+        errorSeverity: 'error'
       });
     }
     this.updateModel();
@@ -599,6 +636,7 @@ export class PipelineEditor extends React.Component<
           ] = this.propertiesInfo.parameterDef.current_parameters.include_subdirectories;
 
           this.canvasController.editActionHandler(data);
+          this.setState({ showValidationError: false });
 
           position += 20;
         }
