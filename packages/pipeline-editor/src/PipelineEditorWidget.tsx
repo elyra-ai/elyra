@@ -69,6 +69,10 @@ const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
 
+const SAVE_ICON_ID = 'toolbar-icon-save';
+const EXPORT_ICON_ID = 'toolbar-icon-export';
+const CLEAR_ICON_ID = 'toolbar-icon-clear';
+
 const NodeProperties = (properties: any): React.ReactElement => {
   return (
     <dl className={NODE_TOOLTIP_CLASS}>
@@ -111,6 +115,25 @@ export class PipelineEditorWidget extends ReactWidget {
     this.app = props.app;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
+  }
+
+  themeChanged(isLight: boolean): void {
+    [SAVE_ICON_ID, EXPORT_ICON_ID, CLEAR_ICON_ID].forEach((id: string) => {
+      const element = document.getElementById(id) as HTMLImageElement;
+      if (element) {
+        switch (element.id) {
+          case SAVE_ICON_ID:
+            element.src = Utils.getEncodedIcon(savePipelineIcon, !isLight);
+            break;
+          case EXPORT_ICON_ID:
+            element.src = Utils.getEncodedIcon(exportPipelineIcon, !isLight);
+            break;
+          case CLEAR_ICON_ID:
+            element.src = Utils.getEncodedIcon(clearPipelineIcon, !isLight);
+            break;
+        }
+      }
+    });
   }
 
   render(): React.ReactElement {
@@ -197,6 +220,7 @@ export class PipelineEditor extends React.Component<
 
   render(): any {
     const style = { height: '100%' };
+    const darkmode = !!document.querySelector("[data-jp-theme-light='false']");
     const emptyCanvasContent = (
       <div>
         <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
@@ -218,22 +242,22 @@ export class PipelineEditor extends React.Component<
         action: 'save',
         label: 'Save Pipeline',
         enable: true,
-        iconEnabled: IconUtil.encode(savePipelineIcon),
-        iconDisabled: IconUtil.encode(savePipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(savePipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(savePipelineIcon, darkmode)
       },
       {
         action: 'export',
         label: 'Export Pipeline',
         enable: true,
-        iconEnabled: IconUtil.encode(exportPipelineIcon),
-        iconDisabled: IconUtil.encode(exportPipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode)
       },
       {
         action: 'clear',
         label: 'Clear Pipeline',
         enable: true,
-        iconEnabled: IconUtil.encode(clearPipelineIcon),
-        iconDisabled: IconUtil.encode(clearPipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
       },
       {
         action: 'history',

@@ -21,7 +21,11 @@ import {
   JupyterFrontEndPlugin,
   ILayoutRestorer
 } from '@jupyterlab/application';
-import { ICommandPalette, WidgetTracker } from '@jupyterlab/apputils';
+import {
+  ICommandPalette,
+  IThemeManager,
+  WidgetTracker
+} from '@jupyterlab/apputils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -51,13 +55,15 @@ const extension: JupyterFrontEndPlugin<void> = {
     ILayoutRestorer,
     IMainMenu
   ],
+  optional: [IThemeManager],
   activate: (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     launcher: ILauncher,
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
-    menu: IMainMenu
+    menu: IMainMenu,
+    themeManager: IThemeManager | null
   ) => {
     console.log('Elyra - pipeline-editor extension is activated!');
 
@@ -171,6 +177,16 @@ const extension: JupyterFrontEndPlugin<void> = {
         app.shell.add(runtimesWidget, 'left', { rank: 950 });
       }
     });
+
+    const updateTheme = (widget: any): void => {
+      widget.content.themeChanged(themeManager.isLight(themeManager.theme));
+    };
+
+    if (themeManager) {
+      themeManager.themeChanged.connect((): void => {
+        tracker.forEach(widget => updateTheme(widget));
+      });
+    }
   }
 };
 export default extension;
