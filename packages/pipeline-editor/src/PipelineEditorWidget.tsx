@@ -555,6 +555,11 @@ export class PipelineEditor extends React.Component<
         showValidationError: true,
         errorSeverity: 'error'
       });
+      // If you're adding a valid link, dismiss the validation error
+    } else if (data.editType == 'linkNodes') {
+      this.setState({
+        showValidationError: false
+      });
     }
     this.updateModel();
   }
