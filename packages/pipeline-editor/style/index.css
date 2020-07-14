@@ -20,8 +20,8 @@
   text-align: center;
 }
 
-.elyra-tooltipWarning {
-  color: red;
+.elyra-tooltipError {
+  color: var(--jp-error-color0);
 }
 
 .elyra-PipelineEditor .properties-modal {

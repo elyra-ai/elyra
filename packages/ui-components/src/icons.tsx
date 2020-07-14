@@ -25,7 +25,7 @@ import importSvg from '../style/icons/import.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
 import trashIconSvg from '../style/icons/trashIcon.svg';
-import warnIconSvg from '../style/icons/warning.svg';
+import errorIconSvg from '../style/icons/error.svg';
 
 export const importIcon = new LabIcon({
   name: 'elyra:import',
@@ -44,9 +44,9 @@ export const pipelineIcon = new LabIcon({
   name: 'elyra:pipeline',
   svgstr: pipelineSvg
 });
-export const warnIcon = new LabIcon({
-  name: 'elyra:warnIcon',
-  svgstr: warnIconSvg
+export const errorIcon = new LabIcon({
+  name: 'elyra:errorIcon',
+  svgstr: errorIconSvg
 });
 
 export const clearPipelineIcon = new LabIcon({

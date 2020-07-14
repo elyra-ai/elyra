@@ -30,7 +30,7 @@ import {
   pipelineIcon,
   savePipelineIcon,
   showFormDialog,
-  warnIcon
+  errorIcon
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -80,8 +80,8 @@ const NodeProperties = (properties: any): React.ReactElement => {
           value = value ? 'Yes' : 'No';
         }
         let tooltipTextClass = '';
-        if (key == 'Warning') {
-          tooltipTextClass = 'elyra-tooltipWarning';
+        if (key == 'Error') {
+          tooltipTextClass = 'elyra-tooltipError';
         }
         return (
           <React.Fragment key={idx}>
@@ -436,8 +436,8 @@ export class PipelineEditor extends React.Component<
       const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
       const tooltipProps: any = {};
 
-      if (appData.invalidWarning != null) {
-        tooltipProps['Warning'] = appData.invalidWarning;
+      if (appData.invalidNodeError != null) {
+        tooltipProps['Error'] = appData.invalidNodeError;
       }
 
       propsInfo.forEach(
@@ -660,19 +660,19 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  // Adds a warning decoration if a node has any invalid properties.
+  // Adds an error decoration if a node has any invalid properties.
   updateDecorations(node: any): void {
-    node.app_data.invalidWarning = this.invalidProperties(node);
-    if (node.app_data.invalidWarning != null) {
+    node.app_data.invalidNodeError = this.invalidProperties(node);
+    if (node.app_data.invalidNodeError != null) {
       this.canvasController.setNodeDecorations(node.id, [
         {
-          id: 'warning',
-          image: IconUtil.encode(warnIcon),
+          id: 'error',
+          image: IconUtil.encode(errorIcon),
           outline: false,
-          class_name: 'elyra-canvasWarnIcon',
+          class_name: 'elyra-canvasErrorIcon',
           position: 'topRight',
-          x_pos: -30,
-          y_pos: -5
+          x_pos: -25,
+          y_pos: -8
         }
       ]);
     } else {
