@@ -62,11 +62,11 @@ export default class Utils {
   }
 
   /**
-   * Check if the provided pipeline is a newly created pipeline (no nodes available)
+   * Check if the provided pipeline is empty (no nodes)
    *
    * @param pipelineDefinition
    */
-  static isNewPipeline(pipelineDefinition: any): boolean {
+  static isEmptyPipeline(pipelineDefinition: any): boolean {
     return Object.keys(pipelineDefinition.pipelines[0].nodes).length === 0;
   }
 
@@ -77,7 +77,7 @@ export default class Utils {
    */
   static isEmptyCanvas(pipelineDefinition: any): boolean {
     return (
-      this.isNewPipeline(pipelineDefinition) &&
+      this.isEmptyPipeline(pipelineDefinition) &&
       pipelineDefinition.pipelines[0].app_data.ui_data.comments.length === 0
     );
   }

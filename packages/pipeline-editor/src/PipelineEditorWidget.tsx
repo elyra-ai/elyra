@@ -212,7 +212,7 @@ export class PipelineEditor extends React.Component<
     this.state = {
       showPropertiesDialog: false,
       propertiesInfo: {},
-      emptyPipeline: Utils.isNewPipeline(
+      emptyPipeline: Utils.isEmptyPipeline(
         this.canvasController.getPipelineFlow()
       )
     };
@@ -285,12 +285,12 @@ export class PipelineEditor extends React.Component<
       {
         action: 'arrangeHorizontally',
         label: 'Arrange Horizontally',
-        enable: !this.state.emptyPipeline || !emptyCanvas
+        enable: !this.state.emptyPipeline
       },
       {
         action: 'arrangeVertically',
         label: 'Arrange Vertically',
-        enable: !this.state.emptyPipeline || !emptyCanvas
+        enable: !this.state.emptyPipeline
       }
     ];
 
@@ -336,7 +336,7 @@ export class PipelineEditor extends React.Component<
 
     this.widgetContext.model.fromString(JSON.stringify(pipelineFlow, null, 2));
 
-    this.setState({ emptyPipeline: Utils.isNewPipeline(pipelineFlow) });
+    this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineFlow) });
   }
 
   async initPropertiesInfo(): Promise<void> {
@@ -624,7 +624,7 @@ export class PipelineEditor extends React.Component<
       if (pipelineJson == null) {
         // creating new pipeline
         pipelineJson = this.canvasController.getPipelineFlow();
-        if (Utils.isNewPipeline(pipelineJson)) {
+        if (Utils.isEmptyPipeline(pipelineJson)) {
           pipelineJson.pipelines[0]['app_data'][
             'version'
           ] = PIPELINE_CURRENT_VERSION;
@@ -686,7 +686,7 @@ export class PipelineEditor extends React.Component<
           this.canvasController.setPipelineFlow(pipelineJson);
         }
       }
-      this.setState({ emptyPipeline: Utils.isNewPipeline(pipelineJson) });
+      this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
     });
   }
 
