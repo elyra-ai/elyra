@@ -762,12 +762,7 @@ export class PipelineEditor extends React.Component<
       this.handleSavePipeline();
     } else if (action == 'clear') {
       this.handleClearPipeline();
-    } else if (
-      action == 'undo' ||
-      action == 'redo' ||
-      action == 'delete' ||
-      action == 'addComment'
-    ) {
+    } else if (['undo', 'redo', 'delete', 'addComment'].includes(action)) {
       this.updateModel();
     }
   }
