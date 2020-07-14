@@ -264,15 +264,15 @@ export class PipelineEditor extends React.Component<
         action: 'export',
         label: 'Export Pipeline',
         enable: !this.state.emptyPipeline,
-        iconEnabled: IconUtil.encode(exportPipelineIcon),
-        iconDisabled: IconUtil.encode(exportPipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode)
       },
       {
         action: 'clear',
         label: 'Clear Pipeline',
         enable: !this.state.emptyPipeline || !emptyCanvas,
-        iconEnabled: IconUtil.encode(clearPipelineIcon),
-        iconDisabled: IconUtil.encode(clearPipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
       },
       { divider: true },
       { action: 'undo', label: 'Undo' },
