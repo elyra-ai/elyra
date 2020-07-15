@@ -204,7 +204,6 @@ export class PipelineEditor extends React.Component<
 
   render(): React.ReactElement {
     const style = { height: '100%' };
-    const darkmode = !!document.querySelector("[data-jp-theme-light='false']");
     const emptyCanvasContent = (
       <div>
         <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
@@ -247,22 +246,22 @@ export class PipelineEditor extends React.Component<
         action: 'save',
         label: 'Save Pipeline',
         enable: true,
-        iconEnabled: Utils.getEncodedIcon(savePipelineIcon, darkmode),
-        iconDisabled: Utils.getEncodedIcon(savePipelineIcon, darkmode)
+        iconEnabled: IconUtil.encode(savePipelineIcon),
+        iconDisabled: IconUtil.encode(savePipelineIcon)
       },
       {
         action: 'export',
         label: 'Export Pipeline',
         enable: !this.state.emptyPipeline,
-        iconEnabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode),
-        iconDisabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode)
+        iconEnabled: IconUtil.encode(exportPipelineIcon),
+        iconDisabled: IconUtil.encode(exportPipelineIcon)
       },
       {
         action: 'clear',
         label: 'Clear Pipeline',
         enable: !this.state.emptyPipeline || !emptyCanvas,
-        iconEnabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode),
-        iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
+        iconEnabled: IconUtil.encode(clearPipelineIcon),
+        iconDisabled: IconUtil.encode(clearPipelineIcon)
       },
       { divider: true },
       { action: 'undo', label: 'Undo' },
