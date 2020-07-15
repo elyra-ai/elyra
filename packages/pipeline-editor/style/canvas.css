@@ -179,35 +179,39 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .bx--modal-content {
   color: var(--text-01);
 }
-.properties-dropdown {
-  background-color: var(--ui-01);
-  border-bottom: 1px solid var(--ui-04);
-  color: var(--text-01);
+.properties-control-item {
+  padding: 5px 0 10px 0;
+}
+.properties-dropdown .bx--list-box__field {
+  background-color: transparent;
 }
 .properties-label-container label,
 .properties-checkbox label {
   color: var(--text-01);
 }
 .bx--list-box__menu-icon > svg {
-  fill: var(--text-03);
+  fill: var(--text-02);
 }
-.bx--text-area::placeholder {
+.properties-textarea textarea::placeholder {
   color: var(--text-03);
 }
-.bx--text-area {
+.properties-textarea textarea {
   color: var(--text-01);
 }
+.bx--text-area__wrapper {
+  width: 100%;
+}
 .bx--modal .bx--text-input,
-.bx--modal .bx--text-area,
+.bx--modal .properties-textarea textarea,
 .bx--modal .bx--select-input,
 .bx--modal .bx--dropdown {
   background-color: var(--ui-02);
 }
-.bx--checkbox-label::before {
+.properties-checkbox label::before {
   background-color: transparent;
   border: 1px solid var(--text-01);
 }
-.bx--checkbox-label::after {
+.properties-checkbox label::after {
   border-left: 2px solid var(--ui-01);
   border-bottom: 2px solid var(--ui-01);
 }
@@ -218,20 +222,30 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   background-color: var(--ui-01);
 }
 .bx--list-box__menu {
-  background-color: var(--ui-03);
+  background-color: var(--ui-02);
 }
-.bx--list-box__menu-item {
+.bx--list-box__menu-item,
+.bx--list-box__label,
+.bx--list-box__menu-item__option,
+.bx--list-box__menu-item--active .bx--list-box__menu-item__option,
+.bx--list-box__menu-item--highlighted .bx--list-box__menu-item__option,
+.bx--list-box__menu-item:hover .bx--list-box__menu-item__option {
   color: var(--text-01);
 }
-.bx--list-box__menu-item--active {
-  color: var(--text-01);
-  border-bottom-color: var(--ui-03);
-}
-.bx--list-box__menu-item--highlighted {
-  background-color: var(--ui-03);
-}
+.bx--list-box__menu-item__option,
+.bx--list-box__menu-item--active,
+.bx--list-box__menu-item--highlighted,
 .bx--list-box__menu-item:hover {
-  background-color: var(--ui-03);
+  border-top-color: transparent;
+}
+.bx--list-box__menu-item--highlighted,
+.bx--list-box__menu-item:hover {
+  background-color: var(--ui-01);
+}
+
+.bx--list-box__menu-item__option svg.bx--list-box__menu-item__selected-icon {
+  margin-left: 10px;
+  vertical-align: bottom;
 }
 
 .context-menu-popover {
@@ -252,4 +266,32 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 #zoom-actions-container .toolbar-divider,
 #zoom-actions-container .notificationCounterIcon {
   display: none;
+}
+
+.bx--modal-footer {
+  padding: 12px;
+  justify-content: flex-end;
+  height: initial;
+}
+.bx--modal-footer button.bx--btn {
+  height: 32px;
+  line-height: 32px;
+  justify-content: center;
+  padding: 12px 15px;
+  margin-right: 1rem;
+  max-width: 5rem;
+}
+.bx--modal-footer .bx--btn:not(:last-child) {
+  margin-right: 12px;
+}
+.bx--modal-footer .bx--btn--primary {
+  background: var(--md-blue-500);
+}
+.bx--modal-footer .bx--btn--secondary {
+  background: var(--md-grey-500);
+}
+.bx--modal-footer .bx--btn:disabled {
+  background-color: var(--jp-layout-color3);
+  opacity: 0.3;
+  pointer-events: none;
 }

@@ -208,7 +208,8 @@ export class PipelineEditor extends React.Component<
       emptyCanvasContent: emptyCanvasContent,
       enablePaletteLayout: 'Modal',
       paletteInitialState: false,
-      enableInsertNodeDroppedOnLink: true
+      enableInsertNodeDroppedOnLink: true,
+      enableNodeFormatType: 'Horizontal'
     };
     const notificationConfig = {
       action: 'notification',
