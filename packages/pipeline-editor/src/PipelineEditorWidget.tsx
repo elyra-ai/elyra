@@ -68,10 +68,6 @@ const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
 
-const SAVE_ICON_ID = 'toolbar-icon-save';
-const EXPORT_ICON_ID = 'toolbar-icon-export';
-const CLEAR_ICON_ID = 'toolbar-icon-clear';
-
 const NodeProperties = (properties: any): React.ReactElement => {
   return (
     <dl className={NODE_TOOLTIP_CLASS}>
@@ -113,25 +109,6 @@ export class PipelineEditorWidget extends ReactWidget {
     this.app = props.app;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
-  }
-
-  themeChanged(isLight: boolean): void {
-    [SAVE_ICON_ID, EXPORT_ICON_ID, CLEAR_ICON_ID].forEach((id: string) => {
-      const element = document.getElementById(id) as HTMLImageElement;
-      if (element) {
-        switch (element.id) {
-          case SAVE_ICON_ID:
-            element.src = Utils.getEncodedIcon(savePipelineIcon, !isLight);
-            break;
-          case EXPORT_ICON_ID:
-            element.src = Utils.getEncodedIcon(exportPipelineIcon, !isLight);
-            break;
-          case CLEAR_ICON_ID:
-            element.src = Utils.getEncodedIcon(clearPipelineIcon, !isLight);
-            break;
-        }
-      }
-    });
   }
 
   render(): React.ReactElement {
@@ -197,9 +174,7 @@ export class PipelineEditor extends React.Component<
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
 
-    this.toolbarMenuActionHandler = this.toolbarMenuActionHandler.bind(this);
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
-    this.contextMenuActionHandler = this.contextMenuActionHandler.bind(this);
     this.clickActionHandler = this.clickActionHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
@@ -232,7 +207,21 @@ export class PipelineEditor extends React.Component<
       enableInternalObjectModel: true,
       emptyCanvasContent: emptyCanvasContent,
       enablePaletteLayout: 'Modal',
-      paletteInitialState: false
+      paletteInitialState: false,
+      enableInsertNodeDroppedOnLink: true
+    };
+    const notificationConfig = {
+      action: 'notification',
+      label: 'Notifications',
+      enable: false,
+      notificationHeader: 'Notifications'
+    };
+    const contextMenuConfig = {
+      enableCreateSupernodeNonContiguous: false,
+      defaultMenuEntries: {
+        saveToPalette: false,
+        createSupernode: false
+      }
     };
     const toolbarConfig = [
       { action: 'run', label: 'Run Pipeline', enable: true },
@@ -263,8 +252,8 @@ export class PipelineEditor extends React.Component<
       { action: 'cut', label: 'Cut', enable: false },
       { action: 'copy', label: 'Copy', enable: false },
       { action: 'paste', label: 'Paste', enable: false },
-      { action: 'addComment', label: 'Add Comment', enable: true },
-      { action: 'delete', label: 'Delete', enable: true },
+      { action: 'createAutoComment', label: 'Add Comment', enable: true },
+      { action: 'deleteSelectedObjects', label: 'Delete', enable: true },
       {
         action: 'arrangeHorizontally',
         label: 'Arrange Horizontally',
@@ -294,17 +283,23 @@ export class PipelineEditor extends React.Component<
 
     return (
       <div style={style} ref={this.node}>
-        <CommonCanvas
-          canvasController={this.canvasController}
-          toolbarMenuActionHandler={this.toolbarMenuActionHandler}
-          contextMenuHandler={this.contextMenuHandler}
-          contextMenuActionHandler={this.contextMenuActionHandler}
-          clickActionHandler={this.clickActionHandler}
-          editActionHandler={this.editActionHandler}
-          tipHandler={this.tipHandler}
-          toolbarConfig={toolbarConfig}
-          config={canvasConfig}
-        />
+        <IntlProvider
+          key="IntlProvider1"
+          locale={'en'}
+          messages={i18nData.messages}
+        >
+          <CommonCanvas
+            canvasController={this.canvasController}
+            contextMenuHandler={this.contextMenuHandler}
+            clickActionHandler={this.clickActionHandler}
+            editActionHandler={this.editActionHandler}
+            tipHandler={this.tipHandler}
+            toolbarConfig={toolbarConfig}
+            config={canvasConfig}
+            notificationConfig={notificationConfig}
+            contextMenuConfig={contextMenuConfig}
+          />
+        </IntlProvider>
         {commProps}
       </div>
     );
@@ -379,8 +374,6 @@ export class PipelineEditor extends React.Component<
    */
   contextMenuHandler(source: any, defaultMenu: any): any {
     let customMenu = defaultMenu;
-    // Remove option to create super node
-    customMenu.splice(4, 2);
     if (source.type === 'node') {
       if (source.selectedObjectIds.length > 1) {
         // multiple nodes selected
@@ -406,24 +399,6 @@ export class PipelineEditor extends React.Component<
   }
 
   /*
-   * Handles context menu actions
-   * Pipeline specific actions are:
-   *  - Open the associated Notebook
-   *  - Open node properties dialog
-   */
-  contextMenuActionHandler(action: any, source: any): void {
-    if (action === 'openNotebook' && source.type === 'node') {
-      this.handleOpenNotebook(source.selectedObjectIds);
-    } else if (action === 'properties' && source.type === 'node') {
-      if (this.state.showPropertiesDialog) {
-        this.closePropertiesDialog();
-      } else {
-        this.openPropertiesDialog(source);
-      }
-    }
-  }
-
-  /*
    * Handles mouse click actions
    */
   clickActionHandler(source: any): void {
@@ -437,6 +412,37 @@ export class PipelineEditor extends React.Component<
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any): void {
+    if (data && data.editType) {
+      console.log(`Handling action: ${data.editType}`);
+
+      switch (data.editType) {
+        case 'run':
+          this.handleRunPipeline();
+          break;
+        case 'export':
+          this.handleExportPipeline();
+          break;
+        case 'save':
+          this.handleSavePipeline();
+          break;
+        case 'clear':
+          this.handleClearPipeline();
+          break;
+        case 'openNotebook':
+          if (data.type === 'node') {
+            this.handleOpenNotebook(data.selectedObjectIds);
+          }
+          break;
+        case 'properties':
+          if (data.type === 'node') {
+            this.state.showPropertiesDialog
+              ? this.closePropertiesDialog()
+              : this.openPropertiesDialog(data);
+          }
+          break;
+      }
+    }
+
     this.updateModel();
   }
 
@@ -721,23 +727,6 @@ export class PipelineEditor extends React.Component<
   handleClosePipeline(): void {
     if (this.app.shell.currentWidget) {
       this.app.shell.currentWidget.close();
-    }
-  }
-
-  /**
-   * Handles submitting pipeline runs
-   */
-  toolbarMenuActionHandler(action: any, source: any): void {
-    console.log('Handling action: ' + action);
-    if (action == 'run') {
-      // When executing the pipeline
-      this.handleRunPipeline();
-    } else if (action == 'export') {
-      this.handleExportPipeline();
-    } else if (action == 'save') {
-      this.handleSavePipeline();
-    } else if (action == 'clear') {
-      this.handleClearPipeline();
     }
   }
 
