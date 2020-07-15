@@ -165,8 +165,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimesWidget.title.caption = 'Runtimes';
     runtimesWidget.addClass('elyra-CodeSnippets');
 
-    restorer.add(runtimesWidget, RUNTIMES_WIDGET_ID);
-
     const openRuntimesCommand: string = commandIDs.openRuntimes;
     app.commands.addCommand(openRuntimesCommand, {
       label: args => (args['isPalette'] ? 'Open Runtimes' : 'Runtimes'),
@@ -175,6 +173,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         // Rank has been chosen somewhat arbitrarily to give priority
         // to the running sessions widget in the sidebar.
         app.shell.add(runtimesWidget, 'left', { rank: 950 });
+        app.shell.activateById(RUNTIMES_WIDGET_ID);
       }
     });
 
