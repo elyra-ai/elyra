@@ -295,3 +295,7 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   opacity: 0.3;
   pointer-events: none;
 }
+
+img.toolbar-icons[disabled] {
+  opacity: 0.5;
+}
