@@ -17,6 +17,7 @@ import sys
 
 from jsonschema import ValidationError
 
+from .error import MetadataNotFoundError
 from .metadata_app_utils import AppBase, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
 from .metadata import Metadata
 from .manager import MetadataManager
@@ -69,16 +70,18 @@ class NamespaceList(NamespaceBase):
         include_invalid = not self.valid_only_flag.value
         try:
             metadata_instances = self.metadata_manager.get_all(include_invalid=include_invalid)
-        except FileNotFoundError:
+        except MetadataNotFoundError:
             metadata_instances = None
 
-        if not metadata_instances:
-            print("No metadata instances found for {}".format(self.namespace))
-            return
-
         if self.json_flag.value:
+            if metadata_instances is None:
+                metadata_instances = []
             print(metadata_instances)
         else:
+            if not metadata_instances:
+                print("No metadata instances found for {}".format(self.namespace))
+                return
+
             validity_clause = "includes invalid" if include_invalid else "valid only"
             print("Available metadata instances for {} ({}):".format(self.namespace, validity_clause))
 
@@ -128,8 +131,8 @@ class NamespaceRemove(NamespaceBase):
         name = self.name_option.value
         try:
             self.metadata_manager.get(name)
-        except FileNotFoundError as ke:
-            self.log_and_exit(ke)
+        except MetadataNotFoundError as mnfe:
+            self.log_and_exit(mnfe)
         except ValidationError:  # Probably deleting invalid instance
             pass
 
