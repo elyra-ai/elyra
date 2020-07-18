@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { historyIcon, pipelineIcon } from '@elyra/ui-components';
+import { pipelineIcon, runtimesIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -32,7 +32,11 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
-import { RuntimesWidget } from './RuntimesWidget';
+import {
+  RuntimesWidget,
+  KFP_SCHEMA,
+  RUNTIMES_NAMESPACE
+} from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebook';
 
 import '../style/index.css';
@@ -40,7 +44,6 @@ import '../style/index.css';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-const RUNTIMES_WIDGET_ID = 'elyra-pipeline-runtimes';
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -158,25 +161,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       rank: -0.5
     });
 
-    // RuntimesWidget initalization
-    const runtimesWidget = new RuntimesWidget(app);
-    runtimesWidget.id = RUNTIMES_WIDGET_ID;
-    runtimesWidget.title.icon = historyIcon;
-    runtimesWidget.title.caption = 'Runtimes';
-    runtimesWidget.addClass('elyra-CodeSnippets');
-
-    const openRuntimesCommand: string = commandIDs.openRuntimes;
-    app.commands.addCommand(openRuntimesCommand, {
-      label: args => (args['isPalette'] ? 'Open Runtimes' : 'Runtimes'),
-      icon: args => (args['isPalette'] ? undefined : historyIcon),
-      execute: () => {
-        // Rank has been chosen somewhat arbitrarily to give priority
-        // to the running sessions widget in the sidebar.
-        app.shell.add(runtimesWidget, 'left', { rank: 950 });
-        app.shell.activateById(RUNTIMES_WIDGET_ID);
-      }
-    });
-
     const updateTheme = (widget: any): void => {
       widget.content.themeChanged(themeManager.isLight(themeManager.theme));
     };
@@ -186,6 +170,20 @@ const extension: JupyterFrontEndPlugin<void> = {
         tracker.forEach(widget => updateTheme(widget));
       });
     }
+
+    const runtimesWidget = new RuntimesWidget({
+      app,
+      display_name: 'Runtimes',
+      namespace: RUNTIMES_NAMESPACE,
+      schema: KFP_SCHEMA
+    });
+    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`;
+    runtimesWidget.id = runtimesWidgetID;
+    runtimesWidget.title.icon = runtimesIcon;
+    runtimesWidget.title.caption = 'Runtimes';
+
+    restorer.add(runtimesWidget, runtimesWidgetID);
+    app.shell.add(runtimesWidget, 'left', { rank: 950 });
   }
 };
 export default extension;

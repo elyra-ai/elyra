@@ -120,6 +120,75 @@
   flex-direction: column;
 }
 
+/* MetadataWidget CSS */
+.elyra-metadata {
+  color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+}
+
+.elyra-metadataHeader {
+  font-weight: bold;
+  padding: 8px 10px;
+  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  display: flex;
+  justify-content: space-between;
+}
+
+.elyra-metadataHeader p {
+  font-weight: bold;
+}
+
+.elyra-metadataHeader-button {
+  background-color: transparent;
+  vertical-align: middle;
+  padding: 5px;
+  width: 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  display: inline-flex;
+  align-self: flex-end;
+}
+
+.elyra-metadataHeader-button svg {
+  transform: translate(-3px, 0px);
+}
+
+.elyra-metadataHeader-button:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+.elyra-metadataHeader polygon[fill] {
+  fill: var(--jp-ui-font-color1);
+}
+
+.elyra-metadataHeader + div:first-of-type {
+  overflow-y: auto;
+  height: calc(100vh - 95px);
+}
+
+.elyra-metadata-item {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.elyra-metadata-item .elyra-expandableContainer-details-visible {
+  background-color: var(--jp-cell-editor-background);
+  resize: vertical;
+  height: 100px;
+}
+
+.elyra-metadata-item .CodeMirror.cm-s-jupyter {
+  background-color: inherit;
+  border: none;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
+}
+
 /* temporary fix until this is addressed in jupyterlab */
 .lm-TabBar-tabIcon svg {
   height: auto;

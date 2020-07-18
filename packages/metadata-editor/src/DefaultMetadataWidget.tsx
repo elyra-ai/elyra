@@ -29,32 +29,31 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { editIcon } from '@jupyterlab/ui-components';
 import React from 'react';
 
-import { PipelineService } from './PipelineService';
-
-export const RUNTIMES_NAMESPACE = 'runtimes';
-export const KFP_SCHEMA = 'kfp';
-
 /**
- * RuntimesDisplayProps props.
+ * DefaultMetadataDisplay props.
  */
-interface IRuntimesDisplayProps extends IMetadataDisplayProps {
+interface IDefaultMetadataDisplayProps extends IMetadataDisplayProps {
   metadata: IMetadata[];
   openMetadataEditor: (args: any) => void;
   updateMetadata: () => void;
+  namespace: string;
+  schema: string;
 }
 
 /**
- * A React Component for displaying the runtimes list.
+ * A React Component for displaying a metadata list.
  */
-class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
+class DefaultMetadataDisplay extends MetadataDisplay<
+  IDefaultMetadataDisplayProps
+> {
   private deleteMetadata = (metadata: IMetadata): Promise<void> => {
     return showDialog({
-      title: `Delete runtime: ${metadata.display_name}?`,
+      title: `Delete metadata: ${metadata.display_name}?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
-        FrontendServices.deleteMetadata(RUNTIMES_NAMESPACE, metadata.name);
+        FrontendServices.deleteMetadata(this.props.namespace, metadata.name);
       }
     });
   };
@@ -67,8 +66,8 @@ class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
         onClick: (): void => {
           this.props.openMetadataEditor({
             onSave: this.props.updateMetadata,
-            namespace: RUNTIMES_NAMESPACE,
-            schema: metadata.schema_name,
+            namespace: this.props.namespace,
+            schema: this.props.schema,
             name: metadata.name
           });
         }
@@ -87,48 +86,33 @@ class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
 
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     return (
-      <div>
-        <h6>Runtime History:</h6>
-        <a
-          href={metadata.metadata.api_endpoint}
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {metadata.metadata.api_endpoint}
-        </a>
-        <br />
-        <br />
-        <h6>Cloud Object Storage:</h6>
-        <a
-          href={metadata.metadata.cos_endpoint}
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {metadata.metadata.cos_endpoint}
-        </a>
-      </div>
+      <pre>
+        <code>{JSON.stringify(metadata.metadata, null, 2)}</code>
+      </pre>
     );
   }
 }
 
 /**
- * A widget for displaying runtimes.
+ * A widget for viewing metadata.
  */
-export class RuntimesWidget extends MetadataWidget {
+export class DefaultMetadataWidget extends MetadataWidget {
   constructor(props: IMetadataWidgetProps) {
     super(props);
   }
 
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes();
+    return await FrontendServices.getMetadata(this.props.namespace);
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
     return (
-      <RuntimesDisplay
+      <DefaultMetadataDisplay
         metadata={metadata}
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
+        namespace={this.props.namespace}
+        schema={this.props.schema}
       />
     );
   }

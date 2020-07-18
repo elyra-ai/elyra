@@ -23,7 +23,7 @@ import dragDropSvg from '../style/icons/dragdrop.svg';
 import exportPipelineSvg from '../style/icons/export-pipeline.svg';
 import importSvg from '../style/icons/import.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
-import pipelineHistorySvg from '../style/icons/pipeline-history.svg';
+import runtimesSvg from '../style/icons/runtimes.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
 import trashIconSvg from '../style/icons/trashIcon.svg';
 
@@ -57,9 +57,9 @@ export const savePipelineIcon = new LabIcon({
   name: 'elyra:save-pipeline',
   svgstr: savePipelineSvg
 });
-export const historyIcon = new LabIcon({
-  name: 'elyra:history',
-  svgstr: pipelineHistorySvg
+export const runtimesIcon = new LabIcon({
+  name: 'elyra:runtimes',
+  svgstr: runtimesSvg
 });
 export const trashIcon = new LabIcon({
   name: 'elyra:trashIcon',

@@ -20,15 +20,21 @@ import {
 } from '@jupyterlab/application';
 import { IThemeManager } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { textEditorIcon } from '@jupyterlab/ui-components';
+import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
 
+import { DefaultMetadataWidget } from './DefaultMetadataWidget';
 import { MetadataEditor } from './MetadataEditor';
 
 const BP_DARK_THEME_CLASS = 'bp3-dark';
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
+const METADATA_WIDGET_ID = 'elyra-metadata';
+
+const commandIDs = {
+  openMetadata: 'elyra-metadata:open'
+};
 
 /**
  * Initialization data for the metadata-editor-extension extension.
@@ -108,6 +114,41 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (themeManager) {
       themeManager.themeChanged.connect(updateTheme);
     }
+
+    const openMetadataWidget = (args: {
+      display_name: string;
+      namespace: string;
+      schema: string;
+      icon: string;
+    }): void => {
+      const widgetId = `${METADATA_WIDGET_ID}:${args.namespace}:${args.schema}`;
+      const metadataWidget = new DefaultMetadataWidget({
+        app,
+        display_name: args.display_name,
+        namespace: args.namespace,
+        schema: args.schema
+      });
+      metadataWidget.id = widgetId;
+      metadataWidget.title.icon = LabIcon.resolve({ icon: args.icon });
+      metadataWidget.title.caption = args.display_name;
+
+      if (
+        find(app.shell.widgets('left'), value => value.id === widgetId) ==
+        undefined
+      ) {
+        app.shell.add(metadataWidget, 'left', { rank: 1000 });
+      }
+      app.shell.activateById(widgetId);
+    };
+
+    const openMetadataCommand: string = commandIDs.openMetadata;
+    app.commands.addCommand(openMetadataCommand, {
+      execute: (args: any) => {
+        // Rank has been chosen somewhat arbitrarily to give priority
+        // to the running sessions widget in the sidebar.
+        openMetadataWidget(args);
+      }
+    });
   }
 };
 

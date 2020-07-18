@@ -29,7 +29,7 @@ import {
   exportPipelineIcon,
   pipelineIcon,
   savePipelineIcon,
-  historyIcon,
+  runtimesIcon,
   showFormDialog
 } from '@elyra/ui-components';
 
@@ -62,6 +62,7 @@ import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineService } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
+import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './RuntimesWidget';
 import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -98,8 +99,7 @@ export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
-  submitNotebook: 'notebook:submit',
-  openRuntimes: 'pipeline-runtimes:open'
+  submitNotebook: 'notebook:submit'
 };
 
 /**
@@ -260,11 +260,11 @@ export class PipelineEditor extends React.Component<
         iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
       },
       {
-        action: 'history',
-        label: 'Pipelines Submission History',
+        action: 'runtimes',
+        label: 'Open Runtimes',
         enable: true,
-        iconEnabled: IconUtil.encode(historyIcon),
-        iconDisabled: IconUtil.encode(historyIcon)
+        iconEnabled: Utils.getEncodedIcon(runtimesIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(runtimesIcon, darkmode)
       },
       { divider: true },
       { action: 'undo', label: 'Undo', enable: true },
@@ -727,8 +727,10 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  handleHistory(): void {
-    this.app.commands.execute(commandIDs.openRuntimes);
+  handleOpenRuntimes(): void {
+    this.app.shell.activateById(
+      `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`
+    );
   }
 
   handleClosePipeline(): void {
@@ -751,8 +753,8 @@ export class PipelineEditor extends React.Component<
       this.handleSavePipeline();
     } else if (action == 'clear') {
       this.handleClearPipeline();
-    } else if (action == 'history') {
-      this.handleHistory();
+    } else if (action == 'runtimes') {
+      this.handleOpenRuntimes();
     }
   }
 
