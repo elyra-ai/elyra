@@ -277,7 +277,7 @@ export class PipelineEditor extends React.Component<
         iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
       },
       {
-        action: 'runtimes',
+        action: 'openRuntimes',
         label: 'Open Runtimes',
         enable: true,
         iconEnabled: Utils.getEncodedIcon(runtimesIcon, darkmode),
@@ -777,7 +777,7 @@ export class PipelineEditor extends React.Component<
       this.handleSavePipeline();
     } else if (action == 'clear') {
       this.handleClearPipeline();
-    } else if (action == 'runtimes') {
+    } else if (action == 'openRuntimes') {
       this.handleOpenRuntimes();
     } else if (['undo', 'redo', 'delete', 'addComment'].includes(action)) {
       this.updateModel();
