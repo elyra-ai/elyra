@@ -49,7 +49,7 @@ setup_args = dict(
         "jupyter_core>=4.0,<5.0",
         "kfp==0.5.1",
         "urllib3==1.24.2",
-        "kfp-notebook>=0.10.0,<0.11.0",
+        "kfp-notebook>=0.10.2,<0.11.0",
         "minio>=5.0.7",
         'nbdime>=2.0.0',
         'jupyterlab>=2.0.0,<3.0.0',

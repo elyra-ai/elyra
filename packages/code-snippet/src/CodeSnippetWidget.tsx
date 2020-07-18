@@ -94,7 +94,10 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       const documentWidget = widget as DocumentWidget;
       const fileEditor = (documentWidget.content as FileEditor).editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
-      if (PathExt.extname(widget.context.path).match(markdownRegex) !== null) {
+      if (
+        PathExt.extname(widget.context.path).match(markdownRegex) !== null &&
+        snippet.language.toLowerCase() !== 'markdown'
+      ) {
         // Wrap snippet into a code block when inserting it into a markdown file
         fileEditor.replaceSelection(
           '```' + snippet.language + '\n' + snippetStr + '\n```'
@@ -118,7 +121,10 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
           kernelLanguage,
           notebookCellEditor
         );
-      } else if (notebookCell instanceof MarkdownCell) {
+      } else if (
+        notebookCell instanceof MarkdownCell &&
+        snippet.language.toLowerCase() !== 'markdown'
+      ) {
         // Wrap snippet into a code block when inserting it into a markdown cell
         notebookCellEditor.replaceSelection(
           '```' + snippet.language + '\n' + snippetStr + '\n```'
