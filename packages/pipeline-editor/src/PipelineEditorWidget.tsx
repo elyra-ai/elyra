@@ -264,7 +264,7 @@ export class PipelineEditor extends React.Component<
               aria-label="close"
               color="inherit"
               size="small"
-              onClick={() => {
+              onClick={(): void => {
                 this.setState({ showValidationError: false });
               }}
             >
