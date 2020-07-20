@@ -97,6 +97,11 @@ const NodeProperties = (properties: any): React.ReactElement => {
   );
 };
 
+interface IValidationError {
+  errorMessage: string;
+  errorSeverity: Color;
+}
+
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
   openDocManager: 'docmanager:open',
@@ -182,15 +187,9 @@ export namespace PipelineEditor {
     showValidationError: boolean;
 
     /*
-     * Message to present for an invalid operation
+     * Error to present for an invalid operation
      */
-    errorMessage: string;
-
-    /*
-     * Severity of error message - options are 'error', 'warning',
-     * 'info', 'success'
-     */
-    errorSeverity: Color;
+    validationError: IValidationError;
 
     /**
      * Whether pipeline is empty.
@@ -236,8 +235,10 @@ export class PipelineEditor extends React.Component<
       showPropertiesDialog: false,
       propertiesInfo: {},
       showValidationError: false,
-      errorMessage: '',
-      errorSeverity: 'error',
+      validationError: {
+        errorMessage: '',
+        errorSeverity: 'error'
+      },
       emptyPipeline: Utils.isEmptyPipeline(
         this.canvasController.getPipelineFlow()
       )
@@ -258,7 +259,7 @@ export class PipelineEditor extends React.Component<
     const validationAlert = (
       <Collapse in={this.state.showValidationError}>
         <Alert
-          severity={this.state.errorSeverity}
+          severity={this.state.validationError.errorSeverity}
           action={
             <IconButton
               aria-label="close"
@@ -272,7 +273,7 @@ export class PipelineEditor extends React.Component<
             </IconButton>
           }
         >
-          {this.state.errorMessage}
+          {this.state.validationError.errorMessage}
         </Alert>
       </Collapse>
     );
@@ -571,9 +572,11 @@ export class PipelineEditor extends React.Component<
         data.pipelineId
       );
       this.setState({
-        errorMessage: 'Invalid operation: circular references in pipeline.',
-        showValidationError: true,
-        errorSeverity: 'error'
+        validationError: {
+          errorMessage: 'Invalid operation: circular references in pipeline.',
+          errorSeverity: 'error'
+        },
+        showValidationError: true
       });
       // If you're performing a valid edit, dismiss the validation error
     } else {
