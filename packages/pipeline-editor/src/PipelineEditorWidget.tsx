@@ -429,7 +429,11 @@ export class PipelineEditor extends React.Component<
     node_props.parameterDef.current_parameters.include_subdirectories =
       app_data.include_subdirectories;
 
-    this.setState({ showPropertiesDialog: true, propertiesInfo: node_props });
+    this.setState({
+      showValidationError: false,
+      showPropertiesDialog: true,
+      propertiesInfo: node_props
+    });
   }
 
   applyPropertyChanges(propertySet: any, appData: any): void {
