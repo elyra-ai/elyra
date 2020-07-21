@@ -716,6 +716,18 @@ export class PipelineEditor extends React.Component<
   }
 
   async handleExportPipeline(): Promise<void> {
+    // Warn user if the pipeline has invalid nodes
+    if (this.invalidPipeline()) {
+      this.setState({
+        showValidationError: true,
+        validationError: {
+          errorMessage:
+            'Invalid pipeline: Some nodes have missing or invalid properties.',
+          errorSeverity: 'error'
+        }
+      });
+      return;
+    }
     const runtimes = await PipelineService.getRuntimes();
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
@@ -907,7 +919,7 @@ export class PipelineEditor extends React.Component<
         showValidationError: true,
         validationError: {
           errorMessage:
-            'Invalid pipeline: some nodes have incomplete properties.',
+            'Invalid pipeline: Some nodes have missing or invalid properties.',
           errorSeverity: 'error'
         }
       });
