@@ -64,12 +64,19 @@ Elyra can be installed via PyPi:
 #### JupyterLab support
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.0 and below**
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 0.11.0-rc0 and above**
 
 via PyPi:
 ```bash
 pip install elyra && jupyter lab build
 ```
+
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 0.11.0-rc0 and above**
+
+via PyPi:
+```bash
+pip install --upgrade --pre elyra && jupyter lab build
+```
+
 Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
 
 ### Verify Installation 
@@ -81,7 +88,7 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra <VERSION> OK
+      elyra v1.0.0-rc.1 OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.1.5 OK
@@ -99,11 +106,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension <VERSION>  enabled  OK*
-        @elyra/metadata-editor-extension <VERSION>  enabled  OK*
-        @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
-        @elyra/python-editor-extension <VERSION>  enabled  OK*
-        @elyra/theme-extension <VERSION>  enabled  OK*
+        @elyra/code-snippet-extension v1.0.0-rc.1  enabled  OK*
+        @elyra/metadata-editor-extension v1.0.0-rc.1  enabled  OK*
+        @elyra/pipeline-editor-extension v1.0.0-rc.1  enabled  OK*
+        @elyra/python-editor-extension v1.0.0-rc.1  enabled  OK*
+        @elyra/theme-extension v1.0.0-rc.1  enabled  OK*
         @jupyterlab/git v0.20.0  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK

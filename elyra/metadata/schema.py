@@ -49,13 +49,11 @@ class SchemaManager(SingletonConfigurable):
 
     def get_namespace_schemas(self, namespace: str) -> dict:
         self.validate_namespace(namespace)
-        self.log.debug("SchemaManager: Fetching all schemas from namespace '{}'".format(namespace))
         schemas = self.namespace_schemas.get(namespace)
         return schemas
 
     def get_schema(self, namespace: str, schema_name: str) -> dict:
         self.validate_namespace(namespace)
-        self.log.debug("SchemaManager: Fetching schema '{}' from namespace '{}'".format(schema_name, namespace))
         schemas = self.namespace_schemas.get(namespace)
         if schema_name not in schemas.keys():
             raise SchemaNotFoundError(namespace, schema_name)

@@ -46,6 +46,10 @@ import { notebookIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
+import { Collapse, IconButton } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
+import Alert from '@material-ui/lab/Alert';
+import { Color } from '@material-ui/lab/Alert';
 
 import '@elyra/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
@@ -68,6 +72,10 @@ const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 
 const TIP_TYPE_NODE = 'tipTypeNode';
+
+const SAVE_ICON_ID = 'toolbar-icon-save';
+const EXPORT_ICON_ID = 'toolbar-icon-export';
+const CLEAR_ICON_ID = 'toolbar-icon-clear';
 
 const NodeProperties = (properties: any): React.ReactElement => {
   return (
@@ -94,6 +102,11 @@ const NodeProperties = (properties: any): React.ReactElement => {
   );
 };
 
+interface IValidationError {
+  errorMessage: string;
+  errorSeverity: Color;
+}
+
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
   openDocManager: 'docmanager:open',
@@ -114,6 +127,25 @@ export class PipelineEditorWidget extends ReactWidget {
     this.app = props.app;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
+  }
+
+  themeChanged(isLight: boolean): void {
+    [SAVE_ICON_ID, EXPORT_ICON_ID, CLEAR_ICON_ID].forEach((id: string) => {
+      const element = document.getElementById(id) as HTMLImageElement;
+      if (element) {
+        switch (element.id) {
+          case SAVE_ICON_ID:
+            element.src = Utils.getEncodedIcon(savePipelineIcon, !isLight);
+            break;
+          case EXPORT_ICON_ID:
+            element.src = Utils.getEncodedIcon(exportPipelineIcon, !isLight);
+            break;
+          case CLEAR_ICON_ID:
+            element.src = Utils.getEncodedIcon(clearPipelineIcon, !isLight);
+            break;
+        }
+      }
+    });
   }
 
   render(): React.ReactElement {
@@ -153,6 +185,21 @@ export namespace PipelineEditor {
      * The form contents of the properties dialog.
      */
     propertiesInfo: any;
+
+    /*
+     * Whether the warning for invalid operations is visible.
+     */
+    showValidationError: boolean;
+
+    /*
+     * Error to present for an invalid operation
+     */
+    validationError: IValidationError;
+
+    /**
+     * Whether pipeline is empty.
+     */
+    emptyPipeline: boolean;
   }
 }
 
@@ -186,7 +233,21 @@ export class PipelineEditor extends React.Component<
     this.editActionHandler = this.editActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
 
-    this.state = { showPropertiesDialog: false, propertiesInfo: {} };
+    this.invalidLink = this.invalidLink.bind(this);
+    this.nodesConnected = this.nodesConnected.bind(this);
+
+    this.state = {
+      showPropertiesDialog: false,
+      propertiesInfo: {},
+      showValidationError: false,
+      validationError: {
+        errorMessage: '',
+        errorSeverity: 'error'
+      },
+      emptyPipeline: Utils.isEmptyPipeline(
+        this.canvasController.getPipelineFlow()
+      )
+    };
 
     this.initPropertiesInfo();
 
@@ -198,8 +259,30 @@ export class PipelineEditor extends React.Component<
     this.handleEvent = this.handleEvent.bind(this);
   }
 
-  render(): any {
+  render(): React.ReactElement {
     const style = { height: '100%' };
+    const validationAlert = (
+      <Collapse in={this.state.showValidationError}>
+        <Alert
+          severity={this.state.validationError.errorSeverity}
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={(): void => {
+                this.setState({ showValidationError: false });
+              }}
+            >
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+        >
+          {this.state.validationError.errorMessage}
+        </Alert>
+      </Collapse>
+    );
+    const darkmode = !!document.querySelector("[data-jp-theme-light='false']");
     const emptyCanvasContent = (
       <div>
         <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
@@ -215,43 +298,53 @@ export class PipelineEditor extends React.Component<
       enablePaletteLayout: 'Modal',
       paletteInitialState: false
     };
+    const pipelineDefinition = this.canvasController.getPipelineFlow();
+    const emptyCanvas = Utils.isEmptyCanvas(pipelineDefinition);
     const toolbarConfig = [
-      { action: 'run', label: 'Run Pipeline', enable: true },
+      {
+        action: 'run',
+        label: 'Run Pipeline',
+        enable: !this.state.emptyPipeline
+      },
       {
         action: 'save',
         label: 'Save Pipeline',
         enable: true,
-        iconEnabled: IconUtil.encode(savePipelineIcon),
-        iconDisabled: IconUtil.encode(savePipelineIcon)
+        iconEnabled: Utils.getEncodedIcon(savePipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(savePipelineIcon, darkmode)
       },
       {
         action: 'export',
         label: 'Export Pipeline',
-        enable: true,
-        iconEnabled: IconUtil.encode(exportPipelineIcon),
-        iconDisabled: IconUtil.encode(exportPipelineIcon)
+        enable: !this.state.emptyPipeline,
+        iconEnabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(exportPipelineIcon, darkmode)
       },
       {
         action: 'clear',
         label: 'Clear Pipeline',
-        enable: true,
-        iconEnabled: IconUtil.encode(clearPipelineIcon),
-        iconDisabled: IconUtil.encode(clearPipelineIcon)
+        enable: !this.state.emptyPipeline || !emptyCanvas,
+        iconEnabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode),
+        iconDisabled: Utils.getEncodedIcon(clearPipelineIcon, darkmode)
       },
       { divider: true },
-      { action: 'undo', label: 'Undo', enable: true },
-      { action: 'redo', label: 'Redo', enable: true },
-      { action: 'cut', label: 'Cut', enable: false },
-      { action: 'copy', label: 'Copy', enable: false },
-      { action: 'paste', label: 'Paste', enable: false },
+      { action: 'undo', label: 'Undo' },
+      { action: 'redo', label: 'Redo' },
+      { action: 'cut', label: 'Cut' },
+      { action: 'copy', label: 'Copy' },
+      { action: 'paste', label: 'Paste' },
       { action: 'addComment', label: 'Add Comment', enable: true },
-      { action: 'delete', label: 'Delete', enable: true },
+      { action: 'delete', label: 'Delete' },
       {
         action: 'arrangeHorizontally',
         label: 'Arrange Horizontally',
-        enable: true
+        enable: !this.state.emptyPipeline
       },
-      { action: 'arrangeVertically', label: 'Arrange Vertically', enable: true }
+      {
+        action: 'arrangeVertically',
+        label: 'Arrange Vertically',
+        enable: !this.state.emptyPipeline
+      }
     ];
 
     const propertiesCallbacks = {
@@ -275,6 +368,7 @@ export class PipelineEditor extends React.Component<
 
     return (
       <div style={style} ref={this.node}>
+        {validationAlert}
         <CommonCanvas
           canvasController={this.canvasController}
           toolbarMenuActionHandler={this.toolbarMenuActionHandler}
@@ -292,9 +386,11 @@ export class PipelineEditor extends React.Component<
   }
 
   updateModel(): void {
-    this.widgetContext.model.fromString(
-      JSON.stringify(this.canvasController.getPipelineFlow(), null, 2)
-    );
+    const pipelineFlow = this.canvasController.getPipelineFlow();
+
+    this.widgetContext.model.fromString(JSON.stringify(pipelineFlow, null, 2));
+
+    this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineFlow) });
   }
 
   async initPropertiesInfo(): Promise<void> {
@@ -346,7 +442,7 @@ export class PipelineEditor extends React.Component<
     app_data.env_vars = propertySet.env_vars;
     app_data.dependencies = propertySet.dependencies;
     app_data.include_subdirectories = propertySet.include_subdirectories;
-    this.updateDecorations(node);
+    this.invalidPipeline();
     this.updateModel();
   }
 
@@ -418,11 +514,83 @@ export class PipelineEditor extends React.Component<
   }
 
   /*
+   * Checks if there is a path from sourceNode to targetNode in the graph.
+   */
+  nodesConnected(
+    sourceNode: string,
+    targetNode: string,
+    links: any[]
+  ): boolean {
+    if (
+      links.find((value: any, index: number) => {
+        return value.srcNodeId == sourceNode && value.trgNodeId == targetNode;
+      })
+    ) {
+      return true;
+    } else {
+      for (const link of links) {
+        if (
+          link.srcNodeId == sourceNode &&
+          this.nodesConnected(link.trgNodeId, targetNode, links)
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Validates the new link before adding it.
+   *
+   * @param data: data struct given by the canvas controller handler
+   *
+   * @returns boolean indicating if given data is valid. (true if invalid)
+   *
+   * TODO: when we update canvas to 8, we can change the name of
+   * this function to beforeEditActionHandler and use it as a handler
+   * instead of calling this function in editActionHandler.
+   */
+  invalidLink(data: any): boolean {
+    if (data.editType == 'linkNodes') {
+      // Remove the link that was just added for the purposes of checking validity
+      const links = this.canvasController
+        .getLinks()
+        .filter((value: any, index: number) => {
+          return value.id != data.linkIds[0];
+        });
+      return this.nodesConnected(
+        data.targetNodes[0].id,
+        data.nodes[0].id,
+        links
+      );
+    } else {
+      return false;
+    }
+  }
+
+  /*
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any): void {
-    if (data.editType == 'createNode') {
-      this.updateDecorations(data.newNode);
+    // Checks validity of links before adding
+    if (this.invalidLink(data)) {
+      this.canvasController.deleteLink(
+        this.canvasController.getLink(data.linkIds[0]),
+        data.pipelineId
+      );
+      this.setState({
+        validationError: {
+          errorMessage: 'Invalid operation: circular references in pipeline.',
+          errorSeverity: 'error'
+        },
+        showValidationError: true
+      });
+      // If you're performing a valid edit, dismiss the validation error
+    } else {
+      this.setState({
+        showValidationError: false
+      });
     }
     this.updateModel();
   }
@@ -508,6 +676,7 @@ export class PipelineEditor extends React.Component<
           ] = this.propertiesInfo.parameterDef.current_parameters.include_subdirectories;
 
           this.canvasController.editActionHandler(data);
+          this.setState({ showValidationError: false });
 
           position += 20;
         }
@@ -592,7 +761,7 @@ export class PipelineEditor extends React.Component<
       if (pipelineJson == null) {
         // creating new pipeline
         pipelineJson = this.canvasController.getPipelineFlow();
-        if (Utils.isNewPipeline(pipelineJson)) {
+        if (Utils.isEmptyPipeline(pipelineJson)) {
           pipelineJson.pipelines[0]['app_data'][
             'version'
           ] = PIPELINE_CURRENT_VERSION;
@@ -649,19 +818,17 @@ export class PipelineEditor extends React.Component<
               }
             });
           }
-        } else {
-          // in this case, pipeline version is current
-          this.canvasController.setPipelineFlow(pipelineJson);
-          for (const node of this.canvasController.getNodes()) {
-            this.updateDecorations(node);
-          }
         }
       }
+      this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
+      this.canvasController.setPipelineFlow(pipelineJson);
+      this.invalidPipeline();
     });
   }
 
   // Adds an error decoration if a node has any invalid properties.
-  updateDecorations(node: any): void {
+  // Returns true if the node is valid.
+  updateDecorations(node: any): boolean {
     node.app_data.invalidNodeError = this.invalidProperties(node);
     if (node.app_data.invalidNodeError != null) {
       this.canvasController.setNodeDecorations(node.id, [
@@ -670,13 +837,23 @@ export class PipelineEditor extends React.Component<
           image: IconUtil.encode(errorIcon),
           outline: false,
           class_name: 'elyra-canvasErrorIcon',
-          position: 'topRight',
-          x_pos: -25,
-          y_pos: -8
+          position: 'topLeft',
+          x_pos: 20,
+          y_pos: 3
         }
       ]);
+      const pipelineId = this.canvasController.getPrimaryPipelineId();
+      const stylePipelineObj: any = {};
+      stylePipelineObj[pipelineId] = [node.id];
+      const styleSpec = {
+        body: { default: 'stroke: #d32f2f;' },
+        label: { default: 'fill: #d32f2f;' }
+      };
+      this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
+      return false;
     } else {
       this.canvasController.setNodeDecorations(node.id, []);
+      return true;
     }
   }
 
@@ -694,13 +871,45 @@ export class PipelineEditor extends React.Component<
       node.app_data.runtime_image == null ||
       node.app_data.runtime_image == ''
     ) {
-      return 'Invalid node: no runtime image.';
+      return 'no runtime image.';
     } else {
       return null;
     }
   }
 
+  /**
+   * Validates the properties of all nodes in the pipeline.
+   * Updates the decorations / style of all nodes.
+   *
+   * @returns true if the pipeline is invalid.
+   */
+  invalidPipeline(): boolean {
+    let invalidPipeline = false;
+    // Reset any existing flagged nodes' style
+    this.canvasController.removeAllStyles(true);
+    const pipelineId = this.canvasController.getPrimaryPipelineId();
+    for (const node of this.canvasController.getNodes(pipelineId)) {
+      if (!this.updateDecorations(node)) {
+        invalidPipeline = true;
+      }
+    }
+    return invalidPipeline;
+  }
+
   async handleRunPipeline(): Promise<void> {
+    // Check that all nodes are valid
+    if (this.invalidPipeline()) {
+      this.setState({
+        showValidationError: true,
+        validationError: {
+          errorMessage:
+            'Invalid pipeline: some nodes have incomplete properties.',
+          errorSeverity: 'error'
+        }
+      });
+      return;
+    }
+
     const runtimes = await PipelineService.getRuntimes();
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
@@ -772,6 +981,8 @@ export class PipelineEditor extends React.Component<
       this.handleSavePipeline();
     } else if (action == 'clear') {
       this.handleClearPipeline();
+    } else if (['undo', 'redo', 'delete', 'addComment'].includes(action)) {
+      this.updateModel();
     }
   }
 

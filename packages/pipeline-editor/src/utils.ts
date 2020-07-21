@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { IconUtil } from '@elyra/ui-components';
+import { LabIcon } from '@jupyterlab/ui-components';
 import uuid4 from 'uuid/v4';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
@@ -59,16 +62,24 @@ export default class Utils {
   }
 
   /**
-   * Check if the provided pipeline is a newly created pipeline
+   * Check if the provided pipeline is empty (no nodes)
    *
    * @param pipelineDefinition
    */
-  static isNewPipeline(pipelineDefinition: any): boolean {
-    if (Object.keys(pipelineDefinition.pipelines[0].nodes).length == 0) {
-      return true;
-    } else {
-      return false;
-    }
+  static isEmptyPipeline(pipelineDefinition: any): boolean {
+    return Object.keys(pipelineDefinition.pipelines[0].nodes).length === 0;
+  }
+
+  /**
+   * Check if the provided pipeline is clear of nodes and comments
+   *
+   * @param pipelineDefinition
+   */
+  static isEmptyCanvas(pipelineDefinition: any): boolean {
+    return (
+      this.isEmptyPipeline(pipelineDefinition) &&
+      pipelineDefinition.pipelines[0].app_data.ui_data.comments.length === 0
+    );
   }
 
   /**
@@ -137,4 +148,9 @@ export default class Utils {
       this.deletePipelineAppdataField(node, currentFieldName);
     }
   }
+
+  static getEncodedIcon = (icon: LabIcon, darkTheme: boolean): string => {
+    const themedIcon = darkTheme ? IconUtil.colorize(icon, '#f4f4f4') : icon;
+    return IconUtil.encode(themedIcon);
+  };
 }

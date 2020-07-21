@@ -151,6 +151,15 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
   background-color: var(--ui-background);
 }
 
+.canvas-icon .stroke,
+.canvas-icon.stroke {
+  stroke: var(--icon-01);
+}
+.canvas-icon .fill,
+.canvas-icon.fill {
+  fill: var(--icon-01);
+}
+
 .list-item-containers .list-item:hover {
   background-color: var(--ui-03);
 }
@@ -259,4 +268,7 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 }
 .react-contextmenu-item.contextmenu-divider {
   background-color: var(--ui-03);
+}
+img.toolbar-icons[disabled] {
+  opacity: 0.5;
 }

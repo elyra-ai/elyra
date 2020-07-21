@@ -255,8 +255,8 @@ def test_list_json_instances(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json')
     assert ret.success
     lines = ret.stdout.split('\n')
-    assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert lines[0].startswith("No metadata instances found for {}".format(METADATA_TEST_NAMESPACE))
+    assert len(lines) == 2
+    assert lines[0] == "[]"
 
     valid = Metadata(**valid_metadata_json)
     resource = metadata_manager.create('valid', valid)
@@ -318,8 +318,8 @@ def test_remove_missing(script_runner):
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=missing')
     assert ret.success is False
-    assert ret.stdout == ''
-    assert "No such instance named 'missing' was found in the metadata-tests namespace." in ret.stderr
+    assert ret.stderr == ''
+    assert "No such instance named 'missing' was found in the metadata-tests namespace." in ret.stdout
 
     # Now cleanup original instance.
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=valid')
