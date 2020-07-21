@@ -23,7 +23,19 @@ Elyra supports custom code snippets that can be added to the file editor.
 
 ![Code Snippets](../images/code-snippets.png)
 
-### Code Snippet data
+### Adding and Editing Code Snippets
+
+To add a code snippet, simply click the `+` button in the top right corner of the code snippets side pane, and an editor will appear in the main area of JupyterLab.
+
+![Add Code Snippets](../images/add-code-snippets.png)
+
+To edit a code snippet, click the edit button to open an editor in the main area of JupyterLab.
+
+![Edit Code Snippets](../images/edit-code-snippets.png)
+
+Click "Save and Close" to see your edits in the code snippets side pane.
+
+#### Code Snippet data
 This extension uses [Elyra Metadata Service](../developer_guide/metadata)
 and requires configuring code snippets metadata in order to retrieve and display snippets in the UI.
 To configure metadata for code snippets, locate `[JUPYTER DATA DIR]/metadata/` folder and create the subdirectory `code-snippets/`.
