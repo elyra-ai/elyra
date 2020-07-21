@@ -46,8 +46,8 @@ import { notebookIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 
-import '@elyra/canvas/dist/common-canvas.min.css';
 import 'carbon-components/css/carbon-components.min.css';
+import '@elyra/canvas/dist/common-canvas.min.css';
 import '../style/canvas.css';
 
 import * as React from 'react';
@@ -221,12 +221,6 @@ export class PipelineEditor extends React.Component<
       enableInsertNodeDroppedOnLink: true,
       enableNodeFormatType: 'Horizontal'
     };
-    const notificationConfig = {
-      action: 'notification',
-      label: 'Notifications',
-      enable: false,
-      notificationHeader: 'Notifications'
-    };
     const contextMenuConfig = {
       enableCreateSupernodeNonContiguous: false,
       defaultMenuEntries: {
@@ -317,7 +311,7 @@ export class PipelineEditor extends React.Component<
             tipHandler={this.tipHandler}
             toolbarConfig={toolbarConfig}
             config={canvasConfig}
-            notificationConfig={notificationConfig}
+            notificationConfig={{ enable: false }}
             contextMenuConfig={contextMenuConfig}
           />
         </IntlProvider>

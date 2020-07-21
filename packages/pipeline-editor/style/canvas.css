@@ -263,11 +263,6 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   background-color: var(--ui-03);
 }
 
-#zoom-actions-container .toolbar-divider,
-#zoom-actions-container .notificationCounterIcon {
-  display: none;
-}
-
 .bx--modal-footer {
   padding: 12px;
   justify-content: flex-end;
