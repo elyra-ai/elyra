@@ -36,9 +36,8 @@ To edit a code snippet, click the edit button to open an editor in the main area
 Click "Save and Close" to see your edits in the code snippets side pane.
 
 #### Code Snippet data
-This extension uses [Elyra Metadata Service](../developer_guide/metadata)
-and requires configuring code snippets metadata in order to retrieve and display snippets in the UI.
-To configure metadata for code snippets, locate `[JUPYTER DATA DIR]/metadata/` folder and create the subdirectory `code-snippets/`.
+This extension uses [Elyra Metadata Service](../developer_guide/metadata) and in addition to the frontend editor detailed above, this can also be configured on the backend.
+To configure metadata for code snippets through the backend, locate `[JUPYTER DATA DIR]/metadata/` folder and create the subdirectory `code-snippets/`.
 This is where code snippet json files are stored, following a schema defined in
 [code snippets metadata](https://github.com/elyra-ai/elyra/blob/master/elyra/metadata/schemas/code-snippet.json)
 
@@ -67,6 +66,6 @@ Each snippet item can then be expanded on click, also displaying the `code` cont
 
 By clicking on the **copy** button, the content of the code snippet is copied into the system clipboard.
 
-The **+** button inserts the code snippet content into the editor tab in focus. If the widget in focus is not an editor, an error is displayed.
+The **insert** button inserts the code snippet content into the editor tab in focus. If the widget in focus is not an editor, an error is displayed.
 Code snippets are automatically added as code blocks in markdown files and notebook markdown cells.
 When inserting snippets into executable editors (ie. a notebook code cell or a python file editor), the extension will verify kernel language compatibility, warning the user when a mismatch is detected.
