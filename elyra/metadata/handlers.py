@@ -34,7 +34,6 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         namespace = url_unescape(namespace)
         try:
             metadata_manager = MetadataManager(namespace=namespace)
-            self.log.debug("MetadataHandler: Fetching all metadata resources from namespace '{}'...".format(namespace))
             metadata = metadata_manager.get_all()
         except (ValidationError, ValueError) as err:
             raise web.HTTPError(400, str(err)) from err
@@ -106,8 +105,6 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
 
         try:
             metadata_manager = MetadataManager(namespace=namespace)
-            self.log.debug("MetadataResourceHandler: Fetching metadata resource '{}' from namespace '{}'...".
-                           format(resource, namespace))
             metadata = metadata_manager.get(resource)
         except (ValidationError, ValueError, NotImplementedError) as err:
             raise web.HTTPError(400, str(err)) from err
@@ -179,7 +176,6 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
         namespace = url_unescape(namespace)
         schema_manager = SchemaManager()
         try:
-            self.log.debug("SchemaHandler: Fetching all schemas for namespace '{}'...".format(namespace))
             schemas = schema_manager.get_namespace_schemas(namespace)
         except (ValidationError, ValueError, SchemaNotFoundError) as err:
             raise web.HTTPError(404, str(err)) from err
@@ -201,8 +197,6 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
         resource = url_unescape(resource)
         schema_manager = SchemaManager()
         try:
-            self.log.debug("SchemaResourceHandler: Fetching schema '{}' for namespace '{}'...".
-                           format(resource, namespace))
             schema = schema_manager.get_schema(namespace, resource)
         except (ValidationError, ValueError, SchemaNotFoundError) as err:
             raise web.HTTPError(404, str(err)) from err
@@ -220,7 +214,6 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
     async def get(self):
         schema_manager = SchemaManager()
         try:
-            self.log.debug("NamespaceHandler: Fetching namespaces...")
             namespaces = schema_manager.get_namespaces()
         except (ValidationError, ValueError) as err:
             raise web.HTTPError(404, str(err)) from err
