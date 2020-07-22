@@ -830,7 +830,7 @@ export class PipelineEditor extends React.Component<
    * @returns true if the node is valid.
    */
   validateNode(node: any): boolean {
-    node.app_data.invalidNodeError = this.invalidProperties(node);
+    node.app_data.invalidNodeError = this.validateProperties(node);
     if (node.app_data.invalidNodeError != null) {
       this.canvasController.setNodeDecorations(node.id, [
         {
@@ -867,7 +867,7 @@ export class PipelineEditor extends React.Component<
    * if there are invalid properties. If there are none,
    * returns null.
    */
-  invalidProperties(node: any): string {
+  validateProperties(node: any): string {
     if (
       node.app_data.runtime_image == null ||
       node.app_data.runtime_image == ''
