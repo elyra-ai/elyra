@@ -731,7 +731,7 @@ export class PipelineEditor extends React.Component<
   handleClearPipeline(data: any): Promise<any> {
     return showDialog({
       title: 'Clear Pipeline?',
-      body: 'Are you sure you want to clear? You can not undo this.',
+      body: 'Are you sure you want to clear?',
       buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
     }).then(result => {
       if (result.button.accept) {
