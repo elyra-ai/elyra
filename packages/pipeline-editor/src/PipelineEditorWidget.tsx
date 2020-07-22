@@ -443,7 +443,7 @@ export class PipelineEditor extends React.Component<
           this.handleSavePipeline();
           break;
         case 'clear':
-          this.handleClearPipeline();
+          this.handleClearPipeline(data);
           break;
         case 'openNotebook':
           if (data.type === 'node') {
@@ -728,16 +728,22 @@ export class PipelineEditor extends React.Component<
     this.widgetContext.save();
   }
 
-  handleClearPipeline(): Promise<any> {
+  handleClearPipeline(data: any): Promise<any> {
     return showDialog({
       title: 'Clear Pipeline?',
       body: 'Are you sure you want to clear? You can not undo this.',
       buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
     }).then(result => {
       if (result.button.accept) {
-        this.canvasController.clearPipelineFlow();
-        this.updateModel();
-        this.position = 10;
+        // select all canvas elements
+        this.canvasController.selectAll();
+
+        // trigger delete of all selected canvas elements
+        this.canvasController.editActionHandler({
+          editType: 'deleteSelectedObjects',
+          editSource: data.editSource,
+          pipelineId: data.pipelineId
+        });
       }
     });
   }
