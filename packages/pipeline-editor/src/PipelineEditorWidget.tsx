@@ -848,6 +848,7 @@ export class PipelineEditor extends React.Component<
       stylePipelineObj[pipelineId] = [node.id];
       const styleSpec = {
         body: { default: 'stroke: var(--jp-error-color1);' },
+        selection_outline: { default: 'stroke: var(--jp-error-color1);' },
         label: { default: 'fill: var(--jp-error-color1);' }
       };
       this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
