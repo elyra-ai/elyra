@@ -539,33 +539,6 @@ export class PipelineEditor extends React.Component<
   }
 
   /*
-   * Checks if there is a path from sourceNode to targetNode in the graph.
-   */
-  nodesConnected(
-    sourceNode: string,
-    targetNode: string,
-    links: any[]
-  ): boolean {
-    if (
-      links.find((value: any, index: number) => {
-        return value.srcNodeId == sourceNode && value.trgNodeId == targetNode;
-      })
-    ) {
-      return true;
-    } else {
-      for (const link of links) {
-        if (
-          link.srcNodeId == sourceNode &&
-          this.nodesConnected(link.trgNodeId, targetNode, links)
-        ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /*
    * Handles creating new nodes in the canvas
    */
   editActionHandler(data: any): void {
