@@ -190,6 +190,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       {
         title: 'Copy',
         icon: copyIcon,
+        feedback: 'Copied!',
         onClick: (): void => {
           Clipboard.copyToSystem(codeSnippet.code.join('\n'));
         }
