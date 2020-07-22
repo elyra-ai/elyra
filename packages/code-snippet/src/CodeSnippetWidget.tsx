@@ -367,7 +367,7 @@ export class CodeSnippetWidget extends ReactWidget {
           <button
             className={CODE_SNIPPETS_HEADER_BUTTON_CLASS}
             onClick={this.addCodeSnippet.bind(this)}
-            title="Add Code Snippet"
+            title="Create new Code Snippet"
           >
             <addIcon.react tag="span" elementPosition="center" width="16px" />
           </button>
