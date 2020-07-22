@@ -49,6 +49,7 @@
 
 .elyra-codeSnippetHeader-button:hover {
   background-color: var(--jp-layout-color2);
+  cursor: pointer;
 }
 
 .elyra-codeSnippetsHeader polygon[fill] {
