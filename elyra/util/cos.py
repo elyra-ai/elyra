@@ -23,23 +23,20 @@ from traitlets.config import LoggingConfigurable
 class CosClient(LoggingConfigurable):
     client = None
 
-    def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, secure=False, bucket=None):
+    def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, bucket=None):
         super().__init__()
         if config:
             self.endpoint = urlparse(config.metadata['cos_endpoint'])
             self.access_key = config.metadata['cos_username']
             self.secret_key = config.metadata['cos_password']
-            if 'cos_secure' in config.metadata.keys():
-                self.secure = config.metadata['cos_secure']
-            else:
-                self.secure = secure
             self.bucket = config.metadata['cos_bucket']
         else:
             self.endpoint = urlparse(endpoint)
             self.access_key = access_key
             self.secret_key = secret_key
-            self.secure = secure
             self.bucket = bucket
+        # Infer secure from the endpoint's scheme.
+        self.secure = self.endpoint.scheme == 'https'
 
         self.client = self.__initialize_object_store()
 
