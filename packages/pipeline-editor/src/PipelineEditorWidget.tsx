@@ -201,6 +201,7 @@ export class PipelineEditor extends React.Component<
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.clickActionHandler = this.clickActionHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
+    this.beforeEditActionHandler = this.beforeEditActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
 
     this.invalidLink = this.invalidLink.bind(this);
@@ -357,6 +358,7 @@ export class PipelineEditor extends React.Component<
             contextMenuHandler={this.contextMenuHandler}
             clickActionHandler={this.clickActionHandler}
             editActionHandler={this.editActionHandler}
+            beforeEditActionHandler={this.beforeEditActionHandler}
             tipHandler={this.tipHandler}
             toolbarConfig={toolbarConfig}
             config={canvasConfig}
@@ -514,32 +516,19 @@ export class PipelineEditor extends React.Component<
    */
   invalidLink(data: any): boolean {
     if (data.editType == 'linkNodes') {
-      // Remove the link that was just added for the purposes of checking validity
-      const links = this.canvasController
-        .getLinks()
-        .filter((value: any, index: number) => {
-          return value.id != data.linkIds[0];
-        });
       return this.nodesConnected(
         data.targetNodes[0].id,
         data.nodes[0].id,
-        links
+        this.canvasController.getLinks()
       );
     } else {
       return false;
     }
   }
 
-  /*
-   * Handles creating new nodes in the canvas
-   */
-  editActionHandler(data: any): void {
+  beforeEditActionHandler(data: any): any {
     // Checks validity of links before adding
     if (this.invalidLink(data)) {
-      this.canvasController.deleteLink(
-        this.canvasController.getLink(data.linkIds[0]),
-        data.pipelineId
-      );
       this.setState({
         validationError: {
           errorMessage: 'Invalid operation: circular references in pipeline.',
@@ -547,12 +536,20 @@ export class PipelineEditor extends React.Component<
         },
         showValidationError: true
       });
-      // If you're performing a valid edit, dismiss the validation error
+      // Don't proceed with adding the link if invalid.
+      return null;
     } else {
-      this.setState({
-        showValidationError: false
-      });
+      return data;
     }
+  }
+
+  /*
+   * Handles creating new nodes in the canvas
+   */
+  editActionHandler(data: any): void {
+    this.setState({
+      showValidationError: false
+    });
     if (data && data.editType) {
       console.log(`Handling action: ${data.editType}`);
 
