@@ -436,7 +436,7 @@ export class PipelineEditor extends React.Component<
     app_data.env_vars = propertySet.env_vars;
     app_data.dependencies = propertySet.dependencies;
     app_data.include_subdirectories = propertySet.include_subdirectories;
-    this.invalidPipeline();
+    this.validateAllNodes();
     this.updateModel();
   }
 
@@ -697,7 +697,7 @@ export class PipelineEditor extends React.Component<
 
   async handleExportPipeline(): Promise<void> {
     // Warn user if the pipeline has invalid nodes
-    if (this.invalidPipeline()) {
+    if (!this.validateAllNodes()) {
       this.setState({
         showValidationError: true,
         validationError: {
@@ -818,13 +818,18 @@ export class PipelineEditor extends React.Component<
       }
       this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
       this.canvasController.setPipelineFlow(pipelineJson);
-      this.invalidPipeline();
+      this.validateAllNodes();
     });
   }
 
-  // Adds an error decoration if a node has any invalid properties.
-  // Returns true if the node is valid.
-  updateDecorations(node: any): boolean {
+  /**
+   * Adds an error decoration if a node has any invalid properties.
+   *
+   * @param node - canvas node object to validate
+   *
+   * @returns true if the node is valid.
+   */
+  validateNode(node: any): boolean {
     node.app_data.invalidNodeError = this.invalidProperties(node);
     if (node.app_data.invalidNodeError != null) {
       this.canvasController.setNodeDecorations(node.id, [
@@ -879,14 +884,14 @@ export class PipelineEditor extends React.Component<
    *
    * @returns true if the pipeline is invalid.
    */
-  invalidPipeline(): boolean {
-    let invalidPipeline = false;
+  validateAllNodes(): boolean {
+    let invalidPipeline = true;
     // Reset any existing flagged nodes' style
     this.canvasController.removeAllStyles(true);
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     for (const node of this.canvasController.getNodes(pipelineId)) {
-      if (!this.updateDecorations(node)) {
-        invalidPipeline = true;
+      if (!this.validateNode(node)) {
+        invalidPipeline = false;
       }
     }
     return invalidPipeline;
@@ -894,7 +899,7 @@ export class PipelineEditor extends React.Component<
 
   async handleRunPipeline(): Promise<void> {
     // Check that all nodes are valid
-    if (this.invalidPipeline()) {
+    if (!this.validateAllNodes()) {
       this.setState({
         showValidationError: true,
         validationError: {
