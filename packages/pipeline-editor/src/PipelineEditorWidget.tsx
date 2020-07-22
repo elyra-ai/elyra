@@ -204,7 +204,6 @@ export class PipelineEditor extends React.Component<
     this.beforeEditActionHandler = this.beforeEditActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
 
-    this.invalidLink = this.invalidLink.bind(this);
     this.nodesConnected = this.nodesConnected.bind(this);
 
     this.state = {
@@ -503,32 +502,16 @@ export class PipelineEditor extends React.Component<
     return false;
   }
 
-  /**
-   * Validates the new link before adding it.
-   *
-   * @param data: data struct given by the canvas controller handler
-   *
-   * @returns boolean indicating if given data is valid. (true if invalid)
-   *
-   * TODO: when we update canvas to 8, we can change the name of
-   * this function to beforeEditActionHandler and use it as a handler
-   * instead of calling this function in editActionHandler.
-   */
-  invalidLink(data: any): boolean {
-    if (data.editType == 'linkNodes') {
-      return this.nodesConnected(
+  beforeEditActionHandler(data: any): any {
+    // Checks validity of links before adding
+    if (
+      data.editType == 'linkNodes' &&
+      this.nodesConnected(
         data.targetNodes[0].id,
         data.nodes[0].id,
         this.canvasController.getLinks()
-      );
-    } else {
-      return false;
-    }
-  }
-
-  beforeEditActionHandler(data: any): any {
-    // Checks validity of links before adding
-    if (this.invalidLink(data)) {
+      )
+    ) {
       this.setState({
         validationError: {
           errorMessage: 'Invalid operation: circular references in pipeline.',
