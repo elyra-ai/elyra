@@ -23,6 +23,8 @@ import {
 } from '@jupyterlab/ui-components';
 import * as React from 'react';
 
+import { FeedbackButton } from './FeedbackButton';
+
 /**
  * The CSS class for expandable containers.
  */
@@ -42,6 +44,7 @@ export interface IExpandableActionButton {
   title: string;
   icon: LabIcon;
   onClick: Function;
+  feedback?: string;
 }
 
 export interface IExpandableComponentProps {
@@ -123,9 +126,10 @@ export class ExpandableComponent extends React.Component<
           <div className={ACTION_BUTTONS_WRAPPER_CLASS}>
             {actionButtons.map((btn: IExpandableActionButton) => {
               return (
-                <button
+                <FeedbackButton
                   key={btn.title}
                   title={btn.title}
+                  feedback={btn.feedback || ''}
                   className={buttonClasses + ' ' + ACTION_BUTTON_CLASS}
                   onClick={(): void => {
                     btn.onClick();
@@ -136,7 +140,7 @@ export class ExpandableComponent extends React.Component<
                     elementPosition="center"
                     width="16px"
                   />
-                </button>
+                </FeedbackButton>
               );
             })}
           </div>
