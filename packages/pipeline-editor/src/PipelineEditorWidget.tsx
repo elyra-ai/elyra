@@ -882,7 +882,7 @@ export class PipelineEditor extends React.Component<
    * Validates the properties of all nodes in the pipeline.
    * Updates the decorations / style of all nodes.
    *
-   * @returns true if the pipeline is invalid.
+   * @returns true if the pipeline is valid.
    */
   validateAllNodes(): boolean {
     let validPipeline = true;
