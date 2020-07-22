@@ -847,8 +847,8 @@ export class PipelineEditor extends React.Component<
       const stylePipelineObj: any = {};
       stylePipelineObj[pipelineId] = [node.id];
       const styleSpec = {
-        body: { default: 'stroke: #d32f2f;' },
-        label: { default: 'fill: #d32f2f;' }
+        body: { default: 'stroke: var(--jp-error-color1);' },
+        label: { default: 'fill: var(--jp-error-color1);' }
       };
       this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
       return false;
@@ -885,16 +885,16 @@ export class PipelineEditor extends React.Component<
    * @returns true if the pipeline is invalid.
    */
   validateAllNodes(): boolean {
-    let invalidPipeline = true;
+    let validPipeline = true;
     // Reset any existing flagged nodes' style
     this.canvasController.removeAllStyles(true);
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     for (const node of this.canvasController.getNodes(pipelineId)) {
       if (!this.validateNode(node)) {
-        invalidPipeline = false;
+        validPipeline = false;
       }
     }
-    return invalidPipeline;
+    return validPipeline;
   }
 
   async handleRunPipeline(): Promise<void> {

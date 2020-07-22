@@ -21,7 +21,7 @@
 }
 
 .elyra-tooltipError {
-  color: var(--jp-error-color0);
+  color: var(--jp-error-color1);
 }
 
 .elyra-PipelineEditor .properties-modal {
