@@ -576,6 +576,7 @@ export class PipelineEditor extends React.Component<
       }
     }
 
+    this.validateAllLinks();
     this.updateModel();
   }
 
@@ -697,12 +698,12 @@ export class PipelineEditor extends React.Component<
 
   async handleExportPipeline(): Promise<void> {
     // Warn user if the pipeline has invalid nodes
-    if (!this.validateAllNodes()) {
+    const errorMessage = this.validatePipeline();
+    if (errorMessage) {
       this.setState({
         showValidationError: true,
         validationError: {
-          errorMessage:
-            'Invalid pipeline: Some nodes have missing or invalid properties.',
+          errorMessage: errorMessage,
           errorSeverity: 'error'
         }
       });
@@ -818,6 +819,16 @@ export class PipelineEditor extends React.Component<
       }
       this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
       this.canvasController.setPipelineFlow(pipelineJson);
+      const errorMessage = this.validatePipeline();
+      if (errorMessage) {
+        this.setState({
+          showValidationError: true,
+          validationError: {
+            errorMessage: errorMessage,
+            errorSeverity: 'error'
+          }
+        });
+      }
       this.validateAllNodes();
     });
   }
@@ -837,7 +848,6 @@ export class PipelineEditor extends React.Component<
           id: 'error',
           image: IconUtil.encode(errorIcon),
           outline: false,
-          class_name: 'elyra-canvasErrorIcon',
           position: 'topLeft',
           x_pos: 20,
           y_pos: 3
@@ -854,6 +864,16 @@ export class PipelineEditor extends React.Component<
       this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
       return false;
     } else {
+      // Remove any existing decorations if valid
+      const pipelineId = this.canvasController.getPrimaryPipelineId();
+      const stylePipelineObj: any = {};
+      stylePipelineObj[pipelineId] = [node.id];
+      const styleSpec = {
+        body: { default: '' },
+        selection_outline: { default: '' },
+        label: { default: '' }
+      };
+      this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
       this.canvasController.setNodeDecorations(node.id, []);
       return true;
     }
@@ -883,29 +903,84 @@ export class PipelineEditor extends React.Component<
    * Validates the properties of all nodes in the pipeline.
    * Updates the decorations / style of all nodes.
    *
-   * @returns true if the pipeline is valid.
+   * @returns null if all nodes are valid, error message if
+   * invalid.
    */
-  validateAllNodes(): boolean {
-    let validPipeline = true;
+  validateAllNodes(): string {
+    let errorMessage = null;
     // Reset any existing flagged nodes' style
-    this.canvasController.removeAllStyles(true);
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     for (const node of this.canvasController.getNodes(pipelineId)) {
       if (!this.validateNode(node)) {
-        validPipeline = false;
+        errorMessage = 'Some nodes have missing or invalid properties. ';
+      }
+    }
+    return errorMessage;
+  }
+
+  /**
+   * Validates all links in the pipeline.
+   * Updates the decorations / style of links.
+   *
+   * @returns null if pipeline is valid, error message if not.
+   */
+  validateAllLinks(): string {
+    let validPipeline = null;
+    const links = this.canvasController.getLinks();
+    for (const link of links) {
+      if (this.nodesConnected(link.trgNodeId, link.srcNodeId, links)) {
+        validPipeline = 'Circular references in pipeline. ';
+        const pipelineId = this.canvasController.getPrimaryPipelineId();
+        const stylePipelineObj: any = {};
+        stylePipelineObj[pipelineId] = [link.id];
+        const styleSpec = {
+          line: {
+            default: 'stroke-dasharray: 13; stroke: var(--jp-error-color1);'
+          }
+        };
+        this.canvasController.setLinksStyle(stylePipelineObj, styleSpec, true);
+      } else {
+        // If valid, remove any extra styling
+        const pipelineId = this.canvasController.getPrimaryPipelineId();
+        const stylePipelineObj: any = {};
+        stylePipelineObj[pipelineId] = [link.id];
+        const styleSpec = {
+          line: { default: '' }
+        };
+        this.canvasController.setLinksStyle(stylePipelineObj, styleSpec, true);
       }
     }
     return validPipeline;
   }
 
+  /**
+   * Validates all links and nodes in the pipeline.
+   * Updates the decorations / style of links and nodes.
+   *
+   * @returns null if pipeline is valid, error message if not.
+   */
+  validatePipeline(): string {
+    const nodeErrorMessage = this.validateAllNodes();
+    const linkErrorMessage = this.validateAllLinks();
+    if (nodeErrorMessage || linkErrorMessage) {
+      return (
+        'Invalid pipeline: ' +
+        (nodeErrorMessage == null ? '' : nodeErrorMessage) +
+        (linkErrorMessage == null ? '' : linkErrorMessage)
+      );
+    } else {
+      return null;
+    }
+  }
+
   async handleRunPipeline(): Promise<void> {
     // Check that all nodes are valid
-    if (!this.validateAllNodes()) {
+    const errorMessage = this.validatePipeline();
+    if (errorMessage) {
       this.setState({
         showValidationError: true,
         validationError: {
-          errorMessage:
-            'Invalid pipeline: Some nodes have missing or invalid properties.',
+          errorMessage: errorMessage,
           errorSeverity: 'error'
         }
       });
