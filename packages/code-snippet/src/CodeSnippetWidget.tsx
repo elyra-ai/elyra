@@ -190,6 +190,7 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       {
         title: 'Copy',
         icon: copyIcon,
+        feedback: 'Copied!',
         onClick: (): void => {
           Clipboard.copyToSystem(codeSnippet.code.join('\n'));
         }
@@ -367,6 +368,7 @@ export class CodeSnippetWidget extends ReactWidget {
           <button
             className={CODE_SNIPPETS_HEADER_BUTTON_CLASS}
             onClick={this.addCodeSnippet.bind(this)}
+            title="Create new Code Snippet"
           >
             <addIcon.react tag="span" elementPosition="center" width="16px" />
           </button>

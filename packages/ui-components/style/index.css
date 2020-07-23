@@ -213,3 +213,37 @@
 [data-jp-theme-light='false'] .elyra-pieBrain-icon rect.st2 {
   fill: var(--jp-inverse-layout-color3);
 }
+
+.elyra-feedbackButton {
+  display: inline;
+  position: relative;
+}
+
+.elyra-feedbackButton[data-feedback]:not([data-feedback='']):before {
+  border: solid;
+  border-color: var(--jp-inverse-layout-color2) transparent;
+  border-width: 0 6px 6px 6px;
+  bottom: 0;
+  content: '';
+  left: 5px;
+  position: absolute;
+  z-index: 999;
+}
+
+.elyra-feedbackButton[data-feedback]:not([data-feedback='']):after {
+  background: var(--jp-inverse-layout-color2);
+  border-radius: 2px;
+  bottom: -20px;
+  color: var(--jp-ui-inverse-font-color1);
+  content: attr(data-feedback);
+  font-size: 0.75rem;
+  font-weight: 400;
+  padding: 3px 5px;
+  pointer-events: none;
+  position: absolute;
+  right: -10px;
+  text-align: center;
+  width: max-content;
+  word-wrap: break-word;
+  z-index: 999;
+}
