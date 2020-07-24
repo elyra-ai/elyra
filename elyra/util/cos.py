@@ -55,11 +55,12 @@ class CosClient(LoggingConfigurable):
         try:
             if not self.client.bucket_exists(self.bucket):
                 self.client.make_bucket(self.bucket)
-        except BucketAlreadyOwnedByYou as ex:
+        except BucketAlreadyOwnedByYou:
+            # Note: the check for `bucket_exists` does not work in the IBM Cos
+            # so we should not re-raise the exception
             self.log.warning("Object Storage bucket already owned by you", exc_info=True)
-            raise ex from ex
         except BucketAlreadyExists as ex:
-            self.log.warning("Object Storage bucket already exists", exc_info=True)
+            self.log.error("Object Storage bucket already exists", exc_info=True)
             raise ex from ex
         except ResponseError as ex:
             self.log.error("Object Storage error", exc_info=True)
