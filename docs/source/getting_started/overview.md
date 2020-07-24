@@ -50,7 +50,7 @@ but others can be easily added.
 
 The pipeline visual editor also enables detailed customization of your pipeline, allowing
 users to choose which docker image to use when executing your notebook, setup environment
-variables required to properly run your notebook, as well as configuring dependency files 
+variables required to properly run your notebook, as well as configuring dependency files
 that need to be available to child notebooks.
 
 ![Notebook Pipeline Editor - Node Properties](../images/pipeline-editor-properties.png)
@@ -80,9 +80,7 @@ them against local or cloud-based resources seamlessly.
 
 #### Reusable Code Snippets
 
-Elyra supports a beta version of the **Code Snippet** feature.
-This allows users to add custom pieces of code that can be reused, making programming in JupyterLab more efficient
-by reducing repetitive work.
+Elyra supports the **Code Snippet** feature. This allows users to manipulate reusable pieces of code, making programming in JupyterLab more efficient by reducing repetitive work.
 
 ![Code Snippets](../images/code-snippet-expanded.png)
 
@@ -99,7 +97,7 @@ enabling a collaborative working environment.
 #### Notebook navigation using auto-generated **Table of Contents**
 
 The enhanced notebook navigation recognizes **markdown** titles, subtitles, etc to auto-generate
-a Notebook **Table of Contents** providing enhanced navigation capabilities. 
+a Notebook **Table of Contents** providing enhanced navigation capabilities.
 
 ![Notebook Table of Contents](../images/notebook-toc.png)
 
