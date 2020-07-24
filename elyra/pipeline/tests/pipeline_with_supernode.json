@@ -150,6 +150,9 @@
         }
       ],
       "app_data": {
+        "name": "super-node-test",
+        "runtime": "kfp",
+        "runtime-config": "kfp-yukked1",
         "ui_data": {
           "comments": []
         }

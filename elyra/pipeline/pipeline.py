@@ -59,12 +59,12 @@ class Operation(object):
         self._classifier = classifier
         self._filename = filename
         self._runtime_image = runtime_image
-        self._dependencies = self.__initialize_empty_array_if_none(dependencies)
+        self._dependencies = dependencies or []
         self._include_subdirectories = include_subdirectories
-        self._env_vars = self.__initialize_empty_array_if_none(env_vars)
-        self._inputs = self.__initialize_empty_array_if_none(inputs)
-        self._outputs = self.__initialize_empty_array_if_none(outputs)
-        self._parent_operations = self.__initialize_empty_array_if_none(parent_operations)
+        self._env_vars = env_vars or []
+        self._inputs = inputs or []
+        self._outputs = outputs or []
+        self._parent_operations = parent_operations or []
 
     @property
     def id(self):
@@ -154,13 +154,6 @@ class Operation(object):
                                                     inputs=self.inputs,
                                                     outputs=self.outputs,
                                                     image=self.runtime_image)
-
-    @staticmethod
-    def __initialize_empty_array_if_none(value):
-        if value:
-            return value
-        else:
-            return []
 
 
 class Pipeline(object):

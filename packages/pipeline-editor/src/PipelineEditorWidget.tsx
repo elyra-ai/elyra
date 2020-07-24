@@ -222,10 +222,10 @@ export class PipelineEditor extends React.Component<
       enableNodeFormatType: 'Horizontal'
     };
     const contextMenuConfig = {
-      enableCreateSupernodeNonContiguous: false,
+      enableCreateSupernodeNonContiguous: true,
       defaultMenuEntries: {
         saveToPalette: false,
-        createSupernode: false
+        createSupernode: true
       }
     };
     const pipelineDefinition = this.canvasController.getPipelineFlow();
