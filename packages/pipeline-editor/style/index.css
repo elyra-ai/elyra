@@ -20,6 +20,10 @@
   text-align: center;
 }
 
+.elyra-tooltipError {
+  color: var(--jp-error-color1);
+}
+
 .elyra-PipelineEditor .properties-modal {
   position: absolute;
 }

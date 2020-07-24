@@ -29,7 +29,8 @@ import {
   exportPipelineIcon,
   pipelineIcon,
   savePipelineIcon,
-  showFormDialog
+  showFormDialog,
+  errorIcon
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -82,10 +83,14 @@ const NodeProperties = (properties: any): React.ReactElement => {
         } else if (typeof value === 'boolean') {
           value = value ? 'Yes' : 'No';
         }
+        let tooltipTextClass = '';
+        if (key == 'Error') {
+          tooltipTextClass = 'elyra-tooltipError';
+        }
         return (
           <React.Fragment key={idx}>
-            <dd>{key}</dd>
-            <dt>{value}</dt>
+            <dd className={tooltipTextClass}>{key}</dd>
+            <dt className={tooltipTextClass}>{value}</dt>
           </React.Fragment>
         );
       })}
@@ -414,18 +419,25 @@ export class PipelineEditor extends React.Component<
     node_props.parameterDef.current_parameters.include_subdirectories =
       app_data.include_subdirectories;
 
-    this.setState({ showPropertiesDialog: true, propertiesInfo: node_props });
+    this.setState({
+      showValidationError: false,
+      showPropertiesDialog: true,
+      propertiesInfo: node_props
+    });
   }
 
   applyPropertyChanges(propertySet: any, appData: any): void {
     console.log('Applying changes to properties');
-    const app_data = this.canvasController.getNode(appData.id).app_data;
+    const node = this.canvasController.getNode(appData.id);
+    const app_data = node.app_data;
 
     app_data.runtime_image = propertySet.runtime_image;
     app_data.outputs = propertySet.outputs;
     app_data.env_vars = propertySet.env_vars;
     app_data.dependencies = propertySet.dependencies;
     app_data.include_subdirectories = propertySet.include_subdirectories;
+    this.validateAllNodes();
+    this.updateModel();
   }
 
   closePropertiesDialog(): void {
@@ -564,6 +576,7 @@ export class PipelineEditor extends React.Component<
       }
     }
 
+    this.validateAllLinks();
     this.updateModel();
   }
 
@@ -575,6 +588,10 @@ export class PipelineEditor extends React.Component<
       const appData = this.canvasController.getNode(data.node.id).app_data;
       const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
       const tooltipProps: any = {};
+
+      if (appData.invalidNodeError != null) {
+        tooltipProps['Error'] = appData.invalidNodeError;
+      }
 
       propsInfo.forEach(
         (info: { parameter_ref: string; label: { default: string } }) => {
@@ -680,6 +697,18 @@ export class PipelineEditor extends React.Component<
   }
 
   async handleExportPipeline(): Promise<void> {
+    // Warn user if the pipeline has invalid nodes
+    const errorMessage = this.validatePipeline();
+    if (errorMessage) {
+      this.setState({
+        showValidationError: true,
+        validationError: {
+          errorMessage: errorMessage,
+          errorSeverity: 'error'
+        }
+      });
+      return;
+    }
     const runtimes = await PipelineService.getRuntimes();
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
@@ -786,16 +815,178 @@ export class PipelineEditor extends React.Component<
               }
             });
           }
-        } else {
-          // in this case, pipeline version is current
-          this.canvasController.setPipelineFlow(pipelineJson);
         }
       }
       this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
+      this.canvasController.setPipelineFlow(pipelineJson);
+      const errorMessage = this.validatePipeline();
+      if (errorMessage) {
+        this.setState({
+          showValidationError: true,
+          validationError: {
+            errorMessage: errorMessage,
+            errorSeverity: 'error'
+          }
+        });
+      }
+      this.validateAllNodes();
     });
   }
 
+  /**
+   * Adds an error decoration if a node has any invalid properties.
+   *
+   * @param node - canvas node object to validate
+   *
+   * @returns true if the node is valid.
+   */
+  validateNode(node: any): boolean {
+    node.app_data.invalidNodeError = this.validateProperties(node);
+    if (node.app_data.invalidNodeError != null) {
+      this.canvasController.setNodeDecorations(node.id, [
+        {
+          id: 'error',
+          image: IconUtil.encode(errorIcon),
+          outline: false,
+          position: 'topLeft',
+          x_pos: 20,
+          y_pos: 3
+        }
+      ]);
+      const pipelineId = this.canvasController.getPrimaryPipelineId();
+      const stylePipelineObj: any = {};
+      stylePipelineObj[pipelineId] = [node.id];
+      const styleSpec = {
+        body: { default: 'stroke: var(--jp-error-color1);' },
+        selection_outline: { default: 'stroke: var(--jp-error-color1);' },
+        label: { default: 'fill: var(--jp-error-color1);' }
+      };
+      this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
+      return false;
+    } else {
+      // Remove any existing decorations if valid
+      const pipelineId = this.canvasController.getPrimaryPipelineId();
+      const stylePipelineObj: any = {};
+      stylePipelineObj[pipelineId] = [node.id];
+      const styleSpec = {
+        body: { default: '' },
+        selection_outline: { default: '' },
+        label: { default: '' }
+      };
+      this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
+      this.canvasController.setNodeDecorations(node.id, []);
+      return true;
+    }
+  }
+
+  /**
+   * Validates the properties of a given node.
+   *
+   * @param node: node to check properties for
+   *
+   * @returns a warning message to display in the tooltip
+   * if there are invalid properties. If there are none,
+   * returns null.
+   */
+  validateProperties(node: any): string {
+    if (
+      node.app_data.runtime_image == null ||
+      node.app_data.runtime_image == ''
+    ) {
+      return 'no runtime image.';
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Validates the properties of all nodes in the pipeline.
+   * Updates the decorations / style of all nodes.
+   *
+   * @returns null if all nodes are valid, error message if
+   * invalid.
+   */
+  validateAllNodes(): string {
+    let errorMessage = null;
+    // Reset any existing flagged nodes' style
+    const pipelineId = this.canvasController.getPrimaryPipelineId();
+    for (const node of this.canvasController.getNodes(pipelineId)) {
+      if (!this.validateNode(node)) {
+        errorMessage = 'Some nodes have missing or invalid properties. ';
+      }
+    }
+    return errorMessage;
+  }
+
+  /**
+   * Validates all links in the pipeline.
+   * Updates the decorations / style of links.
+   *
+   * @returns null if pipeline is valid, error message if not.
+   */
+  validateAllLinks(): string {
+    let validPipeline = null;
+    const links = this.canvasController.getLinks();
+    for (const link of links) {
+      if (this.nodesConnected(link.trgNodeId, link.srcNodeId, links)) {
+        validPipeline = 'Circular references in pipeline. ';
+        const pipelineId = this.canvasController.getPrimaryPipelineId();
+        const stylePipelineObj: any = {};
+        stylePipelineObj[pipelineId] = [link.id];
+        const styleSpec = {
+          line: {
+            default: 'stroke-dasharray: 13; stroke: var(--jp-error-color1);'
+          }
+        };
+        this.canvasController.setLinksStyle(stylePipelineObj, styleSpec, true);
+      } else {
+        // If valid, remove any extra styling
+        const pipelineId = this.canvasController.getPrimaryPipelineId();
+        const stylePipelineObj: any = {};
+        stylePipelineObj[pipelineId] = [link.id];
+        const styleSpec = {
+          line: { default: '' }
+        };
+        this.canvasController.setLinksStyle(stylePipelineObj, styleSpec, true);
+      }
+    }
+    return validPipeline;
+  }
+
+  /**
+   * Validates all links and nodes in the pipeline.
+   * Updates the decorations / style of links and nodes.
+   *
+   * @returns null if pipeline is valid, error message if not.
+   */
+  validatePipeline(): string {
+    const nodeErrorMessage = this.validateAllNodes();
+    const linkErrorMessage = this.validateAllLinks();
+    if (nodeErrorMessage || linkErrorMessage) {
+      return (
+        'Invalid pipeline: ' +
+        (nodeErrorMessage == null ? '' : nodeErrorMessage) +
+        (linkErrorMessage == null ? '' : linkErrorMessage)
+      );
+    } else {
+      return null;
+    }
+  }
+
   async handleRunPipeline(): Promise<void> {
+    // Check that all nodes are valid
+    const errorMessage = this.validatePipeline();
+    if (errorMessage) {
+      this.setState({
+        showValidationError: true,
+        validationError: {
+          errorMessage: errorMessage,
+          errorSeverity: 'error'
+        }
+      });
+      return;
+    }
+
     const runtimes = await PipelineService.getRuntimes();
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',

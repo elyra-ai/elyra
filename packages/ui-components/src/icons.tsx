@@ -20,6 +20,7 @@ import clearPipelineSvg from '../style/icons/clear-pipeline.svg';
 import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
 import codeSnippetSvg from '../style/icons/code-snippet.svg';
 import dragDropSvg from '../style/icons/dragdrop.svg';
+import errorIconSvg from '../style/icons/error.svg';
 import exportPipelineSvg from '../style/icons/export-pipeline.svg';
 import importSvg from '../style/icons/import.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
@@ -42,6 +43,10 @@ export const elyraIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elyraSvg });
 export const pipelineIcon = new LabIcon({
   name: 'elyra:pipeline',
   svgstr: pipelineSvg
+});
+export const errorIcon = new LabIcon({
+  name: 'elyra:errorIcon',
+  svgstr: errorIconSvg
 });
 
 export const clearPipelineIcon = new LabIcon({
