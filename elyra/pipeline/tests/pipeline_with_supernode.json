@@ -14,10 +14,17 @@
           "op": "execute-notebook-node",
           "app_data": {
             "outputs": ["community_contributions.csv"],
-            "dependencies": ["contributors.csv"],
-            "filename": "elyra-pipelines/generate-contributions.ipynb",
-            "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": []
+            "dependencies": [],
+            "filename": "demo-pipelines/generate-contributions.ipynb",
+            "runtime_image": "elyra/tensorflow:1.15.2-py3",
+            "env_vars": [],
+            "ui_data": {
+              "label": "generate-contributions",
+              "image": "useDefaultIcon",
+              "x_pos": 84,
+              "y_pos": -48,
+              "description": "Notebook file"
+            }
           },
           "inputs": [
             {
@@ -54,122 +61,55 @@
           "op": "execute-notebook-node",
           "app_data": {
             "outputs": ["community_stats.csv"],
-            "dependencies": ["contributors.csv"],
-            "filename": "elyra-pipelines/generate-stats.ipynb",
-            "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": []
-          },
-          "inputs": [
-            {
-              "id": "inPort",
-              "app_data": {
-                "ui_data": {
-                  "label": ""
-                }
-              }
-            }
-          ],
-          "outputs": [
-            {
-              "id": "outPort",
-              "app_data": {
-                "ui_data": {
-                  "label": ""
-                }
-              }
-            }
-          ]
-        },
-        {
-          "id": "079c0e12-eb5f-4fcc-983b-09e011869fee",
-          "type": "execution_node",
-          "op": "execute-notebook-node",
-          "app_data": {
-            "filename": "elyra-pipelines/overview.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3"
-          },
-          "inputs": [
-            {
-              "id": "inPort",
-              "app_data": {
-                "ui_data": {
-                  "label": ""
-                }
-              },
-              "links": [
-                {
-                  "node_id_ref": "db9f3f5b-b2e3-4824-aadd-c1c6bf652534",
-                  "port_id_ref": "outPort"
-                },
-                {
-                  "node_id_ref": "f6584209-6f22-434f-9820-41327b6c749d",
-                  "port_id_ref": "outPort"
-                }
-              ]
-            }
-          ],
-          "outputs": [
-            {
-              "id": "outPort",
-              "app_data": {
-                "ui_data": {
-                  "label": ""
-                }
-              }
-            }
-          ]
-        },
-        {
-          "id": "86199812-0d47-4912-8d29-1b7890d4277e",
-          "type": "super_node",
-          "subflow_ref": {
-            "pipeline_id_ref": "9218f452-8722-455c-8a09-604d88c2a550"
-          },
-          "app_data": {},
-          "inputs": [
-            {
-              "id": "bc6b9f69-77ef-449b-99b6-b5ca930ac649_inPort",
-              "subflow_node_ref": "cf938e98-1a96-4cef-ad0f-d63f82388b94",
-              "app_data": {
-                "ui_data": {
-                  "cardinality": {
-                    "min": 0,
-                    "max": 1
-                  },
-                  "label": "Binding port for supernode"
-                }
-              },
-              "links": [
-                {
-                  "node_id_ref": "079c0e12-eb5f-4fcc-983b-09e011869fee",
-                  "port_id_ref": "outPort"
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "app_data": {
-        "name": "super-node-test",
-        "runtime": "kfp",
-        "runtime-config": "kfp-yukked1",
-        "ui_data": {
-          "comments": []
-        }
-      },
-      "runtime_ref": ""
-    },
-    {
-      "id": "9218f452-8722-455c-8a09-604d88c2a550",
-      "nodes": [
-        {
-          "id": "bc6b9f69-77ef-449b-99b6-b5ca930ac649",
-          "type": "execution_node",
-          "op": "execute-notebook-node",
-          "app_data": {
-            "filename": "elyra-pipelines/overview.ipynb",
+            "dependencies": [],
+            "filename": "demo-pipelines/generate-stats.ipynb",
             "runtime_image": "elyra/tensorflow:1.15.2-py3",
-            "env_vars": []
+            "env_vars": [],
+            "ui_data": {
+              "label": "generate-stats",
+              "image": "useDefaultIcon",
+              "x_pos": 90,
+              "y_pos": 239,
+              "description": "Notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "7628306d-2cc2-405c-94a1-fe42c95567a1",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "filename": "demo-pipelines/data_science_aws.ipynb",
+            "runtime_image": "elyra/tensorflow:1.15.2-py3",
+            "env_vars": [],
+            "include_subdirectories": false,
+            "ui_data": {
+              "label": "data_science_aws",
+              "image": "useDefaultIcon",
+              "x_pos": 814.85107421875,
+              "y_pos": 104.74483108520508,
+              "description": "Notebook file"
+            }
           },
           "inputs": [
             {
@@ -178,15 +118,16 @@
                 "ui_data": {
                   "cardinality": {
                     "min": 0,
-                    "max": 1
+                    "max": -1
                   },
                   "label": "Input Port"
                 }
               },
               "links": [
                 {
-                  "node_id_ref": "cf938e98-1a96-4cef-ad0f-d63f82388b94",
-                  "port_id_ref": "output_bc6b9f69-77ef-449b-99b6-b5ca930ac649_inPort"
+                  "id": "ed8932e5-6296-411a-9761-461f9878b626",
+                  "node_id_ref": "3fbe0f25-c7d0-4ee6-b1b6-a5f5f633252f",
+                  "port_id_ref": "079c0e12-eb5f-4fcc-983b-09e011869fee_outPort"
                 }
               ]
             }
@@ -207,18 +148,50 @@
           ]
         },
         {
-          "id": "cf938e98-1a96-4cef-ad0f-d63f82388b94",
-          "type": "binding",
-          "app_data": {},
-          "outputs": [
+          "id": "3fbe0f25-c7d0-4ee6-b1b6-a5f5f633252f",
+          "type": "super_node",
+          "subflow_ref": {
+            "pipeline_id_ref": "82ddb72e-8246-4c6b-b901-6af9d12f4bba"
+          },
+          "app_data": {
+            "ui_data": {
+              "label": "Supernode",
+              "image": "useDefaultIcon",
+              "x_pos": 397,
+              "y_pos": 17,
+              "description": "This supernode was created by common-canvas.",
+              "is_expanded": true
+            }
+          },
+          "inputs": [
             {
-              "id": "output_bc6b9f69-77ef-449b-99b6-b5ca930ac649_inPort",
+              "id": "079c0e12-eb5f-4fcc-983b-09e011869fee_inPort",
+              "subflow_node_ref": "6c0236de-cca6-4764-982f-af65c349dfa7",
               "app_data": {
                 "ui_data": {
-                  "cardinality": {
-                    "min": 0,
-                    "max": 1
-                  },
+                  "label": "Binding port for supernode"
+                }
+              },
+              "links": [
+                {
+                  "id": "0805d0ce-69ad-41ab-95a8-3e176f4dc711",
+                  "node_id_ref": "db9f3f5b-b2e3-4824-aadd-c1c6bf652534",
+                  "port_id_ref": "outPort"
+                },
+                {
+                  "id": "0988be85-347f-472a-9389-934d5e613563",
+                  "node_id_ref": "f6584209-6f22-434f-9820-41327b6c749d",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "079c0e12-eb5f-4fcc-983b-09e011869fee_outPort",
+              "subflow_node_ref": "1b76e3f3-0c5b-480f-92c5-b08327d07b41",
+              "app_data": {
+                "ui_data": {
                   "label": "Binding port for supernode"
                 }
               }
@@ -227,7 +200,115 @@
         }
       ],
       "app_data": {
-        "name": "test-definition",
+        "name": "super-node-test",
+        "runtime": "kfp",
+        "runtime-config": "kfp-yukked1",
+        "ui_data": {
+          "comments": []
+        },
+        "version": 1
+      },
+      "runtime_ref": ""
+    },
+    {
+      "id": "82ddb72e-8246-4c6b-b901-6af9d12f4bba",
+      "nodes": [
+        {
+          "id": "079c0e12-eb5f-4fcc-983b-09e011869fee",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "filename": "demo-pipelines/overview.ipynb",
+            "runtime_image": "elyra/tensorflow:1.15.2-py3",
+            "ui_data": {
+              "label": "overview",
+              "image": "useDefaultIcon",
+              "x_pos": 397,
+              "y_pos": 17,
+              "description": "Notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              },
+              "links": [
+                {
+                  "id": "9698f70b-75b6-403d-8a4f-98b6b5d7dfbf",
+                  "node_id_ref": "6c0236de-cca6-4764-982f-af65c349dfa7",
+                  "port_id_ref": "output_079c0e12-eb5f-4fcc-983b-09e011869fee_inPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "6c0236de-cca6-4764-982f-af65c349dfa7",
+          "type": "binding",
+          "app_data": {
+            "ui_data": {
+              "label": "Binding",
+              "x_pos": 237,
+              "y_pos": 17,
+              "description": "Supernode binding node"
+            }
+          },
+          "outputs": [
+            {
+              "id": "output_079c0e12-eb5f-4fcc-983b-09e011869fee_inPort",
+              "app_data": {
+                "ui_data": {
+                  "label": "Binding port for supernode"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "1b76e3f3-0c5b-480f-92c5-b08327d07b41",
+          "type": "binding",
+          "app_data": {
+            "ui_data": {
+              "label": "Binding",
+              "x_pos": 637,
+              "y_pos": 17,
+              "description": "Supernode binding node"
+            }
+          },
+          "inputs": [
+            {
+              "id": "input_079c0e12-eb5f-4fcc-983b-09e011869fee_outPort",
+              "app_data": {
+                "ui_data": {
+                  "label": "Binding port for supernode"
+                }
+              },
+              "links": [
+                {
+                  "id": "b49aecca-be81-470d-9a39-af651c97ddbc",
+                  "node_id_ref": "079c0e12-eb5f-4fcc-983b-09e011869fee",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "app_data": {
         "ui_data": {
           "comments": []
         }

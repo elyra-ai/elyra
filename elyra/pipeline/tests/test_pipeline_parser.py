@@ -94,6 +94,35 @@ def test_supernode_pipeline():
 
     assert len(pipeline.operations) == 4
 
+    # Confirm structure of pipeline:
+    # Two execution nodes feed their outputs to super-node with one execution_node.
+    # Super-node's execution node, then sends its output to external execution node.
+    # 4 nodes total.  Super-node execution node should have two parent-operations
+    # pointing at first two nodes, and final node should have one parent pointing
+    # at execution node WITHIN supernode.
+
+    external_input_node_ids = ["db9f3f5b-b2e3-4824-aadd-c1c6bf652534", "f6584209-6f22-434f-9820-41327b6c749d"]
+    supernode_excution_node_id = "079c0e12-eb5f-4fcc-983b-09e011869fee"
+    external_node_id = "7628306d-2cc2-405c-94a1-fe42c95567a1"
+
+    for node_id in pipeline.operations.keys():
+        # Validate operations list
+        if node_id in external_input_node_ids:
+            # These are input nodes, ensure parent_operations are empty
+            assert len(pipeline.operations[node_id].parent_operations) == 0
+            continue
+        if node_id == supernode_excution_node_id:
+            # Node within supernode, should have two parent_ops matching external_input_node_ids
+            assert len(pipeline.operations[node_id].parent_operations) == 2
+            assert set(pipeline.operations[node_id].parent_operations) == set(external_input_node_ids)
+            continue
+        if node_id == external_node_id:
+            # Final external node, should have super_node embedded node as parent op.
+            assert len(pipeline.operations[node_id].parent_operations) == 1
+            assert pipeline.operations[node_id].parent_operations[0] == supernode_excution_node_id
+            continue
+        assert False, "Invalid node_id encountered in pipeline operations!"
+
 
 def test_multiple_pipeline_definition():
     pipeline_definitions = _read_pipeline_resource('pipeline_multiple_pipeline_definitions.json')
@@ -177,7 +206,7 @@ def test_missing_operation_type():
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_definitions)
 
-    assert "Node type 'None' is not supported!" in str(e.value)
+    assert "Node type 'None' is invalid!" in str(e.value)
 
 
 def test_invalid_node_type():
@@ -187,7 +216,7 @@ def test_invalid_node_type():
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_definitions)
 
-    assert "Node type 'foo' is not supported!" in str(e.value)
+    assert "Node type 'foo' is invalid!" in str(e.value)
 
 
 def test_missing_operation_filename():
