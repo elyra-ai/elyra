@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
+import { IDictionary, FrontendServices } from '@elyra/application';
+import { ExpandableComponent, trashIcon } from '@elyra/ui-components';
+
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { ReactWidget, UseSignal } from '@jupyterlab/apputils';
-import { addIcon, LabIcon } from '@jupyterlab/ui-components';
+import {
+  Dialog,
+  ReactWidget,
+  showDialog,
+  UseSignal
+} from '@jupyterlab/apputils';
+import { addIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import React from 'react';
-
-import { ExpandableComponent } from './ExpandableComponent';
 
 /**
  * The CSS class added to metadata widgets.
@@ -37,7 +43,7 @@ const commands = {
 export interface IMetadata {
   name: string;
   display_name: string;
-  metadata: any;
+  metadata: IDictionary<any>;
   schema_name: string;
 }
 
@@ -48,24 +54,73 @@ export interface IMetadataActionButton {
 }
 
 /**
- * Basic MetadataDisplay props.
+ * MetadataDisplay props.
  */
 export interface IMetadataDisplayProps {
   metadata: IMetadata[];
+  openMetadataEditor: (args: any) => void;
+  updateMetadata: () => void;
+  namespace: string;
+  schema: string;
 }
 
 /**
- * A React Component for code-snippets display list.
+ * A React Component for displaying a list of metadata
  */
-export abstract class MetadataDisplay<
+export class MetadataDisplay<
   T extends IMetadataDisplayProps
 > extends React.Component<T> {
-  abstract actionButtons(metadata: IMetadata): IMetadataActionButton[];
+  deleteMetadata = (metadata: IMetadata): Promise<void> => {
+    return showDialog({
+      title: `Delete metadata: ${metadata.display_name}?`,
+      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+    }).then((result: any) => {
+      // Do nothing if the cancel button is pressed
+      if (result.button.accept) {
+        FrontendServices.deleteMetadata(this.props.namespace, metadata.name);
+      }
+    });
+  };
 
-  abstract renderExpandableContent(metadata: IMetadata): JSX.Element;
+  actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
+    return [
+      {
+        title: 'Edit',
+        icon: editIcon,
+        onClick: (): void => {
+          this.props.openMetadataEditor({
+            onSave: this.props.updateMetadata,
+            namespace: this.props.namespace,
+            schema: this.props.schema,
+            name: metadata.name
+          });
+        }
+      },
+      {
+        title: 'Delete',
+        icon: trashIcon,
+        onClick: (): void => {
+          this.deleteMetadata(metadata).then((response: any): void => {
+            this.props.updateMetadata();
+          });
+        }
+      }
+    ];
+  };
+
+  /**
+   * Classes that extend MetadataWidget should override this
+   */
+  renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
+    return (
+      <pre>
+        <code>{JSON.stringify(metadata.metadata, null, 2)}</code>
+      </pre>
+    );
+  }
 
   // Render display of metadata list
-  private renderMetadata = (metadata: IMetadata): JSX.Element => {
+  renderMetadata = (metadata: IMetadata): JSX.Element => {
     return (
       <div key={metadata.name} className={METADATA_ITEM}>
         <ExpandableComponent
@@ -103,11 +158,11 @@ export interface IMetadataWidgetProps {
 /**
  * A abstract widget for viewing metadata.
  */
-export abstract class MetadataWidget extends ReactWidget {
+export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
 
-  protected constructor(props: IMetadataWidgetProps) {
+  constructor(props: IMetadataWidgetProps) {
     super();
     this.addClass('elyra-metadata');
 
@@ -120,7 +175,7 @@ export abstract class MetadataWidget extends ReactWidget {
     this.renderDisplay = this.renderDisplay.bind(this);
   }
 
-  protected addMetadata(): void {
+  addMetadata(): void {
     this.openMetadataEditor({
       onSave: this.updateMetadata,
       namespace: this.props.namespace,
@@ -132,11 +187,15 @@ export abstract class MetadataWidget extends ReactWidget {
    * Request metadata from server and format it as expected by the
    * instance of `MetadataDisplay` rendered in `renderDisplay`
    *
+   * Classes that extend MetadataWidget should override this
+   *
    * @returns metadata in the format expected by `renderDisplay`
    */
-  abstract async fetchMetadata(): Promise<any>;
+  async fetchMetadata(): Promise<any> {
+    return await FrontendServices.getMetadata(this.props.namespace);
+  }
 
-  protected updateMetadata(): void {
+  updateMetadata(): void {
     this.fetchMetadata().then((metadata: any[]) => {
       this.renderSignal.emit(metadata);
     });
@@ -147,14 +206,26 @@ export abstract class MetadataWidget extends ReactWidget {
     this.updateMetadata();
   }
 
-  protected openMetadataEditor = (args: any): void => {
+  openMetadataEditor = (args: any): void => {
     this.props.app.commands.execute(commands.OPEN_METADATA_EDITOR, args);
   };
 
   /**
+   * Classes that extend MetadataWidget should override this
+   *
    * @returns a rendered instance of `MetadataDisplay`
    */
-  abstract renderDisplay(metadata: IMetadata[]): React.ReactElement;
+  renderDisplay(metadata: IMetadata[]): React.ReactElement {
+    return (
+      <MetadataDisplay
+        metadata={metadata}
+        updateMetadata={this.updateMetadata}
+        openMetadataEditor={this.openMetadataEditor}
+        namespace={this.props.namespace}
+        schema={this.props.schema}
+      />
+    );
+  }
 
   render(): React.ReactElement {
     return (

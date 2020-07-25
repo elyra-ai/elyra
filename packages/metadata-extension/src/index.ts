@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { MetadataWidget, MetadataEditor } from '@elyra/metadata';
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -24,9 +26,6 @@ import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
-
-import { DefaultMetadataWidget } from './DefaultMetadataWidget';
-import { MetadataEditor } from './MetadataEditor';
 
 const BP_DARK_THEME_CLASS = 'bp3-dark';
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
@@ -122,7 +121,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       icon: string;
     }): void => {
       const widgetId = `${METADATA_WIDGET_ID}:${args.namespace}:${args.schema}`;
-      const metadataWidget = new DefaultMetadataWidget({
+      const metadataWidget = new MetadataWidget({
         app,
         display_name: args.display_name,
         namespace: args.namespace,

@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-import { IDictionary, FrontendServices } from '@elyra/application';
+import { IDictionary } from '@elyra/application';
 import {
-  trashIcon,
   MetadataWidget,
-  IMetadata,
   IMetadataWidgetProps,
-  IMetadataActionButton,
+  IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps
-} from '@elyra/ui-components';
-
-import { Dialog, showDialog } from '@jupyterlab/apputils';
-import { editIcon } from '@jupyterlab/ui-components';
+} from '@elyra/metadata';
 import React from 'react';
 
 import { PipelineService } from './PipelineService';
@@ -35,56 +30,9 @@ export const RUNTIMES_NAMESPACE = 'runtimes';
 export const KFP_SCHEMA = 'kfp';
 
 /**
- * RuntimesDisplayProps props.
- */
-interface IRuntimesDisplayProps extends IMetadataDisplayProps {
-  metadata: IMetadata[];
-  openMetadataEditor: (args: any) => void;
-  updateMetadata: () => void;
-}
-
-/**
  * A React Component for displaying the runtimes list.
  */
-class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
-  private deleteMetadata = (metadata: IMetadata): Promise<void> => {
-    return showDialog({
-      title: `Delete runtime: ${metadata.display_name}?`,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    }).then((result: any) => {
-      // Do nothing if the cancel button is pressed
-      if (result.button.accept) {
-        FrontendServices.deleteMetadata(RUNTIMES_NAMESPACE, metadata.name);
-      }
-    });
-  };
-
-  actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
-    return [
-      {
-        title: 'Edit',
-        icon: editIcon,
-        onClick: (): void => {
-          this.props.openMetadataEditor({
-            onSave: this.props.updateMetadata,
-            namespace: RUNTIMES_NAMESPACE,
-            schema: metadata.schema_name,
-            name: metadata.name
-          });
-        }
-      },
-      {
-        title: 'Delete',
-        icon: trashIcon,
-        onClick: (): void => {
-          this.deleteMetadata(metadata).then((response: any): void => {
-            this.props.updateMetadata();
-          });
-        }
-      }
-    ];
-  };
-
+class RuntimesDisplay extends MetadataDisplay<IMetadataDisplayProps> {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     return (
       <div>
@@ -129,6 +77,8 @@ export class RuntimesWidget extends MetadataWidget {
         metadata={metadata}
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
+        namespace={RUNTIMES_NAMESPACE}
+        schema={KFP_SCHEMA}
       />
     );
   }

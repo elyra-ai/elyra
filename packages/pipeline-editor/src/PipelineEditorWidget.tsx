@@ -263,8 +263,8 @@ export class PipelineEditor extends React.Component<
         action: 'openRuntimes',
         label: 'Open Runtimes',
         enable: true,
-        iconEnabled: Utils.getEncodedIcon(runtimesIcon, darkmode),
-        iconDisabled: Utils.getEncodedIcon(runtimesIcon, darkmode)
+        iconEnabled: IconUtil.encode(runtimesIcon),
+        iconDisabled: IconUtil.encode(runtimesIcon)
       },
       { divider: true },
       { action: 'undo', label: 'Undo' },
