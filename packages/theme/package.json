@@ -33,6 +33,7 @@
   "dependencies": {
     "@elyra/ui-components": "^1.0.0-rc.2",
     "@jupyterlab/application": "^2.0.2",
+    "@jupyterlab/launcher": "^2.0.2",
     "@jupyterlab/mainmenu": "^2.0.2"
   },
   "devDependencies": {

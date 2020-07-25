@@ -187,8 +187,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (launcher) {
       launcher.add({
         command: commandIDs.createNewPython,
-        category: 'Other',
-        rank: 3
+        category: 'Elyra',
+        rank: 2
       });
     }
 
