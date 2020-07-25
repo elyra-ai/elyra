@@ -86,8 +86,10 @@ class PipelineParser(LoggingConfigurable):
                 continue  # skip to next node
             elif node_type == "binding":  # We can ignore binding nodes since we're able to determine links w/o
                 continue
+            elif node_type == "model_node":
+                raise NotImplementedError("Node type '{}' is currently not supported!".format(node_type))
             elif node_type != "execution_node":
-                raise ValueError("Node type '{}' is not supported!".format(node_type))
+                raise ValueError("Node type '{}' is invalid!".format(node_type))
 
             # parse each node as a pipeline operation
             operation = PipelineParser._create_pipeline_operation(node, super_node)
