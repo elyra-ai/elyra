@@ -6,11 +6,14 @@
   "namespace": "runtimes",
   "properties": {
     "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
       "type": "string",
       "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
       "minLength": 1
     },
     "display_name": {
+      "title": "Display Name",
       "description": "The display name of this KFP instance",
       "type": "string",
       "minLength": 1
@@ -20,29 +23,35 @@
       "type": "object",
       "properties": {
         "description": {
+          "title": "Description",
           "description": "The description of this KFP runtime instance",
           "type": "string"
         },
         "api_endpoint": {
+          "title": "API Endpoint",
           "description": "The API endpoint",
           "type": "string",
           "format": "uri"
         },
         "cos_endpoint": {
+          "title": "Cloud Object Storage Endpoint",
           "description": "The Cloud Object Storage endpoint",
           "type": "string",
           "format": "uri"
         },
         "cos_username": {
+          "title": "Cloud Object Storage Username",
           "description": "The Cloud Object Storage username",
           "type": "string"
         },
         "cos_password": {
+          "title": "Cloud Object Storage Password",
           "description": "The Cloud Object Storage password",
           "type": "string",
           "minLength": 8
         },
         "cos_bucket": {
+          "title": "Cloud Object Storage Bucket Name",
           "description": "The Cloud Object Storage bucket name",
           "type": "string",
           "pattern": "^[a-z][a-z0-9-.]*[a-z0-9]$",
