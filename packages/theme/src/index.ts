@@ -22,10 +22,11 @@ import {
 } from '@jupyterlab/application';
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+
 import { launcherIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
-import { JSONObject } from '@lumino/coreutils';
+// import { JSONObject } from '@lumino/coreutils';
 import { Widget } from '@lumino/widgets';
 
 import { ILauncher, LauncherModel, Launcher } from './launcher';
@@ -34,9 +35,9 @@ import '../style/index.css';
 /**
  * The command IDs used by the launcher plugin.
  */
-namespace CommandIDs {
-  export const create = 'launcher:create';
-}
+const CommandIDs = {
+  create: 'launcher:create-new'
+};
 
 /**
  * Initialization data for the theme extension.
@@ -44,12 +45,13 @@ namespace CommandIDs {
 const extension: JupyterFrontEndPlugin<ILauncher> = {
   id: 'elyra-theme',
   autoStart: true,
-  requires: [IMainMenu, ILabShell],
+  requires: [ILabShell, IMainMenu],
   optional: [ICommandPalette],
   provides: ILauncher,
   activate: (
     app: JupyterFrontEnd,
     labShell: ILabShell,
+    mainMenu: IMainMenu,
     palette: ICommandPalette | null
   ): ILauncher => {
     console.log('Elyra - theme extension is activated!');
@@ -71,16 +73,15 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       }
 
       widget = widgets.next();
-      console.log(widget);
     }
 
-    //register custom command for using an Elyra custom launcher
+    // Use custom Elyra launcher
     const { commands } = app;
     const model = new LauncherModel();
 
     commands.addCommand(CommandIDs.create, {
-      label: 'New Launcher',
-      execute: (args: JSONObject) => {
+      label: 'New Elyra Launcher',
+      execute: (args: any) => {
         const cwd = args['cwd'] ? String(args['cwd']) : '';
         const id = `launcher-${Private.id++}`;
         const callback = (item: Widget) => {

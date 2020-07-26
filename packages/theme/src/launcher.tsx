@@ -130,6 +130,7 @@ export class Launcher extends VDomRenderer<LauncherModel> {
    */
   constructor(options: ILauncher.IOptions) {
     super(options.model);
+    console.log('>>> Elyra CustomLauncher');
     this._cwd = options.cwd;
     this._callback = options.callback;
     this._commands = options.commands;
