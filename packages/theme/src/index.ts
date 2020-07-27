@@ -22,8 +22,8 @@ import {
 } from '@jupyterlab/application';
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 import { ILauncher, LauncherModel } from '@jupyterlab/launcher';
-import { launcherIcon } from '@jupyterlab/ui-components';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { launcherIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';

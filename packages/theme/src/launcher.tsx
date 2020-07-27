@@ -57,9 +57,9 @@ export class CustomLauncher extends Launcher {
     // get the rendering from JupyterLab Launcher
     // and resort the categories
 
-    let launcherBody = super.render();
-    let launcherContent = launcherBody.props.children;
-    let launcherCategories = launcherContent.props.children;
+    const launcherBody = super.render();
+    const launcherContent = launcherBody.props.children;
+    const launcherCategories = launcherContent.props.children;
 
     console.log('>>> each body');
     React.Children.forEach(launcherBody, child => {
@@ -75,6 +75,7 @@ export class CustomLauncher extends Launcher {
     React.Children.forEach(launcherCategories, child => {
       console.log(child);
       if (child.key === 'Elyra') {
+        // change the icon here...
       }
     });
 
