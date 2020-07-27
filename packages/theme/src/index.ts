@@ -21,15 +21,14 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
+import { ILauncher, LauncherModel } from '@jupyterlab/launcher';
+import { launcherIcon } from '@jupyterlab/ui-components';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
-import { launcherIcon } from '@jupyterlab/ui-components';
-
 import { toArray } from '@lumino/algorithm';
-// import { JSONObject } from '@lumino/coreutils';
 import { Widget } from '@lumino/widgets';
 
-import { ILauncher, LauncherModel, Launcher } from './launcher';
+import { CustomLauncher } from './launcher';
 import '../style/index.css';
 
 /**
@@ -87,7 +86,8 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
         const callback = (item: Widget) => {
           labShell.add(item, 'main', { ref: id });
         };
-        const launcher = new Launcher({ model, cwd, callback, commands });
+
+        const launcher = new CustomLauncher({ model, cwd, callback, commands });
 
         launcher.model = model;
         launcher.title.icon = launcherIcon;
