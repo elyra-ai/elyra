@@ -57,9 +57,6 @@ export class CustomLauncher extends Launcher {
         if (cat.key === category) {
           categories.push(cat);
         }
-        if (cat.key === 'Elyra') {
-          // change the icon here...
-        }
       });
     });
 

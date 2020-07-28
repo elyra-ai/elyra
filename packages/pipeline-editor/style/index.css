@@ -119,3 +119,18 @@ td {
   padding-left: 10px;
   padding-right: 10px;
 }
+
+.jp-Launcher-sectionHeader .elyra-launcher-icon {
+  background-image: url('~@elyra/ui-components/style/icons/codait-piebrainlogo-jupyter-color.svg');
+}
+
+.jp-LauncherCard-icon .elyra-launcher-icon,
+.elyra-PipelineEditor-icon {
+  background-color: var(--jp-inverse-layout-color3);
+  -webkit-mask: url('~@elyra/ui-components/style/icons/pipeline-flow.svg')
+    no-repeat 100% 100%;
+  mask: url('~@elyra/ui-components/style/icons/pipeline-flow.svg') no-repeat
+    100% 100%;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
