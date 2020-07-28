@@ -1,0 +1,168 @@
+/*
+ * Copyright 2018-2020 IBM Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* MetadataWidget CSS */
+.elyra-metadata {
+  color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+}
+
+.elyra-metadataHeader {
+  font-weight: bold;
+  padding: 8px 10px;
+  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  display: flex;
+  justify-content: space-between;
+}
+
+.elyra-metadataHeader p {
+  font-weight: bold;
+}
+
+.elyra-metadataHeader-button {
+  background-color: transparent;
+  vertical-align: middle;
+  padding: 5px;
+  width: 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  display: inline-flex;
+  align-self: flex-end;
+}
+
+.elyra-metadataHeader-button svg {
+  transform: translate(-3px, 0px);
+}
+
+.elyra-metadataHeader-button:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+.elyra-metadataHeader polygon[fill] {
+  fill: var(--jp-ui-font-color1);
+}
+
+.elyra-metadataHeader + div:first-of-type {
+  overflow-y: auto;
+  height: calc(100vh - 95px);
+}
+
+.elyra-metadata-item {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.elyra-metadata-item .elyra-expandableContainer-details-visible {
+  background-color: var(--jp-cell-editor-background);
+  resize: vertical;
+  height: 100px;
+}
+
+.elyra-metadata-item .CodeMirror.cm-s-jupyter {
+  background-color: inherit;
+  border: none;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
+}
+
+/* MetadataEditor css */
+.elyra-metadataEditor .jp-InputGroup {
+  width: 100%;
+}
+
+.elyra-metadataEditor .bp3-form-group {
+  margin-bottom: 12px;
+  margin-right: 20px;
+  flex-basis: 45%;
+  height: 65px;
+}
+
+.bp3-select-popover {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.elyra-form-DropDown-item {
+  width: 100%;
+  display: flex;
+  justify-content: left;
+  margin: 0;
+  border-radius: 0;
+}
+
+.elyra-metadataEditor {
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  height: 100%;
+  align-content: flex-start;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.elyra-metadataEditor h3 {
+  flex-basis: 100%;
+  margin-bottom: 15px;
+  color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadataEditor label.bp3-label {
+  color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadataEditor .elyra-form-code.jp-CodeMirrorEditor {
+  background-color: var(--jp-cell-editor-background);
+  border: var(--jp-border-width) solid var(--jp-input-border-color);
+  overflow-y: auto;
+  resize: vertical;
+  min-height: 150px;
+  height: 150px;
+  padding-bottom: 10px;
+  cursor: initial;
+}
+
+.elyra-metadataEditor .CodeMirror.cm-s-jupyter {
+  background-color: inherit;
+  height: 100%;
+}
+
+.elyra-metadataEditor .bp3-form-group.elyra-metadataEditor-code {
+  height: auto;
+  flex-basis: 100%;
+  display: flex;
+}
+
+.elyra-metadataEditor-code .bp3-form-content {
+  height: 100%;
+}
+
+.bp3-dark .bp3-input {
+  border: var(--jp-border-width) solid var(--jp-input-border-color);
+  color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadata-editor {
+  overflow-y: auto;
+}
+
+.elyra-metadata-editor.bp3-dark {
+  background-color: var(--jp-border-color3);
+}

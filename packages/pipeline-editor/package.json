@@ -33,7 +33,7 @@
   "dependencies": {
     "@elyra/application": "^1.0.0-rc.1",
     "@elyra/canvas": "8.0.32",
-    "@elyra/metadata": "^1.0.0-rc.1",
+    "@elyra/metadata-common": "^1.0.0-rc.1",
     "@elyra/ui-components": "^1.0.0-rc.1",
     "@material-ui/core": "^4.1.2",
     "@material-ui/icons": "^4.2.1",

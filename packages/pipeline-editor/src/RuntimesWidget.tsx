@@ -21,7 +21,7 @@ import {
   IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps
-} from '@elyra/metadata';
+} from '@elyra/metadata-common';
 import React from 'react';
 
 import { PipelineService } from './PipelineService';
