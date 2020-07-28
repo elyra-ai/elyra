@@ -23,7 +23,7 @@ SHELL:=/bin/bash
 GIT_VERSION:=0.20.0
 TOC_VERSION:=4.0.0
 
-TAG:=1.0.0rc1
+TAG:=1.0.0rc2
 IMAGE=elyra/elyra:$(TAG)
 
 # Contains the set of commands required to be used by elyra

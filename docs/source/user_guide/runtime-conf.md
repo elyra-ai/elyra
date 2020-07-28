@@ -85,7 +85,7 @@ Example: `https://kubernetes-service.ibm.com/pipeline`
 ##### cos_endpoint
 This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a kubernetes cluster (Minio), you can use the kubernetes local DNS address.
 
-Example: `minio-service.kubeflow:9000`
+Example: `https://minio-service.kubeflow:9000`
 
 ##### cos_username
 Username used to access the Object Store. SEE NOTE.
@@ -104,5 +104,4 @@ Example: `test-bucket`
 
 NOTE: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
-Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively, and
-you should also add `cos_secure` as `"True"`.
+Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.
