@@ -316,7 +316,7 @@ export class MetadataEditor extends ReactWidget {
     if (uihints.field_type == 'textinput' || uihints.field_type == undefined) {
       return this.renderTextInput(
         this.schema[fieldName].title,
-        uihints.description,
+        this.schema[fieldName].description,
         fieldName,
         this.metadata[fieldName],
         required,
@@ -327,7 +327,7 @@ export class MetadataEditor extends ReactWidget {
         <DropDown
           label={this.schema[fieldName].title}
           schemaField={fieldName}
-          description={uihints.description}
+          description={this.schema[fieldName].description}
           required={required}
           intent={uihints.intent}
           choice={this.metadata[fieldName]}
