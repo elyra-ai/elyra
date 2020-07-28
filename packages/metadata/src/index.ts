@@ -31,7 +31,7 @@ const BP_DARK_THEME_CLASS = 'bp3-dark';
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 
 /**
- * Initialization data for the metadata-editor-extension extension.
+ * Initialization data for the metadata-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
   id: METADATA_EDITOR_ID,
@@ -43,7 +43,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     editorServices: IEditorServices,
     themeManager: IThemeManager | null
   ) => {
-    console.log('Elyra - metadata-editor extension is activated!');
+    console.log('Elyra - metadata extension is activated!');
 
     const openMetadataEditor = (args: {
       schema: string;
