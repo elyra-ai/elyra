@@ -51,9 +51,9 @@ import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
 /**
  * The CSS class added to code snippet widget.
  */
-const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
-const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
-const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
+const CODE_SNIPPETS_HEADER_CLASS = 'elyra-metadataHeader';
+const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
+const CODE_SNIPPET_ITEM = 'elyra-metadata-item';
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 const commands = {
@@ -355,11 +355,10 @@ export class CodeSnippetWidget extends ReactWidget {
           <div style={{ display: 'flex' }}>
             <codeSnippetIcon.react
               tag="span"
-              width="24px"
-              height="auto"
+              width="auto"
+              height="24px"
               verticalAlign="middle"
               marginRight="5px"
-              paddingBottom="2px"
             />
             <p> Code Snippets </p>
           </div>

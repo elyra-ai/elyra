@@ -60,7 +60,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       if (args.name) {
         widgetLabel = args.name;
       } else {
-        widgetLabel = `new:${args.schema}`;
+        widgetLabel = `New ${args.schema}`;
       }
       const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${args.schema}:${args.name}`;
       const openWidget = find(
@@ -120,15 +120,17 @@ const extension: JupyterFrontEndPlugin<void> = {
       schema: string;
       icon: string;
     }): void => {
+      const labIcon = LabIcon.resolve({ icon: args.icon });
       const widgetId = `${METADATA_WIDGET_ID}:${args.namespace}:${args.schema}`;
       const metadataWidget = new MetadataWidget({
         app,
         display_name: args.display_name,
         namespace: args.namespace,
-        schema: args.schema
+        schema: args.schema,
+        icon: labIcon
       });
       metadataWidget.id = widgetId;
-      metadataWidget.title.icon = LabIcon.resolve({ icon: args.icon });
+      metadataWidget.title.icon = labIcon;
       metadataWidget.title.caption = args.display_name;
 
       if (

@@ -159,7 +159,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       app,
       display_name: 'Runtimes',
       namespace: RUNTIMES_NAMESPACE,
-      schema: KFP_SCHEMA
+      schema: KFP_SCHEMA,
+      icon: runtimesIcon
     });
     const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`;
     runtimesWidget.id = runtimesWidgetID;

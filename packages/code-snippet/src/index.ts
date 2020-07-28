@@ -31,7 +31,7 @@ import { Widget } from '@lumino/widgets';
 import { CodeSnippetWidget } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
-const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
+const CODE_SNIPPETS_CLASS = 'elyra-metadata';
 
 /**
  * Initialization data for the code-snippet extension.

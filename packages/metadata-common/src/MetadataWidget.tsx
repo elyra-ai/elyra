@@ -153,6 +153,7 @@ export interface IMetadataWidgetProps {
   display_name: string;
   namespace: string;
   schema: string;
+  icon: LabIcon;
 }
 
 /**
@@ -161,6 +162,7 @@ export interface IMetadataWidgetProps {
 export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
+  schema: IDictionary<any>;
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -173,6 +175,18 @@ export class MetadataWidget extends ReactWidget {
     this.updateMetadata = this.updateMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
     this.renderDisplay = this.renderDisplay.bind(this);
+
+    this.getSchema();
+  }
+
+  async getSchema(): Promise<void> {
+    const schemas = await FrontendServices.getSchema(this.props.namespace);
+    for (const schema of schemas) {
+      if (this.props.schema == schema.name) {
+        this.schema = schema;
+        break;
+      }
+    }
   }
 
   addMetadata(): void {
@@ -232,11 +246,19 @@ export class MetadataWidget extends ReactWidget {
       <div>
         <header className={METADATA_HEADER_CLASS}>
           <div style={{ display: 'flex' }}>
+            <this.props.icon.react
+              tag="span"
+              width="auto"
+              height="24px"
+              verticalAlign="middle"
+              marginRight="5px"
+            />
             <p> {this.props.display_name} </p>
           </div>
           <button
             className={METADATA_HEADER_BUTTON_CLASS}
             onClick={this.addMetadata.bind(this)}
+            title={`Create new ${this.schema.display_name}`}
           >
             <addIcon.react tag="span" elementPosition="center" width="16px" />
           </button>

@@ -48,6 +48,7 @@ export class MetadataEditor extends ReactWidget {
   editorServices: IEditorServices;
   editor: CodeEditor.IEditor;
   schemaName: string;
+  schemaDisplayName: string;
   namespace: string;
   name: string;
   dirty: boolean;
@@ -80,8 +81,7 @@ export class MetadataEditor extends ReactWidget {
     for (const schema of schemas) {
       if (this.schemaName == schema.name) {
         this.schema = schema.properties.metadata.properties;
-        // All metadata has a display_name field
-        this.displayName = schema.properties.display_name;
+        this.schemaDisplayName = schema.display_name;
         this.requiredFields = schema.properties.metadata.required;
         break;
       }
@@ -316,7 +316,7 @@ export class MetadataEditor extends ReactWidget {
     if (uihints.field_type == 'textinput' || uihints.field_type == undefined) {
       return this.renderTextInput(
         this.schema[fieldName].title,
-        this.schema[fieldName].description,
+        uihints.description,
         fieldName,
         this.metadata[fieldName],
         required,
@@ -327,7 +327,7 @@ export class MetadataEditor extends ReactWidget {
         <DropDown
           label={this.schema[fieldName].title}
           schemaField={fieldName}
-          description={this.schema[fieldName].description}
+          description={uihints.description}
           required={required}
           intent={uihints.intent}
           choice={this.metadata[fieldName]}
@@ -369,7 +369,7 @@ export class MetadataEditor extends ReactWidget {
     }
     let headerText = `Edit "${this.displayName}"`;
     if (!this.name) {
-      headerText = `Add new ${this.schemaName}`;
+      headerText = `Add new ${this.schemaDisplayName}`;
     }
     let intent: Intent = Intent.NONE;
     if (this.displayName == '' && this.invalidForm) {

@@ -50,9 +50,10 @@
 
 .elyra-metadataHeader-button:hover {
   background-color: var(--jp-layout-color2);
+  cursor: pointer;
 }
 
-.elyra-metadataHeader polygon[fill] {
+.elyra-metadataHeader [fill] {
   fill: var(--jp-ui-font-color1);
 }
 
