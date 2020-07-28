@@ -311,26 +311,25 @@ export class MetadataEditor extends ReactWidget {
     }
     if (uihints == undefined) {
       uihints = {};
-      uihints.label = fieldName;
       this.schema[fieldName].uihints = uihints;
     }
     if (uihints.field_type == 'textinput' || uihints.field_type == undefined) {
       return this.renderTextInput(
-        uihints.label,
+        this.schema[fieldName].title,
         uihints.description,
         fieldName,
         this.metadata[fieldName],
         required,
-        this.schema[fieldName].uihints.intent
+        uihints.intent
       );
     } else if (uihints.field_type == 'dropdown') {
       return (
         <DropDown
-          label={uihints.label}
+          label={this.schema[fieldName].title}
           schemaField={fieldName}
           description={uihints.description}
           required={required}
-          intent={this.schema[fieldName].uihints.intent}
+          intent={uihints.intent}
           choice={this.metadata[fieldName]}
           defaultChoices={this.getDefaultChoices(fieldName)}
           handleDropdownChange={this.handleDropdownChange}
@@ -338,15 +337,15 @@ export class MetadataEditor extends ReactWidget {
       );
     } else if (uihints.field_type == 'code') {
       let helperText: string;
-      if (this.schema[fieldName].uihints.intent == Intent.DANGER) {
+      if (uihints.intent == Intent.DANGER) {
         helperText = 'This field is required.';
       }
       return (
         <FormGroup
           className={'elyra-metadataEditor-code'}
           labelInfo={required}
-          label={'Code'}
-          intent={this.schema[fieldName].uihints.intent}
+          label={this.schema[fieldName].title}
+          intent={uihints.intent}
           helperText={helperText}
         >
           <ResizeSensor

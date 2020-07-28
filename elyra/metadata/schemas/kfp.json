@@ -25,45 +25,30 @@
         "description": {
           "title": "Description",
           "description": "The description of this KFP runtime instance",
-          "type": "string",
-          "uihints": {
-            "label": "Description"
-          }
+          "type": "string"
         },
         "api_endpoint": {
           "title": "API Endpoint",
           "description": "The API endpoint",
           "type": "string",
-          "format": "uri",
-          "uihints": {
-            "label": "API endpoint"
-          }
+          "format": "uri"
         },
         "cos_endpoint": {
           "title": "Cloud Object Storage Endpoint",
           "description": "The Cloud Object Storage endpoint",
           "type": "string",
-          "format": "uri",
-          "uihints": {
-            "label": "Cloud Object Storage endpoint"
-          }
+          "format": "uri"
         },
         "cos_username": {
           "title": "Cloud Object Storage Username",
           "description": "The Cloud Object Storage username",
-          "type": "string",
-          "uihints": {
-            "label": "Cloud Object Storage username"
-          }
+          "type": "string"
         },
         "cos_password": {
           "title": "Cloud Object Storage Password",
           "description": "The Cloud Object Storage password",
           "type": "string",
-          "minLength": 8,
-          "uihints": {
-            "label": "Cloud Object Storage password"
-          }
+          "minLength": 8
         },
         "cos_bucket": {
           "title": "Cloud Object Storage Bucket Name",
@@ -71,10 +56,7 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9-.]*[a-z0-9]$",
           "minLength": 3,
-          "maxLength": 222,
-          "uihints": {
-            "label": "Cloud Object Storage bucket name"
-          }
+          "maxLength": 222
         }
       },
       "required": [
