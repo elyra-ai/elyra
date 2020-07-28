@@ -83,7 +83,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       execute: (args: any) => {
         const cwd = args['cwd'] ? String(args['cwd']) : '';
         const id = `launcher-${Private.id++}`;
-        const callback = (item: Widget) => {
+        const callback = (item: Widget): void => {
           labShell.add(item, 'main', { ref: id });
         };
 
