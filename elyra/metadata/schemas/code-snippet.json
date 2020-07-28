@@ -6,11 +6,14 @@
   "namespace": "code-snippets",
   "properties": {
     "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
       "type": "string",
       "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
       "minLength": 1
     },
     "display_name": {
+      "title": "Display Name",
       "description": "The display name of the Code Snippet",
       "type": "string",
       "minLength": 1
@@ -20,6 +23,7 @@
       "type": "object",
       "properties": {
         "description": {
+          "title": "Description",
           "description": "Code snippet description",
           "type": "string",
           "uihints": {
@@ -27,6 +31,7 @@
           }
         },
         "language": {
+          "title": "Language",
           "description": "Code snippet implementation language",
           "type": "string",
           "uihints": {
@@ -37,6 +42,7 @@
           "minLength": 1
         },
         "code": {
+          "title": "Code",
           "description": "Code snippet code lines",
           "type": "array",
           "uihints": {

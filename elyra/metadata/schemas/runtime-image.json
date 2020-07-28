@@ -6,11 +6,14 @@
   "namespace": "runtime-images",
   "properties": {
     "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
       "type": "string",
       "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
       "minLength": 1
     },
     "display_name": {
+      "title": "Display Name",
       "description": "The display name of the Runtime Image",
       "type": "string",
       "minLength": 1
@@ -20,6 +23,7 @@
       "type": "object",
       "properties": {
         "image_name": {
+          "title": "Image Name",
           "description": "Runtime Image description",
           "type": "string",
           "minLength": 1
