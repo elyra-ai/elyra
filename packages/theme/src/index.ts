@@ -35,7 +35,7 @@ import '../style/index.css';
  * The command IDs used by the launcher plugin.
  */
 const CommandIDs = {
-  create: 'launcher:create-new'
+  create: 'launcher:create'
 };
 
 /**
