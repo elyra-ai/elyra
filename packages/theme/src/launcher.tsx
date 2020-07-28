@@ -49,35 +49,11 @@ export class CustomLauncher extends Launcher {
       return null;
     }
 
-    // console.log('>>>');
-    // console.log(this);
-    // console.log('<<<');
-    // console.log(super.render());
-
     // get the rendering from JupyterLab Launcher
     // and resort the categories
-
     const launcherBody = super.render();
     const launcherContent = launcherBody.props.children;
     const launcherCategories = launcherContent.props.children;
-
-    console.log('>>> each body');
-    React.Children.forEach(launcherBody, child => {
-      console.log(child);
-    });
-
-    console.log('>>> each content');
-    React.Children.forEach(launcherContent, child => {
-      console.log(child);
-    });
-
-    console.log('>>> each category');
-    React.Children.forEach(launcherCategories, child => {
-      console.log(child);
-      if (child.key === 'Elyra') {
-        // change the icon here...
-      }
-    });
 
     const categories: React.ReactElement<any>[] = [];
 
@@ -88,10 +64,11 @@ export class CustomLauncher extends Launcher {
         if (cat.key === category) {
           categories.push(cat);
         }
+        if (cat.key === 'Elyra') {
+          // change the icon here...
+        }
       });
     });
-
-    // return launcherBody;
 
     // Wrap the sections in body and content divs.
     return (
