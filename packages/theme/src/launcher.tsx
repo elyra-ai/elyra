@@ -25,19 +25,12 @@ import * as React from 'react';
  */
 const KNOWN_CATEGORIES = ['Notebook', 'Console', 'Elyra', 'Other'];
 
-/**
- * These launcher item categories are known to have kernels, so the kernel icons
- * are used.
- */
-// const KERNEL_CATEGORIES = ['Notebook', 'Console'];
-
 export class CustomLauncher extends Launcher {
   /**
    * Construct a new launcher widget.
    */
   constructor(options: ILauncher.IOptions) {
     super(options);
-    console.log('>>> Elyra CustomLauncher');
   }
 
   /**
