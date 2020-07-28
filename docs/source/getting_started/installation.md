@@ -67,7 +67,7 @@ Should output:
 Known labextensions:
    app dir: /.../share/jupyter/lab
         @elyra/code-snippet-extension v1.0.0-rc.2  enabled  OK*
-        @elyra/metadata-editor-extension v1.0.0-rc.2  enabled  OK*
+        @elyra/metadata-extension v1.0.0-rc.2  enabled  OK*
         @elyra/pipeline-editor-extension v1.0.0-rc.2  enabled  OK*
         @elyra/python-editor-extension v1.0.0-rc.2  enabled  OK*
         @elyra/theme-extension v1.0.0-rc.2  enabled  OK*
