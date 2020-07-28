@@ -34,11 +34,9 @@ import {
 import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
-import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { addIcon, copyIcon, editIcon } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
@@ -387,25 +385,5 @@ export class CodeSnippetWidget extends ReactWidget {
         </UseSignal>
       </div>
     );
-  }
-}
-
-/**
- * A namespace for CodeSnippet statics.
- */
-export namespace CodeSnippetWidget {
-  /**
-   * Interface describing table of contents widget options.
-   */
-  export interface IOptions {
-    /**
-     * Application document manager.
-     */
-    docmanager: IDocumentManager;
-
-    /**
-     * Application rendered MIME type.
-     */
-    rendermime: IRenderMimeRegistry;
   }
 }

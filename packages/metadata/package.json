@@ -1,5 +1,5 @@
 {
-  "name": "@elyra/metadata-editor-extension",
+  "name": "@elyra/metadata-extension",
   "version": "1.0.0-rc.2",
   "description": "JupyterLab extension - Edit metadata",
   "keywords": [
