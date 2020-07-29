@@ -28,10 +28,13 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 
 import { Widget } from '@lumino/widgets';
 
+import {
+  CODE_SNIPPET_NAMESPACE,
+  CODE_SNIPPET_SCHEMA
+} from './CodeSnippetService';
 import { CodeSnippetWidget } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
-const CODE_SNIPPETS_CLASS = 'elyra-metadata';
 
 /**
  * Initialization data for the code-snippet extension.
@@ -52,15 +55,18 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       return app.shell.currentWidget;
     };
 
-    const codeSnippetWidget = new CodeSnippetWidget(
-      getCurrentWidget,
+    const codeSnippetWidget = new CodeSnippetWidget({
       app,
+      display_name: 'Code Snippets',
+      namespace: CODE_SNIPPET_NAMESPACE,
+      schema: CODE_SNIPPET_SCHEMA,
+      icon: codeSnippetIcon,
+      getCurrentWidget,
       editorServices
-    );
+    });
     codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
     codeSnippetWidget.title.icon = codeSnippetIcon;
-    codeSnippetWidget.title.caption = 'Code Snippet';
-    codeSnippetWidget.addClass(CODE_SNIPPETS_CLASS);
+    codeSnippetWidget.title.caption = 'Code Snippets';
 
     restorer.add(codeSnippetWidget, CODE_SNIPPET_EXTENSION_ID);
 

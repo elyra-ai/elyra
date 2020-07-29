@@ -32,9 +32,9 @@ import React from 'react';
 /**
  * The CSS class added to metadata widgets.
  */
-const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
-const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
-const METADATA_ITEM = 'elyra-metadata-item';
+export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
+export const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
+export const METADATA_ITEM = 'elyra-metadata-item';
 
 const commands = {
   OPEN_METADATA_EDITOR: 'elyra-metadata-editor:open'
@@ -50,6 +50,7 @@ export interface IMetadata {
 export interface IMetadataActionButton {
   title: string;
   icon: LabIcon;
+  feedback?: string;
   onClick: () => void;
 }
 
@@ -162,7 +163,7 @@ export interface IMetadataWidgetProps {
 export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
-  schema: IDictionary<any>;
+  schemaDisplayName: string;
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -183,7 +184,7 @@ export class MetadataWidget extends ReactWidget {
     const schemas = await FrontendServices.getSchema(this.props.namespace);
     for (const schema of schemas) {
       if (this.props.schema == schema.name) {
-        this.schema = schema;
+        this.schemaDisplayName = schema.display_name;
         break;
       }
     }
@@ -258,7 +259,7 @@ export class MetadataWidget extends ReactWidget {
           <button
             className={METADATA_HEADER_BUTTON_CLASS}
             onClick={this.addMetadata.bind(this)}
-            title={`Create new ${this.schema.display_name}`}
+            title={`Create new ${this.schemaDisplayName}`}
           >
             <addIcon.react tag="span" elementPosition="center" width="16px" />
           </button>
