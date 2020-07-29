@@ -28,7 +28,7 @@ import { launcherIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
 
-import { CustomLauncher } from './launcher';
+import { Launcher } from './launcher';
 import '../style/index.css';
 
 /**
@@ -79,7 +79,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     const model = new LauncherModel();
 
     commands.addCommand(CommandIDs.create, {
-      label: 'New Elyra Launcher',
+      label: 'New Launcher',
       execute: (args: any) => {
         const cwd = args['cwd'] ? String(args['cwd']) : '';
         const id = `launcher-${Private.id++}`;
@@ -87,7 +87,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
           labShell.add(item, 'main', { ref: id });
         };
 
-        const launcher = new CustomLauncher({ model, cwd, callback, commands });
+        const launcher = new Launcher({ model, cwd, callback, commands });
 
         launcher.model = model;
         launcher.title.icon = launcherIcon;

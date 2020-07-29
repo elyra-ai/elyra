@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { Launcher, ILauncher } from '@jupyterlab/launcher';
+import {
+  Launcher as JupyterlabLauncher,
+  ILauncher
+} from '@jupyterlab/launcher';
 
 import { each } from '@lumino/algorithm';
 
@@ -25,7 +28,7 @@ import * as React from 'react';
  */
 const KNOWN_CATEGORIES = ['Notebook', 'Console', 'Elyra', 'Other'];
 
-export class CustomLauncher extends Launcher {
+export class Launcher extends JupyterlabLauncher {
   /**
    * Construct a new launcher widget.
    */
