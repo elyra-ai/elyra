@@ -136,8 +136,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (launcher) {
       launcher.add({
         command: openPipelineEditorCommand,
-        category: 'Other',
-        rank: 3
+        category: 'Elyra',
+        rank: 1
       });
     }
     // Add new pipeline to the file menu
