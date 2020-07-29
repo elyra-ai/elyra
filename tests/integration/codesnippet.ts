@@ -19,6 +19,6 @@ describe('CodeSnippets', () => {
   });
 
   it('opens code snippets extension', () => {
-    cy.get('[title="Code Snippet"]').click();
+    cy.get('[title="Code Snippets"]').click();
   });
 });
