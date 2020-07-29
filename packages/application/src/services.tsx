@@ -132,7 +132,8 @@ export class FrontendServices {
    */
   static async getSchema(namespace: string): Promise<any> {
     if (this.schemaCache[namespace]) {
-      return this.schemaCache[namespace];
+      // Deep copy cached schema to mimic request call
+      return JSON.parse(JSON.stringify(this.schemaCache[namespace]));
     }
 
     const schemaResponse: any = await RequestHandler.makeGetRequest(
