@@ -35,8 +35,6 @@ import '../style/index.css';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-const PIPELINE_ICON_CLASS = 'elyra-PipelineEditor-icon';
-const ELYRA_LAUNCHER_ICON_CLASS = 'elyra-launcher-icon';
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -106,15 +104,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(openPipelineEditorCommand, {
       label: args =>
         args['isPalette'] ? 'New Pipeline Editor' : 'Pipeline Editor',
-      iconClass: (args: { [x: string]: any }) => {
-        if (args['isPalette']) {
-          return '';
-        } else if (args['isLauncher']) {
-          return ELYRA_LAUNCHER_ICON_CLASS;
-        } else {
-          return PIPELINE_ICON_CLASS;
-        }
-      },
+      icon: args => (args['isPalette'] ? undefined : pipelineIcon),
       execute: () => {
         // Creates blank file, then opens it in a new window
         app.commands
@@ -141,7 +131,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (launcher) {
       launcher.add({
         command: openPipelineEditorCommand,
-        args: { isLauncher: true },
         category: 'Elyra',
         rank: 1
       });

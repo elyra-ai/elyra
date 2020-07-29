@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+import { elyraIcon } from '@elyra/ui-components';
+
 import {
   Launcher as JupyterlabLauncher,
   ILauncher
 } from '@jupyterlab/launcher';
+import { LabIcon } from '@jupyterlab/ui-components';
 
 import { each } from '@lumino/algorithm';
 
@@ -26,7 +29,8 @@ import * as React from 'react';
 /**
  * The known categories of launcher items and their default ordering.
  */
-const KNOWN_CATEGORIES = ['Notebook', 'Console', 'Elyra', 'Other'];
+const ELYRA_CATEGORY = 'Elyra';
+const KNOWN_CATEGORIES = ['Notebook', 'Console', ELYRA_CATEGORY, 'Other'];
 
 export class Launcher extends JupyterlabLauncher {
   /**
@@ -34,6 +38,32 @@ export class Launcher extends JupyterlabLauncher {
    */
   constructor(options: ILauncher.IOptions) {
     super(options);
+  }
+
+  private replaceCategoryIcon(
+    category: React.ReactElement,
+    icon: LabIcon
+  ): React.ReactElement {
+    const children = React.Children.map(category.props.children, child => {
+      if (child.props.className === 'jp-Launcher-sectionHeader') {
+        const grandchildren = React.Children.map(
+          child.props.children,
+          grandchild => {
+            if (grandchild.props.className !== 'jp-Launcher-sectionTitle') {
+              return <icon.react stylesheet="launcherSection" />;
+            } else {
+              return grandchild;
+            }
+          }
+        );
+
+        return React.cloneElement(child, child.props, grandchildren);
+      } else {
+        return child;
+      }
+    });
+
+    return React.cloneElement(category, category.props, children);
   }
 
   /**
@@ -58,6 +88,9 @@ export class Launcher extends JupyterlabLauncher {
     each(KNOWN_CATEGORIES, (category, index) => {
       React.Children.forEach(launcherCategories, cat => {
         if (cat.key === category) {
+          if (cat.key === ELYRA_CATEGORY) {
+            cat = this.replaceCategoryIcon(cat, elyraIcon);
+          }
           categories.push(cat);
         }
       });
