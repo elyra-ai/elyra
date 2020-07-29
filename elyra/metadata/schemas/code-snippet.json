@@ -24,6 +24,7 @@
       "properties": {
         "description": {
           "title": "Description",
+          "description": "Code snippet description",
           "type": "string"
         },
         "language": {

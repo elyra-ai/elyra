@@ -280,9 +280,9 @@ export class MetadataEditor extends ReactWidget {
     required: string,
     intent?: Intent
   ): React.ReactElement {
-    let helperText = description;
+    let helperText = description ? description : '';
     if (intent == Intent.DANGER) {
-      helperText += 'This field is required.';
+      helperText += '\nThis field is required.';
     }
     return (
       <FormGroup
@@ -387,7 +387,7 @@ export class MetadataEditor extends ReactWidget {
           intent
         )}
         {inputElements}
-        <FormGroup>
+        <FormGroup className={'elyra-metadataEditor-saveButton'}>
           <Button
             onClick={(): void => {
               this.saveMetadata();

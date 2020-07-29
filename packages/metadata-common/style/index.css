@@ -167,3 +167,8 @@
 .elyra-metadata-editor.bp3-dark {
   background-color: var(--jp-border-color3);
 }
+
+.elyra-metadataEditor .elyra-metadataEditor-saveButton {
+  flex-basis: 100%;
+  display: flex;
+}
