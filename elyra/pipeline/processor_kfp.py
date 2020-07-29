@@ -186,24 +186,11 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
                            op=operation, archive=operation_artifact_archive))
 
-            # create pipeline operation
-            notebook_op = NotebookOp(name=operation.name,
-                                     notebook=operation.filename,
-                                     cos_endpoint=cos_endpoint,
-                                     cos_bucket=cos_bucket,
-                                     cos_directory=cos_directory,
-                                     cos_dependencies_archive=operation_artifact_archive,
-                                     image=operation.runtime_image)
+            # Collect env variables
+            pipeline_envs = dict()
+            pipeline_envs['AWS_ACCESS_KEY_ID'] = cos_username
+            pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
 
-            if operation.inputs:
-                notebook_op.add_pipeline_inputs(self._artifact_list_to_str(operation.inputs))
-            if operation.outputs:
-                notebook_op.add_pipeline_outputs(self._artifact_list_to_str(operation.outputs))
-
-            notebook_op.add_environment_variable('AWS_ACCESS_KEY_ID', cos_username)
-            notebook_op.add_environment_variable('AWS_SECRET_ACCESS_KEY', cos_password)
-
-            # Set ENV variables
             if operation.env_vars:
                 for env_var in operation.env_vars:
                     # Strip any of these special characters from both key and value
@@ -211,9 +198,19 @@ class KfpPipelineProcessor(PipelineProcessor):
                     result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
                     # Should be non empty key with a value
                     if len(result) == 2 and result[0] != '':
-                        notebook_op.add_environment_variable(result[0], result[1])
+                        pipeline_envs[result[0]] = result[1]
 
-            notebook_ops[operation.id] = notebook_op
+            # create pipeline operation
+            notebook_ops[operation.id] = NotebookOp(name=operation.name,
+                                                    notebook=operation.filename,
+                                                    cos_endpoint=cos_endpoint,
+                                                    cos_bucket=cos_bucket,
+                                                    cos_directory=cos_directory,
+                                                    cos_dependencies_archive=operation_artifact_archive,
+                                                    pipeline_inputs=operation.inputs,
+                                                    pipeline_outputs=operation.outputs,
+                                                    pipeline_envs=pipeline_envs,
+                                                    image=operation.runtime_image)
 
             self.log.info("NotebookOp Created for Component '%s' (%s)", operation.name, operation.id)
 
@@ -255,12 +252,6 @@ class KfpPipelineProcessor(PipelineProcessor):
                 op.after(parent_op)
 
         return notebook_ops
-
-    def _artifact_list_to_str(self, pipeline_array):
-        trimmed_artifact_list = []
-        for artifact_name in pipeline_array:
-            trimmed_artifact_list.append(artifact_name.strip())
-        return ','.join(trimmed_artifact_list)
 
     def _get_dependency_archive_name(self, operation):
         archive_name = os.path.basename(operation.filename)
