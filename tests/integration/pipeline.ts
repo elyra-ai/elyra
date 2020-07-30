@@ -43,25 +43,25 @@ describe('PipelineEditor', () => {
   });
 
   it('checks for disabled buttons', () => {
-    cy.get('#run-action button')
+    cy.get('.run-action button')
       .should('have.length', 1)
       .should('be.disabled');
-    cy.get('#export-action button')
+    cy.get('.export-action button')
       .should('have.length', 1)
       .should('be.disabled');
-    cy.get('#clear-action button')
+    cy.get('.clear-action button')
       .should('have.length', 1)
       .should('be.disabled');
-    cy.get('#undo-action button')
+    cy.get('.undo-action button')
       .should('have.length', 1)
       .should('be.disabled');
-    cy.get('#redo-action button')
+    cy.get('.redo-action button')
       .should('have.length', 1)
       .should('be.disabled');
-    cy.get('#cut-action button')
+    cy.get('.cut-action button')
       .should('have.length', 1)
       .should('be.disabled');
-    cy.get('#copy-action button')
+    cy.get('.copy-action button')
       .should('have.length', 1)
       .should('be.disabled');
 
@@ -71,22 +71,22 @@ describe('PipelineEditor', () => {
     //   .should('have.length', 1)
     //   .should('be.disabled');
 
-    cy.get('#deleteSelectedObjects-action button')
+    cy.get('.deleteSelectedObjects-action button')
       .should('have.length', 1)
       .should('be.disabled');
-    cy.get('#arrangeHorizontally-action button')
+    cy.get('.arrangeHorizontally-action button')
       .should('have.length', 1)
       .should('be.disabled');
-    cy.get('#arrangeVertically-action button')
+    cy.get('.arrangeVertically-action button')
       .should('have.length', 1)
       .should('be.disabled');
   });
 
   it('checks save and add comment buttons are enabled', () => {
-    cy.get('#save-action button')
+    cy.get('.save-action button')
       .should('have.length', 1)
       .should('not.be.disabled');
-    cy.get('#createAutoComment-action button')
+    cy.get('.createAutoComment-action button')
       .should('have.length', 1)
       .should('not.be.disabled');
   });
