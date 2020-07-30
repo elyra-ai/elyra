@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@elyra/application": "^1.0.0-rc.2",
-    "@elyra/canvas": "9.0.2",
+    "@elyra/canvas": "9.0.3",
     "@elyra/metadata-common": "^1.0.0-rc.2",
     "@elyra/ui-components": "^1.0.0-rc.2",
     "@jupyterlab/application": "^2.0.2",
