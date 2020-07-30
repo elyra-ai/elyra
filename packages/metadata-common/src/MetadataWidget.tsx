@@ -184,7 +184,7 @@ export class MetadataWidget extends ReactWidget {
     const schemas = await FrontendServices.getSchema(this.props.namespace);
     for (const schema of schemas) {
       if (this.props.schema == schema.name) {
-        this.schemaDisplayName = schema.display_name;
+        this.schemaDisplayName = schema.title;
         break;
       }
     }

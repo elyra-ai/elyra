@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FormGroup, Intent, ResizeSensor } from '@blueprintjs/core';
+import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
 
 import { FrontendServices, IDictionary } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
@@ -54,6 +54,7 @@ export class MetadataEditor extends ReactWidget {
   dirty: boolean;
   requiredFields: string[];
   invalidForm: boolean;
+  showSecure: IDictionary<boolean>;
 
   schema: IDictionary<any> = {};
   allMetadata: IDictionary<any>[] = [];
@@ -73,6 +74,8 @@ export class MetadataEditor extends ReactWidget {
 
     this.invalidForm = false;
 
+    this.showSecure = {};
+
     this.initializeMetadata();
   }
 
@@ -81,8 +84,11 @@ export class MetadataEditor extends ReactWidget {
     for (const schema of schemas) {
       if (this.schemaName == schema.name) {
         this.schema = schema.properties.metadata.properties;
-        this.schemaDisplayName = schema.display_name;
+        this.schemaDisplayName = schema.title;
         this.requiredFields = schema.properties.metadata.required;
+        if (!this.name) {
+          this.title.label = `New ${this.schemaDisplayName}`;
+        }
         break;
       }
     }
@@ -278,12 +284,40 @@ export class MetadataEditor extends ReactWidget {
     fieldName: string,
     defaultValue: string,
     required: string,
+    secure: boolean,
     intent?: Intent
   ): React.ReactElement {
     let helperText = description ? description : '';
     if (intent == Intent.DANGER) {
       helperText += '\nThis field is required.';
     }
+
+    const toggleShowPassword = (): void => {
+      this.showSecure[fieldName] = !this.showSecure[fieldName];
+      this.update();
+    };
+    let showPassword = false;
+    let toggleShowButton;
+
+    if (secure) {
+      if (this.showSecure[fieldName]) {
+        showPassword = true;
+      } else {
+        this.showSecure[fieldName] = false;
+      }
+
+      toggleShowButton = (
+        <Tooltip content={`${showPassword ? 'Hide' : 'Show'} Password`}>
+          <Button
+            icon={showPassword ? 'eye-open' : 'eye-off'}
+            intent={Intent.WARNING}
+            minimal={true}
+            onClick={toggleShowPassword}
+          />
+        </Tooltip>
+      );
+    }
+
     return (
       <FormGroup
         key={fieldName}
@@ -297,7 +331,8 @@ export class MetadataEditor extends ReactWidget {
             this.handleTextInputChange(event, fieldName);
           }}
           defaultValue={defaultValue}
-          type="text-input"
+          rightElement={toggleShowButton}
+          type={showPassword || !secure ? 'text' : 'password'}
         />
       </FormGroup>
     );
@@ -320,6 +355,7 @@ export class MetadataEditor extends ReactWidget {
         fieldName,
         this.metadata[fieldName],
         required,
+        uihints.secure,
         uihints.intent
       );
     } else if (uihints.field_type == 'dropdown') {
@@ -384,6 +420,7 @@ export class MetadataEditor extends ReactWidget {
           'display_name',
           this.displayName,
           '(required)',
+          false,
           intent
         )}
         {inputElements}
