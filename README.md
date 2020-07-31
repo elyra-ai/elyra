@@ -18,7 +18,7 @@ limitations under the License.
 
 
 [![PyPI version](https://badge.fury.io/py/elyra.svg)](https://badge.fury.io/py/elyra)
-[![Downloads](https://pepy.tech/badge/elyra/month)](https://pepy.tech/project/elyra/month)
+[![Downloads](https://pepy.tech/badge/elyra)](https://pepy.tech/project/elyra)
 [![Documentation Status](https://readthedocs.org/projects/elyra/badge/?version=latest)](https://elyra.readthedocs.io/en/latest/?badge=latest)
 [![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
 [![Gitter](https://badges.gitter.im/elyra-ai/community.svg)](https://gitter.im/elyra-ai/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
@@ -88,10 +88,10 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra v1.0.0-rc.1 OK
+      elyra v1.0.0-rc.2 OK
     jupyterlab  enabled
     - Validating...
-      jupyterlab 2.1.5 OK
+      jupyterlab 2.2.0 OK
     jupyterlab_git  enabled
     - Validating...
       jupyterlab_git 0.20.0 OK
@@ -106,11 +106,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.0.0-rc.1  enabled  OK*
-        @elyra/metadata-editor-extension v1.0.0-rc.1  enabled  OK*
-        @elyra/pipeline-editor-extension v1.0.0-rc.1  enabled  OK*
-        @elyra/python-editor-extension v1.0.0-rc.1  enabled  OK*
-        @elyra/theme-extension v1.0.0-rc.1  enabled  OK*
+        @elyra/code-snippet-extension v1.0.0-rc.2  enabled  OK*
+        @elyra/metadata-editor-extension v1.0.0-rc.2  enabled  OK*
+        @elyra/pipeline-editor-extension v1.0.0-rc.2  enabled  OK*
+        @elyra/python-editor-extension v1.0.0-rc.2  enabled  OK*
+        @elyra/theme-extension v1.0.0-rc.2  enabled  OK*
         @jupyterlab/git v0.20.0  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK

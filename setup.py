@@ -31,6 +31,7 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
 
 npm_packages_path = "./dist/*.tgz"
 auto_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
+settings_path = './etc/config/settings/*.json'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 
 
@@ -43,13 +44,14 @@ setup_args = dict(
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_extension_path)),
+                ('share/jupyter/lab/settings', glob(settings_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path))],
     packages=find_packages(),
     install_requires=[
         "jupyter_core>=4.0,<5.0",
         "kfp==0.5.1",
         "urllib3==1.24.2",
-        "kfp-notebook>=0.10.2,<0.11.0",
+        "kfp-notebook>=0.10.3,<0.11.0",
         "minio>=5.0.7",
         'nbdime>=2.0.0',
         'jupyterlab>=2.0.0,<3.0.0',

@@ -433,7 +433,7 @@ def test_number_default(script_runner, mock_data_dir):
 def test_uri(script_runner, mock_data_dir):
     prop_test = PropertyTester("uri")
     prop_test.negative_value = "//invalid-uri"
-    prop_test.negative_stdout = "Property used to test uri formatting; format: uri"
+    prop_test.negative_stdout = "Property used to test uri formatting; title: URI Test, format: uri"
     prop_test.negative_stderr = "'//invalid-uri' is not a 'uri'"
     prop_test.positive_value = "http://localhost:31823/v1/models?version=2017-02-13"
     prop_test.run(script_runner, mock_data_dir)
@@ -443,7 +443,7 @@ def test_integer_exclusivity(script_runner, mock_data_dir):
     prop_test = PropertyTester("integer_exclusivity")
     prop_test.negative_value = 3
     prop_test.negative_stdout = "Property used to test integers with exclusivity restrictions; " \
-                                "exclusiveMinimum: 3, exclusiveMaximum: 10"
+                                "title: Integer Exclusivity Test, exclusiveMinimum: 3, exclusiveMaximum: 10"
     prop_test.negative_stderr = "3 is less than or equal to the minimum of 3"
     prop_test.positive_value = 7
     prop_test.run(script_runner, mock_data_dir)
@@ -452,7 +452,8 @@ def test_integer_exclusivity(script_runner, mock_data_dir):
 def test_integer_multiple(script_runner, mock_data_dir):
     prop_test = PropertyTester("integer_multiple")
     prop_test.negative_value = 32
-    prop_test.negative_stdout = "Property used to test integers with multipleOf restrictions; multipleOf: 7"
+    prop_test.negative_stdout = "Property used to test integers with multipleOf restrictions; " \
+                                "title: Integer Multiple Test, multipleOf: 7"
     prop_test.negative_stderr = "32 is not a multiple of 7"
     prop_test.positive_value = 42
     prop_test.run(script_runner, mock_data_dir)
@@ -461,7 +462,8 @@ def test_integer_multiple(script_runner, mock_data_dir):
 def test_number_range(script_runner, mock_data_dir):
     prop_test = PropertyTester("number_range")
     prop_test.negative_value = 2.7
-    prop_test.negative_stdout = "Property used to test numbers with range; minimum: 3, maximum: 10"
+    prop_test.negative_stdout = "Property used to test numbers with range; " \
+                                "title: Number Range Test, minimum: 3, maximum: 10"
     prop_test.negative_stderr = "2.7 is less than the minimum of 3"
     prop_test.positive_value = 7.2
     prop_test.run(script_runner, mock_data_dir)
@@ -470,7 +472,7 @@ def test_number_range(script_runner, mock_data_dir):
 def test_const(script_runner, mock_data_dir):
     prop_test = PropertyTester("const")
     prop_test.negative_value = 2.718
-    prop_test.negative_stdout = "Property used to test properties with const; const: 3.14"
+    prop_test.negative_stdout = "Property used to test properties with const; title: Const Test, const: 3.14"
     prop_test.negative_stderr = "3.14 was expected"
     prop_test.positive_value = 3.14
     prop_test.run(script_runner, mock_data_dir)
@@ -479,7 +481,8 @@ def test_const(script_runner, mock_data_dir):
 def test_string_length(script_runner, mock_data_dir):
     prop_test = PropertyTester("string_length")
     prop_test.negative_value = "12345678901"
-    prop_test.negative_stdout = "Property used to test strings with length restrictions; minLength: 3, maxLength: 10"
+    prop_test.negative_stdout = "Property used to test strings with length restrictions; " \
+                                "title: String Length Test, minLength: 3, maxLength: 10"
     prop_test.negative_stderr = "'12345678901' is too long"
     prop_test.positive_value = "123456"
     prop_test.run(script_runner, mock_data_dir)
@@ -488,7 +491,8 @@ def test_string_length(script_runner, mock_data_dir):
 def test_enum(script_runner, mock_data_dir):
     prop_test = PropertyTester("enum")
     prop_test.negative_value = "jupyter"
-    prop_test.negative_stdout = "Property used to test properties with enums; enum: ['elyra', 'rocks']"
+    prop_test.negative_stdout = "Property used to test properties with enums; " \
+                                "title: Enum Test, enum: ['elyra', 'rocks']"
     prop_test.negative_stderr = "'jupyter' is not one of ['elyra', 'rocks']"
     prop_test.positive_value = "rocks"
     prop_test.run(script_runner, mock_data_dir)
@@ -498,7 +502,7 @@ def test_array(script_runner, mock_data_dir):
     prop_test = PropertyTester("array")
     prop_test.negative_value = [1, 2, 2]
     prop_test.negative_stdout = "Property used to test array with item restrictions; " \
-                                "minItems: 3, maxItems: 10, uniqueItems: True"
+                                "title: Array Test, minItems: 3, maxItems: 10, uniqueItems: True"
     prop_test.negative_stderr = "[1, 2, 2] has non-unique elements"
     prop_test.positive_value = [1, 2, 3, 4, 5]
     prop_test.run(script_runner, mock_data_dir)
@@ -508,7 +512,7 @@ def test_object(script_runner, mock_data_dir):
     prop_test = PropertyTester("object")
     prop_test.negative_value = {'prop1': 2, 'prop2': 3}
     prop_test.negative_stdout = "Property used to test object elements with properties restrictions; " \
-                                "minProperties: 3, maxProperties: 10"
+                                "title: Object Test, minProperties: 3, maxProperties: 10"
     prop_test.negative_stderr = "{'prop1': 2, 'prop2': 3} does not have enough properties"
     prop_test.positive_value = {'prop1': 2, 'prop2': 3, 'prop3': 4, 'prop4': 5}
     prop_test.run(script_runner, mock_data_dir)
@@ -517,7 +521,7 @@ def test_object(script_runner, mock_data_dir):
 def test_boolean(script_runner, mock_data_dir):
     prop_test = PropertyTester("boolean")
     prop_test.negative_value = "bogus_boolean"
-    prop_test.negative_stdout = "Property used to test boolean values"
+    prop_test.negative_stdout = "Property used to test boolean values; title: Boolean Test"
     prop_test.negative_stderr = "'bogus_boolean' is not of type 'boolean'"
     prop_test.positive_value = True
     prop_test.run(script_runner, mock_data_dir)
@@ -526,7 +530,7 @@ def test_boolean(script_runner, mock_data_dir):
 def test_null(script_runner, mock_data_dir):
     prop_test = PropertyTester("null")
     prop_test.negative_value = "bogus_null"
-    prop_test.negative_stdout = "Property used to test null types"
+    prop_test.negative_stdout = "Property used to test null types; title: Null Test"
     prop_test.negative_stderr = "'bogus_null' is not of type 'null'"
     prop_test.positive_value = None
     prop_test.run(script_runner, mock_data_dir)

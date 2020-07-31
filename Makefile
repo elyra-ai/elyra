@@ -23,7 +23,7 @@ SHELL:=/bin/bash
 GIT_VERSION:=0.20.0
 TOC_VERSION:=4.0.0
 
-TAG:=1.0.0rc1
+TAG:=1.0.0rc2
 IMAGE=elyra/elyra:$(TAG)
 
 # Contains the set of commands required to be used by elyra
@@ -53,7 +53,7 @@ uninstall:
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-editor-extension)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@jupyterlab/toc)
@@ -94,7 +94,7 @@ install-ui: build-ui
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call INSTALL_LAB_EXTENSION,theme)
 	$(call INSTALL_LAB_EXTENSION,code-snippet)
-	$(call INSTALL_LAB_EXTENSION,metadata-editor)
+	$(call INSTALL_LAB_EXTENSION,metadata)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 
@@ -131,7 +131,7 @@ dist-ui: build-ui
 	mkdir -p dist
 	$(call PACKAGE_LAB_EXTENSION,theme)
 	$(call PACKAGE_LAB_EXTENSION,code-snippet)
-	$(call PACKAGE_LAB_EXTENSION,metadata-editor)
+	$(call PACKAGE_LAB_EXTENSION,metadata)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
 	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
