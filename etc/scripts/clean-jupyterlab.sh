@@ -35,6 +35,7 @@ pip uninstall -y jupyterlab-git || true;
 pip uninstall -y jupyterlab-server || true;
 pip uninstall -y jupyterlab || true;
 pip uninstall -y nbdime || true;
+pip uninstall -y nbresuse || true;
 echo " "
 
 echo "Cleaning jupyter and jupyterlab workspace"

@@ -22,6 +22,9 @@ SHELL:=/bin/bash
 
 GIT_VERSION:=0.20.0
 TOC_VERSION:=4.0.0
+NBRESUSE_VERSION:=0.3.6
+TOPBAR_VERSION:=0.5.0
+MONITOR_VERSION:=0.6.0
 
 TAG:=1.0.0rc2
 IMAGE=elyra/elyra:$(TAG)
@@ -101,6 +104,9 @@ install-ui: build-ui
 install-external-extensions:
 	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
 	jupyter labextension install --no-build @jupyterlab/toc@$(TOC_VERSION)
+	pip install --upgrade nbresuse==$(NBRESUSE_VERSION)
+	jupyter labextension install --no-build jupyterlab-topbar-extension@$(TOPBAR_VERSION)
+	jupyter labextension install --no-build jupyterlab-system-monitor@$(MONITOR_VERSION)
 
 install: install-server install-ui install-external-extensions ## Build and install
 	jupyter lab build
