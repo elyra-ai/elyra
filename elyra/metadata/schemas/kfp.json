@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Kubeflow Pipeline runtime",
+  "title": "Kubeflow Pipelines runtime",
   "name": "kfp",
-  "display_name": "Kubeflow Pipeline runtime",
+  "display_name": "Kubeflow Pipelines runtime",
   "namespace": "runtimes",
   "properties": {
     "schema_name": {
@@ -28,8 +28,8 @@
           "type": "string"
         },
         "api_endpoint": {
-          "title": "API Endpoint",
-          "description": "The API endpoint",
+          "title": "Kubeflow Pipelines API Endpoint",
+          "description": "The Kubeflow Pipelines API endpoint",
           "type": "string",
           "format": "uri"
         },
