@@ -82,7 +82,7 @@ export class MetadataEditor extends ReactWidget {
   async initializeMetadata(): Promise<void> {
     const schemas = await FrontendServices.getSchema(this.namespace);
     for (const schema of schemas) {
-      if (this.schemaName == schema.name) {
+      if (this.schemaName === schema.name) {
         this.schema = schema.properties.metadata.properties;
         this.schemaDisplayName = schema.title;
         this.requiredFields = schema.properties.metadata.required;
@@ -96,7 +96,7 @@ export class MetadataEditor extends ReactWidget {
     this.allMetadata = await FrontendServices.getMetadata(this.namespace);
     if (this.name) {
       for (const metadata of this.allMetadata) {
-        if (this.name == metadata.name) {
+        if (this.name === metadata.name) {
           this.metadata = metadata['metadata'];
           this.displayName = metadata['display_name'];
           this.title.label = this.displayName;
@@ -117,16 +117,16 @@ export class MetadataEditor extends ReactWidget {
    */
   hasInvalidFields(): boolean {
     this.invalidForm = false;
-    if (this.displayName == null || this.displayName == '') {
+    if (this.displayName === null || this.displayName === '') {
       this.invalidForm = true;
     }
     for (const schemaField in this.schema) {
       if (
         this.requiredFields.includes(schemaField) &&
-        (this.metadata[schemaField] == null ||
-          this.metadata[schemaField] == '' ||
-          this.metadata[schemaField] == [] ||
-          this.metadata[schemaField] == '(No selection)')
+        (this.metadata[schemaField] === null ||
+          this.metadata[schemaField] === '' ||
+          this.metadata[schemaField] === [] ||
+          this.metadata[schemaField] === '(No selection)')
       ) {
         this.invalidForm = true;
         this.schema[schemaField].uihints.intent = Intent.DANGER;
@@ -197,7 +197,7 @@ export class MetadataEditor extends ReactWidget {
   handleTextInputChange(event: any, schemaField: string): void {
     this.handleDirtyState(true);
     // Special case because all metadata has a display name
-    if (schemaField == 'display_name') {
+    if (schemaField === 'display_name') {
       this.displayName = event.nativeEvent.srcElement.value;
     } else {
       this.metadata[schemaField] = event.nativeEvent.srcElement.value;
@@ -207,7 +207,7 @@ export class MetadataEditor extends ReactWidget {
   handleDropdownChange = (schemaField: string, value: string): void => {
     this.handleDirtyState(true);
     this.metadata[schemaField] = value;
-    if (schemaField == 'language') {
+    if (schemaField === 'language') {
       const getMimeTypeByLanguage = this.editorServices.mimeTypeService
         .getMimeTypeByLanguage;
       this.editor.model.mimeType = getMimeTypeByLanguage({
@@ -260,14 +260,14 @@ export class MetadataEditor extends ReactWidget {
 
   getDefaultChoices(fieldName: string): any[] {
     let defaultChoices = this.schema[fieldName].uihints.default_choices;
-    if (defaultChoices == undefined) {
+    if (defaultChoices === undefined) {
       defaultChoices = [];
     }
     for (const otherMetadata of this.allMetadata) {
       if (
         !find(defaultChoices, (choice: string) => {
           return (
-            choice.toLowerCase() ==
+            choice.toLowerCase() ===
             otherMetadata.metadata[fieldName].toLowerCase()
           );
         })
@@ -288,7 +288,7 @@ export class MetadataEditor extends ReactWidget {
     intent?: Intent
   ): React.ReactElement {
     let helperText = description ? description : '';
-    if (intent == Intent.DANGER) {
+    if (intent === Intent.DANGER) {
       helperText += '\nThis field is required.';
     }
 
@@ -344,11 +344,14 @@ export class MetadataEditor extends ReactWidget {
     if (this.requiredFields && this.requiredFields.includes(fieldName)) {
       required = '(required)';
     }
-    if (uihints == undefined) {
+    if (uihints === undefined) {
       uihints = {};
       this.schema[fieldName].uihints = uihints;
     }
-    if (uihints.field_type == 'textinput' || uihints.field_type == undefined) {
+    if (
+      uihints.field_type === 'textinput' ||
+      uihints.field_type === undefined
+    ) {
       return this.renderTextInput(
         this.schema[fieldName].title,
         uihints.description,
@@ -358,7 +361,7 @@ export class MetadataEditor extends ReactWidget {
         uihints.secure,
         uihints.intent
       );
-    } else if (uihints.field_type == 'dropdown') {
+    } else if (uihints.field_type === 'dropdown') {
       return (
         <DropDown
           label={this.schema[fieldName].title}
@@ -371,9 +374,9 @@ export class MetadataEditor extends ReactWidget {
           handleDropdownChange={this.handleDropdownChange}
         ></DropDown>
       );
-    } else if (uihints.field_type == 'code') {
+    } else if (uihints.field_type === 'code') {
       let helperText: string;
-      if (uihints.intent == Intent.DANGER) {
+      if (uihints.intent === Intent.DANGER) {
         helperText = 'This field is required.';
       }
       return (
@@ -408,7 +411,7 @@ export class MetadataEditor extends ReactWidget {
       headerText = `Add new ${this.schemaDisplayName}`;
     }
     let intent: Intent = Intent.NONE;
-    if (this.displayName == '' && this.invalidForm) {
+    if (this.displayName === '' && this.invalidForm) {
       intent = Intent.DANGER;
     }
     return (
