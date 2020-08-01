@@ -34,15 +34,15 @@ export const KFP_SCHEMA = 'kfp';
  */
 class RuntimesDisplay extends MetadataDisplay<IMetadataDisplayProps> {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
+    const apiEndpoint = metadata.metadata.api_endpoint.endsWith('/')
+      ? metadata.metadata.api_endpoint
+      : metadata.metadata.api_endpoint + '/';
+
     return (
       <div>
         <h6>Runtime History:</h6>
-        <a
-          href={metadata.metadata.api_endpoint}
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {metadata.metadata.api_endpoint}
+        <a href={apiEndpoint} target="_blank" rel="noreferrer noopener">
+          {apiEndpoint}
         </a>
         <br />
         <br />
