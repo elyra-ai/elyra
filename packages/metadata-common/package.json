@@ -1,6 +1,6 @@
 {
   "name": "@elyra/metadata-common",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "JupyterLab - Widgets for interacting with metadata",
   "keywords": [
     "jupyter",
@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^3.22.2",
-    "@elyra/application": "^1.0.0-rc.2",
-    "@elyra/ui-components": "^1.0.0-rc.2",
+    "@elyra/application": "^1.0.0-rc.3",
+    "@elyra/ui-components": "^1.0.0-rc.3",
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/codeeditor": "^2.0.2",
