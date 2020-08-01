@@ -92,7 +92,7 @@ describe('PipelineEditor', () => {
   });
 
   it('open runtimes sidebar', () => {
-    cy.get('#openRuntimes-action button')
+    cy.get('.openRuntimes-action button')
       .should('have.length', 1)
       .should('not.be.disabled')
       .click();
