@@ -3,3 +3,4 @@ pytest-tornasync
 pytest-console-scripts
 flake8
 hacking
+requests-unixsocket
