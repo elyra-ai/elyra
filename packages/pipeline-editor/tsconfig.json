@@ -20,6 +20,9 @@
       "path": "../application"
     },
     {
+      "path": "../metadata-common"
+    },
+    {
       "path": "../ui-components"
     }
   ]

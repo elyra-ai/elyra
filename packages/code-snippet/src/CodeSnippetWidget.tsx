@@ -17,73 +17,67 @@
 import '../style/index.css';
 
 import {
-  codeSnippetIcon,
+  IMetadata,
+  IMetadataActionButton,
+  IMetadataDisplayProps,
+  IMetadataWidgetProps,
+  MetadataDisplay,
+  MetadataWidget,
+  METADATA_ITEM
+} from '@elyra/metadata-common';
+import {
   ExpandableComponent,
   trashIcon,
   importIcon
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import {
-  Clipboard,
-  Dialog,
-  showDialog,
-  ReactWidget,
-  UseSignal
-} from '@jupyterlab/apputils';
+import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
 import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import { addIcon, copyIcon, editIcon } from '@jupyterlab/ui-components';
+import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
-import { Message } from '@lumino/messaging';
-import { Signal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
 
 import React from 'react';
 
-import { CodeSnippetService, ICodeSnippet } from './CodeSnippetService';
-
-/**
- * The CSS class added to code snippet widget.
- */
-const CODE_SNIPPETS_HEADER_CLASS = 'elyra-codeSnippetsHeader';
-const CODE_SNIPPETS_HEADER_BUTTON_CLASS = 'elyra-codeSnippetHeader-button';
-const CODE_SNIPPET_ITEM = 'elyra-codeSnippet-item';
+import {
+  CodeSnippetService,
+  CODE_SNIPPET_NAMESPACE,
+  CODE_SNIPPET_SCHEMA
+} from './CodeSnippetService';
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
-const commands = {
-  OPEN_METADATA_EDITOR: `${METADATA_EDITOR_ID}:open`
-};
-const CODE_SNIPPET_NAMESPACE = 'code-snippets';
-const CODE_SNIPPET_SCHEMA = 'code-snippet';
 
 /**
  * CodeSnippetDisplay props.
  */
-interface ICodeSnippetDisplayProps {
-  codeSnippets: ICodeSnippet[];
+interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
+  metadata: IMetadata[];
+  openMetadataEditor: (args: any) => void;
+  updateMetadata: () => void;
+  namespace: string;
+  schema: string;
   getCurrentWidget: () => Widget;
   editorServices: IEditorServices;
-  openCodeSnippetEditor: (args: any) => void;
-  updateSnippets: () => void;
   shell: JupyterFrontEnd.IShell;
 }
 
 /**
  * A React Component for code-snippets display list.
  */
-class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
+class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
 
   // Handle code snippet insert into an editor
-  private insertCodeSnippet = async (snippet: ICodeSnippet): Promise<void> => {
+  private insertCodeSnippet = async (snippet: IMetadata): Promise<void> => {
     const widget: Widget = this.props.getCurrentWidget();
-    const snippetStr: string = snippet.code.join('\n');
+    const snippetStr: string = snippet.metadata.code.join('\n');
 
     if (
       widget instanceof DocumentWidget &&
@@ -94,11 +88,11 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
       if (
         PathExt.extname(widget.context.path).match(markdownRegex) !== null &&
-        snippet.language.toLowerCase() !== 'markdown'
+        snippet.metadata.language.toLowerCase() !== 'markdown'
       ) {
         // Wrap snippet into a code block when inserting it into a markdown file
         fileEditor.replaceSelection(
-          '```' + snippet.language + '\n' + snippetStr + '\n```'
+          '```' + snippet.metadata.language + '\n' + snippetStr + '\n```'
         );
       } else if (widget.constructor.name == 'PythonFileEditor') {
         this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
@@ -121,11 +115,11 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         );
       } else if (
         notebookCell instanceof MarkdownCell &&
-        snippet.language.toLowerCase() !== 'markdown'
+        snippet.metadata.language.toLowerCase() !== 'markdown'
       ) {
         // Wrap snippet into a code block when inserting it into a markdown cell
         notebookCellEditor.replaceSelection(
-          '```' + snippet.language + '\n' + snippetStr + '\n```'
+          '```' + snippet.metadata.language + '\n' + snippetStr + '\n```'
         );
       } else {
         notebookCellEditor.replaceSelection(snippetStr);
@@ -137,18 +131,18 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
 
   // Handle language compatibility between code snippet and editor
   private verifyLanguageAndInsert = async (
-    snippet: ICodeSnippet,
+    snippet: IMetadata,
     editorLanguage: string,
     editor: CodeEditor.IEditor
   ): Promise<void> => {
-    const snippetStr: string = snippet.code.join('\n');
+    const snippetStr: string = snippet.metadata.code.join('\n');
     if (
       editorLanguage &&
-      snippet.language.toLowerCase() !== editorLanguage.toLowerCase()
+      snippet.metadata.language.toLowerCase() !== editorLanguage.toLowerCase()
     ) {
       const result = await this.showWarnDialog(
         editorLanguage,
-        snippet.displayName
+        snippet.display_name
       );
       if (result.button.accept) {
         editor.replaceSelection(snippetStr);
@@ -180,35 +174,32 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
     });
   };
 
-  // Render display of code snippet list
-  private renderCodeSnippet = (codeSnippet: ICodeSnippet): JSX.Element => {
-    const displayName = `[${codeSnippet.language}] ${codeSnippet.displayName}`;
-
-    const actionButtons = [
+  actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
+    return [
       {
         title: 'Copy',
         icon: copyIcon,
         feedback: 'Copied!',
         onClick: (): void => {
-          Clipboard.copyToSystem(codeSnippet.code.join('\n'));
+          Clipboard.copyToSystem(metadata.metadata.code.join('\n'));
         }
       },
       {
         title: 'Insert',
         icon: importIcon,
         onClick: (): void => {
-          this.insertCodeSnippet(codeSnippet);
+          this.insertCodeSnippet(metadata);
         }
       },
       {
         title: 'Edit',
         icon: editIcon,
         onClick: (): void => {
-          this.props.openCodeSnippetEditor({
-            onSave: this.props.updateSnippets,
+          this.props.openMetadataEditor({
+            onSave: this.props.updateMetadata,
             namespace: CODE_SNIPPET_NAMESPACE,
             schema: CODE_SNIPPET_SCHEMA,
-            name: codeSnippet.name
+            name: metadata.name
           });
         }
       },
@@ -216,17 +207,17 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
-          CodeSnippetService.deleteCodeSnippet(codeSnippet).then(
+          CodeSnippetService.deleteCodeSnippet(metadata).then(
             (deleted: any): void => {
               if (deleted) {
-                this.props.updateSnippets();
-                delete this.editors[codeSnippet.name];
+                this.props.updateMetadata();
+                delete this.editors[metadata.name];
                 const editorWidget = find(
                   this.props.shell.widgets('main'),
                   (value: Widget, index: number) => {
                     return (
                       value.id ==
-                      `${METADATA_EDITOR_ID}:${CODE_SNIPPET_NAMESPACE}:${CODE_SNIPPET_SCHEMA}:${codeSnippet.name}`
+                      `${METADATA_EDITOR_ID}:${CODE_SNIPPET_NAMESPACE}:${CODE_SNIPPET_SCHEMA}:${metadata.name}`
                     );
                   }
                 );
@@ -239,18 +230,23 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
         }
       }
     ];
+  };
+
+  // Render display of a code snippet
+  renderMetadata = (metadata: IMetadata): JSX.Element => {
+    const displayName = `[${metadata.metadata.language}] ${metadata.display_name}`;
 
     return (
-      <div key={codeSnippet.name} className={CODE_SNIPPET_ITEM}>
+      <div key={metadata.name} className={METADATA_ITEM}>
         <ExpandableComponent
           displayName={displayName}
-          tooltip={codeSnippet.description}
-          actionButtons={actionButtons}
+          tooltip={metadata.metadata.description}
+          actionButtons={this.actionButtons(metadata)}
           onExpand={(): void => {
-            this.editors[codeSnippet.name].refresh();
+            this.editors[metadata.name].refresh();
           }}
         >
-          <div id={codeSnippet.name}></div>
+          <div id={metadata.name}></div>
         </ExpandableComponent>
       </div>
     );
@@ -261,129 +257,70 @@ class CodeSnippetDisplay extends React.Component<ICodeSnippetDisplayProps> {
       .newInlineEditor;
     const getMimeTypeByLanguage = this.props.editorServices.mimeTypeService
       .getMimeTypeByLanguage;
-    this.props.codeSnippets.map((codeSnippet: ICodeSnippet) => {
+    this.props.metadata.map((codeSnippet: IMetadata) => {
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
-        this.editors[codeSnippet.name].model.value.text = codeSnippet.code.join(
-          '\n'
-        );
+        this.editors[
+          codeSnippet.name
+        ].model.value.text = codeSnippet.metadata.code.join('\n');
       } else {
         // Add new snippets
         this.editors[codeSnippet.name] = editorFactory({
           config: { readOnly: true },
           host: document.getElementById(codeSnippet.name),
           model: new CodeEditor.Model({
-            value: codeSnippet.code.join('\n'),
+            value: codeSnippet.metadata.code.join('\n'),
             mimeType: getMimeTypeByLanguage({
-              name: codeSnippet.language,
-              codemirror_mode: codeSnippet.language
+              name: codeSnippet.metadata.language,
+              codemirror_mode: codeSnippet.metadata.language
             })
           })
         });
       }
     });
   }
+}
 
-  render(): React.ReactElement {
-    return (
-      <div>
-        <div id="codeSnippets">
-          <div>{this.props.codeSnippets.map(this.renderCodeSnippet)}</div>
-        </div>
-      </div>
-    );
-  }
+/**
+ * CodeSnippetWidget props.
+ */
+export interface ICodeSnippetWidgetProps extends IMetadataWidgetProps {
+  app: JupyterFrontEnd;
+  display_name: string;
+  namespace: string;
+  schema: string;
+  icon: LabIcon;
+  getCurrentWidget: () => Widget;
+  editorServices: IEditorServices;
 }
 
 /**
  * A widget for Code Snippets.
  */
-export class CodeSnippetWidget extends ReactWidget {
-  renderCodeSnippetsSignal: Signal<this, ICodeSnippet[]>;
-  getCurrentWidget: () => Widget;
-  app: JupyterFrontEnd;
-  editorServices: IEditorServices;
+export class CodeSnippetWidget extends MetadataWidget {
+  props: ICodeSnippetWidgetProps;
 
-  constructor(
-    getCurrentWidget: () => Widget,
-    app: JupyterFrontEnd,
-    editorServices: IEditorServices
-  ) {
-    super();
-    this.getCurrentWidget = getCurrentWidget;
-    this.renderCodeSnippetsSignal = new Signal<this, ICodeSnippet[]>(this);
-    this.app = app;
-    this.editorServices = editorServices;
-
-    this.fetchData = this.fetchData.bind(this);
-    this.updateSnippets = this.updateSnippets.bind(this);
-    this.openCodeSnippetEditor = this.openCodeSnippetEditor.bind(this);
+  constructor(props: ICodeSnippetWidgetProps) {
+    super(props);
   }
 
   // Request code snippets from server
-  async fetchData(): Promise<ICodeSnippet[]> {
+  async fetchMetadata(): Promise<any> {
     return await CodeSnippetService.findAll();
   }
 
-  updateSnippets(): void {
-    this.fetchData().then((codeSnippets: ICodeSnippet[]) => {
-      this.renderCodeSnippetsSignal.emit(codeSnippets);
-    });
-  }
-
-  // Triggered when the widget button on side panel is clicked
-  onAfterShow(msg: Message): void {
-    this.updateSnippets();
-  }
-
-  addCodeSnippet(): void {
-    this.openCodeSnippetEditor({
-      onSave: this.updateSnippets,
-      namespace: CODE_SNIPPET_NAMESPACE,
-      schema: CODE_SNIPPET_SCHEMA
-    });
-  }
-
-  openCodeSnippetEditor(args: any): void {
-    this.app.commands.execute(commands.OPEN_METADATA_EDITOR, args);
-  }
-
-  render(): React.ReactElement {
+  renderDisplay(metadata: IMetadata[]): React.ReactElement {
     return (
-      <div>
-        <header className={CODE_SNIPPETS_HEADER_CLASS}>
-          <div style={{ display: 'flex' }}>
-            <codeSnippetIcon.react
-              tag="span"
-              width="24px"
-              height="auto"
-              verticalAlign="middle"
-              marginRight="5px"
-              paddingBottom="2px"
-            />
-            <p> Code Snippets </p>
-          </div>
-          <button
-            className={CODE_SNIPPETS_HEADER_BUTTON_CLASS}
-            onClick={this.addCodeSnippet.bind(this)}
-            title="Create new Code Snippet"
-          >
-            <addIcon.react tag="span" elementPosition="center" width="16px" />
-          </button>
-        </header>
-        <UseSignal signal={this.renderCodeSnippetsSignal} initialArgs={[]}>
-          {(_, codeSnippets): React.ReactElement => (
-            <CodeSnippetDisplay
-              codeSnippets={codeSnippets}
-              openCodeSnippetEditor={this.openCodeSnippetEditor}
-              getCurrentWidget={this.getCurrentWidget}
-              editorServices={this.editorServices}
-              updateSnippets={this.updateSnippets}
-              shell={this.app.shell}
-            />
-          )}
-        </UseSignal>
-      </div>
+      <CodeSnippetDisplay
+        metadata={metadata}
+        openMetadataEditor={this.openMetadataEditor}
+        updateMetadata={this.updateMetadata}
+        namespace={CODE_SNIPPET_NAMESPACE}
+        schema={CODE_SNIPPET_SCHEMA}
+        getCurrentWidget={this.props.getCurrentWidget}
+        editorServices={this.props.editorServices}
+        shell={this.props.app.shell}
+      />
     );
   }
 }

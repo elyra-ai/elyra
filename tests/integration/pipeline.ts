@@ -91,6 +91,19 @@ describe('PipelineEditor', () => {
       .should('not.be.disabled');
   });
 
+  it('open runtimes sidebar', () => {
+    cy.get('.openRuntimes-action button')
+      .should('have.length', 1)
+      .should('not.be.disabled')
+      .click();
+
+    cy.get('.jp-SideBar .lm-mod-current[title="Runtimes"]');
+  });
+
+  it('check runtimes sidebar rendered', () => {
+    cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
+  });
+
   // TODO:
   // - Drag and drop a notebook to pipeline editor
   // - Test expected buttons are enabled: run,save,export, clear, undo, cut,copy,delete, arrangeHorizontally, arrangeVertivally

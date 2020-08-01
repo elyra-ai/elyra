@@ -14,27 +14,32 @@
  * limitations under the License.
  */
 
+import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { IThemeManager } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { textEditorIcon } from '@jupyterlab/ui-components';
+import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
 
-import { MetadataEditor } from './MetadataEditor';
-
 const BP_DARK_THEME_CLASS = 'bp3-dark';
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
+const METADATA_WIDGET_ID = 'elyra-metadata';
+
+const commandIDs = {
+  openMetadata: 'elyra-metadata:open'
+};
 
 /**
  * Initialization data for the metadata-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: METADATA_EDITOR_ID,
+  id: METADATA_WIDGET_ID,
   autoStart: true,
   requires: [IEditorServices],
   optional: [IThemeManager],
@@ -55,7 +60,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       if (args.name) {
         widgetLabel = args.name;
       } else {
-        widgetLabel = `new:${args.schema}`;
+        widgetLabel = `New ${args.schema}`;
       }
       const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${args.schema}:${args.name}`;
       const openWidget = find(
@@ -108,6 +113,43 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (themeManager) {
       themeManager.themeChanged.connect(updateTheme);
     }
+
+    const openMetadataWidget = (args: {
+      display_name: string;
+      namespace: string;
+      schema: string;
+      icon: string;
+    }): void => {
+      const labIcon = LabIcon.resolve({ icon: args.icon });
+      const widgetId = `${METADATA_WIDGET_ID}:${args.namespace}:${args.schema}`;
+      const metadataWidget = new MetadataWidget({
+        app,
+        display_name: args.display_name,
+        namespace: args.namespace,
+        schema: args.schema,
+        icon: labIcon
+      });
+      metadataWidget.id = widgetId;
+      metadataWidget.title.icon = labIcon;
+      metadataWidget.title.caption = args.display_name;
+
+      if (
+        find(app.shell.widgets('left'), value => value.id === widgetId) ==
+        undefined
+      ) {
+        app.shell.add(metadataWidget, 'left', { rank: 1000 });
+      }
+      app.shell.activateById(widgetId);
+    };
+
+    const openMetadataCommand: string = commandIDs.openMetadata;
+    app.commands.addCommand(openMetadataCommand, {
+      execute: (args: any) => {
+        // Rank has been chosen somewhat arbitrarily to give priority
+        // to the running sessions widget in the sidebar.
+        openMetadataWidget(args);
+      }
+    });
   }
 };
 

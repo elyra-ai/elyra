@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { pipelineIcon } from '@elyra/ui-components';
+import { pipelineIcon, runtimesIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -28,6 +28,11 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
+import {
+  RuntimesWidget,
+  KFP_SCHEMA,
+  RUNTIMES_NAMESPACE
+} from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebook';
 
 import '../style/index.css';
@@ -149,6 +154,21 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: commandIDs.submitNotebook,
       rank: -0.5
     });
+
+    const runtimesWidget = new RuntimesWidget({
+      app,
+      display_name: 'Runtimes',
+      namespace: RUNTIMES_NAMESPACE,
+      schema: KFP_SCHEMA,
+      icon: runtimesIcon
+    });
+    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`;
+    runtimesWidget.id = runtimesWidgetID;
+    runtimesWidget.title.icon = runtimesIcon;
+    runtimesWidget.title.caption = 'Runtimes';
+
+    restorer.add(runtimesWidget, runtimesWidgetID);
+    app.shell.add(runtimesWidget, 'left', { rank: 950 });
   }
 };
 export default extension;
