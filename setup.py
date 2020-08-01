@@ -67,7 +67,7 @@ setup_args = dict(
         'rfc3986-validator>=0.1.1',
         'autopep8',
         'jinja2',
-        'nbresuse'
+        'nbresuse==0.3.6'
     ],
     include_package_data=True,
     classifiers=(
