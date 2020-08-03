@@ -226,8 +226,6 @@ export class PipelineEditor extends React.Component<
       )
     };
 
-    this.initPropertiesInfo();
-
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
     this.openPropertiesDialog = this.openPropertiesDialog.bind(this);
@@ -351,7 +349,7 @@ export class PipelineEditor extends React.Component<
         messages={i18nData.messages}
       >
         <CommonProperties
-          propertiesInfo={this.propertiesInfo}
+          propertiesInfo={this.state.propertiesInfo}
           propertiesConfig={{}}
           callbacks={propertiesCallbacks}
         />
@@ -415,7 +413,7 @@ export class PipelineEditor extends React.Component<
     const node_id = source.targetObject.id;
     const app_data = this.canvasController.getNode(node_id).app_data;
 
-    const node_props = this.propertiesInfo;
+    const node_props = JSON.parse(JSON.stringify(this.propertiesInfo));
     node_props.appData.id = node_id;
 
     node_props.parameterDef.current_parameters.filename = app_data.filename;
@@ -451,7 +449,8 @@ export class PipelineEditor extends React.Component<
 
   closePropertiesDialog(): void {
     console.log('Closing properties dialog');
-    this.setState({ showPropertiesDialog: false, propertiesInfo: {} });
+    const propsInfo = JSON.parse(JSON.stringify(this.propertiesInfo));
+    this.setState({ showPropertiesDialog: false, propertiesInfo: propsInfo });
   }
 
   /*
@@ -1076,7 +1075,9 @@ export class PipelineEditor extends React.Component<
     node.addEventListener('lm-dragover', this.handleEvent);
     node.addEventListener('lm-drop', this.handleEvent);
 
-    this.handleOpenPipeline();
+    this.initPropertiesInfo().finally(() => {
+      this.handleOpenPipeline();
+    });
   }
 
   componentWillUnmount(): void {
