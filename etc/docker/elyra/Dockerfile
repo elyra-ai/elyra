@@ -16,7 +16,7 @@
 #
 
 # Ubuntu 18.04 LTS - Bionic
-FROM jupyterhub/k8s-singleuser-sample:0.9.0
+FROM jupyterhub/k8s-singleuser-sample:0.9.1
 
 USER root
 
@@ -39,9 +39,11 @@ RUN python -m pip install --upgrade pip && \
     npm install -g yarn && \
     npm install -g npm && \
     cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-    cd /tmp/elyra && git checkout tags/v1.0.0rc3 -b v1.0.0rc3 && make install
+    cd /tmp/elyra && git checkout tags/v1.0.0rc2 -b v1.0.0rc2 && make install
 
 WORKDIR /home/jovyan/work
 
-CMD ["/usr/local/bin/start-elyra.sh"]
+# set password to "password"
+ADD jupyter_notebook_config.json /home/jovyan/.jupyter/
+CMD ["jupyter-lab"]
 
