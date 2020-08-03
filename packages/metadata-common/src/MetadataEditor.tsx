@@ -110,6 +110,16 @@ export class MetadataEditor extends ReactWidget {
     this.update();
   }
 
+  private isFieldEmpty(schemaField: any): boolean {
+    return (
+      schemaField === undefined ||
+      schemaField === null ||
+      schemaField === '' ||
+      schemaField === [] ||
+      schemaField === '(No selection)'
+    );
+  }
+
   /**
    * Checks that all required fields have a value before submitting the form.
    * Returns false if the form is valid. Sets any invalid fields' intent to danger
@@ -123,11 +133,7 @@ export class MetadataEditor extends ReactWidget {
     for (const schemaField in this.schema) {
       if (
         this.requiredFields.includes(schemaField) &&
-        (this.metadata[schemaField] === undefined ||
-          this.metadata[schemaField] === null ||
-          this.metadata[schemaField] === '' ||
-          this.metadata[schemaField] === [] ||
-          this.metadata[schemaField] === '(No selection)')
+        this.isFieldEmpty(this.metadata[schemaField])
       ) {
         this.invalidForm = true;
         this.schema[schemaField].uihints.intent = Intent.DANGER;
