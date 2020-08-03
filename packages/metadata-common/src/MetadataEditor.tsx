@@ -123,7 +123,8 @@ export class MetadataEditor extends ReactWidget {
     for (const schemaField in this.schema) {
       if (
         this.requiredFields.includes(schemaField) &&
-        (this.metadata[schemaField] === null ||
+        (this.metadata[schemaField] === undefined ||
+          this.metadata[schemaField] === null ||
           this.metadata[schemaField] === '' ||
           this.metadata[schemaField] === [] ||
           this.metadata[schemaField] === '(No selection)')

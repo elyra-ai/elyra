@@ -31,10 +31,10 @@ export class PipelineService {
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(): Promise<any> {
+  static async getRuntimes(showError = true): Promise<any> {
     const runtimes = await FrontendServices.getMetadata('runtimes');
 
-    if (Object.keys(runtimes).length === 0) {
+    if (showError && Object.keys(runtimes).length === 0) {
       return FrontendServices.noMetadataError('runtimes');
     }
 

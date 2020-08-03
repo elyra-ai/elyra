@@ -40,13 +40,13 @@ class RuntimesDisplay extends MetadataDisplay<IMetadataDisplayProps> {
 
     return (
       <div>
-        <h6>Runtime History:</h6>
+        <h6>Kubeflow Pipelines UI</h6>
         <a href={apiEndpoint} target="_blank" rel="noreferrer noopener">
           {apiEndpoint}
         </a>
         <br />
         <br />
-        <h6>Cloud Object Storage:</h6>
+        <h6>Cloud Object Storage</h6>
         <a
           href={metadata.metadata.cos_endpoint}
           target="_blank"
@@ -68,7 +68,7 @@ export class RuntimesWidget extends MetadataWidget {
   }
 
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes();
+    return await PipelineService.getRuntimes(false);
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
