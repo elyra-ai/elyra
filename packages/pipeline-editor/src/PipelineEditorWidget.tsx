@@ -271,7 +271,7 @@ export class PipelineEditor extends React.Component<
     const canvasConfig = {
       enableInternalObjectModel: true,
       emptyCanvasContent: emptyCanvasContent,
-      enablePaletteLayout: 'Modal',
+      enablePaletteLayout: 'None',
       paletteInitialState: false,
       enableInsertNodeDroppedOnLink: true,
       enableNodeFormatType: 'Horizontal'
