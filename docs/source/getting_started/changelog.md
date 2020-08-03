@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.0rc3 (07/25/2020)
+## v1.0.0rc3 (08/01/2020)
 
 - Update KFP Notebook to 0.11.0 release
 - Tolerate Notebook 6.1.0 release
