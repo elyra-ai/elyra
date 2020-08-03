@@ -57,7 +57,7 @@
           "title": "Cloud Object Storage Bucket Name",
           "description": "The Cloud Object Storage bucket name",
           "type": "string",
-          "pattern": "^[a-z][a-z0-9-.]*[a-z0-9]$",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
           "minLength": 3,
           "maxLength": 222
         }

@@ -74,6 +74,12 @@
           "minLength": 3,
           "maxLength": 10
         },
+        "string_pattern_test": {
+          "title": "String Pattern Test",
+          "description": "Property used to test strings with pattern restrictions",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$"
+        },
         "enum_test": {
           "title": "Enum Test",
           "description": "Property used to test properties with enums",
