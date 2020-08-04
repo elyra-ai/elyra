@@ -17,6 +17,7 @@
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 
+import { IDictionary } from './parsing';
 import { RequestHandler } from './requests';
 
 const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
@@ -119,6 +120,8 @@ export class FrontendServices {
     return metadataResponse;
   }
 
+  private static schemaCache: IDictionary<any> = {};
+
   /**
    * Service function for making GET calls to the elyra schema API.
    *
@@ -128,10 +131,19 @@ export class FrontendServices {
    * an error dialog result
    */
   static async getSchema(namespace: string): Promise<any> {
+    if (this.schemaCache[namespace]) {
+      // Deep copy cached schema to mimic request call
+      return JSON.parse(JSON.stringify(this.schemaCache[namespace]));
+    }
+
     const schemaResponse: any = await RequestHandler.makeGetRequest(
       ELYRA_SCHEMA_API_ENDPOINT + namespace,
       false
     );
+
+    if (schemaResponse[namespace]) {
+      this.schemaCache[namespace] = schemaResponse[namespace];
+    }
 
     return schemaResponse[namespace];
   }

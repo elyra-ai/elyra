@@ -488,6 +488,16 @@ def test_string_length(script_runner, mock_data_dir):
     prop_test.run(script_runner, mock_data_dir)
 
 
+def test_string_pattern(script_runner, mock_data_dir):
+    prop_test = PropertyTester("string_pattern")  # Must start/end with alphanumeric, can include '-' and '.'
+    prop_test.negative_value = "-foo1"
+    prop_test.negative_stdout = "Property used to test strings with pattern restrictions; " \
+                                "title: String Pattern Test, pattern: ^[a-z0-9][a-z0-9-.]*[a-z0-9]$"
+    prop_test.negative_stderr = "'-foo1' does not match '^[a-z0-9][a-z0-9-.]*[a-z0-9]$'"
+    prop_test.positive_value = "0foo-bar.com-01"
+    prop_test.run(script_runner, mock_data_dir)
+
+
 def test_enum(script_runner, mock_data_dir):
     prop_test = PropertyTester("enum")
     prop_test.negative_value = "jupyter"

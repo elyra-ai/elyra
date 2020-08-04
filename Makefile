@@ -23,7 +23,7 @@ SHELL:=/bin/bash
 GIT_VERSION:=0.20.0
 TOC_VERSION:=4.0.0
 
-TAG:=1.0.0rc2
+TAG:=1.0.0rc3
 IMAGE=elyra/elyra:$(TAG)
 
 # Contains the set of commands required to be used by elyra
@@ -51,6 +51,7 @@ purge:
 uninstall:
 	$(call UNLINK_LAB_EXTENSION,@elyra/application)
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
+	$(call UNLINK_LAB_EXTENSION,@elyra/metadata-common)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-extension)
@@ -92,6 +93,7 @@ install-server: build-server ## Install backend
 install-ui: build-ui
 	$(call LINK_LAB_EXTENSION,application)
 	$(call LINK_LAB_EXTENSION,ui-components)
+	$(call LINK_LAB_EXTENSION,metadata-common)
 	$(call INSTALL_LAB_EXTENSION,theme)
 	$(call INSTALL_LAB_EXTENSION,code-snippet)
 	$(call INSTALL_LAB_EXTENSION,metadata)

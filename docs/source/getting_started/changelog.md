@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.0rc3 (08/01/2020)
+
+- Update KFP Notebook to 0.11.0 release
+- Tolerate Notebook 6.1.0 release
+- Add custom Elyra launcher [#782](https://github.com/elyra-ai/elyra/issues/782)
+- Update to Elyra Canvas 9.0.3 [#788](https://github.com/elyra-ai/elyra/issues/788) [#794](https://github.com/elyra-ai/elyra/issues/794) [#797](https://github.com/elyra-ai/elyra/issues/797) 
+
 ## v1.0.0rc2 (07/25/2020)
 
 - Update KFP Notebook to 0.10.3 release

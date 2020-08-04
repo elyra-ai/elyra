@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-describe('CodeSnippets', () => {
-  it('opens jupyterlab', () => {
-    cy.visit('?token=test&reset');
-  });
 
-  it('opens code snippets extension', () => {
-    cy.get('.jp-SideBar [title="Code Snippets"]').click();
-    cy.get('.jp-SideBar .lm-mod-current[title="Code Snippets"]');
-  });
+import '../style/index.css';
 
-  it('check code snippets extension rendered', () => {
-    cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
-  });
-});
+export * from './MetadataEditor';
+export * from './MetadataWidget';

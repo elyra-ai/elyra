@@ -29,6 +29,7 @@ import {
   exportPipelineIcon,
   pipelineIcon,
   savePipelineIcon,
+  runtimesIcon,
   showFormDialog,
   errorIcon
 } from '@elyra/ui-components';
@@ -66,6 +67,7 @@ import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineService } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
+import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './RuntimesWidget';
 import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -269,7 +271,7 @@ export class PipelineEditor extends React.Component<
     const canvasConfig = {
       enableInternalObjectModel: true,
       emptyCanvasContent: emptyCanvasContent,
-      enablePaletteLayout: 'Modal',
+      enablePaletteLayout: 'None',
       paletteInitialState: false,
       enableInsertNodeDroppedOnLink: true,
       enableNodeFormatType: 'Horizontal'
@@ -309,6 +311,13 @@ export class PipelineEditor extends React.Component<
         enable: !this.state.emptyPipeline || !emptyCanvas,
         iconEnabled: IconUtil.encode(clearPipelineIcon),
         iconDisabled: IconUtil.encode(clearPipelineIcon)
+      },
+      {
+        action: 'openRuntimes',
+        label: 'Open Runtimes',
+        enable: true,
+        iconEnabled: IconUtil.encode(runtimesIcon),
+        iconDisabled: IconUtil.encode(runtimesIcon)
       },
       { divider: true },
       { action: 'undo', label: 'Undo' },
@@ -560,6 +569,9 @@ export class PipelineEditor extends React.Component<
           break;
         case 'clear':
           this.handleClearPipeline(data);
+          break;
+        case 'openRuntimes':
+          this.handleOpenRuntimes();
           break;
         case 'openNotebook':
           if (data.type === 'node') {
@@ -1042,6 +1054,12 @@ export class PipelineEditor extends React.Component<
         });
       }
     });
+  }
+
+  handleOpenRuntimes(): void {
+    this.app.shell.activateById(
+      `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`
+    );
   }
 
   handleClosePipeline(): void {

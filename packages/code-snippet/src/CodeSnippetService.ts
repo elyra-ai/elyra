@@ -15,48 +15,29 @@
  */
 
 import { FrontendServices } from '@elyra/application';
+import { IMetadata } from '@elyra/metadata-common';
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 export const CODE_SNIPPET_NAMESPACE = 'code-snippets';
-
-export interface ICodeSnippet {
-  name: string;
-  displayName: string;
-  description: string;
-  language: string;
-  code: string[];
-}
+export const CODE_SNIPPET_SCHEMA = 'code-snippet';
 
 export class CodeSnippetService {
-  static async findAll(): Promise<ICodeSnippet[]> {
+  static async findAll(): Promise<IMetadata[]> {
     const codeSnippetsResponse = await FrontendServices.getMetadata(
-      'code-snippets'
+      CODE_SNIPPET_NAMESPACE
     );
-    const allCodeSnippets: ICodeSnippet[] = [];
 
-    for (const codeSnippetKey in codeSnippetsResponse) {
-      const jsonCodeSnippet = codeSnippetsResponse[codeSnippetKey];
-      const codeSnippet: ICodeSnippet = {
-        name: jsonCodeSnippet.name,
-        displayName: jsonCodeSnippet.display_name,
-        description: jsonCodeSnippet.metadata.description,
-        language: jsonCodeSnippet.metadata.language,
-        code: jsonCodeSnippet.metadata.code
-      };
-      allCodeSnippets.push(codeSnippet);
-    }
-
-    return allCodeSnippets;
+    return codeSnippetsResponse;
   }
 
   // TODO: Test this function
-  static async findByLanguage(language: string): Promise<ICodeSnippet[]> {
-    const allCodeSnippets: ICodeSnippet[] = await this.findAll();
-    const codeSnippetsByLanguage: ICodeSnippet[] = [];
+  static async findByLanguage(language: string): Promise<IMetadata[]> {
+    const allCodeSnippets: IMetadata[] = await this.findAll();
+    const codeSnippetsByLanguage: IMetadata[] = [];
 
     for (const codeSnippet of allCodeSnippets) {
-      if (codeSnippet.language === language) {
+      if (codeSnippet.metadata.language === language) {
         codeSnippetsByLanguage.push(codeSnippet);
       }
     }
@@ -73,9 +54,9 @@ export class CodeSnippetService {
    * @returns A boolean promise that is true if the dialog confirmed
    * the deletion, and false if the deletion was cancelled.
    */
-  static deleteCodeSnippet(codeSnippet: ICodeSnippet): Promise<boolean> {
+  static deleteCodeSnippet(codeSnippet: IMetadata): Promise<boolean> {
     return showDialog({
-      title: `Delete snippet: ${codeSnippet.displayName}?`,
+      title: `Delete snippet: ${codeSnippet.display_name}?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed

@@ -169,7 +169,8 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
 }
 
 svg.canvas-icon,
-svg.properties-icon {
+svg.properties-icon,
+svg.canvas-icon .jp-icon3[fill] {
   fill: var(--inverse-02);
 }
 

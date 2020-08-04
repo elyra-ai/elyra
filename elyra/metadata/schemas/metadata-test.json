@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Testing metadata",
+  "title": "Metadata Test",
   "name": "metadata-test",
   "display_name": "Metadata Test",
   "namespace": "metadata-tests",
@@ -73,6 +73,12 @@
           "type": "string",
           "minLength": 3,
           "maxLength": 10
+        },
+        "string_pattern_test": {
+          "title": "String Pattern Test",
+          "description": "Property used to test strings with pattern restrictions",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$"
         },
         "enum_test": {
           "title": "Enum Test",
