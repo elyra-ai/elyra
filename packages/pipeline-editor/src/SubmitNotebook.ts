@@ -94,7 +94,10 @@ export class SubmitNotebookButtonExtension
         notebookOptions
       );
 
-      PipelineService.submitPipeline(pipeline, result.value.runtime_config);
+      PipelineService.submitPipeline(
+        pipeline,
+        PipelineService.getDisplayName(result.value.runtime_config, runtimes)
+      );
     });
   };
 

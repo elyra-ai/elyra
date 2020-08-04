@@ -1027,7 +1027,10 @@ export class PipelineEditor extends React.Component<
 
     PipelineService.submitPipeline(
       pipelineFlow,
-      dialogResult.value.runtime_config
+      PipelineService.getDisplayName(
+        dialogResult.value.runtime_config,
+        runtimes
+      )
     );
   }
 
