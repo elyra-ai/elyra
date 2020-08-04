@@ -413,7 +413,7 @@ export class PipelineEditor extends React.Component<
   openPropertiesDialog(source: any): void {
     console.log('Opening properties dialog');
     const node_id = source.targetObject.id;
-    const app_data = this.canvasController.getNode(node_id).app_data;
+    const app_data = source.targetObject.app_data;
 
     const node_props = this.propertiesInfo;
     node_props.appData.id = node_id;
@@ -437,7 +437,21 @@ export class PipelineEditor extends React.Component<
 
   applyPropertyChanges(propertySet: any, appData: any): void {
     console.log('Applying changes to properties');
-    const node = this.canvasController.getNode(appData.id);
+    const pipelineId = this.canvasController.getPrimaryPipelineId();
+    let node = this.canvasController.getNode(appData.id, pipelineId);
+    // If the node is in a supernode, search supernodes for it
+    if (!node) {
+      const superNodes = this.canvasController.getSupernodes(pipelineId);
+      for (const superNode of superNodes) {
+        node = this.canvasController.getNode(
+          appData.id,
+          superNode.subflow_ref.pipeline_id_ref
+        );
+        if (node) {
+          break;
+        }
+      }
+    }
     const app_data = node.app_data;
 
     app_data.runtime_image = propertySet.runtime_image;
@@ -880,6 +894,8 @@ export class PipelineEditor extends React.Component<
       node.app_data.invalidNodeError = this.validateProperties(node);
       indicatorXPos = 20;
       indicatorYPos = 3;
+    } else {
+      return true;
     }
 
     // Add or remove decorations
