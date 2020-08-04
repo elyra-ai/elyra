@@ -886,6 +886,9 @@ export class PipelineEditor extends React.Component<
       if (validNode) {
         node.app_data.invalidNodeError = null;
       } else {
+        if (!node.app_data) {
+          node.app_data = {};
+        }
         node.app_data.invalidNodeError = 'Supernode contains invalid nodes.';
       }
       indicatorXPos = 15;
