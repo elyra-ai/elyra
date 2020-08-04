@@ -110,13 +110,13 @@ export class MetadataEditor extends ReactWidget {
     this.update();
   }
 
-  private isFieldEmpty(schemaField: any): boolean {
+  private isValueEmpty(schemaValue: any): boolean {
     return (
-      schemaField === undefined ||
-      schemaField === null ||
-      schemaField === '' ||
-      schemaField === [] ||
-      schemaField === '(No selection)'
+      schemaValue === undefined ||
+      schemaValue === null ||
+      schemaValue === '' ||
+      schemaValue === [] ||
+      schemaValue === '(No selection)'
     );
   }
 
@@ -133,7 +133,7 @@ export class MetadataEditor extends ReactWidget {
     for (const schemaField in this.schema) {
       if (
         this.requiredFields.includes(schemaField) &&
-        this.isFieldEmpty(this.metadata[schemaField])
+        this.isValueEmpty(this.metadata[schemaField])
       ) {
         this.invalidForm = true;
         this.schema[schemaField].uihints.intent = Intent.DANGER;
