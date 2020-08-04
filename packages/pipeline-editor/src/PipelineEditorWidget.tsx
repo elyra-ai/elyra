@@ -469,7 +469,7 @@ export class PipelineEditor extends React.Component<
           action: 'openNotebook',
           label: 'Open Notebooks'
         });
-      } else {
+      } else if (source.targetObject.type == 'execution_node') {
         // single node selected
         customMenu = customMenu.concat(
           {
@@ -597,19 +597,22 @@ export class PipelineEditor extends React.Component<
    */
   tipHandler(tipType: string, data: any): any {
     if (tipType === TIP_TYPE_NODE) {
-      const appData = this.canvasController.getNode(data.node.id).app_data;
+      const appData = data.node.app_data;
       const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
       const tooltipProps: any = {};
 
-      if (appData.invalidNodeError != null) {
+      if (appData != null && appData.invalidNodeError != null) {
         tooltipProps['Error'] = appData.invalidNodeError;
       }
 
-      propsInfo.forEach(
-        (info: { parameter_ref: string; label: { default: string } }) => {
-          tooltipProps[info.label.default] = appData[info.parameter_ref] || '';
-        }
-      );
+      if (data.node.type == 'execution_node') {
+        propsInfo.forEach(
+          (info: { parameter_ref: string; label: { default: string } }) => {
+            tooltipProps[info.label.default] =
+              appData[info.parameter_ref] || '';
+          }
+        );
+      }
 
       return <NodeProperties {...tooltipProps} />;
     }
@@ -852,20 +855,49 @@ export class PipelineEditor extends React.Component<
    *
    * @returns true if the node is valid.
    */
-  validateNode(node: any): boolean {
-    node.app_data.invalidNodeError = this.validateProperties(node);
-    if (node.app_data.invalidNodeError != null) {
-      this.canvasController.setNodeDecorations(node.id, [
-        {
-          id: 'error',
-          image: IconUtil.encode(errorIcon),
-          outline: false,
-          position: 'topLeft',
-          x_pos: 20,
-          y_pos: 3
-        }
-      ]);
-      const pipelineId = this.canvasController.getPrimaryPipelineId();
+  validateNode(node: any, pipelineId: string): boolean {
+    let validNode = true;
+    let indicatorXPos;
+    let indicatorYPos;
+
+    // Check if node is valid
+    if (node.type == 'super_node') {
+      for (const childNode of this.canvasController.getNodes(
+        node.subflow_ref.pipeline_id_ref
+      )) {
+        validNode =
+          this.validateNode(childNode, node.subflow_ref.pipeline_id_ref) &&
+          validNode;
+      }
+      if (validNode) {
+        node.app_data.invalidNodeError = null;
+      } else {
+        node.app_data.invalidNodeError = 'Supernode contains invalid nodes.';
+      }
+      indicatorXPos = 15;
+      indicatorYPos = 0;
+    } else if (node.type == 'execution_node') {
+      node.app_data.invalidNodeError = this.validateProperties(node);
+      indicatorXPos = 20;
+      indicatorYPos = 3;
+    }
+
+    // Add or remove decorations
+    if (node.app_data != null && node.app_data.invalidNodeError != null) {
+      this.canvasController.setNodeDecorations(
+        node.id,
+        [
+          {
+            id: 'error',
+            image: IconUtil.encode(errorIcon),
+            outline: false,
+            position: 'topLeft',
+            x_pos: indicatorXPos,
+            y_pos: indicatorYPos
+          }
+        ],
+        pipelineId
+      );
       const stylePipelineObj: any = {};
       stylePipelineObj[pipelineId] = [node.id];
       const styleSpec = {
@@ -877,7 +909,6 @@ export class PipelineEditor extends React.Component<
       return false;
     } else {
       // Remove any existing decorations if valid
-      const pipelineId = this.canvasController.getPrimaryPipelineId();
       const stylePipelineObj: any = {};
       stylePipelineObj[pipelineId] = [node.id];
       const styleSpec = {
@@ -886,7 +917,7 @@ export class PipelineEditor extends React.Component<
         label: { default: '' }
       };
       this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
-      this.canvasController.setNodeDecorations(node.id, []);
+      this.canvasController.setNodeDecorations(node.id, [], pipelineId);
       return true;
     }
   }
@@ -923,7 +954,7 @@ export class PipelineEditor extends React.Component<
     // Reset any existing flagged nodes' style
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     for (const node of this.canvasController.getNodes(pipelineId)) {
-      if (!this.validateNode(node)) {
+      if (!this.validateNode(node, pipelineId)) {
         errorMessage = 'Some nodes have missing or invalid properties. ';
       }
     }
