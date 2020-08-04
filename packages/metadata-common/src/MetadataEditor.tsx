@@ -119,7 +119,7 @@ export class MetadataEditor extends ReactWidget {
       schemaValue === undefined ||
       schemaValue === null ||
       schemaValue === '' ||
-      schemaValue === [] ||
+      (Array.isArray(schemaValue) && schemaValue.length === 0) ||
       schemaValue === '(No selection)'
     );
   }
