@@ -310,6 +310,15 @@ def test_remove_no_name(script_runner):
     assert ret.stderr == ''
 
 
+def test_remove_malformed_name(script_runner):
+    # Attempt removal but forget the '=' between parameter and value
+
+    ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name', 'valid')
+    assert ret.success is False
+    assert ret.stderr == ''
+    assert "Parameter '--name' requires a value." in ret.stdout
+
+
 def test_remove_missing(script_runner):
     # Create an instance so that the namespace exists.
     metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
