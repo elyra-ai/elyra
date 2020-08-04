@@ -29,6 +29,9 @@ RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
     apt-get update && apt-get install -y yarn && \
     rm -rf /var/lib/apt/lists/*
 
+ADD kfp-example.json /home/jovyan/.local/share/jupyter/metadata/runtimes/
+RUN chown -R  jovyan:users /home/jovyan/
+
 USER $NB_USER
 
 RUN python -m pip install --upgrade pip && \

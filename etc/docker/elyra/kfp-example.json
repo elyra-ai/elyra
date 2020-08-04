@@ -1,0 +1,11 @@
+{
+  "display_name": "Kubeflow Pipeline (example-cloud)",
+  "metadata": {
+    "api_endpoint": "http://ip:30237/pipeline",
+    "cos_endpoint": "http://ip:30455",
+    "cos_username": "cosuser",
+    "cos_password": "cospw",
+    "cos_bucket": "cosbucket"
+  },
+  "schema_name": "kfp"
+}
