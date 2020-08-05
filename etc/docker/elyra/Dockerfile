@@ -32,6 +32,8 @@ RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
 ADD kfp-example.json /home/jovyan/.local/share/jupyter/metadata/runtimes/
 RUN chown -R  jovyan:users /home/jovyan/
 
+RUN echo "jovyan:jupyter"|chpasswd
+
 USER $NB_USER
 
 RUN python -m pip install --upgrade pip && \
@@ -48,5 +50,4 @@ WORKDIR /home/jovyan/work
 
 # set password to "password"
 ADD jupyter_notebook_config.json /home/jovyan/.jupyter/
-CMD ["/bin/bash"]
-
+CMD ["jupyterhub"]
