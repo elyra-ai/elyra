@@ -45,11 +45,40 @@ includes more details on these features.
 
 ## Try Elyra
 
- You can try out some of Elyra features using the [My Binder](https://mybinder.readthedocs.io/en/latest/) service.
+#### Using Binder
+You can try out some of Elyra features using the [My Binder](https://mybinder.readthedocs.io/en/latest/) service.
 
- Click on the link below to try Elyra, on a sandbox environment, without having to install anything.
+Click on the link below to try Elyra, on a sandbox environment, without having to install anything.
 
- [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo)
+
+#### Using Docker
+
+You can also try Elyra via docker.
+
+The command below starts a clean Elyra environment:
+
+```
+docker run -it -p 8888:8888 elyra/elyra:1.0.0rc3 jupyter lab --debug
+```
+
+The command below start Elyra and mount your local Notebook
+work directory into the docker image.
+
+```
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.0.0rc3 jupyter lab --debug
+```
+
+The command above will produce an output similar to the one below, where you can than find the URL to be used
+to access Elyra UI in your local browser
+
+```
+    To access the notebook, open this file in a browser:
+        file:///home/jovyan/.local/share/jupyter/runtime/nbserver-6-open.html
+    Or copy and paste one of these URLs:
+        http://4d17829ecd4c:8888/?token=d690bde267ec75d6f88c64a39825f8b05b919dd084451f82
+     or http://127.0.0.1:8888/?token=d690bde267ec75d6f88c64a39825f8b05b919dd084451f82
+```
 
 ## Installation
 Elyra can be installed via PyPi:
