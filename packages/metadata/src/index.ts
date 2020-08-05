@@ -62,7 +62,9 @@ const extension: JupyterFrontEndPlugin<void> = {
       } else {
         widgetLabel = `New ${args.schema}`;
       }
-      const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${args.schema}:${args.name}`;
+      const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${
+        args.schema
+      }:${args.name ? args.name : 'new'}`;
       const openWidget = find(
         app.shell.widgets('main'),
         (widget: Widget, index: number) => {
@@ -70,7 +72,6 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       );
       if (openWidget) {
-        console.log(openWidget);
         app.shell.activateById(widgetId);
         return;
       }

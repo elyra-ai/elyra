@@ -31,10 +31,10 @@ export class PipelineService {
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(): Promise<any> {
+  static async getRuntimes(showError = true): Promise<any> {
     const runtimes = await FrontendServices.getMetadata('runtimes');
 
-    if (Object.keys(runtimes).length === 0) {
+    if (showError && Object.keys(runtimes).length === 0) {
       return FrontendServices.noMetadataError('runtimes');
     }
 
@@ -60,15 +60,19 @@ export class PipelineService {
     return images;
   }
 
+  static getDisplayName(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)['display_name'];
+  }
+
   /**
    * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
    *
    * @param pipeline
-   * @param runtime_config
+   * @param runtimeName
    */
   static async submitPipeline(
     pipeline: any,
-    runtime_config: string
+    runtimeName: string
   ): Promise<any> {
     console.log('Pipeline definition:');
     console.log(pipeline);
@@ -79,7 +83,7 @@ export class PipelineService {
       true
     );
 
-    const dialogTitle = 'Job submission to ' + runtime_config + ' succeeded';
+    const dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
     const dialogBody = (
       <p>
         Check the status of your pipeline at{' '}
