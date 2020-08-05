@@ -120,7 +120,7 @@ test-ui: lint-ui ## Run frontend tests
 	npm run test-integration
 
 test-ui-debug: lint-ui
-	npm run test-debug
+	npm run test-integration-debug
 
 test: test-server test-ui ## Run all tests
 

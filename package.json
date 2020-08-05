@@ -15,9 +15,9 @@
     "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "prettier:check": "prettier --ignore-path .gitignore --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "start-jupyter": "mkdir -p build/cypress-tests && jupyter lab --config=./tests/test-config.py",
-    "test": "start-server-and-test start-jupyter http-get://localhost:8888?token=test cy:run",
-    "test-debug": "start-server-and-test start-jupyter http-get://localhost:8888?token=test cy:open",
-    "test-integration": "lerna run test --scope \"@elyra/*\" --concurrency 1 --stream"
+    "test-integration": "start-server-and-test start-jupyter http-get://localhost:8888?token=test cy:run",
+    "test-integration-debug": "start-server-and-test start-jupyter http-get://localhost:8888?token=test cy:open",
+    "test": "lerna run test --scope \"@elyra/*\" --concurrency 1 --stream"
   },
   "husky": {
     "hooks": {
@@ -27,6 +27,7 @@
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^1.3.1",
     "@cypress/webpack-preprocessor": "^4.1.5",
+    "@types/jest": "^26.0.8",
     "@typescript-eslint/eslint-plugin": "~2.23.0",
     "@typescript-eslint/parser": "~2.23.0",
     "cypress": "^4.4.1",
