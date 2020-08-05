@@ -88,7 +88,6 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'description': "Elyra extends JupyterLab Notebooks with an AI centric approach",
     'analytics_id': 'UA-169426804-1',
 }
 
