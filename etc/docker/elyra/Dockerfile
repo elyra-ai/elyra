@@ -48,5 +48,5 @@ WORKDIR /home/jovyan/work
 
 # set password to "password"
 ADD jupyter_notebook_config.json /home/jovyan/.jupyter/
-CMD ["jupyter-lab"]
+CMD ["/bin/bash"]
 
