@@ -62,15 +62,15 @@ The command below starts a clean Elyra environment:
 docker run -it -p 8888:8888 elyra/elyra:1.0.0rc3 jupyter lab --debug
 ```
 
-The command below start Elyra and mount your local Notebook
-work directory into the docker image.
+To make your Notebook work directory available to your Docker container, 
+you can use a mount command similar to the following:
 
 ```
 docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.0.0rc3 jupyter lab --debug
 ```
 
-The command above will produce an output similar to the one below, where you can than find the URL to be used
-to access Elyra UI in your local browser
+These should produce output similar to that below, where you can then find the URL to be used
+to access Elyra in your local browser.
 
 ```
     To access the notebook, open this file in a browser:
