@@ -70,28 +70,29 @@ needed for the pipeline are present.
 Oftentimes you'll want to share or distribute your pipeline (including its notebooks and their dependencies) with colleagues.  This section covers some of the best practices for accomplishing that, but first, it's good to understand the relationships between components of a pipeline.
 
 #### Pipeline Component Relationships
-The primary component of a pipeline is the pipeline file itself.  This JSON file (with a `.pipeline` extension) contains all relationships of the pipeline.  The notebook execution nodes each specify a notebook file (a JSON file with a `.ipynb` extension) who's path is currently **relative to the working directory of the hosting notebook server**.  Each dependency of a given node is relative to the notebook location itself - **not** the server's working directory.  When a pipeline is submitted for processing or export, the pipeline file itself is not sent to the server, only a portion of its contents are sent.
+The primary component of a pipeline is the pipeline file itself.  This JSON file (with a `.pipeline` extension) contains all relationships of the pipeline.  The notebook execution nodes each specify a notebook file (a JSON file with a `.ipynb` extension) who's path is currently **relative to the working directory of the hosting notebook server** (or the _notebook server workspace_).  Each dependency of a given node is relative to the notebook location itself - **not** the notebook server workspace.  When a pipeline is submitted for processing or export, the pipeline file itself is not sent to the server, only a portion of its contents are sent.
 
-#### Distributing Pipelines - Best Practice
-Prior to distributing your pipeline - which includes preserving the component relationships - it is best to commit these files (and directories) to a github repository.  An alternative approach would be to archive the files using `tar` or `zip`, but, again preserving the component relationships.
+#### Distributing Pipelines - Best Practices
+Prior to distributing your pipeline - which includes preserving the component relationships - it is best to commit these files (and directories) to a GitHub repository.  An alternative approach would be to archive the files using `tar` or `zip`, while, again, preserving the component relationships relative to their location within the notebook server workspace.
 
-When deploying a shared or distributed pipeline repository or archive, it is **very important** that the pipeline notebooks be extracted into the **same directory hierarchy relative to the hosting notebook server's working directory**.
+When deploying a shared or distributed pipeline repository or archive, it is **very important** that the pipeline notebooks be extracted into the **same directory hierarchy relative to the target notebook server's workspace**.
 
-
-For example, if you archived your pipeline into a github repository named `my_analytics_pipeline` from the notebook server's working directory, then consumers of this archive would need to do the following:
+##### Scenario - Single Project in Workspace
+If you archived your pipeline into a GitHub repository named `my_analytics_pipeline` directly from the notebook server's workspace (i.e., not within a sub-directory of the workspace), then consumers of this archive would need to do the following:
 
 1. Clone your repository
-
     `git clone https://github.com/<your-github-org>/my_analytics_pipeline.git`
-2. Change directory to `my_analytics_pipeline` (this preserves the relative location of the notebook nodes)
+2. Change directory to `my_analytics_pipeline` (this preserves the relative location of the notebook nodes relative to the workspace)
 3. Run `jupyter-lab`
 4. In a browser, open the pipeline file
 
-Note that the *change directory to `my_analytics_pipeline`* can be avoided by setting the notebook directory as an option to `jupyter-lab`:
+Note that the *change directory to `my_analytics_pipeline`* can be avoided by setting the notebook workspace as an option to jupyter-lab: `jupyter-lab --notebook-dir=<path to parent of>/my_analytics_pipeline`
 
-`jupyter-lab --notebook-dir=<path to parent of>/my_analytics_pipeline`
+##### Scenario - Multiple Projects in Workspace
+The scenario above describes behavior if you wanted to have a single pipeline "project" in your workspace.  To accommodate multiple pipeline projects within a single workspace, you will want to build the project within a sub-directory of the notebook server workspace and capture it such that the sub-directory is included in the captured results.  This way, its extraction, again into the same location relative to the notebook server's workspace, will preserve the relative paths to the notebook files.
 
-Again, the important item to keep in mind is that the notebook locations must be valid relative to the server's working directory.  An easy way to confirm their references are correct is to double-click a notebook node in your pipeline and ensure the notebook appears in an adjacent tab.  If nothing happens or a `404` error shows on the server's console, the notebook is not properly positioned relative to the server's working directory and attempts to run or export the pipeline will fail.
+##### Confirming Notebook Locations
+An easy way to confirm that your extracted pipeline's notebook references are correctly located is to double-click the notebook node in your pipeline and ensure the notebook appears in an adjacent tab.  If nothing happens or a `404` error shows on the server's console, the notebook is not properly positioned relative to the server's workspace, and attempts to run or export the pipeline will fail.
 
-At this time, the only recourse, should it not be possible to fix the relative location, would be to edit each of the `filename:` fields in the `.pipeline` file such that notebook locations are satisfied, then refresh the browser.
+At this time, the only recourse, should it not be possible to fix the relative location via redeployment of the pipeline, would be to edit each of the `filename:` fields in the `.pipeline` file such that notebook locations are satisfied, then refresh the browser.
 
