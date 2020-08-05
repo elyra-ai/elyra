@@ -66,7 +66,7 @@ To make your Notebook work directory available to your Docker container,
 you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.0.0rc3 jupyter lab --debug
+docker run -it -p 8888:8888 -v /path/to/local/directory/with/notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.0.0rc3 jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used
