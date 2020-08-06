@@ -32,7 +32,7 @@ Elyra can be installed via PyPI:
 
 via PyPI:
 ```bash
-pip install elyra && jupyter lab build
+pip install --upgrade elyra && jupyter lab build
 ```
 Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
 
