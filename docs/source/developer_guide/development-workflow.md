@@ -92,7 +92,7 @@ not just refresh your browser.
 
 ### Building the Docker Image
 
-Build Elyra docker image locally with:
+Elyra's docker image can be built using:
 
 ```bash
 make docker-image
