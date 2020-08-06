@@ -27,7 +27,32 @@ directory.
 
 * [Yarn](https://yarnpkg.com/lang/en/docs/install) 
 
-#### Installation
+#### Build & Installation
+
+Elyra uses make to automate some of the development workflow tasks.
+
+Issuing a make command with no task specified will provide a list of the currently supported tasks.
+
+```bash
+$ make
+
+build-server                   Build backend
+build-ui                       Build packages
+clean                          Make a clean source tree and uninstall extensions
+docker-image                   Build docker image
+docs                           Build docs
+install-server                 Install backend
+install                        Build and install
+lint                           Run linters
+release                        Build wheel file for release
+test-server                    Run unit tests
+test-ui                        Run frontend tests
+test                           Run all tests
+validate-runtime-images        Validates delivered runtime-images meet minimum criteria
+watch                          Watch packages. For use alongside jupyter lab --watch
+```
+
+You can build and install all Elyra packages with:
 
 ```bash
 make clean install
@@ -64,3 +89,11 @@ To see your changes just refresh JupyterLab in your browser.
 > NOTE: JupyterLab watch mode will not pick up changes in package dependencies like `application`.
 So when making changes to application you will need to stop and restart `jupyter lab --watch` and
 not just refresh your browser.
+
+### Building Elyra docker
+
+Build Elyra docker image locally with:
+
+```bash
+make docker-image
+```
