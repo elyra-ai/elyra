@@ -90,7 +90,7 @@ To see your changes just refresh JupyterLab in your browser.
 So when making changes to application you will need to stop and restart `jupyter lab --watch` and
 not just refresh your browser.
 
-### Building Elyra docker
+### Building the Docker Image
 
 Build Elyra docker image locally with:
 
