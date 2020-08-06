@@ -182,6 +182,9 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_directory = pipeline_name
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
+        crio_emptydir_volume_size = ''
+        crio_container_runtime = os.getenv("CRIO_RUNTIME", False)
+
         # Create dictionary that maps component Id to its ContainerOp instance
         notebook_ops = {}
 
@@ -202,10 +205,15 @@ class KfpPipelineProcessor(PipelineProcessor):
                     operation.inputs = parent_io
 
         for operation in pipeline.operations.values():
+
             operation_artifact_archive = self._get_dependency_archive_name(operation)
 
             self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
                            op=operation, archive=operation_artifact_archive))
+
+            if crio_container_runtime:
+                # Volume size to create when using CRI-o, NOTE: IBM Cloud minimum is 20Gi
+                crio_emptydir_volume_size = '20Gi'
 
             # Collect env variables
             pipeline_envs = dict()
@@ -231,6 +239,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                     pipeline_inputs=operation.inputs,
                                                     pipeline_outputs=operation.outputs,
                                                     pipeline_envs=pipeline_envs,
+                                                    crio_emptydir_volume_size=crio_emptydir_volume_size,
                                                     image=operation.runtime_image)
 
             self.log.info("NotebookOp Created for Component '%s' (%s)", operation.name, operation.id)
