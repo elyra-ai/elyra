@@ -64,10 +64,13 @@ import { PIPELINE_CURRENT_VERSION } from './constants';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
-import { PipelineService } from './PipelineService';
+import {
+  PipelineService,
+  KFP_SCHEMA,
+  RUNTIMES_NAMESPACE
+} from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
-import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './RuntimesWidget';
 import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -107,6 +110,7 @@ interface IValidationError {
 
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
+  openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
   submitNotebook: 'notebook:submit'
