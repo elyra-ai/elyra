@@ -97,3 +97,5 @@ Elyra's docker image can be built using:
 ```bash
 make docker-image
 ```
+
+Elyra official docker images are available at the [Elyra organization in dockerhub](https://hub.docker.com/r/elyra/elyra).
