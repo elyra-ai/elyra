@@ -106,6 +106,8 @@ class SchemaProperty(CliOption):
     skipped_meta_properties = ['description', 'type', 'items', 'additionalItems', 'properties'
                                'propertyNames', 'dependencies', 'examples', 'contains',
                                'additionalProperties', 'patternProperties']
+    # Turn off the inclusion of meta-property information in the printed help messages  (Issue #837)
+    print_meta_properties = False
 
     def __init__(self, name, schema_property):
         self.schema_property = schema_property
@@ -120,10 +122,11 @@ class SchemaProperty(CliOption):
     def print_description(self):
 
         additional_clause = ""
-        for meta_prop, value in self.schema_property.items():
-            if meta_prop in self.skipped_meta_properties:
-                continue
-            additional_clause = self._build_clause(additional_clause, meta_prop, value)
+        if self.print_meta_properties:  # Only if enabled
+            for meta_prop, value in self.schema_property.items():
+                if meta_prop in self.skipped_meta_properties:
+                    continue
+                additional_clause = self._build_clause(additional_clause, meta_prop, value)
 
         print("\t{}{}".format(self.description, additional_clause))
 
