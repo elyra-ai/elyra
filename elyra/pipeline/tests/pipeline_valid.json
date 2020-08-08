@@ -10,7 +10,7 @@
       "nodes": [
         {
           "id": "{{uuid}}",
-          "type": "{{type}}",
+          "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
             "filename": "{{filename}}",
