@@ -30,6 +30,7 @@ echo " "
 
 set -e
 echo "Uninstalling old packages"
+conda uninstall -y xeus-python -c conda-forge
 pip uninstall -y elyra || true;
 pip uninstall -y jupyterlab-git || true;
 pip uninstall -y jupyterlab-server || true;
@@ -46,8 +47,16 @@ rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter
 echo " "
 
 echo "Installing/Updating Notebook and JupyterLab"
-pip install --quiet --upgrade notebook
-pip install --quiet --upgrade "jupyterlab$LAB_VERSION"
+pip install --upgrade notebook
+pip install --upgrade "jupyterlab$LAB_VERSION"
+echo " "
+
+echo "Installing Xeus kernel"
+conda install -y xeus-python -c conda-forge
+echo " "
+
+echo "Installing JupyterLab Debugger"
+jupyter labextension install --no-build @jupyterlab/debugger
 echo " "
 
 jupyter --version
