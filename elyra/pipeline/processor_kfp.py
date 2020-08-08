@@ -20,14 +20,13 @@ import tempfile
 import time
 
 from datetime import datetime
-
 from elyra.metadata import MetadataManager
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
+from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
 from urllib3.exceptions import MaxRetryError
-from jinja2 import Environment, PackageLoader
 
 
 class KfpPipelineProcessor(PipelineProcessor):

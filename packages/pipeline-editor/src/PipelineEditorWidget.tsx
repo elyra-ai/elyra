@@ -1070,7 +1070,7 @@ export class PipelineEditor extends React.Component<
       dialogResult.value.pipeline_name;
 
     // TODO: Be more flexible and remove hardcoded runtime type
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'local';
     pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
       dialogResult.value.runtime_config;
 

@@ -34,6 +34,11 @@ export class PipelineService {
   static async getRuntimes(showError = true): Promise<any> {
     const runtimes = await FrontendServices.getMetadata('runtimes');
 
+    console.log(runtimes);
+
+    const local_runtime: any = { name: 'local', display_name: 'local' };
+    runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
+
     if (showError && Object.keys(runtimes).length === 0) {
       return FrontendServices.noMetadataError('runtimes');
     }
