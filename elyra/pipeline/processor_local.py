@@ -25,6 +25,10 @@ from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 class LocalPipelineProcessor(PipelineProcessor):
     _type = 'local'
 
+    def __init__(self, root_dir=None):
+        if root_dir:
+            self._root_dir = root_dir
+
     @property
     def type(self):
         return self._type
@@ -37,6 +41,7 @@ class LocalPipelineProcessor(PipelineProcessor):
             # pipeline_path = os.path.join(temp_dir, f'{pipeline_name}')
             pipeline_path = temp_dir
 
+            # TODO: consider ordering
             for operation in pipeline.operations.values():
                 notebook = self.get_absolute_path(operation.filename)
                 assert os.path.isfile(notebook), "Invalid '{}'".format(notebook)
