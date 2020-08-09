@@ -30,7 +30,7 @@ echo " "
 
 set -e
 echo "Uninstalling old packages"
-conda uninstall -y xeus-python -c conda-forge
+conda uninstall -y xeus-python -c conda-forge || true;
 pip uninstall -y elyra || true;
 pip uninstall -y jupyterlab-git || true;
 pip uninstall -y jupyterlab-server || true;
