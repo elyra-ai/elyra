@@ -15,7 +15,6 @@
 #
 import os
 import json
-import pytest
 
 from elyra.pipeline import PipelineParser, LocalPipelineProcessor
 
