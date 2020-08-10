@@ -117,10 +117,9 @@ test-server: install-server ## Run unit tests
 
 test-ui: lint-ui ## Run frontend tests
 	npm test
-	npm run test-integration
 
 test-ui-debug: lint-ui
-	npm run test-integration-debug
+	npm run test:integration:debug
 
 test: test-server test-ui ## Run all tests
 

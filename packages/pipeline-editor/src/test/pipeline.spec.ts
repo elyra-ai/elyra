@@ -31,8 +31,8 @@ import {
 } from '@jupyterlab/filebrowser';
 import { ServiceManager } from '@jupyterlab/services';
 
-import { UUID } from '@lumino/coreutils';
 import { CommandRegistry } from '@lumino/commands';
+import { UUID } from '@lumino/coreutils';
 
 import {
   PipelineEditorFactory,
@@ -113,9 +113,9 @@ describe('@elyra/pipeline-editor', () => {
         factory: textModelFactory,
         path: UUID.uuid4() + '.pipeline'
       });
-      const pipelineEditor = pipelineEditorFactory.createNew(context);
-      expect(pipelineEditor).toBeInstanceOf(DocumentWidget);
-      expect(pipelineEditor.content).toBeInstanceOf(PipelineEditorWidget);
+      const documentWidget = pipelineEditorFactory.createNew(context);
+      expect(documentWidget).toBeInstanceOf(DocumentWidget);
+      expect(documentWidget.content).toBeInstanceOf(PipelineEditorWidget);
     });
   });
 });
