@@ -140,6 +140,9 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
 .d3-node-ellipsis-background:hover ~ .d3-node-ellipsis {
   fill: var(--inverse-link);
 }
+.toolbar-div {
+  border-bottom-color: var(--ui-03);
+}
 .toolbar-div,
 .toolbar-item.default button,
 .toolbar-item.ghost button {
