@@ -69,7 +69,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       name: PIPELINE_FACTORY,
       fileTypes: [PIPELINE],
       defaultFor: [PIPELINE],
-      app: app,
+      shell: app.shell,
+      commands: app.commands,
       browserFactory: browserFactory
     });
 
