@@ -18,7 +18,12 @@ import 'jest';
 import { LabShell } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { DocumentManager } from '@jupyterlab/docmanager';
-import { TextModelFactory, DocumentRegistry } from '@jupyterlab/docregistry';
+import {
+  TextModelFactory,
+  DocumentRegistry,
+  Context,
+  DocumentWidget
+} from '@jupyterlab/docregistry';
 import {
   FileBrowser,
   IFileBrowserFactory,
@@ -26,29 +31,40 @@ import {
 } from '@jupyterlab/filebrowser';
 import { ServiceManager } from '@jupyterlab/services';
 
+import { UUID } from '@lumino/coreutils';
 import { CommandRegistry } from '@lumino/commands';
 
-import { PipelineEditorFactory } from '../PipelineEditorWidget';
+import {
+  PipelineEditorFactory,
+  PipelineEditorWidget
+} from '../PipelineEditorWidget';
 
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 
 describe('@elyra/pipeline-editor', () => {
   describe('PipelineEditorFactory', () => {
-    it('should create a PipelineEditorFactory', () => {
+    let pipelineEditorFactory: PipelineEditorFactory;
+    let manager: DocumentManager;
+    let textModelFactory: TextModelFactory;
+    let services: ServiceManager;
+
+    it('should create a PipelineEditorFactory', async () => {
       const tracker = new WidgetTracker<FileBrowser>({
         namespace: 'filebrowser'
       });
+      textModelFactory = new TextModelFactory();
       const registry = new DocumentRegistry({
-        textModelFactory: new TextModelFactory()
+        textModelFactory
       });
       const opener: DocumentManager.IWidgetOpener = {
         open: widget => {
           // no-op
         }
       };
-      const services = new ServiceManager();
-      const manager = new DocumentManager({
+      services = new ServiceManager();
+      await services.ready;
+      manager = new DocumentManager({
         registry,
         opener,
         manager: services
@@ -80,7 +96,7 @@ describe('@elyra/pipeline-editor', () => {
       });
 
       const browserFactory = { createFileBrowser, defaultBrowser, tracker };
-      const pipelineEditorFactory = new PipelineEditorFactory({
+      pipelineEditorFactory = new PipelineEditorFactory({
         name: PIPELINE_FACTORY,
         fileTypes: [PIPELINE],
         defaultFor: [PIPELINE],
@@ -89,6 +105,17 @@ describe('@elyra/pipeline-editor', () => {
         browserFactory: browserFactory
       });
       expect(pipelineEditorFactory).toBeInstanceOf(PipelineEditorFactory);
+    });
+
+    it('should create a PipelineEditorWidget', async () => {
+      const context = new Context({
+        manager: services,
+        factory: textModelFactory,
+        path: UUID.uuid4() + '.pipeline'
+      });
+      const pipelineEditor = pipelineEditorFactory.createNew(context);
+      expect(pipelineEditor).toBeInstanceOf(DocumentWidget);
+      expect(pipelineEditor.content).toBeInstanceOf(PipelineEditorWidget);
     });
   });
 });
