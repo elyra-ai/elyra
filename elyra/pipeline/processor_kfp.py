@@ -18,6 +18,7 @@ import kfp
 import os
 import tempfile
 import time
+import requests
 
 from datetime import datetime
 
@@ -37,6 +38,29 @@ class KfpPipelineProcessor(PipelineProcessor):
     def type(self):
         return self._type
 
+    def get_auth_session_cookie(self, url, api_endpoint_username, api_endpoint_password):
+        get_response = requests.get(url)
+
+        if 'auth' in get_response.url:
+            cookie_auth_key = 'authservice_session'
+            credentials = {'login': api_endpoint_username, 'password': api_endpoint_password}
+
+            # Redirect to post authentication request
+            post_response = requests.post(get_response.url, data=credentials)
+            cookie_auth_value = post_response.cookies.get(cookie_auth_key)
+
+            if cookie_auth_value is not None:
+                return cookie_auth_key + '=' + cookie_auth_value
+            else:
+                # check for auth cookie in response history
+                for history_item in post_response.history:
+                    cookie_auth_value = history_item.cookies.get(cookie_auth_key)
+
+                    if cookie_auth_value is not None:
+                        return cookie_auth_key + '=' + cookie_auth_value
+
+        return None
+
     def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
@@ -45,6 +69,11 @@ class KfpPipelineProcessor(PipelineProcessor):
         api_endpoint = runtime_configuration.metadata['api_endpoint']
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
+
+        # TODO: add entries below as optional in the UI
+        # TODO: try to encapsulate the info below
+        api_endpoint_username = runtime_configuration.metadata['api_endpoint_username']
+        api_endpoint_password = runtime_configuration.metadata['api_endpoint_password']
 
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
@@ -67,8 +96,22 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.info("Kubeflow Pipeline successfully compiled.")
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
 
-            # Upload the compiled pipeline and create an experiment and run
-            client = kfp.Client(host=api_endpoint)
+            # Upload the compiled pipeline, create an experiment and run
+
+            if (api_endpoint_username is not None) and (api_endpoint_password is not None):
+                endpoint = api_endpoint.replace('/pipeline', '')
+                session_cookie = self.get_auth_session_cookie(endpoint, api_endpoint_username, api_endpoint_password)
+
+                # TODO: handle case no session cookie found --> authentication error?
+                # When session cookie is none, we get a making request error, reason: No host specified
+
+                client = kfp.Client(
+                    host=api_endpoint,
+                    cookies=session_cookie
+                )
+            else:
+                client = kfp.Client(host=api_endpoint)
+
             try:
                 t0 = time.time()
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
