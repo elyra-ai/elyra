@@ -41,6 +41,7 @@ class KfpPipelineProcessor(PipelineProcessor):
     def get_auth_session_cookie(self, url, api_endpoint_username, api_endpoint_password):
         get_response = requests.get(url)
 
+        # dex authentication request to kfp will look like '/dex/auth/local?req=REQ_VALUE'
         if 'auth' in get_response.url:
             cookie_auth_key = 'authservice_session'
             credentials = {'login': api_endpoint_username, 'password': api_endpoint_password}

@@ -41,7 +41,10 @@
         "api_endpoint_password": {
           "title": "Kubeflow Pipelines API Endpoint Password",
           "description": "The Kubeflow Pipelines API Endpoint password",
-          "type": "string"
+          "type": "string",
+          "uihints": {
+            "secure": true
+          }
         },
         "cos_endpoint": {
           "title": "Cloud Object Storage Endpoint",
