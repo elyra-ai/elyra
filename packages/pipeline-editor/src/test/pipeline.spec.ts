@@ -15,10 +15,13 @@
  */
 import 'jest';
 
+import { TextModelFactory } from '@jupyterlab/docregistry';
+
 describe('@elyra/pipeline-editor', () => {
   describe('PipelineEditorFactory', () => {
     it('should create a PipelineEditorFactory', () => {
-      console.debug('test');
+      const factory = new TextModelFactory();
+      console.debug(factory);
     });
   });
 });

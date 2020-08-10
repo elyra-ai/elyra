@@ -13,6 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable no-undef */
+// eslint-disable-next-line no-undef
 const func = require('@jupyterlab/testutils/lib/jest-config');
-module.exports = func(__dirname);
+// eslint-disable-next-line no-undef
+const upstream = func('jupyterlab_go_to_definition', __dirname);
+
+const reuseFromUpstream = [
+  'moduleNameMapper',
+  'setupFilesAfterEnv',
+  'setupFiles',
+  'moduleFileExtensions'
+];
+
+const local = {
+  globals: { 'ts-jest': { tsConfig: 'tsconfig.json' } },
+  // eslint-disable-next-line no-useless-escape
+  testRegex: `.*\.spec\.tsx?$`,
+  transform: {
+    '\\.(ts|tsx)?$': 'ts-jest',
+    '\\.(js|jsx)?$': './transform.js'
+  },
+  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)']
+};
+
+for (const option of reuseFromUpstream) {
+  local[option] = upstream[option];
+}
+
+// eslint-disable-next-line no-undef
+module.exports = local;

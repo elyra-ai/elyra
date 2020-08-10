@@ -13,5 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line no-undef
-module.exports = require('@jupyterlab/testutils/lib/babel.config');
+/* eslint-disable no-undef */
+const config = require('./babel.config.js');
+/* eslint-disable no-undef */
+module.exports = require('babel-jest').createTransformer(config);
