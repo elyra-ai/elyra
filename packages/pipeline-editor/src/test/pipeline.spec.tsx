@@ -48,6 +48,8 @@ const PIPELINE = 'pipeline';
 
 configure({ adapter: new Adapter() });
 
+jest.mock('../PipelineService');
+
 describe('@elyra/pipeline-editor', () => {
   let pipelineEditorFactory: PipelineEditorFactory;
   let manager: DocumentManager;
