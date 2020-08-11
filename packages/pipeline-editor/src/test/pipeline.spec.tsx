@@ -33,7 +33,7 @@ import { ServiceManager } from '@jupyterlab/services';
 
 import { CommandRegistry } from '@lumino/commands';
 import { UUID } from '@lumino/coreutils';
-import { ReactWrapper, mount, configure } from 'enzyme';
+import { mount, configure } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import * as React from 'react';
 
@@ -139,8 +139,13 @@ describe('@elyra/pipeline-editor', () => {
           widgetContext={pipelineEditorWidget.context}
         />
       );
-      console.debug(pipelineEditor);
-      expect(pipelineEditor).toBeInstanceOf(ReactWrapper);
+      expect(pipelineEditor.state()).toEqual({
+        showPropertiesDialog: false,
+        propertiesInfo: {},
+        showValidationError: false,
+        validationError: { errorMessage: '', errorSeverity: 'error' },
+        emptyPipeline: true
+      });
     });
   });
 });
