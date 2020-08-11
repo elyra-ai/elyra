@@ -33,22 +33,29 @@ import { ServiceManager } from '@jupyterlab/services';
 
 import { CommandRegistry } from '@lumino/commands';
 import { UUID } from '@lumino/coreutils';
+import { ReactWrapper, mount, configure } from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+import * as React from 'react';
 
 import {
   PipelineEditorFactory,
-  PipelineEditorWidget
+  PipelineEditorWidget,
+  PipelineEditor
 } from '../PipelineEditorWidget';
 
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 
-describe('@elyra/pipeline-editor', () => {
-  describe('PipelineEditorFactory', () => {
-    let pipelineEditorFactory: PipelineEditorFactory;
-    let manager: DocumentManager;
-    let textModelFactory: TextModelFactory;
-    let services: ServiceManager;
+configure({ adapter: new Adapter() });
 
+describe('@elyra/pipeline-editor', () => {
+  let pipelineEditorFactory: PipelineEditorFactory;
+  let manager: DocumentManager;
+  let textModelFactory: TextModelFactory;
+  let services: ServiceManager;
+  let pipelineEditorWidget: PipelineEditorWidget;
+
+  describe('PipelineEditorFactory', () => {
     it('should create a PipelineEditorFactory', async () => {
       const tracker = new WidgetTracker<FileBrowser>({
         namespace: 'filebrowser'
@@ -116,6 +123,22 @@ describe('@elyra/pipeline-editor', () => {
       const documentWidget = pipelineEditorFactory.createNew(context);
       expect(documentWidget).toBeInstanceOf(DocumentWidget);
       expect(documentWidget.content).toBeInstanceOf(PipelineEditorWidget);
+      pipelineEditorWidget = documentWidget.content as PipelineEditorWidget;
+    });
+  });
+
+  describe('PipelineEditor', () => {
+    it('should create a PipelineEditor', () => {
+      const pipelineEditor = mount(
+        <PipelineEditor
+          shell={pipelineEditorWidget.shell}
+          commands={pipelineEditorWidget.commands}
+          browserFactory={pipelineEditorWidget.browserFactory}
+          widgetContext={pipelineEditorWidget.context}
+        />
+      );
+      console.debug(pipelineEditor);
+      expect(pipelineEditor).toBeInstanceOf(ReactWrapper);
     });
   });
 });

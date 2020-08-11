@@ -40,5 +40,7 @@ for (const option of reuseFromUpstream) {
   local[option] = upstream[option];
 }
 
+local['setupFilesAfterEnv'].push('./jest.setup.js');
+
 // eslint-disable-next-line no-undef
 module.exports = local;

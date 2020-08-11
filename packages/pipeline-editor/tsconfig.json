@@ -8,7 +8,7 @@
     "types": ["node", "jest"],
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/*", "src/*/*", "test/*"],
+  "include": ["src/*", "src/*/*", "jest.setup.js"],
   "files": [
     "src/palette.json",
     "src/properties.json",
