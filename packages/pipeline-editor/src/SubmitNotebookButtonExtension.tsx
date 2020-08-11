@@ -15,12 +15,12 @@
  */
 
 import { NotebookParser } from '@elyra/application';
+import { showFormDialog } from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
+import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
-import { JSONObject, JSONValue } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
 import * as React from 'react';
 
@@ -28,33 +28,6 @@ import { dialogWidget } from './dialogWidget';
 import NotebookSubmissionDialog from './NotebookSubmissionDialog';
 import { PipelineService } from './PipelineService';
 import Utils from './utils';
-
-/**
- * Details about notebook submission configuration, including
- * details about the remote runtime and any other
- * user details required to access/start the job
- */
-export interface ISubmitNotebookConfiguration extends JSONObject {
-  runtime_config: string;
-  framework: string;
-  //cpus: number,
-  //gpus: number,
-  //memory: string,
-  dependencies: string[];
-
-  env: string[];
-}
-
-/**
- * Details about notebook submission task, includes the submission
- * configuration plus the notebook contents that is being submitted
- */
-export interface ISubmitNotebookOptions extends ISubmitNotebookConfiguration {
-  kernelspec: string;
-  notebook_name: string;
-  notebook_path: string;
-  notebook: JSONValue;
-}
 
 /**
  * Submit notebook button extension
@@ -73,41 +46,52 @@ export class SubmitNotebookButtonExtension
   readonly app: JupyterFrontEnd;
 
   showWidget = async (): Promise<void> => {
-    const envVars: string[] = NotebookParser.getEnvVars(
-      this.panel.content.model.toString()
-    );
-
+    const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
     const runtimes = await PipelineService.getRuntimes();
-    const runtimeImages = await PipelineService.getRuntimeImages();
+    const images = await PipelineService.getRuntimeImages();
 
-    showDialog({
+    const dialogOptions = {
       title: 'Submit notebook',
       body: dialogWidget(
         <NotebookSubmissionDialog
-          env={envVars}
+          env={env}
           runtimes={runtimes}
-          images={runtimeImages}
+          images={images}
         />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    }).then(result => {
-      if (result.value == null) {
-        // When Cancel is clicked on the dialog, just return
-        return;
-      }
+    };
 
-      // prepare notebook submission details
-      const notebookOptions: ISubmitNotebookOptions = result.value as ISubmitNotebookOptions;
-      const pipeline = Utils.generateNotebookPipeline(
-        this.panel.context.path,
-        notebookOptions
-      );
+    const dialogResult = await showFormDialog(dialogOptions);
 
-      PipelineService.submitPipeline(
-        pipeline,
-        PipelineService.getDisplayName(result.value.runtime_config, runtimes)
-      );
-    });
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
+
+    const {
+      runtime_config,
+      framework,
+      dependency_include,
+      dependencies,
+      ...envObject
+    } = dialogResult.value;
+
+    // prepare notebook submission details
+    const pipeline = Utils.generateNotebookPipeline(
+      this.panel.context.path,
+      runtime_config,
+      framework,
+      dependency_include ? dependencies : undefined,
+      envObject
+    );
+
+    const displayName = PipelineService.getDisplayName(
+      runtime_config,
+      runtimes
+    );
+
+    PipelineService.submitPipeline(pipeline, displayName);
   };
 
   createNew(

@@ -33,7 +33,7 @@ import {
   KFP_SCHEMA,
   RUNTIMES_NAMESPACE
 } from './RuntimesWidget';
-import { SubmitNotebookButtonExtension } from './SubmitNotebook';
+import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 
 import '../style/index.css';
 

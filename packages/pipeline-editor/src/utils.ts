@@ -18,7 +18,6 @@ import uuid4 from 'uuid/v4';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
 import pipeline_template from './pipeline-template.json';
-import { ISubmitNotebookOptions } from './SubmitNotebook';
 
 /**
  * A utilities class for static functions.
@@ -33,7 +32,10 @@ export default class Utils {
    */
   static generateNotebookPipeline(
     filename: string,
-    options: ISubmitNotebookOptions
+    runtime_config: string,
+    framework: string,
+    dependencies: string[],
+    envObject: { [key: string]: string }
   ): any {
     const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid: string = Utils.getUUID();
@@ -41,19 +43,23 @@ export default class Utils {
     const artifactFileName = filename.replace(/^.*[\\/]/, '');
     const artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
 
+    const envArray = Object.entries(envObject).map(
+      ([key, val]) => `${key}=${val}`
+    );
+
     template.id = generated_uuid;
     template.primary_pipeline = generated_uuid;
     template.pipelines[0].id = generated_uuid;
 
     template.pipelines[0].nodes[0].id = generated_uuid;
     template.pipelines[0].nodes[0].app_data.filename = filename;
-    template.pipelines[0].nodes[0].app_data.runtime_image = options.framework;
-    template.pipelines[0].nodes[0].app_data.env_vars = options.env;
-    template.pipelines[0].nodes[0].app_data.dependencies = options.dependencies;
+    template.pipelines[0].nodes[0].app_data.runtime_image = framework;
+    template.pipelines[0].nodes[0].app_data.env_vars = envArray;
+    template.pipelines[0].nodes[0].app_data.dependencies = dependencies;
 
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = 'kfp';
-    template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
+    template.pipelines[0].app_data['runtime-config'] = runtime_config;
     template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
 
     return template;
