@@ -61,14 +61,20 @@ import * as React from 'react';
 import { IntlProvider } from 'react-intl';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
+import { dialogWidget } from './dialogWidget';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
-import { PipelineExportDialog } from './PipelineExportDialog';
+import PipelineExportDialog from './PipelineExportDialog';
 import { PipelineService } from './PipelineService';
-import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
+import PipelineSubmissionDialog from './PipelineSubmissionDialog';
 import * as properties from './properties.json';
 import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './RuntimesWidget';
 import Utils from './utils';
+
+export interface IRuntime {
+  name: string;
+  display_name: string;
+}
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
@@ -723,7 +729,7 @@ export class PipelineEditor extends React.Component<
     const runtimes = await PipelineService.getRuntimes();
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
-      body: new PipelineExportDialog({ runtimes }),
+      body: dialogWidget(<PipelineExportDialog runtimes={runtimes} />),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#runtime_config'
@@ -1001,7 +1007,7 @@ export class PipelineEditor extends React.Component<
     const runtimes = await PipelineService.getRuntimes();
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
-      body: new PipelineSubmissionDialog({ runtimes }),
+      body: dialogWidget(<PipelineSubmissionDialog runtimes={runtimes} />),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#pipeline_name'

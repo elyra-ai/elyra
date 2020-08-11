@@ -14,78 +14,51 @@
  * limitations under the License.
  */
 
-import { Dialog } from '@jupyterlab/apputils';
-import { Widget, PanelLayout } from '@lumino/widgets';
+import * as React from 'react';
 
-/**
- * Pipeline export dialog widget
- */
-export class PipelineExportDialog extends Widget
-  implements Dialog.IBodyWidget<any> {
-  constructor(props: any) {
-    super(props);
+import { IRuntime } from './PipelineEditorWidget';
 
-    const layout = (this.layout = new PanelLayout());
-    const htmlContent = this.getHtml(props);
-    // Set default runtime to kfp, since list is dynamically generated
-    (htmlContent.getElementsByClassName(
-      'elyra-form-runtime-config'
-    )[0] as HTMLSelectElement).value = 'kfp';
+type Props = {
+  runtimes: IRuntime[];
+};
 
-    layout.addWidget(new Widget({ node: htmlContent }));
-  }
+const PipelineExportDialog = ({ runtimes }: Props): JSX.Element => {
+  const filetypes = ['yaml', 'py'];
+  return (
+    <form>
+      <label htmlFor="runtime_config">Runtime Config:</label>
+      <br />
+      <select
+        id="runtime_config"
+        name="runtime_config"
+        className="elyra-form-runtime-config"
+        data-form-required
+      >
+        {runtimes.map((runtime: any) => (
+          <option key={runtime.name} value={runtime.name}>
+            {runtime.display_name}
+          </option>
+        ))}
+      </select>
+      <label htmlFor="pipeline_filetype">Export Pipeline as:</label>
+      <br />
+      <select
+        id="pipeline_filetype"
+        name="pipeline_filetype"
+        className="elyra-form-export-filetype"
+        data-form-required
+      >
+        {filetypes.map(filetype => (
+          <option key={filetype} value={filetype}>
+            {filetype}
+          </option>
+        ))}
+      </select>
+      <input type="checkbox" id="overwrite" name="overwrite" />
+      <label htmlFor="overwrite">Replace if file already exists</label>
+      <br />
+    </form>
+  );
+};
 
-  getValue(): any {
-    return {
-      runtime_config: (document.getElementById(
-        'runtime_config'
-      ) as HTMLInputElement).value,
-
-      pipeline_filetype: (document.getElementById(
-        'pipeline_filetype'
-      ) as HTMLInputElement).value,
-
-      overwrite: (document.getElementById('overwrite') as HTMLInputElement)
-        .checked
-    };
-  }
-
-  getHtml(props: any): HTMLElement {
-    const htmlContent = document.createElement('div');
-    const br = '<br/>';
-    let runtime_options = '';
-    let filetype_options = '';
-    const runtimes = props['runtimes'];
-    const filetypes = ['yaml', 'py'];
-
-    for (const key in runtimes) {
-      runtime_options =
-        runtime_options +
-        `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
-    }
-
-    filetypes.forEach(filetype => {
-      filetype_options =
-        filetype_options + `<option value="${filetype}">${filetype}</option>`;
-    });
-
-    const content =
-      '<label for="runtime_config">Runtime Config:</label>' +
-      br +
-      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config" data-form-required>' +
-      runtime_options +
-      '</select>' +
-      '<label for="pipeline_filetype">Export Pipeline as:</label>' +
-      br +
-      '<select id="pipeline_filetype" name="pipeline_filetype" class="elyra-form-export-filetype" data-form-required>' +
-      filetype_options +
-      '</select>' +
-      '<input type="checkbox" id="overwrite"/>' +
-      '<label for="overwrite">Replace if file already exists</label>' +
-      br;
-
-    htmlContent.innerHTML = content;
-
-    return htmlContent;
-  }
-}
+export default PipelineExportDialog;

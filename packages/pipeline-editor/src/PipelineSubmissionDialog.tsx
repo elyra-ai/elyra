@@ -14,65 +14,44 @@
  * limitations under the License.
  */
 
-import { Dialog } from '@jupyterlab/apputils';
-import { Widget, PanelLayout } from '@lumino/widgets';
+import * as React from 'react';
 
-/**
- * Pipeline submission dialog widget
- */
-export class PipelineSubmissionDialog extends Widget
-  implements Dialog.IBodyWidget<any> {
-  constructor(props: any) {
-    super(props);
+import { IRuntime } from './PipelineEditorWidget';
 
-    const layout = (this.layout = new PanelLayout());
-    const htmlContent = this.getHtml(props);
-    // Set default runtime to kfp, since list is dynamically generated
-    (htmlContent.getElementsByClassName(
-      'elyra-form-runtime-config'
-    )[0] as HTMLSelectElement).value = 'kfp';
+type Props = {
+  runtimes: IRuntime[];
+};
 
-    layout.addWidget(new Widget({ node: htmlContent }));
-  }
+const PipelineSubmissionDialog = ({ runtimes }: Props): JSX.Element => {
+  return (
+    <form>
+      <label htmlFor="pipeline_name">Pipeline Name:</label>
+      <br />
+      <input
+        type="text"
+        id="pipeline_name"
+        name="pipeline_name"
+        placeholder="Pipeline Name"
+        data-form-required
+      />
+      <br />
+      <br />
+      <label htmlFor="runtime_config">Runtime Config:</label>
+      <br />
+      <select
+        id="runtime_config"
+        name="runtime_config"
+        className="elyra-form-runtime-config"
+        data-form-required
+      >
+        {runtimes.map(runtime => (
+          <option key={runtime.name} value={runtime.name}>
+            {runtime.display_name}
+          </option>
+        ))}
+      </select>
+    </form>
+  );
+};
 
-  getValue(): any {
-    return {
-      pipeline_name: (document.getElementById(
-        'pipeline_name'
-      ) as HTMLInputElement).value,
-      runtime_config: (document.getElementById(
-        'runtime_config'
-      ) as HTMLInputElement).value
-    };
-  }
-
-  getHtml(props: any): HTMLElement {
-    const htmlContent = document.createElement('div');
-    const br = '<br/>';
-    let runtime_options = '';
-    const runtimes = props['runtimes'];
-
-    for (const key in runtimes) {
-      runtime_options =
-        runtime_options +
-        `<option value="${runtimes[key]['name']}">${runtimes[key]['display_name']}</option>`;
-    }
-
-    const content =
-      '' +
-      '<label for="pipeline_name">Pipeline Name:</label>' +
-      br +
-      '<input type="text" id="pipeline_name" name="pipeline_name" placeholder="Pipeline Name" data-form-required/>' +
-      br +
-      br +
-      '<label for="runtime_config">Runtime Config:</label>' +
-      br +
-      '<select id="runtime_config" name="runtime_config" class="elyra-form-runtime-config" data-form-required>' +
-      runtime_options +
-      '</select>';
-
-    htmlContent.innerHTML = content;
-
-    return htmlContent;
-  }
-}
+export default PipelineSubmissionDialog;
