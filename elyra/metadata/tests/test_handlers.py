@@ -460,8 +460,8 @@ class SchemaHandlerTest(MetadataTestBase):
         self._get_namespace_schemas('code-snippets', ['code-snippet'])
 
     def test_get_test_schemas(self):
-        # Ensure all schema for code-snippets can be found
-        self._get_namespace_schemas(METADATA_TEST_NAMESPACE, ['metadata-test'])
+        # Ensure all schema for metadata_tests can be found
+        self._get_namespace_schemas(METADATA_TEST_NAMESPACE, ['metadata-test', 'metadata-test2'])
 
     def test_get_runtimes_schema(self):
         # Ensure all schema for runtimes can be found

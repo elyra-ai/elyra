@@ -78,10 +78,29 @@ def test_install_help(script_runner):
     assert ret.stderr == ''
 
 
-def test_install_no_schema_name(script_runner, mock_data_dir):
+def test_install_no_schema_single(script_runner, mock_data_dir):
+    # Use the runtime-images namespace since that is most likely to always be a single-schema namespace.
+    # Note: this test will break if it ever supports multiple.
+    ret = script_runner.run('elyra-metadata', 'install', "runtime-images")
+    assert ret.success is False
+    assert ret.stdout.startswith("'--name' is a required parameter.")
+    assert ret.stderr == ''
+
+
+def test_install_no_schema_multiple(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE)
     assert ret.success is False
-    assert ret.stdout.startswith("'--schema_name' is a required parameter.")
+    # Since order in dictionaries, where the one-of list is derived, can be random, just check up to the
+    # first known difference in the schema names.
+    assert ret.stdout.startswith("'--schema_name' is a required parameter and must be one of the "
+                                 "following values: ['metadata-test")
+    assert ret.stderr == ''
+
+
+def test_install_bad_schema_multiple(script_runner, mock_data_dir):
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-foo')
+    assert ret.success is False
+    assert ret.stdout.startswith("Parameter '--schema_name' requires one of the following values: ['metadata-test")
     assert ret.stderr == ''
 
 
