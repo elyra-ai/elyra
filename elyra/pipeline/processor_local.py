@@ -99,7 +99,7 @@ class LocalPipelineProcessor(PipelineProcessor):
                     kernel_name="python3"
                 )
             except Exception:
-                self.log(f'Internal error executing {filename}')
+                self.log.error(f'Internal error executing {filename}')
 
             t1 = time.time()
             duration = (t1 - t0)
