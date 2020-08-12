@@ -86,9 +86,9 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.info("Starting Kubeflow Pipeline Run...")
 
             return PipelineProcessorResponse(
-                run_url="{}/#/runs/details/{}".format(api_endpoint, run.id),
-                object_storage_url="{}".format(cos_endpoint),
-                object_storage_path="/{}/{}".format(cos_bucket, pipeline_name),
+                run_url=f'{api_endpoint}/#/runs/details/{run.id}',
+                object_storage_url=f'{cos_endpoint}',
+                object_storage_path=f'/{cos_bucket}/{pipeline_name}',
             )
 
         return None
