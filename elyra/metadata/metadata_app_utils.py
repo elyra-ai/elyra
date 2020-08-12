@@ -34,12 +34,14 @@ class Option(object):
     type = None  # Only used by SchemaProperty instances for now
     processed = False
 
-    def __init__(self, cli_option, name=None, description=None, default_value=None, required=False, type="string"):
+    def __init__(self, cli_option, name=None, description=None, default_value=None, one_of=None,
+                 required=False, type="string"):
         self.cli_option = cli_option
         self.name = name
         self.description = description
         self.default_value = default_value
         self.value = default_value
+        self.one_of = one_of
         self.required = required
         self.type = type
 
@@ -106,6 +108,8 @@ class SchemaProperty(CliOption):
     skipped_meta_properties = ['description', 'type', 'items', 'additionalItems', 'properties'
                                'propertyNames', 'dependencies', 'examples', 'contains',
                                'additionalProperties', 'patternProperties']
+    # Turn off the inclusion of meta-property information in the printed help messages  (Issue #837)
+    print_meta_properties = False
 
     def __init__(self, name, schema_property):
         self.schema_property = schema_property
@@ -120,10 +124,11 @@ class SchemaProperty(CliOption):
     def print_description(self):
 
         additional_clause = ""
-        for meta_prop, value in self.schema_property.items():
-            if meta_prop in self.skipped_meta_properties:
-                continue
-            additional_clause = self._build_clause(additional_clause, meta_prop, value)
+        if self.print_meta_properties:  # Only if enabled
+            for meta_prop, value in self.schema_property.items():
+                if meta_prop in self.skipped_meta_properties:
+                    continue
+                additional_clause = self._build_clause(additional_clause, meta_prop, value)
 
         print("\t{}{}".format(self.description, additional_clause))
 
@@ -262,13 +267,23 @@ class AppBase(object):
                 cli_option.value = not cli_option.default_value
             else:  # this is a regular option, just set value
                 cli_option.set_value(self.argv_mappings.get(option))
-                if cli_option.required and not cli_option.value:
-                    self.log_and_exit("Parameter '{}' requires a value.".
-                                      format(cli_option.cli_option), display_help=True)
+                if cli_option.required:
+                    if not cli_option.value:
+                        self.log_and_exit("Parameter '{}' requires a value.".
+                                          format(cli_option.cli_option), display_help=True)
+                    elif cli_option.one_of:  # ensure value is in set
+                        if cli_option.value not in cli_option.one_of:
+                            self.log_and_exit("Parameter '{}' requires one of the following values: {}".
+                                              format(cli_option.cli_option, cli_option.one_of), display_help=True)
             self._remove_argv_entry(option)
-        elif cli_option.required:
-            self.log_and_exit("'{}' is a required parameter.".
-                              format(cli_option.cli_option), display_help=True)
+        elif cli_option.required and cli_option.value is None:
+            if cli_option.one_of is None:
+                self.log_and_exit("'{}' is a required parameter.".
+                                  format(cli_option.cli_option), display_help=True)
+            else:
+                self.log_and_exit("'{}' is a required parameter and must be one of the following values: {}.".
+                                  format(cli_option.cli_option, cli_option.one_of), display_help=True)
+
         cli_option.processed = True
 
     def process_cli_options(self, cli_options):
