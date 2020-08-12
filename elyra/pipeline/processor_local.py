@@ -60,7 +60,7 @@ class LocalPipelineProcessor(PipelineProcessor):
             self._execute_file(pipeline_work_dir, notebook)
 
         object_storage_path = f'{pipeline_work_dir}'
-        return PipelineProcessorResponse(None, None, object_storage_path)
+        return PipelineProcessorResponse('', '', object_storage_path)
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')

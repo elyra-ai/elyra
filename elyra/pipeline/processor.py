@@ -87,14 +87,6 @@ class PipelineProcessorManager(SingletonConfigurable):
 
 class PipelineProcessorResponse(object):
     def __init__(self, run_url, object_storage_url, object_storage_path):
-        # validate that the response has all required properties
-        if not run_url:
-            raise ValueError("Invalid Processor Response: Missing field 'run_url'.")
-        if not object_storage_url:
-            raise ValueError("Invalid Processor Response: Missing field 'object_storage_url'.")
-        if not object_storage_path:
-            raise ValueError("Invalid Processor Response: Missing field 'object_storage_path'.")
-
         self._run_url = run_url
         self._object_storage_url = object_storage_url
         self._object_storage_path = object_storage_path

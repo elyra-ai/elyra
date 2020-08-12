@@ -92,28 +92,49 @@ export class PipelineService {
       true
     );
 
-    const dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
-    const dialogBody = (
-      <p>
-        Check the status of your pipeline at{' '}
-        <a href={response['run_url']} target="_blank" rel="noopener noreferrer">
-          Run Details.
-        </a>
-        <br />
-        The results and outputs are in the {
-          response['object_storage_path']
-        }{' '}
-        working directory in{' '}
-        <a
-          href={response['object_storage_url']}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          object storage
-        </a>
-        .
-      </p>
-    );
+    let dialogTitle;
+    let dialogBody;
+    if (response['run_url']) {
+      // pipeline executed remotely in a runtime of choice
+      dialogTitle = 'Pipeline submission to ' + runtimeName + ' succeeded';
+      dialogBody = (
+        <p>
+          Check the status of your pipeline at{' '}
+          <a
+            href={response['run_url']}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Run Details.
+          </a>
+          <br />
+          The results and outputs are in the {
+            response['object_storage_path']
+          }{' '}
+          working directory in{' '}
+          <a
+            href={response['object_storage_url']}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            object storage
+          </a>
+          .
+        </p>
+      );
+    } else {
+      // pipeline executed in-place locally
+      dialogTitle = 'Pipeline execution in-place locally succeeded';
+      dialogBody = (
+        <p>
+          Your pipeline has been executed in-place locally.
+          <br />
+          The execution logs are in the {response['object_storage_path']}{' '}
+          working directory.
+        </p>
+      );
+    }
+
     return showDialog({
       title: dialogTitle,
       body: dialogBody,
