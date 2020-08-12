@@ -83,10 +83,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                                     api_endpoint_username,
                                                                     api_endpoint_password)
 
-            client = kfp.Client(
-                host=api_endpoint,
-                cookies=session_cookie
-            )
+            client = kfp.Client(host=api_endpoint, cookies=session_cookie)
 
             try:
                 t0 = time.time()
@@ -322,5 +319,3 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             if cookie_auth_value:
                 return cookie_auth_key + '=' + cookie_auth_value
-
-        return None
