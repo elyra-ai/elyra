@@ -65,6 +65,15 @@ export class PipelineService {
   }
 
   /**
+   * The runtime name is currently based on the schema name (one schema per runtime)
+   * @param name
+   * @param metadataArr
+   */
+  static getRuntimeName(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)['schema_name'];
+  }
+
+  /**
    * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
    *
    * @param pipeline

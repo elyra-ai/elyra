@@ -768,10 +768,12 @@ export class PipelineEditor extends React.Component<
 
     const overwrite = dialogResult.value.overwrite;
 
+    const runtime_config = dialogResult.value.runtime_config;
+    const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
+
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-      dialogResult.value.runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
 
     PipelineService.exportPipeline(
       pipelineFlow,
@@ -1070,13 +1072,14 @@ export class PipelineEditor extends React.Component<
     // prepare pipeline submission details
     const pipelineFlow = this.canvasController.getPipelineFlow();
 
+    const runtime_config = dialogResult.value.runtime_config;
+    const runtime =
+      PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
+
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
-
-    // TODO: Be more flexible and remove hardcoded runtime type
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'local';
-    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-      dialogResult.value.runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
 
     PipelineService.submitPipeline(
       pipelineFlow,
