@@ -28,7 +28,7 @@ class LocalPipelineProcessor(PipelineProcessor):
     Local pipeline processor runs a pipeline locally. The scope of this runtime is
     simply to automate the execution of multiple notebooks from a pipeline as if they
     were being executed manually. Any additional support is out of the scope of this
-    processor. If a notebook don't run from your regular `run all` it will fails on the
+    processor. If a notebook doesn't run using `run all` it will fail in the
     same way when processed by this processor. Also, any relationship or specific capabilities
     associated with a particular runtime is not supported by local mode and any additional properties
     other then the specific file to be executed is ignored by the local processor.
