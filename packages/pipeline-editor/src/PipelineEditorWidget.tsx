@@ -679,7 +679,12 @@ export class PipelineEditor extends React.Component<
             ''
           );
           data.nodeTemplate.image = IconUtil.encode(notebookIcon);
-          data.nodeTemplate.app_data['filename'] = item.path;
+          data.nodeTemplate.app_data[
+            'filename'
+          ] = PipelineService.getPipelineRelativeNodePath(
+            this.widgetContext.path,
+            item.path
+          );
           data.nodeTemplate.app_data[
             'runtime_image'
           ] = this.propertiesInfo.parameterDef.current_parameters.runtime_image;
@@ -718,8 +723,10 @@ export class PipelineEditor extends React.Component<
    */
   handleOpenNotebook(selectedNodes: any): void {
     for (let i = 0; i < selectedNodes.length; i++) {
-      const path = this.canvasController.getNode(selectedNodes[i]).app_data
-        .filename;
+      const path = PipelineService.getWorkspaceRelativeNodePath(
+        this.widgetContext.path,
+        this.canvasController.getNode(selectedNodes[i]).app_data.filename
+      );
       this.app.commands.execute(commandIDs.openDocManager, { path });
     }
   }
@@ -766,6 +773,11 @@ export class PipelineEditor extends React.Component<
       pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
 
     const overwrite = dialogResult.value.overwrite;
+
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipelineFlow.pipelines[0],
+      this.widgetContext.path
+    );
 
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
@@ -836,7 +848,10 @@ export class PipelineEditor extends React.Component<
             }).then(result => {
               if (result.button.accept) {
                 // proceed with migration
-                pipelineJson = PipelineService.convertPipeline(pipelineJson);
+                pipelineJson = PipelineService.convertPipeline(
+                  pipelineJson,
+                  this.widgetContext.path
+                );
                 this.canvasController.setPipelineFlow(pipelineJson);
               } else {
                 this.handleClosePipeline();
@@ -1065,6 +1080,11 @@ export class PipelineEditor extends React.Component<
 
     // prepare pipeline submission details
     const pipelineFlow = this.canvasController.getPipelineFlow();
+
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipelineFlow.pipelines[0],
+      this.widgetContext.path
+    );
 
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
