@@ -738,6 +738,7 @@ export class PipelineEditor extends React.Component<
       return;
     }
     const runtimes = await PipelineService.getRuntimes();
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
       body: new PipelineExportDialog({ runtimes }),
@@ -1049,6 +1050,9 @@ export class PipelineEditor extends React.Component<
     }
 
     const runtimes = await PipelineService.getRuntimes();
+    const local_runtime: any = { name: 'local', display_name: 'local' };
+    runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
       body: new PipelineSubmissionDialog({ runtimes }),
