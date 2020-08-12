@@ -33,7 +33,7 @@ class LocalPipelineProcessor(PipelineProcessor):
     associated with a particular runtime is not supported by local mode and any additional properties
     other then the specific file to be executed is ignored by the local processor.
 
-    Note: Execution happens in-place and a lodger of runs are available at $TMPFILE/elyra/pipeline-name-<timestamp>
+    Note: Execution happens in-place and a ledger of runs will be available at $TMPFILE/elyra/pipeline-name-<timestamp>
     """
     _type = 'local'
 
