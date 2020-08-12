@@ -38,30 +38,6 @@ class KfpPipelineProcessor(PipelineProcessor):
     def type(self):
         return self._type
 
-    def get_auth_session_cookie(self, url, api_endpoint_username, api_endpoint_password):
-        get_response = requests.get(url)
-
-        # dex authentication request to kfp will look like '/dex/auth/local?req=REQ_VALUE'
-        if 'auth' in get_response.url:
-            cookie_auth_key = 'authservice_session'
-            credentials = {'login': api_endpoint_username, 'password': api_endpoint_password}
-
-            # Redirect to post authentication request
-            post_response = requests.post(get_response.url, data=credentials)
-            cookie_auth_value = post_response.cookies.get(cookie_auth_key)
-
-            if cookie_auth_value is not None:
-                return cookie_auth_key + '=' + cookie_auth_value
-            else:
-                # check for auth cookie in response history
-                for history_item in post_response.history:
-                    cookie_auth_value = history_item.cookies.get(cookie_auth_key)
-
-                    if cookie_auth_value is not None:
-                        return cookie_auth_key + '=' + cookie_auth_value
-
-        return None
-
     def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
@@ -71,7 +47,6 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
-        # TODO: add entries below as optional in the UI
         # TODO: try to encapsulate the info below
         api_endpoint_username = runtime_configuration.metadata['api_endpoint_username']
         api_endpoint_password = runtime_configuration.metadata['api_endpoint_password']
@@ -99,19 +74,19 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             # Upload the compiled pipeline, create an experiment and run
 
-            if (api_endpoint_username is not None) and (api_endpoint_password is not None):
+            session_cookie = None
+
+            # TODO: double check if empty string is a valid pwd
+            if api_endpoint_username and api_endpoint_password:
                 endpoint = api_endpoint.replace('/pipeline', '')
-                session_cookie = self.get_auth_session_cookie(endpoint, api_endpoint_username, api_endpoint_password)
+                session_cookie = self._get_user_auth_session_cookie(endpoint,
+                                                                    api_endpoint_username,
+                                                                    api_endpoint_password)
 
-                # TODO: handle case no session cookie found --> authentication error?
-                # When session cookie is none, we get a making request error, reason: No host specified
-
-                client = kfp.Client(
-                    host=api_endpoint,
-                    cookies=session_cookie
-                )
-            else:
-                client = kfp.Client(host=api_endpoint)
+            client = kfp.Client(
+                host=api_endpoint,
+                cookies=session_cookie
+            )
 
             try:
                 t0 = time.time()
@@ -331,3 +306,21 @@ class KfpPipelineProcessor(PipelineProcessor):
         except BaseException as err:
             self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
             raise RuntimeError('Error retrieving runtime configuration for {}', err) from err
+
+    def _get_user_auth_session_cookie(self, url, username, password):
+        get_response = requests.get(url)
+
+        # auth request to kfp server with istio dex look like '/dex/auth/local?req=REQ_VALUE'
+        if 'auth' in get_response.url:
+            credentials = {'login': username, 'password': password}
+
+            # Authenticate user
+            session = requests.Session()
+            session.post(get_response.url, data=credentials)
+            cookie_auth_key = 'authservice_session'
+            cookie_auth_value = session.cookies.get(cookie_auth_key)
+
+            if cookie_auth_value:
+                return cookie_auth_key + '=' + cookie_auth_value
+
+        return None

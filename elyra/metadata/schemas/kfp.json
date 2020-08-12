@@ -35,12 +35,12 @@
         },
         "api_endpoint_username": {
           "title": "Kubeflow Pipelines API Endpoint Username",
-          "description": "The Kubeflow Pipelines API Endpoint username",
+          "description": "The Kubeflow Pipelines API endpoint username",
           "type": "string"
         },
         "api_endpoint_password": {
           "title": "Kubeflow Pipelines API Endpoint Password",
-          "description": "The Kubeflow Pipelines API Endpoint password",
+          "description": "The Kubeflow Pipelines API endpoint password",
           "type": "string",
           "uihints": {
             "secure": true
