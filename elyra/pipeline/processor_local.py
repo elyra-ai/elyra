@@ -97,8 +97,8 @@ class LocalPipelineProcessor(PipelineProcessor):
                         kernel_name="python3"
                     )
                 except Exception as ex:
-                    self.log.error(f'Internal error executing {filepath} with default kernel')
-                    raise RuntimeError(f'Internal error executing {filepath} with default kernel.'
+                    self.log.error(f'Internal error executing {filepath} with [python3] kernel')
+                    raise RuntimeError(f'Internal error executing {filepath} with [python3] kernel.'
                                        f'Details available at {work_dir}') from ex
             except Exception as ex:
                 self.log.error(f'Internal error executing {filepath}')
