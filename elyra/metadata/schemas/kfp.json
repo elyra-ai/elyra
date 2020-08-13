@@ -33,12 +33,12 @@
           "type": "string",
           "format": "uri"
         },
-        "api_endpoint_username": {
+        "api_username": {
           "title": "Kubeflow Pipelines API Endpoint Username",
           "description": "The Kubeflow Pipelines API endpoint username",
           "type": "string"
         },
-        "api_endpoint_password": {
+        "api_password": {
           "title": "Kubeflow Pipelines API Endpoint Password",
           "description": "The Kubeflow Pipelines API endpoint password",
           "type": "string",

@@ -36,8 +36,8 @@ elyra-metadata install runtimes --schema_name=kfp \
        --name=my_kfp \
        --display_name="My Kubeflow Pipeline Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
-       --api_endpoint_username=username@email.com \
-       --api_endpoint_password=mypassword \
+       --api_username=username@email.com \
+       --api_password=mypassword \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
@@ -50,8 +50,8 @@ This produces the following content in `my_kfp.json`:
     "schema_name": "kfp",
     "metadata": {
         "api_endpoint": "https://kubernetes-service.ibm.com/pipeline",
-        "api_endpoint_username": "username@email.com",
-        "api_endpoint_password": "mypassword",
+        "api_username": "username@email.com",
+        "api_password": "mypassword",
         "cos_endpoint": "http://minio-service.kubeflow:9000",
         "cos_username": "minio",
         "cos_password": "minio123",
@@ -96,12 +96,12 @@ The KubeFlow Pipelines API Endpoint you wish to run your Pipeline.
 
 Example: `https://kubernetes-service.ibm.com/pipeline`
 
-##### api_endpoint_username
+##### api_username
 Username used to access your KubeFlow Pipelines API endpoint. SEE NOTE.
 
 Example: `username@email.com`
 
-##### api_endpoint_password
+##### api_password
 Password used to access your KubeFlow Pipelines API endpoint. SEE NOTE.
 
 Example: `mypassword`
@@ -127,7 +127,7 @@ Name of the bucket you want your artifacts in. If the bucket doesn't exist, it w
 Example: `test-bucket`
 
 NOTE: 
-If using an authentication restricted Kubeflow environment, you must enter your credentials in `api_endpoint_username` and `api_endpoint_password` fields 
+If using an authentication restricted Kubeflow environment, you must enter your credentials in `api_username` and `api_password` fields 
 to allow pipeline uploads through Elyra.
 
 If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 

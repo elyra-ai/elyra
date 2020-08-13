@@ -48,8 +48,8 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         # TODO: try to encapsulate the info below
-        api_endpoint_username = runtime_configuration.metadata['api_endpoint_username']
-        api_endpoint_password = runtime_configuration.metadata['api_endpoint_password']
+        api_username = runtime_configuration.metadata['api_username']
+        api_password = runtime_configuration.metadata['api_password']
 
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
@@ -76,12 +76,11 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             session_cookie = None
 
-            # TODO: double check if empty string is a valid pwd
-            if api_endpoint_username and api_endpoint_password:
+            if api_username and api_password:
                 endpoint = api_endpoint.replace('/pipeline', '')
                 session_cookie = self._get_user_auth_session_cookie(endpoint,
-                                                                    api_endpoint_username,
-                                                                    api_endpoint_password)
+                                                                    api_username,
+                                                                    api_password)
 
             client = kfp.Client(host=api_endpoint, cookies=session_cookie)
 
