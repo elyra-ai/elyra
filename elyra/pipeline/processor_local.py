@@ -83,17 +83,24 @@ class LocalPipelineProcessor(PipelineProcessor):
                     cwd=notebook_dir
                 )
             except KeyError:
-                # force default python kernel
-                papermill.execute_notebook(
-                    input_path=filename,
-                    output_path=filename,
-                    stdout_file=stdout_file,
-                    stderr_file=stderr_file,
-                    cwd=notebook_dir,
-                    kernel_name="python3"
-                )
-            except Exception:
+                try:
+                    # force default python kernel
+                    papermill.execute_notebook(
+                        input_path=filename,
+                        output_path=filename,
+                        stdout_file=stdout_file,
+                        stderr_file=stderr_file,
+                        cwd=notebook_dir,
+                        kernel_name="python3"
+                    )
+                except Exception as ex:
+                    self.log.error(f'Internal error executing {filename}')
+                    raise RuntimeError(f'Internal error executing {filename}.'
+                                       f'Details available at {work_dir}') from ex
+            except Exception as ex:
                 self.log.error(f'Internal error executing {filename}')
+                raise RuntimeError(f'Internal error executing {filename}.'
+                                   f'Details available at {work_dir}') from ex
 
             t1 = time.time()
             duration = (t1 - t0)
