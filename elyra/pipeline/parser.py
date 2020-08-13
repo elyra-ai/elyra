@@ -133,7 +133,7 @@ class PipelineParser(LoggingConfigurable):
             id=node_id,
             type=node.get('type'),
             classifier=node.get('op'),
-            filename=PipelineParser._get_app_data_field(node, 'filename'),
+            filename=PipelineParser._get_app_data_field(node, 'filepath'),
             runtime_image=PipelineParser._get_app_data_field(node, 'runtime_image'),
             dependencies=PipelineParser._get_app_data_field(node, 'dependencies', []),
             include_subdirectories=PipelineParser._get_app_data_field(node, 'include_subdirectories', False),

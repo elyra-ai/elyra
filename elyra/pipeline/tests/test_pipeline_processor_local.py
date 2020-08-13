@@ -25,7 +25,7 @@ def test_pipeline_execution_order():
     pipeline = PipelineParser().parse(pipeline_definitions)
 
     operations = LocalPipelineProcessor.\
-        _get_operations_by_dependency(operations_by_id=pipeline.operations)
+        _sort_operations(operations_by_id=pipeline.operations)
 
     ordered_operation_names = _get_operation_names(operations)
 

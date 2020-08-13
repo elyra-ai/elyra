@@ -50,7 +50,7 @@ class Operation(object):
         if not classifier:
             raise ValueError("Invalid pipeline operation: Missing field 'operation classifier'.")
         if not filename:
-            raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
+            raise ValueError("Invalid pipeline operation: Missing field 'operation filepath'.")
         if not runtime_image:
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
 
@@ -142,7 +142,7 @@ class Operation(object):
                "parent_operations : {parent_op} \n " \
                "dependencies : {depends} \n " \
                "dependencies include subdirectories : {inc_subdirs} \n " \
-               "filename : {filename} \n " \
+               "filepath : {filename} \n " \
                "inputs : {inputs} \n " \
                "outputs : {outputs} \n " \
                "runtime image : {image} \n ".format(id=self.id,

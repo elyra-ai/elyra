@@ -37,12 +37,12 @@ def directory_in_list(directory, filenames):
 
 
 def has_wildcards(filename):
-    """Returns True if the filename contains wildcard characters per https://docs.python.org/3/library/fnmatch.html """
+    """Returns True if the filepath contains wildcard characters per https://docs.python.org/3/library/fnmatch.html """
     return len(set(WILDCARDS) & set(list(filename))) > 0
 
 
 def directory_prefixed(filename):
-    """Returns True if filename is prefixed by a directory (i.e., in a sub-directory."""
+    """Returns True if filepath is prefixed by a directory (i.e., in a sub-directory."""
     return os.sep in filename and not filename.startswith(os.sep) and not filename.endswith(os.sep)
 
 
@@ -83,12 +83,12 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
         if include_all:
             return tarinfo
 
-        # Process filename
+        # Process filepath
         for filename in filenames_set:
             if not filename or filename in processed_filenames:  # Skip processing
                 continue
 
-            # Match filename against candidate filename - handling wildcards
+            # Match filepath against candidate filepath - handling wildcards
             if fnmatch.fnmatch(tarinfo.name, filename):
                 # if this is a direct match, record that its been processed
                 if not has_wildcards(filename) and not recursive:
@@ -96,7 +96,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
                 matched_set.add(filename)
                 return tarinfo
 
-            # If the filename is a "flat" wildcarded value (i.e., isn't prefixed with a directory name)
+            # If the filepath is a "flat" wildcarded value (i.e., isn't prefixed with a directory name)
             # then we should take the basename of the candidate file to perform the match against.  This
             # occurs for dependencies like *.py when include-subdirectories is enabled.
             if not directory_prefixed(filename) and has_wildcards(filename):

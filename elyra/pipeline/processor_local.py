@@ -19,7 +19,7 @@ import tempfile
 import time
 
 from datetime import datetime
-from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
+from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 
 
 class LocalPipelineProcessor(PipelineProcessor):
@@ -41,39 +41,46 @@ class LocalPipelineProcessor(PipelineProcessor):
         return self._type
 
     def process(self, pipeline):
+        """
+        Process a pipeline locally.
+        The pipeline execution consists on properly ordering the operations
+        based on it's dependency graph and than delegating the execution
+        to proper executor (e.g. papermill to notebooks)
+        """
         timestamp = datetime.now().strftime('%m%d%H%M%S')
         pipeline_name = f'{pipeline.name}-{timestamp}'
 
         pipeline_work_dir = LocalPipelineProcessor._get_pipeline_work_dir(pipeline_name)
         self.log.info(f'Processing Pipeline : {pipeline.name} at {pipeline_work_dir}')
 
-        operations = LocalPipelineProcessor._get_operations_by_dependency(pipeline.operations)
+        # Sort operations based on dependency graph (topological order)
+        operations = LocalPipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
-            notebook = self.get_absolute_path(operation.filename)
-            if not os.path.isfile(notebook):
-                raise FileNotFoundError(f'Could not find {notebook}')
-
-            self._execute_file(pipeline_work_dir, notebook)
+            absolute_filename = self.get_absolute_path(operation.filename)
+            self._execute_file(pipeline_work_dir, absolute_filename)
 
         return PipelineProcessorResponse('', '', object_storage_path=pipeline_work_dir)
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')
 
-    def _execute_file(self, work_dir, filename):
-        notebook_dir = os.path.dirname(filename)
-        notebook_name = os.path.basename(filename)
+    def _execute_file(self, work_dir, filepath):
+        if not os.path.isfile(filepath):
+            raise FileNotFoundError(f'Could not find {filepath}')
+
+        notebook_dir = os.path.dirname(filepath)
+        notebook_name = os.path.basename(filepath)
         stdout = os.path.join(work_dir, f'{notebook_name}.out')
         stderr = os.path.join(work_dir, f'{notebook_name}.err')
 
-        self.log.debug(f'Processing: {filename}')
+        self.log.debug(f'Processing: {filepath}')
         with open(stdout, 'w') as stdout_file, open(stderr, 'w') as stderr_file:
             t0 = time.time()
             try:
                 # Try executing with configured python kernel
                 papermill.execute_notebook(
-                    input_path=filename,
-                    output_path=filename,
+                    input_path=filepath,
+                    output_path=filepath,
                     stdout_file=stdout_file,
                     stderr_file=stderr_file,
                     cwd=notebook_dir
@@ -82,20 +89,20 @@ class LocalPipelineProcessor(PipelineProcessor):
                 try:
                     # force default python kernel
                     papermill.execute_notebook(
-                        input_path=filename,
-                        output_path=filename,
+                        input_path=filepath,
+                        output_path=filepath,
                         stdout_file=stdout_file,
                         stderr_file=stderr_file,
                         cwd=notebook_dir,
                         kernel_name="python3"
                     )
                 except Exception as ex:
-                    self.log.error(f'Internal error executing {filename}')
-                    raise RuntimeError(f'Internal error executing {filename}.'
+                    self.log.error(f'Internal error executing {filepath}')
+                    raise RuntimeError(f'Internal error executing {filepath}.'
                                        f'Details available at {work_dir}') from ex
             except Exception as ex:
-                self.log.error(f'Internal error executing {filename}')
-                raise RuntimeError(f'Internal error executing {filename}.'
+                self.log.error(f'Internal error executing {filepath}')
+                raise RuntimeError(f'Internal error executing {filepath}.'
                                    f'Details available at {work_dir}') from ex
 
             t1 = time.time()
@@ -104,12 +111,18 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     @staticmethod
     def _get_pipeline_work_dir(pipeline_name: str) -> str:
+        """
+        Return a work_dir based on the pipeline name+timestamp relative to $TMPDIR/elyra
+        """
         log_dir = os.path.join(tempfile.tempdir, 'elyra', pipeline_name)
         os.makedirs(log_dir, mode=0o700, exist_ok=True)
         return log_dir
 
     @staticmethod
-    def _get_operations_by_dependency(operations_by_id: dict) -> list:
+    def _sort_operations(operations_by_id: dict) -> list:
+        """
+        Sort the list of operations based on its dependency graph
+        """
         ordered_operations = []
 
         for operation in operations_by_id.values():
@@ -124,7 +137,10 @@ class LocalPipelineProcessor(PipelineProcessor):
         return ordered_operations
 
     @staticmethod
-    def _visit_operation(operations_by_id, ordered_operations, operation):
+    def _visit_operation(operations_by_id: dict, ordered_operations: list, operation: Operation) -> None:
+        """
+        Helper method to the main sort operation function
+        """
         for parent_operation_id in operation.parent_operations:
             parent_operation = operations_by_id[parent_operation_id]
             if parent_operation not in ordered_operations:
