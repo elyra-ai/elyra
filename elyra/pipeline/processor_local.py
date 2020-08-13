@@ -20,7 +20,6 @@ import time
 
 from datetime import datetime
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
-from jupyter_client.kernelspec import NoSuchKernel
 
 
 class LocalPipelineProcessor(PipelineProcessor):
@@ -83,7 +82,7 @@ class LocalPipelineProcessor(PipelineProcessor):
                     stderr_file=stderr_file,
                     cwd=notebook_dir
                 )
-            except NoSuchKernel:
+            except KeyError:
                 # force default python kernel
                 papermill.execute_notebook(
                     input_path=filename,
