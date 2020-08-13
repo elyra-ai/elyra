@@ -118,7 +118,13 @@ test-server: install-server ## Run unit tests
 test-ui: lint-ui ## Run frontend tests
 	npm test
 
-test-ui-debug: lint-ui
+test-ui-integration: ## Run frontend cypress integration tests
+	npm run test:integration
+
+test-ui-unit: ## Run frontend jest unit tests
+	npm run test:unit
+
+test-ui-debug: ## Open cypress integration test debugger
 	npm run test:integration:debug
 
 test: test-server test-ui ## Run all tests

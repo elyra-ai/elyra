@@ -19,7 +19,6 @@ const func = require('@jupyterlab/testutils/lib/jest-config');
 const upstream = func('jupyterlab_go_to_definition', __dirname);
 
 const reuseFromUpstream = [
-  'moduleNameMapper',
   'setupFilesAfterEnv',
   'setupFiles',
   'moduleFileExtensions'
@@ -31,9 +30,14 @@ const local = {
   testRegex: `.*\.spec\.tsx?$`,
   transform: {
     '\\.(ts|tsx)?$': 'ts-jest',
-    '\\.(js|jsx)?$': '../../testutils/transform.js'
+    '\\.(js|jsx)?$': '../../testutils/transform.js',
+    '\\.svg$': 'jest-raw-loader'
   },
-  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)']
+  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)'],
+  moduleNameMapper: {
+    '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
+    '\\.(gif|ttf|eot)$': '@jupyterlab/testutils/lib/jest-file-mock.js'
+  }
 };
 
 for (const option of reuseFromUpstream) {
