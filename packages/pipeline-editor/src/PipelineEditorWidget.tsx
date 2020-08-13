@@ -1052,7 +1052,10 @@ export class PipelineEditor extends React.Component<
     }
 
     const runtimes = await PipelineService.getRuntimes(false);
-    const local_runtime: any = { name: 'local', display_name: 'local' };
+    const local_runtime: any = {
+      name: 'local',
+      display_name: 'Run in-place locally'
+    };
     runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
