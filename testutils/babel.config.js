@@ -13,5 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line no-undef
+/* global module, require */
 module.exports = require('@jupyterlab/testutils/lib/babel.config');
