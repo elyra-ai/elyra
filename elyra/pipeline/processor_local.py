@@ -55,7 +55,8 @@ class LocalPipelineProcessor(PipelineProcessor):
         operations = LocalPipelineProcessor._get_operations_by_dependency(pipeline.operations)
         for operation in operations:
             notebook = self.get_absolute_path(operation.filename)
-            assert os.path.isfile(notebook), "Invalid '{}'".format(notebook)
+            if not os.path.isfile(notebook):
+                raise FileNotFoundError(f'Could not find {notebook}')
 
             self._execute_file(pipeline_work_dir, notebook)
 
