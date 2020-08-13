@@ -67,6 +67,8 @@ And each metadata file looks like:
   "schema_name": "kfp",
   "metadata": {
     "api_endpoint": "http://weakish1.fyre.ibm.com:32488/pipeline",
+    "api_endpoint_username": "username@email.com",
+    "api_endpoint_password": "mypassword",
     "cos_endpoint": "http://weakish1.fyre.ibm.com:30427",
     "cos_username": "minio",
     "cos_password": "minio123",
@@ -133,6 +135,8 @@ if not runtime_configuration:
     raise RuntimeError("Runtime metadata not available.")
 
 api_endpoint = runtime_configuration.metadata['api_endpoint']
+api_endpoint_username = runtime_configuration.metadata['api_endpoint_username']
+api_endpoint_password = runtime_configuration.metadata['api_endpoint_password']
 cos_endpoint = runtime_configuration.metadata['cos_endpoint']
 cos_username = runtime_configuration.metadata['cos_username']
 cos_password = runtime_configuration.metadata['cos_password']
