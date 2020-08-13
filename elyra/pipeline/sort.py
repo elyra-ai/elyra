@@ -17,7 +17,7 @@
 from elyra.pipeline import Operation
 
 
-def get_operations_sorted_topologically(operations_by_id):
+def get_operations_sorted_topologically(operations_by_id: dict(Operation)):
     ordered_operations = []
     print('>>>')
     for operation in operations_by_id.values():

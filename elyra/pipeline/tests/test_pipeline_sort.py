@@ -16,8 +16,8 @@
 import os
 import json
 
-from elyra.pipeline import PipelineParser, Operation
-from elyra.pipeline.sort import *
+from elyra.pipeline import PipelineParser
+from elyra.pipeline.sort import get_operations_sorted_topologically
 
 
 def test_pipeline_execution_order():
