@@ -100,13 +100,13 @@ class LocalPipelineProcessor(PipelineProcessor):
             self.log.debug(f'Execution of {notebook_name} took {duration:.3f} secs.')
 
     @staticmethod
-    def _get_pipeline_work_dir(pipeline_name):
+    def _get_pipeline_work_dir(pipeline_name: str) -> str:
         log_dir = os.path.join(tempfile.tempdir, 'elyra', pipeline_name)
         os.makedirs(log_dir, mode=0o700, exist_ok=True)
         return log_dir
 
     @staticmethod
-    def _get_operations_by_dependency(operations_by_id):
+    def _get_operations_by_dependency(operations_by_id: dict) -> list:
         ordered_operations = []
 
         for operation in operations_by_id.values():
@@ -115,9 +115,8 @@ class LocalPipelineProcessor(PipelineProcessor):
                 if not operation.parent_operations:
                     ordered_operations.append(operation)
                 else:
-                    if operation not in ordered_operations:
-                        LocalPipelineProcessor.\
-                            _visit_operation(operations_by_id, ordered_operations, operation)
+                    LocalPipelineProcessor.\
+                        _visit_operation(operations_by_id, ordered_operations, operation)
 
         return ordered_operations
 
