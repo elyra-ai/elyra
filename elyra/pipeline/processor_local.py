@@ -49,7 +49,7 @@ class LocalPipelineProcessor(PipelineProcessor):
         timestamp = datetime.now().strftime('%m%d%H%M%S')
         pipeline_name = f'{pipeline.name}-{timestamp}'
 
-        pipeline_work_dir = self._get_pipeline_work_dir(pipeline_name)
+        pipeline_work_dir = LocalPipelineProcessor._get_pipeline_work_dir(pipeline_name)
         self.log.info(f'Processing Pipeline : {pipeline.name} at {pipeline_work_dir}')
 
         operations = LocalPipelineProcessor._get_operations_by_dependency(pipeline.operations)
@@ -64,12 +64,6 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')
-
-    def _get_pipeline_work_dir(self, pipeline_name):
-        log_dir = os.path.join(tempfile.tempdir, 'elyra', pipeline_name)
-        if not os.path.exists(log_dir):
-            os.mkdir(log_dir)
-        return log_dir
 
     def _execute_file(self, work_dir, filename):
         notebook_dir = os.path.dirname(filename)
@@ -105,6 +99,12 @@ class LocalPipelineProcessor(PipelineProcessor):
             t1 = time.time()
             duration = (t1 - t0)
             self.log.debug(f'Execution of {notebook_name} took {duration:.3f} secs.')
+
+    @staticmethod
+    def _get_pipeline_work_dir(pipeline_name):
+        log_dir = os.path.join(tempfile.tempdir, 'elyra', pipeline_name)
+        os.makedirs(log_dir, mode=0o700, exist_ok=True)
+        return log_dir
 
     @staticmethod
     def _get_operations_by_dependency(operations_by_id):
