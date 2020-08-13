@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line no-undef
+/* global module, require, __dirname */
 const func = require('@jupyterlab/testutils/lib/jest-config');
-// eslint-disable-next-line no-undef
 const upstream = func('jupyterlab_go_to_definition', __dirname);
 
 const reuseFromUpstream = [
@@ -42,5 +41,4 @@ for (const option of reuseFromUpstream) {
 
 local['setupFilesAfterEnv'].push('../../testutils/jest.setup.js');
 
-// eslint-disable-next-line no-undef
 module.exports = local;
