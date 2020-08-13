@@ -1051,7 +1051,7 @@ export class PipelineEditor extends React.Component<
       return;
     }
 
-    const runtimes = await PipelineService.getRuntimes();
+    const runtimes = await PipelineService.getRuntimes(false);
     const local_runtime: any = { name: 'local', display_name: 'local' };
     runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
 
