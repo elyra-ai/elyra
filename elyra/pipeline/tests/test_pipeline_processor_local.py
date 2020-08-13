@@ -13,28 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import json
-
 from elyra.pipeline import PipelineParser
-from elyra.pipeline.sort import get_operations_sorted_topologically
+from elyra.pipeline.processor_local import LocalPipelineProcessor
+from .util import _read_pipeline_resource
 
 
 def test_pipeline_execution_order():
+    expected_operation_names = ['a', 'b', 'c', 'd', 'e', 'f', 'x', 'y', 'g', 'h']
     pipeline_definitions = _read_pipeline_resource('pipeline_complex.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
-    sorted = get_operations_sorted_topologically(operations_by_id=pipeline.operations)
-    for o in sorted:
-        print(o.name)
+    operations = LocalPipelineProcessor.\
+        _get_operations_by_dependency(operations_by_id=pipeline.operations)
+
+    ordered_operation_names = _get_operation_names(operations)
+
+    assert ordered_operation_names == expected_operation_names
 
 
-def _read_pipeline_resource(pipeline_filename):
-    root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    pipeline_path = os.path.join(root, pipeline_filename)
+def _get_operation_names(operations):
+    operation_names = []
+    for operation in operations:
+        operation_names.append(operation.name)
 
-    with open(pipeline_path, 'r') as f:
-        pipeline_json = json.load(f)
-
-    return pipeline_json
+    return operation_names
