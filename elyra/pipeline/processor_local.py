@@ -36,10 +36,6 @@ class LocalPipelineProcessor(PipelineProcessor):
     """
     _type = 'local'
 
-    def __init__(self, root_dir=None):
-        super().__init__()
-        self._root_dir = root_dir
-
     @property
     def type(self):
         return self._type
