@@ -86,7 +86,7 @@ class PipelineProcessorManager(SingletonConfigurable):
 
 
 class PipelineProcessorResponse(object):
-    def __init__(self, run_url, object_storage_url, object_storage_path):
+    def __init__(self, run_url='', object_storage_url='', object_storage_path=''):
         self._run_url = run_url
         self._object_storage_url = object_storage_url
         self._object_storage_path = object_storage_path
