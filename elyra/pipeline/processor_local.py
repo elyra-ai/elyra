@@ -38,7 +38,8 @@ class LocalPipelineProcessor(PipelineProcessor):
     _type = 'local'
 
     def __init__(self, root_dir=None):
-        super().__init__(root_dir)
+        super().__init__()
+        self._root_dir = root_dir
 
     @property
     def type(self):
@@ -51,8 +52,8 @@ class LocalPipelineProcessor(PipelineProcessor):
         pipeline_work_dir = self._get_pipeline_work_dir(pipeline_name)
         self.log.info(f'Processing Pipeline : {pipeline.name} at {pipeline_work_dir}')
 
-        # TODO: consider ordering
-        for operation in pipeline.operations.values():
+        operations = LocalPipelineProcessor._get_operations_by_dependency(pipeline.operations)
+        for operation in operations:
             notebook = self.get_absolute_path(operation.filename)
             assert os.path.isfile(notebook), "Invalid '{}'".format(notebook)
 
@@ -108,13 +109,11 @@ class LocalPipelineProcessor(PipelineProcessor):
     @staticmethod
     def _get_operations_by_dependency(operations_by_id):
         ordered_operations = []
-        print('>>>')
+
         for operation in operations_by_id.values():
             if operation not in ordered_operations:
-                print(f'>>> processing operation [{operation.name}]')
                 # operation is a root node
                 if not operation.parent_operations:
-                    print(f'   adding root operation [{operation.name}] to ordered list')
                     ordered_operations.append(operation)
                 else:
                     if operation not in ordered_operations:
@@ -125,19 +124,9 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     @staticmethod
     def _visit_operation(operations_by_id, ordered_operations, operation):
-        list = ''
-        for o in ordered_operations:
-            list = list + ', ' + o.name
-        print(f'### ordered --> {list}')
-
-        print(f'   visiting operation [{operation.name}]')
-
         for parent_operation_id in operation.parent_operations:
             parent_operation = operations_by_id[parent_operation_id]
-            print(f'   processing parent operation [{parent_operation.name}] from operation [{operation.name}]')
             if parent_operation not in ordered_operations:
-                print(f'   processing parent operation [{parent_operation.name}]')
                 LocalPipelineProcessor.\
                     _visit_operation(operations_by_id, ordered_operations, parent_operation)
-        print(f'   adding [{operation.name}] to ordered operation list')
         ordered_operations.append(operation)

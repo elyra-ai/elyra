@@ -35,9 +35,9 @@ class PipelineProcessorRegistry(SingletonConfigurable):
                 processor_type = processor_instance.type
                 self.log.info('Registering processor "{}" with type -> {}'.format(processor, processor_type))
                 self.__processors[processor_type] = processor_instance
-            except Exception:
+            except Exception as err:
                 # log and ignore initialization errors
-                self.log.error('Error registering processor "{}"'.format(processor))
+                self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
     def add_processor(self, processor):
         self.log.debug('Registering processor {}'.format(processor.type))
