@@ -143,17 +143,23 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
 .toolbar-div {
   border-bottom-color: var(--ui-03);
 }
+.toolbar-div .bx--btn {
+  margin: 0;
+}
 .toolbar-div,
 .toolbar-item.default button,
-.toolbar-item.ghost button {
+.toolbar-item.ghost button,
+.toolbar-overflow-item button {
   background-color: var(--ui-background);
 }
 .toolbar-item.default button:hover,
-.toolbar-item.ghost button:hover {
+.toolbar-item.ghost button:hover,
+.toolbar-overflow-item button:hover {
   background-color: var(--ui-03);
 }
 .toolbar-item.default button:disabled:hover,
-.toolbar-item.ghost button:disabled:hover {
+.toolbar-item.ghost button:disabled:hover,
+.toolbar-overflow-item button:disabled:hover {
   background-color: var(--ui-01);
 }
 .toolbar-item-content.default {
@@ -162,7 +168,8 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
 .toolbar-item-content.disabled.default {
   color: var(--text-03);
 }
-.toolbar-divider {
+.toolbar-divider,
+.toolbar-overflow-item button {
   border-right-color: var(--ui-03);
 }
 .overflow-toolbar-divider {
