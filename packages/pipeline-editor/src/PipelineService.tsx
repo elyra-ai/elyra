@@ -96,10 +96,10 @@ export class PipelineService {
     let dialogBody;
     if (response['run_url']) {
       // pipeline executed remotely in a runtime of choice
-      dialogTitle = 'Pipeline submission to ' + runtimeName + ' succeeded';
+      dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
       dialogBody = (
         <p>
-          Check the status of your pipeline at{' '}
+          Check the status of your job at{' '}
           <a
             href={response['run_url']}
             target="_blank"
@@ -124,10 +124,10 @@ export class PipelineService {
       );
     } else {
       // pipeline executed in-place locally
-      dialogTitle = 'Pipeline execution in-place locally succeeded';
+      dialogTitle = 'Job execution in-place succeeded';
       dialogBody = (
         <p>
-          Your pipeline has been executed in-place locally.
+          Your job has been executed in-place.
           <br />
           The execution logs are in the {response['object_storage_path']}{' '}
           working directory.
