@@ -24,7 +24,7 @@ def valid_operation():
     return Operation(id='{{uuid}}',
                      type='execution_node',
                      classifier='execute-notebook-node',
-                     filename='{{filepath}}',
+                     filename='{{filename}}',
                      runtime_image='{{runtime_image}}',
                      env_vars=["var1=var1", "var2=var2"],
                      dependencies=["a.txt", "b.txt", "c.txt"],
@@ -219,12 +219,12 @@ def test_invalid_node_type():
 
 def test_missing_operation_filename():
     pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
-    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data'].pop('filepath')
+    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data'].pop('filename')
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_definitions)
 
-    assert "Missing field 'operation filepath" in str(e.value)
+    assert "Missing field 'operation filename" in str(e.value)
 
 
 def test_missing_operation_image():
