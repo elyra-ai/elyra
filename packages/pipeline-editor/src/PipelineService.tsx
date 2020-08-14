@@ -126,12 +126,7 @@ export class PipelineService {
       // pipeline executed in-place locally
       dialogTitle = 'Job execution in-place succeeded';
       dialogBody = (
-        <p>
-          Your job has been executed in-place.
-          <br />
-          The execution logs are in the {response['object_storage_path']}{' '}
-          working directory.
-        </p>
+        <p>Your job has been executed in-place in your local environment.</p>
       );
     }
 
