@@ -18,6 +18,7 @@ import kfp
 import os
 import tempfile
 import time
+import requests
 
 from datetime import datetime
 
@@ -26,6 +27,7 @@ from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from kfp_notebook.pipeline import NotebookOp
+from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
 from jinja2 import Environment, PackageLoader
 
@@ -45,6 +47,10 @@ class KfpPipelineProcessor(PipelineProcessor):
         api_endpoint = runtime_configuration.metadata['api_endpoint']
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
+
+        # TODO: try to encapsulate the info below
+        api_username = runtime_configuration.metadata['api_username']
+        api_password = runtime_configuration.metadata['api_password']
 
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
@@ -67,8 +73,18 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.info("Kubeflow Pipeline successfully compiled.")
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
 
-            # Upload the compiled pipeline and create an experiment and run
-            client = kfp.Client(host=api_endpoint)
+            # Upload the compiled pipeline, create an experiment and run
+
+            session_cookie = None
+
+            if api_username and api_password:
+                endpoint = api_endpoint.replace('/pipeline', '')
+                session_cookie = self._get_user_auth_session_cookie(endpoint,
+                                                                    api_username,
+                                                                    api_password)
+
+            client = kfp.Client(host=api_endpoint, cookies=session_cookie)
+
             try:
                 t0 = time.time()
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
@@ -77,6 +93,12 @@ class KfpPipelineProcessor(PipelineProcessor):
                                format(name=pipeline_name, duration=(t1 - t0)))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
+
+            except LocationValueError as lve:
+                if api_username:
+                    raise ValueError("Failure occurred uploading pipeline, check your credentials") from lve
+                else:
+                    raise lve
 
             self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
@@ -287,3 +309,19 @@ class KfpPipelineProcessor(PipelineProcessor):
         except BaseException as err:
             self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
             raise RuntimeError('Error retrieving runtime configuration for {}', err) from err
+
+    def _get_user_auth_session_cookie(self, url, username, password):
+        get_response = requests.get(url)
+
+        # auth request to kfp server with istio dex look like '/dex/auth/local?req=REQ_VALUE'
+        if 'auth' in get_response.url:
+            credentials = {'login': username, 'password': password}
+
+            # Authenticate user
+            session = requests.Session()
+            session.post(get_response.url, data=credentials)
+            cookie_auth_key = 'authservice_session'
+            cookie_auth_value = session.cookies.get(cookie_auth_key)
+
+            if cookie_auth_value:
+                return cookie_auth_key + '=' + cookie_auth_value
