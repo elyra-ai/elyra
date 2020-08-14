@@ -145,6 +145,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const openMetadataCommand: string = commandIDs.openMetadata;
     app.commands.addCommand(openMetadataCommand, {
+      label: (args: any) => args['label'],
       execute: (args: any) => {
         // Rank has been chosen somewhat arbitrarily to give priority
         // to the running sessions widget in the sidebar.

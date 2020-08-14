@@ -230,7 +230,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     palette.addItem({
       command: commandIDs.createNewPython,
       args: { isPalette: true },
-      category: 'Python Editor'
+      category: 'Elyra'
     });
   }
 };
