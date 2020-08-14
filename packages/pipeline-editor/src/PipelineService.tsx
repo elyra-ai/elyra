@@ -25,6 +25,11 @@ import * as React from 'react';
 
 import Utils from './utils';
 
+export const RUNTIMES_NAMESPACE = 'runtimes';
+export const KFP_SCHEMA = 'kfp';
+export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
+export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
+
 export class PipelineService {
   /**
    * Returns a list of external runtime configurations available as
