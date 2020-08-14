@@ -18,7 +18,8 @@ import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
 
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
+  ILabStatus
 } from '@jupyterlab/application';
 import { IThemeManager } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
@@ -41,11 +42,12 @@ const commandIDs = {
 const extension: JupyterFrontEndPlugin<void> = {
   id: METADATA_WIDGET_ID,
   autoStart: true,
-  requires: [IEditorServices],
+  requires: [IEditorServices, ILabStatus],
   optional: [IThemeManager],
   activate: (
     app: JupyterFrontEnd,
     editorServices: IEditorServices,
+    status: ILabStatus,
     themeManager: IThemeManager | null
   ) => {
     console.log('Elyra - metadata extension is activated!');
@@ -78,7 +80,8 @@ const extension: JupyterFrontEndPlugin<void> = {
 
       const metadataEditorWidget = new MetadataEditor({
         ...args,
-        editorServices
+        editorServices,
+        status
       });
       metadataEditorWidget.title.label = widgetLabel;
       metadataEditorWidget.id = widgetId;
