@@ -952,6 +952,7 @@ export class PipelineEditor extends React.Component<
    * returns null.
    */
   async validateProperties(node: any): Promise<string> {
+    const validationErrors: string[] = [];
     const notebookValidationErr = await this.app.serviceManager.contents
       .get(node.app_data.filename)
       .then((result: any): any => {
@@ -960,18 +961,16 @@ export class PipelineEditor extends React.Component<
       .catch((err: any): any => {
         return 'notebook does not exist';
       });
-    let validationError = notebookValidationErr;
+    if (notebookValidationErr) {
+      validationErrors.push(notebookValidationErr);
+    }
     if (
       node.app_data.runtime_image == null ||
       node.app_data.runtime_image == ''
     ) {
-      if (validationError != '') {
-        validationError += ' and no runtime image.';
-      } else {
-        validationError = 'no runtime image.';
-      }
+      validationErrors.push('no runtime image');
     }
-    return validationError;
+    return validationErrors.length == 0 ? null : validationErrors.join('\n');
   }
 
   /**
