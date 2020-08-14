@@ -127,7 +127,7 @@ Name of the bucket you want your artifacts in. If the bucket doesn't exist, it w
 Example: `test-bucket`
 
 NOTE: 
-If using an authentication restricted Kubeflow environment, you must enter your credentials in `api_username` and `api_password` fields 
+If using an authentication-restricted Kubeflow environment, you must enter your credentials in `api_username` and `api_password` fields 
 to allow pipeline uploads through Elyra.
 
 If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 

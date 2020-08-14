@@ -27,6 +27,7 @@ from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from kfp_notebook.pipeline import NotebookOp
+from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
 from jinja2 import Environment, PackageLoader
 
@@ -92,6 +93,12 @@ class KfpPipelineProcessor(PipelineProcessor):
                                format(name=pipeline_name, duration=(t1 - t0)))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
+
+            except LocationValueError as lve:
+                if api_username:
+                    raise ValueError("Failure occurred uploading pipeline, check your credentials") from lve
+                else:
+                    raise lve
 
             self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
