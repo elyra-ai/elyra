@@ -49,8 +49,8 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         # TODO: try to encapsulate the info below
-        api_username = runtime_configuration.metadata['api_username']
-        api_password = runtime_configuration.metadata['api_password']
+        api_username = runtime_configuration.metadata.get('api_username')
+        api_password = runtime_configuration.metadata.get('api_password')
 
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
