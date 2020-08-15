@@ -730,7 +730,7 @@ export class PipelineEditor extends React.Component<
 
   async handleExportPipeline(): Promise<void> {
     // Warn user if the pipeline has invalid nodes
-    const errorMessage = this.validatePipeline();
+    const errorMessage = await this.validatePipeline();
     if (errorMessage) {
       this.setState({
         showValidationError: true,
@@ -788,7 +788,7 @@ export class PipelineEditor extends React.Component<
   }
 
   async handleOpenPipeline(): Promise<void> {
-    this.widgetContext.ready.then(() => {
+    this.widgetContext.ready.then(async () => {
       let pipelineJson: any = this.widgetContext.model.toJSON();
       if (pipelineJson == null) {
         // creating new pipeline
@@ -854,7 +854,7 @@ export class PipelineEditor extends React.Component<
       }
       this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
       this.canvasController.setPipelineFlow(pipelineJson);
-      const errorMessage = this.validatePipeline();
+      const errorMessage = await this.validatePipeline();
       if (errorMessage) {
         this.setState({
           showValidationError: true,
@@ -875,7 +875,7 @@ export class PipelineEditor extends React.Component<
    *
    * @returns true if the node is valid.
    */
-  validateNode(node: any, pipelineId: string): boolean {
+  async validateNode(node: any, pipelineId: string): Promise<boolean> {
     let validNode = true;
     let indicatorXPos;
     let indicatorYPos;
@@ -886,8 +886,10 @@ export class PipelineEditor extends React.Component<
         node.subflow_ref.pipeline_id_ref
       )) {
         validNode =
-          this.validateNode(childNode, node.subflow_ref.pipeline_id_ref) &&
-          validNode;
+          (await this.validateNode(
+            childNode,
+            node.subflow_ref.pipeline_id_ref
+          )) && validNode;
       }
       if (validNode) {
         node.app_data.invalidNodeError = null;
@@ -900,7 +902,7 @@ export class PipelineEditor extends React.Component<
       indicatorXPos = 15;
       indicatorYPos = 0;
     } else if (node.type == 'execution_node') {
-      node.app_data.invalidNodeError = this.validateProperties(node);
+      node.app_data.invalidNodeError = await this.validateProperties(node);
       indicatorXPos = 20;
       indicatorYPos = 3;
     } else {
@@ -956,15 +958,26 @@ export class PipelineEditor extends React.Component<
    * if there are invalid properties. If there are none,
    * returns null.
    */
-  validateProperties(node: any): string {
+  async validateProperties(node: any): Promise<string> {
+    const validationErrors: string[] = [];
+    const notebookValidationErr = await this.app.serviceManager.contents
+      .get(node.app_data.filename)
+      .then((result: any): any => {
+        return null;
+      })
+      .catch((err: any): any => {
+        return 'notebook does not exist';
+      });
+    if (notebookValidationErr) {
+      validationErrors.push(notebookValidationErr);
+    }
     if (
       node.app_data.runtime_image == null ||
       node.app_data.runtime_image == ''
     ) {
-      return 'no runtime image.';
-    } else {
-      return null;
+      validationErrors.push('no runtime image');
     }
+    return validationErrors.length == 0 ? null : validationErrors.join('\n');
   }
 
   /**
@@ -974,12 +987,13 @@ export class PipelineEditor extends React.Component<
    * @returns null if all nodes are valid, error message if
    * invalid.
    */
-  validateAllNodes(): string {
+  async validateAllNodes(): Promise<string> {
     let errorMessage = null;
     // Reset any existing flagged nodes' style
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     for (const node of this.canvasController.getNodes(pipelineId)) {
-      if (!this.validateNode(node, pipelineId)) {
+      const validNode = await this.validateNode(node, pipelineId);
+      if (!validNode) {
         errorMessage = 'Some nodes have missing or invalid properties. ';
       }
     }
@@ -1027,8 +1041,8 @@ export class PipelineEditor extends React.Component<
    *
    * @returns null if pipeline is valid, error message if not.
    */
-  validatePipeline(): string {
-    const nodeErrorMessage = this.validateAllNodes();
+  async validatePipeline(): Promise<string> {
+    const nodeErrorMessage = await this.validateAllNodes();
     const linkErrorMessage = this.validateAllLinks();
     if (nodeErrorMessage || linkErrorMessage) {
       return (
@@ -1043,7 +1057,7 @@ export class PipelineEditor extends React.Component<
 
   async handleRunPipeline(): Promise<void> {
     // Check that all nodes are valid
-    const errorMessage = this.validatePipeline();
+    const errorMessage = await this.validatePipeline();
     if (errorMessage) {
       this.setState({
         showValidationError: true,
