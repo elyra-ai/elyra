@@ -90,14 +90,14 @@ class LocalPipelineProcessor(PipelineProcessor):
         ordered_operations = []
 
         for operation in operations_by_id.values():
-            LocalPipelineProcessor._sort_operations_dependency(operations_by_id,
-                                                               ordered_operations,
-                                                               operation)
+            LocalPipelineProcessor._sort_operation_dependencies(operations_by_id,
+                                                                ordered_operations,
+                                                                operation)
 
         return ordered_operations
 
     @staticmethod
-    def _sort_operations_dependency(operations_by_id: dict, ordered_operations: list, operation: Operation) -> None:
+    def _sort_operation_dependencies(operations_by_id: dict, ordered_operations: list, operation: Operation) -> None:
         """
         Helper method to the main sort operation function
         """
