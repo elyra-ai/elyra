@@ -107,9 +107,9 @@ class LocalPipelineProcessor(PipelineProcessor):
             for parent_operation_id in operation.parent_operations:
                 parent_operation = operations_by_id[parent_operation_id]
                 if parent_operation not in ordered_operations:
-                    LocalPipelineProcessor._visit_operation(operations_by_id,
-                                                            ordered_operations,
-                                                            parent_operation)
+                    LocalPipelineProcessor._sort_operation_dependencies(operations_by_id,
+                                                                        ordered_operations,
+                                                                        parent_operation)
             ordered_operations.append(operation)
 
     def _get_envs(self, operation: Operation) -> Dict:
