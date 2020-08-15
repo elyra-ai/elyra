@@ -742,6 +742,7 @@ export class PipelineEditor extends React.Component<
       return;
     }
     const runtimes = await PipelineService.getRuntimes();
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
       body: new PipelineExportDialog({ runtimes }),
@@ -771,10 +772,12 @@ export class PipelineEditor extends React.Component<
 
     const overwrite = dialogResult.value.overwrite;
 
+    const runtime_config = dialogResult.value.runtime_config;
+    const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
+
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-      dialogResult.value.runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
 
     PipelineService.exportPipeline(
       pipelineFlow,
@@ -1052,7 +1055,13 @@ export class PipelineEditor extends React.Component<
       return;
     }
 
-    const runtimes = await PipelineService.getRuntimes();
+    const runtimes = await PipelineService.getRuntimes(false);
+    const local_runtime: any = {
+      name: 'local',
+      display_name: 'Run in-place locally'
+    };
+    runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
       body: new PipelineSubmissionDialog({ runtimes }),
@@ -1070,13 +1079,14 @@ export class PipelineEditor extends React.Component<
     // prepare pipeline submission details
     const pipelineFlow = this.canvasController.getPipelineFlow();
 
+    const runtime_config = dialogResult.value.runtime_config;
+    const runtime =
+      PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
+
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
-
-    // TODO: Be more flexible and remove hardcoded runtime type
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-      dialogResult.value.runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
 
     PipelineService.submitPipeline(
       pipelineFlow,

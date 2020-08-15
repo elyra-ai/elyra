@@ -70,6 +70,15 @@ export class PipelineService {
   }
 
   /**
+   * The runtime name is currently based on the schema name (one schema per runtime)
+   * @param name
+   * @param metadataArr
+   */
+  static getRuntimeName(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)['schema_name'];
+  }
+
+  /**
    * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
    *
    * @param pipeline
@@ -88,28 +97,44 @@ export class PipelineService {
       true
     );
 
-    const dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
-    const dialogBody = (
-      <p>
-        Check the status of your pipeline at{' '}
-        <a href={response['run_url']} target="_blank" rel="noopener noreferrer">
-          Run Details.
-        </a>
-        <br />
-        The results and outputs are in the {
-          response['object_storage_path']
-        }{' '}
-        working directory in{' '}
-        <a
-          href={response['object_storage_url']}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          object storage
-        </a>
-        .
-      </p>
-    );
+    let dialogTitle;
+    let dialogBody;
+    if (response['run_url']) {
+      // pipeline executed remotely in a runtime of choice
+      dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
+      dialogBody = (
+        <p>
+          Check the status of your job at{' '}
+          <a
+            href={response['run_url']}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Run Details.
+          </a>
+          <br />
+          The results and outputs are in the {
+            response['object_storage_path']
+          }{' '}
+          working directory in{' '}
+          <a
+            href={response['object_storage_url']}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            object storage
+          </a>
+          .
+        </p>
+      );
+    } else {
+      // pipeline executed in-place locally
+      dialogTitle = 'Job execution succeeded';
+      dialogBody = (
+        <p>Your job has been executed in-place in your local environment.</p>
+      );
+    }
+
     return showDialog({
       title: dialogTitle,
       body: dialogBody,

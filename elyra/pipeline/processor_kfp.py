@@ -21,15 +21,14 @@ import time
 import requests
 
 from datetime import datetime
-
 from elyra.metadata import MetadataManager
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
+from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
 from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
-from jinja2 import Environment, PackageLoader
 
 
 class KfpPipelineProcessor(PipelineProcessor):
@@ -109,9 +108,9 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.info("Starting Kubeflow Pipeline Run...")
 
             return PipelineProcessorResponse(
-                run_url="{}/#/runs/details/{}".format(api_endpoint, run.id),
-                object_storage_url="{}".format(cos_endpoint),
-                object_storage_path="/{}/{}".format(cos_bucket, pipeline_name),
+                run_url=f'{api_endpoint}/#/runs/details/{run.id}',
+                object_storage_url=f'{cos_endpoint}',
+                object_storage_path=f'/{cos_bucket}/{pipeline_name}',
             )
 
         return None
