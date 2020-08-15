@@ -90,27 +90,27 @@ class LocalPipelineProcessor(PipelineProcessor):
         ordered_operations = []
 
         for operation in operations_by_id.values():
-            if operation not in ordered_operations:
-                # operation is a root node
-                if not operation.parent_operations:
-                    ordered_operations.append(operation)
-                else:
-                    LocalPipelineProcessor.\
-                        _visit_operation(operations_by_id, ordered_operations, operation)
+            LocalPipelineProcessor._sort_operations_dependency(operations_by_id,
+                                                               ordered_operations,
+                                                               operation)
 
         return ordered_operations
 
     @staticmethod
-    def _visit_operation(operations_by_id: dict, ordered_operations: list, operation: Operation) -> None:
+    def _sort_operations_dependency(operations_by_id: dict, ordered_operations: list, operation: Operation) -> None:
         """
         Helper method to the main sort operation function
         """
-        for parent_operation_id in operation.parent_operations:
-            parent_operation = operations_by_id[parent_operation_id]
-            if parent_operation not in ordered_operations:
-                LocalPipelineProcessor.\
-                    _visit_operation(operations_by_id, ordered_operations, parent_operation)
-        ordered_operations.append(operation)
+        # Optimization: check if already processed
+        if operation not in ordered_operations:
+            # process each of the dependencies that needs to be executed first
+            for parent_operation_id in operation.parent_operations:
+                parent_operation = operations_by_id[parent_operation_id]
+                if parent_operation not in ordered_operations:
+                    LocalPipelineProcessor._visit_operation(operations_by_id,
+                                                            ordered_operations,
+                                                            parent_operation)
+            ordered_operations.append(operation)
 
     def _get_envs(self, operation: Operation) -> Dict:
         """Operation stores environment variables in a list of name=value pairs, while
