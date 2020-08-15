@@ -18,9 +18,9 @@ from elyra.pipeline.processor_local import LocalPipelineProcessor
 from .util import _read_pipeline_resource
 
 
-def test_pipeline_execution_order():
+def test_pipeline_execution_order_in_complex_pipeline():
     expected_operation_names = ['a', 'b', 'c', 'd', 'e', 'f', 'x', 'y', 'g', 'h']
-    pipeline_definitions = _read_pipeline_resource('pipeline_complex.json')
+    pipeline_definitions = _read_pipeline_resource('pipeline_dependency_complex.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
@@ -32,11 +32,26 @@ def test_pipeline_execution_order():
     assert ordered_operation_names == expected_operation_names
 
 
+def test_pipeline_execution_order_in_simple_pipeline():
+    expected_operation_names = ['f', 'a', 'c', 'g']
+    pipeline_definitions = _read_pipeline_resource('pipeline_dependency_simple.json')
+
+    pipeline = PipelineParser().parse(pipeline_definitions)
+
+    operations = LocalPipelineProcessor.\
+        _sort_operations(operations_by_id=pipeline.operations)
+
+    ordered_operation_names = _get_operation_names(operations)
+
+    print(ordered_operation_names)
+    assert ordered_operation_names == expected_operation_names
+
+
 def test_pipeline_get_envs():
 
     # Ensure pipeline operation env lists are properly converted to dictionaries.
 
-    pipeline_definitions = _read_pipeline_resource('pipeline_complex.json')
+    pipeline_definitions = _read_pipeline_resource('pipeline_dependency_complex.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
