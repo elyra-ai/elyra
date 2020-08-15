@@ -15,7 +15,7 @@
           "app_data": {
             "filename": "sandbox/a.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=a"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "a",
@@ -61,7 +61,7 @@
           "app_data": {
             "filename": "sandbox/b.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=b"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "b",
@@ -114,7 +114,7 @@
           "app_data": {
             "filename": "sandbox/c.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=c"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "c",
@@ -167,7 +167,7 @@
           "app_data": {
             "filename": "sandbox/d.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=d"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "d",
@@ -220,7 +220,7 @@
           "app_data": {
             "filename": "sandbox/e.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=e"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "e",
@@ -273,7 +273,7 @@
           "app_data": {
             "filename": "sandbox/f.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=f"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "f",
@@ -326,7 +326,7 @@
           "app_data": {
             "filename": "sandbox/g.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=g"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "g",
@@ -384,7 +384,7 @@
           "app_data": {
             "filename": "sandbox/x.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=x"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "x",
@@ -430,7 +430,7 @@
           "app_data": {
             "filename": "sandbox/y.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=y"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "y",
@@ -483,7 +483,7 @@
           "app_data": {
             "filename": "sandbox/h.ipynb",
             "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": [],
+            "env_vars": ["OP_NAME=h"],
             "include_subdirectories": false,
             "ui_data": {
               "label": "h",

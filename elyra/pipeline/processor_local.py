@@ -14,10 +14,11 @@
 # limitations under the License.
 #
 import os
-import papermill
+import subprocess
 import time
 
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
+from typing import Dict
 
 
 class LocalPipelineProcessor(PipelineProcessor):
@@ -51,15 +52,15 @@ class LocalPipelineProcessor(PipelineProcessor):
         # Sort operations based on dependency graph (topological order)
         operations = LocalPipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
-            absolute_filename = self.get_absolute_path(operation.filename)
-            self._execute_file(absolute_filename)
+            self._execute_operation(operation)
 
         return PipelineProcessorResponse('', '', '')
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')
 
-    def _execute_file(self, filepath):
+    def _execute_operation(self, operation: Operation) -> None:
+        filepath = self.get_absolute_path(operation.filename)
         if not os.path.isfile(filepath):
             raise FileNotFoundError(f'Could not find {filepath}')
 
@@ -68,26 +69,11 @@ class LocalPipelineProcessor(PipelineProcessor):
 
         self.log.debug(f'Processing: {filepath}')
 
+        argv = ['papermill', filepath, filepath, '--cwd', notebook_dir]
+        envs = self._get_envs(operation)
         t0 = time.time()
         try:
-            # Try executing with configured python kernel
-            papermill.execute_notebook(
-                input_path=filepath,
-                output_path=filepath,
-                cwd=notebook_dir
-            )
-        except KeyError:
-            try:
-                # force default python kernel
-                papermill.execute_notebook(
-                    input_path=filepath,
-                    output_path=filepath,
-                    cwd=notebook_dir,
-                    kernel_name="python3"
-                )
-            except Exception as ex:
-                self.log.error(f'Internal error executing {filepath} with [python3] kernel')
-                raise RuntimeError(f'Internal error executing {filepath} with [python3] kernel') from ex
+            subprocess.run(argv, env=envs, check=True)
         except Exception as ex:
             self.log.error(f'Internal error executing {filepath}')
             raise RuntimeError(f'Internal error executing {filepath}') from ex
@@ -125,3 +111,18 @@ class LocalPipelineProcessor(PipelineProcessor):
                 LocalPipelineProcessor.\
                     _visit_operation(operations_by_id, ordered_operations, parent_operation)
         ordered_operations.append(operation)
+
+    def _get_envs(self, operation: Operation) -> Dict:
+        """Operation stores environment variables in a list of name=value pairs, while
+           subprocess.run() requires a dictionary - so we must convert.  If no envs are
+           configured on the Operation, the existing env is returned, otherwise envs
+           configured on the Operation are overlayed on the existing env.
+        """
+        envs = os.environ.copy()
+        for nv in operation.env_vars:
+            nv_pair = nv.split("=")
+            if len(nv_pair) == 2:
+                envs[nv_pair[0]] = nv_pair[1]
+            else:
+                self.log.warning(f"Could not process environment variable entry `{nv}`, skipping...")
+        return envs

@@ -32,6 +32,20 @@ def test_pipeline_execution_order():
     assert ordered_operation_names == expected_operation_names
 
 
+def test_pipeline_get_envs():
+
+    # Ensure pipeline operation env lists are properly converted to dictionaries.
+
+    pipeline_definitions = _read_pipeline_resource('pipeline_complex.json')
+
+    pipeline = PipelineParser().parse(pipeline_definitions)
+
+    local_processor = LocalPipelineProcessor()
+    for op in pipeline.operations.values():
+        op_envs = local_processor._get_envs(op)
+        assert op_envs['OP_NAME'] == op.name
+
+
 def _get_operation_names(operations):
     operation_names = []
     for operation in operations:
