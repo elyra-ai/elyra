@@ -43,7 +43,6 @@ def test_pipeline_execution_order_in_simple_pipeline():
 
     ordered_operation_names = _get_operation_names(operations)
 
-    print(ordered_operation_names)
     assert ordered_operation_names == expected_operation_names
 
 
