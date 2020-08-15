@@ -128,6 +128,7 @@ COS_BUCKET - string - [A-Z, a-z, -] - This will be the bucket that your artifact
 CRIO_RUNTIME - boolean - [true | false] - Set this to true if deploying ODH on OpenShift or when you container orchestrator 
                                           is using CRI-O as the container runtime.
 ``` 
+![Elyra](../images/odh-deploy-set-spawner-options.png)
 
 ## Additional Resources and Documentation
 [ODH Installation Docs](https://opendatahub.io/docs/getting-started/quick-installation.html)  
