@@ -23,6 +23,8 @@ def test_pipeline_execution_order_in_complex_pipeline():
     pipeline_definitions = _read_pipeline_resource('pipeline_dependency_complex.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
+    current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
+    assert current_ordered_operation_names != expected_operation_names
 
     operations = LocalPipelineProcessor.\
         _sort_operations(operations_by_id=pipeline.operations)
@@ -37,6 +39,8 @@ def test_pipeline_execution_order_in_simple_pipeline():
     pipeline_definitions = _read_pipeline_resource('pipeline_dependency_simple.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
+    current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
+    assert current_ordered_operation_names != expected_operation_names
 
     operations = LocalPipelineProcessor.\
         _sort_operations(operations_by_id=pipeline.operations)
