@@ -26,6 +26,7 @@ limitations under the License.
 AI Pipelines currently only support `Kubeflow Pipelines` with plans to expand support for other runtimes
 in the future.
 
+#### Using Command Line Interface
 To configure runtime metadata for `Kubeflow Pipelines` use the `elyra-metadata install runtimes` command providing appropriate options.  This command will create a json file in your local Jupyter Data directory under its `metadata/runtimes` subdirectories.  If not known, the Jupyter Data directory can be discovered by issuing a ```jupyter --data-dir```
 command on your terminal.
 
@@ -35,6 +36,8 @@ elyra-metadata install runtimes --schema_name=kfp \
        --name=my_kfp \
        --display_name="My Kubeflow Pipeline Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+       --api_username=username@email.com \
+       --api_password=mypassword \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
@@ -47,6 +50,8 @@ This produces the following content in `my_kfp.json`:
     "schema_name": "kfp",
     "metadata": {
         "api_endpoint": "https://kubernetes-service.ibm.com/pipeline",
+        "api_username": "username@email.com",
+        "api_password": "mypassword",
         "cos_endpoint": "http://minio-service.kubeflow:9000",
         "cos_username": "minio",
         "cos_password": "minio123",
@@ -75,12 +80,31 @@ elyra-metadata remove runtimes --name=my_kfp
 `Elyra` depends on its runtime metadata to determine how to communicate with your KubeFlow Pipelines
 Server and with your chosen Object Store to store artifacts.   
 
+#### Using Elyra Runtimes User Interface
+Elyra also has UI support to accessing runtime metadata directly in JupyterLab, 
+where user can easily view, add, edit or remove runtimes configurations, as an option to the CLI method described above. 
+It can be accessed from the Runtimes icon on JupyterLab's left tab bar, which opens a side panel widget displaying available pipeline runtimes.
+Click on the `+` button to add a new pipeline runtime, or on the edit icon to edit an existing configuration. 
+These actions will open the Metadata Editor as a new tab in the main area, where runtime metadata parameters can be edited 
+and will also be saved in json format in `[JUPYTER DATA DIR]/metadata/runtimes/`.
+![Runtimes UI](../images/runtimes-ui.png)
+
 #### Parameters
 
 ##### api_endpoint
 The KubeFlow Pipelines API Endpoint you wish to run your Pipeline.
 
 Example: `https://kubernetes-service.ibm.com/pipeline`
+
+##### api_username
+Username used to access your KubeFlow Pipelines API endpoint. SEE NOTE.
+
+Example: `username@email.com`
+
+##### api_password
+Password used to access your KubeFlow Pipelines API endpoint. SEE NOTE.
+
+Example: `mypassword`
 
 ##### cos_endpoint
 This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a kubernetes cluster (Minio), you can use the kubernetes local DNS address.
@@ -102,6 +126,10 @@ Name of the bucket you want your artifacts in. If the bucket doesn't exist, it w
 
 Example: `test-bucket`
 
-NOTE: If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 
+NOTE: 
+If using an authentication-restricted Kubeflow environment, you must enter your credentials in `api_username` and `api_password` fields 
+to allow pipeline uploads through Elyra.
+
+If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
 Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.

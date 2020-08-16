@@ -24,10 +24,11 @@ import {
 } from '@elyra/metadata-common';
 import React from 'react';
 
-import { PipelineService } from './PipelineService';
-
-export const RUNTIMES_NAMESPACE = 'runtimes';
-export const KFP_SCHEMA = 'kfp';
+import {
+  PipelineService,
+  KFP_SCHEMA,
+  RUNTIMES_NAMESPACE
+} from './PipelineService';
 
 /**
  * A React Component for displaying the runtimes list.

@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import json
 import pytest
 
-
 from elyra.pipeline import PipelineParser, Operation
+from .util import _read_pipeline_resource
 
 
 @pytest.fixture
@@ -237,13 +235,3 @@ def test_missing_operation_image():
         PipelineParser().parse(pipeline_definitions)
 
     assert "Missing field 'operation runtime image'" in str(e.value)
-
-
-def _read_pipeline_resource(pipeline_filename):
-    root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    pipeline_path = os.path.join(root, pipeline_filename)
-
-    with open(pipeline_path, 'r') as f:
-        pipeline_json = json.load(f)
-
-    return pipeline_json

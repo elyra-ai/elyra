@@ -19,11 +19,13 @@ import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
 import { FrontendServices, IDictionary } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
 
+import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { InputGroup, Button } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
+import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
@@ -37,6 +39,7 @@ interface IMetadataEditorProps {
   name?: string;
   onSave: () => void;
   editorServices: IEditorServices | null;
+  status: ILabStatus;
 }
 
 /**
@@ -46,12 +49,14 @@ export class MetadataEditor extends ReactWidget {
   onSave: () => void;
   displayName: string;
   editorServices: IEditorServices;
+  status: ILabStatus;
   editor: CodeEditor.IEditor;
   schemaName: string;
   schemaDisplayName: string;
   namespace: string;
   name: string;
   dirty: boolean;
+  clearDirty: IDisposable;
   requiredFields: string[];
   invalidForm: boolean;
   showSecure: IDictionary<boolean>;
@@ -64,6 +69,8 @@ export class MetadataEditor extends ReactWidget {
   constructor(props: IMetadataEditorProps) {
     super();
     this.editorServices = props.editorServices;
+    this.status = props.status;
+    this.clearDirty = null;
     this.namespace = props.namespace;
     this.schemaName = props.schema;
     this.onSave = props.onSave;
@@ -231,6 +238,12 @@ export class MetadataEditor extends ReactWidget {
 
   handleDirtyState(dirty: boolean): void {
     this.dirty = dirty;
+    if (this.dirty && !this.clearDirty) {
+      this.clearDirty = this.status.setDirty();
+    } else if (!this.dirty && this.clearDirty) {
+      this.clearDirty.dispose();
+      this.clearDirty = null;
+    }
     if (this.dirty && !this.title.className.includes(DIRTY_CLASS)) {
       this.title.className += DIRTY_CLASS;
     } else if (!this.dirty) {
