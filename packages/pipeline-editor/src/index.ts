@@ -78,7 +78,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       defaultFor: [PIPELINE],
       shell: app.shell,
       commands: app.commands,
-      browserFactory: browserFactory
+      browserFactory: browserFactory,
+      serviceManager: app.serviceManager
     });
 
     // Add the default behavior of opening the widget for .pipeline files

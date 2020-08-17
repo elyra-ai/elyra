@@ -111,7 +111,8 @@ describe('@elyra/pipeline-editor', () => {
         defaultFor: [PIPELINE],
         shell: new LabShell(),
         commands: new CommandRegistry(),
-        browserFactory: browserFactory
+        browserFactory: browserFactory,
+        serviceManager: services
       });
       expect(pipelineEditorFactory).toBeInstanceOf(PipelineEditorFactory);
     });
@@ -137,6 +138,7 @@ describe('@elyra/pipeline-editor', () => {
           commands={pipelineEditorWidget.commands}
           browserFactory={pipelineEditorWidget.browserFactory}
           widgetContext={pipelineEditorWidget.context}
+          serviceManager={pipelineEditorWidget.serviceManager}
         />
       );
       expect(pipelineEditor.state()).toEqual({

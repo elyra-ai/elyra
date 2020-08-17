@@ -43,6 +43,7 @@ import {
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { NotebookPanel } from '@jupyterlab/notebook';
+import { ServiceManager } from '@jupyterlab/services';
 import { notebookIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
@@ -125,6 +126,7 @@ export class PipelineEditorWidget extends ReactWidget {
   commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
   context: DocumentRegistry.Context;
+  serviceManager: ServiceManager;
 
   constructor(props: any) {
     super(props);
@@ -132,6 +134,7 @@ export class PipelineEditorWidget extends ReactWidget {
     this.commands = props.commands;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
+    this.serviceManager = props.serviceManager;
   }
 
   render(): React.ReactElement {
@@ -141,6 +144,7 @@ export class PipelineEditorWidget extends ReactWidget {
         commands={this.commands}
         browserFactory={this.browserFactory}
         widgetContext={this.context}
+        serviceManager={this.serviceManager}
       />
     );
   }
@@ -158,6 +162,7 @@ export namespace PipelineEditor {
     commands: CommandRegistry;
     browserFactory: IFileBrowserFactory;
     widgetContext: DocumentRegistry.Context;
+    serviceManager: ServiceManager;
   }
 
   /**
@@ -201,6 +206,7 @@ export class PipelineEditor extends React.Component<
   shell: JupyterFrontEnd.IShell;
   commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
+  serviceManager: ServiceManager;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
   position = 10;
@@ -212,6 +218,7 @@ export class PipelineEditor extends React.Component<
     this.shell = props.shell;
     this.commands = props.commands;
     this.browserFactory = props.browserFactory;
+    this.serviceManager = props.serviceManager;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
@@ -967,7 +974,7 @@ export class PipelineEditor extends React.Component<
    */
   async validateProperties(node: any): Promise<string> {
     const validationErrors: string[] = [];
-    const notebookValidationErr = await this.app.serviceManager.contents
+    const notebookValidationErr = await this.serviceManager.contents
       .get(node.app_data.filename)
       .then((result: any): any => {
         return null;
@@ -1216,12 +1223,14 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   shell: JupyterFrontEnd.IShell;
   commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
+  serviceManager: ServiceManager;
 
   constructor(options: any) {
     super(options);
     this.shell = options.shell;
     this.commands = options.commands;
     this.browserFactory = options.browserFactory;
+    this.serviceManager = options.serviceManager;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
