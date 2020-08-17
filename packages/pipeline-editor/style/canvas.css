@@ -326,7 +326,6 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .bx--modal-content .bx--btn--tertiary {
   border-color: var(--md-blue-500);
   color: var(--md-blue-500);
-  margin-top: 0.6rem;
 }
 .bx--modal-content .bx--btn--tertiary:hover {
   background: var(--md-blue-500);

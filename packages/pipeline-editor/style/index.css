@@ -125,3 +125,6 @@ td {
   justify-content: end;
   align-items: flex-end;
 }
+[data-id='properties-nodeBrowseFileAction'] .bx--btn--tertiary {
+  margin-bottom: 0.6rem;
+}
