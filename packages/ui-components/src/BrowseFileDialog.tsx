@@ -24,6 +24,7 @@ import {
 import { Widget, PanelLayout } from '@lumino/widgets';
 
 const BROWSE_FILE_CLASS = 'elyra-browseFileDialog';
+const BROWSE_FILE_OPEN_CLASS = 'elyra-browseFileDialog-open';
 
 export interface IBrowseFileDialogOptions {
   filter?: (model: any) => boolean;
@@ -140,6 +141,12 @@ export const showBrowseFileDialog = (
   });
 
   dialog.addClass(BROWSE_FILE_CLASS);
+  document.body.className += ` ${BROWSE_FILE_OPEN_CLASS}`;
 
-  return dialog.launch();
+  return dialog.launch().then((result: any) => {
+    document.body.className = document.body.className
+      .replace(BROWSE_FILE_OPEN_CLASS, '')
+      .trim();
+    return result;
+  });
 };

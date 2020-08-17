@@ -131,3 +131,7 @@ td {
   right: 0;
   top: 0.6rem;
 }
+
+body.elyra-browseFileDialog-open .properties-modal {
+  display: none;
+}
