@@ -115,9 +115,7 @@ watch: ## Watch packages. For use alongside jupyter lab --watch
 test-server: install-server ## Run unit tests
 	pytest -v elyra
 
-test-ui: lint-ui ## Run frontend tests
-	make test-ui-unit
-	make test-ui-integration
+test-ui: lint-ui make test-ui-unit make test-ui-integration ## Run frontend tests
 
 test-ui-integration: ## Run frontend cypress integration tests
 	npm run test:integration
