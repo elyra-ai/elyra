@@ -116,7 +116,8 @@ test-server: install-server ## Run unit tests
 	pytest -v elyra
 
 test-ui: lint-ui ## Run frontend tests
-	npm test
+	make test-ui-unit
+	make test-ui-integration
 
 test-ui-integration: ## Run frontend cypress integration tests
 	npm run test:integration
