@@ -436,7 +436,20 @@ export class MetadataEditor extends ReactWidget {
 
   render(): React.ReactElement {
     const inputElements = [];
+    let currentCategory = null;
     for (const schemaProperty in this.schema) {
+      if (
+        this.schema[schemaProperty].uihints &&
+        this.schema[schemaProperty].uihints.category != currentCategory
+      ) {
+        currentCategory = this.schema[schemaProperty].uihints.category;
+        inputElements.push(
+          <h4 style={{ flexBasis: '100%', paddingBottom: '10px' }}>
+            {' '}
+            {currentCategory}{' '}
+          </h4>
+        );
+      }
       inputElements.push(this.renderField(schemaProperty));
     }
     let headerText = `Edit "${this.displayName}"`;
