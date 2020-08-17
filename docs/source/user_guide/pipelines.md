@@ -99,5 +99,5 @@ At this time, the only recourse, should it not be possible to fix the relative l
 ## Pipeline Validation
 Pipeline validation occurs when pipeline files are opened, as well as when pipelines are run or exported. Pipelines are validated for the following:
 - **Circular References** - Circular references cannot exist in any pipeline because it would create an infinite loop. 
-- **Notebook Existence** - The notebook for a given node must able to be located. 
+- **Notebook Existence** - The notebook for a given node must exist. 
 - **Incomplete Properties** - Required fields in a given nodes' properties must be present.
