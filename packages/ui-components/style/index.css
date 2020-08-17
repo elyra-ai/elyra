@@ -174,3 +174,8 @@
   word-wrap: break-word;
   z-index: 999;
 }
+
+.elyra-browseFileDialog .jp-Dialog-content {
+  height: 400px;
+  width: 600px;
+}

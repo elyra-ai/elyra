@@ -119,3 +119,8 @@ td {
   padding-left: 10px;
   padding-right: 10px;
 }
+
+[data-id='properties-nodeBrowseFileAction'] {
+  flex-direction: row;
+  justify-content: end;
+}
