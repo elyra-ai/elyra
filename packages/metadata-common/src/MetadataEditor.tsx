@@ -19,11 +19,13 @@ import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
 import { FrontendServices, IDictionary } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
 
+import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { InputGroup, Button } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
+import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
@@ -37,6 +39,7 @@ interface IMetadataEditorProps {
   name?: string;
   onSave: () => void;
   editorServices: IEditorServices | null;
+  status: ILabStatus;
 }
 
 /**
@@ -46,15 +49,18 @@ export class MetadataEditor extends ReactWidget {
   onSave: () => void;
   displayName: string;
   editorServices: IEditorServices;
+  status: ILabStatus;
   editor: CodeEditor.IEditor;
   schemaName: string;
   schemaDisplayName: string;
   namespace: string;
   name: string;
   dirty: boolean;
+  clearDirty: IDisposable;
   requiredFields: string[];
   invalidForm: boolean;
   showSecure: IDictionary<boolean>;
+  widgetClass: string;
 
   schema: IDictionary<any> = {};
   allMetadata: IDictionary<any>[] = [];
@@ -63,10 +69,15 @@ export class MetadataEditor extends ReactWidget {
   constructor(props: IMetadataEditorProps) {
     super();
     this.editorServices = props.editorServices;
+    this.status = props.status;
+    this.clearDirty = null;
     this.namespace = props.namespace;
     this.schemaName = props.schema;
     this.onSave = props.onSave;
     this.name = props.name;
+
+    this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : 'new'}`;
+    this.addClass(this.widgetClass);
 
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
@@ -110,6 +121,16 @@ export class MetadataEditor extends ReactWidget {
     this.update();
   }
 
+  private isValueEmpty(schemaValue: any): boolean {
+    return (
+      schemaValue === undefined ||
+      schemaValue === null ||
+      schemaValue === '' ||
+      (Array.isArray(schemaValue) && schemaValue.length === 0) ||
+      schemaValue === '(No selection)'
+    );
+  }
+
   /**
    * Checks that all required fields have a value before submitting the form.
    * Returns false if the form is valid. Sets any invalid fields' intent to danger
@@ -123,10 +144,7 @@ export class MetadataEditor extends ReactWidget {
     for (const schemaField in this.schema) {
       if (
         this.requiredFields.includes(schemaField) &&
-        (this.metadata[schemaField] === null ||
-          this.metadata[schemaField] === '' ||
-          this.metadata[schemaField] === [] ||
-          this.metadata[schemaField] === '(No selection)')
+        this.isValueEmpty(this.metadata[schemaField])
       ) {
         this.invalidForm = true;
         this.schema[schemaField].uihints.intent = Intent.DANGER;
@@ -220,6 +238,12 @@ export class MetadataEditor extends ReactWidget {
 
   handleDirtyState(dirty: boolean): void {
     this.dirty = dirty;
+    if (this.dirty && !this.clearDirty) {
+      this.clearDirty = this.status.setDirty();
+    } else if (!this.dirty && this.clearDirty) {
+      this.clearDirty.dispose();
+      this.clearDirty = null;
+    }
     if (this.dirty && !this.title.className.includes(DIRTY_CLASS)) {
       this.title.className += DIRTY_CLASS;
     } else if (!this.dirty) {
@@ -333,9 +357,18 @@ export class MetadataEditor extends ReactWidget {
           defaultValue={defaultValue}
           rightElement={toggleShowButton}
           type={showPassword || !secure ? 'text' : 'password'}
+          className={`elyra-metadataEditor-form-${fieldName}`}
         />
       </FormGroup>
     );
+  }
+
+  onAfterShow(msg: Message): void {
+    const input = document.querySelector(
+      `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
+    ) as HTMLInputElement;
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
   }
 
   renderField(fieldName: string): React.ReactElement {

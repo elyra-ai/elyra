@@ -172,6 +172,8 @@ export class MetadataWidget extends ReactWidget {
     this.props = props;
     this.renderSignal = new Signal<this, any>(this);
 
+    this.schemaDisplayName = props.schema;
+
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
@@ -185,6 +187,7 @@ export class MetadataWidget extends ReactWidget {
     for (const schema of schemas) {
       if (this.props.schema === schema.name) {
         this.schemaDisplayName = schema.title;
+        this.update();
         break;
       }
     }

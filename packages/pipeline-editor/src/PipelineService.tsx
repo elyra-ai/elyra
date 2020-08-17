@@ -25,16 +25,21 @@ import * as React from 'react';
 
 import Utils from './utils';
 
+export const RUNTIMES_NAMESPACE = 'runtimes';
+export const KFP_SCHEMA = 'kfp';
+export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
+export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
+
 export class PipelineService {
   /**
    * Returns a list of external runtime configurations available as
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(): Promise<any> {
+  static async getRuntimes(showError = true): Promise<any> {
     const runtimes = await FrontendServices.getMetadata('runtimes');
 
-    if (Object.keys(runtimes).length === 0) {
+    if (showError && Object.keys(runtimes).length === 0) {
       return FrontendServices.noMetadataError('runtimes');
     }
 
@@ -60,15 +65,28 @@ export class PipelineService {
     return images;
   }
 
+  static getDisplayName(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)['display_name'];
+  }
+
+  /**
+   * The runtime name is currently based on the schema name (one schema per runtime)
+   * @param name
+   * @param metadataArr
+   */
+  static getRuntimeName(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)['schema_name'];
+  }
+
   /**
    * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
    *
    * @param pipeline
-   * @param runtime_config
+   * @param runtimeName
    */
   static async submitPipeline(
     pipeline: any,
-    runtime_config: string
+    runtimeName: string
   ): Promise<any> {
     console.log('Pipeline definition:');
     console.log(pipeline);
@@ -79,28 +97,44 @@ export class PipelineService {
       true
     );
 
-    const dialogTitle = 'Job submission to ' + runtime_config + ' succeeded';
-    const dialogBody = (
-      <p>
-        Check the status of your pipeline at{' '}
-        <a href={response['run_url']} target="_blank" rel="noopener noreferrer">
-          Run Details.
-        </a>
-        <br />
-        The results and outputs are in the {
-          response['object_storage_path']
-        }{' '}
-        working directory in{' '}
-        <a
-          href={response['object_storage_url']}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          object storage
-        </a>
-        .
-      </p>
-    );
+    let dialogTitle;
+    let dialogBody;
+    if (response['run_url']) {
+      // pipeline executed remotely in a runtime of choice
+      dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
+      dialogBody = (
+        <p>
+          Check the status of your job at{' '}
+          <a
+            href={response['run_url']}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Run Details.
+          </a>
+          <br />
+          The results and outputs are in the {
+            response['object_storage_path']
+          }{' '}
+          working directory in{' '}
+          <a
+            href={response['object_storage_url']}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            object storage
+          </a>
+          .
+        </p>
+      );
+    } else {
+      // pipeline executed in-place locally
+      dialogTitle = 'Job execution succeeded';
+      dialogBody = (
+        <p>Your job has been executed in-place in your local environment.</p>
+      );
+    }
+
     return showDialog({
       title: dialogTitle,
       body: dialogBody,

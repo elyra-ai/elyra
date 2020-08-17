@@ -13,10 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+import json
 
-from .handlers import PipelineExportHandler, PipelineSchedulerHandler
-from .parser import PipelineParser
-from .pipeline import Operation, Pipeline
-from .processor import PipelineProcessorRegistry, PipelineProcessorManager, PipelineProcessor, PipelineProcessorResponse
-from .processor_kfp import KfpPipelineProcessor
-from .processor_local import LocalPipelineProcessor
+
+def _read_pipeline_resource(pipeline_filename):
+    root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    pipeline_path = os.path.join(root, pipeline_filename)
+
+    with open(pipeline_path, 'r') as f:
+        pipeline_json = json.load(f)
+
+    return pipeline_json

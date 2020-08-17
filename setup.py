@@ -48,23 +48,24 @@ setup_args = dict(
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path))],
     packages=find_packages(),
     install_requires=[
-        "jupyter_core>=4.0,<5.0",
-        "kfp==0.5.1",
-        "urllib3==1.24.2",
-        "kfp-notebook>=0.11.0,<0.12.0",
-        "minio>=5.0.7",
-        'nbdime>=2.0.0',
-        'jupyterlab>=2.0.0,<3.0.0',
-        'jupyterlab-git>=0.20.0',
-        'nbconvert>=5.6.1',
-        'notebook>=6.0.3',
-        'traitlets>=4.3.2',
-        'jsonschema>=3.2.0',
-        'requests>=2.9.1,<3.0',
-        'entrypoints>=0.3',
-        'rfc3986-validator>=0.1.1',
         'autopep8',
-        'jinja2'
+        'entrypoints>=0.3',
+        'jinja2>=2.11,<3.0'
+        'jsonschema>=3.2.0',
+        'jupyter_core>=4.0,<5.0',
+        'jupyterlab-git>=0.20.0',
+        'jupyterlab>=2.0.0,<3.0.0',
+        'kfp-notebook>=0.11.0,<0.12.0',
+        'kfp==1.0.0',
+        'minio>=5.0.7',
+        'nbconvert>=5.6.1,<6.0',
+        'nbdime>=2.0.0',
+        'notebook>=6.0.3',
+        'papermill>=2.1.2',
+        'requests>=2.9.1,<3.0',
+        'rfc3986-validator>=0.1.1',
+        'traitlets>=4.3.2',
+        'urllib3==1.24.2',
     ],
     include_package_data=True,
     classifiers=(
@@ -84,6 +85,7 @@ setup_args = dict(
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
         ],
         'elyra.pipeline.processors': [
+            'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
             'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'
         ]
     },

@@ -18,7 +18,8 @@ import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
 
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
+  ILabStatus
 } from '@jupyterlab/application';
 import { IThemeManager } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
@@ -41,11 +42,12 @@ const commandIDs = {
 const extension: JupyterFrontEndPlugin<void> = {
   id: METADATA_WIDGET_ID,
   autoStart: true,
-  requires: [IEditorServices],
+  requires: [IEditorServices, ILabStatus],
   optional: [IThemeManager],
   activate: (
     app: JupyterFrontEnd,
     editorServices: IEditorServices,
+    status: ILabStatus,
     themeManager: IThemeManager | null
   ) => {
     console.log('Elyra - metadata extension is activated!');
@@ -62,7 +64,9 @@ const extension: JupyterFrontEndPlugin<void> = {
       } else {
         widgetLabel = `New ${args.schema}`;
       }
-      const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${args.schema}:${args.name}`;
+      const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${
+        args.schema
+      }:${args.name ? args.name : 'new'}`;
       const openWidget = find(
         app.shell.widgets('main'),
         (widget: Widget, index: number) => {
@@ -70,14 +74,14 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       );
       if (openWidget) {
-        console.log(openWidget);
         app.shell.activateById(widgetId);
         return;
       }
 
       const metadataEditorWidget = new MetadataEditor({
         ...args,
-        editorServices
+        editorServices,
+        status
       });
       metadataEditorWidget.title.label = widgetLabel;
       metadataEditorWidget.id = widgetId;
@@ -144,6 +148,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const openMetadataCommand: string = commandIDs.openMetadata;
     app.commands.addCommand(openMetadataCommand, {
+      label: (args: any) => args['label'],
       execute: (args: any) => {
         // Rank has been chosen somewhat arbitrarily to give priority
         // to the running sessions widget in the sidebar.

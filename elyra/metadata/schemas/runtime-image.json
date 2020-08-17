@@ -22,9 +22,14 @@
       "description": "Additional data specific to this Runtime Image",
       "type": "object",
       "properties": {
+        "description": {
+          "title": "Description",
+          "description": "The description of this Runtime Image instance",
+          "type": "string"
+        },
         "image_name": {
           "title": "Image Name",
-          "description": "Runtime Image description",
+          "description": "The image name (including optional tag)",
           "type": "string",
           "minLength": 1
         }

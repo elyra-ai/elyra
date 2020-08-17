@@ -45,7 +45,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         pipeline_export_path = payload['export_path']
         pipeline_overwrite = payload['overwrite']
 
-        pipeline = PipelineParser.parse(pipeline_definition)
+        pipeline = PipelineParser().parse(pipeline_definition)
 
         pipeline_exported_path = await PipelineProcessorManager.instance().export(
             pipeline,
@@ -84,7 +84,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         pipeline_definition = self.get_json_body()
         self.log.debug("JSON payload: %s", pipeline_definition)
 
-        pipeline = PipelineParser.parse(pipeline_definition)
+        pipeline = PipelineParser().parse(pipeline_definition)
 
         response = await PipelineProcessorManager.instance().process(pipeline)
         json_msg = json.dumps(response.to_json())
