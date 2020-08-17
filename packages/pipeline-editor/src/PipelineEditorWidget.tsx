@@ -61,8 +61,8 @@ import * as React from 'react';
 import { IntlProvider } from 'react-intl';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
-import { dialogWidget } from './dialogWidget';
 import * as i18nData from './en.json';
+import { formDialogWidget } from './formDialogWidget';
 import * as palette from './palette.json';
 
 import PipelineExportDialog from './PipelineExportDialog';
@@ -748,7 +748,7 @@ export class PipelineEditor extends React.Component<
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
-      body: dialogWidget(<PipelineExportDialog runtimes={runtimes} />),
+      body: formDialogWidget(<PipelineExportDialog runtimes={runtimes} />),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#runtime_config'
@@ -1081,7 +1081,7 @@ export class PipelineEditor extends React.Component<
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
-      body: dialogWidget(<PipelineSubmissionDialog runtimes={runtimes} />),
+      body: formDialogWidget(<PipelineSubmissionDialog runtimes={runtimes} />),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#pipeline_name'

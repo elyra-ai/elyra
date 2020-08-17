@@ -18,7 +18,7 @@ import { ReactWidget, Dialog } from '@jupyterlab/apputils';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
 
-export const dialogWidget = (
+export const formDialogWidget = (
   dialogComponent: JSX.Element
 ): Dialog.IBodyWidget<any> => {
   const widget = ReactWidget.create(dialogComponent) as Dialog.IBodyWidget<any>;

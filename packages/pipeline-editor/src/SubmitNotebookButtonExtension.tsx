@@ -24,7 +24,7 @@ import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import { IDisposable } from '@lumino/disposable';
 import * as React from 'react';
 
-import { dialogWidget } from './dialogWidget';
+import { formDialogWidget } from './formDialogWidget';
 import NotebookSubmissionDialog from './NotebookSubmissionDialog';
 import { PipelineService } from './PipelineService';
 import Utils from './utils';
@@ -52,7 +52,7 @@ export class SubmitNotebookButtonExtension
 
     const dialogOptions = {
       title: 'Submit notebook',
-      body: dialogWidget(
+      body: formDialogWidget(
         <NotebookSubmissionDialog
           env={env}
           runtimes={runtimes}
