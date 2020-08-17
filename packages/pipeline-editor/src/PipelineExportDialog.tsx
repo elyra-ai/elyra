@@ -16,49 +16,53 @@
 
 import * as React from 'react';
 
-import { IRuntime } from './PipelineEditorWidget';
+import { IRuntime } from './PipelineService';
 
-type Props = {
+interface IProps {
   runtimes: IRuntime[];
-};
+}
 
-const PipelineExportDialog = ({ runtimes }: Props): JSX.Element => {
-  const filetypes = ['yaml', 'py'];
-  return (
-    <form>
-      <label htmlFor="runtime_config">Runtime Config:</label>
-      <br />
-      <select
-        id="runtime_config"
-        name="runtime_config"
-        className="elyra-form-runtime-config"
-        data-form-required
-      >
-        {runtimes.map((runtime: any) => (
-          <option key={runtime.name} value={runtime.name}>
-            {runtime.display_name}
-          </option>
-        ))}
-      </select>
-      <label htmlFor="pipeline_filetype">Export Pipeline as:</label>
-      <br />
-      <select
-        id="pipeline_filetype"
-        name="pipeline_filetype"
-        className="elyra-form-export-filetype"
-        data-form-required
-      >
-        {filetypes.map(filetype => (
-          <option key={filetype} value={filetype}>
-            {filetype}
-          </option>
-        ))}
-      </select>
-      <input type="checkbox" id="overwrite" name="overwrite" />
-      <label htmlFor="overwrite">Replace if file already exists</label>
-      <br />
-    </form>
-  );
-};
+const FILE_TYPES = ['yaml', 'py'];
+
+class PipelineExportDialog extends React.Component<IProps> {
+  render(): React.ReactNode {
+    const { runtimes } = this.props;
+    return (
+      <form>
+        <label htmlFor="runtime_config">Runtime Config:</label>
+        <br />
+        <select
+          id="runtime_config"
+          name="runtime_config"
+          className="elyra-form-runtime-config"
+          data-form-required
+        >
+          {runtimes.map((runtime: any) => (
+            <option key={runtime.name} value={runtime.name}>
+              {runtime.display_name}
+            </option>
+          ))}
+        </select>
+        <label htmlFor="pipeline_filetype">Export Pipeline as:</label>
+        <br />
+        <select
+          id="pipeline_filetype"
+          name="pipeline_filetype"
+          className="elyra-form-export-filetype"
+          data-form-required
+        >
+          {FILE_TYPES.map(filetype => (
+            <option key={filetype} value={filetype}>
+              {filetype}
+            </option>
+          ))}
+        </select>
+        <input type="checkbox" id="overwrite" name="overwrite" />
+        <label htmlFor="overwrite">Replace if file already exists</label>
+        <br />
+      </form>
+    );
+  }
+}
 
 export default PipelineExportDialog;

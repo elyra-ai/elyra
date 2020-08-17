@@ -16,42 +16,45 @@
 
 import * as React from 'react';
 
-import { IRuntime } from './PipelineEditorWidget';
+import { IRuntime } from './PipelineService';
 
-type Props = {
+interface IProps {
   runtimes: IRuntime[];
-};
+}
 
-const PipelineSubmissionDialog = ({ runtimes }: Props): JSX.Element => {
-  return (
-    <form>
-      <label htmlFor="pipeline_name">Pipeline Name:</label>
-      <br />
-      <input
-        type="text"
-        id="pipeline_name"
-        name="pipeline_name"
-        placeholder="Pipeline Name"
-        data-form-required
-      />
-      <br />
-      <br />
-      <label htmlFor="runtime_config">Runtime Config:</label>
-      <br />
-      <select
-        id="runtime_config"
-        name="runtime_config"
-        className="elyra-form-runtime-config"
-        data-form-required
-      >
-        {runtimes.map(runtime => (
-          <option key={runtime.name} value={runtime.name}>
-            {runtime.display_name}
-          </option>
-        ))}
-      </select>
-    </form>
-  );
-};
+class PipelineSubmissionDialog extends React.Component<IProps> {
+  render(): React.ReactNode {
+    const { runtimes } = this.props;
+    return (
+      <form>
+        <label htmlFor="pipeline_name">Pipeline Name:</label>
+        <br />
+        <input
+          type="text"
+          id="pipeline_name"
+          name="pipeline_name"
+          placeholder="Pipeline Name"
+          data-form-required
+        />
+        <br />
+        <br />
+        <label htmlFor="runtime_config">Runtime Config:</label>
+        <br />
+        <select
+          id="runtime_config"
+          name="runtime_config"
+          className="elyra-form-runtime-config"
+          data-form-required
+        >
+          {runtimes.map(runtime => (
+            <option key={runtime.name} value={runtime.name}>
+              {runtime.display_name}
+            </option>
+          ))}
+        </select>
+      </form>
+    );
+  }
+}
 
 export default PipelineSubmissionDialog;

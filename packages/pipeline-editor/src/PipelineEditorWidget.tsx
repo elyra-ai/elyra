@@ -71,11 +71,6 @@ import * as properties from './properties.json';
 import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './RuntimesWidget';
 import Utils from './utils';
 
-export interface IRuntime {
-  name: string;
-  display_name: string;
-}
-
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
 

@@ -25,6 +25,11 @@ import * as React from 'react';
 
 import Utils from './utils';
 
+export interface IRuntime {
+  name: string;
+  display_name: string;
+}
+
 export class PipelineService {
   /**
    * Returns a list of external runtime configurations available as
