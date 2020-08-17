@@ -96,3 +96,8 @@ An easy way to confirm that your extracted pipeline's notebook references are co
 
 At this time, the only recourse, should it not be possible to fix the relative location via redeployment of the pipeline, would be to edit each of the `filename:` fields in the `.pipeline` file such that notebook locations are satisfied, then refresh the browser.
 
+## Pipeline Validation
+Pipeline validation occurs when pipeline files are opened, as well as when pipelines are run or exported. Pipelines are validated for the following:
+- **Circular References** - Circular references cannot exist in any pipeline because it would create an infinite loop. 
+- **Notebook Existence** - The notebook for a given node must able to be located. 
+- **Incomplete Properties** - Required fields in a given nodes' properties must be present.
