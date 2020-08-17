@@ -123,12 +123,23 @@ http://localhost:8001/api/v1/namespaces/INSERT_PROJECT_NAME/services/http:jupyte
 
 ## Using Elyra with Open Data Hub
 - In the JupyterHub landing/spawner page, ensure you set the following two environmental variables before starting a notebook
-```bash
-COS_BUCKET - string - [A-Z, a-z, -] - This will be the bucket that your artifacts will be sent to post notebook execution
-CRIO_RUNTIME - boolean - [true | false] - Set this to true if deploying ODH on OpenShift or when you container orchestrator 
-                                          is using CRI-O as the container runtime.
-``` 
+
+| NAME | VALUES | OPTIONAL | DESCRIPTION |
+|---|---|---|---|
+|COS_BUCKET| A-Z, a-z, - | X | This will be the bucket that your artifacts will be sent to post notebook execution, by default the jupyterhub username will be the bucket name|
+|CRIO_RUNTIME| true /false |  | Set this to true if deploying ODH on OpenShift or when your container orchestrator is using CRI-O as the container runtime |
+
 ![Elyra](../images/odh-deploy-set-spawner-options.png)
+
+## Accessing Default Object Storage 
+- When using the default metadata runtime created, pipeline artifacts will be sent to the `Minio` S3 object storage instance
+installed when Kubeflow Pipelines is installed
+
+- Setup port forwarding to `Minio` with the following :
+```bash
+oc port-forward svc/minio-service -n kubeflow 9000:9000 &
+```
+- You should be able to reach the `Minio` Dashboard in your web browser by navigating to`localhost:9000`
 
 ## Additional Resources and Documentation
 [ODH Installation Docs](https://opendatahub.io/docs/getting-started/quick-installation.html)  
