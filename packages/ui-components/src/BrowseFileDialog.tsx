@@ -30,6 +30,7 @@ export interface IBrowseFileDialogOptions {
   filter?: (model: any) => boolean;
   multiselect?: boolean;
   includeDir?: boolean;
+  acceptFileOnDblClick?: boolean;
 }
 
 /**
@@ -42,6 +43,7 @@ export class BrowseFileDialog extends Widget
   dirListingHandleEvent: (event: Event) => void;
   multiselect: boolean;
   includeDir: boolean;
+  acceptFileOnDblClick: boolean;
 
   constructor(props: any) {
     super(props);
@@ -57,6 +59,7 @@ export class BrowseFileDialog extends Widget
       model: model
     });
 
+    this.acceptFileOnDblClick = props.acceptFileOnDblClick;
     this.multiselect = props.multiselect;
     this.includeDir = props.includeDir;
     this.dirListingHandleEvent = this.directoryListing.handleEvent;
@@ -115,6 +118,14 @@ export class BrowseFileDialog extends Widget
         } else {
           event.preventDefault();
           event.stopPropagation();
+          if (this.acceptFileOnDblClick) {
+            const okButton = document.querySelector(
+              `.${BROWSE_FILE_OPEN_CLASS} .jp-mod-accept`
+            );
+            if (okButton) {
+              (okButton as HTMLButtonElement).click();
+            }
+          }
         }
         break;
       }
@@ -135,7 +146,13 @@ export const showBrowseFileDialog = (
       manager: manager,
       filter: options.filter,
       multiselect: options.multiselect,
-      includeDir: options.includeDir
+      includeDir: options.includeDir,
+      acceptFileOnDblClick: Object.prototype.hasOwnProperty.call(
+        options,
+        'acceptFileOnDblClick'
+      )
+        ? options.acceptFileOnDblClick
+        : true
     }),
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Select' })]
   });
