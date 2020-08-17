@@ -33,7 +33,7 @@ export default class Utils {
   static generateNotebookPipeline(
     filename: string,
     runtime_config: string,
-    framework: string,
+    runtimeImage: string,
     dependencies: string[],
     envObject: { [key: string]: string }
   ): any {
@@ -43,7 +43,7 @@ export default class Utils {
     const artifactFileName = filename.replace(/^.*[\\/]/, '');
     const artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
 
-    const envArray = Object.entries(envObject).map(
+    const envVars = Object.entries(envObject).map(
       ([key, val]) => `${key}=${val}`
     );
 
@@ -53,8 +53,8 @@ export default class Utils {
 
     template.pipelines[0].nodes[0].id = generated_uuid;
     template.pipelines[0].nodes[0].app_data.filename = filename;
-    template.pipelines[0].nodes[0].app_data.runtime_image = framework;
-    template.pipelines[0].nodes[0].app_data.env_vars = envArray;
+    template.pipelines[0].nodes[0].app_data.runtime_image = runtimeImage;
+    template.pipelines[0].nodes[0].app_data.env_vars = envVars;
     template.pipelines[0].nodes[0].app_data.dependencies = dependencies;
 
     template.pipelines[0].app_data.name = artifactName;
