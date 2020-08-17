@@ -64,11 +64,16 @@ import { PIPELINE_CURRENT_VERSION } from './constants';
 import { dialogWidget } from './dialogWidget';
 import * as i18nData from './en.json';
 import * as palette from './palette.json';
+
 import PipelineExportDialog from './PipelineExportDialog';
-import { PipelineService } from './PipelineService';
+import {
+  PipelineService,
+  KFP_SCHEMA,
+  RUNTIMES_NAMESPACE
+} from './PipelineService';
 import PipelineSubmissionDialog from './PipelineSubmissionDialog';
+
 import * as properties from './properties.json';
-import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './RuntimesWidget';
 import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -108,6 +113,7 @@ interface IValidationError {
 
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
+  openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
   submitNotebook: 'notebook:submit'
@@ -276,10 +282,10 @@ export class PipelineEditor extends React.Component<
       enableNodeFormatType: 'Horizontal'
     };
     const contextMenuConfig = {
-      enableCreateSupernodeNonContiguous: false,
+      enableCreateSupernodeNonContiguous: true,
       defaultMenuEntries: {
         saveToPalette: false,
-        createSupernode: false
+        createSupernode: true
       }
     };
     const pipelineDefinition = this.canvasController.getPipelineFlow();
@@ -412,7 +418,7 @@ export class PipelineEditor extends React.Component<
   openPropertiesDialog(source: any): void {
     console.log('Opening properties dialog');
     const node_id = source.targetObject.id;
-    const app_data = this.canvasController.getNode(node_id).app_data;
+    const app_data = source.targetObject.app_data;
 
     const node_props = JSON.parse(JSON.stringify(this.propertiesInfo));
     node_props.appData.id = node_id;
@@ -436,7 +442,21 @@ export class PipelineEditor extends React.Component<
 
   applyPropertyChanges(propertySet: any, appData: any): void {
     console.log('Applying changes to properties');
-    const node = this.canvasController.getNode(appData.id);
+    const pipelineId = this.canvasController.getPrimaryPipelineId();
+    let node = this.canvasController.getNode(appData.id, pipelineId);
+    // If the node is in a supernode, search supernodes for it
+    if (!node) {
+      const superNodes = this.canvasController.getSupernodes(pipelineId);
+      for (const superNode of superNodes) {
+        node = this.canvasController.getNode(
+          appData.id,
+          superNode.subflow_ref.pipeline_id_ref
+        );
+        if (node) {
+          break;
+        }
+      }
+    }
     const app_data = node.app_data;
 
     app_data.runtime_image = propertySet.runtime_image;
@@ -469,7 +489,7 @@ export class PipelineEditor extends React.Component<
           action: 'openNotebook',
           label: 'Open Notebooks'
         });
-      } else {
+      } else if (source.targetObject.type == 'execution_node') {
         // single node selected
         customMenu = customMenu.concat(
           {
@@ -597,19 +617,22 @@ export class PipelineEditor extends React.Component<
    */
   tipHandler(tipType: string, data: any): any {
     if (tipType === TIP_TYPE_NODE) {
-      const appData = this.canvasController.getNode(data.node.id).app_data;
+      const appData = data.node.app_data;
       const propsInfo = this.propertiesInfo.parameterDef.uihints.parameter_info;
       const tooltipProps: any = {};
 
-      if (appData.invalidNodeError != null) {
+      if (appData != null && appData.invalidNodeError != null) {
         tooltipProps['Error'] = appData.invalidNodeError;
       }
 
-      propsInfo.forEach(
-        (info: { parameter_ref: string; label: { default: string } }) => {
-          tooltipProps[info.label.default] = appData[info.parameter_ref] || '';
-        }
-      );
+      if (data.node.type == 'execution_node') {
+        propsInfo.forEach(
+          (info: { parameter_ref: string; label: { default: string } }) => {
+            tooltipProps[info.label.default] =
+              appData[info.parameter_ref] || '';
+          }
+        );
+      }
 
       return <NodeProperties {...tooltipProps} />;
     }
@@ -710,7 +733,7 @@ export class PipelineEditor extends React.Component<
 
   async handleExportPipeline(): Promise<void> {
     // Warn user if the pipeline has invalid nodes
-    const errorMessage = this.validatePipeline();
+    const errorMessage = await this.validatePipeline();
     if (errorMessage) {
       this.setState({
         showValidationError: true,
@@ -722,6 +745,7 @@ export class PipelineEditor extends React.Component<
       return;
     }
     const runtimes = await PipelineService.getRuntimes();
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
       body: dialogWidget(<PipelineExportDialog runtimes={runtimes} />),
@@ -751,10 +775,12 @@ export class PipelineEditor extends React.Component<
 
     const overwrite = dialogResult.value.overwrite;
 
+    const runtime_config = dialogResult.value.runtime_config;
+    const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
+
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-      dialogResult.value.runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
 
     PipelineService.exportPipeline(
       pipelineFlow,
@@ -765,7 +791,7 @@ export class PipelineEditor extends React.Component<
   }
 
   async handleOpenPipeline(): Promise<void> {
-    this.widgetContext.ready.then(() => {
+    this.widgetContext.ready.then(async () => {
       let pipelineJson: any = this.widgetContext.model.toJSON();
       if (pipelineJson == null) {
         // creating new pipeline
@@ -831,7 +857,7 @@ export class PipelineEditor extends React.Component<
       }
       this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
       this.canvasController.setPipelineFlow(pipelineJson);
-      const errorMessage = this.validatePipeline();
+      const errorMessage = await this.validatePipeline();
       if (errorMessage) {
         this.setState({
           showValidationError: true,
@@ -852,20 +878,56 @@ export class PipelineEditor extends React.Component<
    *
    * @returns true if the node is valid.
    */
-  validateNode(node: any): boolean {
-    node.app_data.invalidNodeError = this.validateProperties(node);
-    if (node.app_data.invalidNodeError != null) {
-      this.canvasController.setNodeDecorations(node.id, [
-        {
-          id: 'error',
-          image: IconUtil.encode(errorIcon),
-          outline: false,
-          position: 'topLeft',
-          x_pos: 20,
-          y_pos: 3
+  async validateNode(node: any, pipelineId: string): Promise<boolean> {
+    let validNode = true;
+    let indicatorXPos;
+    let indicatorYPos;
+
+    // Check if node is valid
+    if (node.type == 'super_node') {
+      for (const childNode of this.canvasController.getNodes(
+        node.subflow_ref.pipeline_id_ref
+      )) {
+        validNode =
+          (await this.validateNode(
+            childNode,
+            node.subflow_ref.pipeline_id_ref
+          )) && validNode;
+      }
+      if (validNode) {
+        node.app_data.invalidNodeError = null;
+      } else {
+        if (!node.app_data) {
+          node.app_data = {};
         }
-      ]);
-      const pipelineId = this.canvasController.getPrimaryPipelineId();
+        node.app_data.invalidNodeError = 'Supernode contains invalid nodes.';
+      }
+      indicatorXPos = 15;
+      indicatorYPos = 0;
+    } else if (node.type == 'execution_node') {
+      node.app_data.invalidNodeError = await this.validateProperties(node);
+      indicatorXPos = 20;
+      indicatorYPos = 3;
+    } else {
+      return true;
+    }
+
+    // Add or remove decorations
+    if (node.app_data != null && node.app_data.invalidNodeError != null) {
+      this.canvasController.setNodeDecorations(
+        node.id,
+        [
+          {
+            id: 'error',
+            image: IconUtil.encode(errorIcon),
+            outline: false,
+            position: 'topLeft',
+            x_pos: indicatorXPos,
+            y_pos: indicatorYPos
+          }
+        ],
+        pipelineId
+      );
       const stylePipelineObj: any = {};
       stylePipelineObj[pipelineId] = [node.id];
       const styleSpec = {
@@ -877,7 +939,6 @@ export class PipelineEditor extends React.Component<
       return false;
     } else {
       // Remove any existing decorations if valid
-      const pipelineId = this.canvasController.getPrimaryPipelineId();
       const stylePipelineObj: any = {};
       stylePipelineObj[pipelineId] = [node.id];
       const styleSpec = {
@@ -886,7 +947,7 @@ export class PipelineEditor extends React.Component<
         label: { default: '' }
       };
       this.canvasController.setObjectsStyle(stylePipelineObj, styleSpec, true);
-      this.canvasController.setNodeDecorations(node.id, []);
+      this.canvasController.setNodeDecorations(node.id, [], pipelineId);
       return true;
     }
   }
@@ -900,15 +961,26 @@ export class PipelineEditor extends React.Component<
    * if there are invalid properties. If there are none,
    * returns null.
    */
-  validateProperties(node: any): string {
+  async validateProperties(node: any): Promise<string> {
+    const validationErrors: string[] = [];
+    const notebookValidationErr = await this.app.serviceManager.contents
+      .get(node.app_data.filename)
+      .then((result: any): any => {
+        return null;
+      })
+      .catch((err: any): any => {
+        return 'notebook does not exist';
+      });
+    if (notebookValidationErr) {
+      validationErrors.push(notebookValidationErr);
+    }
     if (
       node.app_data.runtime_image == null ||
       node.app_data.runtime_image == ''
     ) {
-      return 'no runtime image.';
-    } else {
-      return null;
+      validationErrors.push('no runtime image');
     }
+    return validationErrors.length == 0 ? null : validationErrors.join('\n');
   }
 
   /**
@@ -918,12 +990,13 @@ export class PipelineEditor extends React.Component<
    * @returns null if all nodes are valid, error message if
    * invalid.
    */
-  validateAllNodes(): string {
+  async validateAllNodes(): Promise<string> {
     let errorMessage = null;
     // Reset any existing flagged nodes' style
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     for (const node of this.canvasController.getNodes(pipelineId)) {
-      if (!this.validateNode(node)) {
+      const validNode = await this.validateNode(node, pipelineId);
+      if (!validNode) {
         errorMessage = 'Some nodes have missing or invalid properties. ';
       }
     }
@@ -971,8 +1044,8 @@ export class PipelineEditor extends React.Component<
    *
    * @returns null if pipeline is valid, error message if not.
    */
-  validatePipeline(): string {
-    const nodeErrorMessage = this.validateAllNodes();
+  async validatePipeline(): Promise<string> {
+    const nodeErrorMessage = await this.validateAllNodes();
     const linkErrorMessage = this.validateAllLinks();
     if (nodeErrorMessage || linkErrorMessage) {
       return (
@@ -987,7 +1060,7 @@ export class PipelineEditor extends React.Component<
 
   async handleRunPipeline(): Promise<void> {
     // Check that all nodes are valid
-    const errorMessage = this.validatePipeline();
+    const errorMessage = await this.validatePipeline();
     if (errorMessage) {
       this.setState({
         showValidationError: true,
@@ -999,7 +1072,13 @@ export class PipelineEditor extends React.Component<
       return;
     }
 
-    const runtimes = await PipelineService.getRuntimes();
+    const runtimes = await PipelineService.getRuntimes(false);
+    const local_runtime: any = {
+      name: 'local',
+      display_name: 'Run in-place locally'
+    };
+    runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
       body: dialogWidget(<PipelineSubmissionDialog runtimes={runtimes} />),
@@ -1017,13 +1096,14 @@ export class PipelineEditor extends React.Component<
     // prepare pipeline submission details
     const pipelineFlow = this.canvasController.getPipelineFlow();
 
+    const runtime_config = dialogResult.value.runtime_config;
+    const runtime =
+      PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
+
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
-
-    // TODO: Be more flexible and remove hardcoded runtime type
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = 'kfp';
-    pipelineFlow.pipelines[0]['app_data']['runtime-config'] =
-      dialogResult.value.runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
 
     PipelineService.submitPipeline(
       pipelineFlow,

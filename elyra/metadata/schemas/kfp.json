@@ -33,6 +33,19 @@
           "type": "string",
           "format": "uri"
         },
+        "api_username": {
+          "title": "Kubeflow Pipelines API Endpoint Username",
+          "description": "The Kubeflow Pipelines API endpoint username",
+          "type": "string"
+        },
+        "api_password": {
+          "title": "Kubeflow Pipelines API Endpoint Password",
+          "description": "The Kubeflow Pipelines API endpoint password",
+          "type": "string",
+          "uihints": {
+            "secure": true
+          }
+        },
         "cos_endpoint": {
           "title": "Cloud Object Storage Endpoint",
           "description": "The Cloud Object Storage endpoint",

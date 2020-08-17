@@ -22,7 +22,6 @@ limitations under the License.
 [![Documentation Status](https://readthedocs.org/projects/elyra/badge/?version=latest)](https://elyra.readthedocs.io/en/latest/?badge=latest)
 [![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
 [![Gitter](https://badges.gitter.im/elyra-ai/community.svg)](https://gitter.im/elyra-ai/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo)
 
 # Elyra
 
@@ -50,9 +49,10 @@ includes more details on these features.
 #### Using Binder
 You can try out some of Elyra features using the [My Binder](https://mybinder.readthedocs.io/en/latest/) service.
 
-Click on the link below to try Elyra, on a sandbox environment, without having to install anything.
+Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.0.0?urlpath=lab/tree/binder-demo) (Latest stable version)
+- [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version)
 
 #### Using Docker
 
@@ -94,18 +94,18 @@ Elyra can be installed via PyPi:
 
 #### JupyterLab support
 
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.0 and below**
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.x and below**
 
 via PyPi:
 ```bash
-pip install elyra && jupyter lab build
+pip install elyra==0.10.3 && jupyter lab build
 ```
 
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 0.11.0-rc0 and above**
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 1.0.0 and above**
 
 via PyPi:
 ```bash
-pip install --upgrade --pre elyra && jupyter lab build
+pip install --upgrade elyra && jupyter lab build
 ```
 
 Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 

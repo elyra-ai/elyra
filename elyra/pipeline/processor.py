@@ -35,9 +35,9 @@ class PipelineProcessorRegistry(SingletonConfigurable):
                 processor_type = processor_instance.type
                 self.log.info('Registering processor "{}" with type -> {}'.format(processor, processor_type))
                 self.__processors[processor_type] = processor_instance
-            except Exception:
+            except Exception as err:
                 # log and ignore initialization errors
-                self.log.error('Error registering processor "{}"'.format(processor))
+                self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
     def add_processor(self, processor):
         self.log.debug('Registering processor {}'.format(processor.type))
@@ -86,15 +86,7 @@ class PipelineProcessorManager(SingletonConfigurable):
 
 
 class PipelineProcessorResponse(object):
-    def __init__(self, run_url, object_storage_url, object_storage_path):
-        # validate that the response has all required properties
-        if not run_url:
-            raise ValueError("Invalid Processor Response: Missing field 'run_url'.")
-        if not object_storage_url:
-            raise ValueError("Invalid Processor Response: Missing field 'object_storage_url'.")
-        if not object_storage_path:
-            raise ValueError("Invalid Processor Response: Missing field 'object_storage_path'.")
-
+    def __init__(self, run_url='', object_storage_url='', object_storage_path=''):
         self._run_url = run_url
         self._object_storage_url = object_storage_url
         self._object_storage_path = object_storage_path
