@@ -105,23 +105,14 @@
         "type": "panels",
         "group_info": [
           {
-            "id": "browseFilePanel",
-            "type": "columnPanel",
-            "label": {
-              "default": "Browse File Panel"
-            },
-            "group_info": [
-              {
-                "id": "nodeFileControl",
-                "type": "controls",
-                "parameter_refs": ["filename"]
-              },
-              {
-                "id": "nodeBrowseFileAction",
-                "type": "actionPanel",
-                "action_refs": ["browse_file"]
-              }
-            ]
+            "id": "nodeFileControl",
+            "type": "controls",
+            "parameter_refs": ["filename"]
+          },
+          {
+            "id": "nodeBrowseFileAction",
+            "type": "actionPanel",
+            "action_refs": ["browse_file"]
           },
           {
             "id": "nodePropertiesControls",

@@ -120,11 +120,14 @@ td {
   padding-right: 10px;
 }
 
-[data-id='properties-nodeBrowseFileAction'] {
-  flex-direction: column;
-  justify-content: end;
-  align-items: flex-end;
+.properties-control-panel[data-id='properties-nodeGroupInfo'] {
+  position: relative;
 }
-[data-id='properties-nodeBrowseFileAction'] .bx--btn--tertiary {
-  margin-bottom: 0.6rem;
+.properties-control-panel[data-id='properties-nodeFileControl'] {
+  width: calc(100% - 100px);
+}
+.properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
+  position: absolute;
+  right: 0;
+  top: 0.6rem;
 }
