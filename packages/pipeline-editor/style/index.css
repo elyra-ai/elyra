@@ -121,6 +121,7 @@ td {
 }
 
 [data-id='properties-nodeBrowseFileAction'] {
-  flex-direction: row;
+  flex-direction: column;
   justify-content: end;
+  align-items: flex-end;
 }
