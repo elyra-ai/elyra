@@ -146,23 +146,4 @@ export default class Utils {
       this.deletePipelineAppdataField(node, currentFieldName);
     }
   }
-
-  /**
-   * Return the last portion (filename) of a path. The file extension is
-   * stripped if `excludeExtension` is set to true.
-   *
-   * @param path
-   * @param excludeExtension
-   */
-  static getFilenameFromPath(path: string, excludeExtension?: boolean): string {
-    // strip directory prefixes
-    let filename = path.replace(/^.*[\\/]/, '');
-
-    if (excludeExtension) {
-      //strip file extension
-      filename = filename.replace(/\.[^/.]+$/, '');
-    }
-
-    return filename;
-  }
 }
