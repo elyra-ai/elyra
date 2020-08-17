@@ -466,9 +466,7 @@ export class PipelineEditor extends React.Component<
 
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
-      node.label = propertySet.filename
-        .replace(/^.*[\\/]/, '')
-        .replace(/\.[^/.]+$/, '');
+      node.label = Utils.getFilenameFromPath(propertySet.filename, true);
     }
 
     app_data.runtime_image = propertySet.runtime_image;
@@ -714,11 +712,7 @@ export class PipelineEditor extends React.Component<
             str => str + '='
           );
 
-          data.nodeTemplate.label = item.path.replace(/^.*[\\/]/, '');
-          data.nodeTemplate.label = data.nodeTemplate.label.replace(
-            /\.[^/.]+$/,
-            ''
-          );
+          data.nodeTemplate.label = Utils.getFilenameFromPath(item.path, true);
           data.nodeTemplate.image = IconUtil.encode(notebookIcon);
           data.nodeTemplate.app_data['filename'] = item.path;
           data.nodeTemplate.app_data[
