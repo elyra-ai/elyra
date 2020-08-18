@@ -502,7 +502,10 @@ export class PipelineEditor extends React.Component<
         if (result.button.accept && result.value.length) {
           this.propertiesController.updatePropertyValue(
             propertyId,
-            result.value[0].path
+            PipelineService.getPipelineRelativeNodePath(
+              this.widgetContext.path,
+              result.value[0].path
+            )
           );
         }
       });
