@@ -75,7 +75,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
    */
   private filterPythonKernels = (specs: KernelSpec.ISpecModels): void => {
     Object.entries(specs.kernelspecs)
-      .filter(entry => entry[1].language !== 'python')
+      .filter(entry => entry[1].language.includes('python') == false)
       .forEach(entry => delete specs.kernelspecs[entry[0]]);
   };
 
