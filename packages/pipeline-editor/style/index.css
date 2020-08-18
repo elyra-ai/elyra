@@ -119,3 +119,19 @@ td {
   padding-left: 10px;
   padding-right: 10px;
 }
+
+.properties-control-panel[data-id='properties-nodeGroupInfo'] {
+  position: relative;
+}
+.properties-control-panel[data-id='properties-nodeFileControl'] {
+  width: calc(100% - 100px);
+}
+.properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
+  position: absolute;
+  right: 0;
+  top: 0.6rem;
+}
+
+body.elyra-browseFileDialog-open .properties-modal {
+  display: none;
+}
