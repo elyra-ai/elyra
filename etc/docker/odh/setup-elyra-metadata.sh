@@ -1,16 +1,14 @@
 #!/bin/bash
 
+replace_invalid_characters (){
+  python -c 'import sys;print(sys.argv[1].translate ({ord(c): "-" for c in "!@#$%^&*()[]{};:,/<>?\|`~=_+"}))' "$1"
+}
+
 # Assumptions are existing kubeflow installation is in the kubeflow namespace
 DEFAULT_RUNTIME_FILE=$(jupyter --data-dir)/metadata/runtimes/my_kfp.json
 
-if  [[ ! -z "$JUPYTERHUB_USER_NAME" ]]; then
-  # Use COS_BUCKET env variable set in spawner, if not set, use default
-  export COS_BUCKET=${COS_BUCKET:-default}
-else
-  # Otherwise, use jupyterhub username and replace any special characters with a dash
-  COS_BUCKET=$(python -c 'import sys;print(sys.argv[1].translate ({ord(c): "-" for c in "!@#$%^&*()[]{};:,./<>?\|`~=_+"}))' "$JUPYTERHUB_USER_NAME")
-  export COS_BUCKET
-fi
+COS_BUCKET=$(replace_invalid_characters "$COS_BUCKET")
+export COS_BUCKET=${COS_BUCKET:-default}
 
 if [[ ! -f "$DEFAULT_RUNTIME_FILE" ]]; then
   elyra-metadata install runtimes --schema_name=kfp \

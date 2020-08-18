@@ -124,10 +124,10 @@ http://localhost:8001/api/v1/namespaces/INSERT_PROJECT_NAME/services/http:jupyte
 ## Using Elyra with Open Data Hub
 - In the JupyterHub landing/spawner page, ensure you set the following two environmental variables before starting a notebook
 
-| NAME | VALUES | OPTIONAL | DESCRIPTION |
+| NAME | VALUES | REQUIRED | DESCRIPTION |
 |---|---|---|---|
-|COS_BUCKET| A-Z, a-z, - | X | This will be the bucket that your artifacts will be sent to post notebook execution, by default the jupyterhub username will be the bucket name|
-|CRIO_RUNTIME| true /false |  | Set this to true if deploying ODH on OpenShift or when your container orchestrator is using CRI-O as the container runtime |
+|COS_BUCKET| A-Z, a-z, 0-9, -, . |  | This will be the bucket that your artifacts will be sent to post notebook execution, by default the jupyterhub username will be the bucket name|
+|CRIO_RUNTIME| true /false | X | Set this to true if deploying ODH on OpenShift or when your container orchestrator is using CRI-O as the container runtime |
 
 ![Elyra](../images/odh-deploy-set-spawner-options.png)
 

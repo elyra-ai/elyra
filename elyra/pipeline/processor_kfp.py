@@ -183,7 +183,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         crio_emptydir_volume_size = ''
-        crio_container_runtime = os.getenv("CRIO_RUNTIME", False)
+        crio_container_runtime = bool(os.getenv('CRIO_RUNTIME', 'False').lower() == 'true')
 
         # Create dictionary that maps component Id to its ContainerOp instance
         notebook_ops = {}
