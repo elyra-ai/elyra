@@ -44,9 +44,11 @@ import {
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { NotebookPanel } from '@jupyterlab/notebook';
+import { ServiceManager } from '@jupyterlab/services';
 import { notebookIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
+import { CommandRegistry } from '@lumino/commands';
 import { IDragEvent } from '@lumino/dragdrop';
 import { Collapse, IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
@@ -121,23 +123,29 @@ export const commandIDs = {
  * Wrapper Class for Common Canvas React Component
  */
 export class PipelineEditorWidget extends ReactWidget {
-  app: JupyterFrontEnd;
+  shell: JupyterFrontEnd.IShell;
+  commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
   context: DocumentRegistry.Context;
+  serviceManager: ServiceManager;
 
   constructor(props: any) {
     super(props);
-    this.app = props.app;
+    this.shell = props.shell;
+    this.commands = props.commands;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
+    this.serviceManager = props.serviceManager;
   }
 
   render(): React.ReactElement {
     return (
       <PipelineEditor
-        app={this.app}
+        shell={this.shell}
+        commands={this.commands}
         browserFactory={this.browserFactory}
         widgetContext={this.context}
+        serviceManager={this.serviceManager}
       />
     );
   }
@@ -151,9 +159,11 @@ export namespace PipelineEditor {
    * The props for PipelineEditor.
    */
   export interface IProps {
-    app: JupyterFrontEnd;
+    shell: JupyterFrontEnd.IShell;
+    commands: CommandRegistry;
     browserFactory: IFileBrowserFactory;
     widgetContext: DocumentRegistry.Context;
+    serviceManager: ServiceManager;
   }
 
   /**
@@ -194,8 +204,10 @@ export class PipelineEditor extends React.Component<
   PipelineEditor.IProps,
   PipelineEditor.IState
 > {
-  app: JupyterFrontEnd;
+  shell: JupyterFrontEnd.IShell;
+  commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
+  serviceManager: ServiceManager;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
   position = 10;
@@ -205,8 +217,10 @@ export class PipelineEditor extends React.Component<
 
   constructor(props: any) {
     super(props);
-    this.app = props.app;
+    this.shell = props.shell;
+    this.commands = props.commands;
     this.browserFactory = props.browserFactory;
+    this.serviceManager = props.serviceManager;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
@@ -761,7 +775,7 @@ export class PipelineEditor extends React.Component<
     for (let i = 0; i < selectedNodes.length; i++) {
       const path = this.canvasController.getNode(selectedNodes[i]).app_data
         .filename;
-      this.app.commands.execute(commandIDs.openDocManager, { path });
+      this.commands.execute(commandIDs.openDocManager, { path });
     }
   }
 
@@ -997,7 +1011,7 @@ export class PipelineEditor extends React.Component<
    */
   async validateProperties(node: any): Promise<string> {
     const validationErrors: string[] = [];
-    const notebookValidationErr = await this.app.serviceManager.contents
+    const notebookValidationErr = await this.serviceManager.contents
       .get(node.app_data.filename)
       .then((result: any): any => {
         return null;
@@ -1174,14 +1188,14 @@ export class PipelineEditor extends React.Component<
   }
 
   handleOpenRuntimes(): void {
-    this.app.shell.activateById(
+    this.shell.activateById(
       `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`
     );
   }
 
   handleClosePipeline(): void {
-    if (this.app.shell.currentWidget) {
-      this.app.shell.currentWidget.close();
+    if (this.shell.currentWidget) {
+      this.shell.currentWidget.close();
     }
   }
 
@@ -1243,19 +1257,24 @@ export class PipelineEditor extends React.Component<
 }
 
 export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
-  app: JupyterFrontEnd;
+  shell: JupyterFrontEnd.IShell;
+  commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
+  serviceManager: ServiceManager;
 
   constructor(options: any) {
     super(options);
-    this.app = options.app;
+    this.shell = options.shell;
+    this.commands = options.commands;
     this.browserFactory = options.browserFactory;
+    this.serviceManager = options.serviceManager;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
     // Creates a blank widget with a DocumentWidget wrapper
     const props = {
-      app: this.app,
+      shell: this.shell,
+      commands: this.commands,
       browserFactory: this.browserFactory,
       context: context
     };
