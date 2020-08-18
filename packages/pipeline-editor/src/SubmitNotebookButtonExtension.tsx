@@ -16,7 +16,6 @@
 
 import { NotebookParser } from '@elyra/application';
 import { showFormDialog } from '@elyra/ui-components';
-import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
@@ -25,7 +24,7 @@ import { IDisposable } from '@lumino/disposable';
 import * as React from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
-import NotebookSubmissionDialog from './NotebookSubmissionDialog';
+import { NotebookSubmissionDialog } from './NotebookSubmissionDialog';
 import { PipelineService } from './PipelineService';
 import Utils from './utils';
 

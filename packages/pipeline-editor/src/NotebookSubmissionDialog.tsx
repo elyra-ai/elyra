@@ -63,7 +63,7 @@ const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
   return null;
 };
 
-class NotebookSubmissionDialog extends React.Component<IProps> {
+export class NotebookSubmissionDialog extends React.Component<IProps> {
   render(): React.ReactNode {
     const { runtimes, images, env } = this.props;
     return (
@@ -134,5 +134,3 @@ class NotebookSubmissionDialog extends React.Component<IProps> {
     );
   }
 }
-
-export default NotebookSubmissionDialog;

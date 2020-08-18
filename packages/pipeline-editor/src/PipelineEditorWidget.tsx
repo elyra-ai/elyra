@@ -65,13 +65,13 @@ import * as i18nData from './en.json';
 import { formDialogWidget } from './formDialogWidget';
 import * as palette from './palette.json';
 
-import PipelineExportDialog from './PipelineExportDialog';
+import { PipelineExportDialog } from './PipelineExportDialog';
 import {
   PipelineService,
   KFP_SCHEMA,
   RUNTIMES_NAMESPACE
 } from './PipelineService';
-import PipelineSubmissionDialog from './PipelineSubmissionDialog';
+import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
 import Utils from './utils';

@@ -25,15 +25,15 @@ import * as React from 'react';
 
 import Utils from './utils';
 
-export interface IRuntime {
-  name: string;
-  display_name: string;
-}
-
 export const RUNTIMES_NAMESPACE = 'runtimes';
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
+
+export interface IRuntime {
+  name: string;
+  display_name: string;
+}
 
 export class PipelineService {
   /**

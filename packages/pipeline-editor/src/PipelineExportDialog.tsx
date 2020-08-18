@@ -18,13 +18,13 @@ import * as React from 'react';
 
 import { IRuntime } from './PipelineService';
 
+const FILE_TYPES = ['yaml', 'py'];
+
 interface IProps {
   runtimes: IRuntime[];
 }
 
-const FILE_TYPES = ['yaml', 'py'];
-
-class PipelineExportDialog extends React.Component<IProps> {
+export class PipelineExportDialog extends React.Component<IProps> {
   render(): React.ReactNode {
     const { runtimes } = this.props;
     return (
@@ -64,5 +64,3 @@ class PipelineExportDialog extends React.Component<IProps> {
     );
   }
 }
-
-export default PipelineExportDialog;

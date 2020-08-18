@@ -22,7 +22,7 @@ interface IProps {
   runtimes: IRuntime[];
 }
 
-class PipelineSubmissionDialog extends React.Component<IProps> {
+export class PipelineSubmissionDialog extends React.Component<IProps> {
   render(): React.ReactNode {
     const { runtimes } = this.props;
     return (
@@ -56,5 +56,3 @@ class PipelineSubmissionDialog extends React.Component<IProps> {
     );
   }
 }
-
-export default PipelineSubmissionDialog;
