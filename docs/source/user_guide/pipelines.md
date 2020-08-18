@@ -78,7 +78,7 @@ Prior to distributing your pipeline - which includes preserving the component re
 When deploying a shared or distributed pipeline repository or archive, it is **very important** that the pipeline notebooks be extracted into the **same location relative to the pipeline file**.
 
 ##### Confirming Notebook Locations
-Pipeline validation checks for the existence of the notebook file associated with each node upon opening the editor and will highlight any nodes with missing files. If a file is missing or in an unexpected location the file location can be changed using the 
+Pipeline validation checks for the existence of the notebook file associated with each node upon opening the editor and will highlight any nodes with missing files. If a file is missing or in an unexpected location the file location can be changed using the adjacent `Browse` button.
 
 ## Pipeline Validation
 Pipeline validation occurs when pipeline files are opened, as well as when pipelines are run or exported. Pipelines are validated for the following:
