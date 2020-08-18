@@ -39,12 +39,6 @@ export class SubmitNotebookButtonExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
   private panel: NotebookPanel;
 
-  constructor(app: JupyterFrontEnd) {
-    this.app = app;
-  }
-
-  readonly app: JupyterFrontEnd;
-
   showWidget = async (): Promise<void> => {
     const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
     const runtimes = await PipelineService.getRuntimes();
