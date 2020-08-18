@@ -30,6 +30,7 @@ import {
   pipelineIcon,
   savePipelineIcon,
   runtimesIcon,
+  showBrowseFileDialog,
   showFormDialog,
   errorIcon
 } from '@elyra/ui-components';
@@ -200,6 +201,7 @@ export class PipelineEditor extends React.Component<
   position = 10;
   node: React.RefObject<HTMLDivElement>;
   propertiesInfo: any;
+  propertiesController: any;
 
   constructor(props: any) {
     super(props);
@@ -233,6 +235,10 @@ export class PipelineEditor extends React.Component<
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
     this.openPropertiesDialog = this.openPropertiesDialog.bind(this);
+    this.propertiesActionHandler = this.propertiesActionHandler.bind(this);
+    this.propertiesControllerHandler = this.propertiesControllerHandler.bind(
+      this
+    );
 
     this.node = React.createRef();
     this.handleEvent = this.handleEvent.bind(this);
@@ -342,6 +348,8 @@ export class PipelineEditor extends React.Component<
     ];
 
     const propertiesCallbacks = {
+      actionHandler: this.propertiesActionHandler,
+      controllerHandler: this.propertiesControllerHandler,
       applyPropertyChanges: this.applyPropertyChanges,
       closePropertiesDialog: this.closePropertiesDialog
     };
@@ -456,6 +464,14 @@ export class PipelineEditor extends React.Component<
     }
     const app_data = node.app_data;
 
+    if (app_data.filename !== propertySet.filename) {
+      app_data.filename = propertySet.filename;
+      node.label = path.basename(
+        propertySet.filename,
+        path.extname(propertySet.filename)
+      );
+    }
+
     app_data.runtime_image = propertySet.runtime_image;
     app_data.outputs = propertySet.outputs;
     app_data.env_vars = propertySet.env_vars;
@@ -469,6 +485,28 @@ export class PipelineEditor extends React.Component<
     console.log('Closing properties dialog');
     const propsInfo = JSON.parse(JSON.stringify(this.propertiesInfo));
     this.setState({ showPropertiesDialog: false, propertiesInfo: propsInfo });
+  }
+
+  propertiesControllerHandler(propertiesController: any): void {
+    this.propertiesController = propertiesController;
+  }
+
+  propertiesActionHandler(id: string, appData: any, data: any): void {
+    if (id === 'browse_file') {
+      const propertyId = { name: data.parameter_ref };
+      showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
+        filter: (model: any): boolean => {
+          return model.type == 'notebook';
+        }
+      }).then((result: any) => {
+        if (result.button.accept && result.value.length) {
+          this.propertiesController.updatePropertyValue(
+            propertyId,
+            result.value[0].path
+          );
+        }
+      });
+    }
   }
 
   /*
@@ -677,10 +715,9 @@ export class PipelineEditor extends React.Component<
             str => str + '='
           );
 
-          data.nodeTemplate.label = item.path.replace(/^.*[\\/]/, '');
-          data.nodeTemplate.label = data.nodeTemplate.label.replace(
-            /\.[^/.]+$/,
-            ''
+          data.nodeTemplate.label = path.basename(
+            item.path,
+            path.extname(item.path)
           );
           data.nodeTemplate.image = IconUtil.encode(notebookIcon);
           data.nodeTemplate.app_data[
