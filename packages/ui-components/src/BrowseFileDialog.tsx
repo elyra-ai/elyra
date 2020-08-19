@@ -234,8 +234,11 @@ export const showBrowseFileDialog = async (
       .replace(BROWSE_FILE_OPEN_CLASS, '')
       .trim();
     if (options.rootPath && result.button.accept && result.value.length) {
+      const relativeToPath = options.rootPath.endsWith('/')
+        ? options.rootPath
+        : options.rootPath + '/';
       result.value.forEach((val: any) => {
-        val.path = val.path.replace(options.rootPath, '');
+        val.path = val.path.replace(relativeToPath, '');
       });
     }
 
