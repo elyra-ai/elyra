@@ -506,9 +506,12 @@ export class PipelineEditor extends React.Component<
   }
 
   propertiesActionHandler(id: string, appData: any, data: any): void {
+    const propertyId = { name: data.parameter_ref };
+    const filename = this.propertiesController.getPropertyValue('filename');
+
     if (id === 'browse_file') {
-      const propertyId = { name: data.parameter_ref };
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
+        startPath: path.dirname(filename),
         filter: (model: any): boolean => {
           return model.type == 'notebook';
         }
@@ -518,6 +521,29 @@ export class PipelineEditor extends React.Component<
             propertyId,
             result.value[0].path
           );
+        }
+      });
+    } else if (id === 'add_dependencies') {
+      showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
+        multiselect: true,
+        includeDir: true,
+        rootPath: path.dirname(filename),
+        filter: (model: any): boolean => {
+          // do not include the notebook itself
+          return model.path !== filename;
+        }
+      }).then((result: any) => {
+        if (result.button.accept && result.value.length) {
+          const dependenciesSet = new Set(
+            this.propertiesController.getPropertyValue(propertyId)
+          );
+          result.value.forEach((val: any) => {
+            dependenciesSet.add(val.path);
+          });
+
+          this.propertiesController.updatePropertyValue(propertyId, [
+            ...dependenciesSet
+          ]);
         }
       });
     }

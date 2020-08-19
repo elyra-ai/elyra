@@ -120,8 +120,12 @@ td {
   padding-right: 10px;
 }
 
-.properties-control-panel[data-id='properties-nodeGroupInfo'] {
+.properties-control-panel[data-id='properties-nodeGroupInfo'],
+.properties-control-panel[data-id='properties-nodeDependenciesControls'] {
   position: relative;
+}
+.properties-control-panel > .properties-control-panel {
+  padding: 0;
 }
 .properties-control-panel[data-id='properties-nodeFileControl'] {
   width: calc(100% - 100px);
@@ -130,6 +134,23 @@ td {
   position: absolute;
   right: 0;
   top: 0.6rem;
+}
+.properties-action-panel[data-id='properties-nodeAddDependenciesAction'] {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.properties-action-panel[data-id='properties-nodeAddDependenciesAction']
+  .properties-action-button {
+  padding-right: 0;
+}
+.properties-action-panel[data-id='properties-nodeAddDependenciesAction']
+  .bx--btn--tertiary {
+  border: 0 none;
+  font-size: 0.8rem;
+  min-height: 1.75rem;
 }
 
 body.elyra-browseFileDialog-open .properties-modal {

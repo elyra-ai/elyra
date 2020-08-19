@@ -94,6 +94,16 @@
         "data": {
           "parameter_ref": "filename"
         }
+      },
+      {
+        "id": "add_dependencies",
+        "label": {
+          "default": "Add Dependencies..."
+        },
+        "control": "button",
+        "data": {
+          "parameter_ref": "dependencies"
+        }
       }
     ],
     "group_info": [
@@ -115,15 +125,30 @@
             "action_refs": ["browse_file"]
           },
           {
+            "id": "nodeRuntimeImageControl",
+            "type": "controls",
+            "parameter_refs": ["runtime_image"]
+          },
+          {
+            "id": "nodeDependenciesControls",
+            "type": "panels",
+            "group_info": [
+              {
+                "id": "nodeAddDependenciesControl",
+                "type": "controls",
+                "parameter_refs": ["dependencies"]
+              },
+              {
+                "id": "nodeAddDependenciesAction",
+                "type": "actionPanel",
+                "action_refs": ["add_dependencies"]
+              }
+            ]
+          },
+          {
             "id": "nodePropertiesControls",
             "type": "controls",
-            "parameter_refs": [
-              "runtime_image",
-              "dependencies",
-              "include_subdirectories",
-              "env_vars",
-              "outputs"
-            ]
+            "parameter_refs": ["include_subdirectories", "env_vars", "outputs"]
           }
         ]
       }
