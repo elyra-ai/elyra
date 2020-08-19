@@ -61,14 +61,14 @@ You can also try Elyra via docker.
 The command below starts a clean Elyra environment:
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:1.0.0 jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:1.0.1 jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.0.0 jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.0.1 jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used
@@ -101,7 +101,7 @@ via PyPi:
 pip install elyra && jupyter lab build
 ```
 
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 0.11.0-rc0 and above**
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 1.0.0 and above**
 
 via PyPi:
 ```bash
@@ -137,11 +137,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.0.0  enabled  OK*
-        @elyra/metadata-extension v1.0.0  enabled  OK*
-        @elyra/pipeline-editor-extension v1.0.0  enabled  OK*
-        @elyra/python-editor-extension v1.0.0  enabled  OK*
-        @elyra/theme-extension v1.0.0  enabled  OK*
+        @elyra/code-snippet-extension v1.0.1  enabled  OK*
+        @elyra/metadata-extension v1.0.1  enabled  OK*
+        @elyra/pipeline-editor-extension v1.0.1  enabled  OK*
+        @elyra/python-editor-extension v1.0.1  enabled  OK*
+        @elyra/theme-extension v1.0.1  enabled  OK*
         @jupyterlab/git v0.20.0  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK

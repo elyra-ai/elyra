@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 (08/19/2020)
+
+- Add Elyra source distribution to PyPi in support for conda [#876](https://github.com/elyra-ai/elyra/pull/876)
+
 ## 1.0.0 (08/05/2020)
 
 - Notebook Pipelines visual editor
