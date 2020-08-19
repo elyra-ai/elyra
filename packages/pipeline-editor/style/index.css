@@ -156,3 +156,26 @@ td {
 body.elyra-browseFileDialog-open .properties-modal {
   display: none;
 }
+span.elyra-BreadCrumbs-item {
+  border-radius: var(--jp-border-radius);
+  color: var(--md-grey-500);
+  cursor: not-allowed;
+  font-size: 0.8rem;
+  margin: 0px 2px;
+  padding: 0px 2px;
+}
+span.elyra-BreadCrumbs-home:hover,
+span.elyra-BreadCrumbs-item:hover {
+  background-color: transparent;
+}
+span.elyra-BreadCrumbs-home svg,
+span.elyra-BreadCrumbs-item svg {
+  cursor: not-allowed;
+}
+span.elyra-BreadCrumbs-home svg path.jp-icon3[fill] {
+  fill: var(--md-grey-500);
+}
+span.elyra-BreadCrumbs-home + span,
+span.elyra-BreadCrumbs-item + span {
+  color: var(--md-grey-500);
+}

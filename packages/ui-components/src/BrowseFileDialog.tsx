@@ -57,27 +57,25 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
     const contents = this.model.manager.services.contents;
     const localPath = contents.localPath(this.model.path);
 
-    // if 'rootPath' is defined prevent navigating to parent/grandparent directories
+    // if 'rootPath' is defined prevent navigating to it's parent/grandparent directories
     if (localPath && this.rootPath && localPath.indexOf(this.rootPath) === 0) {
-      // get all breadcrumbs HTML elements
       const breadcrumbs = document.querySelectorAll(
-        '.elyra-browseFileDialog .jp-BreadCrumbs > span'
+        '.elyra-browseFileDialog .jp-BreadCrumbs > span[title]'
       );
 
-      const rootLength = this.rootPath.split('/').length;
-      // number of grandparent directories and their corresponding `/`
-      const hideNodesCount = (rootLength - 1) * 2;
-
-      // iterate through all breadcrumb HTML elements, hide all grandparent
-      // directories and their corresponding `/` nodes and show only parent and
-      // children directories and corresponding `/` nodes
-      for (let i = 0; i < breadcrumbs.length; i++) {
-        if (i <= hideNodesCount) {
-          (breadcrumbs.item(i) as HTMLSpanElement).style.display = 'none';
+      breadcrumbs.forEach((crumb: Element): void => {
+        if ((crumb as HTMLSpanElement).title.indexOf(this.rootPath) === 0) {
+          crumb.className = crumb.className.replace(
+            'elyra-BreadCrumbs-',
+            'jp-BreadCrumbs-'
+          );
         } else {
-          (breadcrumbs.item(i) as HTMLSpanElement).style.display = '';
+          crumb.className = crumb.className.replace(
+            'jp-BreadCrumbs-',
+            'elyra-BreadCrumbs-'
+          );
         }
-      }
+      });
     }
   }
 }
