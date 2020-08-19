@@ -105,12 +105,13 @@ describe('@elyra/pipeline-editor', () => {
       });
 
       const browserFactory = { createFileBrowser, defaultBrowser, tracker };
+      const commands = new CommandRegistry();
       pipelineEditorFactory = new PipelineEditorFactory({
         name: PIPELINE_FACTORY,
         fileTypes: [PIPELINE],
         defaultFor: [PIPELINE],
         shell: new LabShell(),
-        commands: new CommandRegistry(),
+        commands: commands,
         browserFactory: browserFactory,
         serviceManager: services
       });
@@ -138,7 +139,9 @@ describe('@elyra/pipeline-editor', () => {
           commands={pipelineEditorWidget.commands}
           browserFactory={pipelineEditorWidget.browserFactory}
           widgetContext={pipelineEditorWidget.context}
+          widgetId={pipelineEditorWidget.id}
           serviceManager={pipelineEditorWidget.serviceManager}
+          addFileToPipelineSignal={pipelineEditorWidget.addFileToPipelineSignal}
         />
       );
       expect(pipelineEditor.state()).toEqual({
