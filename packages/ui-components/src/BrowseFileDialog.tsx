@@ -52,7 +52,7 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
     this.rootPath = options.rootPath;
   }
 
-  protected onUpdateRequest(msg: any) {
+  protected onUpdateRequest(msg: any): void {
     super.onUpdateRequest(msg);
     const contents = this.model.manager.services.contents;
     const localPath = contents.localPath(this.model.path);
