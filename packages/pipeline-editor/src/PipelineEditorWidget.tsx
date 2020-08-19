@@ -1302,7 +1302,8 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       shell: this.shell,
       commands: this.commands,
       browserFactory: this.browserFactory,
-      context: context
+      context: context,
+      serviceManager: this.serviceManager
     };
     const content = new PipelineEditorWidget(props);
     const widget = new DocumentWidget({
