@@ -53,6 +53,7 @@ export class MetadataEditor extends ReactWidget {
   editor: CodeEditor.IEditor;
   schemaName: string;
   schemaDisplayName: string;
+  sortedFields: string[];
   namespace: string;
   name: string;
   dirty: boolean;
@@ -75,6 +76,7 @@ export class MetadataEditor extends ReactWidget {
     this.schemaName = props.schema;
     this.onSave = props.onSave;
     this.name = props.name;
+    this.sortedFields = [];
 
     this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : 'new'}`;
     this.addClass(this.widgetClass);
@@ -99,6 +101,32 @@ export class MetadataEditor extends ReactWidget {
         this.requiredFields = schema.properties.metadata.required;
         if (!this.name) {
           this.title.label = `New ${this.schemaDisplayName}`;
+        }
+        this.sortedFields = [];
+        const categories: string[] = [];
+        // Find categories of all schema properties
+        for (const schemaProperty in this.schema) {
+          if (!this.schema[schemaProperty].uihints) {
+            this.schema[schemaProperty].uihints = {};
+          }
+          if (!this.schema[schemaProperty].uihints.category) {
+            this.schema[schemaProperty].uihints.category = null;
+          }
+          const category = this.schema[schemaProperty].uihints.category;
+          if (!categories.includes(category)) {
+            categories.push(category);
+          }
+        }
+        for (const category of categories) {
+          Array.prototype.push.apply(
+            this.sortedFields,
+            Object.keys(this.schema).filter((key: string) => {
+              return (
+                this.schema[key].uihints &&
+                this.schema[key].uihints.category === category
+              );
+            })
+          );
         }
         break;
       }
@@ -437,7 +465,7 @@ export class MetadataEditor extends ReactWidget {
   render(): React.ReactElement {
     const inputElements = [];
     let currentCategory = null;
-    for (const schemaProperty in this.schema) {
+    for (const schemaProperty of this.sortedFields) {
       if (
         this.schema[schemaProperty].uihints &&
         this.schema[schemaProperty].uihints.category != currentCategory
