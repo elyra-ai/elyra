@@ -151,6 +151,7 @@ td {
   border: 0 none;
   font-size: 0.8rem;
   min-height: 1.75rem;
+  margin: 0;
 }
 
 body.elyra-browseFileDialog-open .properties-modal {
