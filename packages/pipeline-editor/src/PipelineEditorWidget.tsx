@@ -1300,7 +1300,8 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       commands: this.commands,
       browserFactory: this.browserFactory,
       context: context,
-      addFileToPipelineSignal: this.addFileToPipelineSignal
+      addFileToPipelineSignal: this.addFileToPipelineSignal,
+      serviceManager: this.serviceManager
     };
     const content = new PipelineEditorWidget(props);
     const widget = new DocumentWidget({
