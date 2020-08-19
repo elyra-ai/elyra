@@ -30,6 +30,7 @@ import {
   pipelineIcon,
   savePipelineIcon,
   runtimesIcon,
+  showBrowseFileDialog,
   showFormDialog,
   errorIcon
 } from '@elyra/ui-components';
@@ -43,9 +44,11 @@ import {
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { NotebookPanel } from '@jupyterlab/notebook';
+import { ServiceManager } from '@jupyterlab/services';
 import { notebookIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
+import { CommandRegistry } from '@lumino/commands';
 import { IDragEvent } from '@lumino/dragdrop';
 import { Collapse, IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
@@ -120,23 +123,29 @@ export const commandIDs = {
  * Wrapper Class for Common Canvas React Component
  */
 export class PipelineEditorWidget extends ReactWidget {
-  app: JupyterFrontEnd;
+  shell: JupyterFrontEnd.IShell;
+  commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
   context: DocumentRegistry.Context;
+  serviceManager: ServiceManager;
 
   constructor(props: any) {
     super(props);
-    this.app = props.app;
+    this.shell = props.shell;
+    this.commands = props.commands;
     this.browserFactory = props.browserFactory;
     this.context = props.context;
+    this.serviceManager = props.serviceManager;
   }
 
   render(): React.ReactElement {
     return (
       <PipelineEditor
-        app={this.app}
+        shell={this.shell}
+        commands={this.commands}
         browserFactory={this.browserFactory}
         widgetContext={this.context}
+        serviceManager={this.serviceManager}
       />
     );
   }
@@ -150,9 +159,11 @@ export namespace PipelineEditor {
    * The props for PipelineEditor.
    */
   export interface IProps {
-    app: JupyterFrontEnd;
+    shell: JupyterFrontEnd.IShell;
+    commands: CommandRegistry;
     browserFactory: IFileBrowserFactory;
     widgetContext: DocumentRegistry.Context;
+    serviceManager: ServiceManager;
   }
 
   /**
@@ -193,18 +204,23 @@ export class PipelineEditor extends React.Component<
   PipelineEditor.IProps,
   PipelineEditor.IState
 > {
-  app: JupyterFrontEnd;
+  shell: JupyterFrontEnd.IShell;
+  commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
+  serviceManager: ServiceManager;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
   position = 10;
   node: React.RefObject<HTMLDivElement>;
   propertiesInfo: any;
+  propertiesController: any;
 
   constructor(props: any) {
     super(props);
-    this.app = props.app;
+    this.shell = props.shell;
+    this.commands = props.commands;
     this.browserFactory = props.browserFactory;
+    this.serviceManager = props.serviceManager;
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
@@ -233,6 +249,10 @@ export class PipelineEditor extends React.Component<
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
     this.openPropertiesDialog = this.openPropertiesDialog.bind(this);
+    this.propertiesActionHandler = this.propertiesActionHandler.bind(this);
+    this.propertiesControllerHandler = this.propertiesControllerHandler.bind(
+      this
+    );
 
     this.node = React.createRef();
     this.handleEvent = this.handleEvent.bind(this);
@@ -342,6 +362,8 @@ export class PipelineEditor extends React.Component<
     ];
 
     const propertiesCallbacks = {
+      actionHandler: this.propertiesActionHandler,
+      controllerHandler: this.propertiesControllerHandler,
       applyPropertyChanges: this.applyPropertyChanges,
       closePropertiesDialog: this.closePropertiesDialog
     };
@@ -456,6 +478,14 @@ export class PipelineEditor extends React.Component<
     }
     const app_data = node.app_data;
 
+    if (app_data.filename !== propertySet.filename) {
+      app_data.filename = propertySet.filename;
+      node.label = path.basename(
+        propertySet.filename,
+        path.extname(propertySet.filename)
+      );
+    }
+
     app_data.runtime_image = propertySet.runtime_image;
     app_data.outputs = propertySet.outputs;
     app_data.env_vars = propertySet.env_vars;
@@ -469,6 +499,28 @@ export class PipelineEditor extends React.Component<
     console.log('Closing properties dialog');
     const propsInfo = JSON.parse(JSON.stringify(this.propertiesInfo));
     this.setState({ showPropertiesDialog: false, propertiesInfo: propsInfo });
+  }
+
+  propertiesControllerHandler(propertiesController: any): void {
+    this.propertiesController = propertiesController;
+  }
+
+  propertiesActionHandler(id: string, appData: any, data: any): void {
+    if (id === 'browse_file') {
+      const propertyId = { name: data.parameter_ref };
+      showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
+        filter: (model: any): boolean => {
+          return model.type == 'notebook';
+        }
+      }).then((result: any) => {
+        if (result.button.accept && result.value.length) {
+          this.propertiesController.updatePropertyValue(
+            propertyId,
+            result.value[0].path
+          );
+        }
+      });
+    }
   }
 
   /*
@@ -677,10 +729,9 @@ export class PipelineEditor extends React.Component<
             str => str + '='
           );
 
-          data.nodeTemplate.label = item.path.replace(/^.*[\\/]/, '');
-          data.nodeTemplate.label = data.nodeTemplate.label.replace(
-            /\.[^/.]+$/,
-            ''
+          data.nodeTemplate.label = path.basename(
+            item.path,
+            path.extname(item.path)
           );
           data.nodeTemplate.image = IconUtil.encode(notebookIcon);
           data.nodeTemplate.app_data['filename'] = item.path;
@@ -724,7 +775,7 @@ export class PipelineEditor extends React.Component<
     for (let i = 0; i < selectedNodes.length; i++) {
       const path = this.canvasController.getNode(selectedNodes[i]).app_data
         .filename;
-      this.app.commands.execute(commandIDs.openDocManager, { path });
+      this.commands.execute(commandIDs.openDocManager, { path });
     }
   }
 
@@ -960,7 +1011,7 @@ export class PipelineEditor extends React.Component<
    */
   async validateProperties(node: any): Promise<string> {
     const validationErrors: string[] = [];
-    const notebookValidationErr = await this.app.serviceManager.contents
+    const notebookValidationErr = await this.serviceManager.contents
       .get(node.app_data.filename)
       .then((result: any): any => {
         return null;
@@ -1137,14 +1188,14 @@ export class PipelineEditor extends React.Component<
   }
 
   handleOpenRuntimes(): void {
-    this.app.shell.activateById(
+    this.shell.activateById(
       `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`
     );
   }
 
   handleClosePipeline(): void {
-    if (this.app.shell.currentWidget) {
-      this.app.shell.currentWidget.close();
+    if (this.shell.currentWidget) {
+      this.shell.currentWidget.close();
     }
   }
 
@@ -1206,21 +1257,27 @@ export class PipelineEditor extends React.Component<
 }
 
 export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
-  app: JupyterFrontEnd;
+  shell: JupyterFrontEnd.IShell;
+  commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
+  serviceManager: ServiceManager;
 
   constructor(options: any) {
     super(options);
-    this.app = options.app;
+    this.shell = options.shell;
+    this.commands = options.commands;
     this.browserFactory = options.browserFactory;
+    this.serviceManager = options.serviceManager;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
     // Creates a blank widget with a DocumentWidget wrapper
     const props = {
-      app: this.app,
+      shell: this.shell,
+      commands: this.commands,
       browserFactory: this.browserFactory,
-      context: context
+      context: context,
+      serviceManager: this.serviceManager
     };
     const content = new PipelineEditorWidget(props);
     const widget = new DocumentWidget({

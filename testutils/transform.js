@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './BrowseFileDialog';
-export * from './ExpandableErrorDialog';
-export * from './ExpandableComponent';
-export * from './FormDialog';
-export * from './icons';
-export * from './DropDown';
+/* global module, require */
+const config = require('./babel.config.js');
+module.exports = require('babel-jest').createTransformer(config);

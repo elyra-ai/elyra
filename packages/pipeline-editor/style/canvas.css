@@ -323,6 +323,14 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .bx--modal-footer .bx--btn--secondary {
   background: var(--md-grey-500);
 }
+.bx--modal-content .bx--btn--tertiary {
+  border-color: var(--md-blue-500);
+  color: var(--md-blue-500);
+}
+.bx--modal-content .bx--btn--tertiary:hover {
+  background: var(--md-blue-500);
+  color: #ffffff;
+}
 .bx--modal-footer .bx--btn:disabled {
   background-color: var(--jp-layout-color3);
   opacity: 0.3;

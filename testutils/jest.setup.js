@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './BrowseFileDialog';
-export * from './ExpandableErrorDialog';
-export * from './ExpandableComponent';
-export * from './FormDialog';
-export * from './icons';
-export * from './DropDown';
+/* global global, require */
+const crypto = require('crypto');
+
+Object.defineProperty(global.self, 'crypto', {
+  value: {
+    getRandomValues: arr => crypto.randomBytes(arr.length)
+  }
+});

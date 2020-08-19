@@ -83,7 +83,7 @@ build-ui: yarn-install lint-ui ## Build packages
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
 build-server: lint-server ## Build backend
-	python setup.py bdist_wheel
+	python setup.py bdist_wheel sdist
 
 build: build-server build-ui
 
@@ -115,11 +115,16 @@ watch: ## Watch packages. For use alongside jupyter lab --watch
 test-server: install-server ## Run unit tests
 	pytest -v elyra
 
-test-ui: lint-ui ## Run frontend tests
-	npm test
+test-ui: lint-ui test-ui-unit test-ui-integration ## Run frontend tests
 
-test-ui-debug: lint-ui
-	npm run test-debug
+test-ui-integration: ## Run frontend cypress integration tests
+	npm run test:integration
+
+test-ui-unit: ## Run frontend jest unit tests
+	npm run test:unit
+
+test-ui-debug: ## Open cypress integration test debugger
+	npm run test:integration:debug
 
 test: test-server test-ui ## Run all tests
 
