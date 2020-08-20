@@ -117,7 +117,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Add command to add file to pipeline
     const addFileToPipelineCommand: string = commandIDs.addFileToPipeline;
     app.commands.addCommand(addFileToPipelineCommand, {
-      label: 'Add file to pipeline',
+      label: 'Add File to Pipeline',
       icon: addIcon,
       execute: args => {
         pipelineEditorFactory.addFileToPipelineSignal.emit(args);

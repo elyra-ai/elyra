@@ -105,13 +105,12 @@ describe('@elyra/pipeline-editor', () => {
       });
 
       const browserFactory = { createFileBrowser, defaultBrowser, tracker };
-      const commands = new CommandRegistry();
       pipelineEditorFactory = new PipelineEditorFactory({
         name: PIPELINE_FACTORY,
         fileTypes: [PIPELINE],
         defaultFor: [PIPELINE],
         shell: new LabShell(),
-        commands: commands,
+        commands: new CommandRegistry(),
         browserFactory: browserFactory,
         serviceManager: services
       });
