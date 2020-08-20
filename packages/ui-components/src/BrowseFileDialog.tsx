@@ -65,15 +65,13 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
 
       breadcrumbs.forEach((crumb: Element): void => {
         if ((crumb as HTMLSpanElement).title.indexOf(this.rootPath) === 0) {
-          crumb.className = crumb.className.replace(
-            'elyra-BreadCrumbs-',
-            'jp-BreadCrumbs-'
-          );
-        } else {
-          crumb.className = crumb.className.replace(
-            'jp-BreadCrumbs-',
-            'elyra-BreadCrumbs-'
-          );
+          crumb.className = crumb.className
+            .replace('elyra-BreadCrumbs-disabled', '')
+            .trim();
+        } else if (
+          crumb.className.indexOf('elyra-BreadCrumbs-disabled') === -1
+        ) {
+          crumb.className += ' elyra-BreadCrumbs-disabled';
         }
       });
     }
