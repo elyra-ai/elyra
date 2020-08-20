@@ -109,8 +109,9 @@ export class MetadataEditor extends ReactWidget {
             this.schema[schemaProperty].uihints.category;
           if (!cat) {
             this.categories['_noCategory'].push(schemaProperty);
-            // eslint-disable-next-line no-prototype-builtins
-          } else if (this.categories.hasOwnProperty(cat)) {
+          } else if (
+            Object.prototype.hasOwnProperty.call(this.categories, cat)
+          ) {
             this.categories[cat].push(schemaProperty);
           } else {
             this.categories[cat] = [schemaProperty];
