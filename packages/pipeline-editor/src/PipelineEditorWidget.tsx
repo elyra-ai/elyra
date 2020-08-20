@@ -510,7 +510,10 @@ export class PipelineEditor extends React.Component<
 
   propertiesActionHandler(id: string, appData: any, data: any): void {
     const propertyId = { name: data.parameter_ref };
-    const filename = this.propertiesController.getPropertyValue('filename');
+    const filename = PipelineService.getWorkspaceRelativeNodePath(
+      this.widgetContext.path,
+      this.propertiesController.getPropertyValue('filename')
+    );
 
     if (id === 'browse_file') {
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {

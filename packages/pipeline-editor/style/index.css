@@ -162,6 +162,7 @@ span.elyra-BreadCrumbs-disabled {
   color: var(--md-grey-500);
   cursor: not-allowed;
   font-size: 0.8rem;
+  font-style: italic;
   pointer-events: none;
 }
 span.elyra-BreadCrumbs-disabled:hover {
