@@ -109,12 +109,10 @@ export class MetadataEditor extends ReactWidget {
             this.schema[schemaProperty].uihints.category;
           if (!category) {
             this.schemaPropertiesByCategory['_noCategory'].push(schemaProperty);
+          } else if (this.schemaPropertiesByCategory[category]) {
+            this.schemaPropertiesByCategory[category].push(schemaProperty);
           } else {
-            if (this.schemaPropertiesByCategory[category]) {
-              this.schemaPropertiesByCategory[category].push(schemaProperty);
-            } else {
-              this.schemaPropertiesByCategory[category] = [schemaProperty];
-            }
+            this.schemaPropertiesByCategory[category] = [schemaProperty];
           }
         }
         break;
