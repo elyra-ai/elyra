@@ -367,8 +367,10 @@ export class MetadataEditor extends ReactWidget {
     const input = document.querySelector(
       `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
     ) as HTMLInputElement;
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
   }
 
   renderField(fieldName: string): React.ReactElement {
@@ -450,7 +452,7 @@ export class MetadataEditor extends ReactWidget {
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
-        {this.displayName
+        {this.displayName !== undefined
           ? this.renderTextInput(
               'Name',
               '',
