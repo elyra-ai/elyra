@@ -118,7 +118,7 @@ export const commandIDs = {
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
   submitNotebook: 'notebook:submit',
-  addFileToPipeline: 'pipeline-editor:addToPipeline'
+  addFileToPipeline: 'pipeline-editor:add-node'
 };
 
 /**
