@@ -35,7 +35,7 @@ import {
   errorIcon
 } from '@elyra/ui-components';
 
-import { JupyterFrontEnd } from '@jupyterlab/application';
+import { JupyterFrontEnd, LabShell } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {
   DocumentRegistry,
@@ -941,8 +941,9 @@ export class PipelineEditor extends React.Component<
           } else {
             // in this case, pipeline was last edited in a "old" version of Elyra and
             // it needs to be updated/migrated.
-            showDialog({
-              title: 'Migrate pipeline?',
+            const path = this.widgetContext.path;
+            const migrateDialogResult = await showDialog({
+              title: 'Migrate pipeline ' + path + '?',
               body: (
                 <p>
                   This pipeline corresponds to an older version of Elyra and
@@ -959,8 +960,9 @@ export class PipelineEditor extends React.Component<
                 </p>
               ),
               buttons: [Dialog.cancelButton(), Dialog.okButton()]
-            }).then(result => {
-              if (result.button.accept) {
+            });
+            if (migrateDialogResult) {
+              if (migrateDialogResult.button.accept) {
                 // proceed with migration
                 pipelineJson = PipelineService.convertPipeline(
                   pipelineJson,
@@ -970,7 +972,7 @@ export class PipelineEditor extends React.Component<
               } else {
                 this.handleClosePipeline();
               }
-            });
+            }
           }
         }
       }
@@ -1288,9 +1290,22 @@ export class PipelineEditor extends React.Component<
     node.addEventListener('lm-dragover', this.handleEvent);
     node.addEventListener('lm-drop', this.handleEvent);
 
-    this.initPropertiesInfo().finally(() => {
-      this.handleOpenPipeline();
-    });
+    const labShell = this.shell as LabShell;
+
+    const activeWidgetListener = (_: any, args: any) => {
+      const activeWidget = args.newValue;
+
+      // Only handle open pipeline if PipelineEditorWidget is active
+      if (activeWidget && activeWidget.id === this.widgetId) {
+        this.initPropertiesInfo().finally(() => {
+          this.handleOpenPipeline();
+        });
+
+        labShell.activeChanged.disconnect(activeWidgetListener);
+      }
+    };
+
+    labShell.activeChanged.connect(activeWidgetListener);
   }
 
   componentWillUnmount(): void {
