@@ -63,7 +63,7 @@ export class MetadataEditor extends ReactWidget {
   widgetClass: string;
 
   schema: IDictionary<any> = {};
-  categories: IDictionary<string[]> = {};
+  schemaPropertiesByCategory: IDictionary<string[]> = {};
   allMetadata: IDictionary<any>[] = [];
   metadata: IDictionary<any> = {};
 
@@ -102,19 +102,20 @@ export class MetadataEditor extends ReactWidget {
           this.title.label = `New ${this.schemaDisplayName}`;
         }
         // Find categories of all schema properties
-        this.categories = { _noCategory: [] };
+        this.schemaPropertiesByCategory = { _noCategory: [] };
         for (const schemaProperty in this.schema) {
-          const cat =
+          const hasCategory =
             this.schema[schemaProperty].uihints &&
             this.schema[schemaProperty].uihints.category;
-          if (!cat) {
-            this.categories['_noCategory'].push(schemaProperty);
-          } else if (
-            Object.prototype.hasOwnProperty.call(this.categories, cat)
-          ) {
-            this.categories[cat].push(schemaProperty);
+          if (!hasCategory) {
+            this.schemaPropertiesByCategory['_noCategory'].push(schemaProperty);
           } else {
-            this.categories[cat] = [schemaProperty];
+            const category = this.schema[schemaProperty].uihints.category;
+            if (this.schemaPropertiesByCategory[category]) {
+              this.schemaPropertiesByCategory[category].push(schemaProperty);
+            } else {
+              this.schemaPropertiesByCategory[category] = [schemaProperty];
+            }
           }
         }
         break;
@@ -453,16 +454,15 @@ export class MetadataEditor extends ReactWidget {
 
   render(): React.ReactElement {
     const inputElements = [];
-    for (const category in this.categories) {
+    for (const category in this.schemaPropertiesByCategory) {
       if (category !== '_noCategory') {
         inputElements.push(
           <h4 style={{ flexBasis: '100%', paddingBottom: '10px' }}>
-            {' '}
-            {category}{' '}
+            {category}
           </h4>
         );
       }
-      for (const schemaProperty of this.categories[category]) {
+      for (const schemaProperty of this.schemaPropertiesByCategory[category]) {
         inputElements.push(this.renderField(schemaProperty));
       }
     }
