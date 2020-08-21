@@ -234,9 +234,9 @@ export class MetadataEditor extends ReactWidget {
     this.handleDirtyState(true);
     // Special case because all metadata has a display name
     if (schemaField === 'display_name') {
-      this.displayName = event.nativeEvent.srcElement.value;
+      this.displayName = event.nativeEvent.target.value;
     } else {
-      this.metadata[schemaField] = event.nativeEvent.srcElement.value;
+      this.metadata[schemaField] = event.nativeEvent.target.value;
     }
   }
 
@@ -385,8 +385,10 @@ export class MetadataEditor extends ReactWidget {
     const input = document.querySelector(
       `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
     ) as HTMLInputElement;
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
   }
 
   renderField(fieldName: string): React.ReactElement {
@@ -477,15 +479,17 @@ export class MetadataEditor extends ReactWidget {
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
-        {this.renderTextInput(
-          'Name',
-          '',
-          'display_name',
-          this.displayName,
-          '(required)',
-          false,
-          intent
-        )}
+        {this.displayName !== undefined
+          ? this.renderTextInput(
+              'Name',
+              '',
+              'display_name',
+              this.displayName,
+              '(required)',
+              false,
+              intent
+            )
+          : null}
         {inputElements}
         <FormGroup className={'elyra-metadataEditor-saveButton'}>
           <Button
