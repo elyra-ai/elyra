@@ -24,9 +24,11 @@
   "style": "style/index.css",
   "scripts": {
     "build": "tsc",
+    "build:test": "tsc --build tsconfig.test.json",
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build",
+    "test": "jest",
     "watch": "tsc -w"
   },
   "dependencies": {
