@@ -39,8 +39,7 @@ import {
   RUNTIMES_NAMESPACE
 } from './PipelineService';
 import { RuntimesWidget } from './RuntimesWidget';
-
-import { SubmitNotebookButtonExtension } from './SubmitNotebook';
+import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 
 import '../style/index.css';
 
@@ -167,7 +166,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     );
 
     // SubmitNotebookButtonExtension initialization code
-    const buttonExtension = new SubmitNotebookButtonExtension(app);
+    const buttonExtension = new SubmitNotebookButtonExtension();
     app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
     app.contextMenu.addItem({
       selector: '.jp-Notebook',

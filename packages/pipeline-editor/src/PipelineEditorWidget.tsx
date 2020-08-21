@@ -65,7 +65,9 @@ import { IntlProvider } from 'react-intl';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
 import * as i18nData from './en.json';
+import { formDialogWidget } from './formDialogWidget';
 import * as palette from './palette.json';
+
 import { PipelineExportDialog } from './PipelineExportDialog';
 import {
   PipelineService,
@@ -73,6 +75,7 @@ import {
   RUNTIMES_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
+
 import * as properties from './properties.json';
 import Utils from './utils';
 
@@ -516,7 +519,10 @@ export class PipelineEditor extends React.Component<
         if (result.button.accept && result.value.length) {
           this.propertiesController.updatePropertyValue(
             propertyId,
-            result.value[0].path
+            PipelineService.getPipelineRelativeNodePath(
+              this.widgetContext.path,
+              result.value[0].path
+            )
           );
         }
       });
@@ -734,7 +740,12 @@ export class PipelineEditor extends React.Component<
             path.extname(item.path)
           );
           data.nodeTemplate.image = IconUtil.encode(notebookIcon);
-          data.nodeTemplate.app_data['filename'] = item.path;
+          data.nodeTemplate.app_data[
+            'filename'
+          ] = PipelineService.getPipelineRelativeNodePath(
+            this.widgetContext.path,
+            item.path
+          );
           data.nodeTemplate.app_data[
             'runtime_image'
           ] = this.propertiesInfo.parameterDef.current_parameters.runtime_image;
@@ -773,8 +784,10 @@ export class PipelineEditor extends React.Component<
    */
   handleOpenNotebook(selectedNodes: any): void {
     for (let i = 0; i < selectedNodes.length; i++) {
-      const path = this.canvasController.getNode(selectedNodes[i]).app_data
-        .filename;
+      const path = PipelineService.getWorkspaceRelativeNodePath(
+        this.widgetContext.path,
+        this.canvasController.getNode(selectedNodes[i]).app_data.filename
+      );
       this.commands.execute(commandIDs.openDocManager, { path });
     }
   }
@@ -796,7 +809,7 @@ export class PipelineEditor extends React.Component<
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
-      body: new PipelineExportDialog({ runtimes }),
+      body: formDialogWidget(<PipelineExportDialog runtimes={runtimes} />),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#runtime_config'
@@ -825,6 +838,11 @@ export class PipelineEditor extends React.Component<
 
     const runtime_config = dialogResult.value.runtime_config;
     const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
+
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipelineFlow.pipelines[0],
+      this.widgetContext.path
+    );
 
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
@@ -894,7 +912,10 @@ export class PipelineEditor extends React.Component<
             }).then(result => {
               if (result.button.accept) {
                 // proceed with migration
-                pipelineJson = PipelineService.convertPipeline(pipelineJson);
+                pipelineJson = PipelineService.convertPipeline(
+                  pipelineJson,
+                  this.widgetContext.path
+                );
                 this.canvasController.setPipelineFlow(pipelineJson);
               } else {
                 this.handleClosePipeline();
@@ -1012,7 +1033,12 @@ export class PipelineEditor extends React.Component<
   async validateProperties(node: any): Promise<string> {
     const validationErrors: string[] = [];
     const notebookValidationErr = await this.serviceManager.contents
-      .get(node.app_data.filename)
+      .get(
+        PipelineService.getWorkspaceRelativeNodePath(
+          this.widgetContext.path,
+          node.app_data.filename
+        )
+      )
       .then((result: any): any => {
         return null;
       })
@@ -1129,7 +1155,7 @@ export class PipelineEditor extends React.Component<
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
-      body: new PipelineSubmissionDialog({ runtimes }),
+      body: formDialogWidget(<PipelineSubmissionDialog runtimes={runtimes} />),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#pipeline_name'
@@ -1147,6 +1173,11 @@ export class PipelineEditor extends React.Component<
     const runtime_config = dialogResult.value.runtime_config;
     const runtime =
       PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
+
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipelineFlow.pipelines[0],
+      this.widgetContext.path
+    );
 
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
