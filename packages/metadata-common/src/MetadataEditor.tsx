@@ -104,13 +104,12 @@ export class MetadataEditor extends ReactWidget {
         // Find categories of all schema properties
         this.schemaPropertiesByCategory = { _noCategory: [] };
         for (const schemaProperty in this.schema) {
-          const hasCategory =
+          const category =
             this.schema[schemaProperty].uihints &&
             this.schema[schemaProperty].uihints.category;
-          if (!hasCategory) {
+          if (!category) {
             this.schemaPropertiesByCategory['_noCategory'].push(schemaProperty);
           } else {
-            const category = this.schema[schemaProperty].uihints.category;
             if (this.schemaPropertiesByCategory[category]) {
               this.schemaPropertiesByCategory[category].push(schemaProperty);
             } else {
