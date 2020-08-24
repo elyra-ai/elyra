@@ -941,9 +941,9 @@ export class PipelineEditor extends React.Component<
           } else {
             // in this case, pipeline was last edited in a "old" version of Elyra and
             // it needs to be updated/migrated.
-            const path = this.widgetContext.path;
+            const filename = this.widgetContext.path.split('/').pop();
             const migrateDialogResult = await showDialog({
-              title: 'Migrate pipeline ' + path + '?',
+              title: 'Migrate pipeline ' + filename + '?',
               body: (
                 <p>
                   This pipeline corresponds to an older version of Elyra and
@@ -961,17 +961,15 @@ export class PipelineEditor extends React.Component<
               ),
               buttons: [Dialog.cancelButton(), Dialog.okButton()]
             });
-            if (migrateDialogResult) {
-              if (migrateDialogResult.button.accept) {
-                // proceed with migration
-                pipelineJson = PipelineService.convertPipeline(
-                  pipelineJson,
-                  this.widgetContext.path
-                );
-                this.canvasController.setPipelineFlow(pipelineJson);
-              } else {
-                this.handleClosePipeline();
-              }
+            if (migrateDialogResult && migrateDialogResult.button.accept) {
+              // proceed with migration
+              pipelineJson = PipelineService.convertPipeline(
+                pipelineJson,
+                this.widgetContext.path
+              );
+              this.canvasController.setPipelineFlow(pipelineJson);
+            } else {
+              this.handleClosePipeline();
             }
           }
         }
@@ -1292,20 +1290,18 @@ export class PipelineEditor extends React.Component<
 
     const labShell = this.shell as LabShell;
 
-    const activeWidgetListener = (_: any, args: any) => {
-      const activeWidget = args.newValue;
+    this.initPropertiesInfo().finally(() => {
+      const activeWidgetListener = (_: any, args: any): void => {
+        const activeWidget = args.newValue;
 
-      // Only handle open pipeline if PipelineEditorWidget is active
-      if (activeWidget && activeWidget.id === this.widgetId) {
-        this.initPropertiesInfo().finally(() => {
+        // Only handle open pipeline if PipelineEditorWidget is active
+        if (activeWidget && activeWidget.id === this.widgetId) {
           this.handleOpenPipeline();
-        });
-
-        labShell.activeChanged.disconnect(activeWidgetListener);
-      }
-    };
-
-    labShell.activeChanged.connect(activeWidgetListener);
+          labShell.activeChanged.disconnect(activeWidgetListener);
+        }
+      };
+      labShell.activeChanged.connect(activeWidgetListener);
+    });
   }
 
   componentWillUnmount(): void {
