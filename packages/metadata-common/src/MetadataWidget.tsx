@@ -120,7 +120,7 @@ export class MetadataDisplay<
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     return (
       <div className={METADATA_JSON_CLASS}>
-        <JSONComponent json={metadata.metadata} root={'metadata'} />
+        <JSONComponent json={metadata} />
       </div>
     );
   }

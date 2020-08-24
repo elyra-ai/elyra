@@ -41,7 +41,6 @@ const theme = {
 
 interface IProps {
   json: any;
-  root: string;
 }
 
 /**
@@ -61,7 +60,7 @@ export class JSONComponent extends React.Component<IProps> {
           nestedNodeItemString: 'cm-comment'
         }}
         invertTheme={false}
-        keyPath={[this.props.root]}
+        hideRoot={true}
         getItemString={(type, data, itemType, itemString): any =>
           Array.isArray(data) ? (
             // Always display array type and the number of items i.e. "[] 2 items".
