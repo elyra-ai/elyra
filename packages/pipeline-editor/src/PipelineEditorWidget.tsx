@@ -50,6 +50,7 @@ import { notebookIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
 import { IDragEvent } from '@lumino/dragdrop';
+import { Signal } from '@lumino/signaling';
 import { Collapse, IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 import Alert from '@material-ui/lab/Alert';
@@ -119,7 +120,8 @@ export const commandIDs = {
   openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
-  submitNotebook: 'notebook:submit'
+  submitNotebook: 'notebook:submit',
+  addFileToPipeline: 'pipeline-editor:add-node'
 };
 
 /**
@@ -131,6 +133,7 @@ export class PipelineEditorWidget extends ReactWidget {
   browserFactory: IFileBrowserFactory;
   context: DocumentRegistry.Context;
   serviceManager: ServiceManager;
+  addFileToPipelineSignal: Signal<PipelineEditorFactory, any>;
 
   constructor(props: any) {
     super(props);
@@ -139,6 +142,7 @@ export class PipelineEditorWidget extends ReactWidget {
     this.browserFactory = props.browserFactory;
     this.context = props.context;
     this.serviceManager = props.serviceManager;
+    this.addFileToPipelineSignal = props.addFileToPipelineSignal;
   }
 
   render(): React.ReactElement {
@@ -148,7 +152,9 @@ export class PipelineEditorWidget extends ReactWidget {
         commands={this.commands}
         browserFactory={this.browserFactory}
         widgetContext={this.context}
+        widgetId={this.parent.id}
         serviceManager={this.serviceManager}
+        addFileToPipelineSignal={this.addFileToPipelineSignal}
       />
     );
   }
@@ -167,6 +173,8 @@ export namespace PipelineEditor {
     browserFactory: IFileBrowserFactory;
     widgetContext: DocumentRegistry.Context;
     serviceManager: ServiceManager;
+    addFileToPipelineSignal: Signal<PipelineEditorFactory, any>;
+    widgetId: string;
   }
 
   /**
@@ -213,6 +221,8 @@ export class PipelineEditor extends React.Component<
   serviceManager: ServiceManager;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
+  widgetId: string;
+  addFileToPipelineSignal: Signal<PipelineEditorFactory, any>;
   position = 10;
   node: React.RefObject<HTMLDivElement>;
   propertiesInfo: any;
@@ -227,6 +237,8 @@ export class PipelineEditor extends React.Component<
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
+    this.widgetId = props.widgetId;
+    this.addFileToPipelineSignal = props.addFileToPipelineSignal;
 
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.clickActionHandler = this.clickActionHandler.bind(this);
@@ -256,6 +268,10 @@ export class PipelineEditor extends React.Component<
     this.propertiesControllerHandler = this.propertiesControllerHandler.bind(
       this
     );
+
+    this.addFileToPipelineSignal.connect((args: any): any => {
+      this.handleAddFileToPipelineCanvas();
+    });
 
     this.node = React.createRef();
     this.handleEvent = this.handleEvent.bind(this);
@@ -723,6 +739,11 @@ export class PipelineEditor extends React.Component<
   }
 
   handleAddFileToPipelineCanvas(x?: number, y?: number): Promise<any> {
+    // Only add file to pipeline if it is currently in focus
+    if (this.shell.currentWidget.id !== this.widgetId) {
+      return;
+    }
+
     let failedAdd = 0;
     let position = 0;
     const missingXY = !(x && y);
@@ -1321,6 +1342,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
   serviceManager: ServiceManager;
+  addFileToPipelineSignal: Signal<this, any>;
 
   constructor(options: any) {
     super(options);
@@ -1328,6 +1350,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     this.commands = options.commands;
     this.browserFactory = options.browserFactory;
     this.serviceManager = options.serviceManager;
+    this.addFileToPipelineSignal = new Signal<this, any>(this);
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
@@ -1337,6 +1360,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       commands: this.commands,
       browserFactory: this.browserFactory,
       context: context,
+      addFileToPipelineSignal: this.addFileToPipelineSignal,
       serviceManager: this.serviceManager
     };
     const content = new PipelineEditorWidget(props);
