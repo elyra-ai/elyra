@@ -942,8 +942,10 @@ export class PipelineEditor extends React.Component<
             // in this case, pipeline was last edited in a "old" version of Elyra and
             // it needs to be updated/migrated.
             const filePath = this.widgetContext.path;
-            const extension = path.extname(filePath);
-            const pipelineName = path.basename(filePath, extension);
+            const pipelineName = path.basename(
+              filePath,
+              path.extname(filePath)
+            );
 
             const migrateDialogResult = await showDialog({
               title: "Migrate pipeline '" + pipelineName + "'?",
