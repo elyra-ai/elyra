@@ -63,6 +63,7 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
   updateMetadata: () => void;
   namespace: string;
   schema: string;
+  sortMetadata: boolean;
   getCurrentWidget: () => Widget;
   editorServices: IEditorServices;
   shell: JupyterFrontEnd.IShell;
@@ -320,6 +321,7 @@ export class CodeSnippetWidget extends MetadataWidget {
         getCurrentWidget={this.props.getCurrentWidget}
         editorServices={this.props.editorServices}
         shell={this.props.app.shell}
+        sortMetadata={false}
       />
     );
   }

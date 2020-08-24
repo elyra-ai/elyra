@@ -68,6 +68,7 @@ export interface IMetadataDisplayProps {
   updateMetadata: () => void;
   namespace: string;
   schema: string;
+  sortMetadata: boolean;
 }
 
 /**
@@ -120,7 +121,7 @@ export class MetadataDisplay<
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     return (
       <div className={METADATA_JSON_CLASS}>
-        <JSONComponent json={metadata} />
+        <JSONComponent json={metadata.metadata} />
       </div>
     );
   }
@@ -140,7 +141,21 @@ export class MetadataDisplay<
     );
   };
 
+  /**
+   * A function called when the `sortMetadata` property is `true`, sorts the
+   * `metadata` property alphabetically by `metadata.display_name` by default.
+   * Can be overridden if a different or more intensive sorting is desired.
+   */
+  sortMetadata(): void {
+    this.props.metadata.sort((a, b) =>
+      a.display_name.localeCompare(b.display_name)
+    );
+  }
+
   render(): React.ReactElement {
+    if (this.props.sortMetadata) {
+      this.sortMetadata();
+    }
     return (
       <div>
         <div id="elyra-metadata">
@@ -246,6 +261,7 @@ export class MetadataWidget extends ReactWidget {
         openMetadataEditor={this.openMetadataEditor}
         namespace={this.props.namespace}
         schema={this.props.schema}
+        sortMetadata={true}
       />
     );
   }

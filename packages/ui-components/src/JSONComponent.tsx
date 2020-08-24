@@ -49,7 +49,7 @@ interface IProps {
  * A slimmed down copy of the `Component` class in @jupyterlab/json-extension
  */
 export class JSONComponent extends React.Component<IProps> {
-  render() {
+  render(): React.ReactElement {
     return (
       <JSONTree
         data={this.props.json}
