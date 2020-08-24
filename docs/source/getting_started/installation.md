@@ -45,7 +45,7 @@ Note: Ubuntu and CentOS users may need to use `pip3 install elyra`
 
 using Conda:
 ```bash
-conda install -c conda-forge elyra
+conda install -c conda-forge elyra && jupyter lab build
 ```
 
 ### Verify Installation 
