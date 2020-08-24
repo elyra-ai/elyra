@@ -63,6 +63,7 @@ export class MetadataEditor extends ReactWidget {
   widgetClass: string;
 
   schema: IDictionary<any> = {};
+  schemaPropertiesByCategory: IDictionary<string[]> = {};
   allMetadata: IDictionary<any>[] = [];
   metadata: IDictionary<any> = {};
 
@@ -99,6 +100,20 @@ export class MetadataEditor extends ReactWidget {
         this.requiredFields = schema.properties.metadata.required;
         if (!this.name) {
           this.title.label = `New ${this.schemaDisplayName}`;
+        }
+        // Find categories of all schema properties
+        this.schemaPropertiesByCategory = { _noCategory: [] };
+        for (const schemaProperty in this.schema) {
+          const category =
+            this.schema[schemaProperty].uihints &&
+            this.schema[schemaProperty].uihints.category;
+          if (!category) {
+            this.schemaPropertiesByCategory['_noCategory'].push(schemaProperty);
+          } else if (this.schemaPropertiesByCategory[category]) {
+            this.schemaPropertiesByCategory[category].push(schemaProperty);
+          } else {
+            this.schemaPropertiesByCategory[category] = [schemaProperty];
+          }
         }
         break;
       }
@@ -216,9 +231,9 @@ export class MetadataEditor extends ReactWidget {
     this.handleDirtyState(true);
     // Special case because all metadata has a display name
     if (schemaField === 'display_name') {
-      this.displayName = event.nativeEvent.srcElement.value;
+      this.displayName = event.nativeEvent.target.value;
     } else {
-      this.metadata[schemaField] = event.nativeEvent.srcElement.value;
+      this.metadata[schemaField] = event.nativeEvent.target.value;
     }
   }
 
@@ -367,8 +382,10 @@ export class MetadataEditor extends ReactWidget {
     const input = document.querySelector(
       `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
     ) as HTMLInputElement;
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
   }
 
   renderField(fieldName: string): React.ReactElement {
@@ -436,8 +453,17 @@ export class MetadataEditor extends ReactWidget {
 
   render(): React.ReactElement {
     const inputElements = [];
-    for (const schemaProperty in this.schema) {
-      inputElements.push(this.renderField(schemaProperty));
+    for (const category in this.schemaPropertiesByCategory) {
+      if (category !== '_noCategory') {
+        inputElements.push(
+          <h4 style={{ flexBasis: '100%', paddingBottom: '10px' }}>
+            {category}
+          </h4>
+        );
+      }
+      for (const schemaProperty of this.schemaPropertiesByCategory[category]) {
+        inputElements.push(this.renderField(schemaProperty));
+      }
     }
     let headerText = `Edit "${this.displayName}"`;
     if (!this.name) {
@@ -450,15 +476,17 @@ export class MetadataEditor extends ReactWidget {
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
-        {this.renderTextInput(
-          'Name',
-          '',
-          'display_name',
-          this.displayName,
-          '(required)',
-          false,
-          intent
-        )}
+        {this.displayName !== undefined
+          ? this.renderTextInput(
+              'Name',
+              '',
+              'display_name',
+              this.displayName,
+              '(required)',
+              false,
+              intent
+            )
+          : null}
         {inputElements}
         <FormGroup className={'elyra-metadataEditor-saveButton'}>
           <Button

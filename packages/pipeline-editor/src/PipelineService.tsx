@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as path from 'path';
+
 import {
   FrontendServices,
   IDictionary,
@@ -29,6 +31,11 @@ export const RUNTIMES_NAMESPACE = 'runtimes';
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
+
+export interface IRuntime {
+  name: string;
+  display_name: string;
+}
 
 export class PipelineService {
   /**
@@ -192,16 +199,21 @@ export class PipelineService {
    *
    * @param pipelineDefinition
    */
-  static convertPipeline(pipelineDefinition: any): any {
-    const pipelineJSON = JSON.parse(JSON.stringify(pipelineDefinition));
+  static convertPipeline(pipelineDefinition: any, pipelinePath: string): any {
+    let pipelineJSON = JSON.parse(JSON.stringify(pipelineDefinition));
 
     const currentVersion: number = Utils.getPipelineVersion(pipelineJSON);
 
     if (currentVersion < 1) {
       // original pipeline definition without a version
-      console.info('Migrating pipeline to the current version.');
-      return this.convertPipelineV0toV1(pipelineJSON);
+      console.info('Migrating pipeline to version 1.');
+      pipelineJSON = this.convertPipelineV0toV1(pipelineJSON);
     }
+    if (currentVersion < 2) {
+      console.info('Migrating pipeline to the current version.');
+      pipelineJSON = this.convertPipelineV1toV2(pipelineJSON, pipelinePath);
+    }
+    return pipelineJSON;
   }
 
   private static convertPipelineV0toV1(pipelineJSON: any): any {
@@ -237,5 +249,65 @@ export class PipelineService {
 
     pipelineJSON.pipelines[0]['app_data']['version'] = 1;
     return pipelineJSON;
+  }
+
+  private static convertPipelineV1toV2(
+    pipelineJSON: any,
+    pipelinePath: string
+  ): any {
+    pipelineJSON.pipelines[0] = this.setNodePathsRelativeToPipeline(
+      pipelineJSON.pipelines[0],
+      pipelinePath
+    );
+    pipelineJSON.pipelines[0]['app_data']['version'] = 2;
+    return pipelineJSON;
+  }
+
+  static getPipelineRelativeNodePath(
+    pipelinePath: string,
+    nodePath: string
+  ): string {
+    const relativePath: string = path.relative(
+      path.dirname(pipelinePath),
+      nodePath
+    );
+    return relativePath;
+  }
+
+  static getWorkspaceRelativeNodePath(
+    pipelinePath: string,
+    nodePath: string
+  ): string {
+    // since resolve returns an "absolute" path we need to strip off the leading '/'
+    const workspacePath: string = path
+      .resolve(path.dirname(pipelinePath), nodePath)
+      .substring(1);
+    return workspacePath;
+  }
+
+  static setNodePathsRelativeToPipeline(
+    pipeline: any,
+    pipelinePath: string
+  ): any {
+    for (const node of pipeline.nodes) {
+      node.app_data.filename = this.getPipelineRelativeNodePath(
+        pipelinePath,
+        node.app_data.filename
+      );
+    }
+    return pipeline;
+  }
+
+  static setNodePathsRelativeToWorkspace(
+    pipeline: any,
+    pipelinePath: string
+  ): any {
+    for (const node of pipeline.nodes) {
+      node.app_data.filename = this.getWorkspaceRelativeNodePath(
+        pipelinePath,
+        node.app_data.filename
+      );
+    }
+    return pipeline;
   }
 }
