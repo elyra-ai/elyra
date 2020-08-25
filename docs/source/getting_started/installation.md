@@ -28,13 +28,25 @@ Elyra can be installed via PyPI:
 #### JupyterLab support
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.x and below**
+
+via PyPi:
+```bash
+pip install elyra==0.10.3 && jupyter lab build
+```
+
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 1.0.0 and above**
 
-via PyPI:
+via PyPi:
 ```bash
 pip install --upgrade elyra && jupyter lab build
 ```
+
 Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
+
+using Conda:
+```bash
+conda install -c conda-forge elyra && jupyter lab build
+```
 
 ### Verify Installation 
 ```bash

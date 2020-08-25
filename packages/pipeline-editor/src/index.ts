@@ -30,6 +30,7 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { addIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import {
@@ -110,6 +111,20 @@ const extension: JupyterFrontEndPlugin<void> = {
         factory: PIPELINE_FACTORY
       }),
       name: widget => widget.context.path
+    });
+
+    // Add command to add file to pipeline
+    const addFileToPipelineCommand: string = commandIDs.addFileToPipeline;
+    app.commands.addCommand(addFileToPipelineCommand, {
+      label: 'Add File to Pipeline',
+      icon: addIcon,
+      execute: args => {
+        pipelineEditorFactory.addFileToPipelineSignal.emit(args);
+      }
+    });
+    app.contextMenu.addItem({
+      selector: '[data-file-type="notebook"]',
+      command: addFileToPipelineCommand
     });
 
     // Add an application command
