@@ -970,7 +970,7 @@ export class PipelineEditor extends React.Component<
               // proceed with migration
               pipelineJson = PipelineService.convertPipeline(
                 pipelineJson,
-                this.widgetContext.path
+                filePath
               );
               this.canvasController.setPipelineFlow(pipelineJson);
             } else {
