@@ -846,13 +846,7 @@ export class PipelineEditor extends React.Component<
     // Warn user if the pipeline has invalid nodes
     const errorMessage = await this.validatePipeline();
     if (errorMessage) {
-      this.setState({
-        showValidationError: true,
-        validationError: {
-          errorMessage: errorMessage,
-          errorSeverity: 'error'
-        }
-      });
+      this.displayErrorMessage(errorMessage);
       return;
     }
     const runtimes = await PipelineService.getRuntimes();
@@ -979,19 +973,16 @@ export class PipelineEditor extends React.Component<
           }
         }
       }
-      this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
       this.canvasController.setPipelineFlow(pipelineJson);
       const errorMessage = await this.validatePipeline();
       if (errorMessage) {
+        this.displayErrorMessage(errorMessage);
+      } else {
         this.setState({
-          showValidationError: true,
-          validationError: {
-            errorMessage: errorMessage,
-            errorSeverity: 'error'
-          }
+          emptyPipeline: Utils.isEmptyPipeline(pipelineJson),
+          showValidationError: false
         });
       }
-      this.validateAllNodes();
     });
   }
 
@@ -1187,17 +1178,21 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  displayErrorMessage(errorMessage: string): void {
+    this.setState({
+      showValidationError: true,
+      validationError: {
+        errorMessage: errorMessage,
+        errorSeverity: 'error'
+      }
+    });
+  }
+
   async handleRunPipeline(): Promise<void> {
     // Check that all nodes are valid
     const errorMessage = await this.validatePipeline();
     if (errorMessage) {
-      this.setState({
-        showValidationError: true,
-        validationError: {
-          errorMessage: errorMessage,
-          errorSeverity: 'error'
-        }
-      });
+      this.displayErrorMessage(errorMessage);
       return;
     }
 
