@@ -233,14 +233,22 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
     ];
   };
 
+  getDisplayName(metadata: IMetadata): string {
+    return `[${metadata.metadata.language}] ${metadata.display_name}`;
+  }
+
+  sortMetadata(): void {
+    this.props.metadata.sort((a, b) =>
+      this.getDisplayName(a).localeCompare(this.getDisplayName(b))
+    );
+  }
+
   // Render display of a code snippet
   renderMetadata = (metadata: IMetadata): JSX.Element => {
-    const displayName = `[${metadata.metadata.language}] ${metadata.display_name}`;
-
     return (
       <div key={metadata.name} className={METADATA_ITEM}>
         <ExpandableComponent
-          displayName={displayName}
+          displayName={this.getDisplayName(metadata)}
           tooltip={metadata.metadata.description}
           actionButtons={this.actionButtons(metadata)}
           onExpand={(): void => {
@@ -321,7 +329,7 @@ export class CodeSnippetWidget extends MetadataWidget {
         getCurrentWidget={this.props.getCurrentWidget}
         editorServices={this.props.editorServices}
         shell={this.props.app.shell}
-        sortMetadata={false}
+        sortMetadata={true}
       />
     );
   }
