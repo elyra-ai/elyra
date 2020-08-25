@@ -653,13 +653,9 @@ export class PipelineEditor extends React.Component<
         this.canvasController.getLinks()
       )
     ) {
-      this.setState({
-        validationError: {
-          errorMessage: 'Invalid operation: circular references in pipeline.',
-          errorSeverity: 'error'
-        },
-        showValidationError: true
-      });
+      this.displayErrorMessage(
+        'Invalid operation: circular references in pipeline.'
+      );
       // Don't proceed with adding the link if invalid.
       return null;
     } else {
@@ -1290,18 +1286,18 @@ export class PipelineEditor extends React.Component<
 
     const labShell = this.shell as LabShell;
 
-    this.initPropertiesInfo().finally(() => {
-      const activeWidgetListener = (_: any, args: any): void => {
-        const activeWidget = args.newValue;
+    const activeWidgetListener = (_: any, args: any): void => {
+      const activeWidget = args.newValue;
 
-        // Only handle open pipeline if PipelineEditorWidget is active
-        if (activeWidget && activeWidget.id === this.widgetId) {
+      // Only handle open pipeline if PipelineEditorWidget is active
+      if (activeWidget && activeWidget.id === this.widgetId) {
+        this.initPropertiesInfo().finally(() => {
           this.handleOpenPipeline();
-          labShell.activeChanged.disconnect(activeWidgetListener);
-        }
-      };
-      labShell.activeChanged.connect(activeWidgetListener);
-    });
+        });
+        labShell.activeChanged.disconnect(activeWidgetListener);
+      }
+    };
+    labShell.activeChanged.connect(activeWidgetListener);
   }
 
   componentWillUnmount(): void {
