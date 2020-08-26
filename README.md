@@ -110,6 +110,11 @@ pip install --upgrade elyra && jupyter lab build
 
 Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
 
+using Conda:
+```bash
+conda install -c conda-forge elyra && jupyter lab build
+```
+
 ### Verify Installation 
 ```bash
 jupyter serverextension list

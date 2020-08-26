@@ -35,7 +35,7 @@ import {
   errorIcon
 } from '@elyra/ui-components';
 
-import { JupyterFrontEnd, LabShell } from '@jupyterlab/application';
+import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {
   DocumentRegistry,
@@ -925,9 +925,9 @@ export class PipelineEditor extends React.Component<
                 </p>
               ),
               buttons: [Dialog.okButton()]
+            }).then(() => {
+              this.handleClosePipeline();
             });
-            this.handleClosePipeline();
-            return;
           } else {
             // in this case, pipeline was last edited in a "old" version of Elyra and
             // it needs to be updated/migrated.
@@ -962,24 +962,31 @@ export class PipelineEditor extends React.Component<
                 pipelineJson,
                 filePath
               );
-              this.canvasController.setPipelineFlow(pipelineJson);
+              this.setAndVerifyPipelineFlow(pipelineJson);
             } else {
               this.handleClosePipeline();
             }
           }
         }
       }
-      this.canvasController.setPipelineFlow(pipelineJson);
-      const errorMessage = await this.validatePipeline();
-      if (errorMessage) {
-        this.displayErrorMessage(errorMessage);
-      } else {
-        this.setState({
-          emptyPipeline: Utils.isEmptyPipeline(pipelineJson),
-          showValidationError: false
-        });
-      }
     });
+  }
+
+  async setAndVerifyPipelineFlow(pipelineJson: any): Promise<void> {
+    this.canvasController.setPipelineFlow(pipelineJson);
+    const errorMessage = await this.validatePipeline();
+
+    if (errorMessage) {
+      this.setState({
+        emptyPipeline: Utils.isEmptyPipeline(pipelineJson)
+      });
+      this.displayErrorMessage(errorMessage);
+    } else {
+      this.setState({
+        emptyPipeline: Utils.isEmptyPipeline(pipelineJson),
+        showValidationError: false
+      });
+    }
   }
 
   /**
