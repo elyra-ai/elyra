@@ -51,7 +51,7 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.0.0?urlpath=lab/tree/binder-demo) (Latest stable version)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.1.0?urlpath=lab/tree/binder-demo) (Latest stable version)
 - [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version)
 
 #### Using Docker
@@ -61,14 +61,14 @@ You can also try Elyra via docker.
 The command below starts a clean Elyra environment:
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:1.0.0 jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:1.1.0 jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.0.0 jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.1.0 jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used
@@ -124,7 +124,7 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra <VERSION> OK
+      elyra v1.1.0 OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.2.2 OK
@@ -142,11 +142,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension <VERSION>  enabled  OK*
-        @elyra/metadata-extension <VERSION>  enabled  OK*
-        @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
-        @elyra/python-editor-extension <VERSION>  enabled  OK*
-        @elyra/theme-extension <VERSION>  enabled  OK*
+        @elyra/code-snippet-extension v1.1.0  enabled  OK*
+        @elyra/metadata-extension v1.1.0  enabled  OK*
+        @elyra/pipeline-editor-extension v1.1.0  enabled  OK*
+        @elyra/python-editor-extension v1.1.0  enabled  OK*
+        @elyra/theme-extension v1.1.0  enabled  OK*
         @jupyterlab/git v0.20.0  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
