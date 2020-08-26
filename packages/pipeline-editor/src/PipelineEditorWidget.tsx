@@ -35,7 +35,7 @@ import {
   errorIcon
 } from '@elyra/ui-components';
 
-import { JupyterFrontEnd } from '@jupyterlab/application';
+import { JupyterFrontEnd, LabShell } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {
   DocumentRegistry,
