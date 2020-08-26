@@ -921,7 +921,6 @@ export class PipelineEditor extends React.Component<
       } else {
         // opening an existing pipeline
         const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
-        this.setAndVerifyPipelineFlow(pipelineJson);
 
         if (pipelineVersion !== PIPELINE_CURRENT_VERSION) {
           // pipeline version and current version are divergent
@@ -974,6 +973,8 @@ export class PipelineEditor extends React.Component<
               }
             });
           }
+        } else {
+          await this.setAndVerifyPipelineFlow(pipelineJson);
         }
       }
     });
