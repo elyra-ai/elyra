@@ -56,19 +56,22 @@ Click on a link below to try Elyra, on a sandbox environment, without having to 
 
 #### Using Docker
 
-You can also try Elyra via docker.
+You can also try Elyra by running one of the docker images from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags):
+- `elyra/elyra:latest` has the latest released version installed.
+- `elyra/elyra:x.y.z` has a specific version installed.
+- `elyra/elyra:dev` is automatically re-built each time a change is committed to the master branch.
 
-The command below starts a clean Elyra environment:
+The command below starts the most recent development build in a clean environment:
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:latest jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:latest jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:dev jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used
