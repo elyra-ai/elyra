@@ -76,14 +76,14 @@ runtime-image   anaconda               /Users/jdoe/.../jupyter/metadata/runtime-
 ...  
 ```
 
-To add a runtime image configuration for the public `jdoe/my-image` Docker image:
+To add a runtime image configuration for the public `jdoe/my-image:1.0.0` Docker image:
 
 ```bash
 $ elyra-metadata install runtime-images --schema_name=runtime-image \
        --name="my_image_name" \
        --display_name="My runtime image" \
        --description="My custom runtime Docker image" \
-       --image_name="jdoe/my-image"
+       --image_name="jdoe/my-image:1.0.0"
 ```
 
 To replace a runtime image configuration append the `--replace` option:
@@ -93,7 +93,7 @@ $ elyra-metadata install runtime-images --schema_name=runtime-image \
        --name="my_image_name" \
        --display_name="My runtime image" \
        --description="My other custom runtime Docker image" \
-       --image_name="jdoe/my-other-image" \
+       --image_name="jdoe/my-other-image:1.0.1" \
        --replace
 ```
 
@@ -110,16 +110,21 @@ $ elyra-metadata remove runtime-images \
 The runtime image configuration properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
 
 ##### Name (display_name)
-A user-friendly name for runtime image definition. This property is required.
+A user-friendly name for runtime image configuration. This property is required.
 
 Example: `My runtime image`
 
 ##### Description (description)
-Desscription for this runtime image definition.
+Description for this runtime image configuration.
 
 Example: `My custom runtime Docker image`
 
 ##### Image Name (image_name)
-The name of an existing Docker image in the public Docker Hub container registry that meets the stated prerequisites. This property is required.
+The name and tag of an existing Docker image in the public Docker Hub container registry that meets the stated prerequisites. This property is required.
 
-Example: `jdoe/my-image`
+Example: `jdoe/my-image:1.0.0`
+
+##### N/A (name)
+A unique internal identifier for the runtime image configuration. The property is required when the command line interface is used manage a configuration. An identifier is automatically generated from the user-friendly name when a configuration is added using the UI.
+
+Example: `my_runtime_image`
