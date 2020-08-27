@@ -148,7 +148,7 @@ class NamespaceInstall(NamespaceBase):
     replace_flag = Flag("--replace", name='replace',
                         description='Replace existing instance', default_value=False)
     name_option = CliOption("--name", name='name',
-                            description='The name of the metadata instance to install', required=True)
+                            description='The name of the metadata instance to install')
 
     # 'Install' options
     options = [replace_flag]  # defer name_option until after schema_option
@@ -229,11 +229,11 @@ class NamespaceInstall(NamespaceBase):
 
         if new_instance:
             print("Metadata instance '{}' for schema '{}' has been written to: {}"
-                  .format(name, schema_name, new_instance.resource))
+                  .format(new_instance.name, schema_name, new_instance.resource))
         else:
             if ex_msg:
-                self.log_and_exit("The following exception occurred saving metadata instance '{}' for schema '{}': {}"
-                                  .format(name, schema_name, ex_msg), display_help=True)
+                self.log_and_exit("The following exception occurred saving metadata instance for schema '{}': {}"
+                                  .format(schema_name, ex_msg), display_help=True)
             else:
                 self.log_and_exit("A failure occurred saving metadata instance '{}' for schema '{}'."
                                   .format(name, schema_name), display_help=True)
