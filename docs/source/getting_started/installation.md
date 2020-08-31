@@ -63,7 +63,7 @@ config dir: /usr/local/etc/jupyter
       jupyterlab 2.2.2 OK
     jupyterlab_git  enabled
     - Validating...
-      jupyterlab_git 0.20.0 OK
+      jupyterlab_git 0.21.0 OK
     nbdime  enabled
     - Validating...
       nbdime 2.0.0 OK```
