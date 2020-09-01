@@ -32,7 +32,7 @@ describe('PipelineEditor', () => {
     ).click();
   });
 
-  it('opens blank pipeline editor', () => {
+  it('opens blank pipeline editor from launcher', () => {
     cy.get(
       '.lm-TabBar-tab[data-id="launcher-0"] > .lm-TabBar-tabCloseIcon:visible'
     ).click({ multiple: true });
@@ -40,6 +40,22 @@ describe('PipelineEditor', () => {
     cy.get('.jp-Launcher-cardContainer > [title="Pipeline Editor"]')
       .scrollIntoView()
       .click();
+  });
+
+  it('close pipeline editor', () => {
+    cy.get(
+      '.lm-TabBar-tab.lm-mod-current > .lm-TabBar-tabCloseIcon:visible'
+    ).click();
+  });
+
+  it('opens blank pipeline editor from file menu', () => {
+    cy.get(':nth-child(1) > .lm-MenuBar-itemLabel').click();
+    cy.get(
+      ':nth-child(2) > .lm-Menu-itemSubmenuIcon > svg > .jp-icon3 > path'
+    ).click();
+    cy.get(
+      '[data-command="pipeline-editor:open"] > .lm-Menu-itemLabel'
+    ).click();
   });
 
   it('checks for disabled buttons', () => {
