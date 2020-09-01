@@ -147,7 +147,7 @@ Known labextensions:
         @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
         @elyra/python-editor-extension <VERSION>  enabled  OK*
         @elyra/theme-extension <VERSION>  enabled  OK*
-        @jupyterlab/git v0.20.0  enabled  OK
+        @jupyterlab/git v0.21.0  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```
