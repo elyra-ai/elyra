@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { FrontendServices } from '@elyra/application';
 import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
 
 import {
@@ -21,7 +22,7 @@ import {
   JupyterFrontEndPlugin,
   ILabStatus
 } from '@jupyterlab/application';
-import { IThemeManager } from '@jupyterlab/apputils';
+import { IThemeManager, ICommandPalette } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
 
@@ -42,10 +43,11 @@ const commandIDs = {
 const extension: JupyterFrontEndPlugin<void> = {
   id: METADATA_WIDGET_ID,
   autoStart: true,
-  requires: [IEditorServices, ILabStatus],
+  requires: [ICommandPalette, IEditorServices, ILabStatus],
   optional: [IThemeManager],
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
+    palette: ICommandPalette,
     editorServices: IEditorServices,
     status: ILabStatus,
     themeManager: IThemeManager | null
@@ -155,6 +157,26 @@ const extension: JupyterFrontEndPlugin<void> = {
         openMetadataWidget(args);
       }
     });
+
+    const schemas = await FrontendServices.getAllSchema();
+    console.log(schemas);
+    for (const schema of schemas) {
+      let icon = 'ui-components:text-editor';
+      if (schema.uihints && schema.uihints.icon) {
+        icon = schema.uihints.icon;
+      }
+      palette.addItem({
+        command: commandIDs.openMetadata,
+        args: {
+          label: `Show ${schema.display_name}`,
+          display_name: schema.display_name,
+          namespace: schema.namespace,
+          schema: schema.name,
+          icon: icon
+        },
+        category: 'Elyra'
+      });
+    }
   }
 };
 
