@@ -5,7 +5,8 @@
   "display_name": "Kubeflow Pipelines runtime",
   "namespace": "runtimes",
   "uihints": {
-    "title": "Kubeflow Pipelines runtimes"
+    "title": "Kubeflow Pipelines runtimes",
+    "icon": "elyra:runtimes"
   },
   "properties": {
     "schema_name": {

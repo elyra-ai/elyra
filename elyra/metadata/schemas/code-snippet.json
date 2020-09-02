@@ -5,7 +5,8 @@
   "display_name": "Code Snippet",
   "namespace": "code-snippets",
   "uihints": {
-    "title": "Code Snippets"
+    "title": "Code Snippets",
+    "icon": "elyra:code-snippet"
   },
   "properties": {
     "schema_name": {

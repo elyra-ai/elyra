@@ -34,7 +34,8 @@ const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 const METADATA_WIDGET_ID = 'elyra-metadata';
 
 const commandIDs = {
-  openMetadata: 'elyra-metadata:open'
+  openMetadata: 'elyra-metadata:open',
+  closeTabCommand: 'elyra-metadata:close'
 };
 
 /**
@@ -156,6 +157,33 @@ const extension: JupyterFrontEndPlugin<void> = {
         // to the running sessions widget in the sidebar.
         openMetadataWidget(args);
       }
+    });
+
+    // Add command to add file to pipeline
+    const closeTabCommand: string = commandIDs.closeTabCommand;
+    app.commands.addCommand(closeTabCommand, {
+      label: 'Close Tab',
+      execute: args => {
+        const contextNode: HTMLElement | undefined = app.contextMenuHitTest(
+          node => !!node.dataset.id
+        );
+        if (contextNode) {
+          const id = contextNode.dataset['id']!;
+          const widget = find(
+            app.shell.widgets('left'),
+            (widget: Widget, index: number) => {
+              return widget.id === id;
+            }
+          );
+          if (widget) {
+            widget.dispose();
+          }
+        }
+      }
+    });
+    app.contextMenu.addItem({
+      selector: '[data-id^="elyra-metadata:"]',
+      command: closeTabCommand
     });
 
     const schemas = await FrontendServices.getAllSchema();
