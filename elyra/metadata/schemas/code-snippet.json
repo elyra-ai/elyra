@@ -4,6 +4,9 @@
   "name": "code-snippet",
   "display_name": "Code Snippet",
   "namespace": "code-snippets",
+  "uihints": {
+    "title": "Code Snippets"
+  },
   "properties": {
     "schema_name": {
       "title": "Schema Name",

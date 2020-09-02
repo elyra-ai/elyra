@@ -159,17 +159,22 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     const schemas = await FrontendServices.getAllSchema();
-    console.log(schemas);
     for (const schema of schemas) {
       let icon = 'ui-components:text-editor';
-      if (schema.uihints && schema.uihints.icon) {
-        icon = schema.uihints.icon;
+      let title = schema.title;
+      if (schema.uihints) {
+        if (schema.uihints.icon) {
+          icon = schema.uihints.icon;
+        }
+        if (schema.uihints.title) {
+          title = schema.uihints.title;
+        }
       }
       palette.addItem({
         command: commandIDs.openMetadata,
         args: {
-          label: `Show ${schema.display_name}`,
-          display_name: schema.display_name,
+          label: `Manage ${title}`,
+          display_name: schema.title,
           namespace: schema.namespace,
           schema: schema.name,
           icon: icon

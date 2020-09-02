@@ -4,6 +4,9 @@
   "name": "kfp",
   "display_name": "Kubeflow Pipelines runtime",
   "namespace": "runtimes",
+  "uihints": {
+    "title": "Kubeflow Pipelines runtimes"
+  },
   "properties": {
     "schema_name": {
       "title": "Schema Name",

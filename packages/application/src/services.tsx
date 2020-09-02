@@ -161,15 +161,8 @@ export class FrontendServices {
     );
     const schemas = [];
     for (const namespace of namespaces['namespaces']) {
-      const schemaResponse = await RequestHandler.makeGetRequest(
-        ELYRA_SCHEMA_API_ENDPOINT + namespace,
-        false
-      );
-
-      if (schemaResponse[namespace]) {
-        this.schemaCache[namespace] = schemaResponse[namespace];
-      }
-      schemas.push(...schemaResponse[namespace]);
+      const schema = await this.getSchema(namespace);
+      schemas.push(...schema);
     }
     return schemas;
   }
