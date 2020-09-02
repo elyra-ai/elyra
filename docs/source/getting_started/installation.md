@@ -17,7 +17,9 @@ limitations under the License.
 -->
 ## Installation
 
-The Elyra [JupyterLab extension](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed using `pip`, `conda`, or from source code. Installation of Elyra requires a rebuild of JupyterLab.
+The Elyra [JupyterLab extension](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed using `pip`, `conda`, or from source code.
+
+Note: JupyterLab currently requires a re-build after installing any extension.
 
 ### Prerequisites
 
@@ -111,16 +113,29 @@ If you have Docker installed, you can use JupyterLab and Elyra by running one of
  - `elyra/elyra:x.y.z` has version `x.y.z` installed.
  - `elyra/elyra:dev` is automatically re-built each time a change is committed to the master branch.
 
-The command below starts the most recent development build in a clean environment:
+Invocation example 1: Run the most recent Elyra development build in a Docker container. All changes are discarded when the Docker container is stopped.
 
 ```
 docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
-To make a local directory containing your Notebooks (e.g. `${HOME}/opensource/jupyter-notebooks/`) available in your Docker container, you can use a mount command similar to the following:
+Invocation example 2: Run the most recent Elyra development build in a Docker container and mount the existing local `$HOME/jupyter-notebooks/` directory as JupyterLab work directory. This enables you to make existing notebooks and other files available in the Docker container. Only files in this working directory are retained when the Docker container is stopped. 
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:dev jupyter lab --debug
+docker run -it -p 8888:8888\
+ -v ${HOME}/jupyter-notebooks/:/home/jovyan/work\
+ -w /home/jovyan/work\
+ elyra/elyra:dev jupyter lab --debug
+```
+
+Invocation example 2: Same as above. In addition the existing local `$HOME/jupyter-data-dir` directory is mounted as the Jupyter data directory, preserving all user-defined Elyra metadata artifacts you create, such as code snippets, runtime configurations, or runtime images.
+
+```
+docker run -it -p 8888:8888\
+ -v ${HOME}/jupyter-notebooks/:/home/jovyan/work\
+ -w /home/jovyan/work\
+ -v ${HOME}/jupyter-data-dir:/home/jovyan/.local/share/jupyter\
+ elyra/elyra:dev jupyter lab --debug
 ```
 
 Open the displayed URL in your browser to start using JupyterLab and Elyra.
