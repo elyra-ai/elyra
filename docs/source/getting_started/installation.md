@@ -128,7 +128,9 @@ docker run -it -p 8888:8888\
  elyra/elyra:dev jupyter lab --debug
 ```
 
-Invocation example 3: Same as above. In addition the existing local `$HOME/jupyter-data-dir` directory is mounted as the Jupyter data directory, preserving all user-defined Elyra metadata artifacts you create, such as code snippets, runtime configurations, or runtime images.
+Invocation example 3: Same as above. In addition a local directory named `${HOME}/jupyter-data-dir` is mounted as the Jupyter data directory in the Docker container, storing all user-defined Elyra metadata artifacts you might create, such as code snippets, runtime configurations, or runtime images.
+
+Note: To start with a clean environment `${HOME}/jupyter-data-dir` should refer to an empty directory. To re-use an existing Jupyter data directory from a local installation specify the output of `jupyter --data-dir` as directory name. 
 
 ```
 docker run -it -p 8888:8888\
