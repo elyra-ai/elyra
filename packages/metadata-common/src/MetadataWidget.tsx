@@ -15,7 +15,11 @@
  */
 
 import { IDictionary, FrontendServices } from '@elyra/application';
-import { ExpandableComponent, trashIcon } from '@elyra/ui-components';
+import {
+  ExpandableComponent,
+  JSONComponent,
+  trashIcon
+} from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import {
@@ -35,6 +39,7 @@ import React from 'react';
 export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
 export const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
 export const METADATA_ITEM = 'elyra-metadata-item';
+const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
 
 const commands = {
   OPEN_METADATA_EDITOR: 'elyra-metadata-editor:open'
@@ -63,6 +68,7 @@ export interface IMetadataDisplayProps {
   updateMetadata: () => void;
   namespace: string;
   schema: string;
+  sortMetadata: boolean;
 }
 
 /**
@@ -114,9 +120,9 @@ export class MetadataDisplay<
    */
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     return (
-      <pre>
-        <code>{JSON.stringify(metadata.metadata, null, 2)}</code>
-      </pre>
+      <div className={METADATA_JSON_CLASS}>
+        <JSONComponent json={metadata.metadata} />
+      </div>
     );
   }
 
@@ -135,7 +141,21 @@ export class MetadataDisplay<
     );
   };
 
+  /**
+   * A function called when the `sortMetadata` property is `true`, sorts the
+   * `metadata` property alphabetically by `metadata.display_name` by default.
+   * Can be overridden if a different or more intensive sorting is desired.
+   */
+  sortMetadata(): void {
+    this.props.metadata.sort((a, b) =>
+      a.display_name.localeCompare(b.display_name)
+    );
+  }
+
   render(): React.ReactElement {
+    if (this.props.sortMetadata) {
+      this.sortMetadata();
+    }
     return (
       <div>
         <div id="elyra-metadata">
@@ -241,6 +261,7 @@ export class MetadataWidget extends ReactWidget {
         openMetadataEditor={this.openMetadataEditor}
         namespace={this.props.namespace}
         schema={this.props.schema}
+        sortMetadata={true}
       />
     );
   }
