@@ -50,6 +50,7 @@ import { notebookIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
 import { IDragEvent } from '@lumino/dragdrop';
+import { Signal } from '@lumino/signaling';
 import { Collapse, IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 import Alert from '@material-ui/lab/Alert';
@@ -119,7 +120,8 @@ export const commandIDs = {
   openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
-  submitNotebook: 'notebook:submit'
+  submitNotebook: 'notebook:submit',
+  addFileToPipeline: 'pipeline-editor:add-node'
 };
 
 /**
@@ -131,6 +133,7 @@ export class PipelineEditorWidget extends ReactWidget {
   browserFactory: IFileBrowserFactory;
   context: DocumentRegistry.Context;
   serviceManager: ServiceManager;
+  addFileToPipelineSignal: Signal<PipelineEditorFactory, any>;
 
   constructor(props: any) {
     super(props);
@@ -139,6 +142,7 @@ export class PipelineEditorWidget extends ReactWidget {
     this.browserFactory = props.browserFactory;
     this.context = props.context;
     this.serviceManager = props.serviceManager;
+    this.addFileToPipelineSignal = props.addFileToPipelineSignal;
   }
 
   render(): React.ReactElement {
@@ -148,7 +152,9 @@ export class PipelineEditorWidget extends ReactWidget {
         commands={this.commands}
         browserFactory={this.browserFactory}
         widgetContext={this.context}
+        widgetId={this.parent.id}
         serviceManager={this.serviceManager}
+        addFileToPipelineSignal={this.addFileToPipelineSignal}
       />
     );
   }
@@ -167,6 +173,8 @@ export namespace PipelineEditor {
     browserFactory: IFileBrowserFactory;
     widgetContext: DocumentRegistry.Context;
     serviceManager: ServiceManager;
+    addFileToPipelineSignal: Signal<PipelineEditorFactory, any>;
+    widgetId: string;
   }
 
   /**
@@ -213,6 +221,8 @@ export class PipelineEditor extends React.Component<
   serviceManager: ServiceManager;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
+  widgetId: string;
+  addFileToPipelineSignal: Signal<PipelineEditorFactory, any>;
   position = 10;
   node: React.RefObject<HTMLDivElement>;
   propertiesInfo: any;
@@ -227,6 +237,8 @@ export class PipelineEditor extends React.Component<
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
+    this.widgetId = props.widgetId;
+    this.addFileToPipelineSignal = props.addFileToPipelineSignal;
 
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.clickActionHandler = this.clickActionHandler.bind(this);
@@ -256,6 +268,10 @@ export class PipelineEditor extends React.Component<
     this.propertiesControllerHandler = this.propertiesControllerHandler.bind(
       this
     );
+
+    this.addFileToPipelineSignal.connect((args: any): any => {
+      this.handleAddFileToPipelineCanvas();
+    });
 
     this.node = React.createRef();
     this.handleEvent = this.handleEvent.bind(this);
@@ -509,9 +525,15 @@ export class PipelineEditor extends React.Component<
   }
 
   propertiesActionHandler(id: string, appData: any, data: any): void {
+    const propertyId = { name: data.parameter_ref };
+    const filename = PipelineService.getWorkspaceRelativeNodePath(
+      this.widgetContext.path,
+      this.propertiesController.getPropertyValue('filename')
+    );
+
     if (id === 'browse_file') {
-      const propertyId = { name: data.parameter_ref };
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
+        startPath: path.dirname(filename),
         filter: (model: any): boolean => {
           return model.type == 'notebook';
         }
@@ -519,8 +541,34 @@ export class PipelineEditor extends React.Component<
         if (result.button.accept && result.value.length) {
           this.propertiesController.updatePropertyValue(
             propertyId,
-            result.value[0].path
+            PipelineService.getPipelineRelativeNodePath(
+              this.widgetContext.path,
+              result.value[0].path
+            )
           );
+        }
+      });
+    } else if (id === 'add_dependencies') {
+      showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
+        multiselect: true,
+        includeDir: true,
+        rootPath: path.dirname(filename),
+        filter: (model: any): boolean => {
+          // do not include the notebook itself
+          return model.path !== filename;
+        }
+      }).then((result: any) => {
+        if (result.button.accept && result.value.length) {
+          const dependenciesSet = new Set(
+            this.propertiesController.getPropertyValue(propertyId)
+          );
+          result.value.forEach((val: any) => {
+            dependenciesSet.add(val.path);
+          });
+
+          this.propertiesController.updatePropertyValue(propertyId, [
+            ...dependenciesSet
+          ]);
         }
       });
     }
@@ -691,6 +739,11 @@ export class PipelineEditor extends React.Component<
   }
 
   handleAddFileToPipelineCanvas(x?: number, y?: number): Promise<any> {
+    // Only add file to pipeline if it is currently in focus
+    if (this.shell.currentWidget.id !== this.widgetId) {
+      return;
+    }
+
     let failedAdd = 0;
     let position = 0;
     const missingXY = !(x && y);
@@ -737,7 +790,12 @@ export class PipelineEditor extends React.Component<
             path.extname(item.path)
           );
           data.nodeTemplate.image = IconUtil.encode(notebookIcon);
-          data.nodeTemplate.app_data['filename'] = item.path;
+          data.nodeTemplate.app_data[
+            'filename'
+          ] = PipelineService.getPipelineRelativeNodePath(
+            this.widgetContext.path,
+            item.path
+          );
           data.nodeTemplate.app_data[
             'runtime_image'
           ] = this.propertiesInfo.parameterDef.current_parameters.runtime_image;
@@ -776,8 +834,10 @@ export class PipelineEditor extends React.Component<
    */
   handleOpenNotebook(selectedNodes: any): void {
     for (let i = 0; i < selectedNodes.length; i++) {
-      const path = this.canvasController.getNode(selectedNodes[i]).app_data
-        .filename;
+      const path = PipelineService.getWorkspaceRelativeNodePath(
+        this.widgetContext.path,
+        this.canvasController.getNode(selectedNodes[i]).app_data.filename
+      );
       this.commands.execute(commandIDs.openDocManager, { path });
     }
   }
@@ -829,6 +889,11 @@ export class PipelineEditor extends React.Component<
     const runtime_config = dialogResult.value.runtime_config;
     const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
 
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipelineFlow.pipelines[0],
+      this.widgetContext.path
+    );
+
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
     pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
@@ -856,6 +921,7 @@ export class PipelineEditor extends React.Component<
       } else {
         // opening an existing pipeline
         const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
+
         if (pipelineVersion !== PIPELINE_CURRENT_VERSION) {
           // pipeline version and current version are divergent
           if (pipelineVersion > PIPELINE_CURRENT_VERSION) {
@@ -870,9 +936,9 @@ export class PipelineEditor extends React.Component<
                 </p>
               ),
               buttons: [Dialog.okButton()]
+            }).then(() => {
+              this.handleClosePipeline();
             });
-            this.handleClosePipeline();
-            return;
           } else {
             // in this case, pipeline was last edited in a "old" version of Elyra and
             // it needs to be updated/migrated.
@@ -897,29 +963,42 @@ export class PipelineEditor extends React.Component<
             }).then(result => {
               if (result.button.accept) {
                 // proceed with migration
-                pipelineJson = PipelineService.convertPipeline(pipelineJson);
-                this.canvasController.setPipelineFlow(pipelineJson);
+                pipelineJson = PipelineService.convertPipeline(
+                  pipelineJson,
+                  this.widgetContext.path
+                );
+                this.setAndVerifyPipelineFlow(pipelineJson);
               } else {
                 this.handleClosePipeline();
               }
             });
           }
+        } else {
+          await this.setAndVerifyPipelineFlow(pipelineJson);
         }
       }
-      this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
-      this.canvasController.setPipelineFlow(pipelineJson);
-      const errorMessage = await this.validatePipeline();
-      if (errorMessage) {
-        this.setState({
-          showValidationError: true,
-          validationError: {
-            errorMessage: errorMessage,
-            errorSeverity: 'error'
-          }
-        });
-      }
-      this.validateAllNodes();
     });
+  }
+
+  async setAndVerifyPipelineFlow(pipelineJson: any): Promise<void> {
+    this.canvasController.setPipelineFlow(pipelineJson);
+    const errorMessage = await this.validatePipeline();
+
+    if (errorMessage) {
+      this.setState({
+        emptyPipeline: Utils.isEmptyPipeline(pipelineJson),
+        showValidationError: true,
+        validationError: {
+          errorMessage: errorMessage,
+          errorSeverity: 'error'
+        }
+      });
+    } else {
+      this.setState({
+        emptyPipeline: Utils.isEmptyPipeline(pipelineJson),
+        showValidationError: false
+      });
+    }
   }
 
   /**
@@ -1015,7 +1094,12 @@ export class PipelineEditor extends React.Component<
   async validateProperties(node: any): Promise<string> {
     const validationErrors: string[] = [];
     const notebookValidationErr = await this.serviceManager.contents
-      .get(node.app_data.filename)
+      .get(
+        PipelineService.getWorkspaceRelativeNodePath(
+          this.widgetContext.path,
+          node.app_data.filename
+        )
+      )
       .then((result: any): any => {
         return null;
       })
@@ -1151,6 +1235,11 @@ export class PipelineEditor extends React.Component<
     const runtime =
       PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
 
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipelineFlow.pipelines[0],
+      this.widgetContext.path
+    );
+
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
@@ -1264,6 +1353,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
   serviceManager: ServiceManager;
+  addFileToPipelineSignal: Signal<this, any>;
 
   constructor(options: any) {
     super(options);
@@ -1271,6 +1361,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     this.commands = options.commands;
     this.browserFactory = options.browserFactory;
     this.serviceManager = options.serviceManager;
+    this.addFileToPipelineSignal = new Signal<this, any>(this);
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
@@ -1280,6 +1371,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       commands: this.commands,
       browserFactory: this.browserFactory,
       context: context,
+      addFileToPipelineSignal: this.addFileToPipelineSignal,
       serviceManager: this.serviceManager
     };
     const content = new PipelineEditorWidget(props);

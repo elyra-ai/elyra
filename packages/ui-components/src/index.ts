@@ -19,3 +19,4 @@ export * from './ExpandableComponent';
 export * from './FormDialog';
 export * from './icons';
 export * from './DropDown';
+export * from './JSONComponent';

@@ -31,31 +31,44 @@
           "title": "Kubeflow Pipelines API Endpoint",
           "description": "The Kubeflow Pipelines API endpoint",
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "uihints": {
+            "category": "Kubeflow Pipelines"
+          }
         },
         "api_username": {
           "title": "Kubeflow Pipelines API Endpoint Username",
           "description": "The Kubeflow Pipelines API endpoint username",
-          "type": "string"
+          "type": "string",
+          "uihints": {
+            "category": "Kubeflow Pipelines"
+          }
         },
         "api_password": {
           "title": "Kubeflow Pipelines API Endpoint Password",
           "description": "The Kubeflow Pipelines API endpoint password",
           "type": "string",
           "uihints": {
-            "secure": true
+            "secure": true,
+            "category": "Kubeflow Pipelines"
           }
         },
         "cos_endpoint": {
           "title": "Cloud Object Storage Endpoint",
           "description": "The Cloud Object Storage endpoint",
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
         },
         "cos_username": {
           "title": "Cloud Object Storage Username",
           "description": "The Cloud Object Storage username",
-          "type": "string"
+          "type": "string",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
         },
         "cos_password": {
           "title": "Cloud Object Storage Password",
@@ -63,7 +76,8 @@
           "type": "string",
           "minLength": 8,
           "uihints": {
-            "secure": true
+            "secure": true,
+            "category": "Cloud Object Storage"
           }
         },
         "cos_bucket": {
@@ -72,7 +86,10 @@
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
           "minLength": 3,
-          "maxLength": 222
+          "maxLength": 222,
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
         }
       },
       "required": [

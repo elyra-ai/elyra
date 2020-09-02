@@ -138,7 +138,9 @@ describe('@elyra/pipeline-editor', () => {
           commands={pipelineEditorWidget.commands}
           browserFactory={pipelineEditorWidget.browserFactory}
           widgetContext={pipelineEditorWidget.context}
+          widgetId={pipelineEditorWidget.id}
           serviceManager={pipelineEditorWidget.serviceManager}
+          addFileToPipelineSignal={pipelineEditorWidget.addFileToPipelineSignal}
         />
       );
       expect(pipelineEditor.state()).toEqual({
