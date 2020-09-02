@@ -107,6 +107,11 @@ describe('PipelineEditor', () => {
       .should('not.be.disabled');
   });
 
+  it('add blank notebook to pipeline', () => {
+    cy.get('.jp-DirListing-content > [data-file-type="notebook"]').rightclick();
+    cy.get('[data-command="pipeline-editor:add-node"]').click();
+  });
+
   it('open runtimes sidebar', () => {
     cy.get('.openRuntimes-action button')
       .should('have.length', 1)
