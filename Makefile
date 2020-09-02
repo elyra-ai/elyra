@@ -16,7 +16,7 @@
 
 .PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
 .PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
-.PHONY: docker-images, validate-runtime-images
+.PHONY: docker-image, validate-runtime-images
 
 SHELL:=/bin/bash
 
@@ -146,16 +146,11 @@ dist-ui: build-ui
 
 release: dist-ui build-server ## Build wheel file for release
 
-docker-images: ## Build docker images
+docker-image: ## Build docker image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
-	@mkdir -p build/odh/docker
-	cp etc/docker/odh/* build/odh/docker/
-	cp etc/docker/odh/.profile build/odh/docker/
-	DOCKER_BUILDKIT=1 docker build -t elyra/elyra-odh:$(TAG) build/odh/docker --progress plain
-
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
