@@ -105,7 +105,7 @@ Known labextensions:
 
 ### Docker 
 
-If you have Docker installed, you can install and use JupyterLab and Elyra by selecting one of the [ready-to-run Docker images](https://hub.docker.com/r/elyra/elyra/tags) maintained by the Elyra Team:
+If you have Docker installed, you can use JupyterLab and Elyra by running one of the [ready-to-run Docker images](https://hub.docker.com/r/elyra/elyra/tags) maintained by the Elyra Team:
 
  - `elyra/elyra:latest` has the latest released version installed.
  - `elyra/elyra:x.y.z` has version `x.y.z` installed.
