@@ -128,7 +128,7 @@ docker run -it -p 8888:8888\
  elyra/elyra:dev jupyter lab --debug
 ```
 
-Invocation example 2: Same as above. In addition the existing local `$HOME/jupyter-data-dir` directory is mounted as the Jupyter data directory, preserving all user-defined Elyra metadata artifacts you create, such as code snippets, runtime configurations, or runtime images.
+Invocation example 3: Same as above. In addition the existing local `$HOME/jupyter-data-dir` directory is mounted as the Jupyter data directory, preserving all user-defined Elyra metadata artifacts you create, such as code snippets, runtime configurations, or runtime images.
 
 ```
 docker run -it -p 8888:8888\
