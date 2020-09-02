@@ -183,7 +183,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
     app.contextMenu.addItem({
       selector:
-        '[data-id^="elyra-metadata:"]:not([data-id$="code-snippet"]):not([data-id$="runtimes"])',
+        '[data-id^="elyra-metadata:"]:not([data-id$="code-snippet"]):not([data-id$="runtimes:kfp"])',
       command: closeTabCommand
     });
 
