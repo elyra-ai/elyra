@@ -159,7 +159,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    // Add command to add file to pipeline
+    // Add command to close metadata tab
     const closeTabCommand: string = commandIDs.closeTabCommand;
     app.commands.addCommand(closeTabCommand, {
       label: 'Close Tab',
