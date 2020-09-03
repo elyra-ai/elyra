@@ -1,7 +1,7 @@
 {
-  "display_name": "Pytorch 1.4 with CUDA-runtime",
+  "display_name": "Pytorch 1.6 with CUDA-runtime",
   "metadata": {
-    "image_name": "pytorch/pytorch:1.4-cuda10.1-cudnn7-runtime"
+    "image_name": "pytorch/pytorch:1.6-cuda10.1-cudnn7-runtime"
   },
   "schema_name": "runtime-image"
 }
