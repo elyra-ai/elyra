@@ -23,6 +23,6 @@ The following tutorials highlight key features of Elyra.
 
 Learn how to [create a notebook pipeline and run it in your local JupyterLab environment](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world).
 
-### Running notebook pipelines in Kubeflow Pipelines
+### Running notebook pipelines on Kubeflow Pipelines
 
 Learn how to [create a notebook pipeline and run it on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world_kubeflow_pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
