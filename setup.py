@@ -50,7 +50,7 @@ setup_args = dict(
     install_requires=[
         'autopep8',
         'entrypoints>=0.3',
-        'jinja2>=2.11,<3.0'
+        'jinja2>=2.11,<3.0',
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
         'jupyterlab-git==0.21.0',
