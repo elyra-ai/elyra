@@ -49,8 +49,9 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    :maxdepth: 1
    :caption: Recipes
 
-   recipes/deploying-elyra-in-a-jupyterhub-endvironment.md
+   recipes/deploying-elyra-in-a-jupyterhub-environment.md
    recipes/deploying-kubeflow-locally-for-dev.md
+   recipes/deploying-elyra-with-opendatahub.md
 
 .. toctree::
    :maxdepth: 1
