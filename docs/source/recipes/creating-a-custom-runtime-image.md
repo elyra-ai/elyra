@@ -34,7 +34,7 @@ To create a custom Docker image you need
 - Docker Desktop
     - Available for [MacOS](https://hub.docker.com/editions/community/docker-ce-desktop-mac) and 
                     [Windows](https://hub.docker.com/editions/community/docker-ce-desktop-windows)
-- A Docker id at https://hub.docker.com/.
+- A Docker id at [https://hub.docker.com/](https://hub.docker.com).
 
 ## Creating a basic Python runtime Docker image
 
@@ -103,4 +103,46 @@ Once the image was published on Docker Hub you can [create a runtime image confi
 
 ## Additional Considerations
 
+Prior to notebook processing Elyra modifies the associated Docker container by changing the default execution command and installing additional packages. Please review the following section if
+- your Dockerfile [includes a CMD instruction](#dockerfiles-with-cmd-entries)
+- your Dockerfile [includes an ENTRYPOINT instruction](#dockerfiles-with-entrypoint-entries)
+- your package requirements [include pinned versions](#conflicting-package-dependencies)
+
+### Dockerfiles with CMD instructions
+
+If a `Dockerfile` includes a `CMD` instruction, which specifies the default command to run within the container when the container is created, you might have to customize your notebooks. When a notebook is processed as part of a pipeline the `CMD` instruction is overriden, which might have side effects. The following examples illustrate two scenarios.
+
+Scenario 1 (no undesired side-effects):
+
+The `CMD` instruction launches an application that does not need to be running when the notebook is executed. For example, the official Python Docker images might launch the interactive Python interpreter by default, like so:
+
+```bash
+...
+CMD ["python3"]
+```
+
+Notebooks will work as is because Python is automatically launched during notebook processing.
+
+Scenario 2: (undesired side-effects):
+
+The `CMD` instruction launches an application or service that a notebook consumes. For example, a Docker image might launch an application that provides computational (or connectivity) services that notebooks rely on.
+
+```bash
+...
+CMD ["python", "/path/to/application-or-service"]
+```
+
+When the Docker image is launched to process a notebook the application is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application in the background in a code cell:
+
+```
+! python /path/to/application-or-service &
+```
+
+### Dockerfiles with ENTRYPOINT instructions
+
 Lorem Ipsum
+
+
+### Conflicting package dependencies
+
+Elyra installs additional packages in the Docker container prior to notebook processing. If a pre-installed package is not compatible with the version requirements defined in [requirements-elyra.txt](https://github.com/elyra-ai/kfp-notebook/blob/master/etc/requirements-elyra.txt), it is replaced. You should review any version discrepancies as they might lead to unexpected processing results.
