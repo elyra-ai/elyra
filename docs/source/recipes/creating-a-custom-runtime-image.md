@@ -1,0 +1,106 @@
+<!--
+{% comment %}
+Copyright 2018-2020 IBM Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+{% endcomment %}
+-->
+
+# Creating a custom runtime Docker image
+
+A runtime image provides the execution environment in which nodes are executed when a Jupyter notebook is processed as part of a pipeline. Elyra includes a number of runtime images for popular configurations, such as TensorFlow or Pytorch.
+
+Should none of these images meet your needs, you can utilize a custom Docker image, as long as it meets the following pre-requisites:
+- The Docker image is published on the public Docker container registry [https://hub.docker.com](https://hub.docker.com). (Elyra currently does not support private registries.)
+- [Python 3](https://www.python.org/) is pre-installed and in the search path.
+- [`curl`](https://curl.haxx.se/) is pre-installed and in the search path.
+
+Refer to the [Additional considerations](#additional-considerations) section for important implementation details.
+
+## Requirements
+
+To create a custom Docker image you need
+
+- Docker Desktop
+    - Available for [MacOS](https://hub.docker.com/editions/community/docker-ce-desktop-mac) and 
+                    [Windows](https://hub.docker.com/editions/community/docker-ce-desktop-windows)
+- A Docker id at https://hub.docker.com/.
+
+## Creating a basic Python runtime Docker image
+
+The [default Python 3 Docker image](https://hub.docker.com/_/python) has Python and `curl` pre-installed and is therefore a good starting point.
+
+1. Create a file named `Dockerfile` and add the following content.
+   ```
+   FROM python:3
+
+   COPY requirements.txt ./
+   RUN pip install --no-cache-dir -r requirements.txt
+   ```
+
+   When you create a Docker image using this `Dockerfile` the Python 3 Docker image is loaded and the requirements listed in `requirements.txt` `pip`-installed.
+
+1. in the same directory create a `requirements.txt` file and add the packages your notebooks depend on. For example, if your notebooks require the latest version of `Pandas` and `Numpy`,  add the appropriate package names.
+   ```
+   pandas
+   numpy
+   ```
+
+   Note: If your notebooks require packages that are not pre-installed on this image they need to `pip`-install them explicitly.
+
+1. Open a terminal to the location where you've created the `Dockerfile` and `requirements.txt`.
+
+1. Build the Docker image by running the [`docker build`](https://docs.docker.com/engine/reference/commandline/build/) command in the terminal window, replacing `my-runtime-image` with the desired Docker image name.
+
+   ```bash
+   docker build -t my-runtime-image .
+   ```
+
+## Publishing the basic runtime Docker image
+
+When a notebook is processed as part of a pipeline the associated Docker image is downloaded from Docker Hub. The following steps publish the Docker image you've just created on Docker Hub. 
+
+1. Log in to Docker Hub using [`docker login`](https://docs.docker.com/engine/reference/commandline/login/) and provide your Docker id and password.
+
+   ```bash
+   docker login
+   ```
+
+1. Run [`docker images`](https://docs.docker.com/engine/reference/commandline/images/) and locate the image id for your Docker image. The image id uniquely identifies your Docker image.
+
+    ```bash
+    docker images
+
+    REPOSITORY         TAG      IMAGE ID            CREATED             SIZE 
+    my-runtime-image   latest   0d1bd98fdd84        2 hours ago         887MB
+    ```
+
+1. Tag the Docker image using [`docker tag`](https://docs.docker.com/engine/reference/commandline/tag/), replacing `my-image-id`, `my-docker-id`, and `my-runtime-image` as necessary.
+
+   ```bash
+   docker tag my-image-id my-docker-id/my-runtime-image:latest
+   ```
+
+   Note: For illustrative purposes this image is tagged `latest`, which makes it the default image. If desired, replace the tag with a specific version number or identifier, such as `Vx.y.z`.
+
+1. Publish the Docker image on Docker Hub by running [`docker push`](https://docs.docker.com/engine/reference/commandline/push/), replacing `my-docker-id` and `my-runtime-image` as necessary.
+
+    ```bash
+    docker push my-docker-id/my-runtime-image
+    ```
+
+Once the image was published on Docker Hub you can [create a runtime image configuration using the Elyra UI or `elyra-metadata` CLI](/user_guide/runtime-image-conf.md) and reference the published `my-docker-id/my-runtime-image:latest` Docker image.
+
+## Additional Considerations
+
+Lorem Ipsum

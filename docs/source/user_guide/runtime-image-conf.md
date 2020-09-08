@@ -26,6 +26,8 @@ A runtime image configuration is associated with a Docker image that must meet t
 - The image must have `Python 3` pre-installed.
 - The image must have `curl` pre-installed.
 
+Refer to [Creating a custom runtime Docker image](/recipes/creating-a-custom-runtime-image.md) for details.
+
 ### Managing Runtime Image Configurations
 
 Runtime image configurations can be managed with the _Runtime Images_ user interface or the `elyra-metadata` command line interface. 
