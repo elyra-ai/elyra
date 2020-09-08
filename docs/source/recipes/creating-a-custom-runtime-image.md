@@ -132,10 +132,15 @@ The `CMD` instruction launches an application or service that a notebook consume
 CMD ["python", "/path/to/application-or-service"]
 ```
 
-When the Docker image is launched to process a notebook the application is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application in the background in a code cell:
+When the Docker image is launched to process a notebook the application is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application in the background in a code cell like so:
 
-```
-! python /path/to/application-or-service &
+```python
+import os
+import time
+# launch application in the background
+os.system("python /path/to/application-or-service &")
+# wait to allow for application initialization
+time.sleep(2)
 ```
 
 ### Dockerfiles with ENTRYPOINT instructions
