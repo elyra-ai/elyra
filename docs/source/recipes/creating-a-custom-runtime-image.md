@@ -99,7 +99,7 @@ When a notebook is processed as part of a pipeline the associated Docker image i
     docker push docker-id-or-org-id/my-runtime-image:latest
     ```
 
-Once the image was published on Docker Hub you can [create a runtime image configuration using the Elyra UI or `elyra-metadata` CLI](/user_guide/runtime-image-conf.md) and reference the published `my-docker-id/my-runtime-image:latest` Docker image.
+Once the image was published on Docker Hub you can [create a runtime image configuration using the Elyra UI or `elyra-metadata` CLI](/user_guide/runtime-image-conf.md) and reference the published `docker-id-or-org-id/my-runtime-image:latest` Docker image.
 
 ## Additional Considerations
 
