@@ -85,18 +85,18 @@ When a notebook is processed as part of a pipeline the associated Docker image i
     my-runtime-image   latest   0d1bd98fdd84        2 hours ago         887MB
     ```
 
-1. Tag the Docker image using [`docker tag`](https://docs.docker.com/engine/reference/commandline/tag/), replacing `my-image-id`, `my-docker-id`, and `my-runtime-image` as necessary.
+1. Tag the Docker image using [`docker tag`](https://docs.docker.com/engine/reference/commandline/tag/), replacing `my-image-id`, `docker-id-or-org-id`, and `my-runtime-image` as necessary. (`docker-id-or-org-id` is either your Docker id or, if you are a member of a team in an organization, the id of that organization.)
 
    ```bash
-   docker tag my-image-id my-docker-id/my-runtime-image:latest
+   docker tag my-image-id docker-id-or-org-id/my-runtime-image:latest
    ```
 
    Note: For illustrative purposes this image is tagged `latest`, which makes it the default image. If desired, replace the tag with a specific version number or identifier, such as `Vx.y.z`.
 
-1. Publish the Docker image on Docker Hub by running [`docker push`](https://docs.docker.com/engine/reference/commandline/push/), replacing `my-docker-id` and `my-runtime-image` as necessary.
+1. Publish the Docker image on Docker Hub by running [`docker push`](https://docs.docker.com/engine/reference/commandline/push/), replacing `docker-id-or-org-id` and `my-runtime-image` as necessary.
 
     ```bash
-    docker push my-docker-id/my-runtime-image
+    docker push docker-id-or-org-id/my-runtime-image:latest
     ```
 
 Once the image was published on Docker Hub you can [create a runtime image configuration using the Elyra UI or `elyra-metadata` CLI](/user_guide/runtime-image-conf.md) and reference the published `my-docker-id/my-runtime-image:latest` Docker image.
