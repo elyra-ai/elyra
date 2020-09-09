@@ -104,35 +104,35 @@ Once the image was published on Docker Hub you can [create a runtime image confi
 ## Additional Considerations
 
 Prior to notebook processing Elyra modifies the associated Docker container by changing the default execution command and installing additional packages. Please review the following section if
-- your Dockerfile [includes a CMD instruction](#dockerfiles-with-cmd-entries)
-- your Dockerfile [includes an ENTRYPOINT instruction](#dockerfiles-with-entrypoint-entries)
+- your Dockerfile [includes a CMD instruction](#dockerfiles-with-cmd-instructions)
+- your Dockerfile [includes an ENTRYPOINT instruction](#dockerfiles-with-entrypoint-instructions)
 - your package requirements [include pinned versions](#conflicting-package-dependencies)
 
 ### Dockerfiles with CMD instructions
 
-If a `Dockerfile` includes a `CMD` instruction, which specifies the default command to run within the container when the container is created, you might have to customize your notebooks. When a notebook is processed as part of a pipeline the `CMD` instruction is overriden, which might have side effects. The following examples illustrate two scenarios.
+If a `Dockerfile` includes a [`CMD`](https://docs.docker.com/engine/reference/builder/#cmd) instruction, which is used to specify defaults for an executing container, you might have to customize your notebooks. When a notebook is processed as part of a pipeline the `CMD` instruction is overriden, which might have side effects. The following examples illustrate two scenarios.
 
-Scenario 1 (no undesired side-effects):
+#### Scenario 1 - override has no side-effects
 
-The `CMD` instruction launches an application that does not need to be running when the notebook is executed. For example, the official Python Docker images might launch the interactive Python interpreter by default, like so:
+The `CMD` instruction launches an application that does not need to be running when the notebook is executed. For example, the official Python Docker images might launch the interactive Python shell by default, like so:
 
 ```bash
 ...
 CMD ["python3"]
 ```
 
-Notebooks will work as is because Python is automatically launched during notebook processing.
+Notebooks will work as is because Python is explicitly run during notebook processing.
 
-Scenario 2: (undesired side-effects):
+#### Scenario 2 - override has side-effects
 
-The `CMD` instruction launches an application or service that a notebook consumes. For example, a Docker image might launch an application that provides computational (or connectivity) services that notebooks rely on.
+The `CMD` instruction launches an application or service that a notebook consumes. For example, a Docker image might by default launch an application that provides computational (or connectivity) services that notebooks rely on.
 
 ```bash
 ...
-CMD ["python", "/path/to/application-or-service"]
+CMD ["python3", "/path/to/application-or-service"]
 ```
 
-When the Docker image is launched to process a notebook the application is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application in the background in a code cell like so:
+When the Docker container is started to process a notebook the referenced application is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application in the background in a code cell like so:
 
 ```python
 import os
@@ -145,8 +145,26 @@ time.sleep(2)
 
 ### Dockerfiles with ENTRYPOINT instructions
 
-Lorem Ipsum
+If a Docker container is configured to run as an executable by using the  [`ENTRYPOINT`]( https://docs.docker.com/engine/reference/builder/#entrypoint) instruction in the `Dockerfile`, you likely have to customize your notebook. 
 
+#### Scenario 1 - override has side-effects
+
+The `ENTRYPOINT` instruction launches an application or service that a notebook consumes.
+
+```bash
+ENTRYPOINT ["python3", "/path/to/application-or-service"]
+```
+
+When the Docker container is launched to process a notebook the application or service is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application or service in the background in a code cell like so:
+
+```python
+import os
+import time
+# launch application in the background
+os.system("python /path/to/application-or-service &")
+# wait to allow for application initialization
+time.sleep(2)
+```
 
 ### Conflicting package dependencies
 
