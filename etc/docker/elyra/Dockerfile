@@ -32,7 +32,8 @@ RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
 USER $NB_USER
 
 RUN python -m pip install --upgrade pip && \
-    python -m pip install setuptools pandas --ignore-installed --upgrade && \
+    python -m pip install --ignore-installed --upgrade setuptools && \
+    python -m pip install --upgrade pandas numpy papermill nbclient jupyter-client notebook  && \
     echo "scripts-prepend-node-path=true" >> /home/jovyan/.npmrc && \
     echo "prefix=/home/jovyan/.npm-global" >> /home/jovyan/.npmrc && \
     mkdir -p /home/jovyan/.npm-global && \
