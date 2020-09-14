@@ -591,15 +591,15 @@ export class PipelineEditor extends React.Component<
       if (source.selectedObjectIds.length > 1) {
         // multiple nodes selected
         customMenu = customMenu.concat({
-          action: 'openNotebook',
-          label: 'Open Notebooks'
+          action: 'openFile',
+          label: 'Open Files'
         });
       } else if (source.targetObject.type == 'execution_node') {
         // single node selected
         customMenu = customMenu.concat(
           {
-            action: 'openNotebook',
-            label: 'Open Notebook'
+            action: 'openFile',
+            label: 'Open File'
           },
           {
             action: 'properties',
@@ -617,7 +617,7 @@ export class PipelineEditor extends React.Component<
   clickActionHandler(source: any): void {
     // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
-      this.handleOpenNotebook(source.selectedObjectIds);
+      this.handleOpenFile(source.selectedObjectIds);
     }
   }
 
@@ -698,9 +698,9 @@ export class PipelineEditor extends React.Component<
         case 'openRuntimes':
           this.handleOpenRuntimes();
           break;
-        case 'openNotebook':
+        case 'openFile':
           if (data.type === 'node') {
-            this.handleOpenNotebook(data.selectedObjectIds);
+            this.handleOpenFile(data.selectedObjectIds);
           }
           break;
         case 'properties':
@@ -809,7 +809,7 @@ export class PipelineEditor extends React.Component<
   /*
    * Open node associated notebook
    */
-  handleOpenNotebook(selectedNodes: any): void {
+  handleOpenFile(selectedNodes: any): void {
     for (let i = 0; i < selectedNodes.length; i++) {
       const path = PipelineService.getWorkspaceRelativeNodePath(
         this.widgetContext.path,
