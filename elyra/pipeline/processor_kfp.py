@@ -38,7 +38,7 @@ class KfpPipelineProcessor(PipelineProcessor):
     def type(self):
         return self._type
 
-    def process(self, pipeline):
+    async def process(self, pipeline):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
 

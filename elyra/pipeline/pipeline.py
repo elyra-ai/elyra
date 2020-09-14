@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import os
+from typing import Dict
 
 
 class Operation(object):
@@ -101,6 +102,22 @@ class Operation(object):
     @property
     def env_vars(self):
         return self._env_vars
+
+    @property
+    def env_vars_as_dict(self) -> Dict:
+        """Operation stores environment variables in a list of name=value pairs, while
+           subprocess.run() requires a dictionary - so we must convert.  If no envs are
+           configured on the Operation, the existing env is returned, otherwise envs
+           configured on the Operation are overlayed on the existing env.
+        """
+        envs = os.environ.copy()
+        for nv in self.env_vars:
+            nv_pair = nv.split("=")
+            if len(nv_pair) == 2:
+                envs[nv_pair[0]] = nv_pair[1]
+            else:
+                self.log.warning(f"Could not process environment variable entry `{nv}`, skipping...")
+        return envs
 
     @property
     def inputs(self):

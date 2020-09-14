@@ -17,7 +17,9 @@ import os
 import subprocess
 import time
 
+from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
+from traitlets import log
 from typing import Dict
 
 
@@ -33,13 +35,22 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     Note: Execution happens in-place and a ledger of runs will be available at $TMPFILE/elyra/pipeline-name-<timestamp>
     """
+    _operation_processor_registry: Dict
     _type = 'local'
+
+    def __init__(self):
+        notebook_op_processor = NotebookOperationProcessor()
+        python_op_processor = PythonScriptOperationProcessor()
+        self._operation_processor_registry = {
+            notebook_op_processor.operation_name: notebook_op_processor,
+            python_op_processor.operation_name(): python_op_processor
+        }
 
     @property
     def type(self):
         return self._type
 
-    def process(self, pipeline):
+    async def process(self, pipeline):
         """
         Process a pipeline locally.
         The pipeline execution consists on properly ordering the operations
@@ -52,7 +63,13 @@ class LocalPipelineProcessor(PipelineProcessor):
         # Sort operations based on dependency graph (topological order)
         operations = LocalPipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
-            self._execute_operation(operation)
+            filepath = self.get_absolute_path(operation.filename)
+
+            try:
+                operation_processor = self._operation_processor_registry[operation.classifier]
+                await operation_processor.process(operation, filepath)
+            except Exception as ex:
+                raise RuntimeError(f'Error processing operation {operation.name} at {filepath}.') from ex
 
         return PipelineProcessorResponse('', '', '')
 
@@ -112,17 +129,75 @@ class LocalPipelineProcessor(PipelineProcessor):
                                                                         parent_operation)
             ordered_operations.append(operation)
 
-    def _get_envs(self, operation: Operation) -> Dict:
-        """Operation stores environment variables in a list of name=value pairs, while
-           subprocess.run() requires a dictionary - so we must convert.  If no envs are
-           configured on the Operation, the existing env is returned, otherwise envs
-           configured on the Operation are overlayed on the existing env.
-        """
-        envs = os.environ.copy()
-        for nv in operation.env_vars:
-            nv_pair = nv.split("=")
-            if len(nv_pair) == 2:
-                envs[nv_pair[0]] = nv_pair[1]
-            else:
-                self.log.warning(f"Could not process environment variable entry `{nv}`, skipping...")
-        return envs
+
+class OperationProcessor(ABC):
+
+    def __init__(self):
+        self.log = log.get_logger()
+
+    @abstractmethod
+    def operation_name(self) -> str:
+        pass
+
+    @abstractmethod
+    async def process(self, operation: Operation, filepath: str):
+        pass
+
+
+class NotebookOperationProcessor(OperationProcessor):
+    _operation_name = 'execute-notebook-node'
+
+    @property
+    def operation_name(self) -> str:
+        return self._operation_name
+
+    async def process(self, operation: Operation, filepath: str):
+        if not os.path.isfile(filepath):
+            raise FileNotFoundError(f'Could not find {filepath}')
+
+        notebook_dir = os.path.dirname(filepath)
+        notebook_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing: {filepath}')
+
+        argv = ['papermill', filepath, filepath, '--cwd', notebook_dir]
+        envs = operation.env_vars_as_dict
+        t0 = time.time()
+        try:
+            subprocess.run(argv, env=envs, check=True)
+        except Exception as ex:
+            self.log.error(f'Internal error executing {filepath}')
+            raise RuntimeError(f'Internal error executing {filepath}') from ex
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {notebook_name} took {duration:.3f} secs.')
+
+
+class PythonScriptOperationProcessor(OperationProcessor):
+    __operation_name = 'execute-python-node'
+
+    def operation_name(self) -> str:
+        return self.__operation_name
+
+    async def process(self, operation: Operation, filepath: str):
+        if not os.path.isfile(filepath):
+            raise FileNotFoundError(f'Could not find {filepath}')
+
+        script_dir = os.path.dirname(filepath)
+        script_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing: {filepath} with work dir: {script_dir}')
+
+        argv = ['python', filepath, '--PYTHONHOME', script_dir]
+        envs = operation.env_vars_as_dict
+        t0 = time.time()
+        try:
+            subprocess.run(argv, cwd=script_dir, env=envs, check=True)
+        except Exception as ex:
+            self.log.error(f'Internal error executing {filepath}')
+            raise RuntimeError(f'Internal error executing {filepath}') from ex
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {script_name} took {duration:.3f} secs.')
