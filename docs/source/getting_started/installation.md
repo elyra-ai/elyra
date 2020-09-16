@@ -149,3 +149,8 @@ Open the displayed URL in your browser to start using JupyterLab and Elyra.
         http://4d17829ecd4c:8888/?token=d690bde267ec75d6f88c64a39825f8b05b919dd084451f82
      or http://127.0.0.1:8888/?token=d690bde267ec75d6f88c64a39825f8b05b919dd084451f82
 ```
+
+
+### Red Hat OpenShift
+
+JupyterLab and Elyra are included in the Open Data Hub community operator. Follow the instructions in [this document](/recipes/deploying-elyra-with-opendatahub.html) to deploy the operator in a Red Hat OpenShift cluster.
