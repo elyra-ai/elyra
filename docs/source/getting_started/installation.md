@@ -153,4 +153,4 @@ Open the displayed URL in your browser to start using JupyterLab and Elyra.
 
 ### Red Hat OpenShift
 
-JupyterLab and Elyra are included in the Open Data Hub community operator. Follow the instructions in [this document](/recipes/deploying-elyra-with-opendatahub.html) to deploy the operator in a Red Hat OpenShift cluster.
+JupyterLab and Elyra are included in the Open Data Hub community operator. Follow the instructions in [this document](/recipes/deploying-elyra-with-opendatahub.md) to deploy the operator in a Red Hat OpenShift cluster.
