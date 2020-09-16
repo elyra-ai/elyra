@@ -144,23 +144,24 @@ class OperationProcessor(ABC):
         pass
 
 
-class NotebookOperationProcessor(OperationProcessor):
-    _operation_name = 'execute-notebook-node'
+class FileOperationProcessor(OperationProcessor):
 
-    @property
-    def operation_name(self) -> str:
-        return self._operation_name
+    @abstractmethod
+    def _create_execute_command(self, filepath: str, cdw: str) -> str:
+        pass
 
     async def process(self, operation: Operation, filepath: str):
         if not os.path.isfile(filepath):
+            raise ValueError(f'Not a file: {filepath}')
+        if not os.path.exists(filepath):
             raise FileNotFoundError(f'Could not find {filepath}')
 
-        notebook_dir = os.path.dirname(filepath)
-        notebook_name = os.path.basename(filepath)
+        file_dir = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
 
         self.log.debug(f'Processing: {filepath}')
 
-        argv = ['papermill', filepath, filepath, '--cwd', notebook_dir]
+        argv = self._create_execute_command(filepath, file_dir)
         envs = operation.env_vars_as_dict
         t0 = time.time()
         try:
@@ -171,33 +172,25 @@ class NotebookOperationProcessor(OperationProcessor):
 
         t1 = time.time()
         duration = (t1 - t0)
-        self.log.debug(f'Execution of {notebook_name} took {duration:.3f} secs.')
+        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
 
 
-class PythonScriptOperationProcessor(OperationProcessor):
+class NotebookOperationProcessor(FileOperationProcessor):
+    _operation_name = 'execute-notebook-node'
+
+    @property
+    def operation_name(self) -> str:
+        return self._operation_name
+
+    def _create_execute_command(self, filepath: str, cdw: str) -> str:
+        return ['papermill', filepath, filepath, '--cwd', cdw]
+
+
+class PythonScriptOperationProcessor(FileOperationProcessor):
     __operation_name = 'execute-python-node'
 
     def operation_name(self) -> str:
         return self.__operation_name
 
-    async def process(self, operation: Operation, filepath: str):
-        if not os.path.isfile(filepath):
-            raise FileNotFoundError(f'Could not find {filepath}')
-
-        script_dir = os.path.dirname(filepath)
-        script_name = os.path.basename(filepath)
-
-        self.log.debug(f'Processing: {filepath} with work dir: {script_dir}')
-
-        argv = ['python', filepath, '--PYTHONHOME', script_dir]
-        envs = operation.env_vars_as_dict
-        t0 = time.time()
-        try:
-            subprocess.run(argv, cwd=script_dir, env=envs, check=True)
-        except Exception as ex:
-            self.log.error(f'Internal error executing {filepath}')
-            raise RuntimeError(f'Internal error executing {filepath}') from ex
-
-        t1 = time.time()
-        duration = (t1 - t0)
-        self.log.debug(f'Execution of {script_name} took {duration:.3f} secs.')
+    def _create_execute_command(self, filepath, cwd) -> str:
+        return ['python', filepath, '--PYTHONHOME', cwd]
