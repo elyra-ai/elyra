@@ -42,7 +42,7 @@ class LocalPipelineProcessor(PipelineProcessor):
         notebook_op_processor = NotebookOperationProcessor()
         python_op_processor = PythonScriptOperationProcessor()
         self._operation_processor_registry = {
-            notebook_op_processor.operation_name: notebook_op_processor,
+            notebook_op_processor.operation_name(): notebook_op_processor,
             python_op_processor.operation_name(): python_op_processor
         }
 
