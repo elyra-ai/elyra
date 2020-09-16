@@ -42,8 +42,8 @@ class LocalPipelineProcessor(PipelineProcessor):
         notebook_op_processor = NotebookOperationProcessor()
         python_op_processor = PythonScriptOperationProcessor()
         self._operation_processor_registry = {
-            notebook_op_processor.operation_name(): notebook_op_processor,
-            python_op_processor.operation_name(): python_op_processor
+            notebook_op_processor.operation_name: notebook_op_processor,
+            python_op_processor.operation_name: python_op_processor
         }
 
     @property
@@ -147,7 +147,7 @@ class OperationProcessor(ABC):
 class FileOperationProcessor(OperationProcessor):
 
     @abstractmethod
-    def _create_execute_command(self, filepath: str, cdw: str) -> str:
+    def _create_execute_command(self, filepath: str, cdw: str) -> list:
         pass
 
     async def process(self, operation: Operation, filepath: str):
@@ -182,7 +182,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
     def operation_name(self) -> str:
         return self._operation_name
 
-    def _create_execute_command(self, filepath: str, cdw: str) -> str:
+    def _create_execute_command(self, filepath: str, cdw: str) -> list:
         return ['papermill', filepath, filepath, '--cwd', cdw]
 
 
@@ -192,5 +192,5 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
     def operation_name(self) -> str:
         return self.__operation_name
 
-    def _create_execute_command(self, filepath, cwd) -> str:
+    def _create_execute_command(self, filepath: str, cwd: str) -> list:
         return ['python', filepath, '--PYTHONHOME', cwd]
