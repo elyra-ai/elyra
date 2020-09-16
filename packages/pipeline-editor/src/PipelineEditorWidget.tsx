@@ -540,7 +540,8 @@ export class PipelineEditor extends React.Component<
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
         startPath: path.dirname(filename),
         filter: (model: any): boolean => {
-          return model.type == 'notebook';
+          console.log(model);
+          return this.canvasManager.isSupportedNode(model);
         }
       }).then((result: any) => {
         if (result.button.accept && result.value.length) {
