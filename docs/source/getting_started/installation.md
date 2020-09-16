@@ -74,7 +74,7 @@ config dir: /usr/local/etc/jupyter
       jupyterlab 2.2.2 OK
     jupyterlab_git  enabled
     - Validating...
-      jupyterlab_git 0.21.0 OK
+      jupyterlab_git 0.21.1 OK
     nbdime  enabled
     - Validating...
       nbdime 2.0.0 OK
@@ -100,7 +100,7 @@ Known labextensions:
         @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
         @elyra/python-editor-extension <VERSION>  enabled  OK*
         @elyra/theme-extension <VERSION>  enabled  OK*
-        @jupyterlab/git v0.21.0  enabled  OK
+        @jupyterlab/git v0.21.1  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```
