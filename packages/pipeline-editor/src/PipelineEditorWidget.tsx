@@ -540,18 +540,29 @@ export class PipelineEditor extends React.Component<
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
         startPath: path.dirname(filename),
         filter: (model: any): boolean => {
-          console.log(model);
           return this.canvasManager.isSupportedNode(model);
         }
       }).then((result: any) => {
         if (result.button.accept && result.value.length) {
+          const selectedFilePath: string = result.value[0].path;
           this.propertiesController.updatePropertyValue(
             propertyId,
             PipelineService.getPipelineRelativeNodePath(
               this.widgetContext.path,
-              result.value[0].path
+              selectedFilePath
             )
           );
+          const nodeId = appData.id;
+          const newOperationName: string = CanvasManager.getOperationName(
+            selectedFilePath
+          );
+          const node = this.canvasController.getNode(
+            nodeId,
+            this.canvasController.getPrimaryPipelineId()
+          );
+          node['op'] = newOperationName;
+          // TODO: properly update image
+          // node["app_data"]["ui_data"]["image"] = CanvasManager.getNodeIcon(selectedFilePath)
         }
       });
     } else if (id === 'add_dependencies') {

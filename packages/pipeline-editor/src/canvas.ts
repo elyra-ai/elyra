@@ -54,7 +54,7 @@ export class CanvasManager {
    * @param item
    */
   isSupportedNode(file: Contents.IModel): boolean {
-    if (CanvasManager.getNodeType(file)) {
+    if (CanvasManager.getNodeType(file.path)) {
       return true;
     } else {
       return false;
@@ -69,10 +69,12 @@ export class CanvasManager {
   ): boolean {
     console.log('Adding ==> ' + file.path);
     console.log('File extension ==> ' + path.extname(file.path));
-    console.log('Operation name ==> ' + CanvasManager.getOperationName(file));
+    console.log(
+      'Operation name ==> ' + CanvasManager.getOperationName(file.path)
+    );
 
     const nodeTemplate = this.canvasController.getPaletteNode(
-      CanvasManager.getOperationName(file)
+      CanvasManager.getOperationName(file.path)
     );
 
     if (nodeTemplate) {
@@ -94,7 +96,7 @@ export class CanvasManager {
 
       data.nodeTemplate.label = path.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(
-        CanvasManager.getNodeIcon(file)
+        CanvasManager.getNodeIcon(file.path)
       );
       data.nodeTemplate.app_data[
         'filename'
@@ -113,28 +115,26 @@ export class CanvasManager {
     }
   }
 
-  // Private
-
-  private static getNodeType(file: Contents.IModel): string {
-    console.log(file.path);
-    console.log(path.extname(file.path));
-    const extension: string = path.extname(file.path);
-    const type: string = CONTENT_TYPE_MAPPER.get(extension);
-
-    // TODO: throw error when file extension is not supported?
-    return type;
+  static getOperationName(filepath: string): string {
+    const type = CanvasManager.getNodeType(filepath);
+    return `execute-${type}-node`;
   }
 
-  private static getNodeIcon(file: Contents.IModel): LabIcon {
-    const extension: string = path.extname(file.path);
+  static getNodeIcon(filepath: string): LabIcon {
+    const extension: string = path.extname(filepath);
     const icon: LabIcon = ICON_MAPPER.get(extension);
 
     // TODO: throw error when file extension is not supported?
     return icon;
   }
 
-  private static getOperationName(file: Contents.IModel): string {
-    const type = CanvasManager.getNodeType(file);
-    return `execute-${type}-node`;
+  // Private
+
+  private static getNodeType(filepath: string): string {
+    const extension: string = path.extname(filepath);
+    const type: string = CONTENT_TYPE_MAPPER.get(extension);
+
+    // TODO: throw error when file extension is not supported?
+    return type;
   }
 }
