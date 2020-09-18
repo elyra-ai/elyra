@@ -19,6 +19,7 @@ import time
 
 from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
+from elyra.util.path import get_absolute_path
 from traitlets import log
 from typing import Dict
 
@@ -38,9 +39,10 @@ class LocalPipelineProcessor(PipelineProcessor):
     _operation_processor_registry: Dict
     _type = 'local'
 
-    def __init__(self):
-        notebook_op_processor = NotebookOperationProcessor()
-        python_op_processor = PythonScriptOperationProcessor()
+    def __init__(self, root_dir):
+        self.root_dir = root_dir
+        notebook_op_processor = NotebookOperationProcessor(self.root_dir)
+        python_op_processor = PythonScriptOperationProcessor(self.root_dir)
         self._operation_processor_registry = {
             notebook_op_processor.operation_name: notebook_op_processor,
             python_op_processor.operation_name: python_op_processor
@@ -63,41 +65,16 @@ class LocalPipelineProcessor(PipelineProcessor):
         # Sort operations based on dependency graph (topological order)
         operations = LocalPipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
-            filepath = self.get_absolute_path(operation.filename)
-
             try:
                 operation_processor = self._operation_processor_registry[operation.classifier]
-                await operation_processor.process(operation, filepath)
+                await operation_processor.process(operation)
             except Exception as ex:
-                raise RuntimeError(f'Error processing operation {operation.name} at {filepath}.') from ex
+                raise RuntimeError(f'Error processing operation {operation.name}.') from ex
 
         return PipelineProcessorResponse('', '', '')
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')
-
-    def _execute_operation(self, operation: Operation) -> None:
-        filepath = self.get_absolute_path(operation.filename)
-        if not os.path.isfile(filepath):
-            raise FileNotFoundError(f'Could not find {filepath}')
-
-        notebook_dir = os.path.dirname(filepath)
-        notebook_name = os.path.basename(filepath)
-
-        self.log.debug(f'Processing: {filepath}')
-
-        argv = ['papermill', filepath, filepath, '--cwd', notebook_dir]
-        envs = self._get_envs(operation)
-        t0 = time.time()
-        try:
-            subprocess.run(argv, env=envs, check=True)
-        except Exception as ex:
-            self.log.error(f'Internal error executing {filepath}')
-            raise RuntimeError(f'Internal error executing {filepath}') from ex
-
-        t1 = time.time()
-        duration = (t1 - t0)
-        self.log.debug(f'Execution of {notebook_name} took {duration:.3f} secs.')
 
     @staticmethod
     def _sort_operations(operations_by_id: dict) -> list:
@@ -137,20 +114,26 @@ class OperationProcessor(ABC):
 
     @abstractmethod
     def operation_name(self) -> str:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def process(self, operation: Operation, filepath: str):
-        pass
+        raise NotImplementedError
 
 
 class FileOperationProcessor(OperationProcessor):
+    _operation_name: str
 
-    @abstractmethod
-    def _create_execute_command(self, filepath: str, cdw: str) -> list:
-        pass
+    def __init__(self, root_dir: str):
+        super(FileOperationProcessor, self).__init__()
+        self._root_dir = root_dir
 
-    async def process(self, operation: Operation, filepath: str):
+    @property
+    def operation_name(self) -> str:
+        return self._operation_name
+
+    async def process(self, operation: Operation):
+        filepath = get_absolute_path(self._root_dir, operation.filename)
         if not os.path.isfile(filepath):
             raise ValueError(f'Not a file: {filepath}')
         if not os.path.exists(filepath):
@@ -174,23 +157,26 @@ class FileOperationProcessor(OperationProcessor):
         duration = (t1 - t0)
         self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
 
+    @abstractmethod
+    def _create_execute_command(self, filepath: str, cdw: str) -> list:
+        pass
+
 
 class NotebookOperationProcessor(FileOperationProcessor):
     _operation_name = 'execute-notebook-node'
 
-    @property
-    def operation_name(self) -> str:
-        return self._operation_name
+    def __init__(self, root_dir: str):
+        super(NotebookOperationProcessor, self).__init__(root_dir)
 
     def _create_execute_command(self, filepath: str, cdw: str) -> list:
         return ['papermill', filepath, filepath, '--cwd', cdw]
 
 
 class PythonScriptOperationProcessor(FileOperationProcessor):
-    __operation_name = 'execute-python-node'
+    _operation_name = 'execute-python-node'
 
-    def operation_name(self) -> str:
-        return self.__operation_name
+    def __init__(self, root_dir):
+        super(PythonScriptOperationProcessor, self).__init__(root_dir)
 
     def _create_execute_command(self, filepath: str, cwd: str) -> list:
         return ['python', filepath, '--PYTHONHOME', cwd]

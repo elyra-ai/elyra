@@ -24,6 +24,7 @@ from datetime import datetime
 from elyra.metadata import MetadataManager
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
+from elyra.util.path import get_absolute_path
 from elyra.util.cos import CosClient
 from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
@@ -33,6 +34,9 @@ from urllib3.exceptions import MaxRetryError
 
 class KfpPipelineProcessor(PipelineProcessor):
     _type = 'kfp'
+
+    def __init__(self, root_dir):
+        self.root_dir = root_dir
 
     @property
     def type(self):
@@ -123,7 +127,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         # Since pipeline_export_path may be relative to the notebook directory, ensure
         # we're using its absolute form.
-        absolute_pipeline_export_path = self.get_absolute_path(pipeline_export_path)
+        absolute_pipeline_export_path = get_absolute_path(self.root_dir, pipeline_export_path)
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
