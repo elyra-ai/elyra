@@ -159,7 +159,7 @@ class FileOperationProcessor(OperationProcessor):
 
     @abstractmethod
     def _create_execute_command(self, filepath: str, cdw: str) -> list:
-        pass
+        raise NotImplementedError
 
 
 class NotebookOperationProcessor(FileOperationProcessor):
