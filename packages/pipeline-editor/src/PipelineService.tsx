@@ -95,8 +95,8 @@ export class PipelineService {
     pipeline: any,
     runtimeName: string
   ): Promise<any> {
-    console.log('Pipeline definition:');
-    console.log(pipeline);
+    // console.log('Pipeline definition:');
+    // console.log(pipeline);
 
     const response = await RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
@@ -164,8 +164,8 @@ export class PipelineService {
     pipeline_export_path: string,
     overwrite: boolean
   ): Promise<any> {
-    console.log('Pipeline definition:');
-    console.log(pipeline);
+    // console.log('Pipeline definition:');
+    // console.log(pipeline);
 
     console.log(
       'Exporting pipeline to [' + pipeline_export_format + '] format'

@@ -68,10 +68,6 @@ export class CanvasManager {
     y: number
   ): boolean {
     console.log('Adding ==> ' + file.path);
-    console.log('File extension ==> ' + path.extname(file.path));
-    console.log(
-      'Operation name ==> ' + CanvasManager.getOperationName(file.path)
-    );
 
     const nodeTemplate = this.canvasController.getPaletteNode(
       CanvasManager.getOperationName(file.path)
