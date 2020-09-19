@@ -148,7 +148,7 @@ class FileOperationProcessor(OperationProcessor):
         envs = operation.env_vars_as_dict
         t0 = time.time()
         try:
-            subprocess.run(argv, env=envs, check=True)
+            subprocess.run(argv, cwd=file_dir, env=envs, check=True)
         except Exception as ex:
             self.log.error(f'Internal error executing {filepath}')
             raise RuntimeError(f'Internal error executing {filepath}') from ex
