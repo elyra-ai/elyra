@@ -213,6 +213,10 @@ export class PipelineService {
       console.info('Migrating pipeline to the current version.');
       pipelineJSON = this.convertPipelineV1toV2(pipelineJSON, pipelinePath);
     }
+    if (currentVersion < 3) {
+      // No-Op this is to disable old versions of Elyra
+      // to see a pipeline with Python Script nodes
+    }
     return pipelineJSON;
   }
 

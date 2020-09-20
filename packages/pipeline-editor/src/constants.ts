@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export const PIPELINE_CURRENT_VERSION = 2;
+export const PIPELINE_CURRENT_VERSION = 3;
