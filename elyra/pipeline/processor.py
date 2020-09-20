@@ -66,7 +66,7 @@ class PipelineProcessorManager(SingletonConfigurable):
         if not processor:
             raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
 
-        res = await processor.process(pipeline)
+        res = await asyncio.get_event_loop().run_in_executor(None, processor.process, pipeline)
         return res
 
     async def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):

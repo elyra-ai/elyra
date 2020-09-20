@@ -52,7 +52,7 @@ class LocalPipelineProcessor(PipelineProcessor):
     def type(self):
         return self._type
 
-    async def process(self, pipeline):
+    def process(self, pipeline):
         """
         Process a pipeline locally.
         The pipeline execution consists on properly ordering the operations
@@ -67,7 +67,7 @@ class LocalPipelineProcessor(PipelineProcessor):
         for operation in operations:
             try:
                 operation_processor = self._operation_processor_registry[operation.classifier]
-                await operation_processor.process(operation)
+                operation_processor.process(operation)
             except Exception as ex:
                 raise RuntimeError(f'Error processing operation {operation.name}.') from ex
 
@@ -117,7 +117,7 @@ class OperationProcessor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def process(self, operation: Operation, filepath: str):
+    def process(self, operation: Operation, filepath: str):
         raise NotImplementedError
 
 
@@ -132,7 +132,7 @@ class FileOperationProcessor(OperationProcessor):
     def operation_name(self) -> str:
         return self._operation_name
 
-    async def process(self, operation: Operation):
+    def process(self, operation: Operation):
         filepath = get_absolute_path(self._root_dir, operation.filename)
         if not os.path.exists(filepath):
             raise FileNotFoundError(f'Could not find {filepath}')
