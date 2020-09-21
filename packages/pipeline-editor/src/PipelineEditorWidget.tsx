@@ -537,10 +537,12 @@ export class PipelineEditor extends React.Component<
     );
 
     if (id === 'browse_file') {
+      const currentExt = path.extname(filename);
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
         startPath: path.dirname(filename),
         filter: (model: any): boolean => {
-          return this.canvasManager.isSupportedNode(model);
+          const ext = path.extname(model.path);
+          return currentExt === ext;
         }
       }).then((result: any) => {
         if (result.button.accept && result.value.length) {
@@ -551,31 +553,6 @@ export class PipelineEditor extends React.Component<
               this.widgetContext.path,
               selectedFilePath
             )
-          );
-          const nodeId = appData.id;
-          const newOperationName: string = CanvasManager.getOperationName(
-            selectedFilePath
-          );
-          const node = this.canvasController.getNode(
-            nodeId,
-            this.canvasController.getPrimaryPipelineId()
-          );
-          node['op'] = newOperationName;
-          // TODO: properly update image
-          // node['app_data']['ui_data']['image'] = IconUtil.encode(
-          //   CanvasManager.getNodeIcon(selectedFilePath)
-          // );
-          this.canvasController.setNodeDecorations(
-            node.id,
-            [
-              {
-                image: IconUtil.encode(
-                  CanvasManager.getNodeIcon(selectedFilePath)
-                ),
-                position: 'middleLeft'
-              }
-            ],
-            this.canvasController.getPrimaryPipelineId()
           );
         }
       });
