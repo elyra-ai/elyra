@@ -1,7 +1,7 @@
 {
-  "display_name": "Anaconda (2020.02) with Python 3.x",
+  "display_name": "Anaconda (2020.07) with Python 3.x",
   "metadata": {
-    "image_name": "continuumio/anaconda3:2020.02"
+    "image_name": "continuumio/anaconda3:2020.07"
   },
   "schema_name": "runtime-image"
 }

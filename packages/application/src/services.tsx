@@ -147,4 +147,23 @@ export class FrontendServices {
 
     return schemaResponse[namespace];
   }
+
+  /**
+   * Service function for making GET calls to the elyra schema API.
+   *
+   * @returns a promise that resolves with the requested schemas or
+   * an error dialog result
+   */
+  static async getAllSchema(): Promise<any> {
+    const namespaces = await RequestHandler.makeGetRequest(
+      'elyra/namespace',
+      false
+    );
+    const schemas = [];
+    for (const namespace of namespaces['namespaces']) {
+      const schema = await this.getSchema(namespace);
+      schemas.push(...schema);
+    }
+    return schemas;
+  }
 }

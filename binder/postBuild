@@ -35,7 +35,8 @@ pip install dist/*.whl
 # Rebuild Jupyter Lab to enable extensions
 jupyter labextension link --no-build packages/application/
 jupyter labextension link --no-build packages/ui-components/
-jupyter lab build --dev-build=False --minimize=False
+jupyter labextension link --no-build packages/metadata-common/
+jupyter lab build --dev-build=False --minimize=False --debug
 mkdir -p binder-demo
 
 # Enable debug output

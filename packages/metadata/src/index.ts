@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { FrontendServices } from '@elyra/application';
 import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
 
 import {
@@ -21,7 +22,7 @@ import {
   JupyterFrontEndPlugin,
   ILabStatus
 } from '@jupyterlab/application';
-import { IThemeManager } from '@jupyterlab/apputils';
+import { IThemeManager, ICommandPalette } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
 
@@ -33,7 +34,8 @@ const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 const METADATA_WIDGET_ID = 'elyra-metadata';
 
 const commandIDs = {
-  openMetadata: 'elyra-metadata:open'
+  openMetadata: 'elyra-metadata:open',
+  closeTabCommand: 'elyra-metadata:close'
 };
 
 /**
@@ -42,10 +44,11 @@ const commandIDs = {
 const extension: JupyterFrontEndPlugin<void> = {
   id: METADATA_WIDGET_ID,
   autoStart: true,
-  requires: [IEditorServices, ILabStatus],
+  requires: [ICommandPalette, IEditorServices, ILabStatus],
   optional: [IThemeManager],
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
+    palette: ICommandPalette,
     editorServices: IEditorServices,
     status: ILabStatus,
     themeManager: IThemeManager | null
@@ -155,6 +158,59 @@ const extension: JupyterFrontEndPlugin<void> = {
         openMetadataWidget(args);
       }
     });
+
+    // Add command to close metadata tab
+    const closeTabCommand: string = commandIDs.closeTabCommand;
+    app.commands.addCommand(closeTabCommand, {
+      label: 'Close Tab',
+      execute: args => {
+        const contextNode: HTMLElement | undefined = app.contextMenuHitTest(
+          node => !!node.dataset.id
+        );
+        if (contextNode) {
+          const id = contextNode.dataset['id']!;
+          const widget = find(
+            app.shell.widgets('left'),
+            (widget: Widget, index: number) => {
+              return widget.id === id;
+            }
+          );
+          if (widget) {
+            widget.dispose();
+          }
+        }
+      }
+    });
+    app.contextMenu.addItem({
+      selector:
+        '[data-id^="elyra-metadata:"]:not([data-id$="code-snippet"]):not([data-id$="runtimes:kfp"])',
+      command: closeTabCommand
+    });
+
+    const schemas = await FrontendServices.getAllSchema();
+    for (const schema of schemas) {
+      let icon = 'ui-components:text-editor';
+      let title = schema.title;
+      if (schema.uihints) {
+        if (schema.uihints.icon) {
+          icon = schema.uihints.icon;
+        }
+        if (schema.uihints.title) {
+          title = schema.uihints.title;
+        }
+      }
+      palette.addItem({
+        command: commandIDs.openMetadata,
+        args: {
+          label: `Manage ${title}`,
+          display_name: schema.title,
+          namespace: schema.namespace,
+          schema: schema.name,
+          icon: icon
+        },
+        category: 'Elyra'
+      });
+    }
   }
 };
 

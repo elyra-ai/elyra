@@ -18,7 +18,10 @@ import * as React from 'react';
 
 import { IRuntime } from './PipelineService';
 
-const FILE_TYPES = ['yaml', 'py'];
+const FILE_TYPES = [
+  { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' },
+  { label: 'KFP domain-specific language Python code', key: 'py' }
+];
 
 interface IProps {
   runtimes: IRuntime[];
@@ -52,8 +55,8 @@ export class PipelineExportDialog extends React.Component<IProps> {
           data-form-required
         >
           {FILE_TYPES.map(filetype => (
-            <option key={filetype} value={filetype}>
-              {filetype}
+            <option key={filetype['key']} value={filetype['key']}>
+              {filetype['label']}
             </option>
           ))}
         </select>

@@ -51,24 +51,27 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.0.0?urlpath=lab/tree/binder-demo) (Latest stable version)
-- [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.1.0?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
+- [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
 #### Using Docker
 
-You can also try Elyra via docker.
+You can also try Elyra by running one of the docker images from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags):
+- `elyra/elyra:latest` has the latest released version installed.
+- `elyra/elyra:x.y.z` has a specific version installed.
+- `elyra/elyra:dev` is automatically re-built each time a change is committed to the master branch.
 
-The command below starts a clean Elyra environment:
+The command below starts the most recent development build in a clean environment:
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:1.0.0 jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.0.0 jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:dev jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used
@@ -130,7 +133,7 @@ config dir: /usr/local/etc/jupyter
       jupyterlab 2.2.2 OK
     jupyterlab_git  enabled
     - Validating...
-      jupyterlab_git 0.20.0 OK
+      jupyterlab_git 0.21.1 OK
     nbdime  enabled
     - Validating...
       nbdime 2.0.0 OK
@@ -147,7 +150,7 @@ Known labextensions:
         @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
         @elyra/python-editor-extension <VERSION>  enabled  OK*
         @elyra/theme-extension <VERSION>  enabled  OK*
-        @jupyterlab/git v0.20.0  enabled  OK
+        @jupyterlab/git v0.21.1  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```

@@ -83,7 +83,7 @@ def test_install_no_schema_single(script_runner, mock_data_dir):
     # Note: this test will break if it ever supports multiple.
     ret = script_runner.run('elyra-metadata', 'install', "runtime-images")
     assert ret.success is False
-    assert ret.stdout.startswith("'--name' is a required parameter.")
+    assert ret.stdout.startswith("'--display_name' is a required parameter.")
     assert ret.stderr == ''
 
 
@@ -107,8 +107,23 @@ def test_install_bad_schema_multiple(script_runner, mock_data_dir):
 def test_install_no_name(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test')
     assert ret.success is False
-    assert ret.stdout.startswith("'--name' is a required parameter.")
+    assert ret.stdout.startswith("'--display_name' is a required parameter.")
     assert ret.stderr == ''
+
+
+def test_install_only_display_name(script_runner, mock_data_dir):
+    metadata_display_name = "1 teste 'rápido'"
+    metadata_name = 'a_1_teste_rpido'
+
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
+                            f'--display_name={metadata_display_name}', '--required_test=required_value')
+    assert ret.success is True
+    assert ret.stdout.startswith(f"Metadata instance '{metadata_name}' for schema 'metadata-test' has been written to:")
+
+    # Ensure it can be fetched by name...
+    metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
+    resource = metadata_manager.get(metadata_name)
+    assert resource.display_name == metadata_display_name
 
 
 def test_install_invalid_name(script_runner, mock_data_dir):
@@ -116,8 +131,7 @@ def test_install_invalid_name(script_runner, mock_data_dir):
                             '--name=UPPER_CASE_NOT_ALLOWED', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success is False
-    assert ret.stdout.startswith("The following exception occurred saving metadata instance "
-                                 "'UPPER_CASE_NOT_ALLOWED' for schema 'metadata-test'")
+    assert ret.stdout.startswith("The following exception occurred saving metadata instance for schema 'metadata-test'")
     assert "Name of metadata must be lowercase alphanumeric" in ret.stdout
 
 
@@ -167,6 +181,12 @@ def test_install_and_replace(script_runner, mock_data_dir):
     assert ret.stdout == ''
     assert "An instance named 'test-metadata_42_valid-name' already exists in the metadata-tests " \
            "namespace" in ret.stderr
+
+    # Re-attempt with replace flag but without --name - failure expected
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
+                            '--display_name=display_name', '--required_test=required_value', '--replace')
+    assert ret.success is False
+    assert "Name of metadata was not provided" in ret.stdout
 
     # Re-attempt with replace flag - success expected
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',

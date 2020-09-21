@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.0 (08/26/2020)
+
+- Add support to run pipelines in-place locally [#860](https://github.com/elyra-ai/elyra/pull/860)
+- Enable pipeline submission to DEX protected Kubeflow Pipeline environment [#866](https://github.com/elyra-ai/elyra/pull/866)
+- Add support for adding files to pipelines using the file browser context menu [#882](https://github.com/elyra-ai/elyra/pull/882)
+- Enable adding dependencies in pipeline node properties [#881](https://github.com/elyra-ai/elyra/pull/881)
+- Enable updating associated node file from pipeline node properties [#867](https://github.com/elyra-ai/elyra/pull/867)
+- Add notebook existence validation to Pipeline Editor [#860](https://github.com/elyra-ai/elyra/pull/860)
+- Add initial support for supernodes in Pipeline Editor [#818](https://github.com/elyra-ai/elyra/pull/818)
+- Add jest unit tests to Pipeline Editor [#818](https://github.com/elyra-ai/elyra/pull/818)
+- Include Python related kernels on Python Editor [#875](https://github.com/elyra-ai/elyra/pull/875)
+- Add command to palette to open Runtime Images UI [#835](https://github.com/elyra-ai/elyra/pull/835)
+- Add support for grouping metadata fields in metadata editor [#871](https://github.com/elyra-ai/elyra/pull/871)
+- Confirm metadata editor reload with unsaved changes [#853](https://github.com/elyra-ai/elyra/pull/853)
+- Multiple enhancements and bug-fixes to metadata service [#840](https://github.com/elyra-ai/elyra/pull/840) [#841](https://github.com/elyra-ai/elyra/pull/841) [#866](https://github.com/elyra-ai/elyra/pull/866)
+- Add support for installing Elyra using conda [#891](https://github.com/elyra-ai/elyra/pull/891)
+
+## 1.0.1 (08/19/2020)
+
+- Add Elyra source distribution to PyPi in support for conda [#876](https://github.com/elyra-ai/elyra/pull/876)
+
 ## 1.0.0 (08/05/2020)
 
 - Notebook Pipelines visual editor

@@ -84,6 +84,10 @@
   line-height: var(--jp-code-line-height);
 }
 
+.elyra-metadata-item .cm-s-jupyter li .cm-string {
+  word-break: normal;
+}
+
 /* MetadataEditor css */
 .elyra-metadataEditor .jp-InputGroup {
   width: 100%;

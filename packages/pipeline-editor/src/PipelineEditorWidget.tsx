@@ -921,6 +921,7 @@ export class PipelineEditor extends React.Component<
       } else {
         // opening an existing pipeline
         const pipelineVersion: number = +Utils.getPipelineVersion(pipelineJson);
+
         if (pipelineVersion !== PIPELINE_CURRENT_VERSION) {
           // pipeline version and current version are divergent
           if (pipelineVersion > PIPELINE_CURRENT_VERSION) {
@@ -935,9 +936,9 @@ export class PipelineEditor extends React.Component<
                 </p>
               ),
               buttons: [Dialog.okButton()]
+            }).then(() => {
+              this.handleClosePipeline();
             });
-            this.handleClosePipeline();
-            return;
           } else {
             // in this case, pipeline was last edited in a "old" version of Elyra and
             // it needs to be updated/migrated.
@@ -966,28 +967,38 @@ export class PipelineEditor extends React.Component<
                   pipelineJson,
                   this.widgetContext.path
                 );
-                this.canvasController.setPipelineFlow(pipelineJson);
+                this.setAndVerifyPipelineFlow(pipelineJson);
               } else {
                 this.handleClosePipeline();
               }
             });
           }
+        } else {
+          await this.setAndVerifyPipelineFlow(pipelineJson);
         }
       }
-      this.setState({ emptyPipeline: Utils.isEmptyPipeline(pipelineJson) });
-      this.canvasController.setPipelineFlow(pipelineJson);
-      const errorMessage = await this.validatePipeline();
-      if (errorMessage) {
-        this.setState({
-          showValidationError: true,
-          validationError: {
-            errorMessage: errorMessage,
-            errorSeverity: 'error'
-          }
-        });
-      }
-      this.validateAllNodes();
     });
+  }
+
+  async setAndVerifyPipelineFlow(pipelineJson: any): Promise<void> {
+    this.canvasController.setPipelineFlow(pipelineJson);
+    const errorMessage = await this.validatePipeline();
+
+    if (errorMessage) {
+      this.setState({
+        emptyPipeline: Utils.isEmptyPipeline(pipelineJson),
+        showValidationError: true,
+        validationError: {
+          errorMessage: errorMessage,
+          errorSeverity: 'error'
+        }
+      });
+    } else {
+      this.setState({
+        emptyPipeline: Utils.isEmptyPipeline(pipelineJson),
+        showValidationError: false
+      });
+    }
   }
 
   /**
