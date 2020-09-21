@@ -562,7 +562,21 @@ export class PipelineEditor extends React.Component<
           );
           node['op'] = newOperationName;
           // TODO: properly update image
-          // node["app_data"]["ui_data"]["image"] = CanvasManager.getNodeIcon(selectedFilePath)
+          // node['app_data']['ui_data']['image'] = IconUtil.encode(
+          //   CanvasManager.getNodeIcon(selectedFilePath)
+          // );
+          this.canvasController.setNodeDecorations(
+            node.id,
+            [
+              {
+                image: IconUtil.encode(
+                  CanvasManager.getNodeIcon(selectedFilePath)
+                ),
+                position: 'middleLeft'
+              }
+            ],
+            this.canvasController.getPrimaryPipelineId()
+          );
         }
       });
     } else if (id === 'add_dependencies') {
