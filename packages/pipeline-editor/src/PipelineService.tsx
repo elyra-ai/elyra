@@ -210,12 +210,14 @@ export class PipelineService {
       pipelineJSON = this.convertPipelineV0toV1(pipelineJSON);
     }
     if (currentVersion < 2) {
+      // adding relative path on the pipeline filenames
       console.info('Migrating pipeline to the current version.');
       pipelineJSON = this.convertPipelineV1toV2(pipelineJSON, pipelinePath);
     }
     if (currentVersion < 3) {
-      // No-Op this is to disable old versions of Elyra
-      // to see a pipeline with Python Script nodes
+      // Adding python script support
+      console.info('Migrating pipeline to the current version.');
+      pipelineJSON = this.convertPipelineV2toV3(pipelineJSON, pipelinePath);
     }
     return pipelineJSON;
   }
@@ -264,6 +266,16 @@ export class PipelineService {
       pipelinePath
     );
     pipelineJSON.pipelines[0]['app_data']['version'] = 2;
+    return pipelineJSON;
+  }
+
+  private static convertPipelineV2toV3(
+    pipelineJSON: any,
+    pipelinePath: string
+  ): any {
+    // No-Op this is to disable old versions of Elyra
+    // to see a pipeline with Python Script nodes
+    pipelineJSON.pipelines[0]['app_data']['version'] = 3;
     return pipelineJSON;
   }
 
