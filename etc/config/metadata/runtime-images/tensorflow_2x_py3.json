@@ -1,7 +1,7 @@
 {
-  "display_name": "Tensorflow 2.2.0",
+  "display_name": "Tensorflow 2.3.0",
   "metadata": {
-    "image_name": "tensorflow/tensorflow:2.2.0"
+    "image_name": "tensorflow/tensorflow:2.3.0"
   },
   "schema_name": "runtime-image"
 }

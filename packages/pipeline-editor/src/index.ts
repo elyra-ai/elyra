@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  containerIcon,
-  pipelineIcon,
-  runtimesIcon
-} from '@elyra/ui-components';
+import { pipelineIcon, runtimesIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -33,12 +29,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
-import {
-  RUNTIME_IMAGE_SCHEMA,
-  RUNTIME_IMAGES_NAMESPACE,
-  KFP_SCHEMA,
-  RUNTIMES_NAMESPACE
-} from './PipelineService';
+import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './PipelineService';
 import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 
@@ -155,17 +146,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       args: { isPalette: true },
       category: 'Elyra'
     });
-    palette.addItem({
-      command: commandIDs.openMetadata,
-      args: {
-        label: 'Show Runtime Images',
-        display_name: 'Runtime Images',
-        namespace: RUNTIME_IMAGES_NAMESPACE,
-        schema: RUNTIME_IMAGE_SCHEMA,
-        icon: containerIcon.name
-      },
-      category: 'Elyra'
-    });
+
     // Add the command to the launcher
     if (launcher) {
       launcher.add({

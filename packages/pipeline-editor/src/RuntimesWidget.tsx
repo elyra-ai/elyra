@@ -80,6 +80,7 @@ export class RuntimesWidget extends MetadataWidget {
         openMetadataEditor={this.openMetadataEditor}
         namespace={RUNTIMES_NAMESPACE}
         schema={KFP_SCHEMA}
+        sortMetadata={true}
       />
     );
   }

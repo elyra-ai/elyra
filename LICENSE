@@ -207,6 +207,7 @@ This section summarizes those components and their licenses.
 
 JupyterLab Git extension (dist/git-*.tgz) and
 JupyterLab TOC extension (dist/toc-*.tgz) and
+Portions of JSONComponent.tsx (packages/ui-components/src/JSONComponent.tsx) and
 Jupyter_Server PyTest utilities (elyra/metadata/tests/conftest.py)
 
 BSD 3-Clause License

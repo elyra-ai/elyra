@@ -64,11 +64,12 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       getCurrentWidget,
       editorServices
     });
-    codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
+    const codeSnippetWidgetId = `elyra-metadata:${CODE_SNIPPET_NAMESPACE}:${CODE_SNIPPET_SCHEMA}`;
+    codeSnippetWidget.id = codeSnippetWidgetId;
     codeSnippetWidget.title.icon = codeSnippetIcon;
     codeSnippetWidget.title.caption = 'Code Snippets';
 
-    restorer.add(codeSnippetWidget, CODE_SNIPPET_EXTENSION_ID);
+    restorer.add(codeSnippetWidget, codeSnippetWidgetId);
 
     // Rank has been chosen somewhat arbitrarily to give priority to the running
     // sessions widget in the sidebar.

@@ -4,6 +4,10 @@
   "name": "runtime-image",
   "display_name": "Runtime Image",
   "namespace": "runtime-images",
+  "uihints": {
+    "icon": "elyra:container",
+    "title": "Runtime Images"
+  },
   "properties": {
     "schema_name": {
       "title": "Schema Name",
