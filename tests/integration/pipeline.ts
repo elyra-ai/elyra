@@ -21,8 +21,6 @@ const closePipeline = (): void => {
 
 const checkEnabledToolbarButtons = (buttons: string[]): void => {
   buttons.forEach((buttonClass: string) => {
-    console.log('checking enabled button: ' + buttonClass);
-
     cy.get(`${buttonClass} button`)
       .should('have.length', 1)
       .should('not.be.disabled');
@@ -65,8 +63,16 @@ describe('PipelineEditor', () => {
       .click();
   });
 
-  it('close pipeline editor', () => {
+  it('closes pipeline editor', () => {
     closePipeline();
+  });
+
+  it('deletes pipeline file', () => {
+    cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').rightclick();
+    cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
+    cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
+      .should('be.visible')
+      .click();
   });
 
   it('opens blank pipeline editor from file menu', () => {
@@ -110,14 +116,15 @@ describe('PipelineEditor', () => {
     checkEnabledToolbarButtons(enabledButtons);
   });
 
-  // it('close pipeline editor', () => {
-  //   closePipeline()
-  // });
+  it('closes pipeline editor', () => {
+    closePipeline();
+  });
 
-  // it('opens pipeline from file browser', () => {
-  // });
+  it('opens pipeline from file browser', () => {
+    cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
+  });
 
-  it('add blank notebook to pipeline', () => {
+  it('adds blank notebook to pipeline', () => {
     cy.get('.jp-DirListing-content > [data-file-type="notebook"]').rightclick();
     cy.get('[data-command="pipeline-editor:add-node"]').click();
   });
@@ -147,12 +154,12 @@ describe('PipelineEditor', () => {
     checkEnabledToolbarButtons(enabledButtons);
   });
 
-  it('open runtimes sidebar', () => {
+  it('opens runtimes sidebar', () => {
     cy.get('.openRuntimes-action button').click();
     cy.get('.jp-SideBar .lm-mod-current[title="Runtimes"]');
   });
 
-  it('check runtimes sidebar rendered', () => {
+  it('checks runtimes sidebar rendered', () => {
     cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
   });
 
