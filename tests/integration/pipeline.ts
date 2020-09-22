@@ -177,6 +177,23 @@ describe('PipelineEditor', () => {
     cy.get('.export-action button').click();
     cy.get('.MuiAlert-message').should('be.visible');
     cy.get('image.node-image[data-image*=jp-icon-warn]');
+
+    // closes alert message
+    cy.get('.MuiAlert-action > button[aria-label="close"]').click();
+  });
+
+  it('adds runtime image to node properties', () => {
+    cy.get('.d3-node-label').rightclick();
+    cy.get('.react-contextmenu-item:nth-child(9)')
+      .contains('Properties')
+      .click();
+    cy.get('div.properties-dropdown').click();
+
+    // selects the first item of the runtimes dropdown
+    cy.get('#downshift-0-item-0').click();
+    cy.get('.bx--btn--primary')
+      .contains('Save')
+      .click();
   });
 
   // TODO:
