@@ -43,7 +43,7 @@
     "prettier": "^1.19.1",
     "rimraf": "~3.0.0",
     "start-server-and-test": "1.7.9",
-    "@jupyterlab/testutils": "^1.0.0",
+    "@jupyterlab/testutils": "^2.2.4",
     "@types/enzyme": "^3.10.5",
     "@types/enzyme-adapter-react-16": "^1.0.6",
     "enzyme": "^3.11.0",

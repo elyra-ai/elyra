@@ -43,6 +43,6 @@ for (const option of reuseFromUpstream) {
   local[option] = upstream[option];
 }
 
-local['setupFilesAfterEnv'].push('../../testutils/jest.setup.js');
+local['setupFilesAfterEnv'] = ['../../testutils/jest.setup.js'];
 
 module.exports = local;

@@ -14,10 +14,26 @@
  * limitations under the License.
  */
 
+import { JupyterServer } from '@jupyterlab/testutils';
+
+import { FrontendServices } from '../services';
+
+const server = new JupyterServer();
+
+beforeAll(async () => {
+  await server.start();
+});
+
+afterAll(async () => {
+  await server.shutdown();
+});
+
 describe('@elyra/application', () => {
-  describe('NotebookParser', () => {
-    it('#getEnvVars', () => {
-      console.debug('Test');
+  describe('FrontendServices', () => {
+    describe('#getSchema', () => {
+      it('should make server request', async () => {
+        console.debug(await FrontendServices.getSchema('code-snippets'));
+      });
     });
   });
 });
