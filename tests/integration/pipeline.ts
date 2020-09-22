@@ -163,6 +163,12 @@ describe('PipelineEditor', () => {
     cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
   });
 
+  it('runs invalid pipeline', () => {
+    cy.get('.run-action button').click();
+    cy.get('.MuiAlert-message').should('be.visible');
+    cy.get('image.node-image[data-image*=jp-icon-warn]');
+  });
+
   // TODO:
   // - Drag and drop a notebook to pipeline editor
 });
