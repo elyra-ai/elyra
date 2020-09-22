@@ -546,12 +546,11 @@ export class PipelineEditor extends React.Component<
         }
       }).then((result: any) => {
         if (result.button.accept && result.value.length) {
-          const selectedFilePath: string = result.value[0].path;
           this.propertiesController.updatePropertyValue(
             propertyId,
             PipelineService.getPipelineRelativeNodePath(
               this.widgetContext.path,
-              selectedFilePath
+              result.value[0].path
             )
           );
         }
