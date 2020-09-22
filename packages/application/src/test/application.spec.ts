@@ -129,6 +129,31 @@ describe('@elyra/application', () => {
         expect(snippets[0]).toHaveProperty('metadata.language', 'Python');
         expect(snippets[0]).toHaveProperty('metadata.code', ['hello_world']);
       });
+
+      it('should update the metadata instance', async () => {
+        await FrontendServices.putMetadata(
+          'code-snippets',
+          'tester',
+          JSON.stringify({
+            schema_name: 'code-snippet',
+            namespace: 'code-snippet',
+            display_name: 'tester',
+            metadata: {
+              language: 'Python',
+              code: ['testing']
+            }
+          })
+        );
+        const snippets = await FrontendServices.getMetadata('code-snippets');
+        expect(snippets).toHaveLength(1);
+        expect(snippets[0]).toHaveProperty('metadata.code', ['testing']);
+      });
+
+      it('should delete the metadata instance', async () => {
+        await FrontendServices.deleteMetadata('code-snippets', 'tester');
+        const snippets = await FrontendServices.getMetadata('code-snippets');
+        expect(snippets).toHaveLength(0);
+      });
     });
   });
 });
