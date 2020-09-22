@@ -166,7 +166,7 @@ describe('PipelineEditor', () => {
   it('runs invalid pipeline', () => {
     cy.get('.run-action button').click();
     cy.get('.MuiAlert-message').should('be.visible');
-    cy.get('image.node-image[data-image*=jp-icon-warn]');
+    cy.get('image[data-id="node_dec_image_2_error"]').should('exist');
 
     // closes alert message
     cy.get('.MuiAlert-action > button[aria-label="close"]').click();
@@ -176,7 +176,7 @@ describe('PipelineEditor', () => {
     cy.wait(1000);
     cy.get('.export-action button').click();
     cy.get('.MuiAlert-message').should('be.visible');
-    cy.get('image.node-image[data-image*=jp-icon-warn]');
+    cy.get('image[data-id="node_dec_image_2_error"]').should('exist');
 
     // closes alert message
     cy.get('.MuiAlert-action > button[aria-label="close"]').click();
@@ -194,6 +194,10 @@ describe('PipelineEditor', () => {
     cy.get('.bx--btn--primary')
       .contains('Save')
       .click();
+  });
+
+  it('checks node is now valid', () => {
+    cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
   });
 
   // TODO:
