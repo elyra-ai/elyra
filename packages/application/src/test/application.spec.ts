@@ -105,5 +105,30 @@ describe('@elyra/application', () => {
         expect(schemas).toHaveLength(3);
       });
     });
+    describe('metadata', () => {
+      it('should create metadata instance', async () => {
+        await FrontendServices.postMetadata(
+          'code-snippets',
+          JSON.stringify({
+            schema_name: 'code-snippet',
+            namespace: 'code-snippet',
+            display_name: 'tester',
+            metadata: {
+              language: 'Python',
+              code: ['hello_world']
+            }
+          })
+        );
+      });
+
+      it('should get the correct metadata instance', async () => {
+        const snippets = await FrontendServices.getMetadata('code-snippets');
+        expect(snippets).toHaveLength(1);
+        expect(snippets[0]).toHaveProperty('schema_name', 'code-snippet');
+        expect(snippets[0]).toHaveProperty('display_name', 'tester');
+        expect(snippets[0]).toHaveProperty('metadata.language', 'Python');
+        expect(snippets[0]).toHaveProperty('metadata.code', ['hello_world']);
+      });
+    });
   });
 });
