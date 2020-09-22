@@ -13,6 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const closePipeline = (): void => {
+  cy.get(
+    '.lm-TabBar-tab.lm-mod-current > .lm-TabBar-tabCloseIcon:visible'
+  ).click();
+};
+
+const checkEnabledToolbarButtons = (buttons: string[]): void => {
+  buttons.forEach((buttonClass: string) => {
+    console.log('checking enabled button: ' + buttonClass);
+
+    cy.get(`${buttonClass} button`)
+      .should('have.length', 1)
+      .should('not.be.disabled');
+  });
+};
+
+const checkDisabledToolbarButtons = (buttons: string[]): void => {
+  buttons.forEach((buttonClass: string) => {
+    cy.get(`${buttonClass} button`)
+      .should('have.length', 1)
+      .should('be.disabled');
+  });
+};
 
 describe('PipelineEditor', () => {
   it('opens jupyterlab', () => {
@@ -43,9 +66,7 @@ describe('PipelineEditor', () => {
   });
 
   it('close pipeline editor', () => {
-    cy.get(
-      '.lm-TabBar-tab.lm-mod-current > .lm-TabBar-tabCloseIcon:visible'
-    ).click();
+    closePipeline();
   });
 
   it('opens blank pipeline editor from file menu', () => {
@@ -59,65 +80,75 @@ describe('PipelineEditor', () => {
   });
 
   it('checks for disabled buttons', () => {
-    cy.get('.run-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
-    cy.get('.export-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
-    cy.get('.clear-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
-    cy.get('.undo-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
-    cy.get('.redo-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
-    cy.get('.cut-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
-    cy.get('.copy-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
+    const disabledButtons = [
+      '.run-action',
+      '.export-action',
+      '.clear-action',
+      '.undo-action',
+      '.redo-action',
+      '.cut-action',
+      '.copy-action',
+      '.deleteSelectedObjects-action',
+      '.arrangeHorizontally-action',
+      '.arrangeVertically-action'
+    ];
+    checkDisabledToolbarButtons(disabledButtons);
 
     // TODO: investigate further
     // paste action always enabled (even when set to false in toolbarConfig)
     // cy.get('#paste-action button')
     //   .should('have.length', 1)
     //   .should('be.disabled');
-
-    cy.get('.deleteSelectedObjects-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
-    cy.get('.arrangeHorizontally-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
-    cy.get('.arrangeVertically-action button')
-      .should('have.length', 1)
-      .should('be.disabled');
   });
 
-  it('checks save and add comment buttons are enabled', () => {
-    cy.get('.save-action button')
-      .should('have.length', 1)
-      .should('not.be.disabled');
-    cy.get('.createAutoComment-action button')
-      .should('have.length', 1)
-      .should('not.be.disabled');
+  it('checks for enabled buttons', () => {
+    const enabledButtons = [
+      '.save-action',
+      '.openRuntimes-action',
+      '.createAutoComment-action'
+    ];
+    checkEnabledToolbarButtons(enabledButtons);
   });
+
+  // it('close pipeline editor', () => {
+  //   closePipeline()
+  // });
+
+  // it('opens pipeline from file browser', () => {
+  // });
 
   it('add blank notebook to pipeline', () => {
     cy.get('.jp-DirListing-content > [data-file-type="notebook"]').rightclick();
     cy.get('[data-command="pipeline-editor:add-node"]').click();
   });
 
-  it('open runtimes sidebar', () => {
-    cy.get('.openRuntimes-action button')
-      .should('have.length', 1)
-      .should('not.be.disabled')
-      .click();
+  it('checks for disabled buttons', () => {
+    const disabledButtons = [
+      '.redo-action',
+      '.cut-action',
+      '.copy-action',
+      '.deleteSelectedObjects-action'
+    ];
+    checkDisabledToolbarButtons(disabledButtons);
+  });
 
+  it('checks for enabled buttons', () => {
+    const enabledButtons = [
+      '.run-action',
+      '.save-action',
+      '.export-action',
+      '.clear-action',
+      '.openRuntimes-action',
+      '.undo-action',
+      '.createAutoComment-action',
+      '.arrangeHorizontally-action',
+      '.arrangeVertically-action'
+    ];
+    checkEnabledToolbarButtons(enabledButtons);
+  });
+
+  it('open runtimes sidebar', () => {
+    cy.get('.openRuntimes-action button').click();
     cy.get('.jp-SideBar .lm-mod-current[title="Runtimes"]');
   });
 
@@ -127,5 +158,4 @@ describe('PipelineEditor', () => {
 
   // TODO:
   // - Drag and drop a notebook to pipeline editor
-  // - Test expected buttons are enabled: run,save,export, clear, undo, cut,copy,delete, arrangeHorizontally, arrangeVertivally
 });
