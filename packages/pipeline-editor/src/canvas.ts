@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { NotebookParser } from '@elyra/application';
 import * as path from 'path';
+
+import { NotebookParser } from '@elyra/application';
 
 import { IconUtil } from '@elyra/ui-components';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -81,14 +82,10 @@ export class CanvasManager {
         nodeTemplate: this.canvasController.convertNodeTemplate(nodeTemplate)
       };
 
-      // // create a notebook widget to get a string with the node content then dispose of it
-      // const notebookWidget = fileBrowser.model.manager.open(item.path);
-      // const notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
-      // notebookWidget.dispose();
-
-      const env_vars = NotebookParser.getEnvVars(fileContent).map(
-        str => str + '='
-      );
+      let env_vars: any;
+      if (CanvasManager.getNodeType(file.path) == ContentType.notebook) {
+        env_vars = NotebookParser.getEnvVars(fileContent).map(str => str + '=');
+      }
 
       data.nodeTemplate.label = path.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(
