@@ -167,6 +167,16 @@ describe('PipelineEditor', () => {
     cy.get('.run-action button').click();
     cy.get('.MuiAlert-message').should('be.visible');
     cy.get('image.node-image[data-image*=jp-icon-warn]');
+
+    // closes alert message
+    cy.get('.MuiAlert-action > button[aria-label="close"]').click();
+  });
+
+  it('exports invalid pipeline', () => {
+    cy.wait(1000);
+    cy.get('.export-action button').click();
+    cy.get('.MuiAlert-message').should('be.visible');
+    cy.get('image.node-image[data-image*=jp-icon-warn]');
   });
 
   // TODO:
