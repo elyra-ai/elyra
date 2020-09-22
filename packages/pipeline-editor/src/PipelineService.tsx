@@ -95,9 +95,6 @@ export class PipelineService {
     pipeline: any,
     runtimeName: string
   ): Promise<any> {
-    // console.log('Pipeline definition:');
-    // console.log(pipeline);
-
     const response = await RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
@@ -164,9 +161,6 @@ export class PipelineService {
     pipeline_export_path: string,
     overwrite: boolean
   ): Promise<any> {
-    // console.log('Pipeline definition:');
-    // console.log(pipeline);
-
     console.log(
       'Exporting pipeline to [' + pipeline_export_format + '] format'
     );
@@ -211,12 +205,12 @@ export class PipelineService {
     }
     if (currentVersion < 2) {
       // adding relative path on the pipeline filenames
-      console.info('Migrating pipeline to the current version.');
+      console.info('Migrating pipeline to version 2.');
       pipelineJSON = this.convertPipelineV1toV2(pipelineJSON, pipelinePath);
     }
     if (currentVersion < 3) {
       // Adding python script support
-      console.info('Migrating pipeline to the current version.');
+      console.info('Migrating pipeline to version 3 (current version).');
       pipelineJSON = this.convertPipelineV2toV3(pipelineJSON, pipelinePath);
     }
     return pipelineJSON;

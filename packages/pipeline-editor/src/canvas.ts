@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//import { NotebookParser } from '@elyra/application';
+import { NotebookParser } from '@elyra/application';
 import * as path from 'path';
 
 import { IconUtil } from '@elyra/ui-components';
@@ -85,10 +85,10 @@ export class CanvasManager {
       // const notebookWidget = fileBrowser.model.manager.open(item.path);
       // const notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
       // notebookWidget.dispose();
-      //
-      // const env_vars = NotebookParser.getEnvVars(notebookStr).map(
-      //   str => str + '='
-      // );
+
+      const env_vars = NotebookParser.getEnvVars(fileContent).map(
+        str => str + '='
+      );
 
       data.nodeTemplate.label = path.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(
@@ -101,7 +101,7 @@ export class CanvasManager {
         file.path
       );
       data.nodeTemplate.app_data['runtime_image'] = '';
-      // data.nodeTemplate.app_data['env_vars'] = env_vars;
+      data.nodeTemplate.app_data['env_vars'] = env_vars;
       data.nodeTemplate.app_data['include_subdirectories'] = false;
       this.canvasController.editActionHandler(data);
 
