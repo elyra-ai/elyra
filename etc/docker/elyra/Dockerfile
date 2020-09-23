@@ -40,7 +40,9 @@ RUN conda remove --force -y terminado && \
     npm install -g yarn && \
     npm install -g npm && \
     cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-    cd /tmp/elyra && git checkout tags/v1.2.0 -b v1.2.0 && make UPGRADE_STRATEGY=eager install
+    cd /tmp/elyra && git checkout tags/v1.2.0 -b v1.2.0 && \
+    make UPGRADE_STRATEGY=eager install && \
+    rm -rf /tmp/elyra
 
 WORKDIR /home/jovyan/work
 
