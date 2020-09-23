@@ -95,9 +95,6 @@ export class PipelineService {
     pipeline: any,
     runtimeName: string
   ): Promise<any> {
-    console.log('Pipeline definition:');
-    console.log(pipeline);
-
     const response = await RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
@@ -164,9 +161,6 @@ export class PipelineService {
     pipeline_export_path: string,
     overwrite: boolean
   ): Promise<any> {
-    console.log('Pipeline definition:');
-    console.log(pipeline);
-
     console.log(
       'Exporting pipeline to [' + pipeline_export_format + '] format'
     );
@@ -210,8 +204,14 @@ export class PipelineService {
       pipelineJSON = this.convertPipelineV0toV1(pipelineJSON);
     }
     if (currentVersion < 2) {
-      console.info('Migrating pipeline to the current version.');
+      // adding relative path on the pipeline filenames
+      console.info('Migrating pipeline to version 2.');
       pipelineJSON = this.convertPipelineV1toV2(pipelineJSON, pipelinePath);
+    }
+    if (currentVersion < 3) {
+      // Adding python script support
+      console.info('Migrating pipeline to version 3 (current version).');
+      pipelineJSON = this.convertPipelineV2toV3(pipelineJSON, pipelinePath);
     }
     return pipelineJSON;
   }
@@ -260,6 +260,16 @@ export class PipelineService {
       pipelinePath
     );
     pipelineJSON.pipelines[0]['app_data']['version'] = 2;
+    return pipelineJSON;
+  }
+
+  private static convertPipelineV2toV3(
+    pipelineJSON: any,
+    pipelinePath: string
+  ): any {
+    // No-Op this is to disable old versions of Elyra
+    // to see a pipeline with Python Script nodes
+    pipelineJSON.pipelines[0]['app_data']['version'] = 3;
     return pipelineJSON;
   }
 
