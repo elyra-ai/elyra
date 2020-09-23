@@ -1,6 +1,6 @@
 {
   "name": "@elyra/metadata-extension",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "JupyterLab extension - View and edit metadata",
   "keywords": [
     "jupyter",
@@ -31,7 +31,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/metadata-common": "^1.2.0",
+    "@elyra/metadata-common": "^1.2.1",
     "@jupyterlab/application": "^2.0.2",
     "@jupyterlab/apputils": "^2.0.2",
     "@jupyterlab/codeeditor": "^2.0.2",

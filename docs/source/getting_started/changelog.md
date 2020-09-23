@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1 (09/23/2020)
+
+- Fix dependency install in Elyra docker image [#941](https://github.com/elyra-ai/elyra/pull/941)
+- Remove elyra build area to reduce image size [#942](https://github.com/elyra-ai/elyra/pull/942)
+
 ## 1.2.0 (09/22/2020)
 
 - Add support for Python Script node on pipelines [#722](https://github.com/elyra-ai/elyra/pull/722)
