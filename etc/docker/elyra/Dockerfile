@@ -31,7 +31,8 @@ RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
 
 USER $NB_USER
 
-RUN python -m pip install --upgrade pip && \
+RUN conda remove --force -y terminado && \
+    python -m pip install --upgrade pip && \
     python -m pip install --ignore-installed --upgrade setuptools pandas && \
     echo "scripts-prepend-node-path=true" >> /home/jovyan/.npmrc && \
     echo "prefix=/home/jovyan/.npm-global" >> /home/jovyan/.npmrc && \
