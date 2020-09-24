@@ -64,14 +64,14 @@ You can also try Elyra by running one of the docker images from [Docker Hub](htt
 The command below starts the most recent development build in a clean environment:
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:1.2.1 jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.2.1 jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:dev jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used
@@ -127,7 +127,7 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra v1.2.1 OK
+      elyra <VERSION> OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.2.2 OK
@@ -145,11 +145,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.2.1  enabled  OK*
-        @elyra/metadata-extension v1.2.1  enabled  OK*
-        @elyra/pipeline-editor-extension v1.2.1  enabled  OK*
-        @elyra/python-editor-extension v1.2.1  enabled  OK*
-        @elyra/theme-extension v1.2.1  enabled  OK*
+        @elyra/code-snippet-extension <VERSION>  enabled  OK*
+        @elyra/metadata-extension <VERSION>  enabled  OK*
+        @elyra/pipeline-editor-extension <VERSION>  enabled  OK*
+        @elyra/python-editor-extension <VERSION>  enabled  OK*
+        @elyra/theme-extension <VERSION>  enabled  OK*
         @jupyterlab/git v0.21.1  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
