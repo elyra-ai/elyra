@@ -50,7 +50,6 @@ export const errorIcon = new LabIcon({
   name: 'elyra:errorIcon',
   svgstr: errorIconSvg
 });
-
 export const clearPipelineIcon = new LabIcon({
   name: 'elyra:clear-pipeline',
   svgstr: clearPipelineSvg

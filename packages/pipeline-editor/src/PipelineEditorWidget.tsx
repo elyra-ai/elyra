@@ -16,7 +16,7 @@
 
 import * as path from 'path';
 
-import { IDictionary, NotebookParser } from '@elyra/application';
+import { IDictionary } from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,
@@ -45,7 +45,6 @@ import {
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { ServiceManager } from '@jupyterlab/services';
-import { notebookIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
@@ -64,6 +63,7 @@ import * as React from 'react';
 
 import { IntlProvider } from 'react-intl';
 
+import { CanvasManager } from './canvas';
 import { PIPELINE_CURRENT_VERSION } from './constants';
 import * as i18nData from './en.json';
 import { formDialogWidget } from './formDialogWidget';
@@ -218,6 +218,7 @@ export class PipelineEditor extends React.Component<
   shell: JupyterFrontEnd.IShell;
   commands: CommandRegistry;
   browserFactory: IFileBrowserFactory;
+  canvasManager: CanvasManager;
   serviceManager: ServiceManager;
   canvasController: any;
   widgetContext: DocumentRegistry.Context;
@@ -237,6 +238,10 @@ export class PipelineEditor extends React.Component<
     this.canvasController = new CanvasController();
     this.canvasController.setPipelineFlowPalette(palette);
     this.widgetContext = props.widgetContext;
+    this.canvasManager = new CanvasManager(
+      this.widgetContext,
+      this.canvasController
+    );
     this.widgetId = props.widgetId;
     this.addFileToPipelineSignal = props.addFileToPipelineSignal;
 
@@ -532,10 +537,12 @@ export class PipelineEditor extends React.Component<
     );
 
     if (id === 'browse_file') {
+      const currentExt = path.extname(filename);
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
         startPath: path.dirname(filename),
         filter: (model: any): boolean => {
-          return model.type == 'notebook';
+          const ext = path.extname(model.path);
+          return currentExt === ext;
         }
       }).then((result: any) => {
         if (result.button.accept && result.value.length) {
@@ -586,15 +593,15 @@ export class PipelineEditor extends React.Component<
       if (source.selectedObjectIds.length > 1) {
         // multiple nodes selected
         customMenu = customMenu.concat({
-          action: 'openNotebook',
-          label: 'Open Notebooks'
+          action: 'openFile',
+          label: 'Open Files'
         });
       } else if (source.targetObject.type == 'execution_node') {
         // single node selected
         customMenu = customMenu.concat(
           {
-            action: 'openNotebook',
-            label: 'Open Notebook'
+            action: 'openFile',
+            label: 'Open File'
           },
           {
             action: 'properties',
@@ -612,7 +619,7 @@ export class PipelineEditor extends React.Component<
   clickActionHandler(source: any): void {
     // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
-      this.handleOpenNotebook(source.selectedObjectIds);
+      this.handleOpenFile(source.selectedObjectIds);
     }
   }
 
@@ -693,9 +700,9 @@ export class PipelineEditor extends React.Component<
         case 'openRuntimes':
           this.handleOpenRuntimes();
           break;
-        case 'openNotebook':
+        case 'openFile':
           if (data.type === 'node') {
-            this.handleOpenNotebook(data.selectedObjectIds);
+            this.handleOpenFile(data.selectedObjectIds);
           }
           break;
         case 'properties':
@@ -758,56 +765,28 @@ export class PipelineEditor extends React.Component<
     const fileBrowser = this.browserFactory.defaultBrowser;
 
     toArray(fileBrowser.selectedItems()).map(item => {
-      // if the selected item is a notebook file
-      if (item.type == 'notebook') {
-        //add each selected notebook
-        console.log('Adding ==> ' + item.path);
+      if (this.canvasManager.isSupportedNode(item)) {
+        // read the file contents
+        // create a notebook widget to get a string with the node content then dispose of it
+        let itemContent: string;
+        if (item.type == 'notebook') {
+          const fileWidget = fileBrowser.model.manager.open(item.path);
+          itemContent = (fileWidget as NotebookPanel).content.model.toString();
+          fileWidget.dispose();
+        }
 
-        const nodeTemplate = this.canvasController.getPaletteNode(
-          'execute-notebook-node'
+        const success = this.canvasManager.addNode(
+          item,
+          itemContent,
+          x + position,
+          y + position
         );
-        if (nodeTemplate) {
-          const data = {
-            editType: 'createNode',
-            offsetX: x + position,
-            offsetY: y + position,
-            nodeTemplate: this.canvasController.convertNodeTemplate(
-              nodeTemplate
-            )
-          };
 
-          // create a notebook widget to get a string with the node content then dispose of it
-          const notebookWidget = fileBrowser.model.manager.open(item.path);
-          const notebookStr = (notebookWidget as NotebookPanel).content.model.toString();
-          notebookWidget.dispose();
-
-          const env_vars = NotebookParser.getEnvVars(notebookStr).map(
-            str => str + '='
-          );
-
-          data.nodeTemplate.label = path.basename(
-            item.path,
-            path.extname(item.path)
-          );
-          data.nodeTemplate.image = IconUtil.encode(notebookIcon);
-          data.nodeTemplate.app_data[
-            'filename'
-          ] = PipelineService.getPipelineRelativeNodePath(
-            this.widgetContext.path,
-            item.path
-          );
-          data.nodeTemplate.app_data[
-            'runtime_image'
-          ] = this.propertiesInfo.parameterDef.current_parameters.runtime_image;
-          data.nodeTemplate.app_data['env_vars'] = env_vars;
-          data.nodeTemplate.app_data[
-            'include_subdirectories'
-          ] = this.propertiesInfo.parameterDef.current_parameters.include_subdirectories;
-
-          this.canvasController.editActionHandler(data);
-          this.setState({ showValidationError: false });
-
+        if (success) {
           position += 20;
+          this.setState({ showValidationError: false });
+        } else {
+          // handle error
         }
       } else {
         failedAdd++;
@@ -832,7 +811,7 @@ export class PipelineEditor extends React.Component<
   /*
    * Open node associated notebook
    */
-  handleOpenNotebook(selectedNodes: any): void {
+  handleOpenFile(selectedNodes: any): void {
     for (let i = 0; i < selectedNodes.length; i++) {
       const path = PipelineService.getWorkspaceRelativeNodePath(
         this.widgetContext.path,

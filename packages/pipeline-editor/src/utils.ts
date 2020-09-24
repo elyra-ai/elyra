@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { parse } from 'path';
+
 import uuid4 from 'uuid/v4';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
@@ -40,8 +42,7 @@ export default class Utils {
     const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid: string = Utils.getUUID();
 
-    const artifactFileName = filename.replace(/^.*[\\/]/, '');
-    const artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
+    const artifactName = parse(filename).name;
 
     const envVars = Object.entries(envObject).map(
       ([key, val]) => `${key}=${val}`

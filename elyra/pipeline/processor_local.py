@@ -17,7 +17,10 @@ import os
 import subprocess
 import time
 
+from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
+from elyra.util.path import get_absolute_path
+from traitlets import log
 from typing import Dict
 
 
@@ -33,7 +36,17 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     Note: Execution happens in-place and a ledger of runs will be available at $TMPFILE/elyra/pipeline-name-<timestamp>
     """
+    _operation_processor_registry: Dict
     _type = 'local'
+
+    def __init__(self, root_dir):
+        self.root_dir = root_dir
+        notebook_op_processor = NotebookOperationProcessor(self.root_dir)
+        python_op_processor = PythonScriptOperationProcessor(self.root_dir)
+        self._operation_processor_registry = {
+            notebook_op_processor.operation_name: notebook_op_processor,
+            python_op_processor.operation_name: python_op_processor
+        }
 
     @property
     def type(self):
@@ -52,35 +65,16 @@ class LocalPipelineProcessor(PipelineProcessor):
         # Sort operations based on dependency graph (topological order)
         operations = LocalPipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
-            self._execute_operation(operation)
+            try:
+                operation_processor = self._operation_processor_registry[operation.classifier]
+                operation_processor.process(operation)
+            except Exception as ex:
+                raise RuntimeError(f'Error processing operation {operation.name}.') from ex
 
         return PipelineProcessorResponse('', '', '')
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')
-
-    def _execute_operation(self, operation: Operation) -> None:
-        filepath = self.get_absolute_path(operation.filename)
-        if not os.path.isfile(filepath):
-            raise FileNotFoundError(f'Could not find {filepath}')
-
-        notebook_dir = os.path.dirname(filepath)
-        notebook_name = os.path.basename(filepath)
-
-        self.log.debug(f'Processing: {filepath}')
-
-        argv = ['papermill', filepath, filepath, '--cwd', notebook_dir]
-        envs = self._get_envs(operation)
-        t0 = time.time()
-        try:
-            subprocess.run(argv, env=envs, check=True)
-        except Exception as ex:
-            self.log.error(f'Internal error executing {filepath}')
-            raise RuntimeError(f'Internal error executing {filepath}') from ex
-
-        t1 = time.time()
-        duration = (t1 - t0)
-        self.log.debug(f'Execution of {notebook_name} took {duration:.3f} secs.')
 
     @staticmethod
     def _sort_operations(operations_by_id: dict) -> list:
@@ -112,17 +106,77 @@ class LocalPipelineProcessor(PipelineProcessor):
                                                                         parent_operation)
             ordered_operations.append(operation)
 
-    def _get_envs(self, operation: Operation) -> Dict:
-        """Operation stores environment variables in a list of name=value pairs, while
-           subprocess.run() requires a dictionary - so we must convert.  If no envs are
-           configured on the Operation, the existing env is returned, otherwise envs
-           configured on the Operation are overlayed on the existing env.
-        """
-        envs = os.environ.copy()
-        for nv in operation.env_vars:
-            nv_pair = nv.split("=")
-            if len(nv_pair) == 2:
-                envs[nv_pair[0]] = nv_pair[1]
-            else:
-                self.log.warning(f"Could not process environment variable entry `{nv}`, skipping...")
-        return envs
+
+class OperationProcessor(ABC):
+
+    def __init__(self):
+        self.log = log.get_logger()
+
+    @abstractmethod
+    def operation_name(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def process(self, operation: Operation, filepath: str):
+        raise NotImplementedError
+
+
+class FileOperationProcessor(OperationProcessor):
+    _operation_name: str
+
+    def __init__(self, root_dir: str):
+        super(FileOperationProcessor, self).__init__()
+        self._root_dir = root_dir
+
+    @property
+    def operation_name(self) -> str:
+        return self._operation_name
+
+    def process(self, operation: Operation):
+        filepath = get_absolute_path(self._root_dir, operation.filename)
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f'Could not find {filepath}')
+        if not os.path.isfile(filepath):
+            raise ValueError(f'Not a file: {filepath}')
+
+        file_dir = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing: {filepath}')
+
+        argv = self._create_execute_command(filepath, file_dir)
+        envs = operation.env_vars_as_dict
+        t0 = time.time()
+        try:
+            subprocess.run(argv, cwd=file_dir, env=envs, check=True)
+        except Exception as ex:
+            self.log.error(f'Internal error executing {filepath}')
+            raise RuntimeError(f'Internal error executing {filepath}') from ex
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
+
+    @abstractmethod
+    def _create_execute_command(self, filepath: str, cdw: str) -> list:
+        raise NotImplementedError
+
+
+class NotebookOperationProcessor(FileOperationProcessor):
+    _operation_name = 'execute-notebook-node'
+
+    def __init__(self, root_dir: str):
+        super(NotebookOperationProcessor, self).__init__(root_dir)
+
+    def _create_execute_command(self, filepath: str, cdw: str) -> list:
+        return ['papermill', filepath, filepath, '--cwd', cdw]
+
+
+class PythonScriptOperationProcessor(FileOperationProcessor):
+    _operation_name = 'execute-python-node'
+
+    def __init__(self, root_dir):
+        super(PythonScriptOperationProcessor, self).__init__(root_dir)
+
+    def _create_execute_command(self, filepath: str, cwd: str) -> list:
+        return ['python', filepath, '--PYTHONHOME', cwd]

@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.2.1 (09/23/2020)
+
+- Fix dependency install in Elyra docker image [#941](https://github.com/elyra-ai/elyra/pull/941)
+- Remove elyra build area to reduce image size [#942](https://github.com/elyra-ai/elyra/pull/942)
+
+## 1.2.0 (09/22/2020)
+
+- Add support for Python Script node on pipelines [#722](https://github.com/elyra-ai/elyra/pull/722)
+- Update papermill transient dependencies on docker build [#923](https://github.com/elyra-ai/elyra/pull/923)
+- Document OpenShift deployment [#929](https://github.com/elyra-ai/elyra/pull/929)
+- Document how to "bring-your-own" runtime image [#915](https://github.com/elyra-ai/elyra/pull/915)
+- Update JupyterLab Git to release 0.21.1 [#922](https://github.com/elyra-ai/elyra/pull/922)
+- Add support for deploying Elyra on Red Hat Open Data Hub [#918](https://github.com/elyra-ai/elyra/pull/918)
+- Add JupyterLab commands for existing metadata UIs [#906](https://github.com/elyra-ai/elyra/pull/906)
+- Add tutorials on how to use Elyra [#909](https://github.com/elyra-ai/elyra/pull/909)
+- Update default runtime images [#908](https://github.com/elyra-ai/elyra/pull/908)
+- Update install documentation on how to run Elyra from docker [#907](https://github.com/elyra-ai/elyra/pull/907)
+- Add JSON UI and optional sort for metadata widget [#877](https://github.com/elyra-ai/elyra/pull/877)
+
 ## 1.1.0 (08/26/2020)
 
 - Add support to run pipelines in-place locally [#860](https://github.com/elyra-ai/elyra/pull/860)

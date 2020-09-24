@@ -116,7 +116,7 @@ If you have Docker installed, you can use JupyterLab and Elyra by running one of
 Invocation example 1: Run the most recent Elyra development build in a Docker container. All changes are discarded when the Docker container is stopped.
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:1.2.1 jupyter lab --debug
 ```
 
 Invocation example 2: Run the most recent Elyra development build in a Docker container and mount the existing local `$HOME/jupyter-notebooks/` directory as JupyterLab work directory. This enables you to make existing notebooks and other files available in the Docker container. Only files in this working directory are retained when the Docker container is stopped. 

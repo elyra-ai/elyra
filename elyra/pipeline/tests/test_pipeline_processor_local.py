@@ -58,9 +58,8 @@ def test_pipeline_get_envs():
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
-    local_processor = LocalPipelineProcessor()
     for op in pipeline.operations.values():
-        op_envs = local_processor._get_envs(op)
+        op_envs = op.env_vars_as_dict
         assert op_envs['OP_NAME'] == op.name
 
 
