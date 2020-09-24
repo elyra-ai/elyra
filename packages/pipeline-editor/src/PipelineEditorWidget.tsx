@@ -1186,6 +1186,11 @@ export class PipelineEditor extends React.Component<
       return;
     }
 
+    const pipelineName = path.basename(
+      this.widgetContext.path,
+      path.extname(this.widgetContext.path)
+    );
+
     const runtimes = await PipelineService.getRuntimes(false);
     const local_runtime: any = {
       name: 'local',
@@ -1195,7 +1200,9 @@ export class PipelineEditor extends React.Component<
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
-      body: formDialogWidget(<PipelineSubmissionDialog runtimes={runtimes} />),
+      body: formDialogWidget(
+        <PipelineSubmissionDialog name={pipelineName} runtimes={runtimes} />
+      ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#pipeline_name'
