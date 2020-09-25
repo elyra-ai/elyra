@@ -28,10 +28,13 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 
 import { Widget } from '@lumino/widgets';
 
+import {
+  CODE_SNIPPET_NAMESPACE,
+  CODE_SNIPPET_SCHEMA
+} from './CodeSnippetService';
 import { CodeSnippetWidget } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
-const CODE_SNIPPETS_CLASS = 'elyra-CodeSnippets';
 
 /**
  * Initialization data for the code-snippet extension.
@@ -52,17 +55,21 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       return app.shell.currentWidget;
     };
 
-    const codeSnippetWidget = new CodeSnippetWidget(
-      getCurrentWidget,
+    const codeSnippetWidget = new CodeSnippetWidget({
       app,
+      display_name: 'Code Snippets',
+      namespace: CODE_SNIPPET_NAMESPACE,
+      schema: CODE_SNIPPET_SCHEMA,
+      icon: codeSnippetIcon,
+      getCurrentWidget,
       editorServices
-    );
-    codeSnippetWidget.id = CODE_SNIPPET_EXTENSION_ID;
+    });
+    const codeSnippetWidgetId = `elyra-metadata:${CODE_SNIPPET_NAMESPACE}:${CODE_SNIPPET_SCHEMA}`;
+    codeSnippetWidget.id = codeSnippetWidgetId;
     codeSnippetWidget.title.icon = codeSnippetIcon;
-    codeSnippetWidget.title.caption = 'Code Snippet';
-    codeSnippetWidget.addClass(CODE_SNIPPETS_CLASS);
+    codeSnippetWidget.title.caption = 'Code Snippets';
 
-    restorer.add(codeSnippetWidget, CODE_SNIPPET_EXTENSION_ID);
+    restorer.add(codeSnippetWidget, codeSnippetWidgetId);
 
     // Rank has been chosen somewhat arbitrarily to give priority to the running
     // sessions widget in the sidebar.

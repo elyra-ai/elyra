@@ -31,15 +31,18 @@ RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
 
 USER $NB_USER
 
-RUN python -m pip install --upgrade pip && \
-    python -m pip install setuptools pandas --ignore-installed --upgrade && \
+RUN conda remove --force -y terminado && \
+    python -m pip install --upgrade pip && \
+    python -m pip install --ignore-installed --upgrade setuptools pandas && \
     echo "scripts-prepend-node-path=true" >> /home/jovyan/.npmrc && \
     echo "prefix=/home/jovyan/.npm-global" >> /home/jovyan/.npmrc && \
     mkdir -p /home/jovyan/.npm-global && \
     npm install -g yarn && \
     npm install -g npm && \
     cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-    cd /tmp/elyra && git checkout tags/v1.0.0rc2 -b v1.0.0rc2 && make install
+    cd /tmp/elyra && \
+    make UPGRADE_STRATEGY=eager install && \
+    rm -rf /tmp/elyra
 
 WORKDIR /home/jovyan/work
 

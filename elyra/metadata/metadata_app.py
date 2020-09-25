@@ -147,19 +147,36 @@ class NamespaceInstall(NamespaceBase):
 
     replace_flag = Flag("--replace", name='replace',
                         description='Replace existing instance', default_value=False)
-    schema_name_option = CliOption("--schema_name", name='schema_name',
-                                   description='The schema_name of the metadata instance to install', required=True)
     name_option = CliOption("--name", name='name',
-                            description='The name of the metadata instance to install', required=True)
+                            description='The name of the metadata instance to install')
 
     # 'Install' options
-    options = [replace_flag, schema_name_option, name_option]
+    options = [replace_flag]  # defer name_option until after schema_option
 
     def __init__(self, **kwargs):
         super(NamespaceInstall, self).__init__(**kwargs)
         self.metadata_manager = MetadataManager(namespace=self.namespace)
         # First, process the schema_name option so we can then load the appropriate schema
         # file to build the schema-based options.  If help is requested, give it to them.
+
+        # As an added benefit, if the namespace has one schema, got ahead and default that value.
+        # If multiple, add the list so proper messaging can be applied.  As a result, we need to
+        # to build the option here since this is where we have access to the schemas.
+        schema_list = list(self.schemas.keys())
+        if len(schema_list) == 1:
+            self.schema_name_option = CliOption("--schema_name", name='schema_name',
+                                                default_value=schema_list[0],
+                                                description="The schema_name of the metadata instance to "
+                                                            "install (defaults to '{}')".format(schema_list[0]),
+                                                required=True)
+        else:
+            one_of = schema_list
+            self.schema_name_option = CliOption("--schema_name", name='schema_name', one_of=one_of,
+                                                description='The schema_name of the metadata instance to install.  '
+                                                            'Must be one of: {}'.format(one_of),
+                                                required=True)
+
+        self.options.extend([self.schema_name_option, self.name_option])
         self.process_cli_option(self.schema_name_option, check_help=True)
         schema_name = self.schema_name_option.value
 
@@ -212,11 +229,11 @@ class NamespaceInstall(NamespaceBase):
 
         if new_instance:
             print("Metadata instance '{}' for schema '{}' has been written to: {}"
-                  .format(name, schema_name, new_instance.resource))
+                  .format(new_instance.name, schema_name, new_instance.resource))
         else:
             if ex_msg:
-                self.log_and_exit("The following exception occurred saving metadata instance '{}' for schema '{}': {}"
-                                  .format(name, schema_name, ex_msg), display_help=True)
+                self.log_and_exit("The following exception occurred saving metadata instance for schema '{}': {}"
+                                  .format(schema_name, ex_msg), display_help=True)
             else:
                 self.log_and_exit("A failure occurred saving metadata instance '{}' for schema '{}'."
                                   .format(name, schema_name), display_help=True)

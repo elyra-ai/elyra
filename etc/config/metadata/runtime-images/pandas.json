@@ -1,7 +1,7 @@
 {
-  "display_name": "Pandas",
+  "display_name": "Pandas 1.1.1",
   "metadata": {
-    "image_name": "amancevice/pandas:1.0.3"
+    "image_name": "amancevice/pandas:1.1.1"
   },
   "schema_name": "runtime-image"
 }

@@ -77,6 +77,10 @@
     "expression.max.label": "Max",
     "expression.no.functions": "No functions found.",
     "multi.selected.row.label": "rows selected.",
-    "multi.selected.row.action": "Changing a value in this row will change the value in all allowed selected rows."
+    "multi.selected.row.action": "Changing a value in this row will change the value in all allowed selected rows.",
+
+    "toolbar.zoomIn": "Zoom In",
+    "toolbar.zoomOut": "Zoom Out",
+    "toolbar.zoomToFit": "Zoom To Fit"
   }
 }

@@ -1,9 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Code Snippet metadata",
+  "title": "Code Snippet",
   "name": "code-snippet",
   "display_name": "Code Snippet",
   "namespace": "code-snippets",
+  "uihints": {
+    "title": "Code Snippets",
+    "icon": "elyra:code-snippet"
+  },
   "properties": {
     "schema_name": {
       "title": "Schema Name",
@@ -25,17 +29,13 @@
         "description": {
           "title": "Description",
           "description": "Code snippet description",
-          "type": "string",
-          "uihints": {
-            "label": "Description"
-          }
+          "type": "string"
         },
         "language": {
           "title": "Language",
           "description": "Code snippet implementation language",
           "type": "string",
           "uihints": {
-            "label": "Language",
             "field_type": "dropdown",
             "default_choices": ["Python", "Java", "R", "Scala", "Markdown"]
           },
@@ -46,7 +46,6 @@
           "description": "Code snippet code lines",
           "type": "array",
           "uihints": {
-            "label": "Code",
             "field_type": "code"
           }
         }

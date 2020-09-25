@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as path from 'path';
+
 import {
   FrontendServices,
   IDictionary,
@@ -25,16 +27,26 @@ import * as React from 'react';
 
 import Utils from './utils';
 
+export const RUNTIMES_NAMESPACE = 'runtimes';
+export const KFP_SCHEMA = 'kfp';
+export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
+export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
+
+export interface IRuntime {
+  name: string;
+  display_name: string;
+}
+
 export class PipelineService {
   /**
    * Returns a list of external runtime configurations available as
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(): Promise<any> {
+  static async getRuntimes(showError = true): Promise<any> {
     const runtimes = await FrontendServices.getMetadata('runtimes');
 
-    if (Object.keys(runtimes).length === 0) {
+    if (showError && Object.keys(runtimes).length === 0) {
       return FrontendServices.noMetadataError('runtimes');
     }
 
@@ -60,47 +72,73 @@ export class PipelineService {
     return images;
   }
 
+  static getDisplayName(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)['display_name'];
+  }
+
+  /**
+   * The runtime name is currently based on the schema name (one schema per runtime)
+   * @param name
+   * @param metadataArr
+   */
+  static getRuntimeName(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)['schema_name'];
+  }
+
   /**
    * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
    *
    * @param pipeline
-   * @param runtime_config
+   * @param runtimeName
    */
   static async submitPipeline(
     pipeline: any,
-    runtime_config: string
+    runtimeName: string
   ): Promise<any> {
-    console.log('Pipeline definition:');
-    console.log(pipeline);
-
     const response = await RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
       true
     );
 
-    const dialogTitle = 'Job submission to ' + runtime_config + ' succeeded';
-    const dialogBody = (
-      <p>
-        Check the status of your pipeline at{' '}
-        <a href={response['run_url']} target="_blank" rel="noopener noreferrer">
-          Run Details.
-        </a>
-        <br />
-        The results and outputs are in the {
-          response['object_storage_path']
-        }{' '}
-        working directory in{' '}
-        <a
-          href={response['object_storage_url']}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          object storage
-        </a>
-        .
-      </p>
-    );
+    let dialogTitle;
+    let dialogBody;
+    if (response['run_url']) {
+      // pipeline executed remotely in a runtime of choice
+      dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
+      dialogBody = (
+        <p>
+          Check the status of your job at{' '}
+          <a
+            href={response['run_url']}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Run Details.
+          </a>
+          <br />
+          The results and outputs are in the {
+            response['object_storage_path']
+          }{' '}
+          working directory in{' '}
+          <a
+            href={response['object_storage_url']}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            object storage
+          </a>
+          .
+        </p>
+      );
+    } else {
+      // pipeline executed in-place locally
+      dialogTitle = 'Job execution succeeded';
+      dialogBody = (
+        <p>Your job has been executed in-place in your local environment.</p>
+      );
+    }
+
     return showDialog({
       title: dialogTitle,
       body: dialogBody,
@@ -123,9 +161,6 @@ export class PipelineService {
     pipeline_export_path: string,
     overwrite: boolean
   ): Promise<any> {
-    console.log('Pipeline definition:');
-    console.log(pipeline);
-
     console.log(
       'Exporting pipeline to [' + pipeline_export_format + '] format'
     );
@@ -158,16 +193,27 @@ export class PipelineService {
    *
    * @param pipelineDefinition
    */
-  static convertPipeline(pipelineDefinition: any): any {
-    const pipelineJSON = JSON.parse(JSON.stringify(pipelineDefinition));
+  static convertPipeline(pipelineDefinition: any, pipelinePath: string): any {
+    let pipelineJSON = JSON.parse(JSON.stringify(pipelineDefinition));
 
     const currentVersion: number = Utils.getPipelineVersion(pipelineJSON);
 
     if (currentVersion < 1) {
       // original pipeline definition without a version
-      console.info('Migrating pipeline to the current version.');
-      return this.convertPipelineV0toV1(pipelineJSON);
+      console.info('Migrating pipeline to version 1.');
+      pipelineJSON = this.convertPipelineV0toV1(pipelineJSON);
     }
+    if (currentVersion < 2) {
+      // adding relative path on the pipeline filenames
+      console.info('Migrating pipeline to version 2.');
+      pipelineJSON = this.convertPipelineV1toV2(pipelineJSON, pipelinePath);
+    }
+    if (currentVersion < 3) {
+      // Adding python script support
+      console.info('Migrating pipeline to version 3 (current version).');
+      pipelineJSON = this.convertPipelineV2toV3(pipelineJSON, pipelinePath);
+    }
+    return pipelineJSON;
   }
 
   private static convertPipelineV0toV1(pipelineJSON: any): any {
@@ -203,5 +249,75 @@ export class PipelineService {
 
     pipelineJSON.pipelines[0]['app_data']['version'] = 1;
     return pipelineJSON;
+  }
+
+  private static convertPipelineV1toV2(
+    pipelineJSON: any,
+    pipelinePath: string
+  ): any {
+    pipelineJSON.pipelines[0] = this.setNodePathsRelativeToPipeline(
+      pipelineJSON.pipelines[0],
+      pipelinePath
+    );
+    pipelineJSON.pipelines[0]['app_data']['version'] = 2;
+    return pipelineJSON;
+  }
+
+  private static convertPipelineV2toV3(
+    pipelineJSON: any,
+    pipelinePath: string
+  ): any {
+    // No-Op this is to disable old versions of Elyra
+    // to see a pipeline with Python Script nodes
+    pipelineJSON.pipelines[0]['app_data']['version'] = 3;
+    return pipelineJSON;
+  }
+
+  static getPipelineRelativeNodePath(
+    pipelinePath: string,
+    nodePath: string
+  ): string {
+    const relativePath: string = path.relative(
+      path.dirname(pipelinePath),
+      nodePath
+    );
+    return relativePath;
+  }
+
+  static getWorkspaceRelativeNodePath(
+    pipelinePath: string,
+    nodePath: string
+  ): string {
+    // since resolve returns an "absolute" path we need to strip off the leading '/'
+    const workspacePath: string = path
+      .resolve(path.dirname(pipelinePath), nodePath)
+      .substring(1);
+    return workspacePath;
+  }
+
+  static setNodePathsRelativeToPipeline(
+    pipeline: any,
+    pipelinePath: string
+  ): any {
+    for (const node of pipeline.nodes) {
+      node.app_data.filename = this.getPipelineRelativeNodePath(
+        pipelinePath,
+        node.app_data.filename
+      );
+    }
+    return pipeline;
+  }
+
+  static setNodePathsRelativeToWorkspace(
+    pipeline: any,
+    pipelinePath: string
+  ): any {
+    for (const node of pipeline.nodes) {
+      node.app_data.filename = this.getWorkspaceRelativeNodePath(
+        pipelinePath,
+        node.app_data.filename
+      );
+    }
+    return pipeline;
   }
 }

@@ -83,6 +83,75 @@
           "default": "Files generated during execution that will become available to all subsequent pipeline steps.\nOne filename (including subdirectory) per line."
         }
       }
+    ],
+    "action_info": [
+      {
+        "id": "browse_file",
+        "label": {
+          "default": "Browse..."
+        },
+        "control": "button",
+        "data": {
+          "parameter_ref": "filename"
+        }
+      },
+      {
+        "id": "add_dependencies",
+        "label": {
+          "default": "Add Dependencies..."
+        },
+        "control": "button",
+        "data": {
+          "parameter_ref": "dependencies"
+        }
+      }
+    ],
+    "group_info": [
+      {
+        "id": "nodeGroupInfo",
+        "label": {
+          "default": "Node Properties"
+        },
+        "type": "panels",
+        "group_info": [
+          {
+            "id": "nodeFileControl",
+            "type": "controls",
+            "parameter_refs": ["filename"]
+          },
+          {
+            "id": "nodeBrowseFileAction",
+            "type": "actionPanel",
+            "action_refs": ["browse_file"]
+          },
+          {
+            "id": "nodeRuntimeImageControl",
+            "type": "controls",
+            "parameter_refs": ["runtime_image"]
+          },
+          {
+            "id": "nodeDependenciesControls",
+            "type": "panels",
+            "group_info": [
+              {
+                "id": "nodeAddDependenciesControl",
+                "type": "controls",
+                "parameter_refs": ["dependencies"]
+              },
+              {
+                "id": "nodeAddDependenciesAction",
+                "type": "actionPanel",
+                "action_refs": ["add_dependencies"]
+              }
+            ]
+          },
+          {
+            "id": "nodePropertiesControls",
+            "type": "controls",
+            "parameter_refs": ["include_subdirectories", "env_vars", "outputs"]
+          }
+        ]
+      }
     ]
   },
   "resources": {}

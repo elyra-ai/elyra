@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { pipelineIcon } from '@elyra/ui-components';
+import { pipelineIcon, runtimesIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -26,9 +26,12 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { addIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
-import { SubmitNotebookButtonExtension } from './SubmitNotebook';
+import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './PipelineService';
+import { RuntimesWidget } from './RuntimesWidget';
+import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 
 import '../style/index.css';
 
@@ -64,8 +67,10 @@ const extension: JupyterFrontEndPlugin<void> = {
       name: PIPELINE_FACTORY,
       fileTypes: [PIPELINE],
       defaultFor: [PIPELINE],
-      app: app,
-      browserFactory: browserFactory
+      shell: app.shell,
+      commands: app.commands,
+      browserFactory: browserFactory,
+      serviceManager: app.serviceManager
     });
 
     // Add the default behavior of opening the widget for .pipeline files
@@ -99,6 +104,20 @@ const extension: JupyterFrontEndPlugin<void> = {
       name: widget => widget.context.path
     });
 
+    // Add command to add file to pipeline
+    const addFileToPipelineCommand: string = commandIDs.addFileToPipeline;
+    app.commands.addCommand(addFileToPipelineCommand, {
+      label: 'Add File to Pipeline',
+      icon: addIcon,
+      execute: args => {
+        pipelineEditorFactory.addFileToPipelineSignal.emit(args);
+      }
+    });
+    app.contextMenu.addItem({
+      selector: '[data-file-type="notebook"]',
+      command: addFileToPipelineCommand
+    });
+
     // Add an application command
     const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
     app.commands.addCommand(openPipelineEditorCommand, {
@@ -125,8 +144,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     palette.addItem({
       command: openPipelineEditorCommand,
       args: { isPalette: true },
-      category: 'Extensions'
+      category: 'Elyra'
     });
+
     // Add the command to the launcher
     if (launcher) {
       launcher.add({
@@ -142,13 +162,28 @@ const extension: JupyterFrontEndPlugin<void> = {
     );
 
     // SubmitNotebookButtonExtension initialization code
-    const buttonExtension = new SubmitNotebookButtonExtension(app);
+    const buttonExtension = new SubmitNotebookButtonExtension();
     app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
     app.contextMenu.addItem({
       selector: '.jp-Notebook',
       command: commandIDs.submitNotebook,
       rank: -0.5
     });
+
+    const runtimesWidget = new RuntimesWidget({
+      app,
+      display_name: 'Runtimes',
+      namespace: RUNTIMES_NAMESPACE,
+      schema: KFP_SCHEMA,
+      icon: runtimesIcon
+    });
+    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`;
+    runtimesWidget.id = runtimesWidgetID;
+    runtimesWidget.title.icon = runtimesIcon;
+    runtimesWidget.title.caption = 'Runtimes';
+
+    restorer.add(runtimesWidget, runtimesWidgetID);
+    app.shell.add(runtimesWidget, 'left', { rank: 950 });
   }
 };
 export default extension;

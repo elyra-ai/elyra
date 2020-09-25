@@ -19,6 +19,11 @@ describe('CodeSnippets', () => {
   });
 
   it('opens code snippets extension', () => {
-    cy.get('[title="Code Snippet"]').click();
+    cy.get('.jp-SideBar [title="Code Snippets"]').click();
+    cy.get('.jp-SideBar .lm-mod-current[title="Code Snippets"]');
+  });
+
+  it('check code snippets extension rendered', () => {
+    cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
   });
 });

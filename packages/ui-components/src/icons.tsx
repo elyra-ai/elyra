@@ -19,11 +19,13 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import clearPipelineSvg from '../style/icons/clear-pipeline.svg';
 import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
 import codeSnippetSvg from '../style/icons/code-snippet.svg';
+import containerSvg from '../style/icons/container.svg';
 import dragDropSvg from '../style/icons/dragdrop.svg';
 import errorIconSvg from '../style/icons/error.svg';
 import exportPipelineSvg from '../style/icons/export-pipeline.svg';
 import importSvg from '../style/icons/import.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
+import runtimesSvg from '../style/icons/runtimes.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
 import trashIconSvg from '../style/icons/trashIcon.svg';
 
@@ -48,7 +50,6 @@ export const errorIcon = new LabIcon({
   name: 'elyra:errorIcon',
   svgstr: errorIconSvg
 });
-
 export const clearPipelineIcon = new LabIcon({
   name: 'elyra:clear-pipeline',
   svgstr: clearPipelineSvg
@@ -60,6 +61,14 @@ export const exportPipelineIcon = new LabIcon({
 export const savePipelineIcon = new LabIcon({
   name: 'elyra:save-pipeline',
   svgstr: savePipelineSvg
+});
+export const runtimesIcon = new LabIcon({
+  name: 'elyra:runtimes',
+  svgstr: runtimesSvg
+});
+export const containerIcon = new LabIcon({
+  name: 'elyra:container',
+  svgstr: containerSvg
 });
 export const trashIcon = new LabIcon({
   name: 'elyra:trashIcon',

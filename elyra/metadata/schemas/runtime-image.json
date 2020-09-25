@@ -1,9 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Runtime Image metadata",
+  "title": "Runtime Image",
   "name": "runtime-image",
   "display_name": "Runtime Image",
   "namespace": "runtime-images",
+  "uihints": {
+    "icon": "elyra:container",
+    "title": "Runtime Images"
+  },
   "properties": {
     "schema_name": {
       "title": "Schema Name",
@@ -22,9 +26,14 @@
       "description": "Additional data specific to this Runtime Image",
       "type": "object",
       "properties": {
+        "description": {
+          "title": "Description",
+          "description": "The description of this Runtime Image instance",
+          "type": "string"
+        },
         "image_name": {
           "title": "Image Name",
-          "description": "Runtime Image description",
+          "description": "The image name (including optional tag)",
           "type": "string",
           "minLength": 1
         }

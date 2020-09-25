@@ -20,16 +20,17 @@
 
 SHELL:=/bin/bash
 
-GIT_VERSION:=0.20.0
+GIT_VERSION:=0.21.1
 TOC_VERSION:=4.0.0
 NBRESUSE_VERSION:=0.3.6
 
-TAG:=1.0.0rc2
+TAG:=dev
 IMAGE=elyra/elyra:$(TAG)
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
+UPGRADE_STRATEGY?=only-if-needed
 
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -52,6 +53,7 @@ purge:
 uninstall:
 	$(call UNLINK_LAB_EXTENSION,@elyra/application)
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
+	$(call UNLINK_LAB_EXTENSION,@elyra/metadata-common)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-extension)
@@ -83,16 +85,17 @@ build-ui: yarn-install lint-ui ## Build packages
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
 build-server: lint-server ## Build backend
-	python setup.py bdist_wheel
+	python setup.py bdist_wheel sdist
 
 build: build-server build-ui
 
 install-server: build-server ## Install backend
-	pip install --upgrade dist/elyra-*-py3-none-any.whl
+	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) dist/elyra-*-py3-none-any.whl
 
 install-ui: build-ui
 	$(call LINK_LAB_EXTENSION,application)
 	$(call LINK_LAB_EXTENSION,ui-components)
+	$(call LINK_LAB_EXTENSION,metadata-common)
 	$(call INSTALL_LAB_EXTENSION,theme)
 	$(call INSTALL_LAB_EXTENSION,code-snippet)
 	$(call INSTALL_LAB_EXTENSION,metadata)
@@ -115,11 +118,16 @@ watch: ## Watch packages. For use alongside jupyter lab --watch
 test-server: install-server ## Run unit tests
 	pytest -v elyra
 
-test-ui: lint-ui ## Run frontend tests
-	npm test
+test-ui: lint-ui test-ui-unit test-ui-integration ## Run frontend tests
 
-test-ui-debug: lint-ui
-	npm run test-debug
+test-ui-integration: ## Run frontend cypress integration tests
+	npm run test:integration
+
+test-ui-unit: ## Run frontend jest unit tests
+	npm run test:unit
+
+test-ui-debug: ## Open cypress integration test debugger
+	npm run test:integration:debug
 
 test: test-server test-ui ## Run all tests
 

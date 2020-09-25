@@ -23,11 +23,11 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 Elyra currently includes:
 * [Notebook Pipelines visual editor](#notebook-pipelines-visual-editor)
 * [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
+* [Reusable Code Snippets](#reusable-code-snippets)
 * [Hybrid runtime support](#hybrid-runtime-support)
 * [Python script execution support](#python-script-execution-support)
-* [Reusable Code Snippets](#reusable-code-snippets)
 * [Notebook versioning based on git integration](#notebook-versioning-based-on-git-integration)
-* [Notebook navigation using auto-generated **Table of Contents**](#notebook-navigation-using-auto-generated-table-of-contents)
+* [Notebook navigation using auto-generated Table of Contents](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
 
 ![Elyra](../images/elyra-main-page.png)
@@ -61,6 +61,14 @@ Elyra also extends the notebook UI to simplify the submission of a single notebo
 
 ![Submit Notebook as batch jobs](../images/submit-notebook-batch-job.gif)
 
+#### Reusable Code Snippets
+
+Elyra supports the **Code Snippet** feature. This allows users to manipulate reusable pieces of code, making programming in JupyterLab more efficient by reducing repetitive work.
+
+![Code Snippets](../images/code-snippet-expanded.png)
+
+For more information on how to configure code snippets metadata see [Elyra Code Snippets](../user_guide/code-snippets)
+
 #### Hybrid runtime support
 
 Elyra leverages Jupyter Enterprise Gateway to enable Jupyter Notebooks
@@ -77,14 +85,6 @@ create python scripts directly from the workspace launcher, and leveraging the
 them against local or cloud-based resources seamlessly.
 
 ![Enhanced Python Support](../images/python-editor.png)
-
-#### Reusable Code Snippets
-
-Elyra supports the **Code Snippet** feature. This allows users to manipulate reusable pieces of code, making programming in JupyterLab more efficient by reducing repetitive work.
-
-![Code Snippets](../images/code-snippet-expanded.png)
-
-For more information on how to configure code snippets metadata see [Elyra Code Snippets](../user_guide/code-snippets)
 
 #### Notebook versioning based on git integration
 

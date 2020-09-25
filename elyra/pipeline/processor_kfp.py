@@ -18,20 +18,25 @@ import kfp
 import os
 import tempfile
 import time
+import requests
 
 from datetime import datetime
-
 from elyra.metadata import MetadataManager
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
+from elyra.util.path import get_absolute_path
 from elyra.util.cos import CosClient
-from kfp_notebook.pipeline import NotebookOp
-from urllib3.exceptions import MaxRetryError
 from jinja2 import Environment, PackageLoader
+from kfp_notebook.pipeline import NotebookOp
+from urllib3.exceptions import LocationValueError
+from urllib3.exceptions import MaxRetryError
 
 
 class KfpPipelineProcessor(PipelineProcessor):
     _type = 'kfp'
+
+    def __init__(self, root_dir):
+        self.root_dir = root_dir
 
     @property
     def type(self):
@@ -45,6 +50,10 @@ class KfpPipelineProcessor(PipelineProcessor):
         api_endpoint = runtime_configuration.metadata['api_endpoint']
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
+
+        # TODO: try to encapsulate the info below
+        api_username = runtime_configuration.metadata.get('api_username')
+        api_password = runtime_configuration.metadata.get('api_password')
 
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
@@ -67,8 +76,18 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.info("Kubeflow Pipeline successfully compiled.")
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
 
-            # Upload the compiled pipeline and create an experiment and run
-            client = kfp.Client(host=api_endpoint)
+            # Upload the compiled pipeline, create an experiment and run
+
+            session_cookie = None
+
+            if api_username and api_password:
+                endpoint = api_endpoint.replace('/pipeline', '')
+                session_cookie = self._get_user_auth_session_cookie(endpoint,
+                                                                    api_username,
+                                                                    api_password)
+
+            client = kfp.Client(host=api_endpoint, cookies=session_cookie)
+
             try:
                 t0 = time.time()
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
@@ -77,6 +96,12 @@ class KfpPipelineProcessor(PipelineProcessor):
                                format(name=pipeline_name, duration=(t1 - t0)))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
+
+            except LocationValueError as lve:
+                if api_username:
+                    raise ValueError("Failure occurred uploading pipeline, check your credentials") from lve
+                else:
+                    raise lve
 
             self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
 
@@ -87,9 +112,9 @@ class KfpPipelineProcessor(PipelineProcessor):
             self.log.info("Starting Kubeflow Pipeline Run...")
 
             return PipelineProcessorResponse(
-                run_url="{}/#/runs/details/{}".format(api_endpoint, run.id),
-                object_storage_url="{}".format(cos_endpoint),
-                object_storage_path="/{}/{}".format(cos_bucket, pipeline_name),
+                run_url=f'{api_endpoint}/#/runs/details/{run.id}',
+                object_storage_url=f'{cos_endpoint}',
+                object_storage_path=f'/{cos_bucket}/{pipeline_name}',
             )
 
         return None
@@ -102,7 +127,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         # Since pipeline_export_path may be relative to the notebook directory, ensure
         # we're using its absolute form.
-        absolute_pipeline_export_path = self.get_absolute_path(pipeline_export_path)
+        absolute_pipeline_export_path = get_absolute_path(self.root_dir, pipeline_export_path)
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
@@ -161,6 +186,9 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_directory = pipeline_name
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
+        emptydir_volume_size = ''
+        container_runtime = bool(os.getenv('CRIO_RUNTIME', 'False').lower() == 'true')
+
         # Create dictionary that maps component Id to its ContainerOp instance
         notebook_ops = {}
 
@@ -181,29 +209,21 @@ class KfpPipelineProcessor(PipelineProcessor):
                     operation.inputs = parent_io
 
         for operation in pipeline.operations.values():
+
             operation_artifact_archive = self._get_dependency_archive_name(operation)
 
             self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
                            op=operation, archive=operation_artifact_archive))
 
-            # create pipeline operation
-            notebook_op = NotebookOp(name=operation.name,
-                                     notebook=operation.filename,
-                                     cos_endpoint=cos_endpoint,
-                                     cos_bucket=cos_bucket,
-                                     cos_directory=cos_directory,
-                                     cos_dependencies_archive=operation_artifact_archive,
-                                     image=operation.runtime_image)
+            if container_runtime:
+                # Volume size to create when using CRI-o, NOTE: IBM Cloud minimum is 20Gi
+                emptydir_volume_size = '20Gi'
 
-            if operation.inputs:
-                notebook_op.add_pipeline_inputs(self._artifact_list_to_str(operation.inputs))
-            if operation.outputs:
-                notebook_op.add_pipeline_outputs(self._artifact_list_to_str(operation.outputs))
+            # Collect env variables
+            pipeline_envs = dict()
+            pipeline_envs['AWS_ACCESS_KEY_ID'] = cos_username
+            pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
 
-            notebook_op.add_environment_variable('AWS_ACCESS_KEY_ID', cos_username)
-            notebook_op.add_environment_variable('AWS_SECRET_ACCESS_KEY', cos_password)
-
-            # Set ENV variables
             if operation.env_vars:
                 for env_var in operation.env_vars:
                     # Strip any of these special characters from both key and value
@@ -211,9 +231,20 @@ class KfpPipelineProcessor(PipelineProcessor):
                     result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
                     # Should be non empty key with a value
                     if len(result) == 2 and result[0] != '':
-                        notebook_op.add_environment_variable(result[0], result[1])
+                        pipeline_envs[result[0]] = result[1]
 
-            notebook_ops[operation.id] = notebook_op
+            # create pipeline operation
+            notebook_ops[operation.id] = NotebookOp(name=operation.name,
+                                                    notebook=operation.filename,
+                                                    cos_endpoint=cos_endpoint,
+                                                    cos_bucket=cos_bucket,
+                                                    cos_directory=cos_directory,
+                                                    cos_dependencies_archive=operation_artifact_archive,
+                                                    pipeline_inputs=operation.inputs,
+                                                    pipeline_outputs=operation.outputs,
+                                                    pipeline_envs=pipeline_envs,
+                                                    emptydir_volume_size=emptydir_volume_size,
+                                                    image=operation.runtime_image)
 
             self.log.info("NotebookOp Created for Component '%s' (%s)", operation.name, operation.id)
 
@@ -256,12 +287,6 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         return notebook_ops
 
-    def _artifact_list_to_str(self, pipeline_array):
-        trimmed_artifact_list = []
-        for artifact_name in pipeline_array:
-            trimmed_artifact_list.append(artifact_name.strip())
-        return ','.join(trimmed_artifact_list)
-
     def _get_dependency_archive_name(self, operation):
         archive_name = os.path.basename(operation.filename)
         (name, ext) = os.path.splitext(archive_name)
@@ -296,3 +321,19 @@ class KfpPipelineProcessor(PipelineProcessor):
         except BaseException as err:
             self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
             raise RuntimeError('Error retrieving runtime configuration for {}', err) from err
+
+    def _get_user_auth_session_cookie(self, url, username, password):
+        get_response = requests.get(url)
+
+        # auth request to kfp server with istio dex look like '/dex/auth/local?req=REQ_VALUE'
+        if 'auth' in get_response.url:
+            credentials = {'login': username, 'password': password}
+
+            # Authenticate user
+            session = requests.Session()
+            session.post(get_response.url, data=credentials)
+            cookie_auth_key = 'authservice_session'
+            cookie_auth_value = session.cookies.get(cookie_auth_key)
+
+            if cookie_auth_value:
+                return cookie_auth_key + '=' + cookie_auth_value

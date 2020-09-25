@@ -5,7 +5,7 @@
     "outDir": "lib",
     "rootDir": "src",
     "target": "es6",
-    "types": ["node"],
+    "types": ["node", "jest"],
     "typeRoots": ["./node_modules/@types"]
   },
   "include": ["src/*", "src/*/*"],
@@ -18,6 +18,9 @@
   "references": [
     {
       "path": "../application"
+    },
+    {
+      "path": "../metadata-common"
     },
     {
       "path": "../ui-components"

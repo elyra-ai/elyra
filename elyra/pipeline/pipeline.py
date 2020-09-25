@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import os
+from typing import Dict
 
 
 class Operation(object):
@@ -59,12 +60,12 @@ class Operation(object):
         self._classifier = classifier
         self._filename = filename
         self._runtime_image = runtime_image
-        self._dependencies = self.__initialize_empty_array_if_none(dependencies)
+        self._dependencies = dependencies or []
         self._include_subdirectories = include_subdirectories
-        self._env_vars = self.__initialize_empty_array_if_none(env_vars)
-        self._inputs = self.__initialize_empty_array_if_none(inputs)
-        self._outputs = self.__initialize_empty_array_if_none(outputs)
-        self._parent_operations = self.__initialize_empty_array_if_none(parent_operations)
+        self._env_vars = env_vars or []
+        self._inputs = inputs or []
+        self._outputs = outputs or []
+        self._parent_operations = parent_operations or []
 
     @property
     def id(self):
@@ -101,6 +102,22 @@ class Operation(object):
     @property
     def env_vars(self):
         return self._env_vars
+
+    @property
+    def env_vars_as_dict(self) -> Dict:
+        """Operation stores environment variables in a list of name=value pairs, while
+           subprocess.run() requires a dictionary - so we must convert.  If no envs are
+           configured on the Operation, the existing env is returned, otherwise envs
+           configured on the Operation are overlayed on the existing env.
+        """
+        envs = os.environ.copy()
+        for nv in self.env_vars:
+            nv_pair = nv.split("=")
+            if len(nv_pair) == 2:
+                envs[nv_pair[0]] = nv_pair[1]
+            else:
+                self.log.warning(f"Could not process environment variable entry `{nv}`, skipping...")
+        return envs
 
     @property
     def inputs(self):
@@ -154,13 +171,6 @@ class Operation(object):
                                                     inputs=self.inputs,
                                                     outputs=self.outputs,
                                                     image=self.runtime_image)
-
-    @staticmethod
-    def __initialize_empty_array_if_none(value):
-        if value:
-            return value
-        else:
-            return []
 
 
 class Pipeline(object):

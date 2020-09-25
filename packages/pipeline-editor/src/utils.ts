@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+import { parse } from 'path';
+
 import uuid4 from 'uuid/v4';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
 import pipeline_template from './pipeline-template.json';
-import { ISubmitNotebookOptions } from './SubmitNotebook';
 
 /**
  * A utilities class for static functions.
@@ -33,13 +34,19 @@ export default class Utils {
    */
   static generateNotebookPipeline(
     filename: string,
-    options: ISubmitNotebookOptions
+    runtime_config: string,
+    runtimeImage: string,
+    dependencies: string[],
+    envObject: { [key: string]: string }
   ): any {
     const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid: string = Utils.getUUID();
 
-    const artifactFileName = filename.replace(/^.*[\\/]/, '');
-    const artifactName = artifactFileName.replace(/\.[^/.]+$/, '');
+    const artifactName = parse(filename).name;
+
+    const envVars = Object.entries(envObject).map(
+      ([key, val]) => `${key}=${val}`
+    );
 
     template.id = generated_uuid;
     template.primary_pipeline = generated_uuid;
@@ -47,13 +54,13 @@ export default class Utils {
 
     template.pipelines[0].nodes[0].id = generated_uuid;
     template.pipelines[0].nodes[0].app_data.filename = filename;
-    template.pipelines[0].nodes[0].app_data.runtime_image = options.framework;
-    template.pipelines[0].nodes[0].app_data.env_vars = options.env;
-    template.pipelines[0].nodes[0].app_data.dependencies = options.dependencies;
+    template.pipelines[0].nodes[0].app_data.runtime_image = runtimeImage;
+    template.pipelines[0].nodes[0].app_data.env_vars = envVars;
+    template.pipelines[0].nodes[0].app_data.dependencies = dependencies;
 
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = 'kfp';
-    template.pipelines[0].app_data['runtime-config'] = options.runtime_config;
+    template.pipelines[0].app_data['runtime-config'] = runtime_config;
     template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
 
     return template;
@@ -145,5 +152,18 @@ export default class Utils {
       node['app_data'][newFieldName] = node['app_data'][currentFieldName];
       this.deletePipelineAppdataField(node, currentFieldName);
     }
+  }
+
+  /**
+   * Break an array into an array of "chunks", each "chunk" having "n" elements.
+   * The final "chuck" may have less than "n" elements.
+   * Example:
+   * chunkArray(['a', 'b', 'c', 'd', 'e', 'f', 'g'], 4)
+   * -> [['a', 'b', 'c', 'd'], ['e', 'f', 'g']]
+   */
+  static chunkArray<T extends {}>(arr: T[], n: number): T[][] {
+    return Array.from(Array(Math.ceil(arr.length / n)), (_, i) =>
+      arr.slice(i * n, i * n + n)
+    );
   }
 }

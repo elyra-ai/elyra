@@ -140,15 +140,36 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
 .d3-node-ellipsis-background:hover ~ .d3-node-ellipsis {
   fill: var(--inverse-link);
 }
-
-#canvas-toolbar {
-  background-color: var(--ui-background);
+.toolbar-div {
   border-bottom-color: var(--ui-03);
 }
-#canvas-toolbar button.bx--btn {
+.toolbar-div .bx--btn {
   margin: 0;
 }
-.toolbar-divider {
+.toolbar-div,
+.toolbar-item.default button,
+.toolbar-item.ghost button,
+.toolbar-overflow-item button {
+  background-color: var(--ui-background);
+}
+.toolbar-item.default button:hover,
+.toolbar-item.ghost button:hover,
+.toolbar-overflow-item button:hover {
+  background-color: var(--ui-03);
+}
+.toolbar-item.default button:disabled:hover,
+.toolbar-item.ghost button:disabled:hover,
+.toolbar-overflow-item button:disabled:hover {
+  background-color: var(--ui-01);
+}
+.toolbar-item-content.default {
+  color: var(--text-01);
+}
+.toolbar-item-content.disabled.default {
+  color: var(--text-03);
+}
+.toolbar-divider,
+.toolbar-overflow-item button {
   border-right-color: var(--ui-03);
 }
 .overflow-toolbar-divider {
@@ -161,15 +182,13 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
   border-color: var(--ui-03);
   background-color: var(--ui-background);
 }
-#canvas-toolbar button.bx--btn {
-  margin: 0;
-}
 #zoom-actions-container {
   background-color: var(--ui-background);
 }
 
 svg.canvas-icon,
-svg.properties-icon {
+svg.properties-icon,
+svg.canvas-icon .jp-icon3[fill] {
   fill: var(--inverse-02);
 }
 
@@ -303,6 +322,14 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 }
 .bx--modal-footer .bx--btn--secondary {
   background: var(--md-grey-500);
+}
+.bx--modal-content .bx--btn--tertiary {
+  border-color: var(--md-blue-500);
+  color: var(--md-blue-500);
+}
+.bx--modal-content .bx--btn--tertiary:hover {
+  background: var(--md-blue-500);
+  color: #ffffff;
 }
 .bx--modal-footer .bx--btn:disabled {
   background-color: var(--jp-layout-color3);

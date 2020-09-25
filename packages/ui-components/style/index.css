@@ -46,10 +46,6 @@
   background: var(--jp-layout-color2);
 }
 
-.elyra-expandableContainer-title:hover .elyra-expandableContainer-button {
-  background-color: var(--jp-layout-color2);
-}
-
 .elyra-expandableContainer-name {
   flex-grow: 1;
   font-size: var(--jp-ui-font-size1);
@@ -177,4 +173,9 @@
   width: max-content;
   word-wrap: break-word;
   z-index: 999;
+}
+
+.elyra-browseFileDialog .jp-Dialog-content {
+  height: 400px;
+  width: 600px;
 }
