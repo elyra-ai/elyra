@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as nbformat from '@jupyterlab/nbformat';
+import { NotebookModel } from '@jupyterlab/notebook';
 import { JupyterServer, NBTestUtils } from '@jupyterlab/testutils';
 
 import { NotebookParser } from '../parsing';
@@ -21,6 +23,38 @@ import { RequestHandler } from '../requests';
 import { FrontendServices } from '../services';
 
 const server = new JupyterServer();
+const defaultContent: any = {
+  cells: [
+    {
+      cell_type: 'code',
+      execution_count: null,
+      metadata: {},
+      outputs: [],
+      source: ['import os\n', "print(os.environ['HOME'])"]
+    }
+  ],
+  metadata: {
+    kernelspec: {
+      display_name: 'Python 3',
+      language: 'python',
+      name: 'python3'
+    },
+    language_info: {
+      codemirror_mode: {
+        name: 'ipython',
+        version: 3
+      },
+      file_extension: '.py',
+      mimetype: 'text/x-python',
+      name: 'python',
+      nbconvert_exporter: 'python',
+      pygments_lexer: 'ipython3',
+      version: '3.7.6'
+    }
+  },
+  nbformat: 4,
+  nbformat_minor: 4
+};
 const codeSnippetSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   title: 'Code Snippet',
@@ -209,12 +243,23 @@ describe('@elyra/application', () => {
 
   describe('NotebookParser', () => {
     describe('getEnvVars', () => {
-      it('should get env vars', () => {
+      it('should find no env vars where there are none', () => {
         const notebook = NBTestUtils.createNotebook();
         NBTestUtils.populateNotebook(notebook);
         expect(
           NotebookParser.getEnvVars(notebook.model.toString())
         ).toMatchObject([]);
+      });
+
+      it('should find env vars', () => {
+        console.debug(defaultContent);
+        const notebook = NBTestUtils.createNotebook();
+        const model = new NotebookModel();
+        model.fromJSON(defaultContent as nbformat.INotebookContent);
+        notebook.model = model;
+        expect(
+          NotebookParser.getEnvVars(notebook.model.toString())
+        ).toMatchObject(['HOME']);
       });
     });
   });
