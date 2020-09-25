@@ -59,6 +59,7 @@ setup_args = dict(
         'jupyterlab>=2.0.0,<3.0.0',
         'jupyterlab-git>=0.20.0',
         'nbconvert>=5.6.1',
+        'nbresuse==0.3.6',
         'notebook>=6.0.3',
         'traitlets>=4.3.2',
         'jsonschema>=3.2.0',
@@ -66,8 +67,7 @@ setup_args = dict(
         'entrypoints>=0.3',
         'rfc3986-validator>=0.1.1',
         'autopep8',
-        'jinja2',
-        'nbresuse==0.3.6'
+        'jinja2'
     ],
     include_package_data=True,
     classifiers=(
