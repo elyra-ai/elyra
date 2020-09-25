@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { JupyterServer } from '@jupyterlab/testutils';
+import { JupyterServer, NBTestUtils } from '@jupyterlab/testutils';
 
+import { NotebookParser } from '../parsing';
 import { RequestHandler } from '../requests';
 import { FrontendServices } from '../services';
 
@@ -202,6 +203,18 @@ describe('@elyra/application', () => {
             false
           )
         ).toMatchObject({ 'code-snippets': [] });
+      });
+    });
+  });
+
+  describe('NotebookParser', () => {
+    describe('getEnvVars', () => {
+      it('should get env vars', () => {
+        const notebook = NBTestUtils.createNotebook();
+        NBTestUtils.populateNotebook(notebook);
+        expect(
+          NotebookParser.getEnvVars(notebook.model.toString())
+        ).toMatchObject([]);
       });
     });
   });
