@@ -35,6 +35,11 @@ const checkDisabledToolbarButtons = (buttons: string[]): void => {
   });
 };
 
+const cancelPipelineActionDialog = (): void => {
+  cy.get('button.jp-mod-reject').click();
+  cy.get('.jp-Dialog-content').should('not.be.visible');
+};
+
 describe('PipelineEditor', () => {
   it('opens jupyterlab', () => {
     cy.visit('?token=test&reset');
@@ -199,6 +204,33 @@ describe('PipelineEditor', () => {
   it('checks node is now valid', () => {
     cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
   });
+
+  it('tests valid run form dialog', () => {
+    cy.get('.run-action button').click();
+    cy.get('.jp-Dialog-content').should('be.visible');
+
+    cy.get('input#pipeline_name[data-form-required="true"]').should('exist');
+    // input name should match pipeline name
+    cy.get('input#pipeline_name[name]').should('have.value', 'untitled');
+    cy.get('button.jp-mod-accept').should('not.be.disabled');
+    cy.get('select#runtime_config[data-form-required="true"]').should('exist');
+
+    cancelPipelineActionDialog();
+  });
+
+  // NOTE: Pipeline name input cannot be edited
+
+  // it('tests invalid run pipeline form dialog', () => {
+  //   cy.get('.run-action button').click();
+  //   cy.get('.jp-Dialog-content').should('be.visible');
+  //
+  //   // clear input name
+  //   cy.get('input#pipeline_name').type(' ');
+  //   // ok button should be disabled
+  //   cy.get('button.jp-mod-accept').should('be.disabled');
+  //
+  //   cancelPipelineActionDialog();
+  // });
 
   // TODO:
   // - Drag and drop a notebook to pipeline editor
