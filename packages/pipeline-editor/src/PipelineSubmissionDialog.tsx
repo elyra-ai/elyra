@@ -19,12 +19,14 @@ import * as React from 'react';
 import { IRuntime } from './PipelineService';
 
 interface IProps {
+  name: string;
   runtimes: IRuntime[];
 }
 
 export class PipelineSubmissionDialog extends React.Component<IProps> {
   render(): React.ReactNode {
-    const { runtimes } = this.props;
+    const name = this.props.name;
+    const runtimes = this.props.runtimes;
     return (
       <form>
         <label htmlFor="pipeline_name">Pipeline Name:</label>
@@ -33,7 +35,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps> {
           type="text"
           id="pipeline_name"
           name="pipeline_name"
-          placeholder="Pipeline Name"
+          value={name}
           data-form-required
         />
         <br />
