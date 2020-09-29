@@ -20,7 +20,7 @@ from .util import _read_pipeline_resource
 
 def test_pipeline_execution_order_in_complex_pipeline():
     expected_operation_names = ['a', 'b', 'c', 'd', 'e', 'f', 'x', 'y', 'g', 'h']
-    pipeline_definitions = _read_pipeline_resource('pipeline_dependency_complex.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_complex.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
     current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
@@ -36,7 +36,7 @@ def test_pipeline_execution_order_in_complex_pipeline():
 
 def test_pipeline_execution_order_in_simple_pipeline():
     expected_operation_names = ['f', 'a', 'c', 'g']
-    pipeline_definitions = _read_pipeline_resource('pipeline_dependency_simple.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_simple.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
     current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
@@ -54,7 +54,7 @@ def test_pipeline_get_envs():
 
     # Ensure pipeline operation env lists are properly converted to dictionaries.
 
-    pipeline_definitions = _read_pipeline_resource('pipeline_dependency_complex.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_complex.json')
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 

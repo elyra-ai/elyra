@@ -230,7 +230,7 @@ def test_missing_operation_filename():
 
 
 def test_missing_operation_image():
-    pipeline_definitions = _read_pipeline_resource('pipeline_valid.json')
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
     pipeline_definitions['pipelines'][0]['nodes'][0]['app_data'].pop('runtime_image')
 
     with pytest.raises(ValueError) as e:
