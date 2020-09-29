@@ -22,7 +22,7 @@ A runtime image provides the execution environment in which nodes are executed w
 
 Should none of these images meet your needs, you can utilize a custom Docker image, as long as it meets the following pre-requisites:
 - The Docker image is published on the public Docker container registry [https://hub.docker.com](https://hub.docker.com). (Elyra currently does not support private registries.)
-- [Python 3](https://www.python.org/) is pre-installed and in the search path.
+- [Python 3](https://www.python.org/) is pre-installed and in the search path. Python versions that have reached their "end of life" are not supported.
 - [`curl`](https://curl.haxx.se/) is pre-installed and in the search path.
 
 Refer to the [Additional considerations](#additional-considerations) section for important implementation details.
