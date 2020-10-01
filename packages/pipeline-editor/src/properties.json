@@ -56,7 +56,7 @@
           "default": "File Dependencies"
         },
         "place_holder_text": {
-          "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or extension wildcard (eg. *.py) per line."
+          "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
         }
       },
       {
@@ -80,7 +80,7 @@
           "default": "Output Files"
         },
         "place_holder_text": {
-          "default": "Files generated during execution that will become available to all subsequent pipeline steps.\nOne filename (including subdirectory) per line."
+          "default": "Files generated during execution that will become available to all subsequent pipeline steps.\n One filename or expression (e.g. *.csv) per line. Supported patterns: ? and *."
         }
       }
     ],
