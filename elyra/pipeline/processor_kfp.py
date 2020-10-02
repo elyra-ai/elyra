@@ -43,6 +43,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         return self._type
 
     def process(self, pipeline):
+        t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
 
@@ -55,25 +56,20 @@ class KfpPipelineProcessor(PipelineProcessor):
         api_username = runtime_configuration.metadata.get('api_username')
         api_password = runtime_configuration.metadata.get('api_password')
 
+        self.log_pipeline_info(pipeline_name, "submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
 
-            self.log.info("Pipeline : %s", pipeline_name)
             self.log.debug("Creating temp directory %s", temp_dir)
 
             # Compile the new pipeline
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8 E731
-                t0 = time.time()
                 kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
-                t1 = time.time()
-                self.log.debug("Compilation of pipeline '{name}' took {duration:.3f} secs.".
-                               format(name=pipeline_name, duration=(t1 - t0)))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} at {}'.
                                    format(pipeline_name, pipeline_path), str(ex)) from ex
 
-            self.log.info("Kubeflow Pipeline successfully compiled.")
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
 
             # Upload the compiled pipeline, create an experiment and run
@@ -91,9 +87,8 @@ class KfpPipelineProcessor(PipelineProcessor):
             try:
                 t0 = time.time()
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
-                t1 = time.time()
-                self.log.debug("Upload of pipeline '{name}' took {duration:.3f} secs.".
-                               format(name=pipeline_name, duration=(t1 - t0)))
+                duration = time.time() - t0
+                self.log_pipeline_info(pipeline_name, 'pipeline uploaded', duration)
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
 
@@ -103,13 +98,14 @@ class KfpPipelineProcessor(PipelineProcessor):
                 else:
                     raise lve
 
-            self.log.info("Kubeflow Pipeline successfully uploaded to : %s", api_endpoint)
-
             run = client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
                                       job_name=timestamp,
                                       pipeline_id=kfp_pipeline.id)
 
-            self.log.info("Starting Kubeflow Pipeline Run...")
+            duration = time.time() - t0_all
+            self.log_pipeline_info(pipeline_name,
+                                   f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}",
+                                   duration)
 
             return PipelineProcessorResponse(
                 run_url=f'{api_endpoint}/#/runs/details/{run.id}',
@@ -123,6 +119,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         if pipeline_export_format not in ["yaml", "py"]:
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
+        t0_all = time.time()
         pipeline_name = pipeline.name
 
         # Since pipeline_export_path may be relative to the notebook directory, ensure
@@ -135,20 +132,17 @@ class KfpPipelineProcessor(PipelineProcessor):
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
 
-        self.log.info('Creating pipeline definition as a .' + pipeline_export_format + ' file')
+        self.log_pipeline_info(pipeline_name, f"exporting pipeline as a .{pipeline_export_format} file")
         if pipeline_export_format != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
-                t0 = time.time()
                 kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
-                t1 = time.time()
-                self.log.debug("Compilation of pipeline '{name}' took {duration:.3f} secs.".
-                               format(name=pipeline_name, duration=(t1 - t0)))
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
                                    format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
         else:
             # Load template from installed elyra package
+            t0 = time.time()
             loader = PackageLoader('elyra', 'templates')
             template_env = Environment(loader=loader)
 
@@ -174,6 +168,12 @@ class KfpPipelineProcessor(PipelineProcessor):
             with open(absolute_pipeline_export_path, "w") as fh:
                 fh.write(autopep8.fix_code(python_output))
 
+            duration = time.time() - t0
+            self.log_pipeline_info(pipeline_name, "pipeline rendered", duration)
+
+        duration = time.time() - t0_all
+        self.log_pipeline_info(pipeline_name, f"pipeline exported: {pipeline_export_path}", duration)
+
         return pipeline_export_path  # Return the input value, not its absolute form
 
     def _cc_pipeline(self, pipeline, pipeline_name):
@@ -185,6 +185,11 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_password = runtime_configuration.metadata['cos_password']
         cos_directory = pipeline_name
         cos_bucket = runtime_configuration.metadata['cos_bucket']
+
+        self.log_pipeline_info(pipeline_name,
+                               f"processing pipeline dependencies to: {cos_endpoint} "
+                               f"bucket: {cos_bucket} folder: {pipeline_name}")
+        t0_all = time.time()
 
         emptydir_volume_size = ''
         container_runtime = bool(os.getenv('CRIO_RUNTIME', 'False').lower() == 'true')
@@ -246,24 +251,30 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                     emptydir_volume_size=emptydir_volume_size,
                                                     image=operation.runtime_image)
 
-            self.log.info("NotebookOp Created for Component '%s' (%s)", operation.name, operation.id)
+            self.log_pipeline_info(pipeline_name,
+                                   f"operation '{operation.name}' - processing operation dependencies "
+                                   f"for id: {operation.id}")
 
             # upload operation dependencies to object storage
             try:
                 t0 = time.time()
                 dependency_archive_path = self._generate_dependency_archive(operation)
-                t1 = time.time()
-                self.log.debug("Generation of dependency archive for operation '{name}' took {duration:.3f} secs.".
-                               format(name=operation.name, duration=(t1 - t0)))
+                duration = time.time() - t0
+                self.log_pipeline_info(pipeline_name,
+                                       f"operation '{operation.name}' - generated "
+                                       f"dependency archive: {dependency_archive_path}",
+                                       duration)
 
                 cos_client = CosClient(config=runtime_configuration)
                 t0 = time.time()
                 cos_client.upload_file_to_dir(dir=cos_directory,
                                               file_name=operation_artifact_archive,
                                               file_path=dependency_archive_path)
-                t1 = time.time()
-                self.log.debug("Upload of dependency archive for operation '{name}' took {duration:.3f} secs.".
-                               format(name=operation.name, duration=(t1 - t0)))
+                duration = time.time() - t0
+                self.log_pipeline_info(pipeline_name,
+                                       f"operation '{operation.name}' - uploaded dependency archive to: "
+                                       f"{cos_directory}/{operation_artifact_archive}",
+                                       duration)
 
             except FileNotFoundError as ex:
                 self.log.error("Dependencies were not found building archive for operation: {}".
@@ -276,14 +287,15 @@ class KfpPipelineProcessor(PipelineProcessor):
                                format(operation.name), exc_info=True)
                 raise ex from ex
 
-            self.log.info("Pipeline dependencies have been uploaded to object storage")
-
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
             op = notebook_ops[operation.id]
             for parent_operation_id in operation.parent_operations:
                 parent_op = notebook_ops[parent_operation_id]  # Parent Operation
                 op.after(parent_op)
+
+        duration = time.time() - t0_all
+        self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration)
 
         return notebook_ops
 

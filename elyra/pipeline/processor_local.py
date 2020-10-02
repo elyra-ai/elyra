@@ -60,16 +60,23 @@ class LocalPipelineProcessor(PipelineProcessor):
         to proper executor (e.g. papermill to notebooks)
         """
 
-        self.log.info(f'Processing Pipeline : {pipeline.name}')
+        self.log_pipeline_info(pipeline.name, "processing pipeline")
+        t0_all = time.time()
 
         # Sort operations based on dependency graph (topological order)
         operations = LocalPipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
             try:
+                t0 = time.time()
                 operation_processor = self._operation_processor_registry[operation.classifier]
                 operation_processor.process(operation)
+                duration = time.time() - t0
+                self.log_pipeline_info(pipeline.name, f"operation '{operation.name}' - completed", duration)
             except Exception as ex:
                 raise RuntimeError(f'Error processing operation {operation.name}.') from ex
+
+        duration = time.time() - t0_all
+        self.log_pipeline_info(pipeline.name, "pipeline processed", duration)
 
         return PipelineProcessorResponse('', '', '')
 
@@ -109,28 +116,25 @@ class LocalPipelineProcessor(PipelineProcessor):
 
 class OperationProcessor(ABC):
 
+    _operation_name: str = None
+
     def __init__(self):
         self.log = log.get_logger()
-
-    @abstractmethod
-    def operation_name(self) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def process(self, operation: Operation, filepath: str):
-        raise NotImplementedError
-
-
-class FileOperationProcessor(OperationProcessor):
-    _operation_name: str
-
-    def __init__(self, root_dir: str):
-        super(FileOperationProcessor, self).__init__()
-        self._root_dir = root_dir
 
     @property
     def operation_name(self) -> str:
         return self._operation_name
+
+    @abstractmethod
+    def process(self, operation: Operation):
+        raise NotImplementedError
+
+
+class FileOperationProcessor(OperationProcessor):
+
+    def __init__(self, root_dir: str):
+        super(FileOperationProcessor, self).__init__()
+        self._root_dir = root_dir
 
     def process(self, operation: Operation):
         filepath = get_absolute_path(self._root_dir, operation.filename)
@@ -139,23 +143,15 @@ class FileOperationProcessor(OperationProcessor):
         if not os.path.isfile(filepath):
             raise ValueError(f'Not a file: {filepath}')
 
-        file_dir = os.path.dirname(filepath)
-        file_name = os.path.basename(filepath)
-
         self.log.debug(f'Processing: {filepath}')
-
+        file_dir = os.path.dirname(filepath)
         argv = self._create_execute_command(filepath, file_dir)
-        envs = operation.env_vars_as_dict
-        t0 = time.time()
+        envs = operation.env_vars_as_dict(self.log)
         try:
             subprocess.run(argv, cwd=file_dir, env=envs, check=True)
         except Exception as ex:
             self.log.error(f'Internal error executing {filepath}')
             raise RuntimeError(f'Internal error executing {filepath}') from ex
-
-        t1 = time.time()
-        duration = (t1 - t0)
-        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
 
     @abstractmethod
     def _create_execute_command(self, filepath: str, cdw: str) -> list:

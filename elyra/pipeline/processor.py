@@ -19,6 +19,7 @@ import entrypoints
 from abc import abstractmethod
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
+from typing import Optional
 
 
 class PipelineProcessorRegistry(SingletonConfigurable):
@@ -119,6 +120,8 @@ class PipelineProcessorResponse(object):
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
 
+    _type = None
+
     @property
     def root_dir(self):
         return self._root_dir
@@ -139,3 +142,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     @abstractmethod
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError()
+
+    def log_pipeline_info(self, name: str, action_clause: str, duration_secs: Optional[float] = None):
+        duration_clause = f"({duration_secs:.3f} secs)" if duration_secs else ""
+        self.log.info(f"{self._type} pipeline '{name}' - {action_clause} {duration_clause}")
