@@ -21,6 +21,7 @@ import time
 import requests
 
 from datetime import datetime
+from elyra._version import __version__
 from elyra.metadata import MetadataManager
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
@@ -90,7 +91,9 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             try:
                 t0 = time.time()
-                kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
+                kfp_pipeline = client.upload_pipeline(pipeline_path,
+                                                      pipeline_name,
+                                                      f"Pipeline created with Elyra {__version__} pipeline editor")
                 t1 = time.time()
                 self.log.debug("Upload of pipeline '{name}' took {duration:.3f} secs.".
                                format(name=pipeline_name, duration=(t1 - t0)))
