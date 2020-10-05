@@ -170,7 +170,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         super(NotebookOperationProcessor, self).__init__(root_dir)
 
     def _create_execute_command(self, filepath: str, cdw: str) -> list:
-        return ['papermill', filepath, filepath, '--cwd', cdw, '--no-progress-bar']
+        return ['papermill', filepath, filepath, '--cwd', cdw]
 
 
 class PythonScriptOperationProcessor(FileOperationProcessor):
