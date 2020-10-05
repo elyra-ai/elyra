@@ -21,7 +21,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
 
 Elyra currently includes:
-* [Notebook Pipelines visual editor](#notebook-pipelines-visual-editor)
+* [AI Pipelines visual editor](#ai-pipelines-visual-editor)
 * [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
 * [Reusable Code Snippets](#reusable-code-snippets)
 * [Hybrid runtime support](#hybrid-runtime-support)
@@ -32,28 +32,22 @@ Elyra currently includes:
 
 ![Elyra](../images/elyra-main-page.png)
 
-#### Notebook Pipelines visual editor
+#### AI Pipelines visual editor
 
 Building an AI pipeline for a model is hard, breaking down and modularizing a pipeline is harder.
 A typical machine/deep learning pipeline begins as a series of preprocessing steps followed by
 experimentation/optimization and finally deployment. Each of these steps represent a challenge in
 the model development lifecycle.
 
-Elyra provides a **Notebook Pipeline visual editor** for building Notebook-based AI pipelines,
-simplifying the conversion of multiple notebooks into batch jobs or workflow.
+Elyra provides a **Pipeline Visual Editor** for building AI pipelines from notebooks and Python scripts,
+simplifying the conversion of multiple notebooks or Python scripts into batch jobs or workflow.
 
-Currently, the only supported pipeline runtime is
-[**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/),
-but others can be easily added.
+Currently, pipelines can be executed locally or on 
+[**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/).
 
-![Notebook Pipeline Editor](../images/pipeline-editor.png)
+![Pipeline Editor](../images/pipeline-in-editor.png)
 
-The pipeline visual editor also enables detailed customization of your pipeline, allowing
-users to choose which docker image to use when executing your notebook, setup environment
-variables required to properly run your notebook, as well as configuring dependency files
-that need to be available to child notebooks.
-
-![Notebook Pipeline Editor - Node Properties](../images/pipeline-editor-properties.png)
+Learn more about the Pipeline Visual Editor in the [user guide](/user_guide/pipelines.md) or explore the [tutorials](/getting_started/tutorials.md).
 
 #### Ability to run a notebook as a batch job
 
