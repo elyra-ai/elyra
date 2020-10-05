@@ -91,7 +91,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             try:
                 t0 = time.time()
-                description = f"Created with Elyra {__version__} pipeline editor using ({pipeline.name}.pipeline)"
+                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.name}.pipeline'."
                 kfp_pipeline = \
                     client.upload_pipeline(pipeline_path,
                                            pipeline_name,
