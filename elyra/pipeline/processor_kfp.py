@@ -231,6 +231,8 @@ class KfpPipelineProcessor(PipelineProcessor):
             pipeline_envs = dict()
             pipeline_envs['AWS_ACCESS_KEY_ID'] = cos_username
             pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
+            # Convey pipeline logging enablement to operation
+            pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
 
             if operation.env_vars:
                 for env_var in operation.env_vars:

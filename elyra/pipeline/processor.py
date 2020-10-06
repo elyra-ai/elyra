@@ -15,10 +15,13 @@
 #
 import asyncio
 import entrypoints
+import os
 
 from abc import abstractmethod
 from elyra.util.path import get_expanded_path
-from traitlets.config import SingletonConfigurable, LoggingConfigurable
+from traitlets.config import SingletonConfigurable, LoggingConfigurable, default, Bool
+
+elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
 
 class PipelineProcessorRegistry(SingletonConfigurable):
@@ -121,6 +124,11 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     _type = None
 
+    enable_pipeline_info = Bool(config=True,
+                                default_value=(os.getenv('ELYRA_ENABLE_PIPELINE_INFO', 'true').lower() == 'true'),
+                                help="""Produces formatted logging of informational messages with durations
+                                (default=True). (ELYRA_ENABLE_PIPELINE_INFO env var)""")
+
     @property
     def root_dir(self):
         return self._root_dir
@@ -148,7 +156,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         This method is intended to be called for any entries that should be captured across aggregated
         log files to identify steps within a given pipeline and each of its operations.  As a result,
         calls to this method should produce single-line entries in the log (no embedded newlines).
-        Each entry is prefixed with the pipeline name.
+        Each entry is prefixed with the pipeline name.  This functionality can be disabled by setting
+        PipelineProcessor.enable_pipeline_info = False (or via env ELYRA_ENABLE_PIPELINE_INFO).
 
         General logging should NOT use this method but use logger.<level>() statements directly.
 
@@ -158,10 +167,11 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                operation_name: str representing the name of the operation applicable for this entry
                duration: float value representing the duration of the action being logged
         """
-        duration = kwargs.get('duration')
-        duration_clause = f"({duration:.3f} secs)" if duration else ""
+        if self.enable_pipeline_info:
+            duration = kwargs.get('duration')
+            duration_clause = f"({duration:.3f} secs)" if duration else ""
 
-        operation_name = kwargs.get('operation_name')
-        op_clause = f":'{operation_name}'" if operation_name else ""
+            operation_name = kwargs.get('operation_name')
+            op_clause = f":'{operation_name}'" if operation_name else ""
 
-        self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
+            self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
