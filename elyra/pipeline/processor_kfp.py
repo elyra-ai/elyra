@@ -21,6 +21,7 @@ import time
 import requests
 
 from datetime import datetime
+from elyra._version import __version__
 from elyra.metadata import MetadataManager
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
@@ -85,8 +86,12 @@ class KfpPipelineProcessor(PipelineProcessor):
             client = kfp.Client(host=api_endpoint, cookies=session_cookie)
 
             try:
+                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.name}.pipeline'."
                 t0 = time.time()
-                kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
+                kfp_pipeline = \
+                    client.upload_pipeline(pipeline_path,
+                                           pipeline_name,
+                                           description)
                 self.log_pipeline_info(pipeline_name, 'pipeline uploaded', duration=(time.time() - t0))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex

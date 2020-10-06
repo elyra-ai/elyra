@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { parse } from 'path';
+import * as path from 'path';
 
 import uuid4 from 'uuid/v4';
 
@@ -42,7 +42,7 @@ export default class Utils {
     const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid: string = Utils.getUUID();
 
-    const artifactName = parse(filename).name;
+    const artifactName = path.basename(filename, path.extname(filename));
 
     const envVars = Object.entries(envObject).map(
       ([key, val]) => `${key}=${val}`
