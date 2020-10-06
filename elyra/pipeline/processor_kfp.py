@@ -87,8 +87,7 @@ class KfpPipelineProcessor(PipelineProcessor):
             try:
                 t0 = time.time()
                 kfp_pipeline = client.upload_pipeline(pipeline_path, pipeline_name)
-                duration = time.time() - t0
-                self.log_pipeline_info(pipeline_name, 'pipeline uploaded', duration)
+                self.log_pipeline_info(pipeline_name, 'pipeline uploaded', duration=(time.time() - t0))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
 
@@ -102,10 +101,9 @@ class KfpPipelineProcessor(PipelineProcessor):
                                       job_name=timestamp,
                                       pipeline_id=kfp_pipeline.id)
 
-            duration = time.time() - t0_all
             self.log_pipeline_info(pipeline_name,
                                    f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}",
-                                   duration)
+                                   duration=(time.time() - t0_all))
 
             return PipelineProcessorResponse(
                 run_url=f'{api_endpoint}/#/runs/details/{run.id}',
@@ -168,11 +166,11 @@ class KfpPipelineProcessor(PipelineProcessor):
             with open(absolute_pipeline_export_path, "w") as fh:
                 fh.write(autopep8.fix_code(python_output))
 
-            duration = time.time() - t0
-            self.log_pipeline_info(pipeline_name, "pipeline rendered", duration)
+            self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0))
 
-        duration = time.time() - t0_all
-        self.log_pipeline_info(pipeline_name, f"pipeline exported: {pipeline_export_path}", duration)
+        self.log_pipeline_info(pipeline_name,
+                               f"pipeline exported: {pipeline_export_path}",
+                               duration=(time.time() - t0_all))
 
         return pipeline_export_path  # Return the input value, not its absolute form
 
@@ -252,29 +250,27 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                     image=operation.runtime_image)
 
             self.log_pipeline_info(pipeline_name,
-                                   f"operation '{operation.name}' - processing operation dependencies "
-                                   f"for id: {operation.id}")
+                                   f"processing operation dependencies for id: {operation.id}",
+                                   operation_name=operation.name)
 
             # upload operation dependencies to object storage
             try:
                 t0 = time.time()
                 dependency_archive_path = self._generate_dependency_archive(operation)
-                duration = time.time() - t0
                 self.log_pipeline_info(pipeline_name,
-                                       f"operation '{operation.name}' - generated "
-                                       f"dependency archive: {dependency_archive_path}",
-                                       duration)
+                                       f"generated dependency archive: {dependency_archive_path}",
+                                       operation_name=operation.name,
+                                       duration=(time.time() - t0))
 
                 cos_client = CosClient(config=runtime_configuration)
                 t0 = time.time()
                 cos_client.upload_file_to_dir(dir=cos_directory,
                                               file_name=operation_artifact_archive,
                                               file_path=dependency_archive_path)
-                duration = time.time() - t0
                 self.log_pipeline_info(pipeline_name,
-                                       f"operation '{operation.name}' - uploaded dependency archive to: "
-                                       f"{cos_directory}/{operation_artifact_archive}",
-                                       duration)
+                                       f"uploaded dependency archive to: {cos_directory}/{operation_artifact_archive}",
+                                       operation_name=operation.name,
+                                       duration=(time.time() - t0))
 
             except FileNotFoundError as ex:
                 self.log.error("Dependencies were not found building archive for operation: {}".
@@ -294,8 +290,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 parent_op = notebook_ops[parent_operation_id]  # Parent Operation
                 op.after(parent_op)
 
-        duration = time.time() - t0_all
-        self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration)
+        self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration=(time.time() - t0_all))
 
         return notebook_ops
 

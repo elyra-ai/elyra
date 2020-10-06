@@ -143,6 +143,26 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError()
 
-    def log_pipeline_info(self, name: str, action_clause: str, duration_secs: Optional[float] = None):
-        duration_clause = f"({duration_secs:.3f} secs)" if duration_secs else ""
-        self.log.info(f"{self._type} pipeline '{name}' - {action_clause} {duration_clause}")
+    def log_pipeline_info(self, pipeline_name: str, action_clause: str, **kwargs):
+        """Produces a formatted log INFO message used entirely for support purposes.
+
+        This method is intended to be called for any entries that should be captured across aggregated
+        log files to identify steps within a given pipeline and each of its operations.  As a result,
+        calls to this method should produce single-line entries in the log (no embedded newlines).
+        Each entry is prefixed with the pipeline name.
+
+        General logging should NOT use this method but use logger.<level>() statements directly.
+
+        :param pipeline_name: str representing the name of the pipeline that is being executed
+        :param action_clause: str representing the action that is being logged
+        :param **kwargs: dict representing the keyword arguments.  Recognized keywords include:
+               operation_name: str representing the name of the operation applicable for this entry
+               duration: float value representing the duration of the action being logged
+        """
+        duration = kwargs.get('duration')
+        duration_clause = f"({duration:.3f} secs)" if duration else ""
+
+        operation_name = kwargs.get('operation_name')
+        op_clause = f":'{operation_name}'" if operation_name else ""
+
+        self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")

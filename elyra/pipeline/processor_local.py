@@ -70,13 +70,13 @@ class LocalPipelineProcessor(PipelineProcessor):
                 t0 = time.time()
                 operation_processor = self._operation_processor_registry[operation.classifier]
                 operation_processor.process(operation)
-                duration = time.time() - t0
-                self.log_pipeline_info(pipeline.name, f"operation '{operation.name}' - completed", duration)
+                self.log_pipeline_info(pipeline.name, f"completed {operation.filename}",
+                                       operation_name=operation.name,
+                                       duration=(time.time() - t0))
             except Exception as ex:
                 raise RuntimeError(f'Error processing operation {operation.name}.') from ex
 
-        duration = time.time() - t0_all
-        self.log_pipeline_info(pipeline.name, "pipeline processed", duration)
+        self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
         return PipelineProcessorResponse('', '', '')
 
