@@ -19,7 +19,6 @@ import entrypoints
 from abc import abstractmethod
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
-from typing import Optional
 
 
 class PipelineProcessorRegistry(SingletonConfigurable):
