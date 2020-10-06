@@ -36,9 +36,6 @@ from urllib3.exceptions import MaxRetryError
 class KfpPipelineProcessor(PipelineProcessor):
     _type = 'kfp'
 
-    def __init__(self, root_dir):
-        self.root_dir = root_dir
-
     @property
     def type(self):
         return self._type

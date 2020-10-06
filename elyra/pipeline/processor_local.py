@@ -39,8 +39,8 @@ class LocalPipelineProcessor(PipelineProcessor):
     _operation_processor_registry: Dict
     _type = 'local'
 
-    def __init__(self, root_dir):
-        self.root_dir = root_dir
+    def __init__(self, root_dir, **kwargs):
+        super(LocalPipelineProcessor, self).__init__(root_dir, **kwargs)
         notebook_op_processor = NotebookOperationProcessor(self.root_dir)
         python_op_processor = PythonScriptOperationProcessor(self.root_dir)
         self._operation_processor_registry = {

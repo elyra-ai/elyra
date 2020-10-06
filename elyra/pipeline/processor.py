@@ -19,7 +19,7 @@ import os
 
 from abc import abstractmethod
 from elyra.util.path import get_expanded_path
-from traitlets.config import SingletonConfigurable, LoggingConfigurable, default, Bool
+from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
@@ -45,7 +45,7 @@ class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
     def __init__(self, **kwargs):
-        super(PipelineProcessorManager, self).__init__()
+        super(PipelineProcessorManager, self).__init__(**kwargs)
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
 
         self._registry = PipelineProcessorRegistry.instance()
@@ -53,10 +53,8 @@ class PipelineProcessorManager(SingletonConfigurable):
         for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
             try:
                 # instantiate an actual instance of the processor
-                processor_instance = processor.load()(self.root_dir)  # Load an instance
-                processor_instance.root_dir = self.root_dir
-                processor_type = processor_instance.type
-                self.log.info('Registering processor "{}" with type -> {}'.format(processor, processor_type))
+                processor_instance = processor.load()(self.root_dir, parent=self)  # Load an instance
+                self.log.info('Registering processor "{}" with type -> {}'.format(processor, processor_instance.type))
                 self._registry.add_processor(processor_instance)
             except Exception as err:
                 # log and ignore initialization errors
@@ -124,18 +122,16 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     _type = None
 
+    root_dir = Unicode(allow_none=True)
+
     enable_pipeline_info = Bool(config=True,
                                 default_value=(os.getenv('ELYRA_ENABLE_PIPELINE_INFO', 'true').lower() == 'true'),
                                 help="""Produces formatted logging of informational messages with durations
                                 (default=True). (ELYRA_ENABLE_PIPELINE_INFO env var)""")
 
-    @property
-    def root_dir(self):
-        return self._root_dir
-
-    @root_dir.setter
-    def root_dir(self, value):
-        self._root_dir = value
+    def __init__(self, root_dir, **kwargs):
+        super(PipelineProcessor, self).__init__(**kwargs)
+        self.root_dir = root_dir
 
     @property
     @abstractmethod
