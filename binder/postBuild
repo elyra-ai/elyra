@@ -37,10 +37,17 @@ jupyter labextension link --no-build packages/application/
 jupyter labextension link --no-build packages/ui-components/
 jupyter labextension link --no-build packages/metadata-common/
 jupyter lab build --dev-build=False --minimize=False --debug
+
+pwd
+
 mkdir -p binder-demo
 
 # Enable debug output
 set -x
+
+# Hack option 2: "hide" the fact that the root directory is a cloned github repository
+# by removing the git related files
+rm -rf ~/.git*
 
 # Add getting started assets to Docker image
 # (1) Clone the examples repository.
