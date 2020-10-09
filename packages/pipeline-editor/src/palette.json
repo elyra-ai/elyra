@@ -18,7 +18,7 @@
                 "ui_data": {
                   "cardinality": {
                     "min": 0,
-                    "max": 1
+                    "max": -1
                   },
                   "label": "Input Port"
                 }
@@ -69,7 +69,7 @@
                 "ui_data": {
                   "cardinality": {
                     "min": 0,
-                    "max": 1
+                    "max": -1
                   },
                   "label": "Input Port"
                 }
