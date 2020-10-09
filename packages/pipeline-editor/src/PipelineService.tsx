@@ -174,7 +174,7 @@ export class PipelineService {
       overwrite: overwrite
     };
 
-    await RequestHandler.makePostRequest(
+    const response = await RequestHandler.makePostRequest(
       'elyra/pipeline/export',
       JSON.stringify(body),
       true
@@ -182,7 +182,7 @@ export class PipelineService {
 
     return showDialog({
       title: 'Pipeline export succeeded',
-      body: <p></p>,
+      body: <p>Exported file: {response['export_path']} </p>,
       buttons: [Dialog.okButton()]
     });
   }
