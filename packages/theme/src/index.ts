@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { elyraIcon } from '@elyra/ui-components';
+import { elyraIcon, helpIcon } from '@elyra/ui-components';
 import {
   ILabShell,
   JupyterFrontEnd,
@@ -31,18 +31,21 @@ import { Widget } from '@lumino/widgets';
 import { Launcher } from './launcher';
 import '../style/index.css';
 
+const ELYRA_THEME_NAMESPACE = 'elyra-theme-extension';
+
 /**
  * The command IDs used by the launcher plugin.
  */
 const CommandIDs = {
-  create: 'launcher:create'
+  create: 'launcher:create',
+  openHelp: 'elyra:open-help'
 };
 
 /**
  * Initialization data for the theme extension.
  */
 const extension: JupyterFrontEndPlugin<ILauncher> = {
-  id: 'elyra-theme',
+  id: ELYRA_THEME_NAMESPACE,
   autoStart: true,
   requires: [ILabShell, IMainMenu],
   optional: [ICommandPalette],
@@ -113,6 +116,20 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     if (palette) {
       palette.addItem({ command: CommandIDs.create, category: 'Launcher' });
     }
+
+    commands.addCommand(CommandIDs.openHelp, {
+      label: 'Documentation',
+      icon: helpIcon,
+      execute: (args: any) => {
+        window.open('https://elyra.readthedocs.io/en/latest/', '_blank');
+      }
+    });
+
+    model.add({
+      command: CommandIDs.openHelp,
+      category: 'Elyra',
+      rank: 10
+    });
 
     return model;
   }
