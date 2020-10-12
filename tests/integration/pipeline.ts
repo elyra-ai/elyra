@@ -168,6 +168,33 @@ describe('PipelineEditor', () => {
     cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
   });
 
+  // Add a runtime config (a placeholder for now, can't be used to run or export yet)
+  it('creates a runtime', () => {
+    cy.get(
+      'button.elyra-metadataHeader-button[title="Create new Kubeflow Pipelines runtime"]'
+    ).click();
+    cy.get('.elyra-metadataEditor-form-display_name').type('Test Runtime');
+    cy.get('.elyra-metadataEditor-form-api_endpoint').type(
+      'https://kubernetes-service.ibm.com/pipeline'
+    );
+    cy.get('.elyra-metadataEditor-form-cos_endpoint').type(
+      'http://minio-service.kubeflow:9000'
+    );
+    cy.get('.elyra-metadataEditor-form-cos_username').type('minio');
+    cy.get('.elyra-metadataEditor-form-cos_password').type('minio123');
+    cy.get('.elyra-metadataEditor-form-cos_bucket').type('test-bucket');
+
+    cy.get(
+      '.elyra-metadataEditor-saveButton > .bp3-form-content > button'
+    ).click();
+  });
+
+  it('checks new runtime is displayed', () => {
+    cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
+      'Test Runtime'
+    );
+  });
+
   it('runs invalid pipeline', () => {
     cy.get('.run-action button').click();
     cy.get('.MuiAlert-message').should('be.visible');
@@ -209,16 +236,24 @@ describe('PipelineEditor', () => {
     cy.get('.run-action button').click();
     cy.get('.jp-Dialog-content').should('be.visible');
 
-    cy.get('input#pipeline_name[data-form-required="true"]').should('exist');
-    // input name should match pipeline name
-    cy.get('input#pipeline_name[name]').should('have.value', 'untitled');
-    cy.get('button.jp-mod-accept').should('not.be.disabled');
-    cy.get('select#runtime_config[data-form-required="true"]').should('exist');
+    // Input name should match pipeline name
+    cy.get('input#pipeline_name[data-form-required="true"]')
+      .should('exist')
+      .should('have.value', 'untitled');
 
+    // Runtime option should be pre-populated with local config
+    cy.get('select#runtime_config[data-form-required="true"]')
+      .should('exist')
+      .select('Run in-place locally')
+      .should('have.value', 'local');
+
+    cy.get('button.jp-mod-accept').should('not.be.disabled');
     cancelPipelineActionDialog();
   });
 
   // NOTE: Pipeline name input cannot be edited
+  // Issue: https://github.com/elyra-ai/elyra/issues/944
+  // Uncomment the test below when adding a fix PR for the issue above
 
   // it('tests invalid run pipeline form dialog', () => {
   //   cy.get('.run-action button').click();
@@ -232,6 +267,21 @@ describe('PipelineEditor', () => {
   //   cancelPipelineActionDialog();
   // });
 
+  it('tests valid export form dialog', () => {
+    cy.get('.export-action button').click();
+    cy.get('.jp-Dialog-content').should('be.visible');
+
+    cy.get('select#runtime_config[data-form-required="true"]').should('exist');
+    cy.get('select#pipeline_filetype[data-form-required="true"]').should(
+      'exist'
+    );
+
+    cy.get('button.jp-mod-accept').should('not.be.disabled');
+
+    cancelPipelineActionDialog();
+  });
+
   // TODO:
   // - Drag and drop a notebook to pipeline editor
+  // - Add a valid runtime image for testing run and export (complete end to end tests)
 });
