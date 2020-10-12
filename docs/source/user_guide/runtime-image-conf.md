@@ -23,8 +23,8 @@ A runtime image configuration identifies a Docker image that Elyra can utilize t
 
 A runtime image configuration is associated with a Docker image that must meet these prerequisites:
 - The image must be stored in the public Docker Hub container registry https://hub.docker.com/.
-- The image must have `Python 3` pre-installed.
-- The image must have `curl` pre-installed.
+- The image must have a current `Python 3` version pre-installed and in the search path.
+- The image must have `curl` pre-installed and in the search path.
 
 Refer to [Creating a custom runtime Docker image](/recipes/creating-a-custom-runtime-image.md) for details.
 
