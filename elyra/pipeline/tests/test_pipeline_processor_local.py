@@ -59,7 +59,7 @@ def test_pipeline_get_envs():
     pipeline = PipelineParser().parse(pipeline_definitions)
 
     for op in pipeline.operations.values():
-        op_envs = op.env_vars_as_dict
+        op_envs = op.env_vars_as_dict()
         assert op_envs['OP_NAME'] == op.name
 
 
