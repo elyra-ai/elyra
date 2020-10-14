@@ -71,7 +71,7 @@ config dir: /usr/local/etc/jupyter
       elyra 1.3.0.dev0 OK
     jupyterlab  enabled
     - Validating...
-      jupyterlab 2.2.2 OK
+      jupyterlab 2.2.8 OK
     jupyterlab_git  enabled
     - Validating...
       jupyterlab_git 0.21.1 OK
@@ -95,11 +95,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension 1.3.0-dev  enabled  OK*
-        @elyra/metadata-extension 1.3.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension 1.3.0-dev  enabled  OK*
-        @elyra/python-editor-extension 1.3.0-dev  enabled  OK*
-        @elyra/theme-extension 1.3.0-dev  enabled  OK*
+        @elyra/code-snippet-extension v1.3.0-dev  enabled  OK*
+        @elyra/metadata-extension v1.3.0-dev  enabled  OK*
+        @elyra/pipeline-editor-extension v1.3.0-dev  enabled  OK*
+        @elyra/python-editor-extension v1.3.0-dev  enabled  OK*
+        @elyra/theme-extension v1.3.0-dev  enabled  OK*
         @jupyterlab/git v0.21.1  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
