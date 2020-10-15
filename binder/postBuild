@@ -43,7 +43,7 @@ mkdir -p binder-demo
 # Enable debug output
 set -x
 
-# repo2docker clones the Elyra repository before the Docker image is build
+# repo2docker clones the Elyra repository before the Docker image is built
 # and uses the cloned directory as "root". The git extension recognizes that
 # the directory is git-enabled and therefore prevents the user from 
 # cloning other repositories using the UI. Remove the git artifacts in the
