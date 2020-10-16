@@ -32,7 +32,7 @@ const notebookWithEnvVars: any = {
       outputs: [],
       source: [
         'import os\n',
-        "print(os.environ['HOME'])",
+        "print(os.environ['HOME'])\n",
         'print(os.environ["HOME2"])'
       ]
     }
@@ -223,9 +223,11 @@ describe('@elyra/application', () => {
         const model = new NotebookModel();
         model.fromJSON(notebookWithEnvVars as nbformat.INotebookContent);
         notebook.model = model;
-        expect(
-          NotebookParser.getEnvVars(notebook.model.toString())
-        ).toMatchObject(['HOME']);
+        const foundEnvVars = NotebookParser.getEnvVars(
+          notebook.model.toString()
+        );
+        expect(foundEnvVars).toContain('HOME');
+        expect(foundEnvVars).toContain('HOME2');
       });
     });
   });
