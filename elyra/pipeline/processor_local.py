@@ -14,11 +14,13 @@
 # limitations under the License.
 #
 import os
+import papermill
 import time
 
 from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
+from notebook.gateway.managers import GatewayClient
 from subprocess import run, CalledProcessError
 from traitlets import log
 from typing import Dict
@@ -132,6 +134,17 @@ class FileOperationProcessor(OperationProcessor):
     def operation_name(self) -> str:
         return self._operation_name
 
+    @abstractmethod
+    def process(self, operation: Operation):
+        raise NotImplementedError
+
+
+class NotebookOperationProcessor(FileOperationProcessor):
+    _operation_name = 'execute-notebook-node'
+
+    def __init__(self, root_dir: str):
+        super(NotebookOperationProcessor, self).__init__(root_dir)
+
     def process(self, operation: Operation):
         filepath = get_absolute_path(self._root_dir, operation.filename)
         if not os.path.exists(filepath):
@@ -142,9 +155,49 @@ class FileOperationProcessor(OperationProcessor):
         file_dir = os.path.dirname(filepath)
         file_name = os.path.basename(filepath)
 
-        self.log.debug(f'Processing: {filepath}')
+        self.log.debug(f'Processing notebook: {filepath}')
 
-        argv = self._create_execute_command(filepath, file_dir)
+        additional_kwargs = dict()
+        additional_kwargs['cwd'] = file_dir
+        additional_kwargs['engine_name'] = "ElyraEngine"
+        additional_kwargs['kernel_env'] = operation.env_vars_as_dict
+        if GatewayClient.instance().gateway_enabled:
+            additional_kwargs['kernel_manager_class'] = 'elyra.pipeline.http_kernel_manager.HTTPKernelManager'
+
+        t0 = time.time()
+        try:
+            papermill.execute_notebook(
+                filepath,
+                filepath,
+                **additional_kwargs
+            )
+        except Exception as ex:
+            raise RuntimeError(f'Internal error executing {filepath}') from ex
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
+
+
+class PythonScriptOperationProcessor(FileOperationProcessor):
+    _operation_name = 'execute-python-node'
+
+    def __init__(self, root_dir):
+        super(PythonScriptOperationProcessor, self).__init__(root_dir)
+
+    def process(self, operation: Operation):
+        filepath = get_absolute_path(self._root_dir, operation.filename)
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f'Could not find {filepath}')
+        if not os.path.isfile(filepath):
+            raise ValueError(f'Not a file: {filepath}')
+
+        file_dir = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing python script: {filepath}')
+
+        argv = ['python', filepath, '--PYTHONHOME', file_dir]
         envs = operation.env_vars_as_dict
         t0 = time.time()
         try:
@@ -157,27 +210,3 @@ class FileOperationProcessor(OperationProcessor):
         t1 = time.time()
         duration = (t1 - t0)
         self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
-
-    @abstractmethod
-    def _create_execute_command(self, filepath: str, cdw: str) -> list:
-        raise NotImplementedError
-
-
-class NotebookOperationProcessor(FileOperationProcessor):
-    _operation_name = 'execute-notebook-node'
-
-    def __init__(self, root_dir: str):
-        super(NotebookOperationProcessor, self).__init__(root_dir)
-
-    def _create_execute_command(self, filepath: str, cdw: str) -> list:
-        return ['papermill', filepath, filepath, '--cwd', cdw]
-
-
-class PythonScriptOperationProcessor(FileOperationProcessor):
-    _operation_name = 'execute-python-node'
-
-    def __init__(self, root_dir):
-        super(PythonScriptOperationProcessor, self).__init__(root_dir)
-
-    def _create_execute_command(self, filepath: str, cwd: str) -> list:
-        return ['python', filepath, '--PYTHONHOME', cwd]

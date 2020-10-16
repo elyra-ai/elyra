@@ -110,7 +110,7 @@ class Operation(object):
            configured on the Operation, the existing env is returned, otherwise envs
            configured on the Operation are overlayed on the existing env.
         """
-        envs = os.environ.copy()
+        envs = {}
         for nv in self.env_vars:
             nv_pair = nv.split("=")
             if len(nv_pair) == 2:
