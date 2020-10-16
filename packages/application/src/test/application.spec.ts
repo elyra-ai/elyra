@@ -23,14 +23,18 @@ import { RequestHandler } from '../requests';
 import { FrontendServices } from '../services';
 
 const server = new JupyterServer();
-const defaultContent: any = {
+const notebookWithEnvVars: any = {
   cells: [
     {
       cell_type: 'code',
       execution_count: null,
       metadata: {},
       outputs: [],
-      source: ['import os\n', "print(os.environ['HOME'])"]
+      source: [
+        'import os\n',
+        "print(os.environ['HOME'])",
+        'print(os.environ["HOME2"])'
+      ]
     }
   ],
   metadata: {
@@ -55,63 +59,6 @@ const defaultContent: any = {
   nbformat: 4,
   nbformat_minor: 4
 };
-const codeSnippetSchema = {
-  $schema: 'http://json-schema.org/draft-07/schema#',
-  title: 'Code Snippet',
-  name: 'code-snippet',
-  display_name: 'Code Snippet',
-  namespace: 'code-snippets',
-  uihints: {
-    title: 'Code Snippets',
-    icon: 'elyra:code-snippet'
-  },
-  properties: {
-    schema_name: {
-      title: 'Schema Name',
-      description: 'The schema associated with this instance',
-      type: 'string',
-      pattern: '^[a-z][a-z0-9-_]*[a-z0-9]$',
-      minLength: 1
-    },
-    display_name: {
-      title: 'Display Name',
-      description: 'The display name of the Code Snippet',
-      type: 'string',
-      minLength: 1
-    },
-    metadata: {
-      description: 'Additional data specific to this Code Snippet',
-      type: 'object',
-      properties: {
-        description: {
-          title: 'Description',
-          description: 'Code snippet description',
-          type: 'string'
-        },
-        language: {
-          title: 'Language',
-          description: 'Code snippet implementation language',
-          type: 'string',
-          uihints: {
-            field_type: 'dropdown',
-            default_choices: ['Python', 'Java', 'R', 'Scala', 'Markdown']
-          },
-          minLength: 1
-        },
-        code: {
-          title: 'Code',
-          description: 'Code snippet code lines',
-          type: 'array',
-          uihints: {
-            field_type: 'code'
-          }
-        }
-      },
-      required: ['language', 'code']
-    }
-  },
-  required: ['schema_name', 'display_name', 'metadata']
-};
 
 const codeSnippetMetadata = {
   schema_name: 'code-snippet',
@@ -120,16 +67,6 @@ const codeSnippetMetadata = {
   metadata: {
     language: 'Python',
     code: ['hello_world']
-  }
-};
-
-const updatedCodeSnippetMetadata = {
-  schema_name: 'code-snippet',
-  display_name: 'tester',
-  name: 'tester',
-  metadata: {
-    language: 'Python',
-    code: ['testing']
   }
 };
 
@@ -145,18 +82,42 @@ describe('@elyra/application', () => {
   describe('FrontendServices', () => {
     describe('#getSchema', () => {
       it('should get schema', async () => {
-        expect(await FrontendServices.getSchema('code-snippets')).toEqual([
-          codeSnippetSchema
-        ]);
+        const schemaResponse = await FrontendServices.getSchema(
+          'code-snippets'
+        );
+        expect(schemaResponse[0]).toHaveProperty(
+          'properties.schema_name.description',
+          'The schema associated with this instance'
+        );
       });
     });
     describe('#getAllSchema', () => {
       it('should get all schema', async () => {
         const schemas = await FrontendServices.getAllSchema();
-        expect(schemas).toHaveLength(3);
+        const schemaNames = schemas.map((schema: any) => {
+          return schema.name;
+        });
+        const knownSchemaNames = ['code-snippet', 'runtime-image', 'kfp'];
+        for (const schemaName of knownSchemaNames) {
+          expect(schemaNames).toContain(schemaName);
+        }
+        expect(schemas.length).toBeGreaterThanOrEqual(knownSchemaNames.length);
       });
     });
     describe('metadata requests', () => {
+      beforeAll(async () => {
+        const existingSnippets = await FrontendServices.getMetadata(
+          'code-snippets'
+        );
+        if (
+          existingSnippets.find((snippet: any) => {
+            return snippet.name === 'tester';
+          })
+        ) {
+          await FrontendServices.deleteMetadata('code-snippet', 'tester');
+        }
+      });
+
       it('should create metadata instance', async () => {
         expect(
           await FrontendServices.postMetadata(
@@ -169,23 +130,24 @@ describe('@elyra/application', () => {
       it('should get the correct metadata instance', async () => {
         expect(
           await FrontendServices.getMetadata('code-snippets')
-        ).toMatchObject([codeSnippetMetadata]);
+        ).toContainEqual(codeSnippetMetadata);
       });
 
       it('should update the metadata instance', async () => {
+        codeSnippetMetadata.metadata.code = ['testing'];
         expect(
           await FrontendServices.putMetadata(
             'code-snippets',
             'tester',
-            JSON.stringify(updatedCodeSnippetMetadata)
+            JSON.stringify(codeSnippetMetadata)
           )
-        ).toMatchObject(updatedCodeSnippetMetadata);
+        ).toHaveProperty('metadata.code', ['testing']);
       });
 
       it('should delete the metadata instance', async () => {
         await FrontendServices.deleteMetadata('code-snippets', 'tester');
         const snippets = await FrontendServices.getMetadata('code-snippets');
-        expect(snippets).toHaveLength(0);
+        expect(snippets).not.toContain(codeSnippetMetadata);
       });
     });
   });
@@ -193,14 +155,18 @@ describe('@elyra/application', () => {
   describe('RequestHandler', () => {
     describe('#makeGetRequest', () => {
       it('should make get request', async () => {
-        expect(
-          await RequestHandler.makeGetRequest(
-            '/elyra/schema/code-snippets',
-            false
-          )
-        ).toMatchObject({
-          'code-snippets': [codeSnippetSchema]
-        });
+        const schemaResponse = await RequestHandler.makeGetRequest(
+          '/elyra/schema/code-snippets',
+          false
+        );
+        expect(schemaResponse).toHaveProperty('code-snippets');
+        expect(schemaResponse['code-snippets'].length).toBeGreaterThanOrEqual(
+          1
+        );
+        expect(schemaResponse['code-snippets'][0]).toHaveProperty(
+          'properties.schema_name.description',
+          'The schema associated with this instance'
+        );
       });
     });
     describe('#makePostRequest', () => {
@@ -215,14 +181,15 @@ describe('@elyra/application', () => {
       });
     });
     describe('#makePutRequest', () => {
+      codeSnippetMetadata.metadata.language = 'R';
       it('should make put request', async () => {
         expect(
           await RequestHandler.makePutRequest(
             '/elyra/metadata/code-snippets/tester',
-            JSON.stringify(updatedCodeSnippetMetadata),
+            JSON.stringify(codeSnippetMetadata),
             false
           )
-        ).toMatchObject(updatedCodeSnippetMetadata);
+        ).toHaveProperty('metadata.language', 'R');
       });
     });
     describe('#makeDeleteRequest', () => {
@@ -252,10 +219,9 @@ describe('@elyra/application', () => {
       });
 
       it('should find env vars', () => {
-        console.debug(defaultContent);
         const notebook = NBTestUtils.createNotebook();
         const model = new NotebookModel();
-        model.fromJSON(defaultContent as nbformat.INotebookContent);
+        model.fromJSON(notebookWithEnvVars as nbformat.INotebookContent);
         notebook.model = model;
         expect(
           NotebookParser.getEnvVars(notebook.model.toString())
