@@ -30,6 +30,7 @@ config: SimpleNamespace
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<release>[a-z]+)(?P<build>\d+))?"
 
 DEFAULT_GIT_URL = 'git@github.com:elyra-ai/elyra.git'
+DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:elyra-ai/elyra-package-template.git'
 DEFAULT_BUILD_DIR = 'build/release'
 
 
@@ -275,6 +276,37 @@ def show_release_artifacts():
     print('')
 
 
+def prepare_extensions_release() -> None:
+    global config
+
+    extensions = ['elyra-code-snippet-extension',
+                  'elyra-pipeline-editor-extension',
+                  'elyra-python-editor-extension']
+
+    for extension in extensions:
+        print(f'Preparing extension : {extension}')
+        extension_source_dir = os.path.join(config.work_dir, extension)
+        # clone extension package template
+        if os.path.exists(extension_source_dir):
+            print(f'Removing working directory: {config.source_dir}')
+            shutil.rmtree(extension_source_dir)
+        print(f'Cloning : {config.git_extension_package_url} to {config.work_dir}')
+        check_run(['git', 'clone', config.git_extension_package_url, extension], cwd=config.work_dir)
+        # update template
+        setup_file = os.path.join(extension_source_dir, 'setup.py')
+        sed(setup_file, "elyra-extension", extension)
+        sed(setup_file, "0.0.1", config.new_version)
+        # copy extension package
+        extension_package_name = f'{extension}-{config.new_version}.tgz'
+        extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
+        extension_package_dest_file = os.path.join(extension_source_dir, 'dist', extension_package_name)
+        os.makedirs(os.path.dirname(extension_package_dest_file), exist_ok=True)
+        shutil.copy(extension_package_source_file, extension_package_dest_file)
+        # build extension
+        check_run(['python', 'setup.py', 'bdist_wheel'], cwd=extension_source_dir)
+        print('')
+
+
 def prepare_release() -> None:
     """
     Prepare a release
@@ -298,6 +330,8 @@ def prepare_release() -> None:
     update_version_to_dev()
     # commit
     check_run(['git', 'commit', '-a', '-m', f'Prepare for next development iteration'], cwd=config.source_dir)
+    # prepare extensions
+    prepare_extensions_release()
 
 
 def publish_release(working_dir, config:dict) -> None:
@@ -311,6 +345,7 @@ def initialize_config(args=None) -> SimpleNamespace:
     configuration = {
         'goal': args.goal,
         'git_url': DEFAULT_GIT_URL,
+        'git_extension_package_url': DEFAULT_EXTENSION_PACKAGE_GIT_URL,
         'git_hash': 'HEAD',
         'git_user_name': check_output(['git', 'config', 'user.name']),
         'git_user_email': check_output(['git', 'config', 'user.email']),
@@ -335,6 +370,7 @@ def print_config() -> None:
     print("-----------------------------------------------------------------")
     print(f'Goal \t\t -> {config.goal}')
     print(f'Git URL \t -> {config.git_url}')
+    print(f'Git Extension URL \t -> {config.git_extension_package_url}')
     print(f'Git reference \t -> {config.git_hash}')
     print(f'Git user \t -> {config.git_user_name}')
     print(f'Git user emain \t -> {config.git_user_email}')
