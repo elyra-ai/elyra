@@ -41,8 +41,8 @@ class LocalPipelineProcessor(PipelineProcessor):
     _operation_processor_registry: Dict
     _type = 'local'
 
-    def __init__(self, root_dir):
-        self.root_dir = root_dir
+    def __init__(self, root_dir, **kwargs):
+        super(LocalPipelineProcessor, self).__init__(root_dir, **kwargs)
         notebook_op_processor = NotebookOperationProcessor(self.root_dir)
         python_op_processor = PythonScriptOperationProcessor(self.root_dir)
         self._operation_processor_registry = {
@@ -62,16 +62,23 @@ class LocalPipelineProcessor(PipelineProcessor):
         to proper executor (e.g. papermill to notebooks)
         """
 
-        self.log.info(f'Processing Pipeline : {pipeline.name}')
+        self.log_pipeline_info(pipeline.name, "processing pipeline")
+        t0_all = time.time()
 
         # Sort operations based on dependency graph (topological order)
         operations = LocalPipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
             try:
+                t0 = time.time()
                 operation_processor = self._operation_processor_registry[operation.classifier]
                 operation_processor.process(operation)
+                self.log_pipeline_info(pipeline.name, f"completed {operation.filename}",
+                                       operation_name=operation.name,
+                                       duration=(time.time() - t0))
             except Exception as ex:
                 raise RuntimeError(f'Error processing operation {operation.name}.') from ex
+
+        self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
         return PipelineProcessorResponse('', '', '')
 
@@ -111,20 +118,21 @@ class LocalPipelineProcessor(PipelineProcessor):
 
 class OperationProcessor(ABC):
 
+    _operation_name: str = None
+
     def __init__(self):
         self.log = log.get_logger()
 
-    @abstractmethod
+    @property
     def operation_name(self) -> str:
-        raise NotImplementedError
+        return self._operation_name
 
     @abstractmethod
-    def process(self, operation: Operation, filepath: str):
+    def process(self, operation: Operation):
         raise NotImplementedError
 
 
 class FileOperationProcessor(OperationProcessor):
-    _operation_name: str
 
     def __init__(self, root_dir: str):
         super(FileOperationProcessor, self).__init__()

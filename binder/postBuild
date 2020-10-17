@@ -37,10 +37,18 @@ jupyter labextension link --no-build packages/application/
 jupyter labextension link --no-build packages/ui-components/
 jupyter labextension link --no-build packages/metadata-common/
 jupyter lab build --dev-build=False --minimize=False --debug
+
 mkdir -p binder-demo
 
 # Enable debug output
 set -x
+
+# repo2docker clones the Elyra repository before the Docker image is built
+# and uses the cloned directory as "root". The git extension recognizes that
+# the directory is git-enabled and therefore prevents the user from 
+# cloning other repositories using the UI. Remove the git artifacts in the
+# root directory to work around this issue. 
+rm -rf ~/.git*
 
 # Add getting started assets to Docker image
 # (1) Clone the examples repository.
