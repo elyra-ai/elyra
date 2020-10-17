@@ -168,7 +168,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         additional_kwargs = dict()
         additional_kwargs['cwd'] = file_dir
         additional_kwargs['engine_name'] = "ElyraEngine"
-        additional_kwargs['kernel_env'] = operation.env_vars_as_dict
+        additional_kwargs['kernel_env'] = operation.env_vars_as_dict()
         if GatewayClient.instance().gateway_enabled:
             additional_kwargs['kernel_manager_class'] = 'elyra.pipeline.http_kernel_manager.HTTPKernelManager'
 
@@ -206,7 +206,7 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         self.log.debug(f'Processing python script: {filepath}')
 
         argv = ['python', filepath, '--PYTHONHOME', file_dir]
-        envs = operation.env_vars_as_dict
+        envs = operation.env_vars_as_dict()
         t0 = time.time()
         try:
             run(argv, cwd=file_dir, env=envs, capture_output=True, check=True)
