@@ -56,7 +56,7 @@ conda install -y xeus-python -c conda-forge
 echo " "
 
 echo "Installing JupyterLab Debugger"
-jupyter labextension install --no-build @jupyterlab/debugger
+#jupyter labextension install --no-build @jupyterlab/debugger
 echo " "
 
 jupyter --version

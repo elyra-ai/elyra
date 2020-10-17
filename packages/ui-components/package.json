@@ -1,6 +1,6 @@
 {
   "name": "@elyra/ui-components",
-  "version": "1.3.0-dev",
+  "version": "2.0.0-dev",
   "description": "JupyterLab - UI components for use in elyra",
   "keywords": [
     "jupyter",
@@ -23,24 +23,46 @@
   "types": "lib/index.d.ts",
   "style": "style/index.css",
   "scripts": {
-    "build": "tsc",
-    "clean": "rimraf lib",
-    "dist": "npm pack .",
-    "prepare": "npm run build",
-    "watch": "tsc -w"
+    "build": "jlpm run build:lib && jlpm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc",
+    "clean": "jlpm run clean:lib",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:labextension": "rimraf myextension/static",
+    "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
+    "eslint": "eslint . --ext .ts,.tsx --fix",
+    "eslint:check": "eslint . --ext .ts,.tsx",
+    "install:extension": "jupyter labextension develop --overwrite .",
+    "prepare": "jlpm run clean && jlpm run build",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w",
+    "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
     "@blueprintjs/core": "^3.22.2",
     "@blueprintjs/select": "^3.11.2",
-    "@jupyterlab/ui-components": "^2.0.2",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
+    "@jupyterlab/ui-components": "^3.0.0-rc.5",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "react-json-tree": "^0.11.2"
   },
   "devDependencies": {
+    "@jupyterlab/builder": "^3.0.0-rc.2",
     "@types/react-json-tree": "^0.6.11",
-    "rimraf": "~3.0.0",
-    "typescript": "~3.7.3"
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "eslint": "^7.5.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-prettier": "^3.1.2",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^1.19.0",
+    "rimraf": "^3.0.2",
+    "typescript": "~4.0.3"
+  },
+  "jupyterlab": {
+    "extension": false,
+    "outputDir": "elyra_ui_components/static"
   },
   "publishConfig": {
     "access": "public"

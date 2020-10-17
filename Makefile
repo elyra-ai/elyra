@@ -72,8 +72,8 @@ lint-server: test-dependencies
 	flake8 elyra
 
 lint-ui:
-	yarn run prettier
-	yarn run eslint
+#	yarn run prettier
+#	yarn run eslint
 
 lint: lint-ui lint-server ## Run linters
 
@@ -102,8 +102,7 @@ install-ui: build-ui
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 
 install-external-extensions:
-	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
-	jupyter labextension install --no-build @jupyterlab/toc@$(TOC_VERSION)
+#	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
 
 install: install-server install-ui install-external-extensions ## Build and install
 	jupyter lab build
@@ -142,8 +141,7 @@ dist-ui: build-ui
 	$(call PACKAGE_LAB_EXTENSION,metadata)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
-	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
-	cd dist && curl -o jupyterlab-toc-$(TOC_VERSION).tgz $$(npm view @jupyterlab/toc@$(TOC_VERSION) dist.tarball) && cd -
+#	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
 
 release: dist-ui build-server ## Build wheel file for release
 
@@ -185,7 +183,7 @@ define UNLINK_LAB_EXTENSION
 endef
 
 define LINK_LAB_EXTENSION
-	cd packages/$1 && jupyter labextension link --no-build .
+	cd packages/$1 && pip install -e . && jupyter labextension develop . --overwrite
 endef
 
 define UNINSTALL_LAB_EXTENSION
@@ -193,7 +191,7 @@ define UNINSTALL_LAB_EXTENSION
 endef
 
 define INSTALL_LAB_EXTENSION
-	cd packages/$1 && jupyter labextension install --no-build .
+	cd packages/$1 && pip install -e . && jupyter labextension develop . --overwrite
 endef
 
 define PACKAGE_LAB_EXTENSION
