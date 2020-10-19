@@ -103,6 +103,8 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
       const notebookCell = (notebookWidget.content as Notebook).activeCell;
+      const notebookCellIndex = (notebookWidget.content as Notebook)
+        .activeCellIndex;
       const notebookCellEditor = notebookCell.editor;
 
       if (notebookCell instanceof CodeCell) {
@@ -125,6 +127,8 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
       } else {
         notebookCellEditor.replaceSelection(snippetStr);
       }
+      const cell = notebookWidget.model.contentFactory.createCodeCell({});
+      notebookWidget.model.cells.insert(notebookCellIndex + 1, cell);
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
