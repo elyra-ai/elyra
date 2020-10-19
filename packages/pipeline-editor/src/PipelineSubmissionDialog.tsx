@@ -35,7 +35,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps> {
           type="text"
           id="pipeline_name"
           name="pipeline_name"
-          value={name}
+          defaultValue={name}
           data-form-required
         />
         <br />
