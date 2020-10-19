@@ -33,7 +33,7 @@ const notebookWithEnvVars: any = {
       source: [
         'import os\n',
         "print(os.environ['HOME'])\n",
-        'print(os.environ["HOME2"])'
+        'print(os.getenv("HOME2"))'
       ]
     }
   ],
