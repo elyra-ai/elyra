@@ -33,7 +33,11 @@ const notebookWithEnvVars: any = {
       source: [
         'import os\n',
         "print(os.environ['HOME'])\n",
-        'print(os.getenv("HOME2"))'
+        'print(os.getenv("HOME2"))\n',
+        "print(os.getenvb('HOME3'))\n",
+        'print(os.getenvb("HOME4"))\n',
+        "print(os.environb['HOME5'))\n",
+        'print(os.environb["HOME6"])\n'
       ]
     }
   ],
@@ -228,6 +232,10 @@ describe('@elyra/application', () => {
         );
         expect(foundEnvVars).toContain('HOME');
         expect(foundEnvVars).toContain('HOME2');
+        expect(foundEnvVars).toContain('HOME3');
+        expect(foundEnvVars).toContain('HOME4');
+        expect(foundEnvVars).toContain('HOME5');
+        expect(foundEnvVars).toContain('HOME6');
       });
     });
   });
