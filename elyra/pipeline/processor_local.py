@@ -165,6 +165,11 @@ class NotebookOperationProcessor(FileOperationProcessor):
 
         self.log.debug(f'Processing notebook: {filepath}')
 
+        # We'll always use the ElyraEngine.  This engine is essentially the default Papermill engine
+        # but allows for environment variables to be passed to the kernel process (via 'kernel_env').
+        # If the current notebook server is running with Enterprise Gateway configured, we will also
+        # point the 'kernel_manager_class' to our HTTPKernelManager so that notebooks run as they
+        # would outside of Elyra.
         additional_kwargs = dict()
         additional_kwargs['cwd'] = file_dir
         additional_kwargs['engine_name'] = "ElyraEngine"

@@ -235,8 +235,19 @@ class ChannelQueue(Queue):
 
     def stop(self) -> None:
         if not self.empty():
-            self.log.warning("Stopping channel '{}' with {} unprocessed messages.".
-                             format(self.channel_name, self.qsize()))
+            # If unprocessed messages are detected, drain the queue collecting non-status
+            # messages.  If any remain that are not 'shutdown_reply' and this is not iopub
+            # go ahead and issue a warning.
+            msgs = []
+            while self.qsize():
+                msg = self.get_nowait()
+                if msg['msg_type'] != 'status':
+                    msgs.append(msg['msg_type'])
+            if self.channel_name == 'iopub' and 'shutdown_reply' in msgs:
+                return
+            if len(msgs):
+                self.log.warning("Stopping channel '{}' with {} unprocessed non-status messages: {}.".
+                                 format(self.channel_name, len(msgs), msgs))
 
     def is_alive(self) -> bool:
         return self.channel_socket is not None
@@ -245,7 +256,7 @@ class ChannelQueue(Queue):
 class HBChannelQueue(ChannelQueue):
 
     def is_beating(self) -> bool:
-        # Just use the is_alive status
+        # Just use the is_alive status for now
         return self.is_alive()
 
 
@@ -268,21 +279,14 @@ class HTTPKernelClient(AsyncKernelClient):
 
     # flag for whether execute requests should be allowed to call raw_input:
     allow_stdin = False
-
+    _channels_stopped = False
     _channel_queues = {}
 
     def __init__(self, **kwargs):
         super(HTTPKernelClient, self).__init__(**kwargs)
         self.kernel_id = kwargs['kernel_id']
         self.channel_socket = None
-        self.response_reader = None
-
-    # TODO - gateway or direct socket?  Only used if Gateway socket
-    def route_messages(self, message, binary=False):
-        """Routes messages to appropriate channel queue"""
-
-        channel = message['channel']
-        self._channel_queues[channel].put_nowait(message)
+        self.response_router = None
 
     # --------------------------------------------------------------------------
     # Channel management methods
@@ -297,13 +301,11 @@ class HTTPKernelClient(AsyncKernelClient):
         """
         ws_url = url_path_join(
             GatewayClient.instance().ws_url,
-            GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels'
-        )
-        self.channel_socket = \
-            websocket.create_connection(ws_url, timeout=60, enable_multithread=True)
+            GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels')
+        self.channel_socket = websocket.create_connection(ws_url, timeout=60, enable_multithread=True)
 
-        self.response_reader = Thread(target=self._read_responses)
-        self.response_reader.start()
+        self.response_router = Thread(target=self._route_responses)
+        self.response_router.start()
 
         super().start_channels(shell=shell, iopub=iopub, stdin=stdin, hb=hb, control=control)
 
@@ -314,10 +316,10 @@ class HTTPKernelClient(AsyncKernelClient):
         channel-based queues.
         """
         super().stop_channels()
-
+        self._channels_stopped = True
         self.log.debug("Closing websocket connection")
         self.channel_socket.close()
-        self.response_reader.join()
+        self.response_router.join()
 
         if self._channel_queues:
             self._channel_queues.clear()
@@ -370,17 +372,16 @@ class HTTPKernelClient(AsyncKernelClient):
             self._channel_queues['control'] = self._control_channel
         return self._control_channel
 
-    def _read_responses(self):
+    def _route_responses(self):
         """
-        Reads responses from the websocket.  For each response read, it is added to the response queue based
-        on the messages parent_header.msg_id.  It does this for the duration of the class's lifetime until its
-        shutdown method is called, at which time the socket is closed (unblocking the reader) and the thread
-        terminates.  If shutdown happens to occur while processing a response (unlikely), termination takes
-        place via the loop control boolean.
+        Reads responses from the websocket and routes each to the appropriate channel queue based
+        on the message's channel.  It does this for the duration of the class's lifetime until the
+        channels are stopped, at which time the socket is closed (unblocking the router) and
+        the thread terminates.  If shutdown happens to occur while processing a response (unlikely),
+        termination takes place via the loop control boolean.
         """
         try:
-            while True:  # not self.shutting_down:
-                # try:  TODO - determine need for hooking restarts
+            while not self._channels_stopped:
                 raw_message = self.channel_socket.recv()
                 if not raw_message:
                     break
@@ -389,25 +390,14 @@ class HTTPKernelClient(AsyncKernelClient):
                 channel = response_message['channel']
                 self._channel_queues[channel].put_nowait(response_message)
 
-                # except BaseException as be1:
-                #     if self.restarting:  # If restarting, wait until restart has completed - which includes new socket
-                #         i = 1
-                #         while self.restarting:
-                #             if i >= 10 and i % 2 == 0:
-                #                 self.log.debug("Still restarting after {} secs...".format(i))
-                #             time.sleep(1)
-                #             i += 1
-                #         continue
-                #     raise be1
-
         except websocket.WebSocketConnectionClosedException:
             pass  # websocket closure most likely due to shutdown
 
-        except BaseException as be2:
-            # if not self.shutting_down:
-            self.log.warning('Unexpected exception encountered ({})'.format(be2))
+        except BaseException as be:
+            if not self._channels_stopped:
+                self.log.warning('Unexpected exception encountered ({})'.format(be))
 
-        self.log.debug('Response reader thread exiting...')
+        self.log.debug('Response router thread exiting...')
 
 
 KernelClientABC.register(HTTPKernelClient)

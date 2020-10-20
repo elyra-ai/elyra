@@ -42,7 +42,8 @@ class ElyraEngine(NBClientEngine):
     ):
         """
         Performs the actual execution of the parameterized notebook.  Note that kwargs may
-        specify a 'kernel_manager_class' that executes via a gateway server.
+        specify an alternate 'kernel_manager_class' for nbclient to use and a 'kernel_env'
+        to pass to the kernel process's environment.
 
         Args:
             nb (NotebookNode): Executable notebook object.
