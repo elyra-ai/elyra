@@ -101,9 +101,15 @@ spec:
         https://github.com/opendatahub-io/manifests/tarball/v1.0-branch-openshift
     - name: manifests
       uri: 'https://github.com/opendatahub-io/odh-manifests/tarball/master'
-  version: v0.7.0
+  version: v0.8.0
 status: {} 
 ```
+- This kfdef configuration will install a minimal deployment of Open Data Hub.  
+NOTE: The Argo Workflow controller is explicitly not included in the kfdef due a conflict with the Argo controller 
+that comes with a standard installation of Kubeflow. The removal is only required when both Open Data Hub and 
+Kubeflow are installed in the same namespace.
+
+
 ![Elyra](../images/odh-deploy-create-kfdef2.png)
 - Click on 'Create'
 - The `Open Data Hub Operator` should now be installing a basic deployment of JupyterHub on ODH.
@@ -127,8 +133,7 @@ http://localhost:8001/api/v1/namespaces/INSERT_PROJECT_NAME/services/http:jupyte
 | NAME | VALUES | REQUIRED | DESCRIPTION |
 |---|---|---|---|
 |COS_BUCKET| A-Z, a-z, 0-9, -, . |  | This will be the bucket that your artifacts will be sent to post notebook execution. This can be modified in the Elyra Metadata Editor at runtime. Default value: 'default' |
-|CRIO_RUNTIME| true /false | X | Set this to true if deploying ODH on OpenShift or when your container orchestrator is using CRI-O as the container runtime |
-
+|CRIO_RUNTIME| true /false | X | Set this to true if deploying ODH on OpenShift or when your container orchestrator is using CRI-O as the container runtime. NOTE: This is set to TRUE by default when using the Elyra image supplied by Open Data Hub |
 ![Elyra](../images/odh-deploy-set-spawner-options.png)
 
 ## Accessing Default Object Storage 
