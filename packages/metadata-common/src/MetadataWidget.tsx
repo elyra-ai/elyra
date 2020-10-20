@@ -33,6 +33,8 @@ import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import React from 'react';
 
+import { FilterTools } from './FilterTools';
+
 /**
  * The CSS class added to metadata widgets.
  */
@@ -50,6 +52,7 @@ export interface IMetadata {
   display_name: string;
   metadata: IDictionary<any>;
   schema_name: string;
+  tags: string[];
 }
 
 export interface IMetadataActionButton {
@@ -72,11 +75,30 @@ export interface IMetadataDisplayProps {
 }
 
 /**
+ * MetadataDisplay state.
+ */
+export interface IMetadataDisplayState {
+  metadata: IMetadata[];
+  searchValue: string;
+  filterTags: string[];
+}
+
+/**
  * A React Component for displaying a list of metadata
  */
 export class MetadataDisplay<
-  T extends IMetadataDisplayProps
-> extends React.Component<T> {
+  T extends IMetadataDisplayProps,
+  U extends IMetadataDisplayState
+> extends React.Component<T, IMetadataDisplayState> {
+  constructor(props: T) {
+    super(props);
+    this.state = {
+      metadata: props.metadata,
+      searchValue: '',
+      filterTags: []
+    };
+  }
+
   deleteMetadata = (metadata: IMetadata): Promise<void> => {
     return showDialog({
       title: `Delete metadata: ${metadata.display_name}?`,
@@ -152,6 +174,47 @@ export class MetadataDisplay<
     );
   }
 
+  filteredMetadata = (searchValue: string, filterTags: string[]): void => {
+    // filter with search
+    let filteredMetadata = this.state.metadata.filter(
+      (metadata: IMetadata, index: number, array: IMetadata[]): boolean => {
+        return metadata.name.toLowerCase().includes(searchValue.toLowerCase());
+      }
+    );
+
+    // filter with tags
+    if (filterTags.length !== 0) {
+      filteredMetadata = filteredMetadata.filter(metadata => {
+        return filterTags.some(tag => {
+          if (metadata.tags) {
+            return metadata.tags.includes(tag);
+          }
+          return false;
+        });
+      });
+    }
+
+    this.setState({
+      metadata: filteredMetadata,
+      searchValue: searchValue,
+      filterTags: filterTags
+    });
+  };
+
+  getActiveTags(): string[] {
+    const tags: string[] = [];
+    for (const metadata of this.props.metadata) {
+      if (metadata.tags) {
+        for (const tag of metadata.tags) {
+          if (!tags.includes(tag)) {
+            tags.push(tag);
+          }
+        }
+      }
+    }
+    return tags;
+  }
+
   render(): React.ReactElement {
     if (this.props.sortMetadata) {
       this.sortMetadata();
@@ -159,6 +222,10 @@ export class MetadataDisplay<
     return (
       <div>
         <div id="elyra-metadata">
+          <FilterTools
+            onFilter={this.filteredMetadata}
+            tags={this.getActiveTags()}
+          />
           <div>{this.props.metadata.map(this.renderMetadata)}</div>
         </div>
       </div>

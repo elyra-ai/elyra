@@ -20,6 +20,7 @@ import {
   IMetadata,
   IMetadataActionButton,
   IMetadataDisplayProps,
+  IMetadataDisplayState,
   IMetadataWidgetProps,
   MetadataDisplay,
   MetadataWidget,
@@ -72,7 +73,10 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
 /**
  * A React Component for code-snippets display list.
  */
-class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
+class CodeSnippetDisplay extends MetadataDisplay<
+  ICodeSnippetDisplayProps,
+  IMetadataDisplayState
+> {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
 
   // Handle code snippet insert into an editor
