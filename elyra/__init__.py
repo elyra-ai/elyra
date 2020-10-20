@@ -15,7 +15,7 @@
 #
 from ._version import __version__
 
-from notebook.utils import url_path_join
+from jupyter_server.utils import url_path_join
 
 from .api.handlers import YamlSpecHandler
 from .metadata.handlers import MetadataHandler, MetadataResourceHandler, SchemaHandler, SchemaResourceHandler, \
@@ -25,13 +25,14 @@ from .pipeline import PipelineExportHandler, PipelineSchedulerHandler, PipelineP
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
 
-def _jupyter_server_extension_paths():
+
+def _jupyter_server_extension_points():
     return [{
         "module": "elyra"
     }]
 
 
-def load_jupyter_server_extension(nb_server_app):
+def _load_jupyter_server_extension(nb_server_app):
     web_app = nb_server_app.web_app
     host_pattern = '.*$'
     web_app.add_handlers(host_pattern, [
