@@ -39,6 +39,8 @@ purge:
 	rm -rf build *.egg-info yarn-error.log
 	rm -rf node_modules lib dist
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
+	rm -rf $$(find packages -name static -type d -maxdepth 3)
+	rm -rf $$(find packages -name *.egg-info -type d)
 	rm -rf $$(find packages -name dist -type d)
 	rm -rf $$(find packages -name lib -type d)
 	rm -rf $$(find . -name __pycache__ -type d)
