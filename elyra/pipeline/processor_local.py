@@ -186,7 +186,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
                 **additional_kwargs
             )
         except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}') from ex
+            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
@@ -217,7 +217,7 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         try:
             run(argv, cwd=file_dir, env=envs, check=True)
         except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}') from ex
+            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
