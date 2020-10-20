@@ -42,8 +42,8 @@ class ElyraEngine(NBClientEngine):
     ):
         """
         Performs the actual execution of the parameterized notebook.  Note that kwargs may
-        specify an alternate 'kernel_manager_class' for nbclient to use and a 'kernel_env'
-        to pass to the kernel process's environment.
+        specify an alternate 'kernel_manager_class' for nbclient to use, and 'kernel_env'
+        and 'kernel_cwd' to pass to the kernel process's environment.
 
         Args:
             nb (NotebookNode): Executable notebook object.
@@ -53,11 +53,12 @@ class ElyraEngine(NBClientEngine):
             startup_timeout (int): Duration to wait for kernel start-up.
             execution_timeout (int): Duration to wait before failing execution (default: never).
             kernel_env (dict): Passed as the kernel 'env' parameter to the execute() method
+            kernel_cwd (str): Passed as the kernel 'cwd' parameter to the execute() method
             kernel_manager_class: (str) If set, specifies the use of an alternate kernel manager.
         """
 
         # Exclude parameters that named differently downstream
-        safe_kwargs = remove_args(['timeout', 'startup_timeout', 'kernel_env'], **kwargs)
+        safe_kwargs = remove_args(['timeout', 'startup_timeout', 'kernel_env', 'kernel_cwd'], **kwargs)
 
         # Nicely handle preprocessor arguments prioritizing values set by engine
         final_kwargs = merge_kwargs(
@@ -70,4 +71,5 @@ class ElyraEngine(NBClientEngine):
             stdout_file=stdout_file,
             stderr_file=stderr_file,
         )
-        return PapermillNotebookClient(nb_man, **final_kwargs).execute(env=kwargs.get('kernel_env'))
+        return PapermillNotebookClient(nb_man, **final_kwargs).execute(env=kwargs.get('kernel_env'),
+                                                                       cwd=kwargs['kernel_cwd'])

@@ -26,7 +26,7 @@ from jupyter_client.manager import AsyncKernelManager
 from jupyter_client.managerabc import KernelManagerABC
 from logging import Logger
 from notebook.gateway.managers import GatewayClient, gateway_request
-from notebook.utils import url_path_join, to_os_path
+from notebook.utils import url_path_join
 from queue import Queue
 from threading import Thread
 from tornado import web
@@ -106,14 +106,6 @@ class HTTPKernelManager(AsyncKernelManager):
         self.log.debug("Kernel retrieved: %s" % kernel)
         return kernel
 
-    def cwd_for_path(self, path):
-        """Turn API path into absolute OS path."""
-        os_path = to_os_path(path, self.root_dir)
-        # in the case of notebooks and kernels not being on the same filesystem,
-        # walk up to root_dir if the paths don't exist
-        while not os.path.isdir(os_path) and os_path != self.root_dir:
-            os_path = os.path.dirname(os_path)
-        return os_path
     # --------------------------------------------------------------------------
     # Kernel management
     # --------------------------------------------------------------------------

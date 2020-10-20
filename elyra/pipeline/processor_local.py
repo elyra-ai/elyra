@@ -176,6 +176,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         additional_kwargs['kernel_env'] = operation.env_vars_as_dict()
         if GatewayClient.instance().gateway_enabled:
             additional_kwargs['kernel_manager_class'] = 'elyra.pipeline.http_kernel_manager.HTTPKernelManager'
+            additional_kwargs['kernel_cwd'] = file_dir
 
         t0 = time.time()
         try:
