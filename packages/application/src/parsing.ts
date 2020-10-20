@@ -33,7 +33,7 @@ export class NotebookParser {
   static getEnvVars(notebookStr: string): string[] {
     const envVars: string[] = [];
     const notebook = JSON.parse(notebookStr);
-    const match_regex = /os\.(?:environ(?:\["([^"]+)|\['([^']+)|\.get\("([^"]+)|\.get\('([^']+))|getenv\("([^"]+)|getenv\('([^']+))/;
+    const match_regex = /os\.(?:environb?(?:\["([^"]+)|\['([^']+)|\.get\("([^"]+)|\.get\('([^']+))|getenvb?\("([^"]+)|getenvb?\('([^']+))/;
 
     for (const cell of notebook['cells']) {
       if (cell['cell_type'] == 'code') {
