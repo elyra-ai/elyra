@@ -215,6 +215,36 @@ export class MetadataDisplay<
     return tags;
   }
 
+  static getDerivedStateFromProps(
+    props: IMetadataDisplayProps,
+    state: IMetadataDisplayState
+  ): IMetadataDisplayState {
+    if (state.searchValue === '' && state.filterTags.length === 0) {
+      return {
+        metadata: props.metadata,
+        searchValue: '',
+        filterTags: []
+      };
+    }
+
+    if (state.searchValue !== '' || state.filterTags.length !== 0) {
+      const newMetadata = props.metadata.filter(metadata => {
+        return (
+          (state.searchValue !== '' &&
+            metadata.name.toLowerCase().includes(state.searchValue)) ||
+          (metadata.tags &&
+            metadata.tags.some(tag => state.filterTags.includes(tag)))
+        );
+      });
+      return {
+        metadata: newMetadata,
+        searchValue: state.searchValue,
+        filterTags: state.filterTags
+      };
+    }
+    return null;
+  }
+
   render(): React.ReactElement {
     if (this.props.sortMetadata) {
       this.sortMetadata();
@@ -226,7 +256,7 @@ export class MetadataDisplay<
             onFilter={this.filteredMetadata}
             tags={this.getActiveTags()}
           />
-          <div>{this.props.metadata.map(this.renderMetadata)}</div>
+          <div>{this.state.metadata.map(this.renderMetadata)}</div>
         </div>
       </div>
     );

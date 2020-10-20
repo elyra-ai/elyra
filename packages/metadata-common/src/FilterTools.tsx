@@ -17,12 +17,12 @@ import { InputGroup, checkIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
 
-interface IFilterSnippetProps {
+interface IFilterMetadataProps {
   tags: string[];
   onFilter: (searchValue: string, filterTags: string[]) => void;
 }
 
-interface IFilterSnippetState {
+interface IFilterMetadataState {
   show: boolean;
   selectedTags: string[];
   searchValue: string;
@@ -36,15 +36,15 @@ const FILTER_CHECK = 'jp-codeSnippet-filter-check';
 const FILTER_TITLE = 'jp-codeSnippet-filter-title';
 const FILTER_TOOLS = 'jp-codeSnippet-filterTools';
 const FILTER_SEARCHBAR = 'jp-codeSnippet-searchbar';
-const FILTER_SEARCHWRAPPER = 'jp-codesnippet-searchwrapper';
+const FILTER_SEARCHWRAPPER = 'jp-codeSnippet-searchwrapper';
 const FILTER_CLASS = 'jp-codeSnippet-filter';
 const FILTER_BUTTON = 'jp-codeSnippet-filter-btn';
 
 export class FilterTools extends React.Component<
-  IFilterSnippetProps,
-  IFilterSnippetState
+  IFilterMetadataProps,
+  IFilterMetadataState
 > {
-  constructor(props: IFilterSnippetProps) {
+  constructor(props: IFilterMetadataProps) {
     super(props);
     this.state = { show: false, selectedTags: [], searchValue: '' };
     this.createFilterBox = this.createFilterBox.bind(this);
@@ -53,7 +53,7 @@ export class FilterTools extends React.Component<
     this.renderAppliedTag = this.renderAppliedTag.bind(this);
     this.renderUnappliedTag = this.renderUnappliedTag.bind(this);
     this.handleClick = this.handleClick.bind(this);
-    this.filterSnippets = this.filterSnippets.bind(this);
+    this.filterMetadata = this.filterMetadata.bind(this);
   }
 
   componentDidMount(): void {
@@ -64,7 +64,7 @@ export class FilterTools extends React.Component<
     });
   }
 
-  componentDidUpdate(prevProps: IFilterSnippetProps): void {
+  componentDidUpdate(prevProps: IFilterMetadataProps): void {
     if (prevProps !== this.props) {
       this.setState(state => ({
         selectedTags: state.selectedTags
@@ -143,7 +143,7 @@ export class FilterTools extends React.Component<
           clickedTag
         )
       }),
-      this.filterSnippets
+      this.filterMetadata
     );
   }
 
@@ -166,10 +166,10 @@ export class FilterTools extends React.Component<
   }
 
   handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    this.setState({ searchValue: event.target.value }, this.filterSnippets);
+    this.setState({ searchValue: event.target.value }, this.filterMetadata);
   };
 
-  filterSnippets(): void {
+  filterMetadata(): void {
     this.props.onFilter(this.state.searchValue, this.state.selectedTags);
   }
 
