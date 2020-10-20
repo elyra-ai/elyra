@@ -68,6 +68,7 @@ setup_args = dict(
         'rfc3986-validator>=0.1.1',
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
+        'websocket-client',
     ],
     include_package_data=True,
     classifiers=(

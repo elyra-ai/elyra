@@ -15,12 +15,9 @@
 #
 """KernelManager class to manage a kernel running on a Gateway Server via the REST API"""
 
-import asyncio
 import datetime
 import json
 import os
-# TODO - gateway or direct socket?
-# import time
 import websocket
 
 from jupyter_client.asynchronous.client import AsyncKernelClient
@@ -28,9 +25,6 @@ from jupyter_client.clientabc import KernelClientABC
 from jupyter_client.manager import AsyncKernelManager
 from jupyter_client.managerabc import KernelManagerABC
 from logging import Logger
-# TODO - gateway or direct socket?
-from nbclient.util import ensure_async, run_sync
-from notebook.gateway.handlers import GatewayWebSocketClient
 from notebook.gateway.managers import GatewayClient, gateway_request
 from notebook.utils import url_path_join, to_os_path
 from queue import Queue
@@ -38,16 +32,6 @@ from threading import Thread
 from tornado import web
 from tornado.escape import json_encode, json_decode, url_escape, utf8
 from traitlets import DottedObjectName, Type
-# from typing import Optional
-
-
-# FIXME - Need to decide socket approach.  We would prefer to use the Gateway plumbing
-# built into the server and already use that for the HTTP requests (lifecycle mgmt) but
-# haven't been able to get it to work.  This switch should enable our ability to easily
-# check/compare the different approaches and should be considered temporary.
-SOCKET_TYPE_GATEWAY = 1
-SOCKET_TYPE_DIRECT = 2
-socket_type = SOCKET_TYPE_DIRECT
 
 
 class HTTPKernelManager(AsyncKernelManager):
@@ -200,10 +184,11 @@ class HTTPKernelManager(AsyncKernelManager):
             response = await gateway_request(kernel_url, method='POST', body=json_encode({}))
             self.log.debug("Interrupt kernel response: %d %s", response.code, response.reason)
 
-    def is_alive(self):
+    async def is_alive(self):
         """Is the kernel process still running?"""
         if self.has_kernel:
-            self.kernel = run_sync(self.get_kernel(self.kernel_id))
+            # Go ahead and issue a request to get the kernel
+            self.kernel = await self.get_kernel(self.kernel_id)
             return True
         else:  # we don't have a kernel
             return False
@@ -220,8 +205,7 @@ class ChannelQueue(Queue):
 
     channel_name: str = None
 
-    # TODO - gateway or direct socket - remove other from typing list
-    def __init__(self, channel_name: str, channel_socket: [websocket, GatewayWebSocketClient], log: Logger):
+    def __init__(self, channel_name: str, channel_socket: websocket, log: Logger):
         super().__init__()
         self.channel_name = channel_name
         self.channel_socket = channel_socket
@@ -236,16 +220,13 @@ class ChannelQueue(Queue):
         return msg
 
     def send(self, msg: dict) -> None:
-        message = json.dumps(msg, default=self.serialize_datetime).replace("</", "<\\/")
+        message = json.dumps(msg, default=ChannelQueue.serialize_datetime).replace("</", "<\\/")
         self.log.debug("Sending message on channel: {}, msg_id: {}, msg_type: {}".
                        format(self.channel_name, msg['msg_id'], msg['msg_type'] if msg else 'null'))
-        # TODO - gateway or direct socket?
-        if socket_type == SOCKET_TYPE_GATEWAY:
-            self.channel_socket.on_message(message)
-        elif socket_type == SOCKET_TYPE_DIRECT:
-            self.channel_socket.send(message)
+        self.channel_socket.send(message)
 
-    def serialize_datetime(self, dt):
+    @staticmethod
+    def serialize_datetime(dt):
         if isinstance(dt, (datetime.date, datetime.datetime)):
             return dt.timestamp()
 
@@ -262,9 +243,6 @@ class ChannelQueue(Queue):
 
 
 class HBChannelQueue(ChannelQueue):
-
-    def __init__(self, *args):
-        super().__init__(*args)
 
     def is_beating(self) -> bool:
         # Just use the is_alive status
@@ -297,11 +275,7 @@ class HTTPKernelClient(AsyncKernelClient):
         super(HTTPKernelClient, self).__init__(**kwargs)
         self.kernel_id = kwargs['kernel_id']
         self.channel_socket = None
-        # TODO - gateway or direct socket?
-        if socket_type == SOCKET_TYPE_DIRECT:
-            self.response_reader = None
-        elif socket_type == SOCKET_TYPE_GATEWAY:
-            self.channel_loop = None
+        self.response_reader = None
 
     # TODO - gateway or direct socket?  Only used if Gateway socket
     def route_messages(self, message, binary=False):
@@ -321,23 +295,15 @@ class HTTPKernelClient(AsyncKernelClient):
         and setup the channel-based queues on which applicable messages will
         be posted.
         """
-        # TODO - gateway or direct socket?
-        if socket_type == SOCKET_TYPE_GATEWAY:
-            self.channel_loop = asyncio.get_event_loop()
-            self.channel_socket = GatewayWebSocketClient(gateway_url=GatewayClient.instance().url)
-            run_sync(
-                ensure_async(
-                    self.channel_socket.on_open(kernel_id=self.kernel_id, message_callback=self.route_messages)))
-        elif socket_type == SOCKET_TYPE_DIRECT:
-            ws_url = url_path_join(
-                GatewayClient.instance().ws_url,
-                GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels'
-            )
-            self.channel_socket = \
-                websocket.create_connection(ws_url, timeout=60, enable_multithread=True)
+        ws_url = url_path_join(
+            GatewayClient.instance().ws_url,
+            GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels'
+        )
+        self.channel_socket = \
+            websocket.create_connection(ws_url, timeout=60, enable_multithread=True)
 
-            self.response_reader = Thread(target=self._read_responses)
-            self.response_reader.start()
+        self.response_reader = Thread(target=self._read_responses)
+        self.response_reader.start()
 
         super().start_channels(shell=shell, iopub=iopub, stdin=stdin, hb=hb, control=control)
 
@@ -350,12 +316,8 @@ class HTTPKernelClient(AsyncKernelClient):
         super().stop_channels()
 
         self.log.debug("Closing websocket connection")
-        # TODO - gateway or direct socket?
-        if socket_type == SOCKET_TYPE_GATEWAY:
-            self.channel_socket.on_close()
-        elif socket_type == SOCKET_TYPE_DIRECT:
-            self.channel_socket.close()
-            self.response_reader.join()
+        self.channel_socket.close()
+        self.response_reader.join()
 
         if self._channel_queues:
             self._channel_queues.clear()
@@ -408,7 +370,6 @@ class HTTPKernelClient(AsyncKernelClient):
             self._channel_queues['control'] = self._control_channel
         return self._control_channel
 
-    # TODO - gateway or direct socket?  This is only necessary with direct
     def _read_responses(self):
         """
         Reads responses from the websocket.  For each response read, it is added to the response queue based
