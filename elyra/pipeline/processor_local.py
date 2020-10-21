@@ -169,14 +169,16 @@ class NotebookOperationProcessor(FileOperationProcessor):
         # but allows for environment variables to be passed to the kernel process (via 'kernel_env').
         # If the current notebook server is running with Enterprise Gateway configured, we will also
         # point the 'kernel_manager_class' to our HTTPKernelManager so that notebooks run as they
-        # would outside of Elyra.
+        # would outside of Elyra.  Current working directory (cwd) is specified both for where papermill
+        # runs the notebook (cwd) and where the directory of the kernel process (kernel_cwd).  The latter
+        # of which is important when EG is configured.
         additional_kwargs = dict()
-        additional_kwargs['cwd'] = file_dir
         additional_kwargs['engine_name'] = "ElyraEngine"
+        additional_kwargs['cwd'] = file_dir  # For local operations, papermill runs from this dir
+        additional_kwargs['kernel_cwd'] = file_dir
         additional_kwargs['kernel_env'] = operation.env_vars_as_dict()
         if GatewayClient.instance().gateway_enabled:
             additional_kwargs['kernel_manager_class'] = 'elyra.pipeline.http_kernel_manager.HTTPKernelManager'
-            additional_kwargs['kernel_cwd'] = file_dir
 
         t0 = time.time()
         try:
