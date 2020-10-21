@@ -1,0 +1,142 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "4f1735a1-3fa9-4103-9532-b165f9f7d6f0",
+  "primary_pipeline": "8aefd326-f2de-4357-be8c-eedc916e8643",
+  "pipelines": [
+    {
+      "id": "8aefd326-f2de-4357-be8c-eedc916e8643",
+      "nodes": [
+        {
+          "id": "66b715e0-f898-425d-8a41-52f39390570c",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "filename": "helloworld.ipynb",
+            "runtime_image": "",
+            "env_vars": [],
+            "include_subdirectories": false,
+            "invalidNodeError": "notebook does not exist",
+            "ui_data": {
+              "label": "helloworld.ipynb",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 85,
+              "y_pos": 95,
+              "description": "Notebook file",
+              "decorations": [
+                {
+                  "id": "error",
+                  "image": "data:image/svg+xml;utf8,%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23d32f2f%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%0A%20%20%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2210%22%3E%3C%2Fcircle%3E%0A%20%20%3Ctitle%3EError%3C%2Ftitle%3E%0A%3C%2Fsvg%3E%0A",
+                  "outline": false,
+                  "position": "topLeft",
+                  "x_pos": 20,
+                  "y_pos": 3
+                }
+              ]
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "812e153b-d128-4979-bacb-c5919780a538",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "filename": "helloworld.py",
+            "runtime_image": "",
+            "include_subdirectories": false,
+            "invalidNodeError": "notebook does not exist",
+            "ui_data": {
+              "label": "helloworld.py",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-brand0%20jp-icon-selectable%22%20fill%3D%22%230D47A1%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M11.1%206.9V5.8H6.9c0-.5%200-1.3.2-1.6.4-.7.8-1.1%201.7-1.4%201.7-.3%202.5-.3%203.9-.1%201%20.1%201.9.9%201.9%201.9v4.2c0%20.5-.9%201.6-2%201.6H8.8c-1.5%200-2.4%201.4-2.4%202.8v2.2H4.7C3.5%2015.1%203%2014%203%2013.1V9c-.1-1%20.6-2%201.8-2%201.5-.1%206.3-.1%206.3-.1z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M10.9%2015.1v1.1h4.2c0%20.5%200%201.3-.2%201.6-.4.7-.8%201.1-1.7%201.4-1.7.3-2.5.3-3.9.1-1-.1-1.9-.9-1.9-1.9v-4.2c0-.5.9-1.6%202-1.6h3.8c1.5%200%202.4-1.4%202.4-2.8V6.6h1.7C18.5%206.9%2019%208%2019%208.9V13c0%201-.7%202.1-1.9%202.1h-6.2z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 369,
+              "y_pos": 261,
+              "description": "Python Script",
+              "decorations": [
+                {
+                  "id": "error",
+                  "image": "data:image/svg+xml;utf8,%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23d32f2f%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%0A%20%20%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2210%22%3E%3C%2Fcircle%3E%0A%20%20%3Ctitle%3EError%3C%2Ftitle%3E%0A%3C%2Fsvg%3E%0A",
+                  "outline": false,
+                  "position": "topLeft",
+                  "x_pos": 20,
+                  "y_pos": 3
+                }
+              ]
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "c545eb38-5299-4869-a5ba-dacfc763befc",
+                  "node_id_ref": "66b715e0-f898-425d-8a41-52f39390570c",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 3
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}
