@@ -40,7 +40,7 @@ jobs:
         mkdir -p ~/.npm-global
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip wheel notebook jupyterlab
+        python -m pip install --upgrade pip wheel jupyter_server jupyterlab
     - name: Log current Python dependencies version
       run: |
         pip freeze
