@@ -24,21 +24,13 @@
   "types": "lib/index.d.ts",
   "style": "style/index.css",
   "scripts": {
-    "build": "jlpm run build:lib && jlpm run build:labextension",
-    "build:labextension": "jupyter labextension build .",
-    "build:labextension:dev": "jupyter labextension build --development True .",
-    "build:lib": "tsc",
-    "clean": "jlpm run clean:lib",
-    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
-    "clean:labextension": "rimraf myextension/static",
-    "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
-    "eslint": "eslint . --ext .ts,.tsx --fix",
-    "eslint:check": "eslint . --ext .ts,.tsx",
-    "install:extension": "jupyter labextension develop --overwrite .",
-    "prepare": "jlpm run clean && jlpm run build",
-    "watch": "run-p watch:src watch:labextension",
-    "watch:src": "tsc -w",
-    "watch:labextension": "jupyter labextension watch ."
+    "build": "tsc",
+    "build:test": "tsc --build tsconfig.test.json",
+    "clean": "rimraf lib",
+    "dist": "npm pack .",
+    "test": "jest",
+    "prepare": "npm run build ",
+    "watch": "tsc -w"
   },
   "dependencies": {
     "@elyra/application": "^2.0.0-dev",
@@ -51,6 +43,7 @@
     "@jupyterlab/filebrowser": "^3.0.0-rc.5",
     "@jupyterlab/filebrowser-extension": "^3.0.0-rc.5",
     "@jupyterlab/launcher": "^3.0.0-rc.5",
+    "@jupyterlab/mainmenu": "^3.0.0-rc.5",
     "@jupyterlab/notebook": "^3.0.0-rc.5",
     "@jupyterlab/outputarea": "^3.0.0-rc.5",
     "@jupyterlab/ui-components": "^3.0.0-rc.5",
@@ -58,6 +51,8 @@
     "@lumino/coreutils": "^1.5.3",
     "@lumino/disposable": "^1.4.3",
     "@lumino/dragdrop": "^1.6.4",
+    "@lumino/messaging": "^1.4.3",
+    "@lumino/signaling": "^1.4.3",
     "@lumino/widgets": "^1.14.0",
     "@material-ui/core": "^4.1.2",
     "@material-ui/icons": "^4.2.1",
@@ -75,7 +70,6 @@
     "uuid": "^3.4.0"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "^3.0.0-rc.2",
     "@jupyterlab/testutils": "^1.0.0",
     "@types/enzyme": "^3.10.5",
     "@types/enzyme-adapter-react-16": "^1.0.6",
@@ -83,18 +77,11 @@
     "@types/react": "^16.8.23",
     "@types/react-dom": "^16.8.5",
     "@types/react-intl": "^2.3.0",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.3",
-    "eslint": "^7.5.0",
-    "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-prettier": "^3.1.2",
     "install": "^0.13.0",
     "jest": "^24.7.1",
     "jest-raw-loader": "^1.0.1",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^1.19.0",
     "rimraf": "^3.0.2",
     "source-map-loader": "^0.2.4",
     "ts-jest": "^24.0.2",
@@ -102,8 +89,7 @@
     "typescript": "~4.0.3"
   },
   "jupyterlab": {
-    "extension": true,
-    "outputDir": "elyra_pipeline_editor_extension/static"
+    "extension": true
   },
   "publishConfig": {
     "access": "public"

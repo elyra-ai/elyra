@@ -39,8 +39,6 @@ purge:
 	rm -rf build *.egg-info yarn-error.log
 	rm -rf node_modules lib dist
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
-	rm -rf $$(find packages -name static -type d -maxdepth 3)
-	rm -rf $$(find packages -name *.egg-info -type d)
 	rm -rf $$(find packages -name dist -type d)
 	rm -rf $$(find packages -name lib -type d)
 	rm -rf $$(find . -name __pycache__ -type d)
@@ -71,11 +69,11 @@ test-dependencies:
 	@pip install -q -r test_requirements.txt
 
 lint-server: test-dependencies
-	flake8 elyra
+#	flake8 elyra
 
 lint-ui:
-#	yarn run prettier
-#	yarn run eslint
+	yarn run prettier
+	yarn run eslint
 
 lint: lint-ui lint-server ## Run linters
 
@@ -185,7 +183,7 @@ define UNLINK_LAB_EXTENSION
 endef
 
 define LINK_LAB_EXTENSION
-	cd packages/$1 && pip install -e . && jupyter labextension develop . --overwrite
+	cd packages/$1 && jupyter labextension link --no-build .
 endef
 
 define UNINSTALL_LAB_EXTENSION
@@ -193,7 +191,7 @@ define UNINSTALL_LAB_EXTENSION
 endef
 
 define INSTALL_LAB_EXTENSION
-	cd packages/$1 && pip install -e . && jupyter labextension develop . --overwrite
+	cd packages/$1 && jupyter labextension install --no-build .
 endef
 
 define PACKAGE_LAB_EXTENSION
