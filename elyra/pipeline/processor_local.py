@@ -146,6 +146,14 @@ class FileOperationProcessor(OperationProcessor):
     def process(self, operation: Operation):
         raise NotImplementedError
 
+    def get_valid_filepath(self, op_filename):
+        filepath = get_absolute_path(self._root_dir, op_filename)
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f'Could not find {filepath}')
+        if not os.path.isfile(filepath):
+            raise ValueError(f'Not a file: {filepath}')
+        return filepath
+
 
 class NotebookOperationProcessor(FileOperationProcessor):
     _operation_name = 'execute-notebook-node'
@@ -154,11 +162,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         super(NotebookOperationProcessor, self).__init__(root_dir)
 
     def process(self, operation: Operation):
-        filepath = get_absolute_path(self._root_dir, operation.filename)
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f'Could not find {filepath}')
-        if not os.path.isfile(filepath):
-            raise ValueError(f'Not a file: {filepath}')
+        filepath = self.get_valid_filepath(operation.filename)
 
         file_dir = os.path.dirname(filepath)
         file_name = os.path.basename(filepath)
@@ -202,11 +206,7 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         super(PythonScriptOperationProcessor, self).__init__(root_dir)
 
     def process(self, operation: Operation):
-        filepath = get_absolute_path(self._root_dir, operation.filename)
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f'Could not find {filepath}')
-        if not os.path.isfile(filepath):
-            raise ValueError(f'Not a file: {filepath}')
+        filepath = self.get_valid_filepath(operation.filename)
 
         file_dir = os.path.dirname(filepath)
         file_name = os.path.basename(filepath)
