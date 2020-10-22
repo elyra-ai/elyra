@@ -128,7 +128,11 @@ export class MetadataEditor extends ReactWidget {
     if (this.name) {
       for (const metadata of this.allMetadata) {
         if (metadata.metadata.tags) {
-          this.allTags = this.allTags.concat(metadata.metadata.tags);
+          for (const tag of metadata.metadata.tags) {
+            if (!this.allTags.includes(tag)) {
+              this.allTags.push(tag);
+            }
+          }
         } else {
           metadata.metadata.tags = [];
         }
@@ -458,11 +462,17 @@ export class MetadataEditor extends ReactWidget {
       );
     } else if (uihints.field_type === 'tags') {
       return (
-        <MetadataEditorTags
-          selectedTags={this.metadata.tags}
-          tags={this.allTags}
-          handleChange={this.handleChangeOnTag}
-        />
+        <FormGroup
+          labelInfo={'(optional)'}
+          label={'Tags'}
+          intent={uihints.intent}
+        >
+          <MetadataEditorTags
+            selectedTags={this.metadata.tags}
+            tags={this.allTags}
+            handleChange={this.handleChangeOnTag}
+          />
+        </FormGroup>
       );
     } else {
       return;

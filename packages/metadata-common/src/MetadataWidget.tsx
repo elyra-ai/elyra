@@ -177,7 +177,12 @@ export class MetadataDisplay<
     // filter with search
     let filteredMetadata = this.state.metadata.filter(
       (metadata: IMetadata, index: number, array: IMetadata[]): boolean => {
-        return metadata.name.toLowerCase().includes(searchValue.toLowerCase());
+        return (
+          metadata.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+          metadata.display_name
+            .toLowerCase()
+            .includes(searchValue.toLowerCase())
+        );
       }
     );
 

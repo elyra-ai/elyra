@@ -28,17 +28,17 @@ interface IFilterMetadataState {
   searchValue: string;
 }
 
-const FILTER_ARROW_UP = 'jp-codeSnippet-filter-arrow-up';
-const FILTER_OPTION = 'jp-codeSnippet-filter-option';
-const FILTER_TAGS = 'jp-codeSnippet-filter-tags';
-const FILTER_TAG = 'jp-codeSnippet-filter-tag';
-const FILTER_CHECK = 'jp-codeSnippet-filter-check';
-const FILTER_TITLE = 'jp-codeSnippet-filter-title';
-const FILTER_TOOLS = 'jp-codeSnippet-filterTools';
-const FILTER_SEARCHBAR = 'jp-codeSnippet-searchbar';
-const FILTER_SEARCHWRAPPER = 'jp-codeSnippet-searchwrapper';
-const FILTER_CLASS = 'jp-codeSnippet-filter';
-const FILTER_BUTTON = 'jp-codeSnippet-filter-btn';
+const FILTER_ARROW_UP = 'elyra-filter-arrow-up';
+const FILTER_OPTION = 'elyra-filter-option';
+const FILTER_TAGS = 'elyra-filter-tags';
+const FILTER_TAG = 'elyra-filter-tag';
+const FILTER_CHECK = 'elyra-filter-check';
+const FILTER_TITLE = 'elyra-filter-title';
+const FILTER_TOOLS = 'elyra-filterTools';
+const FILTER_SEARCHBAR = 'elyra-searchbar';
+const FILTER_SEARCHWRAPPER = 'elyra-searchwrapper';
+const FILTER_CLASS = 'elyra-filter';
+const FILTER_BUTTON = 'elyra-filter-btn';
 
 export class FilterTools extends React.Component<
   IFilterMetadataProps,

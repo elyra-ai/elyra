@@ -175,3 +175,168 @@
   flex-basis: 100%;
   display: flex;
 }
+
+/* Code Snippet Filter CSS */
+.elyra-searchbar {
+  margin: 0px 8px;
+}
+
+.elyra-filterTools {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
+}
+
+mark.elyra-search-bolding {
+  background-color: transparent;
+  font-weight: bold;
+  color: var(--jp-ui-font-color0);
+}
+
+.elyra-filter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 10px 0 10px;
+}
+
+.elyra-filter .elyra-filter-btn {
+  align-self: flex-end;
+  padding: 0px;
+  padding-bottom: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--jp-brand-color2);
+}
+
+.elyra-filter-arrow-up.idle,
+.elyra-filter-option.idle {
+  display: none;
+}
+
+.elyra-filter-arrow-up {
+  position: absolute;
+  margin-top: 20px;
+  border: var(--jp-border-width) solid var(--jp-border-color1);
+  border-width: 0 var(--jp-border-width) var(--jp-border-width) 0;
+  padding: 4px;
+  margin-right: 38px;
+  align-self: flex-end;
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
+  background-color: var(--jp-layout-color0);
+}
+
+.elyra-filter-option {
+  border: var(--jp-border-width) solid var(--jp-border-color1);
+  height: 140px;
+  width: 100%;
+  margin-bottom: 10px;
+  overflow: auto;
+}
+
+.elyra-filter-title {
+  text-transform: uppercase;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
+  margin: 10px 10px;
+  padding-bottom: 5px;
+}
+
+.elyra-filter-tags {
+  margin: 0px 8px;
+}
+
+.elyra-filter-tag {
+  margin-left: 3px;
+  margin-right: 3px;
+}
+
+.elyra-filter-tag button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  padding: 0;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.elyra-tools {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
+}
+
+.jp-codeSnippet-editor-tagList {
+  list-style: none;
+  margin-left: -3px;
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+
+.jp-codeSnippet-editor-tag {
+  margin-left: 3px;
+  margin-right: 3px;
+  height: 5px;
+}
+
+.jp-codeSnippet-editor-tag button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  padding: 0;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-codeSnippet-editor-tag.applied-tag button {
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-codeSnippet-editor-tag.unapplied-tag button {
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-codeSnippet-editor-tag.tag.unapplied-tag input {
+  border: none;
+}
+
+/* Code Snippet Tags in InputDialog */
+.elyra-inputTagList {
+  list-style: none;
+}
+
+.elyra-inputTag {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.elyra-inputTag button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  padding: 0;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.elyra-inputTag input {
+  font-size: var(--jp-ui-font-size1);
+  background: none;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  padding: 0;
+  font-size: var(--jp-ui-font-size1);
+  width: 50px;
+}
+
+/* Cell tag styling */
+@import url('~@jupyterlab/celltags/style/base.css');
+
+.elyra-tags {
+  margin-top: 8px;
+}
+
+.elyra-tag,
+.elyra-inputTag,
+.elyra-filter-tag {
+  height: 5px;
+}
