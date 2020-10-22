@@ -261,6 +261,7 @@ export class MetadataDisplay<
           <FilterTools
             onFilter={this.filteredMetadata}
             tags={this.getActiveTags()}
+            schemaId={`${this.props.namespace}${this.props.schema}`}
           />
           <div>{this.state.metadata.map(this.renderMetadata)}</div>
         </div>

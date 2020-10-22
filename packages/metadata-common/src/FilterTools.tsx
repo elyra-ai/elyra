@@ -20,6 +20,7 @@ import React from 'react';
 interface IFilterMetadataProps {
   tags: string[];
   onFilter: (searchValue: string, filterTags: string[]) => void;
+  schemaId: string;
 }
 
 interface IFilterMetadataState {
@@ -75,9 +76,13 @@ export class FilterTools extends React.Component<
   }
 
   createFilterBox(): void {
-    const filterArrow = document.querySelector(`.${FILTER_ARROW_UP}`);
+    const filterArrow = document.querySelector(
+      `#${this.props.schemaId} .${FILTER_ARROW_UP}`
+    );
 
-    const filterOption = document.querySelector(`.${FILTER_OPTION}`);
+    const filterOption = document.querySelector(
+      `#${this.props.schemaId} .${FILTER_OPTION}`
+    );
 
     filterArrow.classList.toggle('idle');
     filterOption.classList.toggle('idle');
@@ -197,7 +202,7 @@ export class FilterTools extends React.Component<
             value={this.state.searchValue}
           />
         </div>
-        <div className={FILTER_CLASS}>
+        <div className={FILTER_CLASS} id={this.props.schemaId}>
           <button className={FILTER_BUTTON} onClick={this.createFilterBox}>
             Filter By Tags
           </button>
