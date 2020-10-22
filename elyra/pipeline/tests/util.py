@@ -108,22 +108,22 @@ def construct_pipeline(name: str, nodes: List[NodeBase], location,
                        runtime_type: Optional[str] = 'local',
                        runtime_config: Optional[str] = 'local') -> Pipeline:
     """Returns an instance of a local Pipeline consisting of each node and populates the
-       specified location with the necessary files to run the pipeline form that location.
+       specified location with the necessary files to run the pipeline from that location.
     """
     pipeline = Pipeline(str(uuid.uuid4()), name, runtime_type, runtime_config)
     for node in nodes:
         pipeline.operations[node.id] = node.get_operation()
-        # get the file into position
+        # copy the node file into the "working directory"
         if isinstance(node, NotebookNode):
-            shutil.copy(os.path.join(os.path.dirname(__file__), 'resources/node_util/node.ipynb'),
-                        os.path.join(location, node.filename))
+            src_file = os.path.join(os.path.dirname(__file__), 'resources/node_util/node.ipynb')
         elif isinstance(node, PythonNode):
-            shutil.copy(os.path.join(os.path.dirname(__file__), 'resources/node_util/node.py'),
-                        os.path.join(location, node.filename))
+            src_file = os.path.join(os.path.dirname(__file__), 'resources/node_util/node.py')
         else:
             assert False, f"Invalid node type detected: {node.__class__.__name__}"
 
-    # copy the node_util directory to location
+        shutil.copy(src_file, os.path.join(location, node.filename))
+
+    # copy the node_util directory into the "working directory"
     shutil.copytree(os.path.join(os.path.dirname(__file__), 'resources/node_util'), os.path.join(location, 'node_util'))
 
     return pipeline
