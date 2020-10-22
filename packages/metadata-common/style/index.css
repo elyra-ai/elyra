@@ -265,20 +265,20 @@ mark.elyra-search-bolding {
   border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
 }
 
-.jp-codeSnippet-editor-tagList {
+.elyra-editor-tagList {
   list-style: none;
   margin-left: -3px;
   margin-bottom: 8px;
   margin-top: 4px;
 }
 
-.jp-codeSnippet-editor-tag {
+.elyra-editor-tag {
   margin-left: 3px;
   margin-right: 3px;
   height: 5px;
 }
 
-.jp-codeSnippet-editor-tag button {
+.elyra-editor-tag button {
   cursor: pointer;
   background: none;
   border: none;
@@ -287,15 +287,15 @@ mark.elyra-search-bolding {
   font-size: var(--jp-ui-font-size1);
 }
 
-.jp-codeSnippet-editor-tag.applied-tag button {
+.elyra-editor-tag.applied-tag button {
   color: var(--jp-ui-font-color1);
 }
 
-.jp-codeSnippet-editor-tag.unapplied-tag button {
+.elyra-editor-tag.unapplied-tag button {
   color: var(--jp-ui-font-color2);
 }
 
-.jp-codeSnippet-editor-tag.tag.unapplied-tag input {
+.elyra-editor-tag.tag.unapplied-tag input {
   border: none;
 }
 

@@ -33,9 +33,9 @@ interface IMetadataEditorTagState {
 /**
  * CSS STYLING
  */
-const METADATA_EDITOR_TAG = 'jp-codeSnippet-editor-tag';
-const METADATA_EDITOR_TAG_PLUS_ICON = 'jp-codeSnippet-editor-tag-plusIcon';
-const METADATA_EDITOR_TAG_LIST = 'jp-codeSnippet-editor-tagList';
+const METADATA_EDITOR_TAG = 'elyra-editor-tag';
+const METADATA_EDITOR_TAG_PLUS_ICON = 'elyra-editor-tag-plusIcon';
+const METADATA_EDITOR_TAG_LIST = 'elyra-editor-tagList';
 
 export class MetadataEditorTags extends React.Component<
   IMetadataEditorTagProps,

@@ -254,7 +254,13 @@ class CodeSnippetDisplay extends MetadataDisplay<
   // Render display of a code snippet
   renderMetadata = (metadata: IMetadata): JSX.Element => {
     return (
-      <div key={metadata.name} className={METADATA_ITEM}>
+      <div
+        key={metadata.name}
+        className={METADATA_ITEM}
+        style={{
+          display: this.state.metadata.includes(metadata) ? 'flex' : 'none'
+        }}
+      >
         <ExpandableComponent
           displayName={this.getDisplayName(metadata)}
           tooltip={metadata.metadata.description}

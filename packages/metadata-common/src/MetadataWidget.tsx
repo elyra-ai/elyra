@@ -150,7 +150,13 @@ export class MetadataDisplay<
   // Render display of metadata list
   renderMetadata = (metadata: IMetadata): JSX.Element => {
     return (
-      <div key={metadata.name} className={METADATA_ITEM}>
+      <div
+        key={metadata.name}
+        className={METADATA_ITEM}
+        style={{
+          display: this.state.metadata.includes(metadata) ? 'flex' : 'none'
+        }}
+      >
         <ExpandableComponent
           displayName={metadata.display_name}
           tooltip={metadata.metadata.description}
@@ -175,7 +181,7 @@ export class MetadataDisplay<
 
   filteredMetadata = (searchValue: string, filterTags: string[]): void => {
     // filter with search
-    let filteredMetadata = this.state.metadata.filter(
+    let filteredMetadata = this.props.metadata.filter(
       (metadata: IMetadata, index: number, array: IMetadata[]): boolean => {
         return (
           metadata.name.toLowerCase().includes(searchValue.toLowerCase()) ||
@@ -263,7 +269,7 @@ export class MetadataDisplay<
             tags={this.getActiveTags()}
             schemaId={`${this.props.namespace}${this.props.schema}`}
           />
-          <div>{this.state.metadata.map(this.renderMetadata)}</div>
+          <div>{this.props.metadata.map(this.renderMetadata)}</div>
         </div>
       </div>
     );

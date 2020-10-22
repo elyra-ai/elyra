@@ -140,7 +140,6 @@ export class MetadataEditor extends ReactWidget {
           this.metadata = metadata['metadata'];
           this.displayName = metadata['display_name'];
           this.title.label = this.displayName;
-          break;
         }
       }
     } else {
