@@ -28,6 +28,8 @@ import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 
+import { MetadataEditorTags } from './Tags';
+
 import * as React from 'react';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
@@ -56,6 +58,7 @@ export class MetadataEditor extends ReactWidget {
   namespace: string;
   name: string;
   dirty: boolean;
+  allTags: string[];
   clearDirty: IDisposable;
   requiredFields: string[];
   invalidForm: boolean;
@@ -74,6 +77,7 @@ export class MetadataEditor extends ReactWidget {
     this.clearDirty = null;
     this.namespace = props.namespace;
     this.schemaName = props.schema;
+    this.allTags = [];
     this.onSave = props.onSave;
     this.name = props.name;
 
@@ -81,6 +85,7 @@ export class MetadataEditor extends ReactWidget {
     this.addClass(this.widgetClass);
 
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
+    this.handleChangeOnTag = this.handleChangeOnTag.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.renderField = this.renderField.bind(this);
 
@@ -122,6 +127,11 @@ export class MetadataEditor extends ReactWidget {
     this.allMetadata = await FrontendServices.getMetadata(this.namespace);
     if (this.name) {
       for (const metadata of this.allMetadata) {
+        if (metadata.metadata.tags) {
+          this.allTags = this.allTags.concat(metadata.metadata.tags);
+        } else {
+          metadata.metadata.tags = [];
+        }
         if (this.name === metadata.name) {
           this.metadata = metadata['metadata'];
           this.displayName = metadata['display_name'];
@@ -446,9 +456,23 @@ export class MetadataEditor extends ReactWidget {
           </ResizeSensor>
         </FormGroup>
       );
+    } else if (uihints.field_type === 'tags') {
+      return (
+        <MetadataEditorTags
+          selectedTags={this.metadata.tags}
+          tags={this.allTags}
+          handleChange={this.handleChangeOnTag}
+        />
+      );
     } else {
       return;
     }
+  }
+
+  handleChangeOnTag(selectedTags: string[], allTags: string[]): void {
+    this.handleDirtyState(true);
+    this.metadata.tags = selectedTags;
+    this.allTags = allTags;
   }
 
   render(): React.ReactElement {

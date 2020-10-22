@@ -23,7 +23,6 @@
 .elyra-metadataHeader {
   font-weight: bold;
   padding: 8px 10px;
-  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
   display: flex;
   justify-content: space-between;
 }

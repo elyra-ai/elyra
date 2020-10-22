@@ -36,6 +36,14 @@
           "description": "The image name (including optional tag)",
           "type": "string",
           "minLength": 1
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing snippets",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
         }
       },
       "required": ["image_name"]

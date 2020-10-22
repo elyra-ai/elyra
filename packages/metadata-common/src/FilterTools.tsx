@@ -191,7 +191,7 @@ export class FilterTools extends React.Component<
           <InputGroup
             className={FILTER_SEARCHWRAPPER}
             type="text"
-            placeholder="SEARCH SNIPPETS"
+            placeholder="Search..."
             onChange={this.handleSearch}
             rightIcon="search"
             value={this.state.searchValue}

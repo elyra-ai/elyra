@@ -94,6 +94,14 @@
           "uihints": {
             "category": "Cloud Object Storage"
           }
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing snippets",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
         }
       },
       "required": [

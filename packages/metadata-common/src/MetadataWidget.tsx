@@ -203,9 +203,9 @@ export class MetadataDisplay<
 
   getActiveTags(): string[] {
     const tags: string[] = [];
-    for (const metadata of this.props.metadata) {
-      if (metadata.tags) {
-        for (const tag of metadata.tags) {
+    for (const metadata of this.state.metadata) {
+      if (metadata.metadata.tags) {
+        for (const tag of metadata.metadata.tags) {
           if (!tags.includes(tag)) {
             tags.push(tag);
           }
