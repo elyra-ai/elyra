@@ -213,7 +213,7 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
 
         self.log.debug(f'Processing python script: {filepath}')
 
-        argv = ['python', filepath, '--PYTHONHOME', file_dir]
+        argv = ['python3', filepath, '--PYTHONHOME', file_dir]
         envs = operation.env_vars_as_dict()
         t0 = time.time()
         try:

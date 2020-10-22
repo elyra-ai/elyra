@@ -24,34 +24,35 @@ class NodeFile():
     """Base class for input and output node files"""
     def __init__(self, filename: str) -> None:
         self.filename = filename
-        
-        
+
+
 class InputNodeFile(NodeFile):
     """Given a filename, it ensures the file exists and can read its contents."""
     def __init__(self, filename: str) -> None:
         super(InputNodeFile, self).__init__(filename)
         self.data = None
-        
+
         if not os.path.exists(self.filename):
             raise FileNotFoundError("File '{}' does not exist!".format(self.filename))
-    
+
     def read(self) -> str:
         with open(self.filename) as f:
             self.data = f.read()
         return self.data
-    
+
     def data(self) -> str:
         return self.data
-    
+
 
 class OutputNodeFile(NodeFile):
     """Given a filename, it ensures the file does not exist and will write data to that file."""
     def __init__(self, filename: str) -> None:
         super(OutputNodeFile, self).__init__(filename)
-        
-        #if os.path.exists(self.filename):
+
+        # Don't enforce output file existence here - break idempotency
+        # if os.path.exists(self.filename):
         #    raise FileExistsError("File '{}' already exists!".format(self.filename))
-    
+
     def write(self, data) -> None:
         with open(self.filename, 'w+') as f:
             f.write(data)
@@ -119,7 +120,6 @@ class ExecutionNode(ABC):
         for filename in filenames:
             if filename:
                 outputs.append(OutputNodeFile(filename))
-
 
         for output_file in outputs:
             output_file.write(self.node_name)

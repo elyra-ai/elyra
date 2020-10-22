@@ -16,15 +16,24 @@
 """
 Pipeline PythonNode
 
-This python script will represent a single node of a pipeline.  It will be completely driven via the following environment variables configured on the node properties dialog of the pipeline:
-- `NODE_FILENAME`: (Required) The filename associated with the node.  The extension is used to validate that the node matches the associated file.  The basename portion represents the node name - and is used in producing the output files.
-- `INPUT_FILENAMES`: (Optional) A SEMI-COLON-separated list of filenames.  Each entry can include a _relative_ path as a prefix to the filename.  Each file is expected to exist and contain content.  The content will be printed and should appear in the out of a cell.
-- `OUTPUT_FILENAMES`: (Optional) A SEMI-COLON-separated list of filenames.  Each entry can include a _relative_ path as a prefix to the filename.  Each file is NOT expected to exist, but will be created as a function of the notebook's execution.
+This python script will represent a single node of a pipeline.  It will be completely
+driven via the following environment variables configured on the node properties
+dialog of the pipeline:
+- `NODE_FILENAME`: (Required) The filename associated with the node.  The extension
+  is used to validate that the node matches the associated file.  The basename portion
+  represents the node name - and is used in producing the output files.
+- `INPUT_FILENAMES`: (Optional) A SEMI-COLON-separated list of filenames.  Each entry
+  can include a _relative_ path as a prefix to the filename.  Each file is expected
+  to exist and contain content.  The content will be printed and should appear in the
+  out of a cell.
+- `OUTPUT_FILENAMES`: (Optional) A SEMI-COLON-separated list of filenames.  Each entry
+  can include a _relative_ path as a prefix to the filename.  Each file is NOT expected
+  to exist, but will be created as a function of the notebook's execution.
 """
 import os
 from node_util import PythonNode
 
-# These getenv calls are here to help seed the environment variables 
+# These getenv calls are here to help seed the environment variables
 # dialog in the node properties of the pipeline editor
 os.getenv("NODE_FILENAME")
 os.getenv("INPUT_FILENAMES")

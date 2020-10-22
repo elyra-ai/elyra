@@ -38,7 +38,8 @@ class NodeBase:
     name: str
     outputs: List[str]
     dependencies: List[str]
-    env_vars = List[str]
+    env_vars: List[str]
+    image_name: str
     fail: bool
     # from subclasses
     classifier: str
@@ -46,12 +47,14 @@ class NodeBase:
 
     def __init__(self, name: str, num_outputs: Optional[int] = 0,
                  input_nodes: Optional[List[Any]] = None,
+                 image_name: Optional[str] = None,
                  fail: Optional[bool] = False):
         self.id = str(uuid.uuid4())
         self.name = name
         self.fail = fail
+        self.image_name = image_name
         self.outputs = []
-        for i in range(1, num_outputs+1):
+        for i in range(1, num_outputs + 1):
             self.outputs.append(f"{self.name}_{i}.out")
 
         self.inputs = []
@@ -73,7 +76,7 @@ class NodeBase:
         if self.outputs:
             self.env_vars.append(f"OUTPUT_FILENAMES={';'.join(self.outputs)}")
 
-        return Operation(self.id, 'execution_node', self.classifier, self.filename, "elyra-test-NA",
+        return Operation(self.id, 'execution_node', self.classifier, self.filename, self.image_name or "NA",
                          dependencies=self.dependencies, env_vars=self.env_vars,
                          inputs=self.inputs, outputs=self.outputs,
                          parent_operations=self.parent_operations)
@@ -82,9 +85,10 @@ class NodeBase:
 class NotebookNode(NodeBase):
     def __init__(self, name: str, num_outputs: Optional[int] = 0,
                  input_nodes: Optional[List[Any]] = None,
+                 image_name: Optional[str] = None,
                  fail: Optional[bool] = False):
 
-        super().__init__(name, num_outputs, input_nodes, fail)
+        super().__init__(name, num_outputs=num_outputs, input_nodes=input_nodes, image_name=image_name, fail=fail)
         self.classifier = 'execute-notebook-node'
         self.filename = f"{self.name}.ipynb"
 
@@ -92,18 +96,21 @@ class NotebookNode(NodeBase):
 class PythonNode(NodeBase):
     def __init__(self, name: str, num_outputs: Optional[int] = 0,
                  input_nodes: Optional[List[Any]] = None,
+                 image_name: Optional[str] = None,
                  fail: Optional[bool] = False):
 
-        super().__init__(name, num_outputs, input_nodes, fail)
+        super().__init__(name, num_outputs=num_outputs, input_nodes=input_nodes, image_name=image_name, fail=fail)
         self.classifier = 'execute-python-node'
         self.filename = f"{self.name}.py"
 
 
-def construct_pipeline(name: str, nodes: List[NodeBase], location) -> Pipeline:
+def construct_pipeline(name: str, nodes: List[NodeBase], location,
+                       runtime_type: Optional[str] = 'local',
+                       runtime_config: Optional[str] = 'local') -> Pipeline:
     """Returns an instance of a local Pipeline consisting of each node and populates the
        specified location with the necessary files to run the pipeline form that location.
     """
-    pipeline = Pipeline(str(uuid.uuid4()), name, 'local', 'local')
+    pipeline = Pipeline(str(uuid.uuid4()), name, runtime_type, runtime_config)
     for node in nodes:
         pipeline.operations[node.id] = node.get_operation()
         # get the file into position
