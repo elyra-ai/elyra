@@ -43,7 +43,6 @@ export class MetadataEditorTags extends React.Component<
 > {
   constructor(props: IMetadataEditorTagProps) {
     super(props);
-    console.log('HELLIOO');
     this.state = {
       selectedTags: [],
       tags: [],
