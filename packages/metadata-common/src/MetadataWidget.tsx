@@ -52,7 +52,6 @@ export interface IMetadata {
   display_name: string;
   metadata: IDictionary<any>;
   schema_name: string;
-  tags: string[];
 }
 
 export interface IMetadataActionButton {
@@ -186,8 +185,8 @@ export class MetadataDisplay<
     if (filterTags.length !== 0) {
       filteredMetadata = filteredMetadata.filter(metadata => {
         return filterTags.some(tag => {
-          if (metadata.tags) {
-            return metadata.tags.includes(tag);
+          if (metadata.metadata.tags) {
+            return metadata.metadata.tags.includes(tag);
           }
           return false;
         });
@@ -232,8 +231,10 @@ export class MetadataDisplay<
         return (
           (state.searchValue !== '' &&
             metadata.name.toLowerCase().includes(state.searchValue)) ||
-          (metadata.tags &&
-            metadata.tags.some(tag => state.filterTags.includes(tag)))
+          (metadata.metadata.tags &&
+            metadata.metadata.tags.some((tag: string) =>
+              state.filterTags.includes(tag)
+            ))
         );
       });
       return {
