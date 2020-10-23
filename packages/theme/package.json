@@ -32,11 +32,11 @@
   },
   "dependencies": {
     "@elyra/ui-components": "^2.0.0-dev",
-    "@jupyterlab/application": "^3.0.0-rc.5",
-    "@jupyterlab/apputils": "^3.0.0-rc.5",
-    "@jupyterlab/launcher": "^3.0.0-rc.5",
-    "@jupyterlab/mainmenu": "^3.0.0-rc.5",
-    "@jupyterlab/ui-components": "^3.0.0-rc.5",
+    "@jupyterlab/application": "^3.0.0-rc.6",
+    "@jupyterlab/apputils": "^3.0.0-rc.6",
+    "@jupyterlab/launcher": "^3.0.0-rc.6",
+    "@jupyterlab/mainmenu": "^3.0.0-rc.6",
+    "@jupyterlab/ui-components": "^3.0.0-rc.6",
     "@lumino/algorithm": "^1.3.3",
     "react": "^16.13.1"
   },

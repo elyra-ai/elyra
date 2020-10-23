@@ -33,10 +33,10 @@
   },
   "dependencies": {
     "@elyra/ui-components": "^2.0.0-dev",
-    "@jupyterlab/apputils": "^3.0.0-rc.5",
-    "@jupyterlab/coreutils": "^5.0.0-rc.5",
-    "@jupyterlab/services": "^6.0.0-rc.5",
-    "@jupyterlab/ui-components": "^3.0.0-rc.5",
+    "@jupyterlab/apputils": "^3.0.0-rc.6",
+    "@jupyterlab/coreutils": "^5.0.0-rc.6",
+    "@jupyterlab/services": "^6.0.0-rc.6",
+    "@jupyterlab/ui-components": "^3.0.0-rc.6",
     "react": "^16.13.1"
   },
   "devDependencies": {

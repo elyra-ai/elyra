@@ -54,7 +54,7 @@ setup_args = dict(
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
         # 'jupyterlab-git==0.21.1',
-        'jupyterlab>==3.0.0rc5',
+        'jupyterlab>==3.0.0rc6',
         'kfp-notebook>=0.12.0,<0.13.0',
         'kfp==1.0.0',
         'minio>=5.0.7',
