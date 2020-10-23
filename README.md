@@ -51,7 +51,7 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.2.1?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.3.0?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
 - [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
 #### Using Docker
@@ -64,14 +64,14 @@ You can also try Elyra by running one of the docker images from [Docker Hub](htt
 The command below starts the most recent development build in a clean environment:
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:1.3.0 jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:dev jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:1.3.0 jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used
@@ -127,7 +127,7 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra 1.3.0.dev0 OK
+      elyra 1.3.0 OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.2.8 OK
@@ -145,11 +145,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.3.0-dev  enabled  OK*
-        @elyra/metadata-extension v1.3.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension v1.3.0-dev  enabled  OK*
-        @elyra/python-editor-extension v1.3.0-dev  enabled  OK*
-        @elyra/theme-extension v1.3.0-dev  enabled  OK*
+        @elyra/code-snippet-extension v1.3.0  enabled  OK*
+        @elyra/metadata-extension v1.3.0  enabled  OK*
+        @elyra/pipeline-editor-extension v1.3.0  enabled  OK*
+        @elyra/python-editor-extension v1.3.0  enabled  OK*
+        @elyra/theme-extension v1.3.0  enabled  OK*
         @jupyterlab/git v0.21.1  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
