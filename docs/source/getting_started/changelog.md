@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.3 (10/23/2020)
+
+- Package extension dependencies with Elyra single extension wheel [#998](https://github.com/elyra-ai/elyra/pull/998)
+
 ## 1.3.2 (10/23/2020)
 
 - Update release to build 'elyra-server' before 'elyra'  [#997](https://github.com/elyra-ai/elyra/pull/997)
