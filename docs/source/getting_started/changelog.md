@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 (10/23/2020)
+
+- Fix deployment of individual Elyra extensions  [#996](https://github.com/elyra-ai/elyra/pull/996)
+
 ## 1.3.0 (10/22/2020)
 
 - Use `python3` when executing local python operations [#992](https://github.com/elyra-ai/elyra/pull/992)
