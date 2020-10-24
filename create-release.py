@@ -295,16 +295,26 @@ def show_release_artifacts():
     print('')
 
 
+def copy_extension_archive(extension: str, work_dir: str) -> None:
+    global config
+
+    extension_package_name = f'{extension}-{config.new_version}.tgz'
+    extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
+    extension_package_dest_file = os.path.join(work_dir, 'dist', extension_package_name)
+    os.makedirs(os.path.dirname(extension_package_dest_file), exist_ok=True)
+    shutil.copy(extension_package_source_file, extension_package_dest_file)
+
+
 def prepare_extensions_release() -> None:
     global config
 
-    extensions = ['elyra-code-snippet-extension',
-                  'elyra-pipeline-editor-extension',
-                  'elyra-python-editor-extension']
+    extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-theme-extension', 'elyra-metadata-extension'],
+                  'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-theme-extension', 'elyra-metadata-extension'],
+                  'elyra-python-editor-extension':['elyra-python-editor-extension', 'elyra-theme-extension']}
 
     for extension in extensions:
-        print(f'Preparing extension : {extension}')
         extension_source_dir = os.path.join(config.work_dir, extension)
+        print(f'Preparing extension : {extension} at {extension_source_dir}')
         # clone extension package template
         if os.path.exists(extension_source_dir):
             print(f'Removing working directory: {config.source_dir}')
@@ -315,12 +325,10 @@ def prepare_extensions_release() -> None:
         setup_file = os.path.join(extension_source_dir, 'setup.py')
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        # copy extension package
-        extension_package_name = f'{extension}-{config.new_version}.tgz'
-        extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
-        extension_package_dest_file = os.path.join(extension_source_dir, 'dist', extension_package_name)
-        os.makedirs(os.path.dirname(extension_package_dest_file), exist_ok=True)
-        shutil.copy(extension_package_source_file, extension_package_dest_file)
+
+        for dependency in extensions[extension]:
+            copy_extension_archive(dependency, extension_source_dir)
+
         # build extension
         check_run(['python', 'setup.py', 'bdist_wheel'], cwd=extension_source_dir)
         print('')
