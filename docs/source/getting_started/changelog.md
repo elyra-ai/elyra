@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2 (10/23/2020)
+
+- Update release to build 'elyra-server' before 'elyra'  [#997](https://github.com/elyra-ai/elyra/pull/997)
+
 ## 1.3.1 (10/23/2020)
 
 - Fix deployment of individual Elyra extensions  [#996](https://github.com/elyra-ai/elyra/pull/996)
