@@ -256,7 +256,7 @@ def build_release():
     print("----------------------- Building Release ------------------------")
     print("-----------------------------------------------------------------")
 
-    check_run(["make", "clean", "release"], cwd=config.source_dir, capture_output=False)
+    check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
 
     print('')
 
@@ -341,10 +341,10 @@ def prepare_release() -> None:
     # commit and tag
     check_run(['git', 'commit', '-a', '-m', f'Release v{config.new_version}'], cwd=config.source_dir)
     check_run(['git', 'tag', config.tag], cwd=config.source_dir)
-    # build release wheel and npm artifacts
-    build_release()
     # server-only wheel
     build_server()
+    # build release wheel and npm artifacts
+    build_release()
     # show built release artifacts
     show_release_artifacts()
     # back to development
