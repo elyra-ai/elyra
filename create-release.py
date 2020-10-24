@@ -249,14 +249,33 @@ def checkout_code() -> None:
     print('')
 
 
-def build():
+def build_release():
     global config
 
     print("-----------------------------------------------------------------")
-    print("--------------------------- Building ----------------------------")
+    print("----------------------- Building Release ------------------------")
     print("-----------------------------------------------------------------")
 
     check_run(["make", "clean", "release"], cwd=config.source_dir, capture_output=False)
+
+    print('')
+
+
+def build_server():
+    global config
+
+    print("-----------------------------------------------------------------")
+    print("------------------------ Building Server ------------------------")
+    print("-----------------------------------------------------------------")
+
+    # update project name
+    sed(_source('setup.py'), r'name="elyra"', 'name="elyra-server"')
+
+    # build server wheel
+    check_run(["make", "build-server"], cwd=config.source_dir, capture_output=False)
+
+    # revert project name
+    check_run(["git", "reset", "--hard"], cwd=config.source_dir, capture_output=False)
 
     print('')
 
@@ -294,8 +313,8 @@ def prepare_extensions_release() -> None:
         check_run(['git', 'clone', config.git_extension_package_url, extension], cwd=config.work_dir)
         # update template
         setup_file = os.path.join(extension_source_dir, 'setup.py')
-        sed(setup_file, "elyra-extension", extension)
-        sed(setup_file, "0.0.1", config.new_version)
+        sed(setup_file, "{{package-name}}", extension)
+        sed(setup_file, "{{version}}", config.new_version)
         # copy extension package
         extension_package_name = f'{extension}-{config.new_version}.tgz'
         extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
@@ -319,13 +338,15 @@ def prepare_release() -> None:
     checkout_code()
     # Update to new release version
     update_version_to_release()
-    # build release artifacts
-    build()
-    # show built release artifacts
-    show_release_artifacts()
     # commit and tag
     check_run(['git', 'commit', '-a', '-m', f'Release v{config.new_version}'], cwd=config.source_dir)
     check_run(['git', 'tag', config.tag], cwd=config.source_dir)
+    # build release wheel and npm artifacts
+    build_release()
+    # server-only wheel
+    build_server()
+    # show built release artifacts
+    show_release_artifacts()
     # back to development
     update_version_to_dev()
     # commit
