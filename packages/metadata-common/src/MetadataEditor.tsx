@@ -28,9 +28,9 @@ import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 
-import { MetadataEditorTags } from './Tags';
-
 import * as React from 'react';
+
+import { MetadataEditorTags } from './Tags';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
