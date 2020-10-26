@@ -242,6 +242,7 @@ export class MetadataDisplay<
         return (
           (state.searchValue !== '' &&
             metadata.name.toLowerCase().includes(state.searchValue)) ||
+          metadata.display_name.toLowerCase().includes(state.searchValue) ||
           (metadata.metadata.tags &&
             metadata.metadata.tags.some((tag: string) =>
               state.filterTags.includes(tag)

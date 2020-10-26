@@ -251,6 +251,42 @@ class CodeSnippetDisplay extends MetadataDisplay<
     );
   }
 
+  static getDerivedStateFromProps(
+    props: IMetadataDisplayProps,
+    state: IMetadataDisplayState
+  ): IMetadataDisplayState {
+    if (state.searchValue === '' && state.filterTags.length === 0) {
+      return {
+        metadata: props.metadata,
+        searchValue: '',
+        filterTags: []
+      };
+    }
+
+    if (state.searchValue !== '' || state.filterTags.length !== 0) {
+      const newMetadata = props.metadata.filter((metadata: IMetadata) => {
+        return (
+          (state.searchValue !== '' &&
+            metadata.name.toLowerCase().includes(state.searchValue)) ||
+          metadata.display_name.toLowerCase().includes(state.searchValue) ||
+          metadata.metadata.language
+            .toLowerCase()
+            .includes(state.searchValue) ||
+          (metadata.metadata.tags &&
+            metadata.metadata.tags.some((tag: string) =>
+              state.filterTags.includes(tag)
+            ))
+        );
+      });
+      return {
+        metadata: newMetadata,
+        searchValue: state.searchValue,
+        filterTags: state.filterTags
+      };
+    }
+    return null;
+  }
+
   // Render display of a code snippet
   renderMetadata = (metadata: IMetadata): JSX.Element => {
     return (
