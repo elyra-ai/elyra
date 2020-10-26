@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { checkIcon, addIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
@@ -120,13 +121,19 @@ export class MetadataEditorTags extends React.Component<
     }
   }
 
-  addTagOnKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
+  async addTagOnKeyDown(
+    event: React.KeyboardEvent<HTMLInputElement>
+  ): Promise<void> {
     const inputElement = event.target as HTMLInputElement;
 
     if (inputElement.value !== '' && event.keyCode === 13) {
       if (this.state.tags.includes(inputElement.value)) {
-        alert('Duplicate Tag Name!');
-        return;
+        return showDialog({
+          title: 'Duplicate Tag Name!',
+          buttons: [Dialog.okButton()]
+        }).then((value: any) => {
+          console.log('VALUE');
+        });
       }
 
       const newTag = inputElement.value;
@@ -165,9 +172,11 @@ export class MetadataEditorTags extends React.Component<
             onClick={(
               event: React.MouseEvent<HTMLInputElement, MouseEvent>
             ): void => this.addTagOnClick(event)}
-            onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>): void =>
-              this.addTagOnKeyDown(event)
-            }
+            onKeyDown={async (
+              event: React.KeyboardEvent<HTMLInputElement>
+            ): Promise<void> => {
+              await this.addTagOnKeyDown(event);
+            }}
             onBlur={(event: React.FocusEvent<HTMLInputElement>): void =>
               this.addTagOnBlur(event)
             }
