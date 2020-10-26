@@ -46,17 +46,12 @@ rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/etc/jupyter
 rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter
 echo " "
 
-echo "Installing/Updating Notebook and JupyterLab"
-pip install --upgrade notebook
+echo "Installing/Updating JupyterLab"
 pip install --upgrade "jupyterlab$LAB_VERSION"
 echo " "
 
 echo "Installing Xeus kernel"
 conda install -y xeus-python -c conda-forge
-echo " "
-
-echo "Installing JupyterLab Debugger"
-#jupyter labextension install --no-build @jupyterlab/debugger
 echo " "
 
 jupyter --version
