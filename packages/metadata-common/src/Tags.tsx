@@ -57,7 +57,7 @@ export class MetadataEditorTags extends React.Component<
   componentDidMount(): void {
     this.setState({
       selectedTags: this.props.selectedTags ? this.props.selectedTags : [],
-      tags: this.props.tags ? this.props.tags : [],
+      tags: this.props.tags ? this.props.tags.sort() : [],
       plusIconShouldHide: false,
       addingNewTag: false
     });
