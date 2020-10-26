@@ -14,11 +14,13 @@
 # limitations under the License.
 #
 import os
+import papermill
 import time
 
 from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
+from notebook.gateway.managers import GatewayClient
 from subprocess import run
 from traitlets import log
 from typing import Dict
@@ -136,25 +138,21 @@ class FileOperationProcessor(OperationProcessor):
         super(FileOperationProcessor, self).__init__()
         self._root_dir = root_dir
 
+    @property
+    def operation_name(self) -> str:
+        return self._operation_name
+
+    @abstractmethod
     def process(self, operation: Operation):
-        filepath = get_absolute_path(self._root_dir, operation.filename)
+        raise NotImplementedError
+
+    def get_valid_filepath(self, op_filename):
+        filepath = get_absolute_path(self._root_dir, op_filename)
         if not os.path.exists(filepath):
             raise FileNotFoundError(f'Could not find {filepath}')
         if not os.path.isfile(filepath):
             raise ValueError(f'Not a file: {filepath}')
-
-        self.log.debug(f'Processing: {filepath}')
-        file_dir = os.path.dirname(filepath)
-        argv = self._create_execute_command(filepath, file_dir)
-        envs = operation.env_vars_as_dict(self.log)
-        try:
-            run(argv, cwd=file_dir, env=envs, check=True)
-        except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
-
-    @abstractmethod
-    def _create_execute_command(self, filepath: str, cdw: str) -> list:
-        raise NotImplementedError
+        return filepath
 
 
 class NotebookOperationProcessor(FileOperationProcessor):
@@ -163,8 +161,42 @@ class NotebookOperationProcessor(FileOperationProcessor):
     def __init__(self, root_dir: str):
         super(NotebookOperationProcessor, self).__init__(root_dir)
 
-    def _create_execute_command(self, filepath: str, cdw: str) -> list:
-        return ['papermill', filepath, filepath, '--cwd', cdw]
+    def process(self, operation: Operation):
+        filepath = self.get_valid_filepath(operation.filename)
+
+        file_dir = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing notebook: {filepath}')
+
+        # We'll always use the ElyraEngine.  This engine is essentially the default Papermill engine
+        # but allows for environment variables to be passed to the kernel process (via 'kernel_env').
+        # If the current notebook server is running with Enterprise Gateway configured, we will also
+        # point the 'kernel_manager_class' to our HTTPKernelManager so that notebooks run as they
+        # would outside of Elyra.  Current working directory (cwd) is specified both for where papermill
+        # runs the notebook (cwd) and where the directory of the kernel process (kernel_cwd).  The latter
+        # of which is important when EG is configured.
+        additional_kwargs = dict()
+        additional_kwargs['engine_name'] = "ElyraEngine"
+        additional_kwargs['cwd'] = file_dir  # For local operations, papermill runs from this dir
+        additional_kwargs['kernel_cwd'] = file_dir
+        additional_kwargs['kernel_env'] = operation.env_vars_as_dict()
+        if GatewayClient.instance().gateway_enabled:
+            additional_kwargs['kernel_manager_class'] = 'elyra.pipeline.http_kernel_manager.HTTPKernelManager'
+
+        t0 = time.time()
+        try:
+            papermill.execute_notebook(
+                filepath,
+                filepath,
+                **additional_kwargs
+            )
+        except Exception as ex:
+            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
 
 
 class PythonScriptOperationProcessor(FileOperationProcessor):
@@ -173,5 +205,22 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
     def __init__(self, root_dir):
         super(PythonScriptOperationProcessor, self).__init__(root_dir)
 
-    def _create_execute_command(self, filepath: str, cwd: str) -> list:
-        return ['python', filepath, '--PYTHONHOME', cwd]
+    def process(self, operation: Operation):
+        filepath = self.get_valid_filepath(operation.filename)
+
+        file_dir = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing python script: {filepath}')
+
+        argv = ['python3', filepath, '--PYTHONHOME', file_dir]
+        envs = operation.env_vars_as_dict()
+        t0 = time.time()
+        try:
+            run(argv, cwd=file_dir, env=envs, check=True)
+        except Exception as ex:
+            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')

@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.3.3 (10/23/2020)
+
+- Package extension dependencies with Elyra single extension wheel [#998](https://github.com/elyra-ai/elyra/pull/998)
+
+## 1.3.2 (10/23/2020)
+
+- Update release to build 'elyra-server' before 'elyra'  [#997](https://github.com/elyra-ai/elyra/pull/997)
+
+## 1.3.1 (10/23/2020)
+
+- Fix deployment of individual Elyra extensions  [#996](https://github.com/elyra-ai/elyra/pull/996)
+
+## 1.3.0 (10/22/2020)
+
+- Use `python3` when executing local python operations [#992](https://github.com/elyra-ai/elyra/pull/992)
+- Integrate with `nbresuse` to display local resource usage on status bar [#987](https://github.com/elyra-ai/elyra/pull/987)
+- Enable local pipeline executions when server uses Enterprise Gateway [#983](https://github.com/elyra-ai/elyra/pull/983)
+- Sort list of runtime images retrieved from service [#982](https://github.com/elyra-ai/elyra/pull/982)
+- Update to Elyra Canvas 9.1.6 [#986](https://github.com/elyra-ai/elyra/pull/986)
+- Increased test coverage [#886](https://github.com/elyra-ai/elyra/pull/886) [#751](https://github.com/elyra-ai/elyra/pull/751) [#940](https://github.com/elyra-ai/elyra/pull/940)
+- Update Binder build config to enable cloning git repos from ui [#963](https://github.com/elyra-ai/elyra/pull/963)
+- Automate the release of independent Elyra package [#973](https://github.com/elyra-ai/elyra/pull/973)
+- Add common format for pipeline process logging [#950](https://github.com/elyra-ai/elyra/pull/950)
+- Add help icon to launcher [#968](https://github.com/elyra-ai/elyra/pull/968)
+- Multiple updates to documentation [#979](https://github.com/elyra-ai/elyra/pull/979) [#947](https://github.com/elyra-ai/elyra/pull/947) [#949](https://github.com/elyra-ai/elyra/pull/949) [#945](https://github.com/elyra-ai/elyra/pull/945)
+- Add exported file location to response dialog [#967](https://github.com/elyra-ai/elyra/pull/967)
+
 ## 1.2.1 (09/23/2020)
 
 - Fix dependency install in Elyra docker image [#941](https://github.com/elyra-ai/elyra/pull/941)

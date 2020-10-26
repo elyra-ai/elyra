@@ -249,14 +249,33 @@ def checkout_code() -> None:
     print('')
 
 
-def build():
+def build_release():
     global config
 
     print("-----------------------------------------------------------------")
-    print("--------------------------- Building ----------------------------")
+    print("----------------------- Building Release ------------------------")
     print("-----------------------------------------------------------------")
 
-    check_run(["make", "clean", "release"], cwd=config.source_dir, capture_output=False)
+    check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
+
+    print('')
+
+
+def build_server():
+    global config
+
+    print("-----------------------------------------------------------------")
+    print("------------------------ Building Server ------------------------")
+    print("-----------------------------------------------------------------")
+
+    # update project name
+    sed(_source('setup.py'), r'name="elyra"', 'name="elyra-server"')
+
+    # build server wheel
+    check_run(["make", "build-server"], cwd=config.source_dir, capture_output=False)
+
+    # revert project name
+    check_run(["git", "reset", "--hard"], cwd=config.source_dir, capture_output=False)
 
     print('')
 
@@ -276,16 +295,26 @@ def show_release_artifacts():
     print('')
 
 
+def copy_extension_archive(extension: str, work_dir: str) -> None:
+    global config
+
+    extension_package_name = f'{extension}-{config.new_version}.tgz'
+    extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
+    extension_package_dest_file = os.path.join(work_dir, 'dist', extension_package_name)
+    os.makedirs(os.path.dirname(extension_package_dest_file), exist_ok=True)
+    shutil.copy(extension_package_source_file, extension_package_dest_file)
+
+
 def prepare_extensions_release() -> None:
     global config
 
-    extensions = ['elyra-code-snippet-extension',
-                  'elyra-pipeline-editor-extension',
-                  'elyra-python-editor-extension']
+    extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-theme-extension', 'elyra-metadata-extension'],
+                  'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-theme-extension', 'elyra-metadata-extension'],
+                  'elyra-python-editor-extension':['elyra-python-editor-extension', 'elyra-theme-extension']}
 
     for extension in extensions:
-        print(f'Preparing extension : {extension}')
         extension_source_dir = os.path.join(config.work_dir, extension)
+        print(f'Preparing extension : {extension} at {extension_source_dir}')
         # clone extension package template
         if os.path.exists(extension_source_dir):
             print(f'Removing working directory: {config.source_dir}')
@@ -294,14 +323,12 @@ def prepare_extensions_release() -> None:
         check_run(['git', 'clone', config.git_extension_package_url, extension], cwd=config.work_dir)
         # update template
         setup_file = os.path.join(extension_source_dir, 'setup.py')
-        sed(setup_file, "elyra-extension", extension)
-        sed(setup_file, "0.0.1", config.new_version)
-        # copy extension package
-        extension_package_name = f'{extension}-{config.new_version}.tgz'
-        extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
-        extension_package_dest_file = os.path.join(extension_source_dir, 'dist', extension_package_name)
-        os.makedirs(os.path.dirname(extension_package_dest_file), exist_ok=True)
-        shutil.copy(extension_package_source_file, extension_package_dest_file)
+        sed(setup_file, "{{package-name}}", extension)
+        sed(setup_file, "{{version}}", config.new_version)
+
+        for dependency in extensions[extension]:
+            copy_extension_archive(dependency, extension_source_dir)
+
         # build extension
         check_run(['python', 'setup.py', 'bdist_wheel'], cwd=extension_source_dir)
         print('')
@@ -319,13 +346,15 @@ def prepare_release() -> None:
     checkout_code()
     # Update to new release version
     update_version_to_release()
-    # build release artifacts
-    build()
-    # show built release artifacts
-    show_release_artifacts()
     # commit and tag
     check_run(['git', 'commit', '-a', '-m', f'Release v{config.new_version}'], cwd=config.source_dir)
     check_run(['git', 'tag', config.tag], cwd=config.source_dir)
+    # server-only wheel
+    build_server()
+    # build release wheel and npm artifacts
+    build_release()
+    # show built release artifacts
+    show_release_artifacts()
     # back to development
     update_version_to_dev()
     # commit
