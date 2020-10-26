@@ -46,9 +46,7 @@
   },
   "jupyterlab": {
     "extension": true,
-    "disabledExtensions": [
-      "@jupyterlab/launcher-extension"
-    ]
+    "disabledExtensions": []
   },
   "publishConfig": {
     "access": "public"
