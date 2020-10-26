@@ -231,16 +231,9 @@ mark.elyra-search-bolding {
   height: 140px;
   width: 100%;
   margin-bottom: 10px;
-  overflow: auto;
-}
-
-.elyra-filter-title {
-  text-transform: uppercase;
-  color: var(--jp-ui-font-color2);
-  font-size: var(--jp-ui-font-size1);
-  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
-  margin: 10px 10px;
+  padding-top: 5px;
   padding-bottom: 5px;
+  overflow: auto;
 }
 
 .elyra-filter-tags {

@@ -34,7 +34,6 @@ const FILTER_OPTION = 'elyra-filter-option';
 const FILTER_TAGS = 'elyra-filter-tags';
 const FILTER_TAG = 'elyra-filter-tag';
 const FILTER_CHECK = 'elyra-filter-check';
-const FILTER_TITLE = 'elyra-filter-title';
 const FILTER_TOOLS = 'elyra-filterTools';
 const FILTER_SEARCHBAR = 'elyra-searchbar';
 const FILTER_SEARCHWRAPPER = 'elyra-searchwrapper';
@@ -179,14 +178,7 @@ export class FilterTools extends React.Component<
   }
 
   renderFilterOption(): JSX.Element {
-    return (
-      <div className={`${FILTER_OPTION} idle`}>
-        <div className={FILTER_TITLE}>
-          <span>cell tags</span>
-        </div>
-        {this.renderTags()}
-      </div>
-    );
+    return <div className={`${FILTER_OPTION} idle`}>{this.renderTags()}</div>;
   }
 
   render(): JSX.Element {
