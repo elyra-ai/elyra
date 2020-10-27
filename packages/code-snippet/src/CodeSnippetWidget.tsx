@@ -264,19 +264,15 @@ class CodeSnippetDisplay extends MetadataDisplay<
     }
 
     if (state.searchValue !== '' || state.filterTags.length !== 0) {
+      const filterTags = new Set(state.filterTags);
       const newMetadata = props.metadata.filter((metadata: IMetadata) => {
-        return (
-          (state.searchValue !== '' &&
-            metadata.name.toLowerCase().includes(state.searchValue)) ||
-          metadata.display_name.toLowerCase().includes(state.searchValue) ||
-          metadata.metadata.language
-            .toLowerCase()
-            .includes(state.searchValue) ||
-          (metadata.metadata.tags &&
-            metadata.metadata.tags.some((tag: string) =>
-              state.filterTags.includes(tag)
-            ))
-        );
+        const searchValue = state.searchValue.toLowerCase().trim();
+        return searchValue
+            && (metadata.name.toLowerCase().includes(searchValue) 
+                || metadata.display_name.toLowerCase().includes(searchValue) 
+                || metadata.metadata.language.toLowerCase().includes(searchValue)) 
+            || metadata.metadata.tags 
+                && metadata.metadata.tags.some((tag: string) => filterTags.has(tag));
       });
       return {
         metadata: newMetadata,
