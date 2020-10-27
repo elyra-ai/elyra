@@ -96,7 +96,6 @@
   margin-bottom: 12px;
   margin-right: 20px;
   flex-basis: 45%;
-  height: 65px;
 }
 
 .bp3-select-popover {
@@ -261,7 +260,6 @@ mark.elyra-search-bolding {
 .elyra-editor-tagList {
   list-style: none;
   margin-left: -3px;
-  margin-bottom: 8px;
   margin-top: 4px;
 }
 

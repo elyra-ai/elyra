@@ -130,10 +130,8 @@ export class MetadataEditorTags extends React.Component<
       if (this.state.tags.includes(inputElement.value)) {
         event.preventDefault();
         await showDialog({
-          title: 'Duplicate Tag Name!',
+          title: 'A tag with this label already exists.',
           buttons: [Dialog.okButton()]
-        }).then((value: any) => {
-          console.log('VALUE');
         });
         return;
       }
