@@ -267,12 +267,19 @@ class CodeSnippetDisplay extends MetadataDisplay<
       const filterTags = new Set(state.filterTags);
       const newMetadata = props.metadata.filter((metadata: IMetadata) => {
         const searchValue = state.searchValue.toLowerCase().trim();
-        return searchValue
-            && (metadata.name.toLowerCase().includes(searchValue) 
-                || metadata.display_name.toLowerCase().includes(searchValue) 
-                || metadata.metadata.language.toLowerCase().includes(searchValue)) 
-            || metadata.metadata.tags 
-                && metadata.metadata.tags.some((tag: string) => filterTags.has(tag));
+        // True if search string is in name, display_name, or language of snippet
+        // or if the search string is empty
+        const matchesSearch =
+          metadata.name.toLowerCase().includes(searchValue) ||
+          metadata.display_name.toLowerCase().includes(searchValue) ||
+          metadata.metadata.language.toLowerCase().includes(searchValue);
+        // True if there are no tags selected or if there are tags that match
+        // tags of metadata
+        const matchesTags =
+          filterTags.size === 0 ||
+          (metadata.metadata.tags &&
+            metadata.metadata.tags.some((tag: string) => filterTags.has(tag)));
+        return matchesSearch && matchesTags;
       });
       return {
         metadata: newMetadata,

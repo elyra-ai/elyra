@@ -238,16 +238,23 @@ export class MetadataDisplay<
     }
 
     if (state.searchValue !== '' || state.filterTags.length !== 0) {
+      const filterTags = new Set(state.filterTags);
+
       const newMetadata = props.metadata.filter(metadata => {
-        return (
-          (state.searchValue !== '' &&
-            metadata.name.toLowerCase().includes(state.searchValue)) ||
-          metadata.display_name.toLowerCase().includes(state.searchValue) ||
+        const searchValue = state.searchValue.toLowerCase().trim();
+        // True if search string is in name, display_name, or language of snippet
+        // or if the search string is empty
+        const matchesSearch =
+          metadata.name.toLowerCase().includes(searchValue) ||
+          metadata.display_name.toLowerCase().includes(searchValue) ||
+          metadata.metadata.language.toLowerCase().includes(searchValue);
+        // True if there are no tags selected or if there are tags that match
+        // tags of metadata
+        const matchesTags =
+          filterTags.size === 0 ||
           (metadata.metadata.tags &&
-            metadata.metadata.tags.some((tag: string) =>
-              state.filterTags.includes(tag)
-            ))
-        );
+            metadata.metadata.tags.some((tag: string) => filterTags.has(tag)));
+        return matchesSearch && matchesTags;
       });
       return {
         metadata: newMetadata,
