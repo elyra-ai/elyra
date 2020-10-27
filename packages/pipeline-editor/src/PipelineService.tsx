@@ -58,7 +58,11 @@ export class PipelineService {
    * to run the pipeline nodes.
    */
   static async getRuntimeImages(): Promise<any> {
-    const runtimeImages = await FrontendServices.getMetadata('runtime-images');
+    let runtimeImages = await FrontendServices.getMetadata('runtime-images');
+
+    runtimeImages = runtimeImages.sort(
+      (a: any, b: any) => 0 - (a.name > b.name ? -1 : 1)
+    );
 
     if (Object.keys(runtimeImages).length === 0) {
       return FrontendServices.noMetadataError('runtime-images');

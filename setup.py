@@ -51,19 +51,23 @@ setup_args = dict(
         'jinja2>=2.11,<3.0',
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
-        # 'jupyterlab-git==0.21.1',
+        'jupyter_client>=6.1',
+        'jupyter_server>=1.0.5',
         'jupyterlab>==3.0.0rc6',
-        'kfp-notebook>=0.12.0,<0.13.0',
+        # 'jupyterlab-git==0.21.1',
+        'kfp-notebook>=0.13.0,<0.14.0',
         'kfp==1.0.0',
         'minio>=5.0.7',
+        'nbclient>=0.5.1',
         'nbconvert>=5.6.1,<6.0',
         # 'nbdime>=2.0.0',
-        'jupyter_server>=1.0.5',
+        'nbresuse>=0.3.6',
         'papermill>=2.1.3',
         'requests>=2.9.1,<3.0',
         'rfc3986-validator>=0.1.1',
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
+        'websocket-client',
     ],
     include_package_data=True,
     classifiers=(
@@ -85,6 +89,9 @@ setup_args = dict(
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
             'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'
+        ],
+        'papermill.engine': [
+            'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',
         ]
     },
 )

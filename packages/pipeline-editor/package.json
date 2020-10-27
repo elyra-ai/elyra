@@ -70,7 +70,6 @@
     "uuid": "^3.4.0"
   },
   "devDependencies": {
-    "@jupyterlab/testutils": "^1.0.0",
     "@types/enzyme": "^3.10.5",
     "@types/enzyme-adapter-react-16": "^1.0.6",
     "@types/jest": "^23.3.11",

@@ -49,5 +49,5 @@ def _load_jupyter_server_extension(nb_server_app):
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/export'), PipelineExportHandler),
     ])
     # Create PipelineProcessorManager instance passing root directory
-    PipelineProcessorManager.instance(root_dir=web_app.settings['server_root_dir'])
+    PipelineProcessorManager.instance(root_dir=web_app.settings['server_root_dir'], parent=nb_server_app)
 

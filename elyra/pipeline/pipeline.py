@@ -14,15 +14,16 @@
 # limitations under the License.
 #
 import os
-from typing import Dict
+from typing import Dict, Optional
 
 
 class Operation(object):
     """
     Represents a single operation in a pipeline
     """
+
     def __init__(self, id, type, classifier, filename, runtime_image, dependencies=None,
-                 include_subdirectories=False, env_vars=None, inputs=None, outputs=None,
+                 include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
                  parent_operations=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -103,20 +104,23 @@ class Operation(object):
     def env_vars(self):
         return self._env_vars
 
-    @property
-    def env_vars_as_dict(self) -> Dict:
+    def env_vars_as_dict(self, logger: Optional[object] = None) -> Dict:
         """Operation stores environment variables in a list of name=value pairs, while
            subprocess.run() requires a dictionary - so we must convert.  If no envs are
            configured on the Operation, the existing env is returned, otherwise envs
            configured on the Operation are overlayed on the existing env.
         """
-        envs = os.environ.copy()
+        envs = {}
         for nv in self.env_vars:
-            nv_pair = nv.split("=")
-            if len(nv_pair) == 2:
-                envs[nv_pair[0]] = nv_pair[1]
-            else:
-                self.log.warning(f"Could not process environment variable entry `{nv}`, skipping...")
+            if len(nv) > 0:
+                nv_pair = nv.split("=")
+                if len(nv_pair) == 2:
+                    envs[nv_pair[0]] = nv_pair[1]
+                else:
+                    if logger:
+                        logger.warning(f"Could not process environment variable entry `{nv}`, skipping...")
+                    else:
+                        print(f"Could not process environment variable entry `{nv}`, skipping...")
         return envs
 
     @property
@@ -230,7 +234,8 @@ class Pipeline(object):
 
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
-            return self.name == other.name and \
-                self.runtime_type == other.runtime_type and \
+            return self.id == other.id and \
+                self.name == other.name and \
+                self.runtime == other.runtime and \
                 self.runtime_config == other.runtime_config and \
                 self.operations == other.operations
