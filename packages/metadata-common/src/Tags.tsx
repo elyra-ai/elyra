@@ -128,6 +128,7 @@ export class MetadataEditorTags extends React.Component<
 
     if (inputElement.value !== '' && event.keyCode === 13) {
       if (this.state.tags.includes(inputElement.value)) {
+        event.preventDefault();
         await showDialog({
           title: 'Duplicate Tag Name!',
           buttons: [Dialog.okButton()]
