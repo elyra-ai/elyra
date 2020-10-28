@@ -2,7 +2,12 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Schema for Airflow runtime metadata",
   "name": "airflow",
+  "display_name": "Apache Airflow runtime",
   "namespace": "runtimes",
+  "uihints": {
+    "title": "Apache Airflow runtimes",
+    "icon": "elyra:runtimes"
+  },
   "properties": {
     "schema_name": {
       "type": "string",
@@ -65,5 +70,5 @@
       ]
     }
   },
-  "required": ["schema_name", "display_name"]
+  "required": ["schema_name", "display_name", "metadata"]
 }

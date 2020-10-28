@@ -60,6 +60,7 @@ class AirflowPipelineProcessor(PipelineProcessor):
             api_endpoint = runtime_configuration.metadata['api_endpoint']
             cos_endpoint = runtime_configuration.metadata['cos_endpoint']
             cos_bucket = runtime_configuration.metadata['cos_bucket']
+            cos_dag_bucket = runtime_configuration.metadata['cos_dag_bucket']
             cos_directory = ''
 
             try:
@@ -67,7 +68,8 @@ class AirflowPipelineProcessor(PipelineProcessor):
 
                 cos_client.upload_file_to_dir(dir=cos_directory,
                                               file_name=pipeline_name + ".py",
-                                              file_path=pipeline_filepath)
+                                              file_path=pipeline_filepath,
+                                              dag_bucket=cos_dag_bucket)
 
                 self.log.info("Uploaded AirFlow Pipeline...waiting for Airflow Scheduler to start a run")
 
