@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as path from 'path';
-
 import { IDictionary } from '@elyra/application';
 import {
   CommonCanvas,
@@ -37,6 +35,7 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
 import {
   DocumentRegistry,
   ABCWidgetFactory,
@@ -504,9 +503,9 @@ export class PipelineEditor extends React.Component<
 
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
-      node.label = path.basename(
+      node.label = PathExt.basename(
         propertySet.filename,
-        path.extname(propertySet.filename)
+        PathExt.extname(propertySet.filename)
       );
     }
 
@@ -537,11 +536,11 @@ export class PipelineEditor extends React.Component<
     );
 
     if (id === 'browse_file') {
-      const currentExt = path.extname(filename);
+      const currentExt = PathExt.extname(filename);
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
-        startPath: path.dirname(filename),
+        startPath: PathExt.dirname(filename),
         filter: (model: any): boolean => {
-          const ext = path.extname(model.path);
+          const ext = PathExt.extname(model.path);
           return currentExt === ext;
         }
       }).then((result: any) => {
@@ -559,7 +558,7 @@ export class PipelineEditor extends React.Component<
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
         multiselect: true,
         includeDir: true,
-        rootPath: path.dirname(filename),
+        rootPath: PathExt.dirname(filename),
         filter: (model: any): boolean => {
           // do not include the notebook itself
           return model.path !== filename;
@@ -854,10 +853,10 @@ export class PipelineEditor extends React.Component<
     const pipelineFlow = this.canvasController.getPipelineFlow();
     const pipeline_path = this.widgetContext.path;
 
-    const pipeline_dir = path.dirname(pipeline_path);
-    const pipeline_name = path.basename(
+    const pipeline_dir = PathExt.dirname(pipeline_path);
+    const pipeline_name = PathExt.basename(
       pipeline_path,
-      path.extname(pipeline_path)
+      PathExt.extname(pipeline_path)
     );
     const pipeline_export_format = dialogResult.value.pipeline_filetype;
     const pipeline_export_path =
@@ -1186,9 +1185,9 @@ export class PipelineEditor extends React.Component<
       return;
     }
 
-    const pipelineName = path.basename(
+    const pipelineName = PathExt.basename(
       this.widgetContext.path,
-      path.extname(this.widgetContext.path)
+      PathExt.extname(this.widgetContext.path)
     );
 
     const runtimes = await PipelineService.getRuntimes(false);
