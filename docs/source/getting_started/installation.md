@@ -17,7 +17,7 @@ limitations under the License.
 -->
 ## Installation
 
-The Elyra [JupyterLab extension](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed using `pip`, `conda`, or from source code.
+The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed using `pip`, `conda`, or from source code.
 
 Note: JupyterLab currently requires a re-build after installing any extension.
 
@@ -64,6 +64,20 @@ If you use `conda`, install Elyra with:
 
 ```bash
 conda install -c conda-forge elyra && jupyter lab build
+```
+
+or install the Pipeline editor, Code Snippet, or Python editor extensions individually:
+
+```bash
+conda install -c conda-forge elyra-pipeline-editor-extension && jupyter lab build
+```
+
+```bash
+conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
+```
+
+```bash
+conda install -c conda-forge elyra-python-editor-extension && jupyter lab build
 ```
 
 ### Build from source
