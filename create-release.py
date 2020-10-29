@@ -330,7 +330,7 @@ def prepare_extensions_release() -> None:
             copy_extension_archive(dependency, extension_source_dir)
 
         # build extension
-        check_run(['python', 'setup.py', 'bdist_wheel'], cwd=extension_source_dir)
+        check_run(['python', 'setup.py', 'bdist_wheel', 'sdist'], cwd=extension_source_dir)
         print('')
 
 
