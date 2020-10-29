@@ -802,7 +802,7 @@ export class PipelineEditor extends React.Component<
       return showDialog({
         title: 'Unsupported File(s)',
         body:
-          'Currently, only selected notebook files can be added to a pipeline',
+          'Currently, only selected notebook and python script files can be added to a pipeline',
         buttons: [Dialog.okButton()]
       });
     }
