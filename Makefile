@@ -61,7 +61,7 @@ uninstall:
 	$(call UNINSTALL_LAB_EXTENSION,@jupyterlab/toc)
 	pip uninstall -y jupyterlab-git
 	pip uninstall -y elyra
-	jupyter lab clean
+	- jupyter lab clean
 
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
