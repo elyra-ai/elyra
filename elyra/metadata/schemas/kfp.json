@@ -97,7 +97,7 @@
         },
         "tags": {
           "title": "Tags",
-          "description": "Tags for categorizing snippets",
+          "description": "Tags for categorizing Kubeflow pipelines",
           "type": "array",
           "uihints": {
             "field_type": "tags"
