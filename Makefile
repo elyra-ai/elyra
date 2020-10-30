@@ -156,7 +156,7 @@ docker-image: ## Build docker image
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
 	for file in `find etc/config/metadata/runtime-images -name "*.json"` ; do \
-		image=`grep image_name $$file | awk '{print $$2}' | sed s/\"//g` ; \
+		image=`grep image_name $$file | awk '{print $$2}' | sed s/\"//g | sed s/,//g` ; \
 		fail=0; \
 		for cmd in $$required_commands ; do \
 			echo Checking $$image in $$file for $$cmd... ; \
