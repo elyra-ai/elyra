@@ -225,25 +225,6 @@ export class MetadataDisplay<
     return tags;
   }
 
-  static matchesSearch(
-    searchValue: string,
-    filterTags: Set<string>,
-    metadata: IMetadata
-  ): boolean {
-    // True if search string is in name, display_name, or language of snippet
-    // or if the search string is empty
-    const matchesSearch =
-      metadata.name.toLowerCase().includes(searchValue) ||
-      metadata.display_name.toLowerCase().includes(searchValue);
-    // True if there are no tags selected or if there are tags that match
-    // tags of metadata
-    const matchesTags =
-      filterTags.size === 0 ||
-      (metadata.metadata.tags &&
-        metadata.metadata.tags.some((tag: string) => filterTags.has(tag)));
-    return matchesSearch && matchesTags;
-  }
-
   static getDerivedStateFromProps(
     props: IMetadataDisplayProps,
     state: IMetadataDisplayState
@@ -260,9 +241,21 @@ export class MetadataDisplay<
       const filterTags = new Set(state.filterTags);
       const searchValue = state.searchValue.toLowerCase().trim();
 
-      const newMetadata = props.metadata.filter(metadata =>
-        MetadataDisplay.matchesSearch(searchValue, filterTags, metadata)
-      );
+      const newMetadata = props.metadata.filter(metadata => {
+        // True if search string is in name, display_name, or language of snippet
+        // or if the search string is empty
+        const matchesSearch =
+          metadata.name.toLowerCase().includes(searchValue) ||
+          metadata.display_name.toLowerCase().includes(searchValue);
+        // True if there are no tags selected or if there are tags that match
+        // tags of metadata
+        const matchesTags =
+          filterTags.size === 0 ||
+          (metadata.metadata.tags &&
+            metadata.metadata.tags.some((tag: string) => filterTags.has(tag)));
+
+        return matchesSearch && matchesTags;
+      });
       return {
         metadata: newMetadata,
         searchValue: state.searchValue,
