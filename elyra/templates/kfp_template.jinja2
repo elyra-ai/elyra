@@ -10,20 +10,21 @@ from kfp_notebook.pipeline import NotebookOp
 def create_pipeline():
     {% for key, operation in operations_list.items() %}
         {% set op_name = operation.notebook_name.split('.') %}
-        {% set operation_id = op_name[0] | replace ("/","_") %}
-            notebook_op_{{ operation_id }} = NotebookOp(name='{{ operation_id }}',
-                                                          notebook='{{ operation.notebook_name }}',
-                                                          cos_endpoint='{{ operation.cos_endpoint }}',
-                                                          cos_bucket='{{ operation.cos_bucket }}',
-                                                          cos_directory='{{ operation.cos_directory }}',
-                                                          cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
-                                                          pipeline_inputs='{{ operation.pipeline_inputs }}',
-                                                          pipeline_outputs='{{ operation.pipeline_outputs }}',
-                                                          image='{{ operation.image }}')
+        {% set operation_id = op_name[0] | to_basename %}
+            # Operator for "{{ operation.notebook_name | to_basename }}"
+            notebook_op_{{ loop.index }} = NotebookOp(name='{{ operation_id }}',
+                                                      notebook='{{ operation.notebook_name | to_basename }}',
+                                                      cos_endpoint='{{ operation.cos_endpoint }}',
+                                                      cos_bucket='{{ operation.cos_bucket }}',
+                                                      cos_directory='{{ operation.cos_directory }}',
+                                                      cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
+                                                      pipeline_inputs={{ operation.pipeline_inputs }},
+                                                      pipeline_outputs={{ operation.pipeline_outputs }},
+                                                      image='{{ operation.image }}')
 
-            notebook_op_{{ operation_id }}.name = '{{ operation.name }}'
-            notebook_op_{{ operation_id }}.env_variables = {{ operation.env_variables }}
-            notebook_op_{{ operation_id }}.dependent_names = {{ operation.dependent_names }}
+            notebook_op_{{ loop.index }}.name = '{{ operation.name }}'
+            notebook_op_{{ loop.index }}.env_variables = {{ operation.env_variables }}
+            notebook_op_{{ loop.index }}.dependent_names = {{ operation.dependent_names }}
 
     {% endfor %}
 
@@ -37,3 +38,5 @@ if __name__ == "__main__":
     name = '{{ pipeline_name }}'
     exp = client.create_experiment('{{ pipeline_name }}')
     run_result = client.run_pipeline(exp.id, name, pipeline_filename, {})
+
+    print("Pipeline Submitted: {{ api_endpoint }}/#/runs/details/" + run_result.id)
