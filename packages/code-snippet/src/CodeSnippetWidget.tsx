@@ -251,7 +251,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     );
   }
 
-  static matchesSearch(
+  matchesSearch(
     searchValue: string,
     filterTags: Set<string>,
     metadata: IMetadata

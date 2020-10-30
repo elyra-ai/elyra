@@ -80,6 +80,11 @@ export interface IMetadataDisplayState {
   metadata: IMetadata[];
   searchValue: string;
   filterTags: string[];
+  matchesSearch: (
+    searchValue: string,
+    filterTags: Set<string>,
+    metadata: IMetadata
+  ) => boolean;
 }
 
 /**
@@ -94,7 +99,8 @@ export class MetadataDisplay<
     this.state = {
       metadata: props.metadata,
       searchValue: '',
-      filterTags: []
+      filterTags: [],
+      matchesSearch: this.matchesSearch.bind(this)
     };
   }
 
@@ -225,7 +231,7 @@ export class MetadataDisplay<
     return tags;
   }
 
-  static matchesSearch(
+  matchesSearch(
     searchValue: string,
     filterTags: Set<string>,
     metadata: IMetadata
@@ -252,7 +258,8 @@ export class MetadataDisplay<
       return {
         metadata: props.metadata,
         searchValue: '',
-        filterTags: []
+        filterTags: [],
+        matchesSearch: state.matchesSearch
       };
     }
 
@@ -261,12 +268,13 @@ export class MetadataDisplay<
       const searchValue = state.searchValue.toLowerCase().trim();
 
       const newMetadata = props.metadata.filter(metadata =>
-        MetadataDisplay.matchesSearch(searchValue, filterTags, metadata)
+        state.matchesSearch(searchValue, filterTags, metadata)
       );
       return {
         metadata: newMetadata,
         searchValue: state.searchValue,
-        filterTags: state.filterTags
+        filterTags: state.filterTags,
+        matchesSearch: state.matchesSearch
       };
     }
     return null;
