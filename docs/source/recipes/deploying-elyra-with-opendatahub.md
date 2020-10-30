@@ -100,7 +100,7 @@ spec:
       uri: >-
         https://github.com/opendatahub-io/manifests/tarball/v1.0-branch-openshift
     - name: manifests
-      uri: 'https://github.com/opendatahub-io/odh-manifests/tarball/master'
+      uri: 'https://github.com/opendatahub-io/odh-manifests/tarball/v0.8.0'
   version: v0.8.0
 status: {} 
 ```
@@ -133,8 +133,7 @@ http://localhost:8001/api/v1/namespaces/INSERT_PROJECT_NAME/services/http:jupyte
 | NAME | VALUES | REQUIRED | DESCRIPTION |
 |---|---|---|---|
 |COS_BUCKET| A-Z, a-z, 0-9, -, . |  | This will be the bucket that your artifacts will be sent to post notebook execution. This can be modified in the Elyra Metadata Editor at runtime. Default value: 'default' |
-|CRIO_RUNTIME| true /false | X | Set this to true if deploying ODH on OpenShift or when your container orchestrator is using CRI-O as the container runtime. NOTE: This is set to TRUE by default when using the Elyra image supplied by Open Data Hub |
-![Elyra](../images/odh-deploy-set-spawner-options.png)
+
 
 ## Accessing Default Object Storage 
 - When using the default metadata runtime created, pipeline artifacts will be sent to the `Minio` S3 object storage instance
