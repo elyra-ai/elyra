@@ -278,11 +278,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         key={metadata.name}
         className={METADATA_ITEM}
         style={
-          this.state.metadata.includes(metadata)
-            ? {
-                display: 'none'
-              }
-            : {}
+          this.state.metadata.includes(metadata) ? {} : { display: 'none' }
         }
       >
         <ExpandableComponent
