@@ -15,9 +15,11 @@
 #
 """KernelManager class to manage a kernel running on a Gateway Server via the REST API"""
 
+import asyncio
 import datetime
 import json
 import os
+import time
 import websocket
 
 from jupyter_client.asynchronous.client import AsyncKernelClient
@@ -26,12 +28,14 @@ from jupyter_client.manager import AsyncKernelManager
 from jupyter_client.managerabc import KernelManagerABC
 from logging import Logger
 from notebook.gateway.managers import GatewayClient, gateway_request
-from notebook.utils import url_path_join
+from notebook.gateway.handlers import GatewayWebSocketClient, WebSocketChannelsHandler
+from notebook.utils import url_path_join, maybe_future
 from queue import Queue
 from threading import Thread
 from tornado import web
 from tornado.escape import json_encode, json_decode, url_escape, utf8
 from traitlets import DottedObjectName, Type
+from typing import Union
 
 
 class HTTPKernelManager(AsyncKernelManager):
@@ -192,12 +196,14 @@ class HTTPKernelManager(AsyncKernelManager):
 
 KernelManagerABC.register(HTTPKernelManager)
 
+USE_GATEWAY_SOCKET = False
+
 
 class ChannelQueue(Queue):
 
     channel_name: str = None
 
-    def __init__(self, channel_name: str, channel_socket: websocket, log: Logger):
+    def __init__(self, channel_name: str, channel_socket: Union[GatewayWebSocketClient, websocket.WebSocket], log: Logger):
         super().__init__()
         self.channel_name = channel_name
         self.channel_socket = channel_socket
@@ -215,7 +221,10 @@ class ChannelQueue(Queue):
         message = json.dumps(msg, default=ChannelQueue.serialize_datetime).replace("</", "<\\/")
         self.log.debug("Sending message on channel: {}, msg_id: {}, msg_type: {}".
                        format(self.channel_name, msg['msg_id'], msg['msg_type'] if msg else 'null'))
-        self.channel_socket.send(message)
+        if USE_GATEWAY_SOCKET:
+            self.channel_socket.on_message(message)
+        else:
+            self.channel_socket.send(message)
 
     @staticmethod
     def serialize_datetime(dt):
@@ -242,7 +251,10 @@ class ChannelQueue(Queue):
                                  format(self.channel_name, len(msgs), msgs))
 
     def is_alive(self) -> bool:
-        return self.channel_socket is not None
+        if USE_GATEWAY_SOCKET:
+            return not self.channel_socket.disconnected
+        else:
+            return self.channel_socket is not None
 
 
 class HBChannelQueue(ChannelQueue):
@@ -277,29 +289,37 @@ class HTTPKernelClient(AsyncKernelClient):
     def __init__(self, **kwargs):
         super(HTTPKernelClient, self).__init__(**kwargs)
         self.kernel_id = kwargs['kernel_id']
-        self.channel_socket = None
-        self.response_router = None
+
+        if USE_GATEWAY_SOCKET:
+            self.channel_socket = GatewayWebSocketClient()
+        else:
+            self.channel_socket = None
+            self.response_router = None
 
     # --------------------------------------------------------------------------
     # Channel management methods
     # --------------------------------------------------------------------------
 
-    def start_channels(self, shell=True, iopub=True, stdin=True, hb=True, control=True):
+    async def start_channels(self, shell=True, iopub=True, stdin=True, hb=True, control=True):
         """Starts the channels for this kernel.
 
         For this class, we establish a websocket connection to the destination
         and setup the channel-based queues on which applicable messages will
         be posted.
         """
-        ws_url = url_path_join(
-            GatewayClient.instance().ws_url,
-            GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels')
-        self.channel_socket = websocket.create_connection(ws_url, timeout=60, enable_multithread=True)
 
-        self.response_router = Thread(target=self._route_responses)
-        self.response_router.start()
+        if USE_GATEWAY_SOCKET:
+            self.channel_socket.on_open(self.kernel_id, message_callback=self._route_response)
+        else:
+            ws_url = url_path_join(
+                GatewayClient.instance().ws_url,
+                GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels')
 
-        super().start_channels(shell=shell, iopub=iopub, stdin=stdin, hb=hb, control=control)
+            self.channel_socket = websocket.create_connection(ws_url, timeout=60, enable_multithread=True)
+            self.response_router = Thread(target=self._route_responses)
+            self.response_router.start()
+
+        await maybe_future(super().start_channels(shell=shell, iopub=iopub, stdin=stdin, hb=hb, control=control))
 
     def stop_channels(self):
         """Stops all the running channels for this kernel.
@@ -310,8 +330,11 @@ class HTTPKernelClient(AsyncKernelClient):
         super().stop_channels()
         self._channels_stopped = True
         self.log.debug("Closing websocket connection")
-        self.channel_socket.close()
-        self.response_router.join()
+        if USE_GATEWAY_SOCKET:
+            self.channel_socket.on_close()
+        else:
+            self.channel_socket.close()
+            self.response_router.join()
 
         if self._channel_queues:
             self._channel_queues.clear()
@@ -378,7 +401,6 @@ class HTTPKernelClient(AsyncKernelClient):
                 if not raw_message:
                     break
                 response_message = json_decode(utf8(raw_message))
-
                 channel = response_message['channel']
                 self._channel_queues[channel].put_nowait(response_message)
 
@@ -390,6 +412,19 @@ class HTTPKernelClient(AsyncKernelClient):
                 self.log.warning('Unexpected exception encountered ({})'.format(be))
 
         self.log.debug('Response router thread exiting...')
+
+    def _route_response(self, message, binary=False):
+        """
+        FIXME
+        """
+        if not self._channels_stopped:
+            response_message = json_decode(utf8(message))
+            channel = response_message['channel']
+            self._channel_queues[channel].put_nowait(response_message)
+        else:
+            msg_summary = WebSocketChannelsHandler._get_message_summary(json_decode(utf8(message)))
+            self.log.debug("Channels stopped - message dropped: {}".format(msg_summary))
+
 
 
 KernelClientABC.register(HTTPKernelClient)
