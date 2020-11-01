@@ -15,11 +15,9 @@
 #
 """KernelManager class to manage a kernel running on a Gateway Server via the REST API"""
 
-import asyncio
 import datetime
 import json
 import os
-import time
 import websocket
 
 from jupyter_client.asynchronous.client import AsyncKernelClient
@@ -203,7 +201,9 @@ class ChannelQueue(Queue):
 
     channel_name: str = None
 
-    def __init__(self, channel_name: str, channel_socket: Union[GatewayWebSocketClient, websocket.WebSocket], log: Logger):
+    def __init__(self, channel_name: str,
+                 channel_socket: Union[GatewayWebSocketClient, websocket.WebSocket],
+                 log: Logger):
         super().__init__()
         self.channel_name = channel_name
         self.channel_socket = channel_socket
@@ -314,8 +314,17 @@ class HTTPKernelClient(AsyncKernelClient):
             ws_url = url_path_join(
                 GatewayClient.instance().ws_url,
                 GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels')
+            # Gather cert info in case where ssl is desired...
+            ssl_options = dict()
+            ssl_options['ca_certs'] = GatewayClient.instance().ca_certs
+            ssl_options['certfile'] = GatewayClient.instance().client_cert
+            ssl_options['keyfile'] = GatewayClient.instance().client_key
+            self.log.debug(f"ssl_options: {ssl_options}")
 
-            self.channel_socket = websocket.create_connection(ws_url, timeout=60, enable_multithread=True)
+            self.channel_socket = websocket.create_connection(ws_url,
+                                                              timeout=GatewayClient.instance().KERNEL_LAUNCH_TIMEOUT,
+                                                              enable_multithread=True,
+                                                              sslopt=ssl_options)
             self.response_router = Thread(target=self._route_responses)
             self.response_router.start()
 
@@ -424,7 +433,6 @@ class HTTPKernelClient(AsyncKernelClient):
         else:
             msg_summary = WebSocketChannelsHandler._get_message_summary(json_decode(utf8(message)))
             self.log.debug("Channels stopped - message dropped: {}".format(msg_summary))
-
 
 
 KernelClientABC.register(HTTPKernelClient)
