@@ -72,4 +72,5 @@ class ElyraEngine(NBClientEngine):
             stderr_file=stderr_file,
         )
         return PapermillNotebookClient(nb_man, **final_kwargs).execute(env=kwargs.get('kernel_env'),
-                                                                       cwd=kwargs['kernel_cwd'])
+                                                                       cwd=kwargs['kernel_cwd'],
+                                                                       kernel_name=kernel_name)
