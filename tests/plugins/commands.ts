@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global module, require */
-// import './commands.ts';
 
-const wp = require('@cypress/webpack-preprocessor');
-
-module.exports = on => {
-  const options = {
-    webpackOptions: require('../webpack.config')
-  };
-
-  on('file:preprocessor', wp(options));
-};
+// declare namespace Cypress {
+//   interface IChainable<Subject> {
+//     openJupyterLab(): Cypress.Chainable<void>;
+//   }
+// }
+//
+// const openJupyterLab = (): void => {
+//   cy.visit('?token=test&reset');
+// };
+//
+// Cypress.Commands.add('openJupyterLab', openJupyterLab);
