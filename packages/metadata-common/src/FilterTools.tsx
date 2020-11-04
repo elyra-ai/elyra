@@ -141,17 +141,13 @@ export class FilterTools extends React.Component<
 
     this.setState(
       state => ({
-        selectedTags: this.handleClickHelper(
-          parent,
-          state.selectedTags,
-          clickedTag
-        )
+        selectedTags: this.updateTagsCss(parent, state.selectedTags, clickedTag)
       }),
       this.filterMetadata
     );
   }
 
-  handleClickHelper(
+  updateTagsCss(
     parent: HTMLElement,
     currentTags: string[],
     clickedTag: string

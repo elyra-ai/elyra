@@ -79,7 +79,7 @@ export class MetadataEditorTags extends React.Component<
 
     this.setState(
       state => ({
-        selectedTags: this.handleClickHelper(
+        selectedTags: this.updateTagsCss(
           parent,
           state.selectedTags ? state.selectedTags : [],
           clickedTag
@@ -93,7 +93,7 @@ export class MetadataEditorTags extends React.Component<
     this.props.handleChange(this.state.selectedTags, this.state.tags);
   }
 
-  handleClickHelper(
+  updateTagsCss(
     parent: HTMLElement,
     tags: string[],
     clickedTag: string

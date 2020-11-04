@@ -30,7 +30,7 @@ import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
 
-import { MetadataEditorTags } from './Tags';
+import { MetadataEditorTags } from './MetadataEditorTags';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';

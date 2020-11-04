@@ -144,9 +144,11 @@ export class MetadataDisplay<
    * Classes that extend MetadataWidget should override this
    */
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
+    const metadataWithoutTags = metadata.metadata;
+    delete metadataWithoutTags.tags;
     return (
       <div className={METADATA_JSON_CLASS}>
-        <JSONComponent json={metadata.metadata} />
+        <JSONComponent json={metadataWithoutTags} />
       </div>
     );
   }
