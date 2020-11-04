@@ -251,24 +251,15 @@ class CodeSnippetDisplay extends MetadataDisplay<
     );
   }
 
-  matchesSearch(
-    searchValue: string,
-    filterTags: Set<string>,
-    metadata: IMetadata
-  ): boolean {
+  matchesSearch(searchValue: string, metadata: IMetadata): boolean {
+    searchValue = searchValue.toLowerCase();
     // True if search string is in name, display_name, or language of snippet
     // or if the search string is empty
-    const matchesSearch =
+    return (
       metadata.name.toLowerCase().includes(searchValue) ||
       metadata.display_name.toLowerCase().includes(searchValue) ||
-      metadata.metadata.language.toLowerCase().includes(searchValue);
-    // True if there are no tags selected or if there are tags that match
-    // tags of metadata
-    const matchesTags =
-      filterTags.size === 0 ||
-      (metadata.metadata.tags &&
-        metadata.metadata.tags.some((tag: string) => filterTags.has(tag)));
-    return matchesSearch && matchesTags;
+      metadata.metadata.language.toLowerCase().includes(searchValue)
+    );
   }
 
   // Render display of a code snippet
