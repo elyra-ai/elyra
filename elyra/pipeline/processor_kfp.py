@@ -146,9 +146,13 @@ class KfpPipelineProcessor(PipelineProcessor):
             loader = PackageLoader('elyra', 'templates')
             template_env = Environment(loader=loader)
 
+            template_env.filters['to_basename'] = lambda path: os.path.basename(path)
+
             template = template_env.get_template('kfp_template.jinja2')
 
             defined_pipeline = self._cc_pipeline(pipeline, pipeline_name)
+
+            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.name}.pipeline.'
 
             for key, operation in defined_pipeline.items():
                 self.log.debug("component :\n "
@@ -162,7 +166,7 @@ class KfpPipelineProcessor(PipelineProcessor):
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
                                             api_endpoint=api_endpoint,
-                                            pipeline_description="Elyra Pipeline")
+                                            pipeline_description=description)
 
             # Write to python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
