@@ -33,11 +33,11 @@
   },
   "dependencies": {
     "@elyra/ui-components": "^2.0.0-dev",
-    "@jupyterlab/apputils": "^3.0.0-rc.6",
-    "@jupyterlab/coreutils": "^5.0.0-rc.6",
-    "@jupyterlab/services": "^6.0.0-rc.6",
-    "@jupyterlab/ui-components": "^3.0.0-rc.6",
-    "react": "^16.13.1"
+    "@jupyterlab/apputils": "^3.0.0-rc.7",
+    "@jupyterlab/coreutils": "^5.0.0-rc.7",
+    "@jupyterlab/services": "^6.0.0-rc.7",
+    "@jupyterlab/ui-components": "^3.0.0-rc.7",
+    "react": "^17.0.1"
   },
   "devDependencies": {
     "@types/enzyme": "^3.10.5",
