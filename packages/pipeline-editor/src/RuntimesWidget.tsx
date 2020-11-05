@@ -26,7 +26,7 @@ import React from 'react';
 
 import {
   PipelineService,
-  KFP_SCHEMA,
+  AIRFLOW_SCHEMA,
   RUNTIMES_NAMESPACE
 } from './PipelineService';
 
@@ -79,7 +79,7 @@ export class RuntimesWidget extends MetadataWidget {
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
         namespace={RUNTIMES_NAMESPACE}
-        schema={KFP_SCHEMA}
+        schema={AIRFLOW_SCHEMA}
         sortMetadata={true}
       />
     );
