@@ -16,12 +16,13 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# Creating a custom runtime Docker image
+# Creating a custom runtime container image
 
 A runtime image provides the execution environment in which nodes are executed when a Jupyter notebook is processed as part of a pipeline. Elyra includes a number of runtime images for popular configurations, such as TensorFlow or Pytorch.
 
-Should none of these images meet your needs, you can utilize a custom Docker image, as long as it meets the following pre-requisites:
-- The Docker image is published on the public Docker container registry [https://hub.docker.com](https://hub.docker.com). (Elyra currently does not support private registries.)
+Should none of these images meet your needs, you can utilize a custom container image, as long as it meets the following pre-requisites:
+
+- The container image is published on a public container registry (e.g. [https://hub.docker.com](https://hub.docker.com)). (Elyra currently does not support private registries.)
 - [Python 3](https://www.python.org/) is pre-installed and in the search path. Python versions that have reached their "end of life" are not supported.
 - [`curl`](https://curl.haxx.se/) is pre-installed and in the search path.
 
@@ -29,18 +30,19 @@ Refer to the [Additional considerations](#additional-considerations) section for
 
 ## Requirements
 
-To create a custom Docker image you need
+To create a custom container image for [https://hub.docker.com](https://hub.docker.com)) you need
 
 - Docker Desktop
     - Available for [MacOS](https://hub.docker.com/editions/community/docker-ce-desktop-mac) and 
                     [Windows](https://hub.docker.com/editions/community/docker-ce-desktop-windows)
 - A Docker id at [https://hub.docker.com/](https://hub.docker.com).
 
-## Creating a basic Python runtime Docker image
+## Creating a basic Python runtime container image
 
-The [default Python 3 Docker image](https://hub.docker.com/_/python) has Python and `curl` pre-installed and is therefore a good starting point.
+The [default Python 3 Docker image](https://hub.docker.com/_/python) has Python and `curl` pre-installed and it is therefore a good starting point.
 
 1. Create a file named `Dockerfile` and add the following content.
+
    ```
    FROM python:3
 
@@ -48,9 +50,10 @@ The [default Python 3 Docker image](https://hub.docker.com/_/python) has Python 
    RUN pip install --no-cache-dir -r requirements.txt
    ```
 
-   When you create a Docker image using this `Dockerfile` the Python 3 Docker image is loaded and the requirements listed in `requirements.txt` `pip`-installed.
+   When you create a container image using this `Dockerfile` the [default Python 3 Docker image](https://hub.docker.com/_/python) is loaded and the requirements listed in `requirements.txt` `pip`-installed.
 
 1. in the same directory create a `requirements.txt` file and add the packages your notebooks depend on. For example, if your notebooks require the latest version of `Pandas` and `Numpy`,  add the appropriate package names.
+
    ```
    pandas
    numpy
@@ -60,15 +63,19 @@ The [default Python 3 Docker image](https://hub.docker.com/_/python) has Python 
 
 1. Open a terminal to the location where you've created the `Dockerfile` and `requirements.txt`.
 
-1. Build the Docker image by running the [`docker build`](https://docs.docker.com/engine/reference/commandline/build/) command in the terminal window, replacing `my-runtime-image` with the desired Docker image name.
+## Using docker
+
+1. Build the container image by running the [`docker build`](https://docs.docker.com/engine/reference/commandline/build/) command in the terminal window, replacing `my-runtime-image` with the desired Docker image name.
 
    ```bash
    docker build -t my-runtime-image .
    ```
 
-## Publishing the basic runtime Docker image
+## Publishing the basic runtime container image
 
-When a notebook is processed as part of a pipeline the associated Docker image is downloaded from Docker Hub. The following steps publish the Docker image you've just created on Docker Hub. 
+When a notebook is processed as part of a pipeline the associated container image is downloaded from the container registry stated in the URL of the image.
+
+For example, the following steps publish the container image you've just created on [Docker Hub](https://hub.docker.com) using docker.
 
 1. Log in to Docker Hub using [`docker login`](https://docs.docker.com/engine/reference/commandline/login/) and provide your Docker id and password.
 
@@ -85,7 +92,7 @@ When a notebook is processed as part of a pipeline the associated Docker image i
     my-runtime-image   latest   0d1bd98fdd84        2 hours ago         887MB
     ```
 
-1. Tag the Docker image using [`docker tag`](https://docs.docker.com/engine/reference/commandline/tag/), replacing `my-image-id`, `docker-id-or-org-id`, and `my-runtime-image` as necessary. (`docker-id-or-org-id` is either your Docker id or, if you are a member of a team in an organization, the id of that organization.)
+1. Tag the container image using [`docker tag`](https://docs.docker.com/engine/reference/commandline/tag/), replacing `my-image-id`, `docker-id-or-org-id`, and `my-runtime-image` as necessary. (`docker-id-or-org-id` is either your Docker id or, if you are a member of a team in an organization, the id of that organization.)
 
    ```bash
    docker tag my-image-id docker-id-or-org-id/my-runtime-image:latest
@@ -93,17 +100,19 @@ When a notebook is processed as part of a pipeline the associated Docker image i
 
    Note: For illustrative purposes this image is tagged `latest`, which makes it the default image. If desired, replace the tag with a specific version number or identifier, such as `Vx.y.z`.
 
-1. Publish the Docker image on Docker Hub by running [`docker push`](https://docs.docker.com/engine/reference/commandline/push/), replacing `docker-id-or-org-id` and `my-runtime-image` as necessary.
+1. Publish the container image on Docker Hub by running [`docker push`](https://docs.docker.com/engine/reference/commandline/push/), replacing `docker-id-or-org-id` and `my-runtime-image` as necessary.
 
     ```bash
     docker push docker-id-or-org-id/my-runtime-image:latest
     ```
 
-Once the image was published on Docker Hub you can [create a runtime image configuration using the Elyra UI or `elyra-metadata` CLI](/user_guide/runtime-image-conf.md) and reference the published `docker-id-or-org-id/my-runtime-image:latest` Docker image.
+Once the image is published on Docker Hub you can [create a runtime image configuration using the Elyra UI or `elyra-metadata` CLI](/user_guide/runtime-image-conf.md) and reference the published `docker-id-or-org-id/my-runtime-image:latest` Docker image.
 
 ## Additional Considerations
 
-Prior to notebook processing Elyra modifies the associated Docker container by changing the default execution command and installing additional packages. Please review the following section if
+Prior to notebook processing Elyra modifies the associated container by changing the default execution command and installing additional packages.
+Please review the following section if
+
 - your Dockerfile [includes a CMD instruction](#dockerfiles-with-cmd-instructions)
 - your Dockerfile [includes an ENTRYPOINT instruction](#dockerfiles-with-entrypoint-instructions)
 - your package requirements [include pinned versions](#conflicting-package-dependencies)
@@ -114,7 +123,7 @@ If a `Dockerfile` includes a [`CMD`](https://docs.docker.com/engine/reference/bu
 
 #### Scenario 1 - override has no side-effects
 
-The `CMD` instruction launches an application that does not need to be running when the notebook is executed. For example, the official Python Docker images might launch the interactive Python shell by default, like so:
+The `CMD` instruction launches an application that does not need to be running when the notebook is executed. For example, the official Python container images might launch the interactive Python shell by default, like so:
 
 ```bash
 ...
@@ -125,14 +134,14 @@ Notebooks will work as is because Python is explicitly run during notebook proce
 
 #### Scenario 2 - override has side-effects
 
-The `CMD` instruction launches an application or service that a notebook consumes. For example, a Docker image might by default launch an application that provides computational (or connectivity) services that notebooks rely on.
+The `CMD` instruction launches an application or service that a notebook consumes. For example, a container image might by default launch an application that provides computational (or connectivity) services that notebooks rely on.
 
 ```bash
 ...
 CMD ["python3", "/path/to/application-or-service"]
 ```
 
-When the Docker container is started to process a notebook the referenced application is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application in the background in a code cell like so:
+When the container started to process a notebook, the referenced application is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application in the background in a code cell like so:
 
 ```python
 import os
@@ -145,7 +154,7 @@ time.sleep(2)
 
 ### Dockerfiles with ENTRYPOINT instructions
 
-If a Docker container is configured to run as an executable by using the  [`ENTRYPOINT`]( https://docs.docker.com/engine/reference/builder/#entrypoint) instruction in the `Dockerfile`, you likely have to customize your notebook. 
+If a container is configured to run as an executable by using the  [`ENTRYPOINT`]( https://docs.docker.com/engine/reference/builder/#entrypoint) instruction in the `Dockerfile`, you likely have to customize your notebook. 
 
 #### Scenario 1 - override has side-effects
 
@@ -155,7 +164,7 @@ The `ENTRYPOINT` instruction launches an application or service that a notebook 
 ENTRYPOINT ["python3", "/path/to/application-or-service"]
 ```
 
-When the Docker container is launched to process a notebook the application or service is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application or service in the background in a code cell like so:
+When the container is launched to process a notebook the application or service is unavailable because it wasn't automatically started. If feasible, the notebook could launch the application or service in the background in a code cell like so:
 
 ```python
 import os
@@ -168,4 +177,4 @@ time.sleep(2)
 
 ### Conflicting package dependencies
 
-Elyra installs additional packages in the Docker container prior to notebook processing. If a pre-installed package is not compatible with the version requirements defined in [requirements-elyra.txt](https://github.com/elyra-ai/kfp-notebook/blob/master/etc/requirements-elyra.txt), it is replaced. You should review any version discrepancies as they might lead to unexpected processing results.
+Elyra installs additional packages in the container prior to notebook processing. If a pre-installed package is not compatible with the version requirements defined in [requirements-elyra.txt](https://github.com/elyra-ai/kfp-notebook/blob/master/etc/requirements-elyra.txt), it is replaced. You should review any version discrepancies as they might lead to unexpected processing results.
