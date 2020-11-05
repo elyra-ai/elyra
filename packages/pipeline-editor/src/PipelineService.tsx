@@ -26,6 +26,7 @@ import Utils from './utils';
 
 export const RUNTIMES_NAMESPACE = 'runtimes';
 export const KFP_SCHEMA = 'kfp';
+export const AIRFLOW_SCHEMA = 'airflow';
 export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
 
