@@ -87,6 +87,8 @@ export class FilterTools extends React.Component<
 
     filterArrow.classList.toggle('idle');
     filterOption.classList.toggle('idle');
+
+    this.filterMetadata();
   }
 
   renderTags(): JSX.Element {
@@ -173,7 +175,13 @@ export class FilterTools extends React.Component<
   };
 
   filterMetadata(): void {
-    this.props.onFilter(this.state.searchValue, this.state.selectedTags);
+    const isTagFilterOpen = document
+      .querySelector(`#${this.props.schemaId} .${FILTER_OPTION}`)
+      .classList.contains('idle');
+    this.props.onFilter(
+      this.state.searchValue,
+      isTagFilterOpen ? [] : this.state.selectedTags
+    );
   }
 
   renderFilterOption(): JSX.Element {
