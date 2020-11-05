@@ -75,12 +75,11 @@ export class MetadataEditorTags extends React.Component<
   handleClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
     const target = event.target as HTMLElement;
     const clickedTag = target.innerText;
-    const parent = target.parentElement;
 
     this.setState(
       state => ({
         selectedTags: this.updateTagsCss(
-          parent,
+          target,
           state.selectedTags ? state.selectedTags : [],
           clickedTag
         )
@@ -94,16 +93,16 @@ export class MetadataEditorTags extends React.Component<
   }
 
   updateTagsCss(
-    parent: HTMLElement,
+    target: HTMLElement,
     tags: string[],
     clickedTag: string
   ): string[] {
     const currentTags = tags.slice();
-    if (parent.classList.contains('unapplied-tag')) {
-      parent.classList.replace('unapplied-tag', 'applied-tag');
+    if (target.classList.contains('unapplied-tag')) {
+      target.classList.replace('unapplied-tag', 'applied-tag');
       currentTags.splice(-1, 0, clickedTag);
-    } else if (parent.classList.contains('applied-tag')) {
-      parent.classList.replace('applied-tag', 'unapplied-tag');
+    } else if (target.classList.contains('applied-tag')) {
+      target.classList.replace('applied-tag', 'unapplied-tag');
 
       const idx = currentTags.indexOf(clickedTag);
       currentTags.splice(idx, 1);
@@ -184,10 +183,11 @@ export class MetadataEditorTags extends React.Component<
           />
         </ul>
       ) : (
-        <ul className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}>
-          <button onClick={(): void => this.setState({ addingNewTag: true })}>
-            Add Tag
-          </button>
+        <button
+          onClick={(): void => this.setState({ addingNewTag: true })}
+          className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
+        >
+          Add Tag
           <addIcon.react
             tag="span"
             className={METADATA_EDITOR_TAG_PLUS_ICON}
@@ -196,7 +196,7 @@ export class MetadataEditorTags extends React.Component<
             width="16px"
             marginLeft="2px"
           />
-        </ul>
+        </button>
       );
     return (
       <li className={METADATA_EDITOR_TAG_LIST}>
@@ -205,24 +205,26 @@ export class MetadataEditorTags extends React.Component<
               ((): JSX.Element => {
                 if (!this.state.selectedTags) {
                   return (
-                    <ul
+                    <button
+                      onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
                       id={'editor' + '-' + tag + '-' + index}
                       key={'editor' + '-' + tag + '-' + index}
                     >
-                      <button onClick={this.handleClick}>{tag}</button>
-                    </ul>
+                      {tag}
+                    </button>
                   );
                 }
 
                 if (this.state.selectedTags.includes(tag)) {
                   return (
-                    <ul
+                    <button
+                      onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag applied-tag`}
                       id={'editor' + '-' + tag + '-' + index}
                       key={'editor' + '-' + tag + '-' + index}
                     >
-                      <button onClick={this.handleClick}>{tag}</button>
+                      {tag}
                       <checkIcon.react
                         tag="span"
                         elementPosition="center"
@@ -231,17 +233,18 @@ export class MetadataEditorTags extends React.Component<
                         marginLeft="5px"
                         marginRight="-3px"
                       />
-                    </ul>
+                    </button>
                   );
                 } else {
                   return (
-                    <ul
+                    <button
+                      onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
                       id={'editor' + '-' + tag + '-' + index}
                       key={'editor' + '-' + tag + '-' + index}
                     >
-                      <button onClick={this.handleClick}>{tag}</button>
-                    </ul>
+                      {tag}
+                    </button>
                   );
                 }
               })()

@@ -214,14 +214,9 @@ mark.elyra-search-bolding {
 
 .elyra-filter-arrow-up {
   position: absolute;
-  margin-top: 20px;
-  border: var(--jp-border-width) solid var(--jp-border-color1);
-  border-width: 0 var(--jp-border-width) var(--jp-border-width) 0;
-  padding: 4px;
+  margin-top: 16px;
   margin-right: 38px;
   align-self: flex-end;
-  transform: rotate(-135deg);
-  -webkit-transform: rotate(-135deg);
   background-color: var(--jp-layout-color0);
 }
 
@@ -244,12 +239,9 @@ mark.elyra-search-bolding {
   margin-right: 3px;
 }
 
-.elyra-filter-tag button {
+button.elyra-filter-tag {
   cursor: pointer;
-  background: none;
-  border: none;
   color: var(--jp-ui-font-color2);
-  padding: 0;
   font-size: var(--jp-ui-font-size1);
 }
 
@@ -269,20 +261,17 @@ mark.elyra-search-bolding {
   height: 5px;
 }
 
-.elyra-editor-tag button {
+button.elyra-editor-tag {
   cursor: pointer;
-  background: none;
-  border: none;
   color: var(--jp-ui-font-color2);
-  padding: 0;
   font-size: var(--jp-ui-font-size1);
 }
 
-.elyra-editor-tag.applied-tag button {
+button.elyra-editor-tag.applied-tag {
   color: var(--jp-ui-font-color1);
 }
 
-.elyra-editor-tag.unapplied-tag button {
+button.elyra-editor-tag.unapplied-tag {
   color: var(--jp-ui-font-color2);
 }
 

@@ -15,6 +15,8 @@
  */
 import { InputGroup, checkIcon } from '@jupyterlab/ui-components';
 
+import { chevronUpIcon } from '@elyra/ui-components';
+
 import React from 'react';
 
 interface IFilterMetadataProps {
@@ -103,12 +105,13 @@ export class FilterTools extends React.Component<
 
   renderAppliedTag(tag: string, index: string): JSX.Element {
     return (
-      <div
+      <button
         className={`${FILTER_TAG} tag applied-tag`}
         id={'filter' + '-' + tag + '-' + index}
         key={'filter' + '-' + tag + '-' + index}
+        onClick={this.handleClick}
       >
-        <button onClick={this.handleClick}>{tag}</button>
+        {tag}
         <checkIcon.react
           className={FILTER_CHECK}
           tag="span"
@@ -118,46 +121,46 @@ export class FilterTools extends React.Component<
           marginLeft="5px"
           marginRight="-3px"
         />
-      </div>
+      </button>
     );
   }
 
   renderUnappliedTag(tag: string, index: string): JSX.Element {
     return (
-      <div
+      <button
         className={`${FILTER_TAG} tag unapplied-tag`}
         id={'filter' + '-' + tag + '-' + index}
         key={'filter' + '-' + tag + '-' + index}
+        onClick={this.handleClick}
       >
-        <button onClick={this.handleClick}>{tag}</button>
-      </div>
+        {tag}
+      </button>
     );
   }
 
   handleClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
     const target = event.target as HTMLElement;
     const clickedTag = target.innerText;
-    const parent = target.parentElement;
 
     this.setState(
       state => ({
-        selectedTags: this.updateTagsCss(parent, state.selectedTags, clickedTag)
+        selectedTags: this.updateTagsCss(target, state.selectedTags, clickedTag)
       }),
       this.filterMetadata
     );
   }
 
   updateTagsCss(
-    parent: HTMLElement,
+    target: HTMLElement,
     currentTags: string[],
     clickedTag: string
   ): string[] {
-    if (parent.classList.contains('unapplied-tag')) {
-      parent.classList.replace('unapplied-tag', 'applied-tag');
+    if (target.classList.contains('unapplied-tag')) {
+      target.classList.replace('unapplied-tag', 'applied-tag');
 
       currentTags.splice(-1, 0, clickedTag);
-    } else if (parent.classList.contains('applied-tag')) {
-      parent.classList.replace('applied-tag', 'unapplied-tag');
+    } else if (target.classList.contains('applied-tag')) {
+      target.classList.replace('applied-tag', 'unapplied-tag');
 
       const idx = currentTags.indexOf(clickedTag);
       currentTags.splice(idx, 1);
@@ -194,7 +197,7 @@ export class FilterTools extends React.Component<
           <button className={FILTER_BUTTON} onClick={this.createFilterBox}>
             Filter By Tags
           </button>
-          <div className={`${FILTER_ARROW_UP} idle`}></div>
+          <chevronUpIcon.react className={`${FILTER_ARROW_UP} idle`} />
           {this.renderFilterOption()}
         </div>
       </div>
