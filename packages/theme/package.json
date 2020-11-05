@@ -45,8 +45,7 @@
     "typescript": "~4.0.3"
   },
   "jupyterlab": {
-    "extension": true,
-    "disabledExtensions": []
+    "extension": true
   },
   "publishConfig": {
     "access": "public"
