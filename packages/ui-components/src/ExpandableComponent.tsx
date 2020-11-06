@@ -95,6 +95,7 @@ export class ExpandableComponent extends React.Component<
         <div key={this.props.displayName} className={TITLE_CLASS}>
           <button
             className={buttonClasses}
+            title={this.state.expanded ? 'Hide Details' : 'Show Details'}
             onClick={(): void => {
               this.toggleDetailsDisplay();
             }}
