@@ -28,8 +28,8 @@ from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_absolute_path
 from elyra.util.cos import CosClient
+from github import Github, GithubException
 from jinja2 import Environment, PackageLoader
-from urllib3.exceptions import MaxRetryError
 
 
 class AirflowPipelineProcessor(PipelineProcessor):
@@ -57,32 +57,50 @@ class AirflowPipelineProcessor(PipelineProcessor):
             self.log.debug("Uploading pipeline file: %s", pipeline_filepath)
 
             runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
-            api_endpoint = runtime_configuration.metadata['api_endpoint']
+
             cos_endpoint = runtime_configuration.metadata['cos_endpoint']
             cos_bucket = runtime_configuration.metadata['cos_bucket']
-            cos_dag_bucket = runtime_configuration.metadata['cos_dag_bucket']
-            cos_directory = ''
+
+            github_repo_token = runtime_configuration.metadata['github_repo_token']
+            github_repo = runtime_configuration.metadata['github_repo']
+            github_branch = runtime_configuration.metadata['github_branch']
+
+            github_client = Github(login_or_token=github_repo_token)
 
             try:
-                cos_client = CosClient(config=runtime_configuration)
+                # Upload to github
+                repo = github_client.get_repo(github_repo)
 
-                cos_client.upload_file_to_dir(dir=cos_directory,
-                                              file_name=pipeline_name + ".py",
-                                              file_path=pipeline_filepath,
-                                              dag_bucket=cos_dag_bucket)
+                with open(pipeline_filepath) as input_file:
+                    content = input_file.read()
+
+                    repo.create_file(path=pipeline_name + ".py",
+                                     message="Pushed DAG " + pipeline_name,
+                                     content=content,
+                                     branch=github_branch)
+
+                # Upload to S3
+                # cos_client = CosClient(config=runtime_configuration)
+                # cos_client.upload_file_to_dir(dir=cos_directory,
+                #                              file_name=pipeline_name + ".py",
+                #                              file_path=pipeline_filepath,
+                #                              use_dag_bucket='True')
 
                 self.log.info("Uploaded AirFlow Pipeline...waiting for Airflow Scheduler to start a run")
 
-            except MaxRetryError as ex:
-                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
+            except GithubException as e:
+                print(e)
 
-            except BaseException:
-                self.log.error("Error uploading DAG to object storage.", exc_info=True)
-                raise
+            # except MaxRetryError as ex:
+            #    raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
+#
+            # except BaseException:
+            #    self.log.error("Error uploading DAG to object storage.", exc_info=True)
+            #    raise
 
             return PipelineProcessorResponse(
                 # TODO - update the api endpoint url context
-                run_url=f'{api_endpoint}/#/runs/details/',
+                run_url=f'{github_repo}/{github_branch}',
                 object_storage_url=f'{cos_endpoint}',
                 object_storage_path=f'/{cos_bucket}/{pipeline_name}',
             )
@@ -176,7 +194,7 @@ class AirflowPipelineProcessor(PipelineProcessor):
                         'pipeline_outputs': operation.outputs,
                         'pipeline_inputs': operation.inputs,
                         'pipeline_envs': pipeline_envs,
-                        'dependencies': operation.dependencies
+                        'parent_operations': operation.parent_operations
                         }
             notebook_ops.append(notebook)
 
@@ -220,10 +238,10 @@ class AirflowPipelineProcessor(PipelineProcessor):
         while notebook_ops:
             for i in range(len(notebook_ops)):
                 notebook = notebook_ops.pop(0)
-                if not notebook['dependencies']:
+                if not notebook['parent_operations']:
                     ordered_notebook_ops[notebook['id']] = notebook
                     self.log.debug("Root Node added : %s", ordered_notebook_ops[notebook['id']])
-                elif all(deps in ordered_notebook_ops.keys() for deps in notebook['dependencies']):
+                elif all(deps in ordered_notebook_ops.keys() for deps in notebook['parent_operations']):
                     ordered_notebook_ops[notebook['id']] = notebook
                     self.log.debug("Dependent Node added : %s", ordered_notebook_ops[notebook['id']])
                 else:
@@ -234,9 +252,6 @@ class AirflowPipelineProcessor(PipelineProcessor):
         return ordered_notebook_ops
 
     def create_pipeline_file(self, pipeline, pipeline_export_format, pipeline_export_path, pipeline_name):
-
-        runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
-        api_endpoint = runtime_configuration.metadata['api_endpoint']
 
         self.log.info('Creating pipeline definition as a .' + pipeline_export_format + ' file')
         if pipeline_export_format == "json":
@@ -251,7 +266,7 @@ class AirflowPipelineProcessor(PipelineProcessor):
 
             notebook_ops = self._cc_pipeline(pipeline, pipeline_name)
 
-            description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.name}.pipeline'."
+            description = f"Created with Elyra {__version__} pipeline editor using {pipeline.name}.pipeline."
 
             python_output = template.render(operations_list=notebook_ops,
                                             pipeline_name=pipeline_name,
@@ -259,7 +274,6 @@ class AirflowPipelineProcessor(PipelineProcessor):
                                             kube_config_path=None,
                                             is_paused_upon_creation='False',
                                             in_cluster='True',
-                                            api_endpoint=api_endpoint,
                                             pipeline_description=description)
 
             # Write to python file and fix formatting

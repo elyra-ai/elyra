@@ -10,55 +10,82 @@
   },
   "properties": {
     "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
       "type": "string",
       "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
       "minLength": 1
     },
     "display_name": {
-      "description": "The display name of the metadata",
+      "title": "Display Name",
+      "description": "The display name of this Airflow instance",
       "type": "string",
-      "pattern": "^[a-zA-Z][a-zA-Z0-9-_. (){}]*[a-zA-Z0-9)}]$"
+      "minLength": 1
     },
     "metadata": {
       "description": "Additional data specific to this metadata",
       "type": "object",
       "properties": {
         "description": {
-          "description": "Additional data specific to this metadata properties",
+          "title": "Description",
+          "description": "The description of this Airflow runtime instance",
           "type": "string"
         },
-        "api_endpoint": {
-          "description": "The REST API endpoint for Airflow",
+        "github_repo": {
+          "title": "Github DAG Repository",
+          "description": "The git repository for Airflow DAGs",
+          "type": "string"
+        },
+        "github_branch": {
+          "title": "Github DAG Repository Branch",
+          "description": "The git branch to use for Airflow DAGs",
+          "type": "string"
+        },
+        "github_repo_token": {
+          "title": "Github Private Repository Token",
+          "description": "The github token to use to push to private repositories",
           "type": "string",
-          "format": "uri"
+          "uihints": {
+            "secure": true
+          }
         },
         "cos_endpoint": {
+          "title": "Cloud Object Storage Endpoint",
           "description": "The Cloud Object Storage endpoint",
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
         },
         "cos_username": {
+          "title": "Cloud Object Storage Username",
           "description": "The Cloud Object Storage username",
-          "type": "string"
+          "type": "string",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
         },
         "cos_password": {
+          "title": "Cloud Object Storage Password",
           "description": "The Cloud Object Storage password",
           "type": "string",
-          "minLength": 8
+          "minLength": 8,
+          "uihints": {
+            "secure": true,
+            "category": "Cloud Object Storage"
+          }
         },
         "cos_bucket": {
+          "title": "Cloud Object Storage Bucket Name",
           "description": "The Cloud Object Storage bucket name",
           "type": "string",
-          "pattern": "^[a-z][a-z0-9-.]*[a-z0-9]$",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
           "minLength": 3,
-          "maxLength": 222
-        },
-        "cos_dag_bucket": {
-          "description": "The Cloud Object Storage bucket name used to store generated DAGs",
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9-.]*[a-z0-9]$",
-          "minLength": 3,
-          "maxLength": 222
+          "maxLength": 222,
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
         }
       },
       "required": [
@@ -66,7 +93,9 @@
         "cos_username",
         "cos_password",
         "cos_bucket",
-        "cos_dag_bucket"
+        "github_branch",
+        "github_repo_token",
+        "github_repo"
       ]
     }
   },

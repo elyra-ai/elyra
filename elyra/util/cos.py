@@ -23,22 +23,18 @@ from traitlets.config import LoggingConfigurable
 class CosClient(LoggingConfigurable):
     client = None
 
-    def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, bucket=None, dag_bucket=None):
+    def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, bucket=None):
         super().__init__()
         if config:
             self.endpoint = urlparse(config.metadata['cos_endpoint'])
             self.access_key = config.metadata['cos_username']
             self.secret_key = config.metadata['cos_password']
             self.bucket = config.metadata['cos_bucket']
-            if config.metadata['cos_dag_bucket']:
-                self.dag_bucket = config.metadata['cos_dag_bucket']
         else:
             self.endpoint = urlparse(endpoint)
             self.access_key = access_key
             self.secret_key = secret_key
             self.bucket = bucket
-            if dag_bucket:
-                self.dag_bucket = dag_bucket
         # Infer secure from the endpoint's scheme.
         self.secure = self.endpoint.scheme == 'https'
 
@@ -56,8 +52,6 @@ class CosClient(LoggingConfigurable):
         try:
             if not self.client.bucket_exists(self.bucket):
                 self.client.make_bucket(self.bucket)
-            if self.dag_bucket and not self.client.bucket_exists(self.dag_bucket):
-                self.client.make_bucket(self.dag_bucket)
         except BucketAlreadyOwnedByYou as ex:
             self.log.warning("Object Storage bucket already owned by you", exc_info=True)
             raise ex from ex
@@ -70,19 +64,16 @@ class CosClient(LoggingConfigurable):
 
         return self.client
 
-    def upload_file(self, file_name, file_path, use_dag_bucket=False):
+    def upload_file(self, file_name, file_path):
         """
         Uploads contents from a file, located on the local filesystem at `file_path`,
         as `file_name` in object storage.
-        :param use_dag_bucket: Name of the dag bucket to upload to when using Apache Airflow
         :param file_name: Name of the file object in object storage
         :param file_path: Path on the local filesystem from which object data will be read.
         :return:
         """
-        if use_dag_bucket:
-            bucket = self.dag_bucket
-        else:
-            bucket = self.bucket
+        bucket = self.bucket
+
         try:
             self.client.fput_object(bucket_name=bucket,
                                     object_name=file_name,
@@ -91,17 +82,16 @@ class CosClient(LoggingConfigurable):
             self.log.error('Error uploading file {} to bucket {}'.format(file_path, self.bucket), exc_info=True)
             raise ex from ex
 
-    def upload_file_to_dir(self, dir, file_name, file_path, use_dag_bucket=False):
+    def upload_file_to_dir(self, dir, file_name, file_path):
         """
         Uploads contents from a file, located on the local filesystem at `file_path`,
         as `file_name` in object storage.
-        :param use_dag_bucket: Name of the dag bucket to upload to when using Apache Airflow
         :param dir: the directory where the file should be uploaded to
         :param file_name: Name of the file object in object storage
         :param file_path: Path on the local filesystem from which object data will be read.
         :return:
         """
-        self.upload_file(os.path.join(dir, file_name), file_path, use_dag_bucket=use_dag_bucket)
+        self.upload_file(os.path.join(dir, file_name), file_path)
 
     def download_file(self, file_name, file_path):
         """

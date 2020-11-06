@@ -1,6 +1,6 @@
 from airflow import DAG
 from datetime import datetime, timedelta
-from notebook.pipeline import NotebookOp
+from airflow_notebook.pipeline import NotebookOp
 
 ## Setup default args with older date to automatically trigger when uploaded
 default_args = {
@@ -19,24 +19,24 @@ dag = DAG(
 
 {% for key, operation in operations_list.items() %}
 notebook_op_{{ operation.id|replace("-", "_") }} = NotebookOp(name='{{ operation.notebook }}',
-                                                              namespace='{{ namespace }}',
-                                                              task_id='{{ operation.notebook }}',
-                                                              notebook='{{ operation.notebook }}',
-                                                              cos_endpoint='{{ operation.cos_endpoint }}',
-                                                              cos_bucket='{{ operation.cos_bucket }}',
-                                                              cos_directory='{{ operation.cos_directory }}',
-                                                              cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
-                                                              pipeline_outputs='{{ operation.pipeline_outputs }}',
-                                                              pipeline_inputs='{{ operation.pipeline_inputs }}',
-                                                              image='{{ operation.image }}',
-                                                              in_cluster={{ in_cluster }},
-                                                              env_vars={{ operation.pipeline_envs }},
-                                                              config_file="{{ kube_config_path }}",
-                                                              dag=dag,
+                                          namespace='{{ namespace }}',
+                                          task_id='{{ operation.notebook }}',
+                                          notebook='{{ operation.notebook }}',
+                                          cos_endpoint='{{ operation.cos_endpoint }}',
+                                          cos_bucket='{{ operation.cos_bucket }}',
+                                          cos_directory='{{ operation.cos_directory }}',
+                                          cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
+                                          pipeline_outputs={{ operation.pipeline_outputs }},
+                                          pipeline_inputs={{ operation.pipeline_inputs }},
+                                          image='{{ operation.runtime_image }}',
+                                          in_cluster={{ in_cluster }},
+                                          env_vars={{ operation.pipeline_envs }},
+                                          config_file="{{ kube_config_path }}",
+                                          dag=dag,
     )
-    {% if operation.dependencies %}
-        {% for dependency in operation.dependencies %}
-        notebook_op_{{ operation.id|replace("-", "_") }} << notebook_op_{{ dependency|replace("-", "_") }}
+    {% if operation.parent_operations %}
+        {% for parent_operation in operation.parent_operations %}
+            notebook_op_{{ operation.id|replace("-", "_") }} << notebook_op_{{ parent_operation|replace("-", "_") }}
         {% endfor %}
     {% endif %}
 
