@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InputGroup, checkIcon } from '@jupyterlab/ui-components';
-
 import { chevronUpIcon } from '@elyra/ui-components';
+import { InputGroup, checkIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
 

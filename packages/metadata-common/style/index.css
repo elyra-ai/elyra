@@ -240,6 +240,8 @@ mark.elyra-search-bolding {
 }
 
 button.elyra-filter-tag {
+  height: 24px;
+  padding: 0 12px;
   cursor: pointer;
   color: var(--jp-ui-font-color2);
   font-size: var(--jp-ui-font-size1);
