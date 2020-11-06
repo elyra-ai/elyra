@@ -69,7 +69,9 @@ class NodeBase:
     def get_operation(self) -> Operation:
 
         self.env_vars = []
-        if not self.fail:  # NODE_FILENAME is required, so skip if triggering failure
+        if self.fail:  # NODE_FILENAME is required, so skip if triggering failure
+            os.environ.pop("NODE_FILENAME")  # remove entry that might already be present
+        else:
             self.env_vars.append(f"NODE_FILENAME={self.filename}")
         if self.inputs:
             self.env_vars.append(f"INPUT_FILENAMES={';'.join(self.inputs)}")
