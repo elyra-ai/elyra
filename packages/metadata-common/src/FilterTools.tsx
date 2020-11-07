@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { chevronUpIcon } from '@elyra/ui-components';
+import { tagIcon } from '@elyra/ui-components';
 import { InputGroup, checkIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
@@ -30,7 +30,6 @@ interface IFilterMetadataState {
   searchValue: string;
 }
 
-const FILTER_ARROW_UP = 'elyra-filter-arrow-up';
 const FILTER_OPTION = 'elyra-filter-option';
 const FILTER_TAGS = 'elyra-filter-tags';
 const FILTER_TAG = 'elyra-filter-tag';
@@ -76,15 +75,10 @@ export class FilterTools extends React.Component<
   }
 
   createFilterBox(): void {
-    const filterArrow = document.querySelector(
-      `#${this.props.schemaId} .${FILTER_ARROW_UP}`
-    );
-
     const filterOption = document.querySelector(
       `#${this.props.schemaId} .${FILTER_OPTION}`
     );
 
-    filterArrow.classList.toggle('idle');
     filterOption.classList.toggle('idle');
 
     this.filterMetadata();
@@ -202,9 +196,8 @@ export class FilterTools extends React.Component<
         </div>
         <div className={FILTER_CLASS} id={this.props.schemaId}>
           <button className={FILTER_BUTTON} onClick={this.createFilterBox}>
-            Filter By Tags
+            <tagIcon.react />
           </button>
-          <chevronUpIcon.react className={`${FILTER_ARROW_UP} idle`} />
           {this.renderFilterOption()}
         </div>
       </div>

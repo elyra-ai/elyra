@@ -16,7 +16,6 @@
 
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import chevronUpIconSvg from '../style/icons/chevron--up.svg';
 import clearPipelineSvg from '../style/icons/clear-pipeline.svg';
 import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
 import codeSnippetSvg from '../style/icons/code-snippet.svg';
@@ -29,6 +28,7 @@ import importSvg from '../style/icons/import.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
 import runtimesSvg from '../style/icons/runtimes.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
+import tagIconSvg from '../style/icons/tag.svg';
 import trashIconSvg from '../style/icons/trashIcon.svg';
 
 export const importIcon = new LabIcon({
@@ -80,9 +80,9 @@ export const helpIcon = new LabIcon({
   name: 'elyra:helpIcon',
   svgstr: helpIconSvg
 });
-export const chevronUpIcon = new LabIcon({
-  name: 'elyra:chevronUpIcon',
-  svgstr: chevronUpIconSvg
+export const tagIcon = new LabIcon({
+  name: 'elyra:tagIcon',
+  svgstr: tagIconSvg
 });
 
 /**

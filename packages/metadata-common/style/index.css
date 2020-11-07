@@ -200,11 +200,19 @@ mark.elyra-search-bolding {
 .elyra-filter .elyra-filter-btn {
   align-self: flex-end;
   padding: 0px;
-  padding-bottom: 10px;
+  margin-bottom: 5px;
+  border-radius: 5px;
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--jp-brand-color2);
+}
+
+.elyra-filter .elyra-filter-btn:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+.elyra-filter-btn svg {
+  display: block;
 }
 
 .elyra-filter-arrow-up.idle,
