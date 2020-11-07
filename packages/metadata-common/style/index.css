@@ -213,6 +213,8 @@ mark.elyra-search-bolding {
 
 .elyra-filter-btn svg {
   display: block;
+  width: 30px;
+  height: 22px;
 }
 
 .elyra-filter-arrow-up.idle,
