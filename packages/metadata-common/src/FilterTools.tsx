@@ -135,7 +135,7 @@ export class FilterTools extends React.Component<
 
   handleClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
     const target = event.target as HTMLElement;
-    const clickedTag = target.innerText;
+    const clickedTag = target.innerText.trim();
 
     this.setState(
       state => ({
