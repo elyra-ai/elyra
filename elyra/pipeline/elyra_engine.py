@@ -71,6 +71,12 @@ class ElyraEngine(NBClientEngine):
             stdout_file=stdout_file,
             stderr_file=stderr_file,
         )
-        return PapermillNotebookClient(nb_man, **final_kwargs).execute(env=kwargs.get('kernel_env'),
-                                                                       cwd=kwargs['kernel_cwd'],
-                                                                       kernel_name=kernel_name)
+        kernel_kwargs = dict()
+        kernel_kwargs['env'] = kwargs.get('kernel_env')
+        # Only include kernel_name and set path if HTTPKernelManager will be used
+        kernel_manager_class = final_kwargs.get('kernel_manager_class')
+        if kernel_manager_class == 'elyra.pipeline.http_kernel_manager.HTTPKernelManager':
+            kernel_kwargs['kernel_name'] = kernel_name
+            kernel_kwargs['path'] = kwargs.get('kernel_cwd')
+
+        return PapermillNotebookClient(nb_man, **final_kwargs).execute(**kernel_kwargs)
