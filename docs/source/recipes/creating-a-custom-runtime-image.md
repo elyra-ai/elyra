@@ -63,7 +63,7 @@ The [default Python 3 Docker image](https://hub.docker.com/_/python) has Python 
 
 1. Open a terminal to the location where you've created the `Dockerfile` and `requirements.txt`.
 
-## Using docker
+## Using Docker
 
 1. Build the container image by running the [`docker build`](https://docs.docker.com/engine/reference/commandline/build/) command in the terminal window, replacing `my-runtime-image` with the desired Docker image name.
 

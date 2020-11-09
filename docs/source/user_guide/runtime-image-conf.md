@@ -111,8 +111,7 @@ $ elyra-metadata remove runtime-images \
        --name="my_image_name"
 ```
 
-
-#### Configuration properties 
+#### Configuration properties
 
 The runtime image configuration properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
 
@@ -132,7 +131,17 @@ Example: `My custom runtime container image`
 
 The name and tag of an existing container image in a public container registry that meets the stated prerequisites. This property is required.
 
-Example: `jdoe/my-image:1.0.0`
+Example:
+
+- `jdoe/my-image:1.0.0`
+
+Providing only `owner/image:tag` uses default registry: Docker Hub registry
+
+In general for other public container registries, the URL shall contain also `registry`, therefore the complete URL to be used in this case is: `registry/owner/image:tag`
+
+Example:
+
+- `quay.io/jdoe/my-image:1.0.0`
 
 ##### N/A (name)
 
