@@ -3,9 +3,7 @@
   "metadata": {
     "description": "Pandas 1.1.1",
     "image_name": "amancevice/pandas:1.1.1",
-    "tags": [
-      "pandas"
-    ]
+    "tags": ["pandas"]
   },
   "schema_name": "runtime-image"
 }

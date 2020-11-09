@@ -3,9 +3,7 @@
   "metadata": {
     "description": "TensorFlow 1.15",
     "image_name": "elyra/tensorflow:1.15.2-py3",
-    "tags": [
-      "tensorflow"
-    ]
+    "tags": ["tensorflow"]
   },
   "schema_name": "runtime-image"
 }

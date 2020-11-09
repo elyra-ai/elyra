@@ -3,10 +3,7 @@
   "metadata": {
     "description": "TensorFlow 2.3 (with GPU support)",
     "image_name": "tensorflow/tensorflow:2.3.0-gpu",
-    "tags": [
-      "gpu",
-      "tensorflow"
-    ]  
+    "tags": ["gpu", "tensorflow"]
   },
   "schema_name": "runtime-image"
 }
