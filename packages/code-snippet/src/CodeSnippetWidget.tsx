@@ -243,7 +243,7 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
     target.addEventListener('mousemove', mouseMoveListener, true);
 
     // since a browser has its own drag'n'drop support for images and some other elements.
-    target.ondragstart = () => false;
+    target.ondragstart = (): boolean => false;
   }
 
   private _evtMouseUp(
