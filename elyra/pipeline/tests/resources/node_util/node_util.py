@@ -1,0 +1,159 @@
+#
+# Copyright 2018-2020 IBM Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+import json
+import os
+
+from abc import ABC, abstractmethod
+from typing import List
+
+
+class NodeFile():
+    """Base class for input and output node files"""
+    def __init__(self, filename: str) -> None:
+        self.filename = filename
+
+
+class InputNodeFile(NodeFile):
+    """Given a filename, it ensures the file exists and can read its contents."""
+    def __init__(self, filename: str) -> None:
+        super(InputNodeFile, self).__init__(filename)
+        self.data = None
+
+        if not os.path.exists(self.filename):
+            raise FileNotFoundError("File '{}' does not exist!".format(self.filename))
+
+    def read(self) -> str:
+        with open(self.filename) as f:
+            self.data = f.read()
+        return self.data
+
+    def data(self) -> str:
+        return self.data
+
+
+class OutputNodeFile(NodeFile):
+    """Given a filename, it ensures the file does not exist and will write data to that file."""
+    def __init__(self, filename: str) -> None:
+        super(OutputNodeFile, self).__init__(filename)
+
+        # Don't enforce output file existence here - break idempotency
+        # if os.path.exists(self.filename):
+        #    raise FileExistsError("File '{}' already exists!".format(self.filename))
+
+    def write(self, data) -> None:
+        with open(self.filename, 'w+') as f:
+            f.write(data)
+
+
+class ExecutionNode(ABC):
+    """Represents an excutable node of a pipeline.  This class must be subclassed."""
+
+    node_name = None
+    filename = None
+    extension = None
+
+    def __init__(self) -> None:
+        self.filename = os.getenv('NODE_FILENAME')
+        if not self.filename:
+            raise ValueError("NODE_FILENAME environment variable must be set!")
+
+        node_file_splits = os.path.basename(self.filename).split(".")
+        self.node_name = node_file_splits[0]
+        self.extension = node_file_splits[1]
+        self.validate()
+
+    def validate(self) -> None:
+        """Validate the filename as best as possible, depending on subclass. """
+
+        # Validate its extension and that the file exists.
+        self.validate_extension()
+        if not os.path.exists(self.filename):
+            raise FileNotFoundError("ExecutionNode filename '{}' does not exist!".format(self.filename))
+
+    def run(self) -> None:
+        self.process_inputs("INPUT_FILENAMES")
+        self.perform_experiment()
+        self.process_outputs("OUTPUT_FILENAMES")
+
+    def perform_experiment(self) -> None:
+        """Emulates the experiment to run."""
+        print("NODE_NAME: {}".format(self.node_name))
+
+    def process_inputs(self, env_var: str) -> List[InputNodeFile]:
+        """Given an environment variable `env_var`, that contains a SEMI-COLON-separated
+           list of filenames, it processes each entry by instantiating an instance of
+           InputNodeFile corresponding to each entry and returns the list of instances.
+        """
+        inputs = []
+        filenames = os.getenv(env_var, "").split(';')
+
+        for filename in filenames:
+            if filename:
+                inputs.append(InputNodeFile(filename))
+
+        for input_file in inputs:
+            print("FROM: {}".format(input_file.read()))
+
+        return inputs
+
+    def process_outputs(self, env_var: str) -> List[OutputNodeFile]:
+        """Given an environment variable `env_var`, that contains a SEMI-COLON-separated
+           list of filenames, it processes each entry by instantiating an instance of
+           OutputNodeFile corresponding to each entry and returns the list of instances.
+        """
+        outputs = []
+        filenames = os.getenv(env_var, "").split(';')
+
+        for filename in filenames:
+            if filename:
+                outputs.append(OutputNodeFile(filename))
+
+        for output_file in outputs:
+            output_file.write(self.node_name)
+
+        return outputs
+
+    @abstractmethod
+    def expected_extension(self) -> str:
+        raise NotImplementedError("Method 'expected_extension()' must be implemented by subclass '{}'!".
+                                  format(self.__class__.__name__))
+
+    def validate_extension(self) -> None:
+        if self.expected_extension() != self.extension:
+            raise ValueError("Filename '{}' does not have a proper extension: '{}'".
+                             format(self.filename, self.expected_extension()))
+
+
+class NotebookNode(ExecutionNode):
+    """Represents a Notebook execution node of a pipeline."""
+
+    def expected_extension(self) -> str:
+        return "ipynb"
+
+    def validate(self) -> None:
+        """For notebooks, we can also ensure the file can be loaded as JSON."""
+        super(NotebookNode, self).validate()
+
+        # Confirm file can be loaded as JSON
+        with open(self.filename) as f:
+            json.load(f)
+
+
+class PythonNode(ExecutionNode):
+    """Represents a Python file execution node of a pipeline."""
+
+    def expected_extension(self) -> str:
+        return "py"

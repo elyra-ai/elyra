@@ -20,6 +20,7 @@ import {
   IMetadata,
   IMetadataActionButton,
   IMetadataDisplayProps,
+  IMetadataDisplayState,
   IMetadataWidgetProps,
   MetadataDisplay,
   MetadataWidget,
@@ -93,7 +94,10 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
 /**
  * A React Component for code-snippets display list.
  */
-class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
+class CodeSnippetDisplay extends MetadataDisplay<
+  ICodeSnippetDisplayProps,
+  IMetadataDisplayState
+> {
   _drag: Drag;
   _dragData: { pressX: number; pressY: number; dragImage: HTMLElement };
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
@@ -415,10 +419,27 @@ class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
     );
   }
 
+  matchesSearch(searchValue: string, metadata: IMetadata): boolean {
+    searchValue = searchValue.toLowerCase();
+    // True if search string is in name, display_name, or language of snippet
+    // or if the search string is empty
+    return (
+      metadata.name.toLowerCase().includes(searchValue) ||
+      metadata.display_name.toLowerCase().includes(searchValue) ||
+      metadata.metadata.language.toLowerCase().includes(searchValue)
+    );
+  }
+
   // Render display of a code snippet
   renderMetadata = (metadata: IMetadata): JSX.Element => {
     return (
-      <div key={metadata.name} className={METADATA_ITEM}>
+      <div
+        key={metadata.name}
+        className={METADATA_ITEM}
+        style={
+          this.state.metadata.includes(metadata) ? {} : { display: 'none' }
+        }
+      >
         <div
           className={DRAGGABLE_COMPONENT_CLASS}
           title="Drag to move"

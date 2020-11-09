@@ -214,7 +214,9 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         self.log.debug(f'Processing python script: {filepath}')
 
         argv = ['python3', filepath, '--PYTHONHOME', file_dir]
-        envs = operation.env_vars_as_dict()
+
+        envs = os.environ  # Make sure this process's env is "available" in subprocess
+        envs.update(operation.env_vars_as_dict())
         t0 = time.time()
         try:
             run(argv, cwd=file_dir, env=envs, check=True)

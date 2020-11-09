@@ -30,6 +30,8 @@ import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
 
+import { MetadataEditorTags } from './MetadataEditorTags';
+
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
@@ -56,6 +58,7 @@ export class MetadataEditor extends ReactWidget {
   namespace: string;
   name: string;
   dirty: boolean;
+  allTags: string[];
   clearDirty: IDisposable;
   requiredFields: string[];
   invalidForm: boolean;
@@ -74,6 +77,7 @@ export class MetadataEditor extends ReactWidget {
     this.clearDirty = null;
     this.namespace = props.namespace;
     this.schemaName = props.schema;
+    this.allTags = [];
     this.onSave = props.onSave;
     this.name = props.name;
 
@@ -81,6 +85,7 @@ export class MetadataEditor extends ReactWidget {
     this.addClass(this.widgetClass);
 
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
+    this.handleChangeOnTag = this.handleChangeOnTag.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.renderField = this.renderField.bind(this);
 
@@ -122,11 +127,19 @@ export class MetadataEditor extends ReactWidget {
     this.allMetadata = await FrontendServices.getMetadata(this.namespace);
     if (this.name) {
       for (const metadata of this.allMetadata) {
+        if (metadata.metadata.tags) {
+          for (const tag of metadata.metadata.tags) {
+            if (!this.allTags.includes(tag)) {
+              this.allTags.push(tag);
+            }
+          }
+        } else {
+          metadata.metadata.tags = [];
+        }
         if (this.name === metadata.name) {
           this.metadata = metadata['metadata'];
           this.displayName = metadata['display_name'];
           this.title.label = this.displayName;
-          break;
         }
       }
     } else {
@@ -446,9 +459,29 @@ export class MetadataEditor extends ReactWidget {
           </ResizeSensor>
         </FormGroup>
       );
+    } else if (uihints.field_type === 'tags') {
+      return (
+        <FormGroup
+          labelInfo={'(optional)'}
+          label={'Tags'}
+          intent={uihints.intent}
+        >
+          <MetadataEditorTags
+            selectedTags={this.metadata.tags}
+            tags={this.allTags}
+            handleChange={this.handleChangeOnTag}
+          />
+        </FormGroup>
+      );
     } else {
       return;
     }
+  }
+
+  handleChangeOnTag(selectedTags: string[], allTags: string[]): void {
+    this.handleDirtyState(true);
+    this.metadata.tags = selectedTags;
+    this.allTags = allTags;
   }
 
   render(): React.ReactElement {

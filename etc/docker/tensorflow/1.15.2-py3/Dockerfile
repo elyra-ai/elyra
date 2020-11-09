@@ -15,4 +15,6 @@
 #
 FROM tensorflow/tensorflow:1.15.2-py3
 
-RUN apt install -y curl
+RUN apt update && \
+    apt install -y curl && \
+    rm -rf /var/lib/apt/lists/*
