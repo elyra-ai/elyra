@@ -20,7 +20,8 @@ import {
   IMetadataWidgetProps,
   IMetadata,
   MetadataDisplay,
-  IMetadataDisplayProps
+  IMetadataDisplayProps,
+  IMetadataDisplayState
 } from '@elyra/metadata-common';
 import React from 'react';
 
@@ -33,7 +34,10 @@ import {
 /**
  * A React Component for displaying the runtimes list.
  */
-class RuntimesDisplay extends MetadataDisplay<IMetadataDisplayProps> {
+class RuntimesDisplay extends MetadataDisplay<
+  IMetadataDisplayProps,
+  IMetadataDisplayState
+> {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     const apiEndpoint = metadata.metadata.api_endpoint.endsWith('/')
       ? metadata.metadata.api_endpoint
