@@ -33,6 +33,8 @@ import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 import React from 'react';
 
+import { FilterTools } from './FilterTools';
+
 /**
  * The CSS class added to metadata widgets.
  */
@@ -72,11 +74,34 @@ export interface IMetadataDisplayProps {
 }
 
 /**
+ * MetadataDisplay state.
+ */
+export interface IMetadataDisplayState {
+  metadata: IMetadata[];
+  searchValue: string;
+  filterTags: string[];
+  matchesSearch: (searchValue: string, metadata: IMetadata) => boolean;
+  matchesTags: (filterTags: Set<string>, metadata: IMetadata) => boolean;
+}
+
+/**
  * A React Component for displaying a list of metadata
  */
 export class MetadataDisplay<
-  T extends IMetadataDisplayProps
-> extends React.Component<T> {
+  T extends IMetadataDisplayProps,
+  U extends IMetadataDisplayState
+> extends React.Component<T, IMetadataDisplayState> {
+  constructor(props: T) {
+    super(props);
+    this.state = {
+      metadata: props.metadata,
+      searchValue: '',
+      filterTags: [],
+      matchesSearch: this.matchesSearch.bind(this),
+      matchesTags: this.matchesTags.bind(this)
+    };
+  }
+
   deleteMetadata = (metadata: IMetadata): Promise<void> => {
     return showDialog({
       title: `Delete metadata: ${metadata.display_name}?`,
@@ -119,9 +144,11 @@ export class MetadataDisplay<
    * Classes that extend MetadataWidget should override this
    */
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
+    const metadataWithoutTags = metadata.metadata;
+    delete metadataWithoutTags.tags;
     return (
       <div className={METADATA_JSON_CLASS}>
-        <JSONComponent json={metadata.metadata} />
+        <JSONComponent json={metadataWithoutTags} />
       </div>
     );
   }
@@ -129,7 +156,13 @@ export class MetadataDisplay<
   // Render display of metadata list
   renderMetadata = (metadata: IMetadata): JSX.Element => {
     return (
-      <div key={metadata.name} className={METADATA_ITEM}>
+      <div
+        key={metadata.name}
+        className={METADATA_ITEM}
+        style={
+          this.state.metadata.includes(metadata) ? {} : { display: 'none' }
+        }
+      >
         <ExpandableComponent
           displayName={metadata.display_name}
           tooltip={metadata.metadata.description}
@@ -152,6 +185,106 @@ export class MetadataDisplay<
     );
   }
 
+  filteredMetadata = (searchValue: string, filterTags: string[]): void => {
+    // filter with search
+    let filteredMetadata = this.props.metadata.filter(
+      (metadata: IMetadata, index: number, array: IMetadata[]): boolean => {
+        return (
+          metadata.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+          metadata.display_name
+            .toLowerCase()
+            .includes(searchValue.toLowerCase())
+        );
+      }
+    );
+
+    // filter with tags
+    if (filterTags.length !== 0) {
+      filteredMetadata = filteredMetadata.filter(metadata => {
+        return filterTags.some(tag => {
+          if (metadata.metadata.tags) {
+            return metadata.metadata.tags.includes(tag);
+          }
+          return false;
+        });
+      });
+    }
+
+    this.setState({
+      metadata: filteredMetadata,
+      searchValue: searchValue,
+      filterTags: filterTags
+    });
+  };
+
+  getActiveTags(): string[] {
+    const tags: string[] = [];
+    for (const metadata of this.props.metadata) {
+      if (metadata.metadata.tags) {
+        for (const tag of metadata.metadata.tags) {
+          if (!tags.includes(tag)) {
+            tags.push(tag);
+          }
+        }
+      }
+    }
+    return tags;
+  }
+
+  matchesTags(filterTags: Set<string>, metadata: IMetadata): boolean {
+    // True if there are no tags selected or if there are tags that match
+    // tags of metadata
+    return (
+      filterTags.size === 0 ||
+      (metadata.metadata.tags &&
+        metadata.metadata.tags.some((tag: string) => filterTags.has(tag)))
+    );
+  }
+
+  matchesSearch(searchValue: string, metadata: IMetadata): boolean {
+    searchValue = searchValue.toLowerCase();
+    // True if search string is in name or display_name,
+    // or if the search string is empty
+    return (
+      metadata.name.toLowerCase().includes(searchValue) ||
+      metadata.display_name.toLowerCase().includes(searchValue)
+    );
+  }
+
+  static getDerivedStateFromProps(
+    props: IMetadataDisplayProps,
+    state: IMetadataDisplayState
+  ): IMetadataDisplayState {
+    if (state.searchValue === '' && state.filterTags.length === 0) {
+      return {
+        metadata: props.metadata,
+        searchValue: '',
+        filterTags: [],
+        matchesSearch: state.matchesSearch,
+        matchesTags: state.matchesTags
+      };
+    }
+
+    if (state.searchValue !== '' || state.filterTags.length !== 0) {
+      const filterTags = new Set(state.filterTags);
+      const searchValue = state.searchValue.toLowerCase().trim();
+
+      const newMetadata = props.metadata.filter(
+        metadata =>
+          state.matchesSearch(searchValue, metadata) &&
+          state.matchesTags(filterTags, metadata)
+      );
+      return {
+        metadata: newMetadata,
+        searchValue: state.searchValue,
+        filterTags: state.filterTags,
+        matchesSearch: state.matchesSearch,
+        matchesTags: state.matchesTags
+      };
+    }
+    return null;
+  }
+
   render(): React.ReactElement {
     if (this.props.sortMetadata) {
       this.sortMetadata();
@@ -159,6 +292,11 @@ export class MetadataDisplay<
     return (
       <div>
         <div id="elyra-metadata">
+          <FilterTools
+            onFilter={this.filteredMetadata}
+            tags={this.getActiveTags()}
+            schemaId={`${this.props.namespace}${this.props.schema}`}
+          />
           <div>{this.props.metadata.map(this.renderMetadata)}</div>
         </div>
       </div>
