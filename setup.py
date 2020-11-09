@@ -69,6 +69,9 @@ setup_args = dict(
         'urllib3>=1.24.2',
         'websocket-client',
     ],
+    extras_require={
+        'test': ['pytest', 'pytest-tornasync', 'pytest-jupyter'],
+    },
     include_package_data=True,
     classifiers=(
         'Programming Language :: Python :: 3.6',

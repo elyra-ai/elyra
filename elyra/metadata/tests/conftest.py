@@ -29,14 +29,14 @@ def mkdir(tmp_path, *parts):
 
 
 # These location fixtures will need to be revisited once we support multiple metadata storage types.
-namespace_location = pytest.fixture(lambda data_dir:
-                                    mkdir(data_dir, "metadata", METADATA_TEST_NAMESPACE))
-bogus_location = pytest.fixture(lambda data_dir:
-                                mkdir(data_dir, "metadata", "bogus"))
-shared_location = pytest.fixture(lambda system_jupyter_path:
-                                 mkdir(system_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
-factory_location = pytest.fixture(lambda env_jupyter_path:
-                                  mkdir(env_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
+namespace_location = pytest.fixture(lambda jp_data_dir:
+                                    mkdir(jp_data_dir, "metadata", METADATA_TEST_NAMESPACE))
+bogus_location = pytest.fixture(lambda jp_data_dir:
+                                mkdir(jp_data_dir, "metadata", "bogus"))
+shared_location = pytest.fixture(lambda jp_system_jupyter_path:
+                                 mkdir(jp_system_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
+factory_location = pytest.fixture(lambda jp_env_jupyter_path:
+                                  mkdir(jp_env_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))
 
 
 @pytest.fixture
@@ -47,7 +47,7 @@ def setup_data(namespace_location):
 
 
 @pytest.fixture
-def setup_hierarchy(environ, factory_location):
+def setup_hierarchy(jp_environ, factory_location):
     # Only populate factory info
     byo_instance = byo_metadata_json
     byo_instance['display_name'] = 'factory'
@@ -63,7 +63,7 @@ def store_manager(tests_manager):
 
 @pytest.fixture(params=["elyra.metadata.storage.FileMetadataStore",
                         "elyra.metadata.tests.MockMetadataStore"])  # Add types as needed
-def tests_manager(environ, namespace_location, request):
+def tests_manager(jp_environ, namespace_location, request):
     metadata_mgr = MetadataManager(namespace=METADATA_TEST_NAMESPACE, metadata_store_class=request.param)
     store_mgr = metadata_mgr.metadata_store
     create_instance(store_mgr, namespace_location, 'valid', valid_metadata_json)
@@ -87,7 +87,7 @@ def schema_manager():
 
 # Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)
 @pytest.fixture
-def server_config():
+def jp_server_config():
     return {
         "ServerApp": {
             "jpserver_extensions": {
