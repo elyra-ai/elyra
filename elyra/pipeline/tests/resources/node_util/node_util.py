@@ -20,7 +20,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 
-class NodeFile():
+class NodeFile(object):
     """Base class for input and output node files"""
     def __init__(self, filename: str) -> None:
         self.filename = filename
