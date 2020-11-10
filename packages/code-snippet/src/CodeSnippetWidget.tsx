@@ -63,7 +63,6 @@ import {
 } from './CodeSnippetService';
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
-const DRAGGABLE_COMPONENT_CLASS = 'elyra-draggable-component';
 const SNIPPET_DRAG_IMAGE_CLASS = 'elyra-codeSnippet-drag-image';
 
 /**
@@ -441,8 +440,6 @@ class CodeSnippetDisplay extends MetadataDisplay<
         }
       >
         <div
-          className={DRAGGABLE_COMPONENT_CLASS}
-          title="Drag to move"
           onMouseDown={(event): void => {
             this.handleDragSnippet(event, metadata);
           }}
