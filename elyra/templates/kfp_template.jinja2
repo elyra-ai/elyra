@@ -20,7 +20,10 @@ def create_pipeline():
                                                       cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
                                                       pipeline_inputs={{ operation.pipeline_inputs }},
                                                       pipeline_outputs={{ operation.pipeline_outputs }},
-                                                      image='{{ operation.image }}')
+                                                      image='{{ operation.image }}',
+                                                      file_outputs={
+                                                        'mlpipeline-metrics': '/tmp/mlpipeline-metrics.json',
+                                                        'mlpipeline-ui-metadata': '/tmp/mlpipeline-ui-metadata.json'})
 
             notebook_op_{{ loop.index }}.name = '{{ operation.name }}'
             notebook_op_{{ loop.index }}.env_variables = {{ operation.env_variables }}

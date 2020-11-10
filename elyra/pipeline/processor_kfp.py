@@ -255,7 +255,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                     pipeline_outputs=operation.outputs,
                                                     pipeline_envs=pipeline_envs,
                                                     emptydir_volume_size=emptydir_volume_size,
-                                                    image=operation.runtime_image)
+                                                    image=operation.runtime_image,
+                                                    file_outputs={
+                                                        'mlpipeline-metrics': '/tmp/mlpipeline-metrics.json',
+                                                        'mlpipeline-ui-metadata': '/tmp/mlpipeline-ui-metadata.json'})
 
             self.log_pipeline_info(pipeline_name,
                                    f"processing operation dependencies for id: {operation.id}",
