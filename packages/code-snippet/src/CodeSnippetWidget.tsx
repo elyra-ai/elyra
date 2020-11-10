@@ -36,10 +36,13 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
 import {
   Cell,
+  CellModel,
   CodeCell,
   CodeCellModel,
   ICodeCellModel,
-  MarkdownCell
+  IMarkdownCellModel,
+  MarkdownCell,
+  MarkdownCellModel
 } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -282,7 +285,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       )
     ) {
       // Create drag image
-      let element = document.createElement('div');
+      const element = document.createElement('div');
       element.innerHTML = this.getDisplayName(metadata);
       element.classList.add(SNIPPET_DRAG_IMAGE_CLASS);
       data.dragImage = element;
@@ -328,9 +331,13 @@ class CodeSnippetDisplay extends MetadataDisplay<
     clientY: number
   ): Promise<void> {
     const modelFactory = new ModelFactory();
-    const model = modelFactory.createCodeCell({});
-    const codeContent = metadata.metadata.code.join('\n');
-    model.value.text = codeContent;
+    const language = metadata.metadata.language;
+    const model =
+      language.toLowerCase() !== 'markdown'
+        ? modelFactory.createCodeCell({})
+        : modelFactory.createMarkdownCell({});
+    const content = metadata.metadata.code.join('\n');
+    model.value.text = content;
 
     this._drag = new Drag({
       mimeData: new MimeData(),
@@ -342,7 +349,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
 
     const selected: nbformat.ICell[] = [model.toJSON()];
     this._drag.mimeData.setData(JUPYTER_CELL_MIME, selected);
-    this._drag.mimeData.setData('text/plain', codeContent);
+    this._drag.mimeData.setData('text/plain', content);
 
     return this._drag.start(clientX, clientY).then(() => {
       this._drag = null;
@@ -541,6 +548,11 @@ export interface IContentFactory extends Cell.IContentFactory {
    * Create a new code cell widget.
    */
   createCodeCell(options: CodeCell.IOptions): CodeCell;
+
+  /**
+   * Create a new markdown cell widget.
+   */
+  createMarkdownCell(options: CellModel.IOptions): MarkdownCellModel;
 }
 
 /**
@@ -567,5 +579,17 @@ export class ModelFactory {
       options.contentFactory = this.codeCellContentFactory;
     }
     return new CodeCellModel(options);
+  }
+
+  /**
+   * Create a new markdown cell.
+   *
+   * @param source - The data to use for the original source data.
+   *
+   * @returns A new markdown cell. If a source cell is provided, the
+   *   new cell will be initialized with the data from the source.
+   */
+  createMarkdownCell(options: CellModel.IOptions): IMarkdownCellModel {
+    return new MarkdownCellModel(options);
   }
 }
