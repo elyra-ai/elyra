@@ -32,7 +32,7 @@ def _read_pipeline_resource(pipeline_filename):
     return pipeline_json
 
 
-class NodeBase:
+class NodeBase(object):
     """Represents a node of a constructed pipeline based on files in resources/node_util. """
     id: str
     name: str
