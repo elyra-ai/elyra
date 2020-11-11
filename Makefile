@@ -20,7 +20,7 @@
 
 SHELL:=/bin/bash
 
-GIT_VERSION:=0.22.3
+GIT_VERSION:=0.23.1
 TOC_VERSION:=4.0.0
 
 TAG:=dev
