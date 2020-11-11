@@ -18,15 +18,17 @@ limitations under the License.
 
 # Visualizing output from your notebooks or Python scripts in the Kubeflow Pipelines UI
 
-If you are running a pipeline on Kubeflow Pipelines your notebooks and Python scripts can produce output that is visualized in the Kubeflow Pipelines UI, such as a confusion matrix, ROC curve, or generic markdown.
+Pipelines that you run on Kubeflow Pipelines can optionally produce output that is rendered in the Kubeflow Pipelines UI. For example, a model training script might expose quality metrics.
 
-To produce output add code to your notebook or Python script that creates a file named `mlpipeline-ui-metadata.json` in the current working directory. Refer to [Visualize Results in the Pipelines UI](https://www.kubeflow.org/docs/pipelines/sdk/output-viewer/#introduction) in the Kubeflow Pipelines documentation to learn about supported visualizations and the format of the `mlpipeline-ui-metadata.json` file. 
+## Visualizing output using the Kubeflow Pipelines output viewer
 
-> The output is not displayed in the Kubeflow Pipelines UI while the notebook or Python script is still running.
+The output viewer in the Kubeflow Pipelines UI can render output such as a confusion matrix, ROC curve, or markdown, that is displayed in the Kubeflow Pipelines UI.
 
-## Example code
+![Example notebook output](../images/kfp_ui_node_metadata.png)
 
-If you include this example code 
+To produce this output add code to your notebook or Python script that creates a file named `mlpipeline-ui-metadata.json` in the current working directory. Refer to [_Visualize Results in the Pipelines UI_ in the Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/pipelines/sdk/output-viewer/#introduction) to learn about supported visualizations and the format of the `mlpipeline-ui-metadata.json` file. 
+
+The following code snippet produces this file and defines static markdown text that will be rendered in the output viewer: 
 
 ```
 import json
@@ -45,6 +47,44 @@ with open('mlpipeline-ui-metadata.json', 'w') as f:
     json.dump(metadata, f)
 ```
 
-in your notebook or Python script, the value of the `source` property is rendered in the Kubeflow Pipelines UI when you select it's node in the graph and open the `Artifacts` tab:
+Note that the output is displayed only after notebook or Python script processing has completed.
 
-![Example notebook output](../images/kfp_ui_node_metadata.png)
+## Visualizing scalar performance metrics in the Kubeflow Pipelines UI
+
+If your notebooks or Python scripts calculate scalar performance metrics they can be displayed as part of the run output in the Kubeflow Pipelines UI.
+
+![Example notebook output](../images/kfp_run_metrics.png)
+
+To expose the metrics, add code to the notebook or Python script that stores them in a file named `mlpipeline-metrics.json` in the current working directory. Refer to [_Pipeline Metrics_ in the Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/pipelines/sdk/pipelines-metrics/) to learn more about the content of this file.
+
+The following code snippet produces this file and records two metrics: 
+
+```
+  import json
+   
+  # ...
+  # calculate Accuracy classification score
+  accuracy_score = 0.6
+  # calculate Area Under the Receiver Operating Characteristic Curve (ROC AUC)
+  roc_auc_score = 0.75
+ 
+  metrics = {
+    'metrics': [
+        {
+            'name': 'accuracy-score',
+            'numberValue':  accuracy_score,
+            'format': 'PERCENTAGE'
+        },
+        {
+            'name': 'roc-auc-score',
+            'numberValue':  roc_auc_score,
+            'format': 'RAW'       
+        }
+    ]
+  }
+
+  with open('mlpipeline-metrics.json', 'w') as f:
+    json.dump(metrics, f)
+```
+
+Note that the metrics are displayed after notebook or Python script processing has completed.
