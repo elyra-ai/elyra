@@ -180,7 +180,9 @@ class NotebookOperationProcessor(FileOperationProcessor):
         additional_kwargs['engine_name'] = "ElyraEngine"
         additional_kwargs['cwd'] = file_dir  # For local operations, papermill runs from this dir
         additional_kwargs['kernel_cwd'] = file_dir
-        additional_kwargs['kernel_env'] = operation.env_vars_as_dict()
+        envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
+        envs.update(operation.env_vars_as_dict())
+        additional_kwargs['kernel_env'] = envs
         if GatewayClient.instance().gateway_enabled:
             additional_kwargs['kernel_manager_class'] = 'elyra.pipeline.http_kernel_manager.HTTPKernelManager'
 
@@ -215,7 +217,7 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
 
         argv = ['python3', filepath, '--PYTHONHOME', file_dir]
 
-        envs = os.environ  # Make sure this process's env is "available" in subprocess
+        envs = os.environ.copy()  # Make sure this process's env is "available" in subprocess
         envs.update(operation.env_vars_as_dict())
         t0 = time.time()
         try:

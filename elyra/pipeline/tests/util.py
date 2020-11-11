@@ -70,7 +70,8 @@ class NodeBase(object):
 
         self.env_vars = []
         if self.fail:  # NODE_FILENAME is required, so skip if triggering failure
-            os.environ.pop("NODE_FILENAME")  # remove entry that might already be present
+            if "NODE_FILENAME" in os.environ:  # remove entry if present
+                os.environ.pop("NODE_FILENAME")
         else:
             self.env_vars.append(f"NODE_FILENAME={self.filename}")
         if self.inputs:
