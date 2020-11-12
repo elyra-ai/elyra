@@ -69,7 +69,7 @@ test-dependencies:
 	@pip install -q -r test_requirements.txt
 
 lint-server: test-dependencies
-#	flake8 elyra
+	flake8 elyra
 
 lint-ui:
 	yarn run prettier
