@@ -48,6 +48,14 @@
           "uihints": {
             "field_type": "code"
           }
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing snippets",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
         }
       },
       "required": ["language", "code"]

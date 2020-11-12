@@ -17,16 +17,17 @@ limitations under the License.
 -->
 ## Runtime Image Configuration
 
-A runtime image configuration identifies a Docker image that Elyra can utilize to run Jupyter notebooks on a container platform, such as Kubernetes.
+A runtime image configuration identifies a container image that Elyra can utilize to run Jupyter notebooks on a container platform, such as Kubernetes.
 
 ### Prerequisites
 
-A runtime image configuration is associated with a Docker image that must meet these prerequisites:
-- The image must be stored in the public Docker Hub container registry https://hub.docker.com/.
+A runtime image configuration is associated with a container image that must meet these prerequisites:
+
+- The image must be stored in a public container registry (no authentication required) (e.g. [https://hub.docker.com](https://hub.docker.com)).
 - The image must have a current `Python 3` version pre-installed and in the search path.
 - The image must have `curl` pre-installed and in the search path.
 
-Refer to [Creating a custom runtime Docker image](/recipes/creating-a-custom-runtime-image.md) for details.
+Refer to [Creating a custom runtime container image](/recipes/creating-a-custom-runtime-image.md) for details.
 
 ### Managing Runtime Image Configurations
 
@@ -44,20 +45,24 @@ $ jupyter --data-dir
 Runtime image configurations can be added, modified, and removed in the _Runtime Images_ panel.
 
 To access the panel in JupyterLab:
+
 - Open the JupyterLab command palette (`<cmd/ctrl><shift><c>`).
 - Click `Show Runtime Images` in the `Elyra` section.
 
 ![Runtime Images UI](../images/runtime-images-ui.png)
 
 To add a runtime image configuration:
+
 - Click `+` to add a runtime image.
 - Add the runtime image properties as appropriate.
 
 To edit a runtime image configuration:
+
 - Click the `edit` icon next to the runtime image name.
 - Modify the runtime image properties as desired.
 
 To delete a runtime image configuration:
+
 - Click the `delete` icon next to the runtime image name.
 - Confirm deletion.
 
@@ -78,13 +83,13 @@ runtime-image   anaconda               /Users/jdoe/.../jupyter/metadata/runtime-
 ...  
 ```
 
-To add a runtime image configuration for the public `jdoe/my-image:1.0.0` Docker image:
+To add a runtime image configuration for the public `jdoe/my-image:1.0.0` container image:
 
 ```bash
 $ elyra-metadata install runtime-images --schema_name=runtime-image \
        --name="my_image_name" \
        --display_name="My runtime image" \
-       --description="My custom runtime Docker image" \
+       --description="My custom runtime container image" \
        --image_name="jdoe/my-image:1.0.0"
 ```
 
@@ -94,7 +99,7 @@ To replace a runtime image configuration append the `--replace` option:
 $ elyra-metadata install runtime-images --schema_name=runtime-image \
        --name="my_image_name" \
        --display_name="My runtime image" \
-       --description="My other custom runtime Docker image" \
+       --description="My other custom runtime container image" \
        --image_name="jdoe/my-other-image:1.0.1" \
        --replace
 ```
@@ -106,27 +111,40 @@ $ elyra-metadata remove runtime-images \
        --name="my_image_name"
 ```
 
-
-#### Configuration properties 
+#### Configuration properties
 
 The runtime image configuration properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
 
 ##### Name (display_name)
+
 A user-friendly name for runtime image configuration. This property is required.
 
 Example: `My runtime image`
 
 ##### Description (description)
+
 Description for this runtime image configuration.
 
-Example: `My custom runtime Docker image`
+Example: `My custom runtime container image`
 
 ##### Image Name (image_name)
-The name and tag of an existing Docker image in the public Docker Hub container registry that meets the stated prerequisites. This property is required.
 
-Example: `jdoe/my-image:1.0.0`
+The name and tag of an existing container image in a public container registry that meets the stated prerequisites. This property is required.
+
+Example:
+
+- `jdoe/my-image:1.0.0`
+
+Providing only `owner/image:tag` uses default registry: Docker Hub registry
+
+In general for other public container registries, the URL shall contain also `registry`, therefore the complete URL to be used in this case is: `registry/owner/image:tag`
+
+Example:
+
+- `quay.io/jdoe/my-image:1.0.0`
 
 ##### N/A (name)
+
 A unique internal identifier for the runtime image configuration. The property is required when the command line interface is used manage a configuration. An identifier is automatically generated from the user-friendly name when a configuration is added using the UI.
 
 Example: `my_runtime_image`

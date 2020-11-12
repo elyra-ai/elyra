@@ -18,8 +18,8 @@ limitations under the License.
 
 # Deploying Kubeflow Pipelines Locally for Elyra
 
-Elyra's pipeline editor depends on runtimes like Kubeflow to properly execute its pipelines. In the example, 
-we will be deploying Kubeflow Pipelines on Kubernetes using Docker Desktop. Note that these instructions will 
+Elyra's pipeline editor depends on runtimes like Kubeflow to properly execute its pipelines. In the example,
+we will be deploying Kubeflow Pipelines on Kubernetes using Docker Desktop. Note that these instructions will
 ONLY install the Kubeflow Pipelines component.
 
 ## Requirements
@@ -28,7 +28,7 @@ ONLY install the Kubeflow Pipelines component.
                     [Windows](https://hub.docker.com/editions/community/docker-ce-desktop-windows)
 - kubectl
     - Available for [MacOS](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-macos)
-    - Note: Windows users should skip this step since Docker Desktop adds its own version of `kubectl` to `PATH`      
+    - Note: Windows users should skip this step since Docker Desktop adds its own version of `kubectl` to `PATH`
     
     
 ### Enabling Kubernetes on Docker Desktop
