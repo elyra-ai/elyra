@@ -435,22 +435,19 @@ class CodeSnippetDisplay extends MetadataDisplay<
           this.state.metadata.includes(metadata) ? {} : { display: 'none' }
         }
       >
-        <div
-          onMouseDown={(event): void => {
+        <ExpandableComponent
+          displayName={this.getDisplayName(metadata)}
+          tooltip={metadata.metadata.description}
+          actionButtons={this.actionButtons(metadata)}
+          onExpand={(): void => {
+            this.editors[metadata.name].refresh();
+          }}
+          onMouseDown={(event: any): void => {
             this.handleDragSnippet(event, metadata);
           }}
         >
-          <ExpandableComponent
-            displayName={this.getDisplayName(metadata)}
-            tooltip={metadata.metadata.description}
-            actionButtons={this.actionButtons(metadata)}
-            onExpand={(): void => {
-              this.editors[metadata.name].refresh();
-            }}
-          >
-            <div id={metadata.name}></div>
-          </ExpandableComponent>
-        </div>
+          <div id={metadata.name}></div>
+        </ExpandableComponent>
       </div>
     );
   };

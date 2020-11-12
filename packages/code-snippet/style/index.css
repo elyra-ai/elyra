@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-span.elyra-expandableContainer-name:hover,
-div.elyra-expandableContainer-details-visible {
-  cursor: grab;
-}
-
 .elyra-codeSnippet-drag-image {
   border: var(--jp-border-width) solid var(--jp-cell-editor-border-color);
   width: var(--jp-private-notebook-dragImage-width);
