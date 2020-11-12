@@ -39,9 +39,9 @@ const closeCurrentTab = (): void => {
   cy.get('.jp-mod-current > .lm-TabBar-tabCloseIcon:visible').click();
 };
 
-const fillMetadaEditorForm = (): void => {
+const fillMetadaEditorForm = (name: string): void => {
   // Name code snippet
-  cy.get('.elyra-metadataEditor-form-display_name').type('test-code-snippet');
+  cy.get('.elyra-metadataEditor-form-display_name').type(name);
 
   // Select python language from dropdown list
   cy.get('.elyra-metadataEditor')
@@ -58,6 +58,30 @@ const fillMetadaEditorForm = (): void => {
   );
 
   clickSaveAndCloseButton();
+};
+
+const deleteSnippet = (snippetName: string): void => {
+  // Find element by name
+  const item = cy
+    .get('.elyra-metadata-item')
+    .find('.elyra-expandableContainer-name')
+    .contains(`[Python] ${snippetName}`);
+
+  // Click on delete button
+  item
+    .parentsUntil('.elyra-metadata-item')
+    .first()
+    .find('button[title="Delete"]')
+    .click();
+
+  // Confirm on dialog
+  cy.get('.jp-Dialog-header').contains(`Delete snippet: ${snippetName}?`);
+  cy.get('button.jp-mod-accept').click();
+
+  // Snippet name is no longer ond isplay list
+  cy.get('.elyra-metadata-item')
+    .find('.elyra-expandableContainer-name')
+    .should('not.contain', `[Python] ${snippetName}`);
 };
 
 describe('Test for Code Snippet extension load and render', () => {
@@ -120,7 +144,9 @@ describe('Test for creating new Code Snippet', () => {
   it('Test creating valid form', () => {
     clickCreateNewSnippetButton();
 
-    fillMetadaEditorForm();
+    const snippetName = 'test-code-snippet';
+
+    fillMetadaEditorForm(snippetName);
 
     // Metadata editor tab should not be visible
     cy.get(
@@ -132,19 +158,25 @@ describe('Test for creating new Code Snippet', () => {
     // Check new code snippet is displayed
     cy.get('.elyra-metadata-item')
       .find('.elyra-expandableContainer-name')
-      .contains('[Python] test-code-snippet');
+      .contains(`[Python] ${snippetName}`);
   });
 
   it('Test creating duplicate Code Snippet', () => {
     clickCreateNewSnippetButton();
 
     // Use the name of an as existing code snippet
-    fillMetadaEditorForm();
+    const snippetName = 'test-code-snippet';
+    fillMetadaEditorForm(snippetName);
 
     // Should display dialog
     cy.get('.jp-Dialog-header').contains('Error making request');
 
     // Close dialog
     cy.get('button.jp-mod-accept').click();
+  });
+
+  // Delete snippet
+  it('Test deleting Code Snippet', () => {
+    deleteSnippet('test-code-snippet');
   });
 });
