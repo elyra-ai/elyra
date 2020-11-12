@@ -34,22 +34,13 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import {
-  Cell,
-  CellModel,
-  CodeCell,
-  CodeCellModel,
-  ICodeCellModel,
-  IMarkdownCellModel,
-  MarkdownCell,
-  MarkdownCellModel
-} from '@jupyterlab/cells';
+import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import * as nbformat from '@jupyterlab/nbformat';
-import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
+import { Notebook, NotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
@@ -328,12 +319,12 @@ class CodeSnippetDisplay extends MetadataDisplay<
     clientX: number,
     clientY: number
   ): Promise<void> {
-    const modelFactory = new ModelFactory();
+    const contentFactory = new NotebookModel.ContentFactory({});
     const language = metadata.metadata.language;
     const model =
       language.toLowerCase() !== 'markdown'
-        ? modelFactory.createCodeCell({})
-        : modelFactory.createMarkdownCell({});
+        ? contentFactory.createCodeCell({})
+        : contentFactory.createMarkdownCell({});
     const content = metadata.metadata.code.join('\n');
     model.value.text = content;
 
@@ -538,59 +529,5 @@ export class CodeSnippetWidget extends MetadataWidget {
         sortMetadata={true}
       />
     );
-  }
-}
-
-/**
- * A content factory interface for code cell content
- */
-export interface IContentFactory extends Cell.IContentFactory {
-  /**
-   * Create a new code cell widget.
-   */
-  createCodeCell(options: CodeCell.IOptions): CodeCell;
-
-  /**
-   * Create a new markdown cell widget.
-   */
-  createMarkdownCell(options: CellModel.IOptions): MarkdownCellModel;
-}
-
-/**
- * The default implementation of an `IModelFactory`.
- */
-export class ModelFactory {
-  /**
-   * The factory for code cell content.
-   */
-  readonly codeCellContentFactory: CodeCellModel.IContentFactory;
-
-  /**
-   * Create a new code cell.
-   *
-   * @param source - The data to use for the original source data.
-   *
-   * @returns A new code cell. If a source cell is provided, the
-   *   new cell will be initialized with the data from the source.
-   *   If the contentFactory is not provided, the instance
-   *   `codeCellContentFactory` will be used.
-   */
-  createCodeCell(options: CodeCellModel.IOptions): ICodeCellModel {
-    if (!options.contentFactory) {
-      options.contentFactory = this.codeCellContentFactory;
-    }
-    return new CodeCellModel(options);
-  }
-
-  /**
-   * Create a new markdown cell.
-   *
-   * @param source - The data to use for the original source data.
-   *
-   * @returns A new markdown cell. If a source cell is provided, the
-   *   new cell will be initialized with the data from the source.
-   */
-  createMarkdownCell(options: CellModel.IOptions): IMarkdownCellModel {
-    return new MarkdownCellModel(options);
   }
 }
