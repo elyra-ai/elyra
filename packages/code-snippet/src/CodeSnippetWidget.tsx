@@ -100,8 +100,6 @@ class CodeSnippetDisplay extends MetadataDisplay<
   ICodeSnippetDisplayProps,
   IMetadataDisplayState
 > {
-  _drag: Drag;
-  _dragData: { pressX: number; pressY: number; dragImage: HTMLElement };
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
 
   constructor(props: ICodeSnippetDisplayProps) {
@@ -493,6 +491,9 @@ class CodeSnippetDisplay extends MetadataDisplay<
       }
     });
   }
+
+  private _drag: Drag;
+  private _dragData: { pressX: number; pressY: number; dragImage: HTMLElement };
 }
 
 /**
