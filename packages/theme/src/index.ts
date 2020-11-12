@@ -20,15 +20,15 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ICommandPalette /*, MainAreaWidget */ } from '@jupyterlab/apputils';
-import { /*ILauncher,*/ LauncherModel } from '@jupyterlab/launcher';
+import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
+import { ILauncher, LauncherModel } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-// import { launcherIcon } from '@jupyterlab/ui-components';
+import { launcherIcon } from '@jupyterlab/ui-components';
 
-// import { toArray } from '@lumino/algorithm';
-// import { Widget } from '@lumino/widgets';
+import { toArray } from '@lumino/algorithm';
+import { Widget } from '@lumino/widgets';
 
-// import { Launcher } from './launcher';
+import { Launcher } from './launcher';
 import '../style/index.css';
 
 const ELYRA_THEME_NAMESPACE = 'elyra-theme-extension';
@@ -44,18 +44,18 @@ const CommandIDs = {
 /**
  * Initialization data for the theme extension.
  */
-const extension: JupyterFrontEndPlugin<void> = {
+const extension: JupyterFrontEndPlugin<ILauncher> = {
   id: ELYRA_THEME_NAMESPACE,
   autoStart: true,
   requires: [ILabShell, IMainMenu],
   optional: [ICommandPalette],
-  // provides: ILauncher,
+  provides: ILauncher,
   activate: (
     app: JupyterFrontEnd,
     labShell: ILabShell,
     mainMenu: IMainMenu,
     palette: ICommandPalette | null
-  ): void => {
+  ): ILauncher => {
     console.log('Elyra - theme extension is activated!');
 
     // Find the MainLogo widget in the shell and replace it with the Elyra Logo
@@ -80,7 +80,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Use custom Elyra launcher
     const { commands } = app;
     const model = new LauncherModel();
-    /*
+
     commands.addCommand(CommandIDs.create, {
       label: 'New Launcher',
       execute: (args: any) => {
@@ -112,10 +112,10 @@ const extension: JupyterFrontEndPlugin<void> = {
         return main;
       }
     });
-    */
-    // if (palette) {
-    //   palette.addItem({ command: CommandIDs.create, category: 'Launcher' });
-    // }
+
+    if (palette) {
+      palette.addItem({ command: CommandIDs.create, category: 'Launcher' });
+    }
 
     commands.addCommand(CommandIDs.openHelp, {
       label: 'Documentation',
@@ -131,19 +131,19 @@ const extension: JupyterFrontEndPlugin<void> = {
       rank: 10
     });
 
-    // return model;
+    return model;
   }
 };
 
 /**
  * The namespace for module private data.
  */
-// namespace Private {
-//   /**
-//    * The incrementing id used for launcher widgets.
-//    */
-//   // eslint-disable-next-line
-//   export let id = 0;
-// }
+namespace Private {
+  /**
+   * The incrementing id used for launcher widgets.
+   */
+  // eslint-disable-next-line
+  export let id = 0;
+}
 
 export default extension;

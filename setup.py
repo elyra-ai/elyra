@@ -31,6 +31,7 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
 
 npm_packages_path = "./dist/*.tgz"
 auto_extension_path = "./etc/config/jupyter_server_config.d/elyra.json" # TODO change back to include git
+settings_path = './etc/config/settings/*.json'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 
 
@@ -43,6 +44,7 @@ setup_args = dict(
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
     data_files=[('etc/jupyter/jupyter_server_config.d', glob(auto_extension_path)),
+                ('share/jupyter/lab/settings', glob(settings_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path))],
     packages=find_packages(),
     install_requires=[

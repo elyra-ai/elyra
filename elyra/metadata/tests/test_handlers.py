@@ -29,9 +29,8 @@ from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
 
 
-async def test_bogus_namespace(jp_fetch, base_url, bogus_location):
+async def test_bogus_namespace(jp_fetch, bogus_location):
     # Validate missing is not found.  Remove the bogus location to ensure its not created
-    print(base_url)
     shutil.rmtree(bogus_location)
     with pytest.raises(HTTPClientError) as e:
         await jp_fetch('elyra', 'metadata', 'bogus', 'missing')
