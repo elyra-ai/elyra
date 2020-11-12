@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://localhost:8888/lab",
+  "baseUrl": "http://localhost:58888/lab",
   "integrationFolder": "./tests/integration",
   "supportFile": false,
   "pluginsFile": "./tests/plugins/index.js",

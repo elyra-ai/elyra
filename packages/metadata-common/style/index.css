@@ -23,7 +23,6 @@
 .elyra-metadataHeader {
   font-weight: bold;
   padding: 8px 10px;
-  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
   display: flex;
   justify-content: space-between;
 }
@@ -97,7 +96,6 @@
   margin-bottom: 12px;
   margin-right: 20px;
   flex-basis: 45%;
-  height: 65px;
 }
 
 .bp3-select-popover {
@@ -175,4 +173,162 @@
 .elyra-metadataEditor .elyra-metadataEditor-saveButton {
   flex-basis: 100%;
   display: flex;
+}
+
+/* Code Snippet Filter CSS */
+.elyra-searchbar {
+  margin: 0px 8px;
+}
+
+.elyra-filterTools {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
+}
+
+mark.elyra-search-bolding {
+  background-color: transparent;
+  font-weight: bold;
+  color: var(--jp-ui-font-color0);
+}
+
+.elyra-filter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 10px 0 10px;
+}
+
+.elyra-filter .elyra-filter-btn {
+  align-self: flex-end;
+  padding: 0px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.elyra-filter .elyra-filter-btn:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+.elyra-filter-btn svg {
+  display: block;
+  width: 30px;
+  height: 22px;
+}
+
+.elyra-filter-arrow-up.idle,
+.elyra-filter-option.idle {
+  display: none;
+}
+
+.elyra-filter-arrow-up {
+  position: absolute;
+  margin-top: 16px;
+  margin-right: 38px;
+  align-self: flex-end;
+  background-color: var(--jp-layout-color0);
+}
+
+.elyra-filter-option {
+  border: var(--jp-border-width) solid var(--jp-border-color1);
+  height: 140px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow: auto;
+}
+
+.elyra-filter-tags {
+  margin: 8px 8px;
+}
+
+.elyra-filter-tag {
+  margin-left: 3px;
+  margin-right: 3px;
+}
+
+button.elyra-filter-tag {
+  height: 24px;
+  padding: 0 12px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+}
+
+.elyra-tools {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
+}
+
+.elyra-editor-tagList {
+  list-style: none;
+  margin-left: -3px;
+  margin-top: 4px;
+}
+
+.elyra-editor-tag {
+  margin-left: 3px;
+  margin-right: 3px;
+  height: 5px;
+}
+
+button.elyra-editor-tag {
+  cursor: pointer;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+}
+
+button.elyra-editor-tag.applied-tag {
+  color: var(--jp-ui-font-color1);
+}
+
+button.elyra-editor-tag.unapplied-tag {
+  color: var(--jp-ui-font-color2);
+}
+
+.elyra-editor-tag.tag.unapplied-tag input {
+  border: none;
+}
+
+/* Code Snippet Tags in InputDialog */
+.elyra-inputTagList {
+  list-style: none;
+}
+
+.elyra-inputTag {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.elyra-inputTag button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  padding: 0;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.elyra-inputTag input {
+  font-size: var(--jp-ui-font-size1);
+  background: none;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  padding: 0;
+  font-size: var(--jp-ui-font-size1);
+  width: 50px;
+}
+
+/* Cell tag styling */
+@import url('~@jupyterlab/celltags/style/base.css');
+
+.elyra-tags {
+  margin-top: 8px;
+}
+
+.elyra-tag,
+.elyra-inputTag,
+.elyra-filter-tag {
+  height: 5px;
 }

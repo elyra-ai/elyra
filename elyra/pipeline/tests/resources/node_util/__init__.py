@@ -13,8 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FROM tensorflow/tensorflow:1.15.2-gpu-py3
+from .node_util import NotebookNode, PythonNode
 
-RUN apt update && \
-    apt install -y curl && \
-    rm -rf /var/lib/apt/lists/*
