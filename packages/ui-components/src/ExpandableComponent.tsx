@@ -121,7 +121,7 @@ export class ExpandableComponent extends React.Component<
             className={
               this.props.onMouseDown
                 ? DISPLAY_NAME_CLASS
-                : DISPLAY_NAME_CLASS + '' + DRAGGABLE_CLASS
+                : DISPLAY_NAME_CLASS + ' ' + DRAGGABLE_CLASS
             }
             onClick={(): void => {
               this.toggleDetailsDisplay();
