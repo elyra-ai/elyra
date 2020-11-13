@@ -163,10 +163,14 @@ class KfpPipelineProcessor(PipelineProcessor):
                                operation.inputs,
                                operation.outputs)
 
+            # TODO
+            wcd = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').rstrip('/')
+
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
                                             api_endpoint=api_endpoint,
-                                            pipeline_description=description)
+                                            pipeline_description=description,
+                                            writable_container_dir=wcd)
 
             # Write to python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
@@ -234,6 +238,10 @@ class KfpPipelineProcessor(PipelineProcessor):
             pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
             # Convey pipeline logging enablement to operation
             pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
+            # Setting identifies a writable directory in the container image.
+            # Only Unix-style path spec is supported.
+            pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'] =\
+                os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').rstrip('/')
 
             if operation.env_vars:
                 for env_var in operation.env_vars:
@@ -257,8 +265,13 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                     emptydir_volume_size=emptydir_volume_size,
                                                     image=operation.runtime_image,
                                                     file_outputs={
-                                                        'mlpipeline-metrics': '/tmp/mlpipeline-metrics.json',
-                                                        'mlpipeline-ui-metadata': '/tmp/mlpipeline-ui-metadata.json'})
+                                                        'mlpipeline-metrics':
+                                                            '{}/mlpipeline-metrics.json'
+                                                            .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),
+                                                        'mlpipeline-ui-metadata':
+                                                            '{}/mlpipeline-ui-metadata.json'
+                                                            .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])
+                                                    })
 
             self.log_pipeline_info(pipeline_name,
                                    f"processing operation dependencies for id: {operation.id}",
