@@ -9,7 +9,7 @@ from kfp_notebook.pipeline import NotebookOp
 
 def create_pipeline():
     {% set metrics_file = writable_container_dir ~ '/mlpipeline-metrics.json' %}
-    {% set metadata_file = writable_container_dir' ~ /mlpipeline-ui-metadata.json' %}
+    {% set metadata_file = writable_container_dir ~ '/mlpipeline-ui-metadata.json' %}
     {% for key, operation in operations_list.items() %}
         {% set op_name = operation.notebook_name.split('.') %}
         {% set operation_id = op_name[0] | to_basename %}
