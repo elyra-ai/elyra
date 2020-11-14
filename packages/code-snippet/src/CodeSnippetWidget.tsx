@@ -28,8 +28,8 @@ import {
 } from '@elyra/metadata-common';
 import {
   ExpandableComponent,
-  trashIcon,
-  importIcon
+  importIcon,
+  trashIcon
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -39,10 +39,13 @@ import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
-import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
+import * as nbformat from '@jupyterlab/nbformat';
+import { Notebook, NotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
+import { MimeData } from '@lumino/coreutils';
+import { Drag } from '@lumino/dragdrop';
 import { Widget } from '@lumino/widgets';
 
 import React from 'react';
@@ -54,6 +57,17 @@ import {
 } from './CodeSnippetService';
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
+const SNIPPET_DRAG_IMAGE_CLASS = 'elyra-codeSnippet-drag-image';
+
+/**
+ * The threshold in pixels to start a drag event.
+ */
+const DRAG_THRESHOLD = 5;
+
+/**
+ * The mimetype used for Jupyter cell data.
+ */
+const JUPYTER_CELL_MIME = 'application/vnd.jupyter.cells';
 
 /**
  * CodeSnippetDisplay props.
@@ -78,6 +92,14 @@ class CodeSnippetDisplay extends MetadataDisplay<
   IMetadataDisplayState
 > {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
+
+  constructor(props: ICodeSnippetDisplayProps) {
+    super(props);
+    this._drag = null;
+    this._dragData = null;
+    this.handleDragMove = this.handleDragMove.bind(this);
+    this._evtMouseUp = this._evtMouseUp.bind(this);
+  }
 
   // Handle code snippet insert into an editor
   private insertCodeSnippet = async (snippet: IMetadata): Promise<void> => {
@@ -183,6 +205,147 @@ class CodeSnippetDisplay extends MetadataDisplay<
     });
   };
 
+  // Initial setup to handle dragging a code snippet
+  private handleDragSnippet(
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    metadata: IMetadata
+  ): void {
+    const { button } = event;
+
+    // do nothing if left mouse button is clicked
+    if (button !== 0) {
+      return;
+    }
+
+    this._dragData = {
+      pressX: event.clientX,
+      pressY: event.clientY,
+      dragImage: null
+    };
+
+    const mouseUpListener = (event: MouseEvent): void => {
+      this._evtMouseUp(event, metadata, mouseMoveListener);
+    };
+    const mouseMoveListener = (event: MouseEvent): void => {
+      this.handleDragMove(event, metadata, mouseMoveListener, mouseUpListener);
+    };
+
+    const target = event.target as HTMLElement;
+    target.addEventListener('mouseup', mouseUpListener, {
+      once: true,
+      capture: true
+    });
+    target.addEventListener('mousemove', mouseMoveListener, true);
+
+    // since a browser has its own drag'n'drop support for images and some other elements.
+    target.ondragstart = (): boolean => false;
+  }
+
+  private _evtMouseUp(
+    event: MouseEvent,
+    metadata: IMetadata,
+    mouseMoveListener: (event: MouseEvent) => void
+  ): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const target = event.target as HTMLElement;
+    target.removeEventListener('mousemove', mouseMoveListener, true);
+  }
+
+  private handleDragMove(
+    event: MouseEvent,
+    metadata: IMetadata,
+    mouseMoveListener: (event: MouseEvent) => void,
+    mouseUpListener: (event: MouseEvent) => void
+  ): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const data = this._dragData;
+
+    if (
+      data &&
+      this.shouldStartDrag(
+        data.pressX,
+        data.pressY,
+        event.clientX,
+        event.clientY
+      )
+    ) {
+      // Create drag image
+      const element = document.createElement('div');
+      element.innerHTML = this.getDisplayName(metadata);
+      element.classList.add(SNIPPET_DRAG_IMAGE_CLASS);
+      data.dragImage = element;
+
+      // Remove mouse listeners and start the drag.
+      const target = event.target as HTMLElement;
+      target.removeEventListener('mousemove', mouseMoveListener, true);
+      target.removeEventListener('mouseup', mouseUpListener, true);
+
+      void this.startDrag(
+        data.dragImage,
+        metadata,
+        event.clientX,
+        event.clientY
+      );
+    }
+  }
+
+  /**
+   * Detect if a drag event should be started. This is down if the
+   * mouse is moved beyond a certain distance (DRAG_THRESHOLD).
+   *
+   * @param prevX - X Coordinate of the mouse pointer during the mousedown event
+   * @param prevY - Y Coordinate of the mouse pointer during the mousedown event
+   * @param nextX - Current X Coordinate of the mouse pointer
+   * @param nextY - Current Y Coordinate of the mouse pointer
+   */
+  private shouldStartDrag(
+    prevX: number,
+    prevY: number,
+    nextX: number,
+    nextY: number
+  ): boolean {
+    const dx = Math.abs(nextX - prevX);
+    const dy = Math.abs(nextY - prevY);
+    return dx >= 0 || dy >= DRAG_THRESHOLD;
+  }
+
+  private async startDrag(
+    dragImage: HTMLElement,
+    metadata: IMetadata,
+    clientX: number,
+    clientY: number
+  ): Promise<void> {
+    const contentFactory = new NotebookModel.ContentFactory({});
+    const language = metadata.metadata.language;
+    const model =
+      language.toLowerCase() !== 'markdown'
+        ? contentFactory.createCodeCell({})
+        : contentFactory.createMarkdownCell({});
+    const content = metadata.metadata.code.join('\n');
+    model.value.text = content;
+
+    this._drag = new Drag({
+      mimeData: new MimeData(),
+      dragImage: dragImage,
+      supportedActions: 'copy-move',
+      proposedAction: 'copy',
+      source: this
+    });
+
+    const selected: nbformat.ICell[] = [model.toJSON()];
+    this._drag.mimeData.setData(JUPYTER_CELL_MIME, selected);
+    this._drag.mimeData.setData('text/plain', content);
+
+    return this._drag.start(clientX, clientY).then(() => {
+      this._drag = null;
+      this._dragData = null;
+    });
+  }
+
   actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
     return [
       {
@@ -279,6 +442,9 @@ class CodeSnippetDisplay extends MetadataDisplay<
           onExpand={(): void => {
             this.editors[metadata.name].refresh();
           }}
+          onMouseDown={(event: any): void => {
+            this.handleDragSnippet(event, metadata);
+          }}
         >
           <div id={metadata.name}></div>
         </ExpandableComponent>
@@ -313,6 +479,9 @@ class CodeSnippetDisplay extends MetadataDisplay<
       }
     });
   }
+
+  private _drag: Drag;
+  private _dragData: { pressX: number; pressY: number; dragImage: HTMLElement };
 }
 
 /**

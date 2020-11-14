@@ -69,3 +69,5 @@ By clicking on the **copy** button, the content of the code snippet is copied in
 The **insert** button inserts the code snippet content into the editor tab in focus. If the widget in focus is not an editor, an error is displayed.
 Code snippets are automatically added as code blocks in markdown files and notebook markdown cells.
 When inserting snippets into executable editors (ie. a notebook code cell or a python file editor), the extension will verify kernel language compatibility, warning the user when a mismatch is detected.
+
+Code Snippets can also be dragged and dropped from the display list into notebooks and file editors.

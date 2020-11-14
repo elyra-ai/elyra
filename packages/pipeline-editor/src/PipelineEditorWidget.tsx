@@ -1318,15 +1318,21 @@ export class PipelineEditor extends React.Component<
       case 'lm-dragover':
         event.preventDefault();
         event.stopPropagation();
-        (event as IDragEvent).dropAction = (event as IDragEvent).proposedAction;
+        // only allow dragging an item over from file browser, where event.source is null
+        if (!(event as IDragEvent).source) {
+          (event as IDragEvent).dropAction = (event as IDragEvent).proposedAction;
+        }
         break;
       case 'lm-drop':
         event.preventDefault();
         event.stopPropagation();
-        this.handleAddFileToPipelineCanvas(
-          (event as IDragEvent).offsetX,
-          (event as IDragEvent).offsetY
-        );
+        // only allow dropping an item from file browser, where event.source is null
+        if (!(event as IDragEvent).source) {
+          this.handleAddFileToPipelineCanvas(
+            (event as IDragEvent).offsetX,
+            (event as IDragEvent).offsetY
+          );
+        }
         break;
       default:
         break;
