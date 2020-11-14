@@ -179,3 +179,7 @@
   height: 400px;
   width: 600px;
 }
+
+.elyra-expandableContainer-draggable:hover {
+  cursor: grab;
+}

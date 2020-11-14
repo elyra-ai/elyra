@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.1 (11/14/2020)
+
+- Use JupyterLab SessionManager to execute Python scripts [#1071](https://github.com/elyra-ai/elyra/pull/1071) 
+- Update to JupyterLab-git 0.23.1 [#1065](https://github.com/elyra-ai/elyra/pull/1065)
+- Ensure local notebook nodes use local env [#1061](https://github.com/elyra-ai/elyra/pull/1061)
+- Code Snippet drag and drop feature [#1043](https://github.com/elyra-ai/elyra/pull/1043)
+
 ## 1.4.0 (11/09/2020)
 
 - Add the ability to search/filter to the metadata explorer [#985](https://github.com/elyra-ai/elyra/pull/985)
