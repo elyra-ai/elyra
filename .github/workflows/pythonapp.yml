@@ -63,8 +63,12 @@ jobs:
       run: |
         make test
     - name: Collect logs
+      uses: actions/upload-artifact@v2
       if: failure()
-      run: cat /tmp/jupyterlab-debug-*.log
+      with:
+        path: |
+          ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
+          ${{ github.workspace }}/build/cypress-tests/videos//**/*
   image_validation:
     runs-on: ubuntu-latest
     steps:
