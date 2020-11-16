@@ -35,7 +35,7 @@ import {
   errorIcon
 } from '@elyra/ui-components';
 
-import { LuminoDropzone } from '@elyra/ui-components';
+import { Dropzone } from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {
@@ -49,6 +49,7 @@ import { ServiceManager } from '@jupyterlab/services';
 
 import { toArray } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
+import { IDragEvent } from '@lumino/dragdrop';
 import { Signal } from '@lumino/signaling';
 import { Collapse, IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
@@ -403,9 +404,9 @@ export class PipelineEditor extends React.Component<
     ) : null;
 
     return (
-      <LuminoDropzone
-        onDrop={(x, y): void => {
-          this.handleAddFileToPipelineCanvas(x, y);
+      <Dropzone
+        onDrop={(e: IDragEvent): void => {
+          this.handleAddFileToPipelineCanvas(e.offsetX, e.offsetY);
         }}
       >
         {validationAlert}
@@ -428,7 +429,7 @@ export class PipelineEditor extends React.Component<
           />
         </IntlProvider>
         {commProps}
-      </LuminoDropzone>
+      </Dropzone>
     );
   }
 

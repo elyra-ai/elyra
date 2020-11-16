@@ -20,4 +20,4 @@ export * from './FormDialog';
 export * from './icons';
 export * from './DropDown';
 export * from './JSONComponent';
-export * from './LuminoDropzone';
+export * from './Dropzone';
