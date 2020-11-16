@@ -35,6 +35,7 @@ import {
   errorIcon
 } from '@elyra/ui-components';
 
+import { LuminoDropzone } from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {
@@ -66,7 +67,6 @@ import { CanvasManager } from './canvas';
 import { PIPELINE_CURRENT_VERSION } from './constants';
 import * as i18nData from './en.json';
 import { formDialogWidget } from './formDialogWidget';
-import { LuminoDropzone } from './LuminoDropzone';
 import * as palette from './palette.json';
 
 import { PipelineExportDialog } from './PipelineExportDialog';
