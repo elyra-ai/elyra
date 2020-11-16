@@ -26,7 +26,7 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v1
       with:
-         node-version: '12.13'
+         node-version: '12.18'
     - name: Display dependency info
       run: |
         python --version
