@@ -1,7 +1,7 @@
 name: Elyra Tests
 on:
-#  push:
-#    branches: '*'
+  push:
+    branches: '*'
   pull_request:
     branches: '*'
 
@@ -26,7 +26,7 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v1
       with:
-         node-version: '12.13'
+         node-version: '12.18'
     - name: Display dependency info
       run: |
         python --version
@@ -69,6 +69,7 @@ jobs:
         path: |
           ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
           ${{ github.workspace }}/build/cypress-tests/videos//**/*
+          /home/runner/.npm/_logs/*.log
   image_validation:
     runs-on: ubuntu-latest
     steps:
