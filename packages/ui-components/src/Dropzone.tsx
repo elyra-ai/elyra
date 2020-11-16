@@ -89,8 +89,8 @@ export const useDropzone = (props: IProps): IReturn => {
   };
 };
 
-export const Dropzone: React.FC<IProps> = ({ children, onDrop }) => {
-  const { getRootProps } = useDropzone({ onDrop });
+export const Dropzone: React.FC<IProps> = ({ children, ...rest }) => {
+  const { getRootProps } = useDropzone(rest);
 
   return (
     <div style={{ height: '100%' }} {...getRootProps()}>
