@@ -86,7 +86,7 @@ export class PythonFileEditor extends DocumentWidget<
     super(options);
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
     this.model = this.content.model;
-    this.runner = new PythonRunner(this.model, this.disableRun);
+    this.runner = new PythonRunner(this.model, this.context, this.disableRun);
     this.kernelName = null;
     this.emptyOutput = true;
     this.runDisabled = false;
@@ -174,7 +174,7 @@ export class PythonFileEditor extends DocumentWidget<
   };
 
   private stopRun = async (): Promise<void> => {
-    this.runner.shutDownKernel();
+    this.runner.shutdownSession();
     if (!this.dockPanel.isEmpty) {
       this.updatePromptText(' ');
     }
