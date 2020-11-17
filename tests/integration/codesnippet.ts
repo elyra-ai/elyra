@@ -115,8 +115,32 @@ describe('Test for Code Snippet display', () => {
     // cy.openJupyterLab();
   });
 
-  it('Test display on expand button', () => {
+  it('Test action buttons are visible', () => {
     openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
+
+    const snippetName = 'test-code-snippet';
+    fillMetadaEditorForm(snippetName);
+
+    cy.wait(500);
+
+    const actionButtons = checkSnippetIsDisplayed(snippetName)
+      .parentsUntil('.elyra-metadata-item')
+      .find('.elyra-expandableContainer-action-buttons');
+
+    const buttonTitles = ['Copy', 'Insert', 'Edit', 'Delete'];
+
+    // Check expected buttons to be visible
+    buttonTitles.forEach((title: string) => {
+      actionButtons.within(() => {
+        cy.get(`button[title=${title}]`).should('be.visible');
+      });
+    });
+
+    deleteSnippet('test-code-snippet');
+  });
+
+  it('Test display on expand/collapse button', () => {
     clickCreateNewSnippetButton();
 
     const snippetName = 'test-code-snippet';
@@ -183,7 +207,7 @@ const closeCurrentTab = (): void => {
   cy.get('.jp-mod-current > .lm-TabBar-tabCloseIcon:visible').click();
 };
 
-const checkSnippetIsDisplayed = (snippetName: string): void => {
+const checkSnippetIsDisplayed = (snippetName: string): any => {
   return cy
     .get('.elyra-metadata-item')
     .find('.elyra-expandableContainer-name')
