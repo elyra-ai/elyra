@@ -45,10 +45,6 @@ describe('Pipeline Editor tests', () => {
     });
   });
 
-  after(() => {
-    cy.wait(1000);
-  });
-
   it('empty editor should have disabled buttons', () => {
     openPipelineEditor();
 
