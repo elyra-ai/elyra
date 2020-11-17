@@ -25,6 +25,11 @@ export interface ILink {
   type: string;
 }
 
+/**
+ * Finds an exhaustive list of node links that are part of a circular reference.
+ *
+ * @returns array of link IDs.
+ */
 export const checkCircularReferences = (links: ILink[]): string[] => {
   const startTime = Date.now();
 
