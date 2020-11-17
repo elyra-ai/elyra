@@ -124,10 +124,7 @@ describe('Test for Code Snippet display', () => {
 
     cy.wait(500);
 
-    const actionButtons = checkSnippetIsDisplayed(snippetName)
-      .parentsUntil('.elyra-metadata-item')
-      .find('.elyra-expandableContainer-action-buttons');
-
+    const actionButtons = getActionButtonsElement(snippetName);
     const buttonTitles = ['Copy', 'Insert', 'Edit', 'Delete'];
 
     // Check expected buttons to be visible
@@ -137,7 +134,7 @@ describe('Test for Code Snippet display', () => {
       });
     });
 
-    deleteSnippet('test-code-snippet');
+    deleteSnippet(snippetName);
   });
 
   it('Test display on expand/collapse button', () => {
@@ -173,7 +170,49 @@ describe('Test for Code Snippet display', () => {
     // Check code mirror is not visible
     cy.get('.elyra-expandableContainer-details-visible').should('not.exist');
 
-    deleteSnippet('test-code-snippet');
+    deleteSnippet(snippetName);
+  });
+});
+
+describe('Test for editing a Code Snippet', () => {
+  before(() => {
+    openJupyterLab();
+    // cy.openJupyterLab();
+  });
+
+  it('Test editing a code snippet name', () => {
+    openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
+
+    const snippetName = 'test-code-snippet';
+    fillMetadaEditorForm(snippetName);
+
+    cy.wait(500);
+
+    // Find new snippet in display and click on edit button
+    getActionButtonsElement(snippetName).within(() => {
+      cy.get('button[title="Edit"]').click();
+    });
+
+    // Edit snippet name
+    const newSnippetName = 'new-name';
+    cy.get('.elyra-metadataEditor-form-display_name')
+      .find('input')
+      .clear()
+      .type(newSnippetName);
+    clickSaveAndCloseButton();
+
+    cy.wait(500);
+
+    // Check new snippet name is displayed
+    checkSnippetIsDisplayed(newSnippetName);
+
+    // Check old snippet name does not exist
+    cy.get('.elyra-metadata-item')
+      .find('.elyra-expandableContainer-name')
+      .should('not.contain', `${snippetName}`);
+
+    deleteSnippet(newSnippetName);
   });
 });
 
@@ -250,10 +289,18 @@ const deleteSnippet = (snippetName: string): void => {
   cy.get('.jp-Dialog-header').contains(`Delete snippet: ${snippetName}?`);
   cy.get('button.jp-mod-accept').click();
 
-  // Removing the assertion below for now, it passes locally but not on remote runs
   cy.wait(500);
+
   // Snippet name is no longer on display list
   cy.get('.elyra-metadata-item')
     .find('.elyra-expandableContainer-name')
-    .should('not.contain', `[Python] ${snippetName}`);
+    .should('not.contain', `${snippetName}`);
+};
+
+const getActionButtonsElement = (snippetName: string): any => {
+  const actionButtonsElement = checkSnippetIsDisplayed(snippetName)
+    .parentsUntil('.elyra-metadata-item')
+    .find('.elyra-expandableContainer-action-buttons');
+
+  return actionButtonsElement;
 };
