@@ -257,14 +257,14 @@ const getFileByType = (type: string): any => {
   return cy.get(`.jp-DirListing-content > [data-file-type="${type}"]`);
 };
 
-const deleteFileByName = (name: string): any => {
-  getFileByName(`${name}`).rightclick();
-  cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
-  cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
-    .should('be.visible')
-    .click();
-  cy.wait(100);
-};
+// const deleteFileByName = (name: string): any => {
+//   getFileByName(`${name}`).rightclick();
+//   cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
+//   cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
+//     .should('be.visible')
+//     .click();
+//   cy.wait(100);
+// };
 
 const checkEnabledToolbarButtons = (buttons: string[]): void => {
   buttons.forEach((buttonClass: string) => {
