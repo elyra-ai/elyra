@@ -253,8 +253,6 @@ export class PipelineEditor extends React.Component<
     this.beforeEditActionHandler = this.beforeEditActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
 
-    this.nodesConnected = this.nodesConnected.bind(this);
-
     this.state = {
       showPropertiesDialog: false,
       propertiesInfo: {},
@@ -625,43 +623,23 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  /*
-   * Checks if there is a path from sourceNode to targetNode in the graph.
-   */
-  nodesConnected(
-    sourceNode: string,
-    targetNode: string,
-    links: any[]
-  ): boolean {
-    if (
-      links.find((value: any, index: number) => {
-        return value.srcNodeId == sourceNode && value.trgNodeId == targetNode;
-      })
-    ) {
-      return true;
-    } else {
-      for (const link of links) {
-        if (
-          link.srcNodeId == sourceNode &&
-          this.nodesConnected(link.trgNodeId, targetNode, links)
-        ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   beforeEditActionHandler(data: any): any {
+    if (data.editType !== 'linkNodes') {
+      return data;
+    }
+
     // Checks validity of links before adding
-    if (
-      data.editType == 'linkNodes' &&
-      this.nodesConnected(
-        data.targetNodes[0].id,
-        data.nodes[0].id,
-        this.canvasController.getLinks()
-      )
-    ) {
+    const proposedLink = {
+      id: 'proposed-link',
+      trgNodeId: data.targetNodes[0].id,
+      srcNodeId: data.nodes[0].id,
+      type: 'nodeLink'
+    };
+    const links = this.canvasController.getLinks();
+
+    const taintedLinks = checkCircularReferences([proposedLink, ...links]);
+
+    if (taintedLinks.length > 0) {
       this.setState({
         validationError: {
           errorMessage: 'Invalid operation: circular references in pipeline.',
@@ -671,9 +649,9 @@ export class PipelineEditor extends React.Component<
       });
       // Don't proceed with adding the link if invalid.
       return null;
-    } else {
-      return data;
     }
+
+    return data;
   }
 
   /*
