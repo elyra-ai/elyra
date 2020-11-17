@@ -102,13 +102,13 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra 1.4.0.dev0 OK
+      elyra 1.5.0.dev0 OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.2.8 OK
     jupyterlab_git  enabled
     - Validating...
-      jupyterlab_git 0.21.1 OK
+      jupyterlab_git 0.23.1 OK
     nbdime  enabled
     - Validating...
       nbdime 2.0.0 OK
@@ -129,12 +129,12 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.4.0-dev  enabled  OK*
-        @elyra/metadata-extension v1.4.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension v1.4.0-dev  enabled  OK*
-        @elyra/python-editor-extension v1.4.0-dev  enabled  OK*
-        @elyra/theme-extension v1.4.0-dev  enabled  OK*
-        @jupyterlab/git v0.21.1  enabled  OK
+        @elyra/code-snippet-extension v1.5.0-dev  enabled  OK*
+        @elyra/metadata-extension v1.5.0-dev  enabled  OK*
+        @elyra/pipeline-editor-extension v1.5.0-dev  enabled  OK*
+        @elyra/python-editor-extension v1.5.0-dev  enabled  OK*
+        @elyra/theme-extension v1.5.0-dev  enabled  OK*
+        @jupyterlab/git v0.22.3  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```

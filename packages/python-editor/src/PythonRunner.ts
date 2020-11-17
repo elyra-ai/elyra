@@ -16,32 +16,45 @@
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
 import {
-  Kernel,
   KernelManager,
   KernelSpec,
-  KernelSpecManager
+  KernelSpecManager,
+  Session,
+  SessionManager
 } from '@jupyterlab/services';
 
 /**
  * Class: An enhanced Python Script Editor that enables developing and running the script
  */
 export class PythonRunner {
+  sessionManager: SessionManager;
+  sessionConnection: Session.ISessionConnection;
   kernelSpecManager: KernelSpecManager;
   kernelManager: KernelManager;
-  kernel: Kernel.IKernelConnection;
   model: CodeEditor.IModel;
+  context: DocumentRegistry.Context;
   disableRun: Function;
 
   /**
    * Construct a new runner.
    */
-  constructor(model: CodeEditor.IModel, disableRun: Function) {
+  constructor(
+    model: CodeEditor.IModel,
+    context: DocumentRegistry.Context,
+    disableRun: Function
+  ) {
+    this.model = model;
+    this.context = context;
+    this.disableRun = disableRun;
+
     this.kernelSpecManager = new KernelSpecManager();
     this.kernelManager = new KernelManager();
-    this.kernel = null;
-    this.model = model;
-    this.disableRun = disableRun;
+    this.sessionManager = new SessionManager({
+      kernelManager: this.kernelManager
+    });
+    this.sessionConnection = null;
   }
 
   private errorDialog = (errorMsg: string): Promise<Dialog.IResult<string>> => {
@@ -54,33 +67,29 @@ export class PythonRunner {
   };
 
   /**
-   * Function: Starts a python kernel and executes code from file editor.
+   * Function: Starts a session with a python kernel and executes code from file editor.
    */
   runPython = async (
     kernelName: string,
     handleKernelMsg: Function
   ): Promise<any> => {
-    if (!this.kernel) {
+    if (!this.sessionConnection) {
       this.disableRun(true);
       const model = this.model;
       const code: string = model.value.text;
 
       try {
-        this.kernel = await this.kernelManager.startNew({ name: kernelName });
+        await this.startSession(kernelName);
       } catch (e) {
-        return this.errorDialog(
-          'Could not start kernel environment to execute script.'
-        );
+        return this.errorDialog('Could not start session to execute script.');
       }
 
-      if (!this.kernel) {
-        // kernel didn't get started
-        return this.errorDialog(
-          'Failed to start kernel environment to execute script.'
-        );
+      if (!this.sessionConnection) {
+        // session didn't get started
+        return this.errorDialog('Failed to start session to execute script.');
       }
 
-      const future = this.kernel.requestExecute({ code });
+      const future = this.sessionConnection.kernel.requestExecute({ code });
 
       future.onIOPub = (msg: any): void => {
         const msgOutput: any = {};
@@ -111,7 +120,7 @@ export class PythonRunner {
 
       try {
         await future.done;
-        this.shutDownKernel();
+        this.shutdownSession();
       } catch (e) {
         console.log('Exception: done = ' + JSON.stringify(e));
       }
@@ -130,24 +139,35 @@ export class PythonRunner {
   /**
    * Function: Starts new kernel.
    */
-  startKernel = async (
-    options: Kernel.IKernelOptions
-  ): Promise<Kernel.IKernelConnection> => {
-    return this.kernelManager.startNew(options);
+  startSession = async (
+    kernelName: string
+  ): Promise<Session.ISessionConnection> => {
+    const options: Session.ISessionOptions = {
+      kernel: {
+        name: kernelName
+      },
+      path: this.context.path,
+      type: 'file',
+      name: this.context.path
+    };
+
+    this.sessionConnection = await this.sessionManager.startNew(options);
+    this.sessionConnection.setPath(this.context.path);
+
+    return this.sessionConnection;
   };
 
   /**
    * Function: Shuts down kernel.
    */
-  shutDownKernel = async (): Promise<void> => {
-    if (this.kernel) {
-      const name = this.kernel.name;
+  shutdownSession = async (): Promise<void> => {
+    if (this.sessionConnection) {
+      const name = this.sessionConnection.kernel.name;
 
       try {
-        const tempKernel = this.kernel;
-        this.kernel = null;
         this.disableRun(false);
-        await tempKernel.shutdown();
+        await this.sessionConnection.shutdown();
+        this.sessionConnection = null;
         console.log(name + ' kernel shut down');
       } catch (e) {
         console.log('Exception: shutdown = ' + JSON.stringify(e));

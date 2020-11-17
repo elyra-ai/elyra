@@ -35,6 +35,7 @@ import {
   errorIcon
 } from '@elyra/ui-components';
 
+import { Dropzone } from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
 import {
@@ -277,13 +278,9 @@ export class PipelineEditor extends React.Component<
     this.addFileToPipelineSignal.connect((args: any): any => {
       this.handleAddFileToPipelineCanvas();
     });
-
-    this.node = React.createRef();
-    this.handleEvent = this.handleEvent.bind(this);
   }
 
   render(): React.ReactElement {
-    const style = { height: '100%' };
     const validationAlert = (
       <Collapse in={this.state.showValidationError}>
         <Alert
@@ -407,7 +404,11 @@ export class PipelineEditor extends React.Component<
     ) : null;
 
     return (
-      <div style={style} ref={this.node}>
+      <Dropzone
+        onDrop={(e: IDragEvent): void => {
+          this.handleAddFileToPipelineCanvas(e.offsetX, e.offsetY);
+        }}
+      >
         {validationAlert}
         <IntlProvider
           key="IntlProvider1"
@@ -428,7 +429,7 @@ export class PipelineEditor extends React.Component<
           />
         </IntlProvider>
         {commProps}
-      </div>
+      </Dropzone>
     );
   }
 
@@ -1278,59 +1279,9 @@ export class PipelineEditor extends React.Component<
   }
 
   componentDidMount(): void {
-    const node = this.node.current!;
-    node.addEventListener('dragenter', this.handleEvent);
-    node.addEventListener('dragover', this.handleEvent);
-    node.addEventListener('lm-dragenter', this.handleEvent);
-    node.addEventListener('lm-dragover', this.handleEvent);
-    node.addEventListener('lm-drop', this.handleEvent);
-
     this.initPropertiesInfo().finally(() => {
       this.handleOpenPipeline();
     });
-  }
-
-  componentWillUnmount(): void {
-    const node = this.node.current!;
-    node.removeEventListener('lm-drop', this.handleEvent);
-    node.removeEventListener('lm-dragover', this.handleEvent);
-    node.removeEventListener('lm-dragenter', this.handleEvent);
-    node.removeEventListener('dragover', this.handleEvent);
-    node.removeEventListener('dragenter', this.handleEvent);
-  }
-
-  /**
-   * Handle the DOM events.
-   *
-   * @param event - The DOM event.
-   */
-  handleEvent(event: Event): void {
-    switch (event.type) {
-      case 'dragenter':
-        event.preventDefault();
-        break;
-      case 'dragover':
-        event.preventDefault();
-        break;
-      case 'lm-dragenter':
-        event.preventDefault();
-        break;
-      case 'lm-dragover':
-        event.preventDefault();
-        event.stopPropagation();
-        (event as IDragEvent).dropAction = (event as IDragEvent).proposedAction;
-        break;
-      case 'lm-drop':
-        event.preventDefault();
-        event.stopPropagation();
-        this.handleAddFileToPipelineCanvas(
-          (event as IDragEvent).offsetX,
-          (event as IDragEvent).offsetY
-        );
-        break;
-      default:
-        break;
-    }
   }
 }
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.4.1 (11/14/2020)
+
+- Use JupyterLab SessionManager to execute Python scripts [#1071](https://github.com/elyra-ai/elyra/pull/1071) 
+- Update to JupyterLab-git 0.23.1 [#1065](https://github.com/elyra-ai/elyra/pull/1065)
+- Ensure local notebook nodes use local env [#1061](https://github.com/elyra-ai/elyra/pull/1061)
+- Code Snippet drag and drop feature [#1043](https://github.com/elyra-ai/elyra/pull/1043)
+
+## 1.4.0 (11/09/2020)
+
+- Add the ability to search/filter to the metadata explorer [#985](https://github.com/elyra-ai/elyra/pull/985)
+- Update documentation on containers and public container registries [#1039](https://github.com/elyra-ai/elyra/pull/1039)
+- Flow kernel name to Jupyter Enterprise Gateway [#1031](https://github.com/elyra-ai/elyra/pull/1031)
+- Add tags and descriptions to default runtime images [#1023](https://github.com/elyra-ai/elyra/pull/1023)
+- Propagate local env when running local python node [#1047](https://github.com/elyra-ai/elyra/pull/1047)
+- Fix variable formatting in jinja template used by export [#1027](https://github.com/elyra-ai/elyra/pull/1027)
+- Update JupyterLab Git extension to version 0.22.3 [#1017](https://github.com/elyra-ai/elyra/pull/1017)
+- Build source distro for individual extensions [#1018](https://github.com/elyra-ai/elyra/pull/1018)
+- Update UI integration tests to use non-standard port [#1024](https://github.com/elyra-ai/elyra/pull/1024)
+- Update install docs on how to install individual extensions [#1009](https://github.com/elyra-ai/elyra/pull/1009)
+
 ## 1.3.3 (10/23/2020)
 
 - Package extension dependencies with Elyra single extension wheel [#998](https://github.com/elyra-ai/elyra/pull/998)

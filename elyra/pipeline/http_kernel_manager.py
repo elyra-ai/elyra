@@ -26,7 +26,7 @@ from jupyter_client.manager import AsyncKernelManager
 from jupyter_client.managerabc import KernelManagerABC
 from logging import Logger
 from notebook.gateway.managers import GatewayClient, gateway_request
-from notebook.utils import url_path_join
+from notebook.utils import url_path_join, maybe_future
 from queue import Queue
 from threading import Thread
 from tornado import web
@@ -197,7 +197,7 @@ class ChannelQueue(Queue):
 
     channel_name: str = None
 
-    def __init__(self, channel_name: str, channel_socket: websocket, log: Logger):
+    def __init__(self, channel_name: str, channel_socket: websocket.WebSocket, log: Logger):
         super().__init__()
         self.channel_name = channel_name
         self.channel_socket = channel_socket
@@ -284,22 +284,31 @@ class HTTPKernelClient(AsyncKernelClient):
     # Channel management methods
     # --------------------------------------------------------------------------
 
-    def start_channels(self, shell=True, iopub=True, stdin=True, hb=True, control=True):
+    async def start_channels(self, shell=True, iopub=True, stdin=True, hb=True, control=True):
         """Starts the channels for this kernel.
 
         For this class, we establish a websocket connection to the destination
         and setup the channel-based queues on which applicable messages will
         be posted.
         """
+
         ws_url = url_path_join(
             GatewayClient.instance().ws_url,
             GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels')
-        self.channel_socket = websocket.create_connection(ws_url, timeout=60, enable_multithread=True)
+        # Gather cert info in case where ssl is desired...
+        ssl_options = dict()
+        ssl_options['ca_certs'] = GatewayClient.instance().ca_certs
+        ssl_options['certfile'] = GatewayClient.instance().client_cert
+        ssl_options['keyfile'] = GatewayClient.instance().client_key
 
+        self.channel_socket = websocket.create_connection(ws_url,
+                                                          timeout=GatewayClient.instance().KERNEL_LAUNCH_TIMEOUT,
+                                                          enable_multithread=True,
+                                                          sslopt=ssl_options)
         self.response_router = Thread(target=self._route_responses)
         self.response_router.start()
 
-        super().start_channels(shell=shell, iopub=iopub, stdin=stdin, hb=hb, control=control)
+        await maybe_future(super().start_channels(shell=shell, iopub=iopub, stdin=stdin, hb=hb, control=control))
 
     def stop_channels(self):
         """Stops all the running channels for this kernel.
@@ -310,6 +319,7 @@ class HTTPKernelClient(AsyncKernelClient):
         super().stop_channels()
         self._channels_stopped = True
         self.log.debug("Closing websocket connection")
+
         self.channel_socket.close()
         self.response_router.join()
 
@@ -378,7 +388,6 @@ class HTTPKernelClient(AsyncKernelClient):
                 if not raw_message:
                     break
                 response_message = json_decode(utf8(raw_message))
-
                 channel = response_message['channel']
                 self._channel_queues[channel].put_nowait(response_message)
 

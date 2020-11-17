@@ -36,6 +36,7 @@ const BUTTON_CLASS = 'elyra-expandableContainer-button';
 const TITLE_CLASS = 'elyra-expandableContainer-title';
 const ACTION_BUTTONS_WRAPPER_CLASS = 'elyra-expandableContainer-action-buttons';
 const ACTION_BUTTON_CLASS = 'elyra-expandableContainer-actionButton';
+const DRAGGABLE_CLASS = 'elyra-expandableContainer-draggable';
 
 /**
  * Expandable container props.
@@ -53,6 +54,7 @@ export interface IExpandableComponentProps {
   actionButtons?: IExpandableActionButton[];
   onExpand?: Function;
   onBeforeExpand?: Function;
+  onMouseDown?: Function;
 }
 
 export interface IExpandableComponentState {
@@ -95,6 +97,7 @@ export class ExpandableComponent extends React.Component<
         <div key={this.props.displayName} className={TITLE_CLASS}>
           <button
             className={buttonClasses}
+            title={this.state.expanded ? 'Hide Details' : 'Show Details'}
             onClick={(): void => {
               this.toggleDetailsDisplay();
             }}
@@ -115,9 +118,16 @@ export class ExpandableComponent extends React.Component<
           </button>
           <span
             title={this.props.tooltip}
-            className={DISPLAY_NAME_CLASS}
+            className={
+              this.props.onMouseDown
+                ? DISPLAY_NAME_CLASS
+                : DISPLAY_NAME_CLASS + ' ' + DRAGGABLE_CLASS
+            }
             onClick={(): void => {
               this.toggleDetailsDisplay();
+            }}
+            onMouseDown={(event): void => {
+              this.props.onMouseDown && this.props.onMouseDown(event);
             }}
           >
             {this.props.displayName}

@@ -20,7 +20,7 @@
 
 SHELL:=/bin/bash
 
-GIT_VERSION:=0.21.1
+GIT_VERSION:=0.23.1
 TOC_VERSION:=4.0.0
 
 TAG:=dev
@@ -155,8 +155,13 @@ docker-image: ## Build docker image
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
+	pip install jq ; \
 	for file in `find etc/config/metadata/runtime-images -name "*.json"` ; do \
-		image=`grep image_name $$file | awk '{print $$2}' | sed s/\"//g` ; \
+		image=`cat $$file | jq -e -r '.metadata.image_name'` ; \
+		if [ $$? -ne 0 ]; then \
+			echo ERROR: $$file does not define the image_name property ; \
+			exit 1; \
+		fi; \
 		fail=0; \
 		for cmd in $$required_commands ; do \
 			echo Checking $$image in $$file for $$cmd... ; \
