@@ -53,6 +53,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         # TODO: try to encapsulate the info below
         api_username = runtime_configuration.metadata.get('api_username')
         api_password = runtime_configuration.metadata.get('api_password')
+        user_namespace = runtime_configuration.metadata['user_namespace']
 
         self.log_pipeline_info(pipeline_name, "submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -99,7 +100,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                 else:
                     raise lve
 
-            run = client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
+            experiment = client.create_experiment(name=pipeline_name,
+                                                  namespace=user_namespace)
+
+            run = client.run_pipeline(experiment_id=experiment.id,
                                       job_name=timestamp,
                                       pipeline_id=kfp_pipeline.id)
 
