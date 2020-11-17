@@ -5,9 +5,11 @@
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "prettier",
-    "plugin:react/recommended"
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
   ],
   "rules": {
+    "react/prop-types": "off",
     "func-style": "error",
     "@typescript-eslint/interface-name-prefix": [
       "error",
