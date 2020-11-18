@@ -51,7 +51,7 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         user_namespace = None
-        if runtime_configuration.metadata['user_namespace']:
+        if runtime_configuration.metadata.get('user_namespace'):
             user_namespace = runtime_configuration.metadata['user_namespace']
 
         # TODO: try to encapsulate the info below
