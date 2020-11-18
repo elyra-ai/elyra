@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@elyra/application": "^1.5.0-dev",
-    "@elyra/canvas": "9.1.6",
+    "@elyra/canvas": "9.2.1",
     "@elyra/metadata-common": "^1.5.0-dev",
     "@elyra/ui-components": "^1.5.0-dev",
     "@jupyterlab/application": "^2.0.2",

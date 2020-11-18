@@ -18,4 +18,9 @@ limitations under the License.
 
 # Testing
 ## Frontend Test Development
-The frontend of Elyra utilizes a testing framework called [Cypress](cypress.io). Cypress includes a useful UI for developing and debugging tests, which can be used by running `npm test-debug` from the root directory of this project. To run tests that output a detailed log instead of opening the Cypress UI, run `npm test`. Tests can also be run from the makefile by running `make test`. The spec code for tests is located in the `integration/` directory.
+The frontend of Elyra utilizes a testing framework called [Cypress](cypress.io).
+Cypress includes a useful UI for developing and debugging tests, which can be used by
+running `npm test-debug` from the root directory of this project. To run tests that output
+a detailed log instead of opening the Cypress UI, run `npm test`. Tests can also be run
+from the makefile by running `make test`. The spec code for tests is located in
+the `integration/` directory.

@@ -26,7 +26,7 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v1
       with:
-         node-version: '12.13'
+         node-version: '12.18'
     - name: Display dependency info
       run: |
         python --version
@@ -62,8 +62,13 @@ jobs:
       run: |
         make test
     - name: Collect logs
+      uses: actions/upload-artifact@v2
       if: failure()
-      run: cat /tmp/jupyterlab-debug-*.log
+      with:
+        path: |
+          ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
+          ${{ github.workspace }}/build/cypress-tests/videos//**/*
+          /home/runner/.npm/_logs/*.log
   image_validation:
     runs-on: ubuntu-latest
     steps:
