@@ -16,11 +16,8 @@
 
 import * as path from 'path';
 
-import {
-  FrontendServices,
-  IDictionary,
-  RequestHandler
-} from '@elyra/application';
+import { IDictionary, RequestHandler } from '@elyra/application';
+import { FrontendServices } from '@elyra/metadata-common';
 
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';

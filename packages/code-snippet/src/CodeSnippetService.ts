@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { FrontendServices } from '@elyra/application';
-import { IMetadata } from '@elyra/metadata-common';
+import { FrontendServices, IMetadata } from '@elyra/metadata-common';
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 

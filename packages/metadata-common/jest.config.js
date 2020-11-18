@@ -13,9 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import '../style/index.css';
-
-export * from './MetadataEditor';
-export * from './MetadataWidget';
-export * from './services';
+/* global module, require */
+module.exports = require('../../testutils/jest.config');

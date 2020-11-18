@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IDictionary, FrontendServices } from '@elyra/application';
+import { IDictionary } from '@elyra/application';
 import {
   ExpandableComponent,
   JSONComponent,
@@ -34,6 +34,7 @@ import { Signal } from '@lumino/signaling';
 import React from 'react';
 
 import { FilterTools } from './FilterTools';
+import { FrontendServices } from './services';
 
 /**
  * The CSS class added to metadata widgets.

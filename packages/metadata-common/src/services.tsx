@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
+import { IDictionary, RequestHandler } from '@elyra/application';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import * as React from 'react';
-
-import { IDictionary } from './parsing';
-import { RequestHandler } from './requests';
 
 const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
 const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';

@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-import { FrontendServices } from '@elyra/application';
-import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
+import {
+  FrontendServices,
+  MetadataWidget,
+  MetadataEditor
+} from '@elyra/metadata-common';
 
 import {
   JupyterFrontEnd,

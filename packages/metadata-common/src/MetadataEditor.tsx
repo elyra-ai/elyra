@@ -16,7 +16,7 @@
 
 import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
 
-import { FrontendServices, IDictionary } from '@elyra/application';
+import { IDictionary } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
@@ -31,6 +31,7 @@ import { Message } from '@lumino/messaging';
 import * as React from 'react';
 
 import { MetadataEditorTags } from './MetadataEditorTags';
+import { FrontendServices } from './services';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
