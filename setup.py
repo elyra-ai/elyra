@@ -55,7 +55,7 @@ setup_args = dict(
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1',
         'jupyter_server>=1.0.5',
-        'jupyterlab>==3.0.0rc9',
+        'jupyterlab>==3.0.0rc10',
         # 'jupyterlab-git==0.21.1',
         'kfp-notebook>=0.14.0,<0.15.0',
         'kfp==1.0.0',
