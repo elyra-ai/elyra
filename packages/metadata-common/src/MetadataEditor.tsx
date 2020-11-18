@@ -31,7 +31,7 @@ import { Message } from '@lumino/messaging';
 import * as React from 'react';
 
 import { MetadataEditorTags } from './MetadataEditorTags';
-import { FrontendServices } from './services';
+import { MetadataService } from './MetadataService';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
@@ -98,7 +98,7 @@ export class MetadataEditor extends ReactWidget {
   }
 
   async initializeMetadata(): Promise<void> {
-    const schemas = await FrontendServices.getSchema(this.namespace);
+    const schemas = await MetadataService.getSchema(this.namespace);
     for (const schema of schemas) {
       if (this.schemaName === schema.name) {
         this.schema = schema.properties.metadata.properties;
@@ -125,7 +125,7 @@ export class MetadataEditor extends ReactWidget {
       }
     }
 
-    this.allMetadata = await FrontendServices.getMetadata(this.namespace);
+    this.allMetadata = await MetadataService.getMetadata(this.namespace);
     if (this.name) {
       for (const metadata of this.allMetadata) {
         if (metadata.metadata.tags) {
@@ -220,7 +220,7 @@ export class MetadataEditor extends ReactWidget {
     }
 
     if (!this.name) {
-      FrontendServices.postMetadata(
+      MetadataService.postMetadata(
         this.namespace,
         JSON.stringify(newMetadata)
       ).then((response: any): void => {
@@ -229,7 +229,7 @@ export class MetadataEditor extends ReactWidget {
         this.close();
       });
     } else {
-      FrontendServices.putMetadata(
+      MetadataService.putMetadata(
         this.namespace,
         this.name,
         JSON.stringify(newMetadata)

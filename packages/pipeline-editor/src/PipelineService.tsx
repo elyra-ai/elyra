@@ -17,7 +17,7 @@
 import * as path from 'path';
 
 import { IDictionary, RequestHandler } from '@elyra/application';
-import { FrontendServices } from '@elyra/metadata-common';
+import { MetadataService } from '@elyra/metadata-common';
 
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
@@ -41,10 +41,10 @@ export class PipelineService {
    * executed on these runtimes.
    */
   static async getRuntimes(showError = true): Promise<any> {
-    const runtimes = await FrontendServices.getMetadata('runtimes');
+    const runtimes = await MetadataService.getMetadata('runtimes');
 
     if (showError && Object.keys(runtimes).length === 0) {
-      return FrontendServices.noMetadataError('runtimes');
+      return MetadataService.noMetadataError('runtimes');
     }
 
     return runtimes;
@@ -55,14 +55,14 @@ export class PipelineService {
    * to run the pipeline nodes.
    */
   static async getRuntimeImages(): Promise<any> {
-    let runtimeImages = await FrontendServices.getMetadata('runtime-images');
+    let runtimeImages = await MetadataService.getMetadata('runtime-images');
 
     runtimeImages = runtimeImages.sort(
       (a: any, b: any) => 0 - (a.name > b.name ? -1 : 1)
     );
 
     if (Object.keys(runtimeImages).length === 0) {
-      return FrontendServices.noMetadataError('runtime-images');
+      return MetadataService.noMetadataError('runtime-images');
     }
 
     const images: IDictionary<string> = {};

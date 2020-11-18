@@ -24,7 +24,7 @@ const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
 /**
  * A service class for accessing the elyra api.
  */
-export class FrontendServices {
+export class MetadataService {
   /**
    * Displays a dialog for error cases during metadata calls.
    *

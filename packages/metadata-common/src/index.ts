@@ -18,4 +18,4 @@ import '../style/index.css';
 
 export * from './MetadataEditor';
 export * from './MetadataWidget';
-export * from './services';
+export * from './MetadataService';

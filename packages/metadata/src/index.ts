@@ -15,7 +15,7 @@
  */
 
 import {
-  FrontendServices,
+  MetadataService,
   MetadataWidget,
   MetadataEditor
 } from '@elyra/metadata-common';
@@ -190,7 +190,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: closeTabCommand
     });
 
-    const schemas = await FrontendServices.getAllSchema();
+    const schemas = await MetadataService.getAllSchema();
     for (const schema of schemas) {
       let icon = 'ui-components:text-editor';
       let title = schema.title;

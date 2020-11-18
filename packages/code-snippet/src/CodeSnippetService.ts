@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FrontendServices, IMetadata } from '@elyra/metadata-common';
+import { MetadataService, IMetadata } from '@elyra/metadata-common';
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 
@@ -23,7 +23,7 @@ export const CODE_SNIPPET_SCHEMA = 'code-snippet';
 
 export class CodeSnippetService {
   static async findAll(): Promise<IMetadata[]> {
-    const codeSnippetsResponse = await FrontendServices.getMetadata(
+    const codeSnippetsResponse = await MetadataService.getMetadata(
       CODE_SNIPPET_NAMESPACE
     );
 
@@ -60,7 +60,7 @@ export class CodeSnippetService {
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
-        FrontendServices.deleteMetadata(
+        MetadataService.deleteMetadata(
           CODE_SNIPPET_NAMESPACE,
           codeSnippet.name
         );

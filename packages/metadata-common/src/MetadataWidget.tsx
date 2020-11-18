@@ -34,7 +34,7 @@ import { Signal } from '@lumino/signaling';
 import React from 'react';
 
 import { FilterTools } from './FilterTools';
-import { FrontendServices } from './services';
+import { MetadataService } from './MetadataService';
 
 /**
  * The CSS class added to metadata widgets.
@@ -110,7 +110,7 @@ export class MetadataDisplay<
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
-        FrontendServices.deleteMetadata(this.props.namespace, metadata.name);
+        MetadataService.deleteMetadata(this.props.namespace, metadata.name);
       }
     });
   };
@@ -342,7 +342,7 @@ export class MetadataWidget extends ReactWidget {
   }
 
   async getSchema(): Promise<void> {
-    const schemas = await FrontendServices.getSchema(this.props.namespace);
+    const schemas = await MetadataService.getSchema(this.props.namespace);
     for (const schema of schemas) {
       if (this.props.schema === schema.name) {
         this.schemaDisplayName = schema.title;
@@ -369,7 +369,7 @@ export class MetadataWidget extends ReactWidget {
    * @returns metadata in the format expected by `renderDisplay`
    */
   async fetchMetadata(): Promise<any> {
-    return await FrontendServices.getMetadata(this.props.namespace);
+    return await MetadataService.getMetadata(this.props.namespace);
   }
 
   updateMetadata(): void {
