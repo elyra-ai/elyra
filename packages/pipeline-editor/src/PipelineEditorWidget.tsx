@@ -392,7 +392,7 @@ export class PipelineEditor extends React.Component<
       closePropertiesDialog: this.closePropertiesDialog
     };
 
-    const commProps = this.state.showPropertiesDialog ? (
+    const commProps = (
       <IntlProvider
         key="IntlProvider2"
         locale={'en'}
@@ -400,11 +400,11 @@ export class PipelineEditor extends React.Component<
       >
         <CommonProperties
           propertiesInfo={this.state.propertiesInfo}
-          propertiesConfig={{}}
+          propertiesConfig={{ containerType: 'Custom', rightFlyout: true }}
           callbacks={propertiesCallbacks}
         />
       </IntlProvider>
-    ) : null;
+    );
 
     return (
       <div style={style} ref={this.node}>
@@ -425,9 +425,10 @@ export class PipelineEditor extends React.Component<
             config={canvasConfig}
             notificationConfig={{ enable: false }}
             contextMenuConfig={contextMenuConfig}
+            rightFlyoutContent={commProps}
+            showRightFlyout={this.state.showPropertiesDialog}
           />
         </IntlProvider>
-        {commProps}
       </div>
     );
   }
@@ -460,6 +461,9 @@ export class PipelineEditor extends React.Component<
 
   openPropertiesDialog(source: any): void {
     console.log('Opening properties dialog');
+    if (!source.targetObject) {
+      source.targetObject = this.canvasController.getNode(source.id);
+    }
     const node_id = source.targetObject.id;
     const app_data = source.targetObject.app_data;
 
@@ -620,6 +624,14 @@ export class PipelineEditor extends React.Component<
     // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
       this.handleOpenFile(source.selectedObjectIds);
+    } else if (
+      source.clickType === 'SINGLE_CLICK' &&
+      source.objectType === 'node'
+    ) {
+      if (this.state.showPropertiesDialog) {
+        this.closePropertiesDialog();
+        this.openPropertiesDialog(source);
+      }
     }
   }
 
@@ -707,9 +719,10 @@ export class PipelineEditor extends React.Component<
           break;
         case 'properties':
           if (data.type === 'node') {
-            this.state.showPropertiesDialog
-              ? this.closePropertiesDialog()
-              : this.openPropertiesDialog(data);
+            if (this.state.showPropertiesDialog) {
+              this.closePropertiesDialog();
+            }
+            this.openPropertiesDialog(data);
           }
           break;
       }
