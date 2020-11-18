@@ -99,6 +99,7 @@ describe('PipelineEditor', () => {
       '.redo-action',
       '.cut-action',
       '.copy-action',
+      '.paste-action',
       '.deleteSelectedObjects-action',
       '.arrangeHorizontally-action',
       '.arrangeVertically-action'
@@ -139,6 +140,7 @@ describe('PipelineEditor', () => {
       '.redo-action',
       '.cut-action',
       '.copy-action',
+      '.paste-action',
       '.deleteSelectedObjects-action'
     ];
     checkDisabledToolbarButtons(disabledButtons);
