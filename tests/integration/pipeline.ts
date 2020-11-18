@@ -23,7 +23,8 @@ describe('Pipeline Editor tests', () => {
       cy.writeFile('build/cypress-tests/helloworld.py', file);
     });
     // open jupyterlab with a clean workspace
-    cy.visit('?token=test&reset').wait(1000);
+    cy.visit('?token=test&reset');
+    cy.get('jp-DirListing-content');
   });
 
   afterEach(() => {
