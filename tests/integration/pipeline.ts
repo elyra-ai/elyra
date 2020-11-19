@@ -15,11 +15,6 @@
  */
 
 describe('Pipeline Editor tests', () => {
-  // before(() => {
-  //   // open jupyterlab with a clean workspace
-  //   cy.visit('?token=test&reset');
-  // });
-
   beforeEach(() => {
     cy.readFile('tests/assets/helloworld.ipynb').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.ipynb', file);
@@ -29,6 +24,7 @@ describe('Pipeline Editor tests', () => {
     });
     // open jupyterlab with a clean workspace
     cy.visit('?token=test&reset');
+    cy.wait(100);
     cy.get('.jp-DirListing-content');
   });
 
@@ -236,7 +232,7 @@ const openPipelineEditor = (): void => {
     '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]'
   ).click();
   cy.get('.common-canvas-drop-div');
-  cy.wait(200);
+  cy.wait(500);
 };
 
 const closePipelineEditor = (): void => {
