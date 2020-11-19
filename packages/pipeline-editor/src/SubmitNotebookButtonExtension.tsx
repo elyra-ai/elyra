@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { NotebookParser } from '@elyra/application';
 import { showFormDialog } from '@elyra/ui-components';
 import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -24,6 +23,7 @@ import { IDisposable } from '@lumino/disposable';
 import * as React from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
+import { NotebookParser } from './NotebookParser';
 import { NotebookSubmissionDialog } from './NotebookSubmissionDialog';
 import { PipelineService } from './PipelineService';
 import Utils from './utils';

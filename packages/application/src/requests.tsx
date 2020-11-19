@@ -22,6 +22,13 @@ import { ServerConnection } from '@jupyterlab/services';
 import * as React from 'react';
 
 /**
+ * An interface for typing json dictionaries in typescript
+ */
+export interface IDictionary<T> {
+  [key: string]: T;
+}
+
+/**
  * A service class for making requests to the jupyter lab server.
  */
 export class RequestHandler {

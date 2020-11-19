@@ -16,13 +16,12 @@
 
 import * as path from 'path';
 
-import { NotebookParser } from '@elyra/application';
-
 import { IconUtil } from '@elyra/ui-components';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { LabIcon, notebookIcon, pythonIcon } from '@jupyterlab/ui-components';
 
+import { NotebookParser } from './NotebookParser';
 import { PipelineService } from './PipelineService';
 
 enum ContentType {

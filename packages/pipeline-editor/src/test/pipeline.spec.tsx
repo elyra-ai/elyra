@@ -29,7 +29,10 @@ import {
   IFileBrowserFactory,
   FilterFileBrowserModel
 } from '@jupyterlab/filebrowser';
+import * as nbformat from '@jupyterlab/nbformat';
+import { NotebookModel } from '@jupyterlab/notebook';
 import { ServiceManager } from '@jupyterlab/services';
+import { NBTestUtils } from '@jupyterlab/testutils';
 
 import { CommandRegistry } from '@lumino/commands';
 import { UUID } from '@lumino/coreutils';
@@ -37,6 +40,7 @@ import { mount, configure } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import * as React from 'react';
 
+import { NotebookParser } from '../NotebookParser';
 import {
   PipelineEditorFactory,
   PipelineEditorWidget,
@@ -45,6 +49,47 @@ import {
 
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
+
+const notebookWithEnvVars: any = {
+  cells: [
+    {
+      cell_type: 'code',
+      execution_count: null,
+      metadata: {},
+      outputs: [],
+      source: [
+        'import os\n',
+        "print(os.environ['HOME'])\n",
+        'print(os.getenv("HOME2"))\n',
+        "print(os.getenvb('HOME3'))\n",
+        'print(os.getenvb("HOME4"))\n',
+        "print(os.environb['HOME5'))\n",
+        'print(os.environb["HOME6"])\n'
+      ]
+    }
+  ],
+  metadata: {
+    kernelspec: {
+      display_name: 'Python 3',
+      language: 'python',
+      name: 'python3'
+    },
+    language_info: {
+      codemirror_mode: {
+        name: 'ipython',
+        version: 3
+      },
+      file_extension: '.py',
+      mimetype: 'text/x-python',
+      name: 'python',
+      nbconvert_exporter: 'python',
+      pygments_lexer: 'ipython3',
+      version: '3.7.6'
+    }
+  },
+  nbformat: 4,
+  nbformat_minor: 4
+};
 
 configure({ adapter: new Adapter() });
 
@@ -149,6 +194,34 @@ describe('@elyra/pipeline-editor', () => {
         showValidationError: false,
         validationError: { errorMessage: '', errorSeverity: 'error' },
         emptyPipeline: true
+      });
+    });
+  });
+
+  describe('NotebookParser', () => {
+    describe('getEnvVars', () => {
+      it('should find no env vars where there are none', () => {
+        const notebook = NBTestUtils.createNotebook();
+        NBTestUtils.populateNotebook(notebook);
+        expect(
+          NotebookParser.getEnvVars(notebook.model.toString())
+        ).toMatchObject([]);
+      });
+
+      it('should find env vars', () => {
+        const notebook = NBTestUtils.createNotebook();
+        const model = new NotebookModel();
+        model.fromJSON(notebookWithEnvVars as nbformat.INotebookContent);
+        notebook.model = model;
+        const foundEnvVars = NotebookParser.getEnvVars(
+          notebook.model.toString()
+        );
+        expect(foundEnvVars).toContain('HOME');
+        expect(foundEnvVars).toContain('HOME2');
+        expect(foundEnvVars).toContain('HOME3');
+        expect(foundEnvVars).toContain('HOME4');
+        expect(foundEnvVars).toContain('HOME5');
+        expect(foundEnvVars).toContain('HOME6');
       });
     });
   });
