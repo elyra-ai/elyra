@@ -55,14 +55,20 @@
         "label": {
           "default": "File Dependencies"
         },
-        "place_holder_text": {
+        "description": {
           "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
+        },
+        "place_holder_text": {
+          "default": "..."
         }
       },
       {
         "parameter_ref": "include_subdirectories",
         "label": {
-          "default": "Include Subdirectories in Dependencies (may increase submission time)"
+          "default": "Include Subdirectories in Dependencies"
+        },
+        "description": {
+          "default": "May increase submission time"
         }
       },
       {
@@ -71,6 +77,9 @@
           "default": "Environment Variables"
         },
         "place_holder_text": {
+          "default": "..."
+        },
+        "description": {
           "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
         }
       },
@@ -80,6 +89,9 @@
           "default": "Output Files"
         },
         "place_holder_text": {
+          "default": "..."
+        },
+        "description": {
           "default": "Files generated during execution that will become available to all subsequent pipeline steps.\n One filename or expression (e.g. *.csv) per line. Supported patterns: ? and *."
         }
       }
