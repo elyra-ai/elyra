@@ -11,6 +11,7 @@
   "pageLoadTimeout": 120000,
   "viewportWidth": 1400,
   "viewportHeight": 800,
+  "video": false,
   "retries": {
     "runMode": 1,
     "openMode": 1
