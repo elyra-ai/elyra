@@ -21,3 +21,4 @@ export * from './icons';
 export * from './DropDown';
 export * from './JSONComponent';
 export * from './Dropzone';
+export * from './RequestErrors';

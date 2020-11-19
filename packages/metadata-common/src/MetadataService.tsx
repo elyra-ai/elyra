@@ -15,6 +15,7 @@
  */
 
 import { IDictionary, RequestHandler } from '@elyra/application';
+import { RequestErrors } from '@elyra/ui-components';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 
@@ -50,12 +51,16 @@ export class MetadataService {
    * an error dialog result
    */
   static async getMetadata(namespace: string): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makeGetRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace,
-      false
-    );
+    try {
+      const metadataResponse: any = await RequestHandler.makeGetRequest(
+        ELYRA_METADATA_API_ENDPOINT + namespace,
+        false
+      );
 
-    return metadataResponse[namespace];
+      return metadataResponse[namespace];
+    } catch (error) {
+      return RequestErrors.serverError(error);
+    }
   }
 
   /**
@@ -68,13 +73,17 @@ export class MetadataService {
    * an error dialog result
    */
   static async postMetadata(namespace: string, requestBody: any): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makePostRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace,
-      requestBody,
-      false
-    );
+    try {
+      const metadataResponse: any = await RequestHandler.makePostRequest(
+        ELYRA_METADATA_API_ENDPOINT + namespace,
+        requestBody,
+        false
+      );
 
-    return metadataResponse;
+      return metadataResponse;
+    } catch (error) {
+      return RequestErrors.serverError(error);
+    }
   }
 
   /**
@@ -92,13 +101,17 @@ export class MetadataService {
     name: string,
     requestBody: any
   ): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makePutRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
-      requestBody,
-      false
-    );
+    try {
+      const metadataResponse: any = await RequestHandler.makePutRequest(
+        ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
+        requestBody,
+        false
+      );
 
-    return metadataResponse;
+      return metadataResponse;
+    } catch (error) {
+      return RequestErrors.serverError(error);
+    }
   }
 
   /**
@@ -110,12 +123,16 @@ export class MetadataService {
    * @returns void or an error dialog result
    */
   static async deleteMetadata(namespace: string, name: string): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makeDeleteRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
-      false
-    );
+    try {
+      const metadataResponse: any = await RequestHandler.makeDeleteRequest(
+        ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
+        false
+      );
 
-    return metadataResponse;
+      return metadataResponse;
+    } catch (error) {
+      return RequestErrors.serverError(error);
+    }
   }
 
   private static schemaCache: IDictionary<any> = {};
@@ -129,21 +146,25 @@ export class MetadataService {
    * an error dialog result
    */
   static async getSchema(namespace: string): Promise<any> {
-    if (this.schemaCache[namespace]) {
-      // Deep copy cached schema to mimic request call
-      return JSON.parse(JSON.stringify(this.schemaCache[namespace]));
+    try {
+      if (this.schemaCache[namespace]) {
+        // Deep copy cached schema to mimic request call
+        return JSON.parse(JSON.stringify(this.schemaCache[namespace]));
+      }
+
+      const schemaResponse: any = await RequestHandler.makeGetRequest(
+        ELYRA_SCHEMA_API_ENDPOINT + namespace,
+        false
+      );
+
+      if (schemaResponse[namespace]) {
+        this.schemaCache[namespace] = schemaResponse[namespace];
+      }
+
+      return schemaResponse[namespace];
+    } catch (error) {
+      return RequestErrors.serverError(error);
     }
-
-    const schemaResponse: any = await RequestHandler.makeGetRequest(
-      ELYRA_SCHEMA_API_ENDPOINT + namespace,
-      false
-    );
-
-    if (schemaResponse[namespace]) {
-      this.schemaCache[namespace] = schemaResponse[namespace];
-    }
-
-    return schemaResponse[namespace];
   }
 
   /**
@@ -153,15 +174,19 @@ export class MetadataService {
    * an error dialog result
    */
   static async getAllSchema(): Promise<any> {
-    const namespaces = await RequestHandler.makeGetRequest(
-      'elyra/namespace',
-      false
-    );
-    const schemas = [];
-    for (const namespace of namespaces['namespaces']) {
-      const schema = await this.getSchema(namespace);
-      schemas.push(...schema);
+    try {
+      const namespaces = await RequestHandler.makeGetRequest(
+        'elyra/namespace',
+        false
+      );
+      const schemas = [];
+      for (const namespace of namespaces['namespaces']) {
+        const schema = await this.getSchema(namespace);
+        schemas.push(...schema);
+      }
+      return schemas;
+    } catch (error) {
+      return RequestErrors.serverError(error);
     }
-    return schemas;
   }
 }

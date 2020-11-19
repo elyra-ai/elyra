@@ -18,7 +18,7 @@ import * as path from 'path';
 
 import { IDictionary, RequestHandler } from '@elyra/application';
 import { MetadataService } from '@elyra/metadata-common';
-
+import { RequestErrors } from '@elyra/ui-components';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 
@@ -96,55 +96,59 @@ export class PipelineService {
     pipeline: any,
     runtimeName: string
   ): Promise<any> {
-    const response = await RequestHandler.makePostRequest(
-      'elyra/pipeline/schedule',
-      JSON.stringify(pipeline),
-      true
-    );
+    try {
+      const response = await RequestHandler.makePostRequest(
+        'elyra/pipeline/schedule',
+        JSON.stringify(pipeline),
+        true
+      );
 
-    let dialogTitle;
-    let dialogBody;
-    if (response['run_url']) {
-      // pipeline executed remotely in a runtime of choice
-      dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
-      dialogBody = (
-        <p>
-          Check the status of your job at{' '}
-          <a
-            href={response['run_url']}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Run Details.
-          </a>
-          <br />
-          The results and outputs are in the {
-            response['object_storage_path']
-          }{' '}
-          working directory in{' '}
-          <a
-            href={response['object_storage_url']}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            object storage
-          </a>
-          .
-        </p>
-      );
-    } else {
-      // pipeline executed in-place locally
-      dialogTitle = 'Job execution succeeded';
-      dialogBody = (
-        <p>Your job has been executed in-place in your local environment.</p>
-      );
+      let dialogTitle;
+      let dialogBody;
+      if (response['run_url']) {
+        // pipeline executed remotely in a runtime of choice
+        dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
+        dialogBody = (
+          <p>
+            Check the status of your job at{' '}
+            <a
+              href={response['run_url']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Run Details.
+            </a>
+            <br />
+            The results and outputs are in the {
+              response['object_storage_path']
+            }{' '}
+            working directory in{' '}
+            <a
+              href={response['object_storage_url']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              object storage
+            </a>
+            .
+          </p>
+        );
+      } else {
+        // pipeline executed in-place locally
+        dialogTitle = 'Job execution succeeded';
+        dialogBody = (
+          <p>Your job has been executed in-place in your local environment.</p>
+        );
+      }
+
+      return showDialog({
+        title: dialogTitle,
+        body: dialogBody,
+        buttons: [Dialog.okButton()]
+      });
+    } catch (error) {
+      return RequestErrors.serverError(error);
     }
-
-    return showDialog({
-      title: dialogTitle,
-      body: dialogBody,
-      buttons: [Dialog.okButton()]
-    });
   }
 
   /**
@@ -175,17 +179,21 @@ export class PipelineService {
       overwrite: overwrite
     };
 
-    const response = await RequestHandler.makePostRequest(
-      'elyra/pipeline/export',
-      JSON.stringify(body),
-      true
-    );
+    try {
+      const response = await RequestHandler.makePostRequest(
+        'elyra/pipeline/export',
+        JSON.stringify(body),
+        true
+      );
 
-    return showDialog({
-      title: 'Pipeline export succeeded',
-      body: <p>Exported file: {response['export_path']} </p>,
-      buttons: [Dialog.okButton()]
-    });
+      return showDialog({
+        title: 'Pipeline export succeeded',
+        body: <p>Exported file: {response['export_path']} </p>,
+        buttons: [Dialog.okButton()]
+      });
+    } catch (error) {
+      return RequestErrors.serverError(error);
+    }
   }
 
   /**
