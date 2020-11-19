@@ -430,7 +430,6 @@ export class PipelineEditor extends React.Component<
             showRightFlyout={this.state.showPropertiesDialog}
           />
         </IntlProvider>
-        {commProps}
       </Dropzone>
     );
   }
@@ -457,7 +456,8 @@ export class PipelineEditor extends React.Component<
 
     this.propertiesInfo = {
       parameterDef: properties,
-      appData: { id: '' }
+      appData: { id: '' },
+      labelEditable: true
     };
   }
 
@@ -481,6 +481,10 @@ export class PipelineEditor extends React.Component<
       app_data.dependencies;
     node_props.parameterDef.current_parameters.include_subdirectories =
       app_data.include_subdirectories;
+    node_props.parameterDef.titleDefinition = {
+      title: this.canvasController.getNode(source.id).label,
+      editable: true
+    };
 
     this.setState({
       showValidationError: false,
@@ -489,7 +493,11 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  applyPropertyChanges(propertySet: any, appData: any): void {
+  applyPropertyChanges(
+    propertySet: any,
+    appData: any,
+    additionalData: any
+  ): void {
     console.log('Applying changes to properties');
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     let node = this.canvasController.getNode(appData.id, pipelineId);
@@ -508,6 +516,9 @@ export class PipelineEditor extends React.Component<
     }
     const app_data = node.app_data;
 
+    if (additionalData.title) {
+      node.label = additionalData.title;
+    }
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
       node.label = path.basename(
