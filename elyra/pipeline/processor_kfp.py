@@ -36,6 +36,12 @@ from urllib3.exceptions import MaxRetryError
 class KfpPipelineProcessor(PipelineProcessor):
     _type = 'kfp'
 
+    # Provide users with the ability to identify a writable directory in the
+    # running container where the notebook | script is executed. The location
+    # must exist and be known before the container is started.
+    # Defaults to `/tmp`
+    WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').rstrip('/').strip()
+
     @property
     def type(self):
         return self._type
@@ -163,14 +169,11 @@ class KfpPipelineProcessor(PipelineProcessor):
                                operation.inputs,
                                operation.outputs)
 
-            # TODO
-            wcd = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').rstrip('/')
-
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
                                             api_endpoint=api_endpoint,
                                             pipeline_description=description,
-                                            writable_container_dir=wcd)
+                                            writable_container_dir=self.WCD)
 
             # Write to python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
@@ -240,8 +243,7 @@ class KfpPipelineProcessor(PipelineProcessor):
             pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
             # Setting identifies a writable directory in the container image.
             # Only Unix-style path spec is supported.
-            pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'] =\
-                os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').rstrip('/')
+            pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'] = self.WCD
 
             if operation.env_vars:
                 for env_var in operation.env_vars:
