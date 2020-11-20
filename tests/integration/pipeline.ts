@@ -15,6 +15,11 @@
  */
 
 describe('Pipeline Editor tests', () => {
+  before(() => {
+    // open jupyterlab with a clean workspace
+    cy.visit('?token=test&reset');
+  });
+
   beforeEach(() => {
     cy.readFile('tests/assets/helloworld.ipynb').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.ipynb', file);
@@ -22,9 +27,10 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/helloworld.py').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.py', file);
     });
-    // open jupyterlab with a clean workspace
-    cy.visit('?token=test&reset');
+    // open jupyterlab
+    cy.visit('?token=test');
     cy.wait(100);
+    // wait for the file browser to load
     cy.get('.jp-DirListing-content');
   });
 
@@ -45,6 +51,10 @@ describe('Pipeline Editor tests', () => {
     cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
       failOnNonZeroExit: false
     });
+  });
+
+  after(() => {
+    cy.wait(1000);
   });
 
   it('empty editor should have disabled buttons', () => {
@@ -141,6 +151,8 @@ describe('Pipeline Editor tests', () => {
     cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
       'Test Runtime'
     );
+    // go back to file browser
+    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
     closePipelineEditorWithoutSaving();
   });
 
@@ -232,7 +244,6 @@ const openPipelineEditor = (): void => {
     '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]'
   ).click();
   cy.get('.common-canvas-drop-div');
-  cy.wait(500);
 };
 
 const closePipelineEditor = (): void => {
