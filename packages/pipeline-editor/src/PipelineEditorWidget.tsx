@@ -79,6 +79,7 @@ import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
 import Utils from './utils';
+import { checkCircularReferences, ILink } from './validation';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
@@ -250,8 +251,6 @@ export class PipelineEditor extends React.Component<
     this.editActionHandler = this.editActionHandler.bind(this);
     this.beforeEditActionHandler = this.beforeEditActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
-
-    this.nodesConnected = this.nodesConnected.bind(this);
 
     this.state = {
       showPropertiesDialog: false,
@@ -623,43 +622,23 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  /*
-   * Checks if there is a path from sourceNode to targetNode in the graph.
-   */
-  nodesConnected(
-    sourceNode: string,
-    targetNode: string,
-    links: any[]
-  ): boolean {
-    if (
-      links.find((value: any, index: number) => {
-        return value.srcNodeId == sourceNode && value.trgNodeId == targetNode;
-      })
-    ) {
-      return true;
-    } else {
-      for (const link of links) {
-        if (
-          link.srcNodeId == sourceNode &&
-          this.nodesConnected(link.trgNodeId, targetNode, links)
-        ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   beforeEditActionHandler(data: any): any {
+    if (data.editType !== 'linkNodes') {
+      return data;
+    }
+
     // Checks validity of links before adding
-    if (
-      data.editType == 'linkNodes' &&
-      this.nodesConnected(
-        data.targetNodes[0].id,
-        data.nodes[0].id,
-        this.canvasController.getLinks()
-      )
-    ) {
+    const proposedLink = {
+      id: 'proposed-link',
+      trgNodeId: data.targetNodes[0].id,
+      srcNodeId: data.nodes[0].id,
+      type: 'nodeLink'
+    };
+    const links = this.canvasController.getLinks();
+
+    const taintedLinks = checkCircularReferences([proposedLink, ...links]);
+
+    if (taintedLinks.length > 0) {
       this.setState({
         validationError: {
           errorMessage: 'Invalid operation: circular references in pipeline.',
@@ -669,9 +648,9 @@ export class PipelineEditor extends React.Component<
       });
       // Don't proceed with adding the link if invalid.
       return null;
-    } else {
-      return data;
     }
+
+    return data;
   }
 
   /*
@@ -1124,32 +1103,30 @@ export class PipelineEditor extends React.Component<
    * @returns null if pipeline is valid, error message if not.
    */
   validateAllLinks(): string {
-    let validPipeline = null;
-    const links = this.canvasController.getLinks();
-    for (const link of links) {
-      if (this.nodesConnected(link.trgNodeId, link.srcNodeId, links)) {
-        validPipeline = 'Circular references in pipeline. ';
-        const pipelineId = this.canvasController.getPrimaryPipelineId();
-        const stylePipelineObj: any = {};
-        stylePipelineObj[pipelineId] = [link.id];
-        const styleSpec = {
-          line: {
-            default: 'stroke-dasharray: 13; stroke: var(--jp-error-color1);'
-          }
-        };
-        this.canvasController.setLinksStyle(stylePipelineObj, styleSpec, true);
-      } else {
-        // If valid, remove any extra styling
-        const pipelineId = this.canvasController.getPrimaryPipelineId();
-        const stylePipelineObj: any = {};
-        stylePipelineObj[pipelineId] = [link.id];
-        const styleSpec = {
-          line: { default: '' }
-        };
-        this.canvasController.setLinksStyle(stylePipelineObj, styleSpec, true);
+    const links: ILink[] = this.canvasController.getLinks();
+
+    const taintedLinks = checkCircularReferences(links);
+
+    // reset styles.
+    const pipelineId = this.canvasController.getPrimaryPipelineId();
+    const allSeenLinks = { [pipelineId]: links.map(l => l.id) };
+    const defaultStyle = { line: { default: '' } };
+    this.canvasController.setLinksStyle(allSeenLinks, defaultStyle, true);
+
+    // set error styles
+    const cycleLinks = { [pipelineId]: [...taintedLinks] };
+    const errorStyle = {
+      line: {
+        default: 'stroke-dasharray: 13; stroke: var(--jp-error-color1);'
       }
+    };
+    this.canvasController.setLinksStyle(cycleLinks, errorStyle, true);
+
+    if (taintedLinks.length > 0) {
+      return 'Circular references in pipeline.';
     }
-    return validPipeline;
+
+    return null;
   }
 
   /**
