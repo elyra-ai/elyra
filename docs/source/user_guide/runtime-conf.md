@@ -106,6 +106,11 @@ Password used to access your KubeFlow Pipelines API endpoint. SEE NOTE.
 
 Example: `mypassword`
 
+##### user_namespace
+The namespace used to run your pipeline in kfp. This option is normally used for dex-enabled Kubeflow Pipeline deployments. SEE NOTE.
+
+Example: `mynamespace`
+
 ##### cos_endpoint
 This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a kubernetes cluster (Minio), you can use the kubernetes local DNS address.
 
@@ -127,9 +132,23 @@ Name of the bucket you want your artifacts in. If the bucket doesn't exist, it w
 Example: `test-bucket`
 
 NOTE: 
-If using an authentication-restricted Kubeflow environment, you must enter your credentials in `api_username` and `api_password` fields 
+If using an authentication-restricted Kubeflow environment, you must enter your credentials in `user_namespace`, `api_username` and `api_password` fields 
 to allow pipeline uploads through Elyra.
 
 If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main) 
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
 Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.
+
+### Troubleshooting 
+
+I am seeing this error when using Elyra with Kubeflow Pipelines that is Dex enabled: 
+```bash
+HTTP response body: {"error":"Validate experiment request failed.: Invalid input error: Invalid resource references for experiment. Expect one namespace type with owner relationship.
+```
+- Ensure that you have logged into the Kubeflow dex landing page (https://kubeflow.cluster:31380....) at least once with 
+your credentials via the UI. You should have been greeted with a dialog box and request to create a new namespace. 
+Without this step complete, Elyra will not be able to create pipelines on the Kubeflow cluster. 
+
+- Ensure your credentials in the `runtimes` section of Elyra is accurate and up to date. Ensure that 
+`user_namespace`, `api_username` and `api_password` are all filled out. When using Dex, the `api_username` is typically 
+your email address and `user_namespace` is your email shortname (elyra if elyra@email.org)
