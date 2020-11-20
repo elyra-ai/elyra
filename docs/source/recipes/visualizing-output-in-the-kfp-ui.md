@@ -24,21 +24,50 @@ Pipelines that you run on Kubeflow Pipelines can optionally produce output that 
 
 The output viewer in the Kubeflow Pipelines UI can render output such as a confusion matrix, ROC curve, or markdown, that is displayed in the Kubeflow Pipelines UI.
 
-![Example notebook output](../images/kfp_ui_node_metadata.png)
+![Example notebook output](../images/kfp_mlpipeline_ui_metadata.png)
 
 To produce this output add code to your notebook or Python script that creates a file named `mlpipeline-ui-metadata.json` in the current working directory. Refer to [_Visualize Results in the Pipelines UI_ in the Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/pipelines/sdk/output-viewer/#introduction) to learn about supported visualizations and the format of the `mlpipeline-ui-metadata.json` file. 
 
-The following code snippet produces this file and defines static markdown text that will be rendered in the output viewer: 
+The following code snippet produces a confusion matrix that is rendered in the output viewer as shown above: 
 
 ```
 import json
+import pandas as pd 
 
-metadata = {
-    'outputs': [
+matrix = [
+    ['yummy', 'yummy', 10],
+    ['yummy', 'not yummy', 2],
+    ['not yummy', 'yummy', 6],
+    ['not yummy', 'not yummy', 7]
+]
+
+df = pd.DataFrame(matrix,columns=['target','predicted','count'])
+
+metrics = {
+    "outputs": [
         {
-            'storage': 'inline',
-            'source': 'This output was produced by a notebook or script.',
-            'type': 'markdown'
+            "type": "confusion_matrix",
+            "format": "csv",
+            "schema": [
+                {
+                    "name": "target",
+                    "type": "CATEGORY"
+                },
+                {
+                    "name": "predicted",
+                    "type": "CATEGORY"
+                },
+                {
+                    "name": "count",
+                    "type": "NUMBER"
+                }
+            ],
+            "source": df.to_csv(header=False, index=False),
+            "storage": "inline",
+            "labels": [
+                "yummy",
+                "not yummy"
+            ]
         }
     ]
 }
@@ -46,6 +75,7 @@ metadata = {
 with open('mlpipeline-ui-metadata.json', 'w') as f:
     json.dump(metadata, f)
 ```
+
 
 Note that the output is displayed only after notebook or Python script processing has completed.
 
