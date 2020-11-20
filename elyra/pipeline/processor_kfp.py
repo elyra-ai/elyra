@@ -40,7 +40,7 @@ class KfpPipelineProcessor(PipelineProcessor):
     # running container where the notebook | script is executed. The location
     # must exist and be known before the container is started.
     # Defaults to `/tmp`
-    WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').rstrip('/').strip()
+    WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
 
     @property
     def type(self):
