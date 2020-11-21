@@ -17,7 +17,14 @@
 describe('Pipeline Editor tests', () => {
   before(() => {
     // open jupyterlab with a clean workspace
-    cy.visit('?token=test&reset');
+    // cy.visit('?token=test&reset');
+    // start minio docker image
+    cy.exec(
+      'docker run --name test_minio -d -p 9000:9000 minio/minio server /data',
+      {
+        failOnNonZeroExit: false
+      }
+    );
   });
 
   beforeEach(() => {
@@ -28,7 +35,7 @@ describe('Pipeline Editor tests', () => {
       cy.writeFile('build/cypress-tests/helloworld.py', file);
     });
     // open jupyterlab
-    cy.visit('?token=test');
+    cy.visit('?token=test&reset');
     cy.wait(100);
     // wait for the file browser to load
     cy.get('.jp-DirListing-content');
@@ -58,6 +65,10 @@ describe('Pipeline Editor tests', () => {
   });
 
   after(() => {
+    // close docker
+    cy.exec('@docker rm -f test_minio', {
+      failOnNonZeroExit: false
+    });
     cy.wait(1000);
   });
 
@@ -135,6 +146,7 @@ describe('Pipeline Editor tests', () => {
     cy.get('[data-command="pipeline-editor:add-node"]').click();
     // Open notebook with double-click
     cy.get('.d3-node-label').dblclick();
+    cy.wait(100);
     cy.get(
       '#jp-main-dock-panel > .lm-TabBar > .lm-TabBar-content > .lm-TabBar-tab > .lm-TabBar-tabLabel'
     )
@@ -149,28 +161,8 @@ describe('Pipeline Editor tests', () => {
 
   it('should save runtime configuration', () => {
     openPipelineEditor();
-    // open runtimes sidebar
-    cy.get('.openRuntimes-action button').click();
-    cy.get('.jp-SideBar .lm-mod-current[title="Runtimes"]');
-    cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
-    // Add a runtime config (a placeholder for now, can't be used to run or export yet)
-    cy.get(
-      'button.elyra-metadataHeader-button[title="Create new Kubeflow Pipelines runtime"]'
-    ).click();
-    cy.get('.elyra-metadataEditor-form-display_name').type('Test Runtime');
-    cy.get('.elyra-metadataEditor-form-api_endpoint').type(
-      'https://kubernetes-service.ibm.com/pipeline'
-    );
-    cy.get('.elyra-metadataEditor-form-cos_endpoint').type(
-      'http://minio-service.kubeflow:9000'
-    );
-    cy.get('.elyra-metadataEditor-form-cos_username').type('minio');
-    cy.get('.elyra-metadataEditor-form-cos_password').type('minio123');
-    cy.get('.elyra-metadataEditor-form-cos_bucket').type('test-bucket');
-    // save it
-    cy.get('.elyra-metadataEditor-saveButton > .bp3-form-content > button')
-      .click()
-      .wait(100);
+    // Create runtime configuration
+    createRuntimeConfig();
     // validate it is now available
     cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
       'Test Runtime'
@@ -189,22 +181,6 @@ describe('Pipeline Editor tests', () => {
     cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
     // try to run invalid pipeline
     cy.get('.run-action button').click();
-    cy.get('.MuiAlert-message').should('be.visible');
-    cy.get('.d3-node-dec-image').should('exist');
-
-    // closes alert message
-    // cy.get('.MuiAlert-action > button[aria-label="close"]').click();
-  });
-
-  it('should fail to export invalid pipeline', () => {
-    // Copy invalid pipeline
-    cy.readFile('tests/assets/invalid.pipeline').then((file: any) => {
-      cy.writeFile('build/cypress-tests/invalid.pipeline', file);
-    });
-    // opens pileine from the file browser
-    cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
-    // try to export invalid pipeline
-    cy.get('.export-action button').click();
     cy.get('.MuiAlert-message').should('be.visible');
     cy.get('.d3-node-dec-image').should('exist');
 
@@ -297,6 +273,71 @@ describe('Pipeline Editor tests', () => {
       'TEST_ENV_1=1\nTEST_ENV_2=2\n'
     );
   });
+
+  it('should fail to export invalid pipeline', () => {
+    // Copy invalid pipeline
+    cy.readFile('tests/assets/invalid.pipeline').then((file: any) => {
+      cy.writeFile('build/cypress-tests/invalid.pipeline', file);
+    });
+    // opens pileine from the file browser
+    cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
+    // try to export invalid pipeline
+    cy.get('.export-action button').click();
+    cy.get('.MuiAlert-message').should('be.visible');
+    cy.get('.d3-node-dec-image').should('exist');
+
+    // closes alert message
+    // cy.get('.MuiAlert-action > button[aria-label="close"]').click();
+  });
+
+  it('should export pipeline', () => {
+    cy.readFile('tests/assets/helloworld.pipeline').then((file: any) => {
+      cy.writeFile('build/cypress-tests/helloworld.pipeline', file);
+    });
+
+    getFileByName('helloworld.pipeline').rightclick();
+    cy.get('[data-command="filebrowser:open"]').click();
+
+    // Checks that validation passed
+    cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
+
+    // Create runtime configuration
+    createRuntimeConfig();
+    // go back to file browser
+    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
+
+    // try to export valid pipeline
+    cy.get('.export-action button').click();
+
+    // Runtime option should be pre-populated with local config
+    cy.get('select#runtime_config[data-form-required="true"]')
+      .should('exist')
+      .select('Test Runtime')
+      .should('have.value', 'test_runtime');
+
+    // Validate all export options are available
+    cy.get('select#pipeline_filetype[data-form-required="true"]')
+      .should('exist')
+      .select('KFP domain-specific language Python code')
+      .should('have.value', 'py');
+
+    cy.get('select#pipeline_filetype[data-form-required="true"]')
+      .should('exist')
+      .select('KFP static configuration file (YAML formatted)')
+      .should('have.value', 'yaml');
+
+    // actual export requires minio
+    // export
+    cy.get('button.jp-mod-accept').click();
+    cy.wait(100);
+    // dismiss 'Making request' dialog
+    cy.get('button.jp-mod-accept').click();
+    cy.wait(100);
+    cy.readFile('build/cypress-tests/helloworld.yaml');
+    cy.exec('find build/cypress-tests/ -name helloworld.yaml -delete', {
+      failOnNonZeroExit: false
+    });
+  });
 });
 
 // ------------------------------
@@ -330,6 +371,29 @@ const getFileByName = (name: string): any => {
 
 const getFileByType = (type: string): any => {
   return cy.get(`.jp-DirListing-content > [data-file-type="${type}"]`);
+};
+
+const createRuntimeConfig = (): any => {
+  // open runtimes sidebar
+  cy.get('.openRuntimes-action button').click();
+  cy.get('.jp-SideBar .lm-mod-current[title="Runtimes"]');
+  cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
+  // Add a runtime config (a placeholder for now, can't be used to run or export yet)
+  cy.get(
+    'button.elyra-metadataHeader-button[title="Create new Kubeflow Pipelines runtime"]'
+  ).click();
+  cy.get('.elyra-metadataEditor-form-display_name').type('Test Runtime');
+  cy.get('.elyra-metadataEditor-form-api_endpoint').type(
+    'https://kubernetes-service.ibm.com/pipeline'
+  );
+  cy.get('.elyra-metadataEditor-form-cos_endpoint').type('http://0.0.0.0:9000');
+  cy.get('.elyra-metadataEditor-form-cos_username').type('minioadmin');
+  cy.get('.elyra-metadataEditor-form-cos_password').type('minioadmin');
+  cy.get('.elyra-metadataEditor-form-cos_bucket').type('test-bucket');
+  // save it
+  cy.get('.elyra-metadataEditor-saveButton > .bp3-form-content > button')
+    .click()
+    .wait(100);
 };
 
 // const deleteFileByName = (name: string): any => {
