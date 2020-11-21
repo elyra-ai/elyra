@@ -78,6 +78,18 @@ valid_display_name_json = {
     }
 }
 
+
+invalid_schema_name_json = {
+    'schema_name': 'metadata-testxxx',
+    'display_name': 'invalid schema name',
+    'metadata': {
+        'uri_test': 'http://localhost:31823/v1/models?version=2017-02-13',
+        'number_range_test': 8,
+        'required_test': "required_value"
+    }
+}
+
+
 # Contains all values corresponding to test schema...
 complete_metadata_json = {
     "schema_name": "metadata-test",

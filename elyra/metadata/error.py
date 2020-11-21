@@ -16,7 +16,7 @@
 """This module includes custom error classes pertaining to the metadata service."""
 
 
-class MetadataNotFoundError(BaseException):
+class MetadataNotFoundError(Exception):
     """Raised when a metadata instance is not found.
 
        Overrides FileNotFoundError to set contextual message text
@@ -26,7 +26,7 @@ class MetadataNotFoundError(BaseException):
         super().__init__("No such instance named '{}' was found in the {} namespace.".format(name, namespace))
 
 
-class MetadataExistsError(BaseException):
+class MetadataExistsError(Exception):
     """Raised when a metadata instance unexpectedly exists.
 
        Overrides FileExistsError to set contextual message text
@@ -36,7 +36,7 @@ class MetadataExistsError(BaseException):
         super().__init__("An instance named '{}' already exists in the {} namespace.".format(name, namespace))
 
 
-class SchemaNotFoundError(BaseException):
+class SchemaNotFoundError(Exception):
     """Raised when a schema instance is not found.
 
        Overrides FileNotFoundError to set contextual message text
