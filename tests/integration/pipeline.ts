@@ -127,6 +127,26 @@ describe('Pipeline Editor tests', () => {
     closePipelineEditorWithoutSaving();
   });
 
+  it('should open notebook on double-click', () => {
+    openPipelineEditor();
+    // add Notebook
+    getFileByName('helloworld.ipynb').click();
+    getFileByName('helloworld.ipynb').rightclick();
+    cy.get('[data-command="pipeline-editor:add-node"]').click();
+    // Open notebook with double-click
+    cy.get('.d3-node-label').dblclick();
+    cy.get(
+      '#jp-main-dock-panel > .lm-TabBar > .lm-TabBar-content > .lm-TabBar-tab > .lm-TabBar-tabLabel'
+    )
+      .contains('helloworld.ipynb')
+      .click();
+    // Close notebook without saving
+    cy.get(
+      '.lm-TabBar-tab.lm-mod-current > .lm-TabBar-tabCloseIcon:visible'
+    ).click();
+    closePipelineEditorWithoutSaving();
+  });
+
   it('should save runtime configuration', () => {
     openPipelineEditor();
     // open runtimes sidebar
