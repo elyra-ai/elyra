@@ -24,7 +24,7 @@ from tornado.escape import url_escape
 from elyra.metadata import MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE  # noqa: F401
 
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
-    invalid_json, create_json_file, create_instance
+    invalid_json, invalid_schema_name_json, create_json_file, create_instance
 
 
 # BEGIN - Remove once transition to jupyter_server occurs
@@ -134,6 +134,7 @@ def tests_manager(environ, namespace_location, request):
     create_instance(store_mgr, namespace_location, 'another', another_metadata_json)
     create_instance(store_mgr, namespace_location, 'invalid', invalid_metadata_json)
     create_instance(store_mgr, namespace_location, 'bad', invalid_json)
+    create_instance(store_mgr, namespace_location, 'invalid_schema_name', invalid_schema_name_json)
     return metadata_mgr
 
 
