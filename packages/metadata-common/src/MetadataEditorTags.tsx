@@ -37,6 +37,7 @@ interface IMetadataEditorTagState {
 const METADATA_EDITOR_TAG = 'elyra-editor-tag';
 const METADATA_EDITOR_TAG_PLUS_ICON = 'elyra-editor-tag-plusIcon';
 const METADATA_EDITOR_TAG_LIST = 'elyra-editor-tagList';
+const METADATA_EDITOR_INPUT_TAG = 'elyra-inputTag';
 
 export class MetadataEditorTags extends React.Component<
   IMetadataEditorTagProps,
@@ -168,6 +169,7 @@ export class MetadataEditorTags extends React.Component<
           key={'editor-new-tag'}
         >
           <input
+            className={`${METADATA_EDITOR_INPUT_TAG}`}
             onClick={(
               event: React.MouseEvent<HTMLInputElement, MouseEvent>
             ): void => this.addTagOnClick(event)}

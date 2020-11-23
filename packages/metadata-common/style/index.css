@@ -270,7 +270,8 @@ button.elyra-filter-tag {
 .elyra-editor-tag {
   margin-left: 3px;
   margin-right: 3px;
-  height: 5px;
+  padding: 0 12px;
+  height: 24px;
 }
 
 button.elyra-editor-tag {
@@ -301,7 +302,7 @@ button.elyra-editor-tag.unapplied-tag {
   margin-right: 8px;
 }
 
-.elyra-inputTag button {
+button.elyra-inputTag {
   cursor: pointer;
   background: none;
   border: none;
@@ -310,14 +311,14 @@ button.elyra-editor-tag.unapplied-tag {
   font-size: var(--jp-ui-font-size1);
 }
 
-.elyra-inputTag input {
+input.elyra-inputTag {
   font-size: var(--jp-ui-font-size1);
   background: none;
   border: none;
   color: var(--jp-ui-font-color2);
-  padding: 0;
   font-size: var(--jp-ui-font-size1);
-  width: 50px;
+  width: 80px;
+  height: 15px;
 }
 
 /* Cell tag styling */
@@ -325,10 +326,4 @@ button.elyra-editor-tag.unapplied-tag {
 
 .elyra-tags {
   margin-top: 8px;
-}
-
-.elyra-tag,
-.elyra-inputTag,
-.elyra-filter-tag {
-  height: 5px;
 }

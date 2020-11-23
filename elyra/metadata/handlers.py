@@ -15,9 +15,9 @@
 #
 
 from jsonschema import ValidationError
+from jupyter_server.base.handlers import APIHandler
+from jupyter_server.utils import url_unescape, url_path_join
 from tornado import web
-from notebook.base.handlers import APIHandler
-from notebook.utils import url_unescape, url_path_join
 
 from .error import MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError
 from .metadata import Metadata

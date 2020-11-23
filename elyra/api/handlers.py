@@ -15,7 +15,7 @@
 #
 import os
 
-from notebook.base.handlers import APIHandler
+from jupyter_server.base.handlers import APIHandler
 from tornado import web
 
 

@@ -45,7 +45,7 @@ class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
     def __init__(self, **kwargs):
-        super(PipelineProcessorManager, self).__init__(**kwargs)
+        super(PipelineProcessorManager, self).__init__()
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
 
         self._registry = PipelineProcessorRegistry.instance()
