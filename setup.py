@@ -53,7 +53,7 @@ setup_args = dict(
         'jinja2>=2.11,<3.0',
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
-        'jupyter_client>=6.1',
+        'jupyter_client>=6.1.7',
         'jupyterlab-git==0.23.1',
         'jupyterlab>=2.0.0,<3.0.0',
         'kfp-notebook>=0.14.0,<0.15.0',
