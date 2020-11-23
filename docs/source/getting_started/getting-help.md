@@ -15,15 +15,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 {% endcomment %}
 -->
-## Improving Elyra
+## Getting help
 
-Thank you for your interest in improving Elyra!
+Thank you for your interest in Elyra!
 
 ### Create an issue or feature request
 
 If you encounter a problem or have suggestions for improvements please [open an issue on GitHub](https://github.com/elyra-ai/elyra/issues).
 
-### Contribute to Elyra
+### Join the weekly community meeting
 
-As a community-driven project we welcome contributions of any kind.
+The Elyra community meeting is held [online](https://ibm.webex.com/meet/akchin) every Thursday at [9AM Pacific](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&) (excluding holidays).
 
+You can reach many Elyra contributors in the [Elyra community on gitter](https://gitter.im/elyra-ai/community).
