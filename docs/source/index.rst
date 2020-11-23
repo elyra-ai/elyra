@@ -33,6 +33,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    getting_started/installation
    getting_started/starting
    getting_started/tutorials
+   getting_started/improving-elyra
    getting_started/changelog
 
 .. toctree::
