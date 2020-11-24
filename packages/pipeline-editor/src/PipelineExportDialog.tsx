@@ -18,6 +18,8 @@ import * as React from 'react';
 
 import { IRuntime } from './PipelineService';
 
+import '../style/index.css';
+
 const FILE_TYPES = [
   { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' },
   { label: 'KFP domain-specific language Python code', key: 'py' }
@@ -62,9 +64,9 @@ export class PipelineExportDialog extends React.Component<IProps> {
         </select>
         <input
           type="checkbox"
+          className="elyra-Dialog-checkbox"
           id="overwrite"
           name="overwrite"
-          style={{ appearance: 'auto', height: 'auto' }}
         />
         <label htmlFor="overwrite">Replace if file already exists</label>
         <br />

@@ -20,6 +20,8 @@ import * as React from 'react';
 import { IRuntime } from './PipelineService';
 import Utils from './utils';
 
+import '../style/index.css';
+
 interface IProps {
   runtimes: IRuntime[];
   images: IDictionary<string>;
@@ -107,6 +109,7 @@ export class NotebookSubmissionDialog extends React.Component<IProps> {
                 <br />
                 <input
                   type="checkbox"
+                  className="elyra-Dialog-checkbox"
                   id="dependency_include"
                   name="dependency_include"
                   size={20}
