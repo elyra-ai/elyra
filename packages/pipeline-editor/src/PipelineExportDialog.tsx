@@ -60,7 +60,12 @@ export class PipelineExportDialog extends React.Component<IProps> {
             </option>
           ))}
         </select>
-        <input type="checkbox" id="overwrite" name="overwrite" />
+        <input
+          type="checkbox"
+          id="overwrite"
+          name="overwrite"
+          style={{ appearance: 'auto', height: 'auto' }}
+        />
         <label htmlFor="overwrite">Replace if file already exists</label>
         <br />
       </form>
