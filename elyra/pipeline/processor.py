@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -176,7 +176,7 @@ class RuntimePipelineProcessor(PipelineProcessor):  # ABC
     """Base class from which all runtime-based pipeline processors are derived. """
 
     def __init__(self, root_dir, **kwargs):
-        super(PipelineProcessor, self).__init__(**kwargs)
+        super().__init__(root_dir, **kwargs)
         self._gateway_config = None
 
     @abstractmethod
