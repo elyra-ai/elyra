@@ -18,8 +18,11 @@ import entrypoints
 import os
 
 from abc import abstractmethod
+from elyra.metadata import MetadataManager
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
+
+from .pipeline import Pipeline
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
@@ -142,10 +145,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     def process(self, pipeline) -> PipelineProcessorResponse:
         raise NotImplementedError()
 
-    @abstractmethod
-    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        raise NotImplementedError()
-
     def log_pipeline_info(self, pipeline_name: str, action_clause: str, **kwargs):
         """Produces a formatted log INFO message used entirely for support purposes.
 
@@ -171,3 +170,43 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             op_clause = f":'{operation_name}'" if operation_name else ""
 
             self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
+
+
+class RuntimePipelineProcessor(PipelineProcessor):  # ABC
+    """Base class from which all runtime-based pipeline processors are derived. """
+
+    def __init__(self, root_dir, **kwargs):
+        super(PipelineProcessor, self).__init__(**kwargs)
+        self._gateway_config = None
+
+    @abstractmethod
+    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
+        raise NotImplementedError()
+
+    def _get_gateway_config(self, pipeline: Pipeline) -> dict:
+        """Gathers necessary configuration relative to communicating with an Enterprise Gateway.
+
+        Gateway configuration is obtained from the runtime metadata instance's gateway_config
+        object.  If present, it will be used to seed a dictionary of corresponding env variables
+        that are then set into the environment of the operation instance during the runtime.
+        """
+        if not self._gateway_config:
+            self._gateway_config = {}
+
+            runtime_metadata = self._get_runtime_configuration(pipeline.name)
+            gateway_config = runtime_metadata.metadata.get("gateway_config")
+            if gateway_config:    # TODO Transfer runtime config to env-based values
+                pass
+        return self._gateway_config
+
+    def _get_runtime_configuration(self, name):
+        """
+        Retrieve associated runtime configuration based on processor type
+        :return: metadata in json format
+        """
+        try:
+            runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
+            return runtime_configuration
+        except BaseException as err:
+            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
+            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err

@@ -15,7 +15,10 @@
 #
 """KernelManager class to manage a kernel running on a Gateway Server via the REST API"""
 
+import asyncio
+import concurrent.futures
 import datetime
+import inspect
 import json
 import os
 import websocket
@@ -25,13 +28,119 @@ from jupyter_client.clientabc import KernelClientABC
 from jupyter_client.manager import AsyncKernelManager
 from jupyter_client.managerabc import KernelManagerABC
 from logging import Logger
-from notebook.gateway.managers import GatewayClient, gateway_request
-from notebook.utils import url_path_join, maybe_future
 from queue import Queue
+from socket import gaierror
 from threading import Thread
 from tornado import web
 from tornado.escape import json_encode, json_decode, url_escape, utf8
+from tornado.httpclient import AsyncHTTPClient, HTTPError
 from traitlets import DottedObjectName, Type
+from traitlets.config import SingletonConfigurable
+from typing import Optional
+
+
+class GatewayConfig(SingletonConfigurable):
+    """Mixin class to coordinate Gateway-related values and methods"""
+
+    arg_envs = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # Transfer any ELYRA_ envs from kwargs to our own local dict and clean up kwargs
+        self.arg_envs = {}
+        if 'env' in kwargs:
+            for k, v in kwargs['env'].items():
+                if k.startswith("ELYRA_"):
+                    self.arg_envs[k] = v
+            # Remove same set from kwargs since we don't want these passed along to kernel process
+            for k in self.arg_envs.keys():
+                kwargs['env'].pop(k)
+
+            # And capture kernel launch timeout, if present
+            self.arg_envs["KERNEL_LAUNCH_TIMEOUT"] = kwargs['env'].get("KERNEL_LAUNCH_TIMEOUT")
+
+        # Initialize Gateway configuration variables with priority to local env, then self.arg_envs
+        self.url = self._get_env("ELYRA_GATEWAY_URL")
+        if not self.url:
+            raise ValueError("ELYRA_GATEWAY_URL env is required to be set!")
+
+        self.ws_url = self._get_env("ELYRA_GATEWAY_WS_URL", self.url.lower().replace('http', 'ws'))
+        self.kernels_endpoint = self._get_env("ELYRA_GATEWAY_KERNELS_ENDPOINT", '/api/kernels')
+        self.kernelspecs_endpoint = self._get_env("ELYRA_GATEWAY_KERNELSPECS_ENDPOINT", '/api/kernelspecs')
+        self.request_timeout = float(self._get_env("ELYRA_GATEWAY_REQUEST_TIMEOUT", "40.0"))
+        self.connect_timeout = float(self._get_env("ELYRA_GATEWAY_CONNECT_TIMEOUT", "40.0"))
+        self.headers = json.loads(self._get_env("ELYRA_GATEWAY_HEADERS", "{}"))
+        self.validate_cert = bool(self._get_env("ELYRA_GATEWAY_VALIDATE_CERT", "True") not in ['no', 'false'])
+        self.auth_token = self._get_env("ELYRA_GATEWAY_AUTH_TOKEN")
+        self.client_cert = self._get_env("ELYRA_GATEWAY_CLIENT_CERT")
+        self.client_key = self._get_env("ELYRA_GATEWAY_CLIENT_KEY")
+        self.ca_certs = self._get_env("ELYRA_GATEWAY_CA_CERTS")
+        self.http_user = self._get_env("ELYRA_GATEWAY_HTTP_USER")
+        self.http_pwd = self._get_env("ELYRA_GATEWAY_HTTP_PWD")
+        self.kernel_launch_timeout = int(self._get_env('KERNEL_LAUNCH_TIMEOUT', '40'))
+
+    def _get_env(self, name: str, default: Optional[str] = None) -> Optional[str]:
+        """Gets the named value from the environment (first) using original kwargs env as a fallback. """
+        return os.environ.get(name, self.arg_envs.get(name, default))
+
+    def _load_connection_args(self, **kwargs) -> dict:
+        # Ensure that request timeout and KERNEL_LAUNCH_TIMEOUT are the same, taking the
+        #  greater value of the two.
+        if self.request_timeout < float(self.kernel_launch_timeout):
+            self.request_timeout = float(self.kernel_launch_timeout)
+        elif self.request_timeout > float(self.kernel_launch_timeout):
+            self.kernel_launch_timeout = int(self.request_timeout)
+
+        kwargs['headers'] = self.headers
+        if 'Authorization' not in self.headers.keys():
+            kwargs['headers'].update({
+                'Authorization': 'token {}'.format(self.auth_token)
+            })
+        kwargs['connect_timeout'] = self.connect_timeout
+        kwargs['request_timeout'] = self.request_timeout
+        kwargs['validate_cert'] = self.validate_cert
+        if self.client_cert:
+            kwargs['client_cert'] = self.client_cert
+            kwargs['client_key'] = self.client_key
+            if self.ca_certs:
+                kwargs['ca_certs'] = self.ca_certs
+        if self.http_user:
+            kwargs['auth_username'] = self.http_user
+        if self.http_pwd:
+            kwargs['auth_password'] = self.http_pwd
+
+        return kwargs
+
+    async def gateway_request(self, endpoint, **kwargs):
+        """Make an async request to kernel gateway endpoint, returns a response """
+        client = AsyncHTTPClient()
+        kwargs = self._load_connection_args(**kwargs)
+        try:
+            response = await client.fetch(endpoint, **kwargs)
+        # Trap a set of common exceptions so that we can inform the user that their Gateway url is incorrect
+        # or the server is not running.
+        # NOTE: We do this here since this handler is called during the Notebook's startup and subsequent refreshes
+        # of the tree view.
+        except ConnectionRefusedError as e:
+            raise web.HTTPError(
+                503,
+                "Connection refused from Gateway server url '{}'.  Check to be sure the"
+                " Gateway instance is running.".format(self.url)
+            ) from e
+        except HTTPError as e:
+            # This can occur if the host is valid (e.g., foo.com) but there's nothing there.
+            raise web.HTTPError(e.code, "Error attempting to connect to Gateway server url '{}'.  "
+                                        "Ensure gateway url is valid and the Gateway instance is running.".
+                                format(self.url)) from e
+        except gaierror as e:
+            raise web.HTTPError(
+                404,
+                "The Gateway server specified in the gateway_url '{}' doesn't appear to be valid.  Ensure gateway "
+                "url is valid and the Gateway instance is running.".format(self.url)
+            ) from e
+
+        return response
 
 
 class HTTPKernelManager(AsyncKernelManager):
@@ -42,8 +151,9 @@ class HTTPKernelManager(AsyncKernelManager):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.base_endpoint = url_path_join(GatewayClient.instance().url, GatewayClient.instance().kernels_endpoint)
+        self.base_endpoint = None  # url_path_join(self.url, self.kernels_endpoint)
         self.kernel = None
+        self.gateway_config = None  # initialized in start_kernel
 
     def _get_kernel_endpoint_url(self, kernel_id=None):
         """Builds a url for the kernels endpoint
@@ -94,7 +204,7 @@ class HTTPKernelManager(AsyncKernelManager):
         kernel_url = self._get_kernel_endpoint_url(kernel_id)
         self.log.debug("Request kernel at: %s" % kernel_url)
         try:
-            response = await gateway_request(kernel_url, method='GET')
+            response = await self.gateway_config.gateway_request(kernel_url, method='GET')
         except web.HTTPError as error:
             if error.status_code == 404:
                 self.log.warning("Kernel not found at: %s" % kernel_url)
@@ -119,6 +229,9 @@ class HTTPKernelManager(AsyncKernelManager):
              keyword arguments that are passed down to build the kernel_cmd
              and launching the kernel (e.g. Popen kwargs).
         """
+        self.gateway_config = GatewayConfig.instance(**kwargs)
+        self.base_endpoint = url_path_join(self.gateway_config.url, self.gateway_config.kernels_endpoint)
+
         kernel_id = kwargs.get('kernel_id')
 
         if kernel_id is None:
@@ -127,11 +240,11 @@ class HTTPKernelManager(AsyncKernelManager):
             self.log.debug("Request new kernel at: %s" % kernel_url)
 
             # Let KERNEL_USERNAME take precedent over http_user config option.
-            if os.environ.get('KERNEL_USERNAME') is None and GatewayClient.instance().http_user:
-                os.environ['KERNEL_USERNAME'] = GatewayClient.instance().http_user
+            if os.environ.get('KERNEL_USERNAME') is None and self.gateway_config.http_user:
+                os.environ['KERNEL_USERNAME'] = self.gateway_config.http_user
 
-            kernel_env = {k: v for (k, v) in dict(os.environ).items() if k.startswith('KERNEL_') or
-                          k in GatewayClient.instance().env_whitelist.split(",")}
+            # Env whitelist not used here - so only include KERNEL_
+            kernel_env = {k: v for (k, v) in dict(os.environ).items() if k.startswith('KERNEL_')}
 
             # Add any env entries in this request
             kernel_env.update(kwargs.get('env'))
@@ -140,9 +253,11 @@ class HTTPKernelManager(AsyncKernelManager):
             if kwargs.get('cwd') is not None and kernel_env.get('KERNEL_WORKING_DIR') is None:
                 kernel_env['KERNEL_WORKING_DIR'] = kwargs['cwd']
 
+            kernel_env['KERNEL_LAUNCH_TIMEOUT'] = str(self.gateway_config.kernel_launch_timeout)
+
             json_body = json_encode({'name': kernel_name, 'env': kernel_env})
 
-            response = await gateway_request(kernel_url, method='POST', body=json_body)
+            response = await self.gateway_config.gateway_request(kernel_url, method='POST', body=json_body)
             self.kernel = json_decode(response.body)
             self.kernel_id = self.kernel['id']
             self.log.info("HTTPKernelManager started kernel: {}, args: {}".format(self.kernel_id, kwargs))
@@ -157,7 +272,7 @@ class HTTPKernelManager(AsyncKernelManager):
         if self.has_kernel:
             kernel_url = self._get_kernel_endpoint_url(self.kernel_id)
             self.log.debug("Request shutdown kernel at: %s", kernel_url)
-            response = await gateway_request(kernel_url, method='DELETE')
+            response = await self.gateway_config.gateway_request(kernel_url, method='DELETE')
             self.log.debug("Shutdown kernel response: %d %s", response.code, response.reason)
 
     async def restart_kernel(self, **kw):
@@ -165,7 +280,7 @@ class HTTPKernelManager(AsyncKernelManager):
         if self.has_kernel:
             kernel_url = self._get_kernel_endpoint_url(self.kernel_id) + '/restart'
             self.log.debug("Request restart kernel at: %s", kernel_url)
-            response = await gateway_request(kernel_url, method='POST', body=json_encode({}))
+            response = await self.gateway_config.gateway_request(kernel_url, method='POST', body=json_encode({}))
             self.log.debug("Restart kernel response: %d %s", response.code, response.reason)
 
     async def interrupt_kernel(self):
@@ -173,7 +288,7 @@ class HTTPKernelManager(AsyncKernelManager):
         if self.has_kernel:
             kernel_url = self._get_kernel_endpoint_url(self.kernel_id) + '/interrupt'
             self.log.debug("Request interrupt kernel at: %s", kernel_url)
-            response = await gateway_request(kernel_url, method='POST', body=json_encode({}))
+            response = await self.gateway_config.gateway_request(kernel_url, method='POST', body=json_encode({}))
             self.log.debug("Interrupt kernel response: %d %s", response.code, response.reason)
 
     async def is_alive(self):
@@ -279,6 +394,7 @@ class HTTPKernelClient(AsyncKernelClient):
         self.kernel_id = kwargs['kernel_id']
         self.channel_socket = None
         self.response_router = None
+        self.gateway_config = GatewayConfig.instance()
 
     # --------------------------------------------------------------------------
     # Channel management methods
@@ -292,17 +408,16 @@ class HTTPKernelClient(AsyncKernelClient):
         be posted.
         """
 
-        ws_url = url_path_join(
-            GatewayClient.instance().ws_url,
-            GatewayClient.instance().kernels_endpoint, url_escape(self.kernel_id), 'channels')
+        ws_url = url_path_join(self.gateway_config.ws_url, self.gateway_config.kernels_endpoint,
+                               url_escape(self.kernel_id), 'channels')
         # Gather cert info in case where ssl is desired...
         ssl_options = dict()
-        ssl_options['ca_certs'] = GatewayClient.instance().ca_certs
-        ssl_options['certfile'] = GatewayClient.instance().client_cert
-        ssl_options['keyfile'] = GatewayClient.instance().client_key
+        ssl_options['ca_certs'] = self.gateway_config.ca_certs
+        ssl_options['certfile'] = self.gateway_config.client_cert
+        ssl_options['keyfile'] = self.gateway_config.client_key
 
         self.channel_socket = websocket.create_connection(ws_url,
-                                                          timeout=GatewayClient.instance().KERNEL_LAUNCH_TIMEOUT,
+                                                          timeout=self.gateway_config.connect_timeout,
                                                           enable_multithread=True,
                                                           sslopt=ssl_options)
         self.response_router = Thread(target=self._route_responses)
@@ -399,6 +514,44 @@ class HTTPKernelClient(AsyncKernelClient):
                 self.log.warning('Unexpected exception encountered ({})'.format(be))
 
         self.log.debug('Response router thread exiting...')
+
+
+# Helper functions copied from notebook/utils.py to remove dependency
+
+def url_path_join(*pieces):
+    """Join components of url into a relative url
+
+    Use to prevent double slash when joining subpath. This will leave the
+    initial and final / in place
+    """
+    initial = pieces[0].startswith('/')
+    final = pieces[-1].endswith('/')
+    stripped = [s.strip('/') for s in pieces]
+    result = '/'.join(s for s in stripped if s)
+    if initial:
+        result = '/' + result
+    if final:
+        result = result + '/'
+    if result == '//':
+        result = '/'
+    return result
+
+
+def maybe_future(obj):
+    """Like tornado's deprecated gen.maybe_future
+
+    but more compatible with asyncio for recent versions
+    of tornado
+    """
+    if inspect.isawaitable(obj):
+        return asyncio.ensure_future(obj)
+    elif isinstance(obj, concurrent.futures.Future):
+        return asyncio.wrap_future(obj)
+    else:
+        # not awaitable, wrap scalar in future
+        f = asyncio.Future()
+        f.set_result(obj)
+        return f
 
 
 KernelClientABC.register(HTTPKernelClient)

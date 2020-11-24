@@ -22,8 +22,7 @@ import requests
 
 from datetime import datetime
 from elyra._version import __version__
-from elyra.metadata import MetadataManager
-from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
+from elyra.pipeline import RuntimePipelineProcessor, PipelineProcessorResponse
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_absolute_path
 from elyra.util.cos import CosClient
@@ -33,7 +32,7 @@ from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
 
 
-class KfpPipelineProcessor(PipelineProcessor):
+class KfpPipelineProcessor(RuntimePipelineProcessor):
     _type = 'kfp'
 
     @property
@@ -240,14 +239,12 @@ class KfpPipelineProcessor(PipelineProcessor):
             # Convey pipeline logging enablement to operation
             pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
 
-            if operation.env_vars:
-                for env_var in operation.env_vars:
-                    # Strip any of these special characters from both key and value
-                    # Splits on the first occurrence of '='
-                    result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
-                    # Should be non empty key with a value
-                    if len(result) == 2 and result[0] != '':
-                        pipeline_envs[result[0]] = result[1]
+            # Gather any Gateway configuration
+            pipeline_envs.update(self._get_gateway_config(pipeline))
+
+            # Transfer any operation envs to pipeline_envs.  If these include gateway configuration
+            # values, they will override those obtain via `get_gateway_config()`.
+            pipeline_envs.update(operation.env_vars_as_dict())
 
             # create pipeline operation
             notebook_ops[operation.id] = NotebookOp(name=operation.name,
@@ -329,18 +326,6 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                require_complete=True)
 
         return archive_artifact
-
-    def _get_runtime_configuration(self, name):
-        """
-        Retrieve associated runtime configuration based on processor type
-        :return: metadata in json format
-        """
-        try:
-            runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
-            return runtime_configuration
-        except BaseException as err:
-            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
-            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err
 
     def _get_user_auth_session_cookie(self, url, username, password):
         get_response = requests.get(url)

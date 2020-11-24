@@ -111,16 +111,18 @@ class Operation(object):
            configured on the Operation are overlayed on the existing env.
         """
         envs = {}
-        for nv in self.env_vars:
-            if len(nv) > 0:
-                nv_pair = nv.split("=")
-                if len(nv_pair) == 2:
-                    envs[nv_pair[0]] = nv_pair[1]
+        for env_var in self.env_vars:
+            # Strip any of these special characters from both key and value
+            # Splits on the first occurrence of '='
+            result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
+            # Should be non empty key with a value
+            if len(result) == 2 and result[0] != '':
+                envs[result[0]] = result[1]
+            else:
+                if logger:
+                    logger.warning(f"Could not process environment variable entry `{env_var}`, skipping...")
                 else:
-                    if logger:
-                        logger.warning(f"Could not process environment variable entry `{nv}`, skipping...")
-                    else:
-                        print(f"Could not process environment variable entry `{nv}`, skipping...")
+                    print(f"Could not process environment variable entry `{env_var}`, skipping...")
         return envs
 
     @property

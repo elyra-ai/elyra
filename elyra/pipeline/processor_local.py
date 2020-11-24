@@ -20,7 +20,7 @@ import time
 from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
-from notebook.gateway.managers import GatewayClient
+from jupyter_server.gateway.managers import GatewayClient
 from subprocess import run
 from traitlets import log
 from typing import Dict
@@ -81,9 +81,6 @@ class LocalPipelineProcessor(PipelineProcessor):
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
         return PipelineProcessorResponse('', '', '')
-
-    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        raise NotImplementedError('Local pipelines does not support export functionality')
 
     @staticmethod
     def _sort_operations(operations_by_id: dict) -> list:
@@ -158,6 +155,8 @@ class FileOperationProcessor(OperationProcessor):
 class NotebookOperationProcessor(FileOperationProcessor):
     _operation_name = 'execute-notebook-node'
 
+    _gateway_config = None
+
     def __init__(self, root_dir: str):
         super(NotebookOperationProcessor, self).__init__(root_dir)
 
@@ -185,6 +184,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         additional_kwargs['kernel_env'] = envs
         if GatewayClient.instance().gateway_enabled:
             additional_kwargs['kernel_manager_class'] = 'elyra.pipeline.http_kernel_manager.HTTPKernelManager'
+            additional_kwargs['kernel_env'].update(NotebookOperationProcessor._get_gateway_config())
 
         t0 = time.time()
         try:
@@ -199,6 +199,45 @@ class NotebookOperationProcessor(FileOperationProcessor):
         t1 = time.time()
         duration = (t1 - t0)
         self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
+
+    @classmethod
+    def _get_gateway_config(cls) -> dict:
+        """Gathers necessary configuration relative to communicating with an Enterprise Gateway.
+
+        This method is similar to RuntimePipelineProcessor._get_gateway_config except that
+        it pulls the gateway configuration directly from the hosting server (if configured to
+        use Enterprise Gateway) rather than from the runtime metadata.  As a result, it can be
+        treated as statically-defined data.
+        """
+        if not cls._gateway_config:  # Since these values are static, treat them as such
+            cls._gateway_config = {}
+            gateway_client = GatewayClient.instance()
+            if gateway_client.gateway_enabled:
+                cls._gateway_config['ELYRA_GATEWAY_URL'] = gateway_client.url
+                cls._gateway_config['ELYRA_GATEWAY_WS_URL'] = gateway_client.ws_url
+                cls._gateway_config['ELYRA_GATEWAY_KERNELS_ENDPOINT'] = gateway_client.kernels_endpoint
+                cls._gateway_config['ELYRA_GATEWAY_KERNELSPECS_ENDPOINT'] = gateway_client.kernelspecs_endpoint
+                cls._gateway_config['ELYRA_GATEWAY_REQUEST_TIMEOUT'] = str(gateway_client.request_timeout)
+                cls._gateway_config['ELYRA_GATEWAY_CONNECT_TIMEOUT'] = str(gateway_client.connect_timeout)
+                cls._gateway_config['ELYRA_GATEWAY_HEADERS'] = gateway_client.headers
+                cls._gateway_config['ELYRA_GATEWAY_VALIDATE_CERT'] = str(gateway_client.validate_cert)
+                cls._gateway_config['KERNEL_LAUNCH_TIMEOUT'] = str(gateway_client.KERNEL_LAUNCH_TIMEOUT)
+
+                # Optional values that have None as a default, so only set if defined.
+                if gateway_client.auth_token:
+                    cls._gateway_config['ELYRA_GATEWAY_AUTH_TOKEN'] = gateway_client.auth_token
+                if gateway_client.client_cert:
+                    cls._gateway_config['ELYRA_GATEWAY_CLIENT_CERT'] = gateway_client.client_cert
+                if gateway_client.client_key:
+                    cls._gateway_config['ELYRA_GATEWAY_CLIENT_KEY'] = gateway_client.client_key
+                if gateway_client.ca_certs:
+                    cls._gateway_config['ELYRA_GATEWAY_CA_CERTS'] = gateway_client.ca_certs
+                if gateway_client.http_user:
+                    cls._gateway_config['ELYRA_GATEWAY_HTTP_USER'] = gateway_client.http_user
+                if gateway_client.http_pwd:
+                    cls._gateway_config['ELYRA_GATEWAY_HTTP_PWD'] = gateway_client.http_pwd
+
+        return cls._gateway_config
 
 
 class PythonScriptOperationProcessor(FileOperationProcessor):
