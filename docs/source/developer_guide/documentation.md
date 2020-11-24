@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 IBM Corporation
+Copyright 2018-2020 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,4 +54,3 @@ To contribute content to the Elyra documentation follow these steps:
     1. Open `index.html` in a web browser.
 
 1. Commit your updates to a new branch and open a pull request.
-    
