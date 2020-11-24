@@ -19,18 +19,17 @@ limitations under the License.
 
 Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
+The main features include:
 
-Elyra currently includes:
 * [AI Pipelines visual editor](#ai-pipelines-visual-editor)
 * [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
 * [Reusable Code Snippets](#reusable-code-snippets)
 * [Hybrid runtime support](#hybrid-runtime-support)
 * [Python script execution support](#python-script-execution-support)
-* [Notebook versioning based on git integration](#notebook-versioning-based-on-git-integration)
+* [Version control using git integration](#version-control-using-git-integration)
 * [Notebook navigation using auto-generated Table of Contents](#notebook-navigation-using-auto-generated-table-of-contents)
-* [Reusable configuration for runtimes](#reusable-configuration-for-runtimes)
 
-![Elyra](../images/elyra-main-page.png)
+You can try out some of these features using the getting started tour [on Binder](https://github.com/elyra-ai/elyra#using-binder) without having to install anything.
 
 #### AI Pipelines visual editor
 
@@ -40,28 +39,34 @@ experimentation/optimization and finally deployment. Each of these steps represe
 the model development lifecycle.
 
 Elyra provides a **Pipeline Visual Editor** for building AI pipelines from notebooks and Python scripts,
-simplifying the conversion of multiple notebooks or Python scripts into batch jobs or workflow.
+simplifying the conversion of multiple notebooks or Python scripts into batch jobs or workflows.
 
-Currently, pipelines can be executed locally or on 
+Currently, pipelines can be executed locally in JupyterLab or on 
 [**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/).
 
 ![Pipeline Editor](../images/pipeline-in-editor.png)
 
-Learn more about the Pipeline Visual Editor in the [user guide](/user_guide/pipelines.md) or explore the [tutorials](/getting_started/tutorials.md).
+Learn more about the Pipeline Visual Editor in the [AI Pipelines topic](/user_guide/pipelines.md) in the User Guide,  explore the [tutorials](/getting_started/tutorials.md), or [example pipelines](https://github.com/elyra-ai/examples#aiml-pipelines).
+
+The pipeline editor feature can optionally be [installed as a stand-alone extension](installation).
 
 #### Ability to run a notebook as a batch job
 
-Elyra also extends the notebook UI to simplify the submission of a single notebook as a batch job
+Elyra extends the Jupyter Notebook UI to to allow for execution of a notebook as a batch job in local or remote cloud environments. This feature leverages the AI pipelines feature and requires access to a Kubeflow Pipelines deployment via a [runtime configuration](../user_guide/runtime-conf).
+
+To run a notebook as a batch job open the notebook and select "Submit Notebook ..." from the menu bar.
 
 ![Submit Notebook as batch jobs](../images/submit-notebook-batch-job.gif)
 
 #### Reusable Code Snippets
 
-Elyra supports the **Code Snippet** feature. This allows users to manipulate reusable pieces of code, making programming in JupyterLab more efficient by reducing repetitive work.
+The Code Snippet editor introduces support for reusable code fragments, making programming in JupyterLab more efficient by reducing repetitive work.
 
 ![Code Snippets](../images/code-snippet-expanded.png)
 
-For more information on how to configure code snippets metadata see [Elyra Code Snippets](../user_guide/code-snippets)
+For information on how to manage and use code snippets refer to the [_Code Snippets_ topic](../user_guide/code-snippets) in the User Guide.
+
+The code snippet feature can optionally be [installed as a stand-alone extension](installation).
 
 #### Hybrid runtime support
 
@@ -73,30 +78,29 @@ seamlessly leveraging the power of cloud-based resources such as GPUs and TPUs.
 
 #### Python script execution support
 
-Elyra exposes **Python Scripts** as first-class citizens, introducing the ability to
-create python scripts directly from the workspace launcher, and leveraging the
-**Hybrid Runtime Support** to allow users to locally edit their scripts and execute
+Elyra contributes a Python script editor, which can take advantage of the
+**Hybrid Runtime Support** enabling users to locally edit scripts and execute
 them against local or cloud-based resources seamlessly.
 
 ![Enhanced Python Support](../images/python-editor.png)
 
-#### Notebook versioning based on git integration
+For information on how to use the Python editor refer to the [_Enhanced Python Support_ topic](../user_guide/enhanced-python-support) in the User Guide.
 
-The integrated support for git repositories simplify tracking changes, allowing rollback to working versions
-of the code, backups and, most importantly, sharing among team members - fostering productivity by
-enabling a collaborative working environment.
+The Python editor feature can optionally be [installed as a stand-alone extension](installation).
+
+#### Version control using git integration
+
+With the integrated Git version control support users can clone Git repositories, track and manage changes (e.g. by comparing, committing, or discarding them) and share among team members - fostering productivity by enabling a collaborative working environment.
 
 ![Git Integration](../images/git.png)
 
-#### Notebook navigation using auto-generated **Table of Contents**
+To learn more about the git extension or how to install it individually refer to the [jupyterlab-git repository](https://github.com/jupyterlab/jupyterlab-git).
 
-The enhanced notebook navigation recognizes **markdown** titles, subtitles, etc to auto-generate
-a Notebook **Table of Contents** providing enhanced navigation capabilities.
+#### Notebook navigation using auto-generated Table of Contents
 
-![Notebook Table of Contents](../images/notebook-toc.png)
+The enhanced notebook navigation recognizes markdown headings and auto-generates
+a Table of Contents providing enhanced navigation capabilities.
 
-#### Reusable configuration for runtimes
+To access the Table of Contents, open a notebook and select the _Table of Contents_ tab from the sidebar.
 
-Elyra introduces a 'shared configuration service' that simplifies workspace configuration management,
-enabling things like external runtime access details to be configured once and shared
-across multiple components.  
+![Notebook Table of Contents](../images/notebook-toc.png) 
