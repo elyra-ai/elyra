@@ -149,9 +149,10 @@ class NamespaceInstall(NamespaceBase):
                         description='Replace existing instance', default_value=False)
     name_option = CliOption("--name", name='name',
                             description='The name of the metadata instance to install')
-
+    file_option = CliOption("--file", name='file',
+                            description='The filename containing the metadata instance to install')
     # 'Install' options
-    options = [replace_flag]  # defer name_option until after schema_option
+    options = [replace_flag, file_option]  # defer name_option until after schema_option
 
     def __init__(self, **kwargs):
         super(NamespaceInstall, self).__init__(**kwargs)
@@ -187,7 +188,7 @@ class NamespaceInstall(NamespaceBase):
         # Schema appears to be a valid name, convert its properties to options and continue
         schema = self.schemas[schema_name]
         self.schema_options = NamespaceInstall.schema_to_options(schema)
-        self.options.extend(self.schema_options)
+        self.options.extend(self.schema_options.values())
 
     def start(self):
         super(NamespaceInstall, self).start()  # process options
@@ -209,7 +210,8 @@ class NamespaceInstall(NamespaceBase):
                 # skip adding any non required properties that have no value (unless its a null type).
                 if not option.required and not option.value and option.type != 'null':
                     continue
-                metadata[option.name] = option.value
+
+                self.set_metadata_value(metadata, option)
 
         if display_name is None:
             self.log_and_exit("Could not determine display_name from schema '{}'".format(schema_name))
@@ -237,6 +239,19 @@ class NamespaceInstall(NamespaceBase):
             else:
                 self.log_and_exit("A failure occurred saving metadata instance '{}' for schema '{}'."
                                   .format(name, schema_name), display_help=True)
+
+    def set_metadata_value(self, metadata: dict, option: MetadataSchemaProperty):
+        """Properly handles the conversion of dotted option names into hierarchical dictionaries to set the value."""
+        if '.' not in option.name:
+            metadata[option.name] = option.value
+        else:  # Has at least one dot.  Split on dot and process accordingly...
+            current = metadata
+            sub_objects = option.name.split('.')
+            for sub in sub_objects[:-1]:  # for each item but the last, ensure it has a dict for a container
+                if sub not in current:
+                    current[sub] = {}
+                current = current[sub]
+            current[sub_objects[-1]] = option.value
 
 
 class SubcommandBase(AppBase):

@@ -108,6 +108,27 @@
           "minProperties": 3,
           "maxProperties": 10
         },
+        "rich_object_test": {
+          "title": "Rich Object Test",
+          "description": "Property used to test object elements with defined properties",
+          "type": "object",
+          "properties": {
+            "prop1": {
+              "type": "integer"
+            },
+            "prop2": {
+              "type": "integer"
+            },
+            "prop3": {
+              "type": "integer"
+            },
+            "prop4": {
+              "type": "integer"
+            }
+          },
+          "required": ["prop1"]
+        },
+
         "boolean_test": {
           "title": "Boolean Test",
           "description": "Property used to test boolean values",

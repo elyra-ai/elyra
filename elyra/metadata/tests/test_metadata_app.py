@@ -481,6 +481,43 @@ def test_number_default(script_runner, mock_data_dir):
         assert instance_json["metadata"]["number_default_test"] == 7.2
 
 
+def test_rich_object(script_runner, mock_data_dir):
+    # Doesn't use PropertyTester due to its unique test for command line options
+    name = "rich_object"
+
+    expected_file = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE, name + '.json')
+    # Cleanup from any potential previous failures
+    if os.path.exists(expected_file):
+        os.remove(expected_file)
+
+    # Create using partial set of properties but don't set prop1 (which is required)
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
+                            '--name=' + name, '--display_name=' + name,
+                            '--required_test=required_value', '--rich_object_test.prop2=3')
+
+    assert ret.success is False
+    assert "'--rich_object_test.prop1' is a required parameter" in ret.stdout
+
+    # Successful create, but with partial set of properties
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
+                            '--name=' + name, '--display_name=' + name,
+                            '--required_test=required_value', '--replace',
+                            '--rich_object_test.prop1=2', '--rich_object_test.prop3=4')
+
+    assert ret.success
+    assert "Metadata instance '" + name + "' for schema 'metadata-test' has been written" in ret.stdout
+
+    assert os.path.isdir(os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE))
+    assert os.path.isfile(expected_file)
+
+    with open(expected_file, "r") as fd:
+        instance_json = json.load(fd)
+        assert instance_json["schema_name"] == 'metadata-test'
+        assert instance_json["display_name"] == name
+        assert instance_json["metadata"]["rich_object_test"]["prop1"] == 2
+        assert instance_json["metadata"]["rich_object_test"]["prop3"] == 4
+
+
 def test_uri(script_runner, mock_data_dir):
     prop_test = PropertyTester("uri")
     prop_test.negative_value = "//invalid-uri"

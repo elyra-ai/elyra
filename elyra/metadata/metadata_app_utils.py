@@ -14,8 +14,12 @@
 # limitations under the License.
 #
 import ast
+import json
 import logging
+import os
 import sys
+
+from typing import Dict, Optional
 
 """Utility functions and classes used for metadata applications and classes."""
 
@@ -164,7 +168,7 @@ class AppBase(object):
 
     def _get_argv_mappings(self):
         """Walk argv and build mapping from argument to value for later processing. """
-        log_option = None
+        log_option = file_option = None
         for arg in self.argv:
             if '=' in arg:
                 option, value = arg.split('=', 1)
@@ -180,9 +184,36 @@ class AppBase(object):
                 log_option = arg
                 logging.getLogger().setLevel(value)
                 continue
+            elif option == '--file':  # load file has JSON and build argv_mappings from its contents
+                file_option = arg
+                self.load_argv_mappings_from_file(value)
+                continue
+
             self.argv_mappings[option] = value
         if log_option:
             self.argv.remove(log_option)
+        if file_option:
+            self.argv.remove(file_option)
+
+    def load_argv_mappings_from_file(self, filename: str):
+        """When --file=JSON_FILE is used, this will convert the keys and values
+           into argv mappings so that it will behave as if they were on the command line.
+        """
+        # Check that file can be loaded as JSON.  If not, let it throw, let it throw, let it throw.
+        with open(filename) as json_file:
+            md_json = json.load(json_file)
+        # We loaded, add mapping for --name based on filename
+        self.argv_mappings['--name'] = os.path.basename(filename).split('.')[0]
+        self.load_argv_mappings_from_json(md_json)
+
+    def load_argv_mappings_from_json(self, json_data: dict, prefix: Optional[str] = None) -> None:
+        for k, v in json_data.items():
+            prefixed_name = None
+            if k != 'metadata':
+                prefixed_name = (prefix + '.' + k) if prefix else k
+            if type(v) == dict:  # object-valued property, deal with sub-object
+                return self.load_argv_mappings_from_json(v, prefixed_name)
+            self.argv_mappings['--' + prefixed_name] = v  # object-valued properties will have dict as value for now
 
     def log_and_exit(self, msg=None, exit_status=1, display_help=False):
         if msg:
@@ -218,35 +249,39 @@ class AppBase(object):
         self.exit(1)
 
     @staticmethod
-    def schema_to_options(schema):
+    def schema_to_options(schema, level: Optional[int] = 0, prefix: Optional[str] = None) -> Dict[str, SchemaProperty]:
         """Takes a JSON schema and builds a list of SchemaProperty instances corresponding to each
            property in the schema.  There are two sections of properties, one that includes
            schema_name and display_name and another within the metadata container - which
            will be separated by class type - SchemaProperty vs. MetadataSchemaProperty.
+
+           Properties within the metadata container that are themselves object-valued, will
+           trigger recursion with a construct of using a dotted prefix prior to the sub-object's
+           property.  (e.g., extra-config.name)
         """
         options = {}
-        properties = schema['properties']
-        for name, value in properties.items():
-            if name == 'schema_name':  # already have this option, skip
-                continue
-            if name != 'metadata':
-                options[name] = SchemaProperty(name, value)
-            else:  # process metadata properties...
-                metadata_properties = properties['metadata']['properties']
-                for md_name, md_value in metadata_properties.items():
-                    options[md_name] = MetadataSchemaProperty(md_name, md_value)
+        if 'properties' in schema:
+            properties = schema['properties']
+            for k, v in properties.items():
+                prefixed_name = (prefix + '.' + k) if prefix and prefix != 'metadata' else k
+                if k == 'schema_name':  # already have this option, skip
+                    continue
+                if v['type'] == 'object':
+                    options.update(AppBase.schema_to_options(properties[k], level + 1, prefixed_name))
+                elif level == 0:  # Special handling for schema properties
+                    options[prefixed_name] = SchemaProperty(prefixed_name, v)
+                else:
+                    options[prefixed_name] = MetadataSchemaProperty(prefixed_name, v)
 
-        # Now set required-ness on MetadataProperties and top-level Properties
-        required_props = properties['metadata'].get('required')
-        for required in required_props:
-            options.get(required).required = True
-
-        required_props = schema.get('required')
-        for required in required_props:
-            # skip schema_name & metadata, already required, and metadata is not an option to be presented
-            if required not in ['schema_name', 'metadata']:
-                options.get(required).required = True
-        return list(options.values())
+            required_props = schema.get('required')
+            for required in required_props:
+                # skip schema_name & metadata, already required, and metadata is not an option to be presented
+                if required not in ['schema_name', 'metadata']:
+                    prefixed_name = (prefix + '.' + required) if prefix and prefix != 'metadata' else required
+                    options.get(prefixed_name).required = True
+        else:  # object-value schema property doesn't define explicit properties, just add option
+            options[prefix] = MetadataSchemaProperty(prefix, schema)
+        return options
 
     def process_cli_option(self, cli_option, check_help=False):
         """Check if the given option exists in the current arguments.  If found set its
@@ -276,7 +311,7 @@ class AppBase(object):
                             self.log_and_exit("Parameter '{}' requires one of the following values: {}".
                                               format(cli_option.cli_option, cli_option.one_of), display_help=True)
             self._remove_argv_entry(option)
-        elif cli_option.required and cli_option.value is None:
+        elif self.required_value_is_missing(cli_option):
             if cli_option.one_of is None:
                 self.log_and_exit("'{}' is a required parameter.".
                                   format(cli_option.cli_option), display_help=True)
@@ -285,6 +320,24 @@ class AppBase(object):
                                   format(cli_option.cli_option, cli_option.one_of), display_help=True)
 
         cli_option.processed = True
+
+    def required_value_is_missing(self, option: Option) -> bool:
+        """Checks is required-value option is missing a value.  This also takes into
+           account required properties on sub-objects (dotted notation).  Only if all
+           other options of the same sub-object do not have values will we skip enforcement.
+        """
+        if option.required and option.value is None:
+            if '.' not in option.name:
+                return True
+
+            sub_option_prefix = option.cli_option.rsplit('.', 1)[0] + '.'
+            # Check for option options on this sub-object, if any have values, return True
+            for other_option, other_value in self.argv_mappings.items():
+                if other_option.startswith(sub_option_prefix) and other_value is not None:
+                    return True
+            # Set the option to non-required, otherwise this will affect things downstream
+            option.required = False
+        return False
 
     def process_cli_options(self, cli_options):
         """For each Option instance in the list, process it according to the argv lists.
@@ -298,8 +351,7 @@ class AppBase(object):
         for option in cli_options:
             self.process_cli_option(option)
 
-        # Check if there are still unprocessed arguments.  If so, and fail_unexpected is true,
-        # log and exit, else issue warning and continue.
+        # Check if there are still unprocessed arguments.  If so, log and exit.
         if len(self.argv) > 0:
             msg = "The following arguments were unexpected: {}".format(self.argv)
             self.log_and_exit(msg, display_help=True)
@@ -309,7 +361,7 @@ class AppBase(object):
            We do this by converting two lists to sets and checking if
            there's an intersection.
         """
-        helps = set(['--help', '-h'])
+        helps = {'--help', '-h'}
         args = set(self.argv_mappings.keys())
         help_list = list(helps & args)
         return len(help_list) > 0
@@ -326,7 +378,8 @@ class AppBase(object):
         value = self.argv_mappings.get(cli_option)
         if value:
             entry = entry + '=' + value
-        self.argv.remove(entry)
+        if entry in self.argv:
+            self.argv.remove(entry)
         self.argv_mappings.pop(cli_option)
 
     def print_help(self):

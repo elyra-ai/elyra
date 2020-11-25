@@ -112,6 +112,144 @@
           "uihints": {
             "field_type": "tags"
           }
+        },
+        "gateway_config": {
+          "description": "Configuration properties related to an integration with Enterprise Gateway",
+          "type": "object",
+          "properties": {
+            "description": {
+              "title": "Enterprise Gateway Configuration",
+              "description": "This runtime instance's Enterprise Gateway configuration properties.",
+              "type": "string",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "url": {
+              "title": "Url",
+              "description": "The URL of the EG server (e.g., http://<server>:<port>).",
+              "type": "string",
+              "format": "uri",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "ws_url": {
+              "title": "WebSocket Url",
+              "description": "The WebSocket URL of the EG server (e.g., ws://<server>:<port>). Will derive from url if not set.",
+              "type": "string",
+              "format": "uri",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "kernels_endpoint": {
+              "title": "Kernels API Endpoint",
+              "description": "The gateway API endpoint for accessing kernels.",
+              "type": "string",
+              "default": "/api/kernels",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "kernelspecs_endpoint": {
+              "title": "Kernelspecs API Endpoint",
+              "description": "The gateway API endpoint for accessing kernelspecs.",
+              "type": "string",
+              "default": "/api/kernelspecs",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "request_timeout": {
+              "title": "Request Timeout",
+              "description": "The time allowed for HTTP request completion.",
+              "type": "number",
+              "default": 40.0,
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "connect_timeout": {
+              "title": "Connect Timeout",
+              "description": "The time allowed for HTTP connection establishment with the Gateway server.",
+              "type": "number",
+              "default": 40.0,
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "headers": {
+              "title": "Headers",
+              "description": "Additional HTTP headers to pass on the request.  This value will be converted to JSON.",
+              "type": "string",
+              "default": "{}",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "auth_token": {
+              "title": "Authorization Token",
+              "description": "The authorization token used in the HTTP headers.",
+              "type": "string",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "client_key": {
+              "title": "Client Key Filename",
+              "description": "The filename for client SSL key, if any.",
+              "type": "string",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "client_cert": {
+              "title": "Client Certificate Filename",
+              "description": "The filename for client SSL certificate, if any.",
+              "type": "string",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "ca_certs": {
+              "title": "CA Certificate Filename",
+              "description": "The filename of CA certificates, if any.",
+              "type": "string",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "http_user": {
+              "title": "HTTTP User",
+              "description": "The username for HTTP authentication.",
+              "type": "string",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "http_pwd": {
+              "title": "HTTTP Password",
+              "description": "The password for HTTP authentication.",
+              "type": "string",
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
+            "validate_cert": {
+              "title": "Validate Certificate",
+              "description": "For HTTPS requests, determines if server's certificate should be validated or not.",
+              "type": "boolean",
+              "default": true,
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            }
+          },
+          "uihints": {
+            "field_type": "code"
+          },
+          "required": ["url"]
         }
       },
       "required": [

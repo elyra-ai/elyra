@@ -193,7 +193,7 @@ class RuntimePipelineProcessor(PipelineProcessor):  # ABC
         if not self._gateway_config:
             self._gateway_config = {}
 
-            runtime_metadata = self._get_runtime_configuration(pipeline.name)
+            runtime_metadata = self._get_runtime_configuration(pipeline.runtime_config)
             gateway_config = runtime_metadata.metadata.get("gateway_config")
             if gateway_config:    # TODO Transfer runtime config to env-based values
                 pass
