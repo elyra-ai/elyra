@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FrontendServices } from '@elyra/application';
+import { MetadataService } from '@elyra/application';
 import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
 
 import {
@@ -187,7 +187,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: closeTabCommand
     });
 
-    const schemas = await FrontendServices.getAllSchema();
+    const schemas = await MetadataService.getAllSchema();
     for (const schema of schemas) {
       let icon = 'ui-components:text-editor';
       let title = schema.title;

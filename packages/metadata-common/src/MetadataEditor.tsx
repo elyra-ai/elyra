@@ -16,7 +16,7 @@
 
 import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
 
-import { FrontendServices, IDictionary } from '@elyra/application';
+import { MetadataService, IDictionary } from '@elyra/application';
 import { DropDown } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
@@ -97,7 +97,7 @@ export class MetadataEditor extends ReactWidget {
   }
 
   async initializeMetadata(): Promise<void> {
-    const schemas = await FrontendServices.getSchema(this.namespace);
+    const schemas = await MetadataService.getSchema(this.namespace);
     for (const schema of schemas) {
       if (this.schemaName === schema.name) {
         this.schema = schema.properties.metadata.properties;
@@ -124,7 +124,7 @@ export class MetadataEditor extends ReactWidget {
       }
     }
 
-    this.allMetadata = await FrontendServices.getMetadata(this.namespace);
+    this.allMetadata = await MetadataService.getMetadata(this.namespace);
     if (this.name) {
       for (const metadata of this.allMetadata) {
         if (metadata.metadata.tags) {
@@ -219,7 +219,7 @@ export class MetadataEditor extends ReactWidget {
     }
 
     if (!this.name) {
-      FrontendServices.postMetadata(
+      MetadataService.postMetadata(
         this.namespace,
         JSON.stringify(newMetadata)
       ).then((response: any): void => {
@@ -228,7 +228,7 @@ export class MetadataEditor extends ReactWidget {
         this.close();
       });
     } else {
-      FrontendServices.putMetadata(
+      MetadataService.putMetadata(
         this.namespace,
         this.name,
         JSON.stringify(newMetadata)
