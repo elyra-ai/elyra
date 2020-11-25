@@ -41,7 +41,8 @@ elyra-metadata install runtimes --schema_name=kfp \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
-       --cos_bucket=test-bucket
+       --cos_bucket=test-bucket \
+       --tags=("my-kfp")
 ```
 This produces the following content in `my_kfp.json`:
 ```json
@@ -55,7 +56,8 @@ This produces the following content in `my_kfp.json`:
         "cos_endpoint": "http://minio-service.kubeflow:9000",
         "cos_username": "minio",
         "cos_password": "minio123",
-        "cos_bucket": "test-bucket"
+        "cos_bucket": "test-bucket",
+        "tags": ["my-kfp"]
     }
 }
 ```
@@ -82,7 +84,7 @@ Server and with your chosen Object Store to store artifacts.
 
 #### Using Elyra Runtimes User Interface
 Elyra also has UI support to accessing runtime metadata directly in JupyterLab, 
-where user can easily view, add, edit or remove runtimes configurations, as an option to the CLI method described above. 
+where user can easily view, add, search, edit or remove runtimes configurations, as an option to the CLI method described above. 
 It can be accessed from the Runtimes icon on JupyterLab's left tab bar, which opens a side panel widget displaying available pipeline runtimes.
 Click on the `+` button to add a new pipeline runtime, or on the edit icon to edit an existing configuration. 
 These actions will open the Metadata Editor as a new tab in the main area, where runtime metadata parameters can be edited 
@@ -130,6 +132,11 @@ Example: `minio123`
 Name of the bucket you want your artifacts in. If the bucket doesn't exist, it will be created
 
 Example: `test-bucket`
+
+##### tags
+Tags for categorizing your Kubeflow Pipelines runtime
+
+Example: `my-kfp`
 
 NOTE: 
 If using an authentication-restricted Kubeflow environment, you must enter your credentials in `user_namespace`, `api_username` and `api_password` fields 
