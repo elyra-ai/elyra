@@ -125,6 +125,15 @@
                 "category": "Enterprise Gateway"
               }
             },
+            "enabled": {
+              "title": "Enabled",
+              "description": "Indicates whether use of the Gateway Configuration is enabled (true) or not (false).  Default is false.",
+              "type": "boolean",
+              "default": false,
+              "uihints": {
+                "category": "Enterprise Gateway"
+              }
+            },
             "url": {
               "title": "Url",
               "description": "The URL of the EG server (e.g., http://<server>:<port>).",
@@ -248,8 +257,7 @@
           },
           "uihints": {
             "field_type": "code"
-          },
-          "required": ["url"]
+          }
         }
       },
       "required": [

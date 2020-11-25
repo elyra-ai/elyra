@@ -274,11 +274,12 @@ class AppBase(object):
                     options[prefixed_name] = MetadataSchemaProperty(prefixed_name, v)
 
             required_props = schema.get('required')
-            for required in required_props:
-                # skip schema_name & metadata, already required, and metadata is not an option to be presented
-                if required not in ['schema_name', 'metadata']:
-                    prefixed_name = (prefix + '.' + required) if prefix and prefix != 'metadata' else required
-                    options.get(prefixed_name).required = True
+            if required_props:
+                for required in required_props:
+                    # skip schema_name & metadata, already required, and metadata is not an option to be presented
+                    if required not in ['schema_name', 'metadata']:
+                        prefixed_name = (prefix + '.' + required) if prefix and prefix != 'metadata' else required
+                        options.get(prefixed_name).required = True
         else:  # object-value schema property doesn't define explicit properties, just add option
             options[prefix] = MetadataSchemaProperty(prefix, schema)
         return options
