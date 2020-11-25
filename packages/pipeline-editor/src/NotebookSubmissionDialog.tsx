@@ -20,8 +20,6 @@ import * as React from 'react';
 import { IRuntime } from './PipelineService';
 import Utils from './utils';
 
-import '../style/index.css';
-
 interface IProps {
   runtimes: IRuntime[];
   images: IDictionary<string>;

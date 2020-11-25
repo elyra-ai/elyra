@@ -18,8 +18,6 @@ import * as React from 'react';
 
 import { IRuntime } from './PipelineService';
 
-import '../style/index.css';
-
 const FILE_TYPES = [
   { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' },
   { label: 'KFP domain-specific language Python code', key: 'py' }
