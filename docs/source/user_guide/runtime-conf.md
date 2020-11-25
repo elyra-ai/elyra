@@ -86,7 +86,7 @@ To create a runtime configuration for a Kubeflow Pipelines deployment:
 
 ```bash
 elyra-metadata install runtimes \
-       --display_name="My Kubeflow Pipeline Runtime" \
+       --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --api_username=username@email.com \
        --api_password=mypassword \
@@ -105,11 +105,11 @@ To edit a runtime configuration:
 ```bash
 elyra-metadata install runtimes \
        --replace \
-       --name="my_kubeflow_pipeline_runtime" \
-       --display_name="My Kubeflow Pipeline Runtime" \
+       --name="my_kubeflow_pipelines_runtime" \
+       --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --api_username=username@email.com \
-       --api_password=mypassword \
+       --api_password=mynewpassword \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
@@ -124,7 +124,7 @@ To delete a runtime configuration run the following command, replacing the confi
 as appropriate.
 
 ```bash
-elyra-metadata remove runtimes --name=my_kfp
+elyra-metadata remove runtimes --name=my_kubeflow_pipelines_runtime
 ```
 
 ### Configuration settings
@@ -157,12 +157,12 @@ Zero or more tags for this runtime configuration.
 
 Example: `['test','unsecured']`
 
-#### Kubeflow Pipeline settings
+#### Kubeflow Pipelines settings
 
 This section defines the settings for the Kubeflow Pipelines deployment that you want to associate with this runtime configuration.
 
 ##### api_endpoint
-The KubeFlow Pipelines API Endpoint you wish to run your Pipeline. This setting is required.
+The KubeFlow Pipelines API endpoint you want to utilize. This setting is required.
 
 Example: `https://kubernetes-service.ibm.com/pipeline`
 
@@ -177,7 +177,7 @@ Password used to access your KubeFlow Pipelines API endpoint. This setting is re
 Example: `mypassword`
 
 ##### user_namespace
-The namespace used to run your pipeline in kfp. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
+The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
 
 Example: `mynamespace`
 
@@ -186,7 +186,7 @@ Example: `mynamespace`
 This section defines the settings for the cloud storage that you want to associate with this runtime configuration.
 
 ##### cos_endpoint
-This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a kubernetes cluster (Minio), you can use the kubernetes local DNS address. This setting is required
+This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a Kubernetes cluster (Minio), you can use the Kubernetes local DNS address. This setting is required
 
 Example: `https://minio-service.kubeflow:9000`
 
