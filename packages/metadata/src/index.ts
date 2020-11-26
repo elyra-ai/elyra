@@ -17,6 +17,7 @@
 import { MetadataService } from '@elyra/application';
 import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
 
+import { RequestErrors } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
@@ -187,29 +188,33 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: closeTabCommand
     });
 
-    const schemas = await MetadataService.getAllSchema();
-    for (const schema of schemas) {
-      let icon = 'ui-components:text-editor';
-      let title = schema.title;
-      if (schema.uihints) {
-        if (schema.uihints.icon) {
-          icon = schema.uihints.icon;
+    try {
+      const schemas = await MetadataService.getAllSchema();
+      for (const schema of schemas) {
+        let icon = 'ui-components:text-editor';
+        let title = schema.title;
+        if (schema.uihints) {
+          if (schema.uihints.icon) {
+            icon = schema.uihints.icon;
+          }
+          if (schema.uihints.title) {
+            title = schema.uihints.title;
+          }
         }
-        if (schema.uihints.title) {
-          title = schema.uihints.title;
-        }
+        palette.addItem({
+          command: commandIDs.openMetadata,
+          args: {
+            label: `Manage ${title}`,
+            display_name: schema.title,
+            namespace: schema.namespace,
+            schema: schema.name,
+            icon: icon
+          },
+          category: 'Elyra'
+        });
       }
-      palette.addItem({
-        command: commandIDs.openMetadata,
-        args: {
-          label: `Manage ${title}`,
-          display_name: schema.title,
-          namespace: schema.namespace,
-          schema: schema.name,
-          icon: icon
-        },
-        category: 'Elyra'
-      });
+    } catch (error) {
+      RequestErrors.serverError(error);
     }
   }
 };

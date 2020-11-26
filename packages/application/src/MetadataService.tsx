@@ -52,12 +52,10 @@ export class MetadataService {
    * an error dialog result
    */
   static async getMetadata(namespace: string): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makeGetRequest(
+    return RequestHandler.makeGetRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace,
       false
-    );
-
-    return metadataResponse[namespace];
+    ).then(metadataResponse => metadataResponse[namespace]);
   }
 
   /**
@@ -70,13 +68,11 @@ export class MetadataService {
    * an error dialog result
    */
   static async postMetadata(namespace: string, requestBody: any): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makePostRequest(
+    return RequestHandler.makePostRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace,
       requestBody,
       false
     );
-
-    return metadataResponse;
   }
 
   /**
@@ -94,13 +90,11 @@ export class MetadataService {
     name: string,
     requestBody: any
   ): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makePutRequest(
+    return RequestHandler.makePutRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
       requestBody,
       false
     );
-
-    return metadataResponse;
   }
 
   /**
@@ -112,12 +106,10 @@ export class MetadataService {
    * @returns void or an error dialog result
    */
   static async deleteMetadata(namespace: string, name: string): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makeDeleteRequest(
+    return RequestHandler.makeDeleteRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
       false
     );
-
-    return metadataResponse;
   }
 
   private static schemaCache: IDictionary<any> = {};
@@ -136,16 +128,16 @@ export class MetadataService {
       return JSON.parse(JSON.stringify(this.schemaCache[namespace]));
     }
 
-    const schemaResponse: any = await RequestHandler.makeGetRequest(
+    return RequestHandler.makeGetRequest(
       ELYRA_SCHEMA_API_ENDPOINT + namespace,
       false
-    );
+    ).then(schemaResponse => {
+      if (schemaResponse[namespace]) {
+        this.schemaCache[namespace] = schemaResponse[namespace];
+      }
 
-    if (schemaResponse[namespace]) {
-      this.schemaCache[namespace] = schemaResponse[namespace];
-    }
-
-    return schemaResponse[namespace];
+      return schemaResponse[namespace];
+    });
   }
 
   /**
@@ -155,15 +147,19 @@ export class MetadataService {
    * an error dialog result
    */
   static async getAllSchema(): Promise<any> {
-    const namespaces = await RequestHandler.makeGetRequest(
-      'elyra/namespace',
-      false
-    );
-    const schemas = [];
-    for (const namespace of namespaces['namespaces']) {
-      const schema = await this.getSchema(namespace);
-      schemas.push(...schema);
+    try {
+      const namespaces = await RequestHandler.makeGetRequest(
+        'elyra/namespace',
+        false
+      );
+      const schemas = [];
+      for (const namespace of namespaces['namespaces']) {
+        const schema = await this.getSchema(namespace);
+        schemas.push(...schema);
+      }
+      return schemas;
+    } catch (error) {
+      return Promise.reject(error);
     }
-    return schemas;
   }
 }

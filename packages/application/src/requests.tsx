@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { ExpandableErrorDialog } from '@elyra/ui-components';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
@@ -25,40 +24,6 @@ import * as React from 'react';
  * A service class for making requests to the jupyter lab server.
  */
 export class RequestHandler {
-  /**
-   * Displays an error dialog showing error data and stacktrace, if available.
-   *
-   * @param response - The server response containing the error data
-   *
-   * @returns A promise that resolves with whether the dialog was accepted.
-   */
-  private static serverError(response: any): Promise<Dialog.IResult<any>> {
-    const reason = response.reason ? response.reason : '';
-    const message = response.message ? response.message : '';
-    const timestamp = response.timestamp ? response.timestamp : '';
-    const traceback = response.traceback ? response.traceback : '';
-    const default_body = response.timestamp
-      ? 'Check the JupyterLab log for more details at ' + response.timestamp
-      : 'Check the JupyterLab log for more details';
-
-    return showDialog({
-      title: 'Error making request',
-      body:
-        reason || message ? (
-          <ExpandableErrorDialog
-            reason={reason}
-            message={message}
-            timestamp={timestamp}
-            traceback={traceback}
-            default_msg={default_body}
-          />
-        ) : (
-          <p>{default_body}</p>
-        ),
-      buttons: [Dialog.okButton()]
-    });
-  }
-
   /**
    * Displays an error dialog for when a server request returns a 404.
    *
@@ -250,7 +215,7 @@ export class RequestHandler {
             // handle cases where the server returns a valid response
             (result: any) => {
               if (response.status < 200 || response.status >= 300) {
-                return this.serverError(result);
+                return reject(result);
               }
 
               resolve(result);
@@ -262,7 +227,7 @@ export class RequestHandler {
               } else if (response.status == 204) {
                 resolve();
               } else {
-                return this.serverError(reason);
+                return reject(reason);
               }
             }
           );
@@ -270,7 +235,7 @@ export class RequestHandler {
         // something unexpected went wrong with the request
         (reason: any) => {
           console.error(reason);
-          return this.serverError(reason);
+          return reject(reason);
         }
       );
     });
