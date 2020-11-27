@@ -250,7 +250,7 @@ const checkSnippetIsDisplayed = (snippetName: string): any => {
   return cy
     .get('.elyra-metadata-item')
     .find('.elyra-expandableContainer-name')
-    .contains(`[Python] ${snippetName}`);
+    .contains(`${snippetName}`);
 };
 
 const fillMetadaEditorForm = (name: string): void => {
@@ -292,9 +292,18 @@ const deleteSnippet = (snippetName: string): void => {
   cy.wait(500);
 
   // Snippet name is no longer on display list
-  cy.get('.elyra-metadata-item')
-    .find('.elyra-expandableContainer-name')
-    .should('not.contain', `${snippetName}`);
+
+  cy.get('.elyra-metadata-item').then(($item: any) => {
+    if ($item) {
+      // A local machine may contain multiple code snippets in its test environment
+      cy.get('.elyra-metadata-item')
+        .find('.elyra-expandableContainer-name')
+        .should('not.contain', `${snippetName}`);
+    } else {
+      // On a clean test environment, the only snippet is deleted, no further search needed
+      return;
+    }
+  });
 };
 
 const getActionButtonsElement = (snippetName: string): any => {
