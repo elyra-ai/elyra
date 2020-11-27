@@ -839,8 +839,12 @@ export class PipelineEditor extends React.Component<
       PathExt.extname(pipeline_path)
     );
     const pipeline_export_format = dialogResult.value.pipeline_filetype;
-    const pipeline_export_path =
-      pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
+
+    let pipeline_export_path = pipeline_name + '.' + pipeline_export_format;
+    // only prefix the '/' when pipeline_dir is non-empty
+    if (pipeline_dir) {
+      pipeline_export_path = pipeline_dir + '/' + pipeline_export_path;
+    }
 
     const overwrite = dialogResult.value.overwrite;
 
