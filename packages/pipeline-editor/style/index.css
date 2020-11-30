@@ -179,3 +179,8 @@ span.elyra-BreadCrumbs-disabled svg path.jp-icon3[fill] {
 span.elyra-BreadCrumbs-disabled + span {
   color: var(--md-grey-500);
 }
+
+input.elyra-Dialog-checkbox {
+  appearance: auto;
+  height: auto;
+}

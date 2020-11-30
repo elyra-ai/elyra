@@ -107,6 +107,7 @@ export class NotebookSubmissionDialog extends React.Component<IProps> {
                 <br />
                 <input
                   type="checkbox"
+                  className="elyra-Dialog-checkbox"
                   id="dependency_include"
                   name="dependency_include"
                   size={20}
