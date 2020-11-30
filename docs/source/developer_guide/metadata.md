@@ -72,9 +72,9 @@ And each metadata file looks like:
     "cos_endpoint": "http://weakish1.fyre.ibm.com:30427",
     "cos_username": "minio",
     "cos_password": "minio123",
-    "cos_bucket": "my_bucket",
+    "cos_bucket": "test-bucket",
     "tags": [
-      "kfp-fyre"
+      "kfp", "v1.1"
     ]
   }
 }
