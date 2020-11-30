@@ -36,17 +36,17 @@ describe('Pipeline Editor tests', () => {
     });
     // open jupyterlab
     cy.visit('?token=test&reset');
-    cy.wait(100);
+    cy.wait(1000);
     // wait for the file browser to load
     cy.get('.jp-DirListing-content');
   });
 
   afterEach(() => {
-    // delete runtime configuration used for testing
+    // delete notebook file used for testing
     cy.exec('find build/cypress-tests/ -name helloworld.ipynb -delete', {
       failOnNonZeroExit: false
     });
-    // delete runtime configuration used for testing
+    // delete python file used for testing
     cy.exec('find build/cypress-tests/ -name helloworld.py -delete', {
       failOnNonZeroExit: false
     });
@@ -54,7 +54,7 @@ describe('Pipeline Editor tests', () => {
     cy.exec('find build/cypress-tests/ -name output.txt -delete', {
       failOnNonZeroExit: false
     });
-    // delete runtime configuration used for testing
+    // delete pipeline files used for testing
     cy.exec('find build/cypress-tests/ -name *.pipeline -delete', {
       failOnNonZeroExit: false
     });
@@ -327,12 +327,11 @@ describe('Pipeline Editor tests', () => {
       .should('have.value', 'yaml');
 
     // actual export requires minio
-    // export
     cy.get('button.jp-mod-accept').click();
     cy.wait(100);
     // dismiss 'Making request' dialog
     cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+    cy.wait(1000);
     cy.readFile('build/cypress-tests/helloworld.yaml');
     cy.exec('find build/cypress-tests/ -name helloworld.yaml -delete', {
       failOnNonZeroExit: false
@@ -378,7 +377,7 @@ const createRuntimeConfig = (): any => {
   cy.get('.openRuntimes-action button').click();
   cy.get('.jp-SideBar .lm-mod-current[title="Runtimes"]');
   cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
-  // Add a runtime config (a placeholder for now, can't be used to run or export yet)
+  // Add a runtime config
   cy.get(
     'button.elyra-metadataHeader-button[title="Create new Kubeflow Pipelines runtime"]'
   ).click();
