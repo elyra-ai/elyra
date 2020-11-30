@@ -66,6 +66,9 @@ To delete a runtime image configuration:
 - Click the `delete` icon next to the runtime image name.
 - Confirm deletion.
 
+To search a runtime image configuration:
+- Type a keyword in the search bar at the top. Runtime images can also be filtered by selecting tags when clicking on the tag icon.
+
 #### Managing Runtime Images with the Command Line Interface
 
 Runtime image configurations can be added, replaced, and removed with the `elyra-metadata` command line interface.
