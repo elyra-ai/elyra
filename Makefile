@@ -107,6 +107,7 @@ install-external-extensions:
 install: install-server install-ui install-external-extensions ## Build and install
 	jupyter lab build
 	jupyter serverextension list
+	jupyter server extension list
 	jupyter labextension list
 
 watch: ## Watch packages. For use alongside jupyter lab --watch
