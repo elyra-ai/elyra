@@ -51,7 +51,13 @@ pip install --upgrade --pre "jupyterlab$LAB_VERSION"
 echo " "
 
 echo "Installing Xeus kernel"
-conda install -y xeus-python -c conda-forge
+XPYTHON_VERSION="$(python --version)"
+if [[ "$XPYTHON_VERSION" == *"Python 3.7"* ]]
+then
+    conda install -y xeus-python">=0.8.0,<0.9.0" -c conda-forge
+else
+    conda install -y xeus-python=0.9.0 -c conda-forge
+fi
 echo " "
 
 jupyter --version
