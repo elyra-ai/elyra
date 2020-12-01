@@ -1,4 +1,4 @@
-name: Elyra Tests (2.x)
+name: Elyra Tests
 on:
   push:
     branches: '*'
@@ -40,7 +40,8 @@ jobs:
         mkdir -p ~/.npm-global
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip wheel notebook jupyterlab
+        python -m pip install --upgrade pip wheel jupyter_server
+        python -m pip install --upgrade --pre jupyterlab
     - name: Log current Python dependencies version
       run: |
         pip freeze

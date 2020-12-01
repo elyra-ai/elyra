@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 #
 import os
 
-from notebook.base.handlers import APIHandler
+from jupyter_server.base.handlers import APIHandler
 from tornado import web
 
 

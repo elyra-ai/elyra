@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -68,9 +68,9 @@ class MetadataManager(LoggingConfigurable):
         instance_list = self.metadata_store.fetch_instances(include_invalid=include_invalid)
         for metadata_dict in instance_list:
             # validate the instance prior to return, include invalid instances as appropriate
-            metadata = Metadata.from_dict(self.namespace, metadata_dict)
-            metadata.post_load()  # Allow class instances to handle loads
             try:
+                metadata = Metadata.from_dict(self.namespace, metadata_dict)
+                metadata.post_load()  # Allow class instances to handle loads
                 # if we're including invalid and there was an issue on retrieval, add it to the list
                 if include_invalid and metadata.reason:
                     # If no schema-name is present, set to '{unknown}' since we can't make that determination.
@@ -80,11 +80,14 @@ class MetadataManager(LoggingConfigurable):
                     self.validate(metadata.name, metadata)
                 instances.append(metadata)
             except Exception as ex:  # Ignore ValidationError and others when fetching all instances
+                # Since we may not have a metadata instance due to a failure during `from_dict()`,
+                # instantiate a bad instance directly to use in the message and invalid result.
+                invalid_instance = Metadata(**metadata_dict)
                 self.log.debug("Fetch of instance '{}' of namespace '{}' encountered an exception: {}".
-                               format(metadata.name, self.namespace, ex))
+                               format(invalid_instance.name, self.namespace, ex))
                 if include_invalid:
-                    metadata.reason = ex.__class__.__name__
-                    instances.append(metadata)
+                    invalid_instance.reason = ex.__class__.__name__
+                    instances.append(invalid_instance)
         return instances
 
     def get(self, name: str) -> Metadata:

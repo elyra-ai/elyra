@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ import errno
 import io
 import json
 import os
+import tornado
 
 from jsonschema import ValidationError
 from elyra.metadata import METADATA_TEST_NAMESPACE, Metadata, MetadataStore, FileMetadataStore, \
@@ -77,6 +78,18 @@ valid_display_name_json = {
         'required_test': "required_value"
     }
 }
+
+
+invalid_schema_name_json = {
+    'schema_name': 'metadata-testxxx',
+    'display_name': 'invalid schema name',
+    'metadata': {
+        'uri_test': 'http://localhost:31823/v1/models?version=2017-02-13',
+        'number_range_test': 8,
+        'required_test': "required_value"
+    }
+}
+
 
 # Contains all values corresponding to test schema...
 complete_metadata_json = {
@@ -175,6 +188,28 @@ def get_instance(instances, field, value):
         if inst[field] == value:
             return inst
     assert False, "Value '{}' for field '{}' was not found in instances!".format(value, field)
+
+
+def expected_http_error(error, expected_code, expected_message=None):
+    """Check that the error matches the expected output error."""
+    e = error.value
+    if isinstance(e, tornado.web.HTTPError):
+        if expected_code != e.status_code:
+            return False
+        if expected_message is not None and expected_message != str(e):
+            return False
+        return True
+    elif any([
+        isinstance(e, tornado.httpclient.HTTPClientError),
+        isinstance(e, tornado.httpclient.HTTPError)
+    ]):
+        if expected_code != e.code:
+            return False
+        if expected_message:
+            message = json.loads(e.response.body.decode())['message']
+            if expected_message != message:
+                return False
+        return True
 
 
 class PropertyTester(object):

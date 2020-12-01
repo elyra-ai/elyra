@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 IBM Corporation
+ * Copyright 2018-2020 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,4 +178,9 @@ span.elyra-BreadCrumbs-disabled svg path.jp-icon3[fill] {
 }
 span.elyra-BreadCrumbs-disabled + span {
   color: var(--md-grey-500);
+}
+
+input.elyra-Dialog-checkbox {
+  appearance: auto;
+  height: auto;
 }

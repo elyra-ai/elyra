@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 IBM Corporation
+ * Copyright 2018-2020 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,12 @@ export class PipelineExportDialog extends React.Component<IProps> {
             </option>
           ))}
         </select>
-        <input type="checkbox" id="overwrite" name="overwrite" />
+        <input
+          type="checkbox"
+          className="elyra-Dialog-checkbox"
+          id="overwrite"
+          name="overwrite"
+        />
         <label htmlFor="overwrite">Replace if file already exists</label>
         <br />
       </form>

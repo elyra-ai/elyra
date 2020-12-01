@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,17 +46,18 @@ rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/etc/jupyter
 rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter
 echo " "
 
-echo "Installing/Updating Notebook and JupyterLab"
-pip install --upgrade notebook
-pip install --upgrade "jupyterlab$LAB_VERSION"
+echo "Installing/Updating JupyterLab"
+pip install --upgrade --pre "jupyterlab$LAB_VERSION"
 echo " "
 
 echo "Installing Xeus kernel"
-conda install -y xeus-python -c conda-forge
-echo " "
-
-echo "Installing JupyterLab Debugger"
-jupyter labextension install --no-build @jupyterlab/debugger
+XPYTHON_VERSION="$(python --version)"
+if [[ "$XPYTHON_VERSION" == *"Python 3.7"* ]]
+then
+    conda install -y xeus-python">=0.8.0,<0.9.0" -c conda-forge
+else
+    conda install -y xeus-python=0.9.0 -c conda-forge
+fi
 echo " "
 
 jupyter --version

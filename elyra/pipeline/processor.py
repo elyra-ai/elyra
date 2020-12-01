@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
     def __init__(self, **kwargs):
-        super(PipelineProcessorManager, self).__init__(**kwargs)
+        super(PipelineProcessorManager, self).__init__()
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
 
         self._registry = PipelineProcessorRegistry.instance()

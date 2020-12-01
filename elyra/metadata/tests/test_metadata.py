@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -175,7 +175,7 @@ def test_manager_get_include_invalid(tests_manager):
     metadata_list = tests_manager.get_all(include_invalid=False)
     assert len(metadata_list) == 2
     metadata_list = tests_manager.get_all(include_invalid=True)
-    assert len(metadata_list) == 4
+    assert len(metadata_list) == 5
 
 
 def test_manager_get_bad_json(tests_manager):
@@ -579,7 +579,7 @@ def test_store_namespace(store_manager, namespace_location):
 
 def test_store_fetch_instances(store_manager):
     instances_list = store_manager.fetch_instances()
-    assert len(instances_list) == 3
+    assert len(instances_list) == 4
 
 
 def test_store_fetch_no_namespace(store_manager, namespace_location):

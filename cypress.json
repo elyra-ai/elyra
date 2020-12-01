@@ -4,7 +4,16 @@
   "supportFile": false,
   "pluginsFile": "./tests/plugins/index.js",
   "screenshotsFolder": "./build/cypress-tests/screenshots",
+  "video": false,
   "videosFolder": "./build/cypress-tests/videos",
+  "videoUploadOnPasses": false,
   "fixturesFolder": false,
-  "defaultCommandTimeout": 8000
+  "defaultCommandTimeout": 8000,
+  "pageLoadTimeout": 120000,
+  "viewportWidth": 1400,
+  "viewportHeight": 800,
+  "retries": {
+    "runMode": 1,
+    "openMode": 1
+  }
 }

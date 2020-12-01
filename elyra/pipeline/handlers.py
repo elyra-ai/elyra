@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 #
 import json
 
-from notebook.base.handlers import APIHandler
-from notebook.utils import url_path_join
+from jupyter_server.base.handlers import APIHandler
+from jupyter_server.utils import url_path_join
 from .parser import PipelineParser
 from .processor import PipelineProcessorManager
 from tornado import web

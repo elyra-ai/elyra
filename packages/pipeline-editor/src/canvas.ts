@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 IBM Corporation
+ * Copyright 2018-2020 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import * as path from 'path';
-
 import { NotebookParser } from '@elyra/application';
-
 import { IconUtil } from '@elyra/ui-components';
+import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { LabIcon, notebookIcon, pythonIcon } from '@jupyterlab/ui-components';
@@ -87,7 +85,7 @@ export class CanvasManager {
         env_vars = NotebookParser.getEnvVars(fileContent).map(str => str + '=');
       }
 
-      data.nodeTemplate.label = path.basename(file.path);
+      data.nodeTemplate.label = PathExt.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(
         CanvasManager.getNodeIcon(file.path)
       );
@@ -114,7 +112,7 @@ export class CanvasManager {
   }
 
   static getNodeIcon(filepath: string): LabIcon {
-    const extension: string = path.extname(filepath);
+    const extension: string = PathExt.extname(filepath);
     const icon: LabIcon = ICON_MAPPER.get(extension);
 
     // TODO: throw error when file extension is not supported?
@@ -124,7 +122,7 @@ export class CanvasManager {
   // Private
 
   private static getNodeType(filepath: string): string {
-    const extension: string = path.extname(filepath);
+    const extension: string = PathExt.extname(filepath);
     const type: string = CONTENT_TYPE_MAPPER.get(extension);
 
     // TODO: throw error when file extension is not supported?
