@@ -21,6 +21,7 @@ from abc import abstractmethod
 from elyra.metadata import MetadataManager
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
+from typing import Optional
 
 from .pipeline import Pipeline
 
@@ -183,20 +184,52 @@ class RuntimePipelineProcessor(PipelineProcessor):  # ABC
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError()
 
-    def _get_gateway_config(self, pipeline: Pipeline) -> dict:
+    def _get_gateway_config(self, pipeline: Pipeline, enabled_override: Optional[bool] = None) -> dict:
         """Gathers necessary configuration relative to communicating with an Enterprise Gateway.
 
         Gateway configuration is obtained from the runtime metadata instance's gateway_config
         object.  If present, it will be used to seed a dictionary of corresponding env variables
         that are then set into the environment of the operation instance during the runtime.
         """
+        # Just gather and convert to env names once per pipeline
         if not self._gateway_config:
             self._gateway_config = {}
 
             runtime_metadata = self._get_runtime_configuration(pipeline.runtime_config)
             gateway_config = runtime_metadata.metadata.get("gateway_config")
-            if gateway_config:    # TODO Transfer runtime config to env-based values
-                pass
+            if gateway_config:    # Transfer runtime config to env-based values
+                # Operation-based overrides are handled by caller AFTER this function..
+                self._gateway_config['ELYRA_GATEWAY_ENABLED'] = str(gateway_config.get("enabled") or "false").lower()
+                self._gateway_config['ELYRA_GATEWAY_URL'] = gateway_config.get("url")
+                self._gateway_config['ELYRA_GATEWAY_KERNELS_ENDPOINT'] = gateway_config.get("kernels_endpoint")
+                self._gateway_config['ELYRA_GATEWAY_KERNELSPECS_ENDPOINT'] = \
+                    gateway_config.get("kernelspecs_endpoint")
+                self._gateway_config['ELYRA_GATEWAY_REQUEST_TIMEOUT'] = str(gateway_config.get("request_timeout"))
+                self._gateway_config['ELYRA_GATEWAY_CONNECT_TIMEOUT'] = str(gateway_config.get("connect_timeout"))
+                self._gateway_config['ELYRA_GATEWAY_HEADERS'] = gateway_config.get("headers")
+                self._gateway_config['ELYRA_GATEWAY_VALIDATE_CERT'] = str(gateway_config.get("validate_cert"))
+
+                # Optional values that have None as a default, so only set if defined.
+                if 'ws_url' in gateway_config:
+                    self._gateway_config['ELYRA_GATEWAY_WS_URL'] = gateway_config.get("ws_url")
+                if 'auth_token' in gateway_config:
+                    self._gateway_config['ELYRA_GATEWAY_AUTH_TOKEN'] = gateway_config.get("auth_token")
+                if 'client_cert' in gateway_config:
+                    self._gateway_config['ELYRA_GATEWAY_CLIENT_CERT'] = gateway_config.get("client_cert")
+                if 'client_key' in gateway_config:
+                    self._gateway_config['ELYRA_GATEWAY_CLIENT_KEY'] = gateway_config.get("client_key")
+                if 'ca_certs' in gateway_config:
+                    self._gateway_config['ELYRA_GATEWAY_CA_CERTS'] = gateway_config.get("ca_certs")
+                if 'http_user' in gateway_config:
+                    self._gateway_config['ELYRA_GATEWAY_HTTP_USER'] = gateway_config.get("http_user")
+                if 'http_pwd' in gateway_config:
+                    self._gateway_config['ELYRA_GATEWAY_HTTP_PWD'] = gateway_config.get("http_pwd")
+
+        # if user wants to use a gateway, ensure url has a value.
+        if enabled_override or self._gateway_config.get("ELYRA_GATEWAY_ENABLED") == "true":
+            if not self._gateway_config.get("ELYRA_GATEWAY_URL"):  # Require URL
+                raise ValueError("Gateway URL is required when gateway is enabled.")
+
         return self._gateway_config
 
     def _get_runtime_configuration(self, name):

@@ -239,12 +239,16 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Convey pipeline logging enablement to operation
             pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
 
+            # Collection Operation envs into dictionary
+            operation_envs = operation.env_vars_as_dict()
+
             # Gather any Gateway configuration
-            pipeline_envs.update(self._get_gateway_config(pipeline))
+            enabled_override = str(operation_envs.get("ELYRA_GATEWAY_ENABLED") or "false").lower() == "true"
+            pipeline_envs.update(self._get_gateway_config(pipeline, enabled_override))
 
             # Transfer any operation envs to pipeline_envs.  If these include gateway configuration
-            # values, they will override those obtain via `get_gateway_config()`.
-            pipeline_envs.update(operation.env_vars_as_dict())
+            # values, they will override those obtained via `_get_gateway_config()`.
+            pipeline_envs.update(operation_envs)
 
             # create pipeline operation
             notebook_ops[operation.id] = NotebookOp(name=operation.name,
