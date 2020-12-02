@@ -39,3 +39,10 @@ If you have JupyterLab with the Elyra extensions installed, clone the repository
  - From the main menu select `git` > `Clone a repository`. (The label texts might vary depending which version of the `jupyter-git` extension is installed.)
  - Enter `https://github.com/elyra-ai/examples.git` as repository URL.
  - In the JupyterLab File Browser navigate to the `examples` directory and open `README.md`.
+
+ #### Sample pipelines
+
+The following pipelines were created by members of the extended Elyra community and should run as-is in JupyterLab and on Kubeflow Pipelines.
+
+- [Analyzing COVID-19 time series data](https://github.com/CODAIT/covid-notebooks)
+- [Analyzing flight delays](https://github.com/CODAIT/flight-delay-notebooks)
