@@ -141,16 +141,32 @@ Known labextensions:
 
 ### Docker 
 
-If you have Docker installed, you can use JupyterLab and Elyra by running one of the [ready-to-run Docker images](https://hub.docker.com/r/elyra/elyra/tags) maintained by the Elyra Team:
+If you have Docker installed, you can use JupyterLab and Elyra by running one of the ready-to-run container images:
 
  - `elyra/elyra:latest` has the latest released version installed.
  - `elyra/elyra:x.y.z` has version `x.y.z` installed.
  - `elyra/elyra:dev` is automatically re-built each time a change is committed to the master branch.
 
+#### Pulling Elyra container images
+
+Images can be pulled from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) 
+
+```
+docker pull elyra/elyra:1.4.1
+```
+
+or [quay.io](https://quay.io/repository/elyra/elyra?tab=tags)
+
+```
+docker pull quay.io/elyra/elyra:1.4.1
+```
+
+#### Running Elyra container images
+
 Invocation example 1: Run the most recent Elyra development build in a Docker container. All changes are discarded when the Docker container is stopped.
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:1.2.1 jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
 Invocation example 2: Run the most recent Elyra development build in a Docker container and mount the existing local `$HOME/jupyter-notebooks/` directory as JupyterLab work directory. This enables you to make existing notebooks and other files available in the Docker container. Only files in this working directory are retained when the Docker container is stopped. 
