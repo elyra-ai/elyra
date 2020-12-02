@@ -64,5 +64,7 @@ jupyter --version
 echo " "
 jupyter serverextension list
 echo " "
+jupyter server extension list
+echo " "
 jupyter labextension list
 echo " "
