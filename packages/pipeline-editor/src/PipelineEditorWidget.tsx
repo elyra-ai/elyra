@@ -78,6 +78,8 @@ import {
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
+import { StringArrayInput } from './StringArrayInput';
+import { StringInput } from './StringInput';
 import Utils from './utils';
 import { checkCircularReferences, ILink } from './validation';
 
@@ -397,6 +399,7 @@ export class PipelineEditor extends React.Component<
           propertiesInfo={this.state.propertiesInfo}
           propertiesConfig={{ containerType: 'Custom', rightFlyout: true }}
           callbacks={propertiesCallbacks}
+          customPanels={[StringArrayInput, StringInput]}
         />
       </IntlProvider>
     );

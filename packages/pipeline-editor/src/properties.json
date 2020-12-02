@@ -47,7 +47,10 @@
         "parameter_ref": "runtime_image",
         "control": "oneofselect",
         "label": {
-          "default": "Runtime Image (docker image used as execution environment)"
+          "default": "Runtime Image"
+        },
+        "description": {
+          "default": "Docker image used as execution environment"
         }
       },
       {
@@ -57,9 +60,6 @@
         },
         "description": {
           "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
-        },
-        "place_holder_text": {
-          "default": "..."
         }
       },
       {
@@ -128,13 +128,19 @@
         "group_info": [
           {
             "id": "nodeFileControl",
-            "type": "controls",
-            "parameter_refs": ["filename"]
-          },
-          {
-            "id": "nodeBrowseFileAction",
-            "type": "actionPanel",
-            "action_refs": ["browse_file"]
+            "type": "panels",
+            "group_info": [
+              {
+                "id": "elyra-string-input",
+                "type": "customPanel",
+                "parameter_refs": ["filename"]
+              },
+              {
+                "id": "nodeBrowseFileAction",
+                "type": "actionPanel",
+                "action_refs": ["browse_file"]
+              }
+            ]
           },
           {
             "id": "nodeRuntimeImageControl",
@@ -146,8 +152,8 @@
             "type": "panels",
             "group_info": [
               {
-                "id": "nodeAddDependenciesControl",
-                "type": "controls",
+                "id": "elyra-string-array-input",
+                "type": "customPanel",
                 "parameter_refs": ["dependencies"]
               },
               {
@@ -160,7 +166,12 @@
           {
             "id": "nodePropertiesControls",
             "type": "controls",
-            "parameter_refs": ["include_subdirectories", "env_vars", "outputs"]
+            "parameter_refs": ["include_subdirectories"]
+          },
+          {
+            "id": "elyra-string-array-input",
+            "type": "customPanel",
+            "parameter_refs": ["env_vars", "outputs"]
           }
         ]
       }

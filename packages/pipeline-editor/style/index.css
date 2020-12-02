@@ -43,6 +43,18 @@
   text-align: center;
 }
 
+.properties-vt .properties-vt-row-class {
+  display: flex;
+}
+
+.properties-add-fields-button {
+  display: none;
+}
+
+.bx--text-input__field-outer-wrapper {
+  width: 100%;
+}
+
 .common-canvas-tooltip[data-id^='node_tip'] {
   max-width: initial;
 }
@@ -127,9 +139,6 @@ td {
 .properties-control-panel > .properties-control-panel {
   padding: 0;
 }
-.properties-control-panel[data-id='properties-nodeFileControl'] {
-  width: calc(100% - 100px);
-}
 .properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
   position: absolute;
   right: 0;
@@ -138,9 +147,6 @@ td {
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction'] {
   margin: 0;
   padding: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
 }
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction']
   .properties-action-button {
