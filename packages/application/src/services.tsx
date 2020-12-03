@@ -53,8 +53,7 @@ export class FrontendServices {
    */
   static async getMetadata(namespace: string): Promise<any> {
     const metadataResponse: any = await RequestHandler.makeGetRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace,
-      false
+      ELYRA_METADATA_API_ENDPOINT + namespace
     );
 
     return metadataResponse[namespace];
@@ -72,8 +71,7 @@ export class FrontendServices {
   static async postMetadata(namespace: string, requestBody: any): Promise<any> {
     const metadataResponse: any = await RequestHandler.makePostRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace,
-      requestBody,
-      false
+      requestBody
     );
 
     return metadataResponse;
@@ -96,8 +94,7 @@ export class FrontendServices {
   ): Promise<any> {
     const metadataResponse: any = await RequestHandler.makePutRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
-      requestBody,
-      false
+      requestBody
     );
 
     return metadataResponse;
@@ -113,8 +110,7 @@ export class FrontendServices {
    */
   static async deleteMetadata(namespace: string, name: string): Promise<any> {
     const metadataResponse: any = await RequestHandler.makeDeleteRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
-      false
+      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name
     );
 
     return metadataResponse;
@@ -137,8 +133,7 @@ export class FrontendServices {
     }
 
     const schemaResponse: any = await RequestHandler.makeGetRequest(
-      ELYRA_SCHEMA_API_ENDPOINT + namespace,
-      false
+      ELYRA_SCHEMA_API_ENDPOINT + namespace
     );
 
     if (schemaResponse[namespace]) {
@@ -155,10 +150,7 @@ export class FrontendServices {
    * an error dialog result
    */
   static async getAllSchema(): Promise<any> {
-    const namespaces = await RequestHandler.makeGetRequest(
-      'elyra/namespace',
-      false
-    );
+    const namespaces = await RequestHandler.makeGetRequest('elyra/namespace');
     const schemas = [];
     for (const namespace of namespaces['namespaces']) {
       const schema = await this.getSchema(namespace);

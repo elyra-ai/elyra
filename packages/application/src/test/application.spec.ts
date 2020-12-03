@@ -160,8 +160,7 @@ describe('@elyra/application', () => {
     describe('#makeGetRequest', () => {
       it('should make get request', async () => {
         const schemaResponse = await RequestHandler.makeGetRequest(
-          '/elyra/schema/code-snippets',
-          false
+          '/elyra/schema/code-snippets'
         );
         expect(schemaResponse).toHaveProperty('code-snippets');
         expect(schemaResponse['code-snippets'].length).toBeGreaterThanOrEqual(
@@ -178,8 +177,7 @@ describe('@elyra/application', () => {
         expect(
           await RequestHandler.makePostRequest(
             '/elyra/metadata/code-snippets',
-            JSON.stringify(codeSnippetMetadata),
-            false
+            JSON.stringify(codeSnippetMetadata)
           )
         ).toMatchObject(codeSnippetMetadata);
       });
@@ -190,8 +188,7 @@ describe('@elyra/application', () => {
         expect(
           await RequestHandler.makePutRequest(
             '/elyra/metadata/code-snippets/tester',
-            JSON.stringify(codeSnippetMetadata),
-            false
+            JSON.stringify(codeSnippetMetadata)
           )
         ).toHaveProperty('metadata.language', 'R');
       });
@@ -199,14 +196,10 @@ describe('@elyra/application', () => {
     describe('#makeDeleteRequest', () => {
       it('should make delete request', async () => {
         await RequestHandler.makeDeleteRequest(
-          '/elyra/metadata/code-snippets/tester',
-          false
+          '/elyra/metadata/code-snippets/tester'
         );
         expect(
-          await RequestHandler.makeGetRequest(
-            'elyra/metadata/code-snippets',
-            false
-          )
+          await RequestHandler.makeGetRequest('elyra/metadata/code-snippets')
         ).toMatchObject({ 'code-snippets': [] });
       });
     });

@@ -90,6 +90,17 @@ export class PipelineService {
   }
 
   /**
+   * Creates a Dialog for passing to makeServerRequest
+   */
+  static getWaitDialog(): Dialog<any> {
+    return new Dialog({
+      title: 'Making server request...',
+      body: 'This may take some time',
+      buttons: [Dialog.okButton()]
+    });
+  }
+
+  /**
    * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
    *
    * @param pipeline
@@ -102,7 +113,7 @@ export class PipelineService {
     const response = await RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
-      true
+      this.getWaitDialog()
     );
 
     let dialogTitle;
@@ -181,7 +192,7 @@ export class PipelineService {
     const response = await RequestHandler.makePostRequest(
       'elyra/pipeline/export',
       JSON.stringify(body),
-      true
+      this.getWaitDialog()
     );
 
     return showDialog({
