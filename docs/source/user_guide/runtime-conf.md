@@ -93,7 +93,8 @@ elyra-metadata install runtimes \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
-       --cos_bucket=test-bucket
+       --cos_bucket=test-bucket \
+       --tags="['kfp', 'v1.0']"
 ```
 
 Refer to section [Configuration settings](#configuration-settings) for an explanation of the parameters.
@@ -113,7 +114,8 @@ elyra-metadata install runtimes \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
-       --cos_bucket=test-bucket
+       --cos_bucket=test-bucket \
+       --tags="['kfp', 'v1.1']"
 ```
 
 Refer to section [Configuration settings](#configuration-settings) for an explanation of the parameters. Note that you must specify the `--name` parameter. 
