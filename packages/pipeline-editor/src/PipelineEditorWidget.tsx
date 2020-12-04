@@ -57,7 +57,7 @@ import { Color } from '@material-ui/lab/Alert';
 
 import 'carbon-components/css/carbon-components.min.css';
 import '@elyra/canvas/dist/styles/common-canvas.min.css';
-import '../style/canvas.css';
+import '../style/canvas.scss';
 
 import * as React from 'react';
 
