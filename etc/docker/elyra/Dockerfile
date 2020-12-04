@@ -42,7 +42,5 @@ RUN conda remove --force -y terminado && \
     cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
     cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra
 
-WORKDIR /home/jovyan/work
-
 CMD ["/usr/local/bin/start-elyra.sh"]
 
