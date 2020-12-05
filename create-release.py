@@ -246,6 +246,8 @@ def checkout_code() -> None:
     check_run(['git', 'config', 'user.name', config.git_user_name], cwd=config.source_dir)
     check_run(['git', 'config', 'user.email', config.git_user_email], cwd=config.source_dir)
 
+    check_run(['git', 'checkout', 'v1.x'], cwd=config.source_dir)
+    check_run(['git', 'status'], cwd=config.source_dir)
     print('')
 
 
