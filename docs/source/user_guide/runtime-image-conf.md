@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2020 IBM Corporation
+Copyright 2018-2020 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -65,6 +65,9 @@ To delete a runtime image configuration:
 
 - Click the `delete` icon next to the runtime image name.
 - Confirm deletion.
+
+To search a runtime image configuration:
+- Type a keyword in the search bar at the top. Runtime images can also be filtered by selecting tags when clicking on the tag icon.
 
 #### Managing Runtime Images with the Command Line Interface
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ class KfpPipelineProcessor(PipelineProcessor):
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
+        user_namespace = runtime_configuration.metadata.get('user_namespace')
+
         # TODO: try to encapsulate the info below
         api_username = runtime_configuration.metadata.get('api_username')
         api_password = runtime_configuration.metadata.get('api_password')
@@ -99,7 +101,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                 else:
                     raise lve
 
-            run = client.run_pipeline(experiment_id=client.create_experiment(pipeline_name).id,
+            experiment = client.create_experiment(name=pipeline_name,
+                                                  namespace=user_namespace)
+
+            run = client.run_pipeline(experiment_id=experiment.id,
                                       job_name=timestamp,
                                       pipeline_id=kfp_pipeline.id)
 

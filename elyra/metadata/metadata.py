@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,11 +73,8 @@ class Metadata(object):
         metadata_class_name = 'elyra.metadata.Metadata'
         schema_name = metadata_dict.get('schema_name')
         if schema_name:
-            try:
-                schema = SchemaManager.instance().get_schema(namespace, schema_name)
-                metadata_class_name = schema.get('metadata_class_name', metadata_class_name)
-            except Exception:  # just use the default
-                pass
+            schema = SchemaManager.instance().get_schema(namespace, schema_name)
+            metadata_class_name = schema.get('metadata_class_name', metadata_class_name)
         metadata_class = import_item(metadata_class_name)
         try:
             instance = metadata_class(**metadata_dict)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 IBM Corporation
+ * Copyright 2018-2020 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as path from 'path';
 
 import { IDictionary } from '@elyra/application';
 import {
@@ -38,6 +36,7 @@ import {
 import { Dropzone } from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showDialog, Dialog, ReactWidget } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
 import {
   DocumentRegistry,
   ABCWidgetFactory,
@@ -80,6 +79,7 @@ import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
 import Utils from './utils';
+import { checkCircularReferences, ILink } from './validation';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 const NODE_TOOLTIP_CLASS = 'elyra-PipelineNodeTooltip';
@@ -251,8 +251,6 @@ export class PipelineEditor extends React.Component<
     this.editActionHandler = this.editActionHandler.bind(this);
     this.beforeEditActionHandler = this.beforeEditActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
-
-    this.nodesConnected = this.nodesConnected.bind(this);
 
     this.state = {
       showPropertiesDialog: false,
@@ -505,9 +503,9 @@ export class PipelineEditor extends React.Component<
 
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
-      node.label = path.basename(
+      node.label = PathExt.basename(
         propertySet.filename,
-        path.extname(propertySet.filename)
+        PathExt.extname(propertySet.filename)
       );
     }
 
@@ -538,11 +536,11 @@ export class PipelineEditor extends React.Component<
     );
 
     if (id === 'browse_file') {
-      const currentExt = path.extname(filename);
+      const currentExt = PathExt.extname(filename);
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
-        startPath: path.dirname(filename),
+        startPath: PathExt.dirname(filename),
         filter: (model: any): boolean => {
-          const ext = path.extname(model.path);
+          const ext = PathExt.extname(model.path);
           return currentExt === ext;
         }
       }).then((result: any) => {
@@ -560,7 +558,7 @@ export class PipelineEditor extends React.Component<
       showBrowseFileDialog(this.browserFactory.defaultBrowser.model.manager, {
         multiselect: true,
         includeDir: true,
-        rootPath: path.dirname(filename),
+        rootPath: PathExt.dirname(filename),
         filter: (model: any): boolean => {
           // do not include the notebook itself
           return model.path !== filename;
@@ -624,43 +622,23 @@ export class PipelineEditor extends React.Component<
     }
   }
 
-  /*
-   * Checks if there is a path from sourceNode to targetNode in the graph.
-   */
-  nodesConnected(
-    sourceNode: string,
-    targetNode: string,
-    links: any[]
-  ): boolean {
-    if (
-      links.find((value: any, index: number) => {
-        return value.srcNodeId == sourceNode && value.trgNodeId == targetNode;
-      })
-    ) {
-      return true;
-    } else {
-      for (const link of links) {
-        if (
-          link.srcNodeId == sourceNode &&
-          this.nodesConnected(link.trgNodeId, targetNode, links)
-        ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   beforeEditActionHandler(data: any): any {
+    if (data.editType !== 'linkNodes') {
+      return data;
+    }
+
     // Checks validity of links before adding
-    if (
-      data.editType == 'linkNodes' &&
-      this.nodesConnected(
-        data.targetNodes[0].id,
-        data.nodes[0].id,
-        this.canvasController.getLinks()
-      )
-    ) {
+    const proposedLink = {
+      id: 'proposed-link',
+      trgNodeId: data.targetNodes[0].id,
+      srcNodeId: data.nodes[0].id,
+      type: 'nodeLink'
+    };
+    const links = this.canvasController.getLinks();
+
+    const taintedLinks = checkCircularReferences([proposedLink, ...links]);
+
+    if (taintedLinks.length > 0) {
       this.setState({
         validationError: {
           errorMessage: 'Invalid operation: circular references in pipeline.',
@@ -670,9 +648,9 @@ export class PipelineEditor extends React.Component<
       });
       // Don't proceed with adding the link if invalid.
       return null;
-    } else {
-      return data;
     }
+
+    return data;
   }
 
   /*
@@ -855,14 +833,18 @@ export class PipelineEditor extends React.Component<
     const pipelineFlow = this.canvasController.getPipelineFlow();
     const pipeline_path = this.widgetContext.path;
 
-    const pipeline_dir = path.dirname(pipeline_path);
-    const pipeline_name = path.basename(
+    const pipeline_dir = PathExt.dirname(pipeline_path);
+    const pipeline_name = PathExt.basename(
       pipeline_path,
-      path.extname(pipeline_path)
+      PathExt.extname(pipeline_path)
     );
     const pipeline_export_format = dialogResult.value.pipeline_filetype;
-    const pipeline_export_path =
-      pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
+
+    let pipeline_export_path = pipeline_name + '.' + pipeline_export_format;
+    // only prefix the '/' when pipeline_dir is non-empty
+    if (pipeline_dir) {
+      pipeline_export_path = pipeline_dir + '/' + pipeline_export_path;
+    }
 
     const overwrite = dialogResult.value.overwrite;
 
@@ -1125,32 +1107,30 @@ export class PipelineEditor extends React.Component<
    * @returns null if pipeline is valid, error message if not.
    */
   validateAllLinks(): string {
-    let validPipeline = null;
-    const links = this.canvasController.getLinks();
-    for (const link of links) {
-      if (this.nodesConnected(link.trgNodeId, link.srcNodeId, links)) {
-        validPipeline = 'Circular references in pipeline. ';
-        const pipelineId = this.canvasController.getPrimaryPipelineId();
-        const stylePipelineObj: any = {};
-        stylePipelineObj[pipelineId] = [link.id];
-        const styleSpec = {
-          line: {
-            default: 'stroke-dasharray: 13; stroke: var(--jp-error-color1);'
-          }
-        };
-        this.canvasController.setLinksStyle(stylePipelineObj, styleSpec, true);
-      } else {
-        // If valid, remove any extra styling
-        const pipelineId = this.canvasController.getPrimaryPipelineId();
-        const stylePipelineObj: any = {};
-        stylePipelineObj[pipelineId] = [link.id];
-        const styleSpec = {
-          line: { default: '' }
-        };
-        this.canvasController.setLinksStyle(stylePipelineObj, styleSpec, true);
+    const links: ILink[] = this.canvasController.getLinks();
+
+    const taintedLinks = checkCircularReferences(links);
+
+    // reset styles.
+    const pipelineId = this.canvasController.getPrimaryPipelineId();
+    const allSeenLinks = { [pipelineId]: links.map(l => l.id) };
+    const defaultStyle = { line: { default: '' } };
+    this.canvasController.setLinksStyle(allSeenLinks, defaultStyle, true);
+
+    // set error styles
+    const cycleLinks = { [pipelineId]: [...taintedLinks] };
+    const errorStyle = {
+      line: {
+        default: 'stroke-dasharray: 13; stroke: var(--jp-error-color1);'
       }
+    };
+    this.canvasController.setLinksStyle(cycleLinks, errorStyle, true);
+
+    if (taintedLinks.length > 0) {
+      return 'Circular references in pipeline.';
     }
-    return validPipeline;
+
+    return null;
   }
 
   /**
@@ -1187,9 +1167,9 @@ export class PipelineEditor extends React.Component<
       return;
     }
 
-    const pipelineName = path.basename(
+    const pipelineName = PathExt.basename(
       this.widgetContext.path,
-      path.extname(this.widgetContext.path)
+      PathExt.extname(this.widgetContext.path)
     );
 
     const runtimes = await PipelineService.getRuntimes(false);

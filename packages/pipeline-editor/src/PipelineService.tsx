@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 IBM Corporation
+ * Copyright 2018-2020 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as path from 'path';
-
 import {
   FrontendServices,
   IDictionary,
@@ -23,6 +21,8 @@ import {
 } from '@elyra/application';
 
 import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
+
 import * as React from 'react';
 
 import Utils from './utils';
@@ -281,8 +281,8 @@ export class PipelineService {
     pipelinePath: string,
     nodePath: string
   ): string {
-    const relativePath: string = path.relative(
-      path.dirname(pipelinePath),
+    const relativePath: string = PathExt.relative(
+      PathExt.dirname(pipelinePath),
       nodePath
     );
     return relativePath;
@@ -293,9 +293,10 @@ export class PipelineService {
     nodePath: string
   ): string {
     // since resolve returns an "absolute" path we need to strip off the leading '/'
-    const workspacePath: string = path
-      .resolve(path.dirname(pipelinePath), nodePath)
-      .substring(1);
+    const workspacePath: string = PathExt.resolve(
+      PathExt.dirname(pipelinePath),
+      nodePath
+    );
     return workspacePath;
   }
 

@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 IBM Corporation
+Copyright 2018-2020 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ Note: JupyterLab currently requires a re-build after installing any extension.
 * [Python 3.x](https://www.python.org/downloads/)
 
 Note: Elyra 1.0.0 and above require JupyterLab 2.x.
+Note: Elyra 2.0.0 and above require JupyterLab 3.x.
 
 ### pip
 
@@ -102,10 +103,10 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra 1.5.0.dev0 OK
+      elyra 2.0.0.dev0 OK
     jupyterlab  enabled
     - Validating...
-      jupyterlab 2.2.8 OK
+      jupyterlab 3.0.0rc10 OK
     jupyterlab_git  enabled
     - Validating...
       jupyterlab_git 0.23.1 OK
@@ -129,28 +130,43 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.5.0-dev  enabled  OK*
-        @elyra/metadata-extension v1.5.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension v1.5.0-dev  enabled  OK*
-        @elyra/python-editor-extension v1.5.0-dev  enabled  OK*
-        @elyra/theme-extension v1.5.0-dev  enabled  OK*
+        @elyra/code-snippet-extension v2.0.0-dev  enabled  OK*
+        @elyra/metadata-extension v2.0.0-dev  enabled  OK*
+        @elyra/pipeline-editor-extension v2.0.0-dev  enabled  OK*
+        @elyra/python-editor-extension v2.0.0-dev  enabled  OK*
+        @elyra/theme-extension v2.0.0-dev  enabled  OK*
         @jupyterlab/git v0.22.3  enabled  OK
-        @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
 ```
 
 ### Docker 
 
-If you have Docker installed, you can use JupyterLab and Elyra by running one of the [ready-to-run Docker images](https://hub.docker.com/r/elyra/elyra/tags) maintained by the Elyra Team:
+If you have Docker installed, you can use JupyterLab and Elyra by running one of the ready-to-run container images:
 
  - `elyra/elyra:latest` has the latest released version installed.
  - `elyra/elyra:x.y.z` has version `x.y.z` installed.
  - `elyra/elyra:dev` is automatically re-built each time a change is committed to the master branch.
 
+#### Pulling Elyra container images
+
+Images can be pulled from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) 
+
+```
+docker pull elyra/elyra:1.4.1
+```
+
+or [quay.io](https://quay.io/repository/elyra/elyra?tab=tags)
+
+```
+docker pull quay.io/elyra/elyra:1.4.1
+```
+
+#### Running Elyra container images
+
 Invocation example 1: Run the most recent Elyra development build in a Docker container. All changes are discarded when the Docker container is stopped.
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:1.2.1 jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
 Invocation example 2: Run the most recent Elyra development build in a Docker container and mount the existing local `$HOME/jupyter-notebooks/` directory as JupyterLab work directory. This enables you to make existing notebooks and other files available in the Docker container. Only files in this working directory are retained when the Docker container is stopped. 

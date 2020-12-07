@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 IBM Corporation
+# Copyright 2018-2020 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -102,12 +102,12 @@ install-ui: build-ui
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 
 install-external-extensions:
-	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
-	jupyter labextension install --no-build @jupyterlab/toc@$(TOC_VERSION)
+#	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
 
 install: install-server install-ui install-external-extensions ## Build and install
 	jupyter lab build
 	jupyter serverextension list
+	jupyter server extension list
 	jupyter labextension list
 
 watch: ## Watch packages. For use alongside jupyter lab --watch
@@ -142,8 +142,7 @@ dist-ui: build-ui
 	$(call PACKAGE_LAB_EXTENSION,metadata)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
-	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
-	cd dist && curl -o jupyterlab-toc-$(TOC_VERSION).tgz $$(npm view @jupyterlab/toc@$(TOC_VERSION) dist.tarball) && cd -
+#	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
 
 release: dist-ui build-server ## Build wheel file for release
 
@@ -151,7 +150,7 @@ docker-image: ## Build docker image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
-	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(IMAGE) -t quay.io/$(IMAGE) build/docker/ --progress plain
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
