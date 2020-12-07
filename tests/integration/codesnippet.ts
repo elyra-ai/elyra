@@ -216,6 +216,54 @@ describe('Test for editing a Code Snippet', () => {
   });
 });
 
+describe('Test for inserting a Code Snippet', () => {
+  before(() => {
+    openJupyterLab();
+    // cy.openJupyterLab();
+  });
+  after(() => {
+    // Delete new files created
+    cy.get('li[title="File Browser (⇧ ⌘ F)"]').click();
+    cy.get(`.jp-DirListing-content > [data-file-type="notebook"]`).rightclick();
+    cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
+    cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel:visible').click();
+    cy.wait(100);
+  });
+
+  it('Test inserting a code snippet into a notebook', () => {
+    openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
+
+    const snippetName = 'test-code-snippet';
+    fillMetadaEditorForm(snippetName);
+
+    cy.wait(500);
+
+    // Open blank notebook file
+    cy.get(
+      '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
+    ).click();
+    cy.wait(100);
+
+    // Find new snippet in display and click on insert button
+    getActionButtonsElement(snippetName).within(() => {
+      cy.get('button[title="Insert"]').click();
+    });
+    cy.wait(100);
+
+    // Check if notebook cell has code
+    cy.get('span.cm-string')
+      .first()
+      .contains('Code Snippet Test');
+
+    // Close notebook tab without saving
+    cy.get('.lm-TabBar-tabCloseIcon:visible').click({ multiple: true });
+    cy.get('button.jp-mod-accept.jp-mod-warn').click();
+
+    deleteSnippet(snippetName);
+  });
+});
+
 // ------------------------------
 // ----- Utility Functions ------
 // ------------------------------
@@ -285,25 +333,9 @@ const deleteSnippet = (snippetName: string): void => {
     .find('button[title="Delete"]')
     .click();
 
-  // Confirm on dialog
+  // Confirm action in dialog
   cy.get('.jp-Dialog-header').contains(`Delete snippet: ${snippetName}?`);
   cy.get('button.jp-mod-accept').click();
-
-  cy.wait(500);
-
-  // Snippet name is no longer on display list
-
-  cy.get('.elyra-metadata-item').then(($item: any) => {
-    if ($item) {
-      // A local machine may contain multiple code snippets in its test environment
-      cy.get('.elyra-metadata-item')
-        .find('.elyra-expandableContainer-name')
-        .should('not.contain', `${snippetName}`);
-    } else {
-      // On a clean test environment, the only snippet is deleted, no further search needed
-      return;
-    }
-  });
 };
 
 const getActionButtonsElement = (snippetName: string): any => {
