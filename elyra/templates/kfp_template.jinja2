@@ -8,6 +8,8 @@ from kfp_notebook.pipeline import NotebookOp
 )
 
 def create_pipeline():
+    {% set metrics_file = writable_container_dir ~ '/mlpipeline-metrics.json' %}
+    {% set metadata_file = writable_container_dir ~ '/mlpipeline-ui-metadata.json' %}
     {% for key, operation in operations_list.items() %}
         {% set op_name = operation.notebook_name.split('.') %}
         {% set operation_id = op_name[0] | to_basename %}
@@ -20,7 +22,10 @@ def create_pipeline():
                                                       cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
                                                       pipeline_inputs={{ operation.pipeline_inputs }},
                                                       pipeline_outputs={{ operation.pipeline_outputs }},
-                                                      image='{{ operation.image }}')
+                                                      image='{{ operation.image }}',
+                                                      file_outputs={
+                                                        'mlpipeline-metrics': '{{ metrics_file }}',
+                                                        'mlpipeline-ui-metadata': '{{ metadata_file }}'})
 
             notebook_op_{{ loop.index }}.name = '{{ operation.name }}'
             notebook_op_{{ loop.index }}.env_variables = {{ operation.env_variables }}
