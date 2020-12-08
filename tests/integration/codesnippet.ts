@@ -217,17 +217,15 @@ describe('Test for editing a Code Snippet', () => {
 });
 
 describe('Test for inserting a Code Snippet', () => {
-  before(() => {
+  beforeEach(() => {
     openJupyterLab();
     // cy.openJupyterLab();
   });
   after(() => {
     // Delete new files created
     cy.get('li[title="File Browser (⇧ ⌘ F)"]').click();
-    cy.get(`.jp-DirListing-content > [data-file-type="notebook"]`).rightclick();
-    cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
-    cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel:visible').click();
-    cy.wait(100);
+    deleteFileByType('notebook');
+    deleteFileByType('python');
   });
 
   it('Test inserting a code snippet into a notebook', () => {
@@ -245,20 +243,61 @@ describe('Test for inserting a Code Snippet', () => {
     ).click();
     cy.wait(100);
 
-    // Find new snippet in display and click on insert button
-    getActionButtonsElement(snippetName).within(() => {
-      cy.get('button[title="Insert"]').click();
-    });
-    cy.wait(100);
+    insertCode(snippetName);
 
-    // Check if notebook cell has code
-    cy.get('span.cm-string')
-      .first()
-      .contains('Code Snippet Test');
+    // Check if notebook cell has the new code
+    checkCodeMirror();
 
     // Close notebook tab without saving
     cy.get('.lm-TabBar-tabCloseIcon:visible').click({ multiple: true });
     cy.get('button.jp-mod-accept.jp-mod-warn').click();
+
+    deleteSnippet(snippetName);
+  });
+
+  it('Test inserting a code snippet into a python editor', () => {
+    openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
+
+    const snippetName = 'test-code-snippet';
+    fillMetadaEditorForm(snippetName);
+
+    cy.wait(500);
+
+    // Open blank python file
+    cy.get(
+      '.jp-LauncherCard[title="Create a new python file"]:visible'
+    ).click();
+    cy.wait(100);
+
+    insertCode(snippetName);
+
+    // Check if python editor has the new code
+    checkCodeMirror();
+
+    // Close python tab without saving
+    cy.get('.lm-TabBar-tabCloseIcon:visible').click({ multiple: true });
+    cy.get('button.jp-mod-accept.jp-mod-warn').click();
+
+    deleteSnippet(snippetName);
+  });
+
+  it('Test inserting a code snippet into unsupported widget', () => {
+    openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
+
+    const snippetName = 'test-code-snippet';
+    fillMetadaEditorForm(snippetName);
+
+    cy.wait(500);
+
+    // Insert snippet into launcher widget
+    insertCode(snippetName);
+
+    // Check if insertion failed and dismiss dialog
+    cy.get('.jp-Dialog-header').contains(`Error`);
+    cy.get('button.jp-mod-accept').click();
+    cy.wait(100);
 
     deleteSnippet(snippetName);
   });
@@ -344,4 +383,24 @@ const getActionButtonsElement = (snippetName: string): any => {
     .find('.elyra-expandableContainer-action-buttons');
 
   return actionButtonsElement;
+};
+
+const deleteFileByType = (type: string): void => {
+  cy.get(`.jp-DirListing-content > [data-file-type="${type}"]`).rightclick();
+  cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
+  cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel:visible').click();
+  cy.wait(100);
+};
+
+const checkCodeMirror = (): void => {
+  cy.get('span.cm-string')
+    .first()
+    .contains('Code Snippet Test');
+};
+
+const insertCode = (snippetName: string): void => {
+  getActionButtonsElement(snippetName).within(() => {
+    cy.get('button[title="Insert"]').click();
+  });
+  cy.wait(100);
 };
