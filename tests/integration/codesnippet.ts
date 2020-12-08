@@ -16,8 +16,7 @@
 
 describe('Test for Code Snippet extension load and render', () => {
   before(() => {
-    openJupyterLab();
-    // cy.openJupyterLab();
+    cy.openJupyterLab();
   });
 
   it('Test opening Code Snippet extension', () => {
@@ -30,16 +29,14 @@ describe('Test for Code Snippet extension load and render', () => {
 
   it('Test persistency on page reload', () => {
     // Reload jupyterlab
-    openJupyterLab();
-    // cy.openJupyterLab();
+    cy.openJupyterLab();
     cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
   });
 });
 
 describe('Test for creating new Code Snippet', () => {
   before(() => {
-    openJupyterLab();
-    // cy.openJupyterLab();
+    cy.openJupyterLab();
     openCodeSnippetExtension();
   });
 
@@ -51,7 +48,7 @@ describe('Test for creating new Code Snippet', () => {
       'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]:visible'
     );
     // Close metadata editor tab
-    closeCurrentTab();
+    cy.closeCurrentTab();
   });
 
   it('Test saving empty form', () => {
@@ -68,7 +65,7 @@ describe('Test for creating new Code Snippet', () => {
     cy.get('@required-warnings').should('have.length', 3);
 
     // Close metadata editor tab
-    closeCurrentTab();
+    cy.closeCurrentTab();
   });
 
   it('Test creating valid form', () => {
@@ -111,8 +108,7 @@ describe('Test for creating new Code Snippet', () => {
 
 describe('Test for Code Snippet display', () => {
   before(() => {
-    openJupyterLab();
-    // cy.openJupyterLab();
+    cy.openJupyterLab();
   });
 
   it('Test action buttons are visible', () => {
@@ -176,8 +172,7 @@ describe('Test for Code Snippet display', () => {
 
 describe('Test for editing a Code Snippet', () => {
   before(() => {
-    openJupyterLab();
-    // cy.openJupyterLab();
+    cy.openJupyterLab();
   });
 
   it('Test editing a code snippet name', () => {
@@ -218,8 +213,7 @@ describe('Test for editing a Code Snippet', () => {
 
 describe('Test for inserting a Code Snippet', () => {
   beforeEach(() => {
-    openJupyterLab();
-    // cy.openJupyterLab();
+    cy.openJupyterLab();
   });
   after(() => {
     // Delete new files created
@@ -249,7 +243,7 @@ describe('Test for inserting a Code Snippet', () => {
     // Check if notebook cell has the new code
     checkCodeMirror();
 
-    closeWithoutSaving();
+    closeTabWithoutSaving();
 
     deleteSnippet(snippetName);
   });
@@ -278,6 +272,7 @@ describe('Test for inserting a Code Snippet', () => {
     getActionButtonsElement(snippetName).within(() => {
       cy.get('button[title="Edit"]').click();
     });
+    cy.wait(100);
     editSnippetLanguage(snippetName, 'Java');
     saveAndCloseMetadataEditor();
 
@@ -290,7 +285,7 @@ describe('Test for inserting a Code Snippet', () => {
     cy.get('button.jp-mod-accept').click();
     cy.wait(100);
 
-    closeWithoutSaving();
+    closeTabWithoutSaving();
 
     deleteSnippet(snippetName);
   });
@@ -340,7 +335,7 @@ describe('Test for inserting a Code Snippet', () => {
       .first()
       .contains('Python');
 
-    closeWithoutSaving();
+    closeTabWithoutSaving();
 
     deleteSnippet(snippetName);
   });
@@ -349,11 +344,6 @@ describe('Test for inserting a Code Snippet', () => {
 // ------------------------------
 // ----- Utility Functions ------
 // ------------------------------
-
-const openJupyterLab = (): void => {
-  // open jupyterlab with a clean workspace
-  cy.visit('?token=test&reset').wait(1000);
-};
 
 const openCodeSnippetExtension = (): void => {
   cy.get('.jp-SideBar [title="Code Snippets"]').click();
@@ -370,12 +360,6 @@ const saveAndCloseMetadataEditor = (): void => {
   cy.get(
     '.elyra-metadataEditor-saveButton > .bp3-form-content > button:visible'
   ).click();
-};
-
-const closeCurrentTab = (): void => {
-  cy.get('.jp-mod-current > .lm-TabBar-tabCloseIcon:visible').click({
-    multiple: true
-  });
 };
 
 const checkSnippetIsDisplayed = (snippetName: string): any => {
@@ -425,7 +409,7 @@ const getActionButtonsElement = (snippetName: string): any => {
 };
 
 const deleteFileByType = (type: string): void => {
-  cy.get(`.jp-DirListing-content > [data-file-type="${type}"]`).rightclick();
+  cy.getFileByType(type).rightclick();
   cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
   cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel:visible').click();
   cy.wait(100);
@@ -441,7 +425,7 @@ const insertCode = (snippetName: string): void => {
   getActionButtonsElement(snippetName).within(() => {
     cy.get('button[title="Insert"]').click();
   });
-  cy.wait(100);
+  cy.wait(200);
 };
 
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
@@ -454,7 +438,7 @@ const editSnippetLanguage = (snippetName: string, lang: string): void => {
     .click();
 };
 
-const closeWithoutSaving = (): void => {
-  closeCurrentTab();
+const closeTabWithoutSaving = (): void => {
+  cy.closeCurrentTab();
   cy.get('button.jp-mod-accept.jp-mod-warn').click();
 };

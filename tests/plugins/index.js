@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 /* global module, require */
-// import './commands.ts';
 
 const wp = require('@cypress/webpack-preprocessor');
 
