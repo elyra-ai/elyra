@@ -275,6 +275,22 @@ describe('Test for inserting a Code Snippet', () => {
     // Check if python editor has the new code
     checkCodeMirror();
 
+    // Edit snippet language
+    getActionButtonsElement(snippetName).within(() => {
+      cy.get('button[title="Edit"]').click();
+    });
+    editSnippetLanguage(snippetName, 'Java');
+    clickSaveAndCloseButton();
+
+    cy.wait(500);
+
+    insertCode(snippetName);
+
+    // Check for language mismatch warning
+    cy.get('.jp-Dialog-header').contains('Warning');
+    cy.get('button.jp-mod-accept').click();
+    cy.wait(100);
+
     // Close python tab without saving
     cy.get('.lm-TabBar-tabCloseIcon:visible').click({ multiple: true });
     cy.get('button.jp-mod-accept.jp-mod-warn').click();
@@ -295,7 +311,7 @@ describe('Test for inserting a Code Snippet', () => {
     insertCode(snippetName);
 
     // Check if insertion failed and dismiss dialog
-    cy.get('.jp-Dialog-header').contains(`Error`);
+    cy.get('.jp-Dialog-header').contains('Error');
     cy.get('button.jp-mod-accept').click();
     cy.wait(100);
 
@@ -340,18 +356,12 @@ const checkSnippetIsDisplayed = (snippetName: string): any => {
     .contains(`${snippetName}`);
 };
 
-const fillMetadaEditorForm = (name: string): void => {
+const fillMetadaEditorForm = (snippetName: string): void => {
   // Name code snippet
-  cy.get('.elyra-metadataEditor-form-display_name').type(name);
+  cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
 
   // Select python language from dropdown list
-  cy.get('.elyra-metadataEditor')
-    .find('button.bp3-button.jp-Button')
-    .first()
-    .click();
-  cy.get('button.elyra-form-DropDown-item')
-    .contains('Python')
-    .click();
+  editSnippetLanguage(snippetName, 'Python');
 
   // Add snippet code
   cy.get('.elyra-metadataEditor-code > .bp3-form-content').type(
@@ -403,4 +413,14 @@ const insertCode = (snippetName: string): void => {
     cy.get('button[title="Insert"]').click();
   });
   cy.wait(100);
+};
+
+const editSnippetLanguage = (snippetName: string, lang: string): void => {
+  cy.get('.elyra-metadataEditor')
+    .find('button.bp3-button.jp-Button')
+    .first()
+    .click();
+  cy.get('button.elyra-form-DropDown-item')
+    .contains(`${lang}`)
+    .click();
 };
