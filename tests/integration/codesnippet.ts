@@ -56,7 +56,7 @@ describe('Test for creating new Code Snippet', () => {
 
   it('Test saving empty form', () => {
     clickCreateNewSnippetButton();
-    clickSaveAndCloseButton();
+    saveAndCloseMetadataEditor();
 
     // Metadata editor should not close
     cy.get(
@@ -200,7 +200,7 @@ describe('Test for editing a Code Snippet', () => {
       .find('input')
       .clear()
       .type(newSnippetName);
-    clickSaveAndCloseButton();
+    saveAndCloseMetadataEditor();
 
     cy.wait(500);
 
@@ -226,6 +226,7 @@ describe('Test for inserting a Code Snippet', () => {
     cy.get('li[title="File Browser (⇧ ⌘ F)"]').click();
     deleteFileByType('notebook');
     deleteFileByType('python');
+    deleteFileByType('markdown');
   });
 
   it('Test inserting a code snippet into a notebook', () => {
@@ -248,9 +249,7 @@ describe('Test for inserting a Code Snippet', () => {
     // Check if notebook cell has the new code
     checkCodeMirror();
 
-    // Close notebook tab without saving
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click({ multiple: true });
-    cy.get('button.jp-mod-accept.jp-mod-warn').click();
+    closeWithoutSaving();
 
     deleteSnippet(snippetName);
   });
@@ -280,7 +279,7 @@ describe('Test for inserting a Code Snippet', () => {
       cy.get('button[title="Edit"]').click();
     });
     editSnippetLanguage(snippetName, 'Java');
-    clickSaveAndCloseButton();
+    saveAndCloseMetadataEditor();
 
     cy.wait(500);
 
@@ -291,9 +290,7 @@ describe('Test for inserting a Code Snippet', () => {
     cy.get('button.jp-mod-accept').click();
     cy.wait(100);
 
-    // Close python tab without saving
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click({ multiple: true });
-    cy.get('button.jp-mod-accept.jp-mod-warn').click();
+    closeWithoutSaving();
 
     deleteSnippet(snippetName);
   });
@@ -314,6 +311,36 @@ describe('Test for inserting a Code Snippet', () => {
     cy.get('.jp-Dialog-header').contains('Error');
     cy.get('button.jp-mod-accept').click();
     cy.wait(100);
+
+    deleteSnippet(snippetName);
+  });
+
+  it('Test inserting a code snippet into a markdown file', () => {
+    openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
+
+    const snippetName = 'test-code-snippet';
+    fillMetadaEditorForm(snippetName);
+
+    cy.wait(500);
+
+    // Open blank notebook file
+    cy.get(
+      '.jp-LauncherCard[title="Create a new markdown file"]:visible'
+    ).click();
+    cy.wait(100);
+
+    insertCode(snippetName);
+
+    // Check if notebook cell has the new code
+    checkCodeMirror();
+
+    // Check for language decoration
+    cy.get('span.cm-comment')
+      .first()
+      .contains('Python');
+
+    closeWithoutSaving();
 
     deleteSnippet(snippetName);
   });
@@ -339,14 +366,16 @@ const clickCreateNewSnippetButton = (): void => {
   ).click();
 };
 
-const clickSaveAndCloseButton = (): void => {
+const saveAndCloseMetadataEditor = (): void => {
   cy.get(
     '.elyra-metadataEditor-saveButton > .bp3-form-content > button:visible'
   ).click();
 };
 
 const closeCurrentTab = (): void => {
-  cy.get('.jp-mod-current > .lm-TabBar-tabCloseIcon:visible').click();
+  cy.get('.jp-mod-current > .lm-TabBar-tabCloseIcon:visible').click({
+    multiple: true
+  });
 };
 
 const checkSnippetIsDisplayed = (snippetName: string): any => {
@@ -368,7 +397,7 @@ const fillMetadaEditorForm = (snippetName: string): void => {
     'print("Code Snippet Test")'
   );
 
-  clickSaveAndCloseButton();
+  saveAndCloseMetadataEditor();
 };
 
 const deleteSnippet = (snippetName: string): void => {
@@ -423,4 +452,9 @@ const editSnippetLanguage = (snippetName: string, lang: string): void => {
   cy.get('button.elyra-form-DropDown-item')
     .contains(`${lang}`)
     .click();
+};
+
+const closeWithoutSaving = (): void => {
+  closeCurrentTab();
+  cy.get('button.jp-mod-accept.jp-mod-warn').click();
 };
