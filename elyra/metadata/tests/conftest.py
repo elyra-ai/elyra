@@ -20,7 +20,6 @@ from elyra.metadata import MetadataManager, SchemaManager, METADATA_TEST_NAMESPA
 from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
     invalid_json, invalid_schema_name_json, create_json_file, create_instance
 
-pytest_plugins = ["pytest_jupyter.jupyter_server"]
 
 def mkdir(tmp_path, *parts):
     path = tmp_path.joinpath(*parts)
