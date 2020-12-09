@@ -132,18 +132,21 @@ td {
   padding-right: 10px;
 }
 
+.properties-editor-form {
+  background-color: #ffffff;
+}
 .properties-control-panel[data-id='properties-nodeGroupInfo'],
 .properties-control-panel[data-id='properties-nodeDependenciesControls'] {
   position: relative;
 }
+.properties-control-panel[data-id='properties-nodeFileControl'] {
+  display: flex;
+  align-items: center;
+}
 .properties-control-panel > .properties-control-panel {
   padding: 0;
 }
-.properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
-  position: absolute;
-  right: 0;
-  top: 0.6rem;
-}
+
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction'] {
   margin: 0;
   padding: 0;
