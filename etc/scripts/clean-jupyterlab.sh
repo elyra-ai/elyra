@@ -47,6 +47,7 @@ rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter
 echo " "
 
 echo "Installing/Updating JupyterLab"
+pip install --upgrade tornado
 pip install --upgrade --pre "jupyterlab$LAB_VERSION"
 echo " "
 
