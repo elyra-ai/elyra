@@ -117,7 +117,7 @@ async def test_get_hierarchy_instances(jp_fetch, setup_hierarchy):
     assert byo_3['display_name'] == 'factory'
 
 
-async def test_create_instance(jp_fetch):
+async def test_create_instance(jp_base_url, jp_fetch):
     """Create a simple instance - not conflicting with factory instances. """
 
     valid = copy.deepcopy(valid_metadata_json)
@@ -126,7 +126,7 @@ async def test_create_instance(jp_fetch):
 
     r = await jp_fetch('elyra', 'metadata', METADATA_TEST_NAMESPACE, body=body, method='POST')
     assert r.code == 201
-    assert r.headers.get('Location') == url_path_join('/elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid')
+    assert r.headers.get('Location') == url_path_join(jp_base_url, '/elyra', 'metadata', METADATA_TEST_NAMESPACE, 'valid')
     metadata = json.loads(r.body.decode())
     # Add expected "extra" fields to 'valid' so whole-object comparison is satisfied.
     # These are added during the pre_save() hook on the MockMetadataTest class instance.
