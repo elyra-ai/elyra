@@ -147,11 +147,16 @@ dist-ui: build-ui
 
 release: dist-ui build-server ## Build wheel file for release
 
-docker-image: ## Build docker image
+container-image: ## Build container image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(IMAGE) -t quay.io/$(IMAGE) build/docker/ --progress plain
+
+publish-container-image: container-image ## Publish container image
+    # this is a privileged operation; a `docker login` might be required
+	docker push docker.io/$(IMAGE)
+	docker push quay.io/$(IMAGE)
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
