@@ -59,7 +59,7 @@ setup_args = dict(
         # 'jupyterlab-git==0.21.1',
         'kfp-notebook>=0.14.0,<0.15.0',
         'kfp==1.1.0',
-        'minio>=5.0.7',
+        'minio>=5.0.7,<7.0.0',
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1,<6.0',
         # 'nbdime>=2.0.0',
