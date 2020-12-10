@@ -226,6 +226,24 @@ describe('Test for inserting a Code Snippet', () => {
     deleteFileByType('markdown');
   });
 
+  it('Test inserting a code snippet into unsupported widget', () => {
+    openCodeSnippetExtension();
+    clickCreateNewSnippetButton();
+
+    const snippetName = 'test-code-snippet';
+    fillMetadaEditorForm(snippetName);
+
+    cy.wait(500);
+
+    // Insert snippet into launcher widget
+    insert(snippetName);
+
+    // Check if insertion failed and dismiss dialog
+    cy.get('.jp-Dialog-header').contains('Error');
+    cy.get('button.jp-mod-accept').click();
+    cy.wait(100);
+  });
+
   it('Test inserting a code snippet into a notebook', () => {
     openCodeSnippetExtension();
     clickCreateNewSnippetButton();
@@ -239,7 +257,11 @@ describe('Test for inserting a Code Snippet', () => {
     cy.get(
       '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
     ).click();
-    cy.wait(100);
+
+    cy.wait(500);
+
+    // Check widget is loaded
+    cy.get('.CodeMirror:visible');
 
     insert(snippetName);
 
@@ -262,7 +284,11 @@ describe('Test for inserting a Code Snippet', () => {
     cy.get(
       '.jp-LauncherCard[title="Create a new python file"]:visible'
     ).click();
-    cy.wait(100);
+
+    cy.wait(500);
+
+    // Check widget is loaded
+    cy.get('.CodeMirror:visible');
 
     insert(snippetName);
 
@@ -289,24 +315,6 @@ describe('Test for inserting a Code Snippet', () => {
     closeTabWithoutSaving();
   });
 
-  it('Test inserting a code snippet into unsupported widget', () => {
-    openCodeSnippetExtension();
-    clickCreateNewSnippetButton();
-
-    const snippetName = 'test-code-snippet';
-    fillMetadaEditorForm(snippetName);
-
-    cy.wait(500);
-
-    // Insert snippet into launcher widget
-    insert(snippetName);
-
-    // Check if insertion failed and dismiss dialog
-    cy.get('.jp-Dialog-header').contains('Error');
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
-  });
-
   it('Test inserting a code snippet into a markdown file', () => {
     openCodeSnippetExtension();
     clickCreateNewSnippetButton();
@@ -320,7 +328,11 @@ describe('Test for inserting a Code Snippet', () => {
     cy.get(
       '.jp-LauncherCard[title="Create a new markdown file"]:visible'
     ).click();
-    cy.wait(100);
+
+    cy.wait(500);
+
+    // Check widget is loaded
+    cy.get('.CodeMirror:visible');
 
     insert(snippetName);
 
