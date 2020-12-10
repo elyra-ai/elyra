@@ -19,6 +19,10 @@ limitations under the License.
 
 Thank you for your interest in Elyra!
 
+### General questions
+
+Share your questions and ideas with the community in the [GitHub discussion forum](https://github.com/elyra-ai/elyra/discussions). 
+
 ### Create an issue or feature request
 
 If you encounter a problem or have suggestions for improvements please [open an issue on GitHub](https://github.com/elyra-ai/elyra/issues).
