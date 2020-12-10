@@ -222,8 +222,8 @@ describe('Test for inserting a Code Snippet', () => {
     // Delete new files created
     cy.get('li[title="File Browser (⇧ ⌘ F)"]').click();
     deleteFileByType('notebook');
-    deleteFileByType('python');
-    deleteFileByType('markdown');
+    // deleteFileByType('python');
+    // deleteFileByType('markdown');
   });
 
   it('Test inserting a code snippet into unsupported widget', () => {
@@ -271,81 +271,81 @@ describe('Test for inserting a Code Snippet', () => {
     closeTabWithoutSaving();
   });
 
-  it('Test inserting a code snippet into a python editor', () => {
-    openCodeSnippetExtension();
-    clickCreateNewSnippetButton();
+  //   it('Test inserting a code snippet into a python editor', () => {
+  //     openCodeSnippetExtension();
+  //     clickCreateNewSnippetButton();
 
-    const snippetName = 'test-code-snippet';
-    fillMetadaEditorForm(snippetName);
+  //     const snippetName = 'test-code-snippet';
+  //     fillMetadaEditorForm(snippetName);
 
-    cy.wait(500);
+  //     cy.wait(500);
 
-    // Open blank python file
-    cy.get(
-      '.jp-LauncherCard[title="Create a new python file"]:visible'
-    ).click();
+  //     // Open blank python file
+  //     cy.get(
+  //       '.jp-LauncherCard[title="Create a new python file"]:visible'
+  //     ).click();
 
-    cy.wait(500);
+  //     cy.wait(500);
 
-    // Check widget is loaded
-    cy.get('.CodeMirror:visible');
+  //     // Check widget is loaded
+  //     cy.get('.CodeMirror:visible');
 
-    insert(snippetName);
+  //     insert(snippetName);
 
-    // Check if python editor has the new code
-    checkCodeMirror();
+  //     // Check if python editor has the new code
+  //     checkCodeMirror();
 
-    // Edit snippet language
-    getActionButtonsElement(snippetName).within(() => {
-      cy.get('button[title="Edit"]').click();
-    });
-    cy.wait(100);
-    editSnippetLanguage(snippetName, 'Java');
-    saveAndCloseMetadataEditor();
+  //     // Edit snippet language
+  //     getActionButtonsElement(snippetName).within(() => {
+  //       cy.get('button[title="Edit"]').click();
+  //     });
+  //     cy.wait(100);
+  //     editSnippetLanguage(snippetName, 'Java');
+  //     saveAndCloseMetadataEditor();
 
-    cy.wait(500);
+  //     cy.wait(500);
 
-    insert(snippetName);
+  //     insert(snippetName);
 
-    // Check for language mismatch warning
-    cy.get('.jp-Dialog-header').contains('Warning');
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+  //     // Check for language mismatch warning
+  //     cy.get('.jp-Dialog-header').contains('Warning');
+  //     cy.get('button.jp-mod-accept').click();
+  //     cy.wait(100);
 
-    closeTabWithoutSaving();
-  });
+  //     closeTabWithoutSaving();
+  //   });
 
-  it('Test inserting a code snippet into a markdown file', () => {
-    openCodeSnippetExtension();
-    clickCreateNewSnippetButton();
+  //   it('Test inserting a code snippet into a markdown file', () => {
+  //     openCodeSnippetExtension();
+  //     clickCreateNewSnippetButton();
 
-    const snippetName = 'test-code-snippet';
-    fillMetadaEditorForm(snippetName);
+  //     const snippetName = 'test-code-snippet';
+  //     fillMetadaEditorForm(snippetName);
 
-    cy.wait(500);
+  //     cy.wait(500);
 
-    // Open blank notebook file
-    cy.get(
-      '.jp-LauncherCard[title="Create a new markdown file"]:visible'
-    ).click();
+  //     // Open blank notebook file
+  //     cy.get(
+  //       '.jp-LauncherCard[title="Create a new markdown file"]:visible'
+  //     ).click();
 
-    cy.wait(500);
+  //     cy.wait(500);
 
-    // Check widget is loaded
-    cy.get('.CodeMirror:visible');
+  //     // Check widget is loaded
+  //     cy.get('.CodeMirror:visible');
 
-    insert(snippetName);
+  //     insert(snippetName);
 
-    // Check if notebook cell has the new code
-    checkCodeMirror();
+  //     // Check if notebook cell has the new code
+  //     checkCodeMirror();
 
-    // Check for language decoration
-    cy.get('span.cm-comment')
-      .first()
-      .contains('Python');
+  //     // Check for language decoration
+  //     cy.get('span.cm-comment')
+  //       .first()
+  //       .contains('Python');
 
-    closeTabWithoutSaving();
-  });
+  //     closeTabWithoutSaving();
+  //   });
 });
 
 // ------------------------------
@@ -429,7 +429,7 @@ const insert = (snippetName: string): void => {
   getActionButtonsElement(snippetName).within(() => {
     cy.get('button[title="Insert"]').click();
   });
-  cy.wait(200);
+  cy.wait(500);
 };
 
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
