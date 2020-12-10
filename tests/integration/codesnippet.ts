@@ -83,7 +83,7 @@ describe('Test for creating new Code Snippet', () => {
     cy.wait(500);
 
     // Check new code snippet is displayed
-    checkSnippetIsDisplayed(snippetName);
+    getSnippetByName(snippetName);
   });
 
   it('Test creating duplicate Code Snippet', () => {
@@ -111,6 +111,10 @@ describe('Test for Code Snippet display', () => {
     cy.openJupyterLab();
   });
 
+  afterEach(() => {
+    deleteSnippet('test-code-snippet');
+  });
+
   it('Test action buttons are visible', () => {
     openCodeSnippetExtension();
     clickCreateNewSnippetButton();
@@ -129,8 +133,6 @@ describe('Test for Code Snippet display', () => {
         cy.get(`button[title=${title}]`).should('be.visible');
       });
     });
-
-    deleteSnippet(snippetName);
   });
 
   it('Test display on expand/collapse button', () => {
@@ -142,7 +144,7 @@ describe('Test for Code Snippet display', () => {
     cy.wait(500);
 
     // Check new code snippet is displayed
-    const item = checkSnippetIsDisplayed(snippetName);
+    const item = getSnippetByName(snippetName);
 
     // Click on expand button
     item
@@ -165,14 +167,16 @@ describe('Test for Code Snippet display', () => {
 
     // Check code mirror is not visible
     cy.get('.elyra-expandableContainer-details-visible').should('not.exist');
-
-    deleteSnippet(snippetName);
   });
 });
 
 describe('Test for editing a Code Snippet', () => {
   before(() => {
     cy.openJupyterLab();
+  });
+
+  after(() => {
+    deleteSnippet('new-name');
   });
 
   it('Test editing a code snippet name', () => {
@@ -200,20 +204,19 @@ describe('Test for editing a Code Snippet', () => {
     cy.wait(500);
 
     // Check new snippet name is displayed
-    checkSnippetIsDisplayed(newSnippetName);
+    const updatedSnippetItem = getSnippetByName(newSnippetName);
 
     // Check old snippet name does not exist
-    cy.get('.elyra-metadata-item')
-      .find('.elyra-expandableContainer-name')
-      .should('not.contain', `${snippetName}`);
-
-    deleteSnippet(newSnippetName);
+    expect(updatedSnippetItem.innerText).not.to.eq(snippetName);
   });
 });
 
 describe('Test for inserting a Code Snippet', () => {
   beforeEach(() => {
     cy.openJupyterLab();
+  });
+  afterEach(() => {
+    deleteSnippet('test-code-snippet');
   });
   after(() => {
     // Delete new files created
@@ -238,14 +241,12 @@ describe('Test for inserting a Code Snippet', () => {
     ).click();
     cy.wait(100);
 
-    insertCode(snippetName);
+    insert(snippetName);
 
     // Check if notebook cell has the new code
     checkCodeMirror();
 
     closeTabWithoutSaving();
-
-    deleteSnippet(snippetName);
   });
 
   it('Test inserting a code snippet into a python editor', () => {
@@ -263,7 +264,7 @@ describe('Test for inserting a Code Snippet', () => {
     ).click();
     cy.wait(100);
 
-    insertCode(snippetName);
+    insert(snippetName);
 
     // Check if python editor has the new code
     checkCodeMirror();
@@ -278,7 +279,7 @@ describe('Test for inserting a Code Snippet', () => {
 
     cy.wait(500);
 
-    insertCode(snippetName);
+    insert(snippetName);
 
     // Check for language mismatch warning
     cy.get('.jp-Dialog-header').contains('Warning');
@@ -286,8 +287,6 @@ describe('Test for inserting a Code Snippet', () => {
     cy.wait(100);
 
     closeTabWithoutSaving();
-
-    deleteSnippet(snippetName);
   });
 
   it('Test inserting a code snippet into unsupported widget', () => {
@@ -300,14 +299,12 @@ describe('Test for inserting a Code Snippet', () => {
     cy.wait(500);
 
     // Insert snippet into launcher widget
-    insertCode(snippetName);
+    insert(snippetName);
 
     // Check if insertion failed and dismiss dialog
     cy.get('.jp-Dialog-header').contains('Error');
     cy.get('button.jp-mod-accept').click();
     cy.wait(100);
-
-    deleteSnippet(snippetName);
   });
 
   it('Test inserting a code snippet into a markdown file', () => {
@@ -325,7 +322,7 @@ describe('Test for inserting a Code Snippet', () => {
     ).click();
     cy.wait(100);
 
-    insertCode(snippetName);
+    insert(snippetName);
 
     // Check if notebook cell has the new code
     checkCodeMirror();
@@ -336,8 +333,6 @@ describe('Test for inserting a Code Snippet', () => {
       .contains('Python');
 
     closeTabWithoutSaving();
-
-    deleteSnippet(snippetName);
   });
 });
 
@@ -362,11 +357,8 @@ const saveAndCloseMetadataEditor = (): void => {
   ).click();
 };
 
-const checkSnippetIsDisplayed = (snippetName: string): any => {
-  return cy
-    .get('.elyra-metadata-item')
-    .find('.elyra-expandableContainer-name')
-    .contains(`${snippetName}`);
+const getSnippetByName = (snippetName: string): any => {
+  return cy.get(`[data-item-id="${snippetName}"]`);
 };
 
 const fillMetadaEditorForm = (snippetName: string): void => {
@@ -386,7 +378,7 @@ const fillMetadaEditorForm = (snippetName: string): void => {
 
 const deleteSnippet = (snippetName: string): void => {
   // Find element by name
-  const item = checkSnippetIsDisplayed(snippetName);
+  const item = getSnippetByName(snippetName);
 
   // Click on delete button
   item
@@ -401,7 +393,7 @@ const deleteSnippet = (snippetName: string): void => {
 };
 
 const getActionButtonsElement = (snippetName: string): any => {
-  const actionButtonsElement = checkSnippetIsDisplayed(snippetName)
+  const actionButtonsElement = getSnippetByName(snippetName)
     .parentsUntil('.elyra-metadata-item')
     .find('.elyra-expandableContainer-action-buttons');
 
@@ -421,7 +413,7 @@ const checkCodeMirror = (): void => {
     .contains('Code Snippet Test');
 };
 
-const insertCode = (snippetName: string): void => {
+const insert = (snippetName: string): void => {
   getActionButtonsElement(snippetName).within(() => {
     cy.get('button[title="Insert"]').click();
   });

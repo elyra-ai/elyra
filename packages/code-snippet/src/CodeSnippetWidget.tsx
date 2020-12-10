@@ -430,6 +430,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     return (
       <div
         key={metadata.name}
+        data-item-id={metadata.display_name}
         className={METADATA_ITEM}
         style={
           this.state.metadata.includes(metadata) ? {} : { display: 'none' }
