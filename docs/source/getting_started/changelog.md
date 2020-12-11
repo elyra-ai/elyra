@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0 (12/10/2020)
+
+- Update KFP Notebook to 0.15.0 release
+- Enable display of metrics and metadata in KFP UI [#1054](https://github.com/elyra-ai/elyra/pull/1054)
+- Renames docker-image build target to container-image [#1141](https://github.com/elyra-ai/elyra/pull/1141)
+- Set minio python package dependency to version <7  [#1143](https://github.com/elyra-ai/elyra/pull/1143)
+- Upgrade KFP to version 1.1.0 [#1104](https://github.com/elyra-ai/elyra/pull/1104)
+
 ## 1.4.2 (12/04/2020)
 
 - Enable Elyra image to auto-start JupyterLab
