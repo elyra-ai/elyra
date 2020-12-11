@@ -102,7 +102,7 @@ Should output:
 config dir: /usr/local/etc/jupyter
     elyra  enabled
     - Validating...
-      elyra 1.6.0.dev0 OK
+      elyra 1.5.1 OK
     jupyterlab  enabled
     - Validating...
       jupyterlab 2.2.8 OK
@@ -129,11 +129,11 @@ Should output:
 ```
 Known labextensions:
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.6.0-dev  enabled  OK*
-        @elyra/metadata-extension v1.6.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension v1.6.0-dev  enabled  OK*
-        @elyra/python-editor-extension v1.6.0-dev  enabled  OK*
-        @elyra/theme-extension v1.6.0-dev  enabled  OK*
+        @elyra/code-snippet-extension v1.5.1  enabled  OK*
+        @elyra/metadata-extension v1.5.1  enabled  OK*
+        @elyra/pipeline-editor-extension v1.5.1  enabled  OK*
+        @elyra/python-editor-extension v1.5.1  enabled  OK*
+        @elyra/theme-extension v1.5.1  enabled  OK*
         @jupyterlab/git v0.22.3  enabled  OK
         @jupyterlab/toc v4.0.0  enabled  OK
         nbdime-jupyterlab v2.0.0  enabled  OK
@@ -159,7 +159,7 @@ Invocation example 2: Run the most recent Elyra development build in a Docker co
 docker run -it -p 8888:8888\
  -v ${HOME}/jupyter-notebooks/:/home/jovyan/work\
  -w /home/jovyan/work\
- elyra/elyra:dev jupyter lab --debug
+ elyra/elyra:1.5.1 jupyter lab --debug
 ```
 
 Invocation example 3: Same as above. In addition a local directory named `${HOME}/jupyter-data-dir` is mounted as the Jupyter data directory in the Docker container, storing all user-defined Elyra metadata artifacts you might create, such as code snippets, runtime configurations, or runtime images.
@@ -171,7 +171,7 @@ docker run -it -p 8888:8888\
  -v ${HOME}/jupyter-notebooks/:/home/jovyan/work\
  -w /home/jovyan/work\
  -v ${HOME}/jupyter-data-dir:/home/jovyan/.local/share/jupyter\
- elyra/elyra:dev jupyter lab --debug
+ elyra/elyra:1.5.1 jupyter lab --debug
 ```
 
 Open the displayed URL in your browser to start using JupyterLab and Elyra.
