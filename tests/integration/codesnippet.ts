@@ -448,7 +448,7 @@ const editSnippetLanguage = (snippetName: string, lang: string): void => {
     .click();
 };
 
-const closeTabWithoutSaving = (): void => {
-  cy.closeCurrentTab();
-  cy.get('button.jp-mod-accept.jp-mod-warn').click();
-};
+// const closeTabWithoutSaving = (): void => {
+//   cy.closeCurrentTab();
+//   cy.get('button.jp-mod-accept.jp-mod-warn').click();
+// };
