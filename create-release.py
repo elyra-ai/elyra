@@ -22,6 +22,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
 from types import SimpleNamespace
 
@@ -37,10 +38,11 @@ DEFAULT_BUILD_DIR = 'build/release'
 class DependencyException(Exception):
     """Error if dependency is missing"""
 
+class MissingReleaseArtifactException(Exception):
+    """Error if an artifact being released is not available"""
 
 class UpdateVersionException(Exception):
     """Error if the old version is invalid or cannot be found, or if there's a duplicate version"""
-
 
 def check_run(args, cwd=os.getcwd(), capture_output=True, env=None, shell=False) -> subprocess.CompletedProcess:
     try:
@@ -80,7 +82,8 @@ def validate_dependencies() -> None:
         raise DependencyException('Please install node.js https://nodejs.org/')
     if not dependency_exists("yarn"):
         raise DependencyException("Please install yarn https://classic.yarnpkg.com/")
-
+    if not dependency_exists("twine"):
+        raise DependencyException("Please install twine https://twine.readthedocs.io/en/latest/#installation")
 
 def validate_environment() -> None:
     """Validate environment configurations are valid"""
@@ -365,8 +368,66 @@ def prepare_release() -> None:
     prepare_extensions_release()
 
 
-def publish_release(working_dir, config:dict) -> None:
-    pass;
+def publish_release(working_dir) -> None:
+    global config
+
+    files_to_publish = [
+        f'{config.source_dir}/dist/elyra-{config.new_version}-py3-none-any.whl',
+        f'{config.source_dir}/dist/elyra-{config.new_version}.tar.gz',
+        f'{config.source_dir}/dist/elyra_server-{config.new_version}-py3-none-any.whl',
+        f'{config.source_dir}/dist/elyra-server-{config.new_version}.tar.gz',
+        f'{config.work_dir}/elyra-code-snippet-extension/dist/elyra_code_snippet_extension-{config.new_version}-py3-none-any.whl',
+        f'{config.work_dir}/elyra-code-snippet-extension/dist/elyra-code-snippet-extension-{config.new_version}.tar.gz',
+        f'{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra_pipeline_editor_extension-{config.new_version}-py3-none-any.whl',
+        f'{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra-pipeline-editor-extension-{config.new_version}.tar.gz',
+        f'{config.work_dir}/elyra-python-editor-extension/dist/elyra_python_editor_extension-{config.new_version}-py3-none-any.whl',
+        f'{config.work_dir}/elyra-python-editor-extension/dist/elyra-python-editor-extension-{config.new_version}.tar.gz',
+    ];
+
+
+    print("-----------------------------------------------------------------")
+    print("---------------------- Publishing to PyPI -----------------------")
+    print("-----------------------------------------------------------------")
+
+    # Validate all artifacts to be published are available
+    for file in files_to_publish:
+        if not os.path.exists(file):
+            raise MissingReleaseArtifactException(f'Missing release file: {file}')
+
+    # push files to PyPI
+    for file in files_to_publish:
+        print(f'Publishing: {file}')
+        check_run(['twine', 'upload', '--sign', file], cwd=working_dir)
+
+    print("-----------------------------------------------------------------")
+    print("--------------- Pushing Release and Tag to git ------------------")
+    print("-----------------------------------------------------------------")
+
+    # push release and tags to git
+    print()
+    print('Pushing release to git')
+    check_run(['git', 'push'], cwd=config.source_dir)
+    print('Pushing release tag to git')
+    check_run(['git', 'push', '--tags'], cwd=config.source_dir)
+
+    print("-----------------------------------------------------------------")
+    print("--------------- Preparing to push npm packages ------------------")
+    print("-----------------------------------------------------------------")
+
+    # checkout the tag
+    print()
+    print(f'Checking out release tag {config.tag}')
+    check_run(['git', 'checkout', config.tag], cwd=config.source_dir)
+    check_run(['git', 'status'], cwd=config.source_dir)
+
+    print("-----------------------------------------------------------------")
+    print("-------------------- Pushing npm packages -----------------------")
+    print("-----------------------------------------------------------------")
+
+    # publish npm packages
+    print()
+    print(f'publishing npm packages')
+    check_run(['lerna', 'publish', '--yes', 'from-package', '--no-git-tag-version', '--no-verify-access', '--no-push'], cwd=config.source_dir)
 
 
 def initialize_config(args=None) -> SimpleNamespace:
@@ -446,7 +507,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(usage=print_help())
     parser.add_argument('goal', help='Supported goals: {prepare | publish}', type=str, choices={'prepare', 'publish'})
     parser.add_argument('--version', help='the new release version', type=str, required=True)
-    parser.add_argument('--dev-version', help='the new development version', type=str, required=True, )
+    parser.add_argument('--dev-version', help='the new development version', type=str, required=False, )
     args = parser.parse_args()
 
     global config
@@ -460,12 +521,16 @@ def main(args=None):
         print_config()
 
         if config.goal == 'prepare':
+            if not args.dev_version:
+                print_help()
+                sys.exit()
+
             prepare_release()
 
             print(f"Release version: {config.new_version} is ready for review")
             print("After you are done, run the script again to [publish] the release.")
 
-        elif args.mode == "publish":
+        elif args.goal == "publish":
             publish_release(working_dir=os.getcwd())
 
     except Exception as ex:
