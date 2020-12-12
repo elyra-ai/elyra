@@ -14,33 +14,14 @@
  * limitations under the License.
  */
 
-import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { Dialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
-
-import * as React from 'react';
 
 /**
  * A service class for making requests to the jupyter lab server.
  */
 export class RequestHandler {
-  /**
-   * Displays an error dialog for when a server request returns a 404.
-   *
-   * @returns A promise that resolves with whether the dialog was accepted.
-   */
-  private static server404(endpoint: string): Promise<Dialog.IResult<any>> {
-    return showDialog({
-      title: 'Error contacting server',
-      body: (
-        <p>
-          Endpoint <code>{endpoint}</code> not found.
-        </p>
-      ),
-      buttons: [Dialog.okButton()]
-    });
-  }
-
   /**
    * Make a GET request to the jupyter lab server.
    *
@@ -223,7 +204,8 @@ export class RequestHandler {
             // handle 404 if the server is not found
             (reason: any) => {
               if (response.status == 404) {
-                return this.server404(requestPath);
+                response['requestPath'] = requestPath;
+                return reject(response);
               } else if (response.status == 204) {
                 resolve();
               } else {

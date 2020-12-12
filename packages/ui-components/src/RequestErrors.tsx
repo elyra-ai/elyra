@@ -32,6 +32,10 @@ export class RequestErrors {
    * @returns A promise that resolves with whether the dialog was accepted.
    */
   static serverError(response: any): Promise<Dialog.IResult<any>> {
+    if (response.status == 404) {
+      return this.server404(response.requestPath);
+    }
+
     const reason = response.reason ? response.reason : '';
     const message = response.message ? response.message : '';
     const timestamp = response.timestamp ? response.timestamp : '';
@@ -54,6 +58,39 @@ export class RequestErrors {
         ) : (
           <p>{default_body}</p>
         ),
+      buttons: [Dialog.okButton()]
+    });
+  }
+
+  /**
+   * Displays an error dialog for when a server request returns a 404.
+   *
+   * @returns A promise that resolves with whether the dialog was accepted.
+   */
+  private static server404(endpoint: string): Promise<Dialog.IResult<any>> {
+    return showDialog({
+      title: 'Error contacting server',
+      body: (
+        <p>
+          Endpoint <code>{endpoint}</code> not found.
+        </p>
+      ),
+      buttons: [Dialog.okButton()]
+    });
+  }
+
+  /**
+   * Displays a dialog for error cases during metadata calls.
+   *
+   * @param namespace - the metadata namespace that was being accessed when
+   * the error occurred
+   *
+   * @returns A promise that resolves with whether the dialog was accepted.
+   */
+  static noMetadataError(namespace: string): Promise<Dialog.IResult<any>> {
+    return showDialog({
+      title: 'Error retrieving metadata',
+      body: <p>No {namespace} metadata has been configured.</p>,
       buttons: [Dialog.okButton()]
     });
   }

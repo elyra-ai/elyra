@@ -19,6 +19,7 @@ import {
   IDictionary,
   RequestHandler
 } from '@elyra/application';
+import { RequestErrors } from '@elyra/ui-components';
 
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -46,7 +47,7 @@ export class PipelineService {
   static async getRuntimes(showError = true): Promise<any> {
     return MetadataService.getMetadata('runtimes').then(runtimes => {
       if (showError && Object.keys(runtimes).length === 0) {
-        return MetadataService.noMetadataError('runtimes');
+        return RequestErrors.noMetadataError('runtimes');
       }
 
       return runtimes;
@@ -66,7 +67,7 @@ export class PipelineService {
       );
 
       if (Object.keys(runtimeImages).length === 0) {
-        return MetadataService.noMetadataError('runtime-images');
+        return RequestErrors.noMetadataError('runtime-images');
       }
 
       const images: IDictionary<string> = {};

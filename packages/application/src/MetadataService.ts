@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import { Dialog, showDialog } from '@jupyterlab/apputils';
-import * as React from 'react';
-
 import { IDictionary } from './parsing';
-import { RequestHandler } from './requests';
+import { RequestHandler } from './RequestHandler';
 
 const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
 const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
@@ -27,22 +24,6 @@ const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
  * A service class for accessing the elyra api.
  */
 export class MetadataService {
-  /**
-   * Displays a dialog for error cases during metadata calls.
-   *
-   * @param namespace - the metadata namespace that was being accessed when
-   * the error occurred
-   *
-   * @returns A promise that resolves with whether the dialog was accepted.
-   */
-  static noMetadataError(namespace: string): Promise<Dialog.IResult<any>> {
-    return showDialog({
-      title: 'Error retrieving metadata',
-      body: <p>No {namespace} metadata has been configured.</p>,
-      buttons: [Dialog.okButton()]
-    });
-  }
-
   /**
    * Service function for making GET calls to the elyra metadata API.
    *

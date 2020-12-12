@@ -20,7 +20,7 @@ import { JupyterServer, NBTestUtils } from '@jupyterlab/testutils';
 
 import { MetadataService } from '../MetadataService';
 import { NotebookParser } from '../parsing';
-import { RequestHandler } from '../requests';
+import { RequestHandler } from '../RequestHandler';
 
 const server = new JupyterServer();
 const notebookWithEnvVars: any = {

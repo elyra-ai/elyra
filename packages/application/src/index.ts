@@ -18,4 +18,4 @@ import '../style/index.css';
 
 export * from './parsing';
 export * from './MetadataService';
-export * from './requests';
+export * from './RequestHandler';
