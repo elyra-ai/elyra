@@ -20,6 +20,8 @@ limitations under the License.
 
 Pipelines that you run on Kubeflow Pipelines can optionally produce output that is rendered in the Kubeflow Pipelines UI. For example, a model training script might expose quality metrics.
 
+You can try the visualizations shown in this document using [this pipeline in the Elyra examples repository](https://github.com/elyra-ai/examples/tree/master/pipelines/visualize_output_in_kubeflow_pipelines_ui).
+
 ## Visualizing output using the Kubeflow Pipelines output viewer
 
 The output viewer in the Kubeflow Pipelines UI can render output such as a confusion matrix, ROC curve, or markdown, that is displayed in the Kubeflow Pipelines UI.
@@ -43,7 +45,7 @@ matrix = [
 
 df = pd.DataFrame(matrix,columns=['target','predicted','count'])
 
-metrics = {
+metadata = {
     "outputs": [
         {
             "type": "confusion_matrix",
