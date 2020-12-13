@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 /* global module, require */
+
 const wp = require('@cypress/webpack-preprocessor');
 
 module.exports = on => {
