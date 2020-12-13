@@ -245,6 +245,11 @@ export class MetadataEditor extends ReactWidget {
     // Special case because all metadata has a display name
     if (schemaField === 'display_name') {
       this.displayName = event.nativeEvent.target.value;
+    } else if (
+      !event.nativeEvent.target.value &&
+      !this.requiredFields.includes(schemaField)
+    ) {
+      delete this.metadata[schemaField];
     } else {
       this.metadata[schemaField] = event.nativeEvent.target.value;
     }
