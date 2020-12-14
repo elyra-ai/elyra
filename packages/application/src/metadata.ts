@@ -15,7 +15,7 @@
  */
 
 import { IDictionary } from './parsing';
-import { RequestHandler } from './RequestHandler';
+import { RequestHandler } from './requests';
 
 const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
 const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';

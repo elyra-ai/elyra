@@ -17,5 +17,5 @@
 import '../style/index.css';
 
 export * from './parsing';
-export * from './MetadataService';
-export * from './RequestHandler';
+export * from './metadata';
+export * from './requests';

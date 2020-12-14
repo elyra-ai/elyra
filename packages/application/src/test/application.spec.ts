@@ -18,9 +18,9 @@ import * as nbformat from '@jupyterlab/nbformat';
 import { NotebookModel } from '@jupyterlab/notebook';
 import { JupyterServer, NBTestUtils } from '@jupyterlab/testutils';
 
-import { MetadataService } from '../MetadataService';
+import { MetadataService } from '../metadata';
 import { NotebookParser } from '../parsing';
-import { RequestHandler } from '../RequestHandler';
+import { RequestHandler } from '../requests';
 
 const server = new JupyterServer();
 const notebookWithEnvVars: any = {
