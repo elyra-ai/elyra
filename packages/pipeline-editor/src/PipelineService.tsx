@@ -15,10 +15,11 @@
  */
 
 import {
-  FrontendServices,
+  MetadataService,
   IDictionary,
   RequestHandler
 } from '@elyra/application';
+import { RequestErrors } from '@elyra/ui-components';
 
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -44,13 +45,13 @@ export class PipelineService {
    * executed on these runtimes.
    */
   static async getRuntimes(showError = true): Promise<any> {
-    const runtimes = await FrontendServices.getMetadata('runtimes');
+    return MetadataService.getMetadata('runtimes').then(runtimes => {
+      if (showError && Object.keys(runtimes).length === 0) {
+        return RequestErrors.noMetadataError('runtimes');
+      }
 
-    if (showError && Object.keys(runtimes).length === 0) {
-      return FrontendServices.noMetadataError('runtimes');
-    }
-
-    return runtimes;
+      return runtimes;
+    });
   }
 
   /**
@@ -58,22 +59,27 @@ export class PipelineService {
    * to run the pipeline nodes.
    */
   static async getRuntimeImages(): Promise<any> {
-    let runtimeImages = await FrontendServices.getMetadata('runtime-images');
+    try {
+      let runtimeImages = await MetadataService.getMetadata('runtime-images');
 
-    runtimeImages = runtimeImages.sort(
-      (a: any, b: any) => 0 - (a.name > b.name ? -1 : 1)
-    );
+      runtimeImages = runtimeImages.sort(
+        (a: any, b: any) => 0 - (a.name > b.name ? -1 : 1)
+      );
 
-    if (Object.keys(runtimeImages).length === 0) {
-      return FrontendServices.noMetadataError('runtime-images');
+      if (Object.keys(runtimeImages).length === 0) {
+        return RequestErrors.noMetadataError('runtime-images');
+      }
+
+      const images: IDictionary<string> = {};
+      for (const image in runtimeImages) {
+        const imageName: string =
+          runtimeImages[image]['metadata']['image_name'];
+        images[imageName] = runtimeImages[image]['display_name'];
+      }
+      return images;
+    } catch (error) {
+      Promise.reject(error);
     }
-
-    const images: IDictionary<string> = {};
-    for (const image in runtimeImages) {
-      const imageName: string = runtimeImages[image]['metadata']['image_name'];
-      images[imageName] = runtimeImages[image]['display_name'];
-    }
-    return images;
   }
 
   static getDisplayName(name: string, metadataArr: IDictionary<any>[]): string {
@@ -110,54 +116,54 @@ export class PipelineService {
     pipeline: any,
     runtimeName: string
   ): Promise<any> {
-    const response = await RequestHandler.makePostRequest(
+    return RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
       this.getWaitDialog()
-    );
+    ).then(response => {
+      let dialogTitle;
+      let dialogBody;
+      if (response['run_url']) {
+        // pipeline executed remotely in a runtime of choice
+        dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
+        dialogBody = (
+          <p>
+            Check the status of your job at{' '}
+            <a
+              href={response['run_url']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Run Details.
+            </a>
+            <br />
+            The results and outputs are in the {
+              response['object_storage_path']
+            }{' '}
+            working directory in{' '}
+            <a
+              href={response['object_storage_url']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              object storage
+            </a>
+            .
+          </p>
+        );
+      } else {
+        // pipeline executed in-place locally
+        dialogTitle = 'Job execution succeeded';
+        dialogBody = (
+          <p>Your job has been executed in-place in your local environment.</p>
+        );
+      }
 
-    let dialogTitle;
-    let dialogBody;
-    if (response['run_url']) {
-      // pipeline executed remotely in a runtime of choice
-      dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
-      dialogBody = (
-        <p>
-          Check the status of your job at{' '}
-          <a
-            href={response['run_url']}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Run Details.
-          </a>
-          <br />
-          The results and outputs are in the {
-            response['object_storage_path']
-          }{' '}
-          working directory in{' '}
-          <a
-            href={response['object_storage_url']}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            object storage
-          </a>
-          .
-        </p>
-      );
-    } else {
-      // pipeline executed in-place locally
-      dialogTitle = 'Job execution succeeded';
-      dialogBody = (
-        <p>Your job has been executed in-place in your local environment.</p>
-      );
-    }
-
-    return showDialog({
-      title: dialogTitle,
-      body: dialogBody,
-      buttons: [Dialog.okButton()]
+      return showDialog({
+        title: dialogTitle,
+        body: dialogBody,
+        buttons: [Dialog.okButton()]
+      });
     });
   }
 
@@ -189,16 +195,16 @@ export class PipelineService {
       overwrite: overwrite
     };
 
-    const response = await RequestHandler.makePostRequest(
+    return RequestHandler.makePostRequest(
       'elyra/pipeline/export',
       JSON.stringify(body),
       this.getWaitDialog()
-    );
-
-    return showDialog({
-      title: 'Pipeline export succeeded',
-      body: <p>Exported file: {response['export_path']} </p>,
-      buttons: [Dialog.okButton()]
+    ).then(response => {
+      return showDialog({
+        title: 'Pipeline export succeeded',
+        body: <p>Exported file: {response['export_path']} </p>,
+        buttons: [Dialog.okButton()]
+      });
     });
   }
 

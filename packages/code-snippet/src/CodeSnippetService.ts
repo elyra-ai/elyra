@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FrontendServices } from '@elyra/application';
+import { MetadataService } from '@elyra/application';
 import { IMetadata } from '@elyra/metadata-common';
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
@@ -24,25 +24,25 @@ export const CODE_SNIPPET_SCHEMA = 'code-snippet';
 
 export class CodeSnippetService {
   static async findAll(): Promise<IMetadata[]> {
-    const codeSnippetsResponse = await FrontendServices.getMetadata(
-      CODE_SNIPPET_NAMESPACE
-    );
-
-    return codeSnippetsResponse;
+    return MetadataService.getMetadata(CODE_SNIPPET_NAMESPACE);
   }
 
   // TODO: Test this function
   static async findByLanguage(language: string): Promise<IMetadata[]> {
-    const allCodeSnippets: IMetadata[] = await this.findAll();
-    const codeSnippetsByLanguage: IMetadata[] = [];
+    try {
+      const allCodeSnippets: IMetadata[] = await this.findAll();
+      const codeSnippetsByLanguage: IMetadata[] = [];
 
-    for (const codeSnippet of allCodeSnippets) {
-      if (codeSnippet.metadata.language === language) {
-        codeSnippetsByLanguage.push(codeSnippet);
+      for (const codeSnippet of allCodeSnippets) {
+        if (codeSnippet.metadata.language === language) {
+          codeSnippetsByLanguage.push(codeSnippet);
+        }
       }
-    }
 
-    return codeSnippetsByLanguage;
+      return codeSnippetsByLanguage;
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -61,11 +61,10 @@ export class CodeSnippetService {
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
-        FrontendServices.deleteMetadata(
+        return MetadataService.deleteMetadata(
           CODE_SNIPPET_NAMESPACE,
           codeSnippet.name
-        );
-        return true;
+        ).then(() => true);
       } else {
         return false;
       }

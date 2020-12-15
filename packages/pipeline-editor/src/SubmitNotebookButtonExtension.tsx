@@ -15,7 +15,7 @@
  */
 
 import { NotebookParser } from '@elyra/application';
-import { showFormDialog } from '@elyra/ui-components';
+import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
@@ -40,8 +40,12 @@ export class SubmitNotebookButtonExtension
 
   showWidget = async (): Promise<void> => {
     const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
-    const runtimes = await PipelineService.getRuntimes();
-    const images = await PipelineService.getRuntimeImages();
+    const runtimes = await PipelineService.getRuntimes().catch(error =>
+      RequestErrors.serverError(error)
+    );
+    const images = await PipelineService.getRuntimeImages().catch(error =>
+      RequestErrors.serverError(error)
+    );
 
     const dialogOptions = {
       title: 'Submit notebook',
@@ -84,7 +88,9 @@ export class SubmitNotebookButtonExtension
       runtimes
     );
 
-    PipelineService.submitPipeline(pipeline, displayName);
+    PipelineService.submitPipeline(pipeline, displayName).catch(error =>
+      RequestErrors.serverError(error)
+    );
   };
 
   createNew(
