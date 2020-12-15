@@ -98,10 +98,13 @@ export class PipelineService {
   /**
    * Creates a Dialog for passing to makeServerRequest
    */
-  static getWaitDialog(): Dialog<any> {
+  static getWaitDialog(
+    title = 'Making server request...',
+    body = 'This may take some time'
+  ): Dialog<any> {
     return new Dialog({
-      title: 'Making server request...',
-      body: 'This may take some time',
+      title: title,
+      body: body,
       buttons: [Dialog.okButton()]
     });
   }
