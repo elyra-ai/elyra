@@ -18,9 +18,9 @@ import * as nbformat from '@jupyterlab/nbformat';
 import { NotebookModel } from '@jupyterlab/notebook';
 import { JupyterServer, NBTestUtils } from '@jupyterlab/testutils';
 
+import { MetadataService } from '../metadata';
 import { NotebookParser } from '../parsing';
 import { RequestHandler } from '../requests';
-import { FrontendServices } from '../services';
 
 const server = new JupyterServer();
 const notebookWithEnvVars: any = {
@@ -83,12 +83,10 @@ afterAll(async () => {
 });
 
 describe('@elyra/application', () => {
-  describe('FrontendServices', () => {
+  describe('MetadataService', () => {
     describe('#getSchema', () => {
       it('should get schema', async () => {
-        const schemaResponse = await FrontendServices.getSchema(
-          'code-snippets'
-        );
+        const schemaResponse = await MetadataService.getSchema('code-snippets');
         expect(schemaResponse[0]).toHaveProperty(
           'properties.schema_name.description',
           'The schema associated with this instance'
@@ -97,7 +95,7 @@ describe('@elyra/application', () => {
     });
     describe('#getAllSchema', () => {
       it('should get all schema', async () => {
-        const schemas = await FrontendServices.getAllSchema();
+        const schemas = await MetadataService.getAllSchema();
         const schemaNames = schemas.map((schema: any) => {
           return schema.name;
         });
@@ -110,7 +108,7 @@ describe('@elyra/application', () => {
     });
     describe('metadata requests', () => {
       beforeAll(async () => {
-        const existingSnippets = await FrontendServices.getMetadata(
+        const existingSnippets = await MetadataService.getMetadata(
           'code-snippets'
         );
         if (
@@ -118,13 +116,13 @@ describe('@elyra/application', () => {
             return snippet.name === 'tester';
           })
         ) {
-          await FrontendServices.deleteMetadata('code-snippet', 'tester');
+          await MetadataService.deleteMetadata('code-snippet', 'tester');
         }
       });
 
       it('should create metadata instance', async () => {
         expect(
-          await FrontendServices.postMetadata(
+          await MetadataService.postMetadata(
             'code-snippets',
             JSON.stringify(codeSnippetMetadata)
           )
@@ -133,14 +131,14 @@ describe('@elyra/application', () => {
 
       it('should get the correct metadata instance', async () => {
         expect(
-          await FrontendServices.getMetadata('code-snippets')
+          await MetadataService.getMetadata('code-snippets')
         ).toContainEqual(codeSnippetMetadata);
       });
 
       it('should update the metadata instance', async () => {
         codeSnippetMetadata.metadata.code = ['testing'];
         expect(
-          await FrontendServices.putMetadata(
+          await MetadataService.putMetadata(
             'code-snippets',
             'tester',
             JSON.stringify(codeSnippetMetadata)
@@ -149,8 +147,8 @@ describe('@elyra/application', () => {
       });
 
       it('should delete the metadata instance', async () => {
-        await FrontendServices.deleteMetadata('code-snippets', 'tester');
-        const snippets = await FrontendServices.getMetadata('code-snippets');
+        await MetadataService.deleteMetadata('code-snippets', 'tester');
+        const snippets = await MetadataService.getMetadata('code-snippets');
         expect(snippets).not.toContain(codeSnippetMetadata);
       });
     });

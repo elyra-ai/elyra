@@ -30,7 +30,8 @@ import {
   runtimesIcon,
   showBrowseFileDialog,
   showFormDialog,
-  errorIcon
+  errorIcon,
+  RequestErrors
 } from '@elyra/ui-components';
 
 import { Dropzone } from '@elyra/ui-components';
@@ -440,7 +441,9 @@ export class PipelineEditor extends React.Component<
   }
 
   async initPropertiesInfo(): Promise<void> {
-    const runtimeImages = await PipelineService.getRuntimeImages();
+    const runtimeImages = await PipelineService.getRuntimeImages().catch(
+      error => RequestErrors.serverError(error)
+    );
 
     const imageEnum = [];
     for (const runtimeImage in runtimeImages) {
@@ -813,7 +816,9 @@ export class PipelineEditor extends React.Component<
       });
       return;
     }
-    const runtimes = await PipelineService.getRuntimes();
+    const runtimes = await PipelineService.getRuntimes().catch(error =>
+      RequestErrors.serverError(error)
+    );
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
@@ -865,7 +870,7 @@ export class PipelineEditor extends React.Component<
       pipeline_export_format,
       pipeline_export_path,
       overwrite
-    );
+    ).catch(error => RequestErrors.serverError(error));
   }
 
   async handleOpenPipeline(): Promise<void> {
@@ -1172,7 +1177,9 @@ export class PipelineEditor extends React.Component<
       PathExt.extname(this.widgetContext.path)
     );
 
-    const runtimes = await PipelineService.getRuntimes(false);
+    const runtimes = await PipelineService.getRuntimes(false).catch(error =>
+      RequestErrors.serverError(error)
+    );
     const local_runtime: any = {
       name: 'local',
       display_name: 'Run in-place locally'
@@ -1218,7 +1225,7 @@ export class PipelineEditor extends React.Component<
         dialogResult.value.runtime_config,
         runtimes
       )
-    );
+    ).catch(error => RequestErrors.serverError(error));
   }
 
   handleSavePipeline(): void {

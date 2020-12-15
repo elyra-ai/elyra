@@ -23,6 +23,7 @@ import {
   IMetadataDisplayProps,
   IMetadataDisplayState
 } from '@elyra/metadata-common';
+import { RequestErrors } from '@elyra/ui-components';
 import React from 'react';
 
 import {
@@ -73,7 +74,9 @@ export class RuntimesWidget extends MetadataWidget {
   }
 
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes(false);
+    return await PipelineService.getRuntimes(false).catch(error =>
+      RequestErrors.serverError(error)
+    );
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
