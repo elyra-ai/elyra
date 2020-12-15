@@ -100,7 +100,7 @@
       {
         "id": "browse_file",
         "label": {
-          "default": "Browse..."
+          "default": "Browse"
         },
         "control": "button",
         "data": {
@@ -110,7 +110,7 @@
       {
         "id": "add_dependencies",
         "label": {
-          "default": "Add Dependencies..."
+          "default": "Add Dependencies"
         },
         "control": "button",
         "data": {

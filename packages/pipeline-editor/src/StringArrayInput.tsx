@@ -46,6 +46,7 @@ export class StringArrayInput {
           key={parameter}
           label={parameter}
           labelFor={parameter}
+          className="string-array-input"
           labelInfo={this.parameters.required && '(required)'}
           helperText={this.parameters.helperText}
         >

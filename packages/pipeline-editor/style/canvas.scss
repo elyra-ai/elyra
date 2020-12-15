@@ -40,6 +40,12 @@
 	background: #000000;
 }
 
+.bp3-input[readonly] {
+    color: rgba(92, 112, 128, 0.6);
+    cursor: not-allowed;
+    background: rgba(206, 217, 224, 0.5);
+}
+
 .bx--btn--tertiary:hover {
 	color: #182026;
 }
