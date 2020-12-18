@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { IDictionary, FrontendServices } from '@elyra/application';
+import { IDictionary, MetadataService } from '@elyra/application';
 import {
   ExpandableComponent,
   JSONComponent,
+  RequestErrors,
   trashIcon
 } from '@elyra/ui-components';
 
@@ -109,7 +110,10 @@ export class MetadataDisplay<
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
-        FrontendServices.deleteMetadata(this.props.namespace, metadata.name);
+        MetadataService.deleteMetadata(
+          this.props.namespace,
+          metadata.name
+        ).catch(error => RequestErrors.serverError(error));
       }
     });
   };
@@ -341,13 +345,17 @@ export class MetadataWidget extends ReactWidget {
   }
 
   async getSchema(): Promise<void> {
-    const schemas = await FrontendServices.getSchema(this.props.namespace);
-    for (const schema of schemas) {
-      if (this.props.schema === schema.name) {
-        this.schemaDisplayName = schema.title;
-        this.update();
-        break;
+    try {
+      const schemas = await MetadataService.getSchema(this.props.namespace);
+      for (const schema of schemas) {
+        if (this.props.schema === schema.name) {
+          this.schemaDisplayName = schema.title;
+          this.update();
+          break;
+        }
       }
+    } catch (error) {
+      RequestErrors.serverError(error);
     }
   }
 
@@ -368,7 +376,11 @@ export class MetadataWidget extends ReactWidget {
    * @returns metadata in the format expected by `renderDisplay`
    */
   async fetchMetadata(): Promise<any> {
-    return await FrontendServices.getMetadata(this.props.namespace);
+    try {
+      return await MetadataService.getMetadata(this.props.namespace);
+    } catch (error) {
+      return RequestErrors.serverError(error);
+    }
   }
 
   updateMetadata(): void {

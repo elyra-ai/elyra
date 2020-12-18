@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import { Dialog, showDialog } from '@jupyterlab/apputils';
-import * as React from 'react';
-
 import { IDictionary } from './parsing';
 import { RequestHandler } from './requests';
 
@@ -26,23 +23,7 @@ const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
 /**
  * A service class for accessing the elyra api.
  */
-export class FrontendServices {
-  /**
-   * Displays a dialog for error cases during metadata calls.
-   *
-   * @param namespace - the metadata namespace that was being accessed when
-   * the error occurred
-   *
-   * @returns A promise that resolves with whether the dialog was accepted.
-   */
-  static noMetadataError(namespace: string): Promise<Dialog.IResult<any>> {
-    return showDialog({
-      title: 'Error retrieving metadata',
-      body: <p>No {namespace} metadata has been configured.</p>,
-      buttons: [Dialog.okButton()]
-    });
-  }
-
+export class MetadataService {
   /**
    * Service function for making GET calls to the elyra metadata API.
    *
@@ -52,12 +33,10 @@ export class FrontendServices {
    * an error dialog result
    */
   static async getMetadata(namespace: string): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makeGetRequest(
+    return RequestHandler.makeGetRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace,
       false
-    );
-
-    return metadataResponse[namespace];
+    ).then(metadataResponse => metadataResponse[namespace]);
   }
 
   /**
@@ -70,13 +49,11 @@ export class FrontendServices {
    * an error dialog result
    */
   static async postMetadata(namespace: string, requestBody: any): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makePostRequest(
+    return RequestHandler.makePostRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace,
       requestBody,
       false
     );
-
-    return metadataResponse;
   }
 
   /**
@@ -94,13 +71,11 @@ export class FrontendServices {
     name: string,
     requestBody: any
   ): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makePutRequest(
+    return RequestHandler.makePutRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
       requestBody,
       false
     );
-
-    return metadataResponse;
   }
 
   /**
@@ -112,12 +87,10 @@ export class FrontendServices {
    * @returns void or an error dialog result
    */
   static async deleteMetadata(namespace: string, name: string): Promise<any> {
-    const metadataResponse: any = await RequestHandler.makeDeleteRequest(
+    return RequestHandler.makeDeleteRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
       false
     );
-
-    return metadataResponse;
   }
 
   private static schemaCache: IDictionary<any> = {};
@@ -136,16 +109,16 @@ export class FrontendServices {
       return JSON.parse(JSON.stringify(this.schemaCache[namespace]));
     }
 
-    const schemaResponse: any = await RequestHandler.makeGetRequest(
+    return RequestHandler.makeGetRequest(
       ELYRA_SCHEMA_API_ENDPOINT + namespace,
       false
-    );
+    ).then(schemaResponse => {
+      if (schemaResponse[namespace]) {
+        this.schemaCache[namespace] = schemaResponse[namespace];
+      }
 
-    if (schemaResponse[namespace]) {
-      this.schemaCache[namespace] = schemaResponse[namespace];
-    }
-
-    return schemaResponse[namespace];
+      return schemaResponse[namespace];
+    });
   }
 
   /**
@@ -155,15 +128,19 @@ export class FrontendServices {
    * an error dialog result
    */
   static async getAllSchema(): Promise<any> {
-    const namespaces = await RequestHandler.makeGetRequest(
-      'elyra/namespace',
-      false
-    );
-    const schemas = [];
-    for (const namespace of namespaces['namespaces']) {
-      const schema = await this.getSchema(namespace);
-      schemas.push(...schema);
+    try {
+      const namespaces = await RequestHandler.makeGetRequest(
+        'elyra/namespace',
+        false
+      );
+      const schemas = [];
+      for (const namespace of namespaces['namespaces']) {
+        const schema = await this.getSchema(namespace);
+        schemas.push(...schema);
+      }
+      return schemas;
+    } catch (error) {
+      return Promise.reject(error);
     }
-    return schemas;
   }
 }

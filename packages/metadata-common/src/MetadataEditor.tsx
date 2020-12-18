@@ -16,8 +16,8 @@
 
 import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
 
-import { FrontendServices, IDictionary } from '@elyra/application';
-import { DropDown } from '@elyra/ui-components';
+import { MetadataService, IDictionary } from '@elyra/application';
+import { DropDown, RequestErrors } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
@@ -97,34 +97,44 @@ export class MetadataEditor extends ReactWidget {
   }
 
   async initializeMetadata(): Promise<void> {
-    const schemas = await FrontendServices.getSchema(this.namespace);
-    for (const schema of schemas) {
-      if (this.schemaName === schema.name) {
-        this.schema = schema.properties.metadata.properties;
-        this.schemaDisplayName = schema.title;
-        this.requiredFields = schema.properties.metadata.required;
-        if (!this.name) {
-          this.title.label = `New ${this.schemaDisplayName}`;
-        }
-        // Find categories of all schema properties
-        this.schemaPropertiesByCategory = { _noCategory: [] };
-        for (const schemaProperty in this.schema) {
-          const category =
-            this.schema[schemaProperty].uihints &&
-            this.schema[schemaProperty].uihints.category;
-          if (!category) {
-            this.schemaPropertiesByCategory['_noCategory'].push(schemaProperty);
-          } else if (this.schemaPropertiesByCategory[category]) {
-            this.schemaPropertiesByCategory[category].push(schemaProperty);
-          } else {
-            this.schemaPropertiesByCategory[category] = [schemaProperty];
+    try {
+      const schemas = await MetadataService.getSchema(this.namespace);
+      for (const schema of schemas) {
+        if (this.schemaName === schema.name) {
+          this.schema = schema.properties.metadata.properties;
+          this.schemaDisplayName = schema.title;
+          this.requiredFields = schema.properties.metadata.required;
+          if (!this.name) {
+            this.title.label = `New ${this.schemaDisplayName}`;
           }
+          // Find categories of all schema properties
+          this.schemaPropertiesByCategory = { _noCategory: [] };
+          for (const schemaProperty in this.schema) {
+            const category =
+              this.schema[schemaProperty].uihints &&
+              this.schema[schemaProperty].uihints.category;
+            if (!category) {
+              this.schemaPropertiesByCategory['_noCategory'].push(
+                schemaProperty
+              );
+            } else if (this.schemaPropertiesByCategory[category]) {
+              this.schemaPropertiesByCategory[category].push(schemaProperty);
+            } else {
+              this.schemaPropertiesByCategory[category] = [schemaProperty];
+            }
+          }
+          break;
         }
-        break;
       }
+    } catch (error) {
+      RequestErrors.serverError(error);
     }
 
-    this.allMetadata = await FrontendServices.getMetadata(this.namespace);
+    try {
+      this.allMetadata = await MetadataService.getMetadata(this.namespace);
+    } catch (error) {
+      RequestErrors.serverError(error);
+    }
     if (this.name) {
       for (const metadata of this.allMetadata) {
         if (metadata.metadata.tags) {
@@ -219,24 +229,25 @@ export class MetadataEditor extends ReactWidget {
     }
 
     if (!this.name) {
-      FrontendServices.postMetadata(
-        this.namespace,
-        JSON.stringify(newMetadata)
-      ).then((response: any): void => {
-        this.handleDirtyState(false);
-        this.onSave();
-        this.close();
-      });
+      MetadataService.postMetadata(this.namespace, JSON.stringify(newMetadata))
+        .then((response: any): void => {
+          this.handleDirtyState(false);
+          this.onSave();
+          this.close();
+        })
+        .catch(error => RequestErrors.serverError(error));
     } else {
-      FrontendServices.putMetadata(
+      MetadataService.putMetadata(
         this.namespace,
         this.name,
         JSON.stringify(newMetadata)
-      ).then((response: any): void => {
-        this.handleDirtyState(false);
-        this.onSave();
-        this.close();
-      });
+      )
+        .then((response: any): void => {
+          this.handleDirtyState(false);
+          this.onSave();
+          this.close();
+        })
+        .catch(error => RequestErrors.serverError(error));
     }
   }
 
@@ -245,6 +256,11 @@ export class MetadataEditor extends ReactWidget {
     // Special case because all metadata has a display name
     if (schemaField === 'display_name') {
       this.displayName = event.nativeEvent.target.value;
+    } else if (
+      !event.nativeEvent.target.value &&
+      !this.requiredFields.includes(schemaField)
+    ) {
+      delete this.metadata[schemaField];
     } else {
       this.metadata[schemaField] = event.nativeEvent.target.value;
     }

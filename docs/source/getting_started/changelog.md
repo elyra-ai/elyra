@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.5.0 (12/10/2020)
+
+- Update KFP Notebook to 0.15.0 release
+- Enable display of metrics and metadata in KFP UI [#1054](https://github.com/elyra-ai/elyra/pull/1054)
+- Renames docker-image build target to container-image [#1141](https://github.com/elyra-ai/elyra/pull/1141)
+- Set minio python package dependency to version <7  [#1143](https://github.com/elyra-ai/elyra/pull/1143)
+- Upgrade KFP to version 1.1.0 [#1104](https://github.com/elyra-ai/elyra/pull/1104)
+
+## 1.4.2 (12/04/2020)
+
+- Enable Elyra image to auto-start JupyterLab
+- Update to JupyterHub SingleUser 0.10.6 docker image [#1135](https://github.com/elyra-ai/elyra/pull/1135)
+- Remove workdir setting from Elyra docker image [#1135](https://github.com/elyra-ai/elyra/pull/1135)
+- Build both docker.io and quay.io tagged images [#1135](https://github.com/elyra-ai/elyra/pull/1135)
+- Update Jupyter Client minimum version to 6.1.7  [#1099](https://github.com/elyra-ai/elyra/pull/1099)
+- Properly handle references to missing schema files [#1096](https://github.com/elyra-ai/elyra/pull/1096)
+- Support namespace configuration when using dex with kfp [#1081](https://github.com/elyra-ai/elyra/pull/1081)
+- Update canvas version [#1082](https://github.com/elyra-ai/elyra/pull/1082)
+
 ## 1.4.1 (11/14/2020)
 
 - Use JupyterLab SessionManager to execute Python scripts [#1071](https://github.com/elyra-ai/elyra/pull/1071) 

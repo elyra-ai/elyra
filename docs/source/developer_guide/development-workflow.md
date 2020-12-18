@@ -90,12 +90,12 @@ To see your changes just refresh JupyterLab in your browser.
 So when making changes to application you will need to stop and restart `jupyter lab --watch` and
 not just refresh your browser.
 
-### Building the Docker Image
+### Building the Elyra Container Image
 
-Elyra's docker image can be built using:
+Elyra's container image can be built using:
 
 ```bash
 make docker-image
 ```
 
-Elyra official docker images are available at the [Elyra organization in dockerhub](https://hub.docker.com/r/elyra/elyra).
+Official container images are published on [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) and [quay.io](https://quay.io/repository/elyra/elyra?tab=tags).

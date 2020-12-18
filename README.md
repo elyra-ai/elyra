@@ -18,6 +18,7 @@ limitations under the License.
 
 
 [![PyPI version](https://badge.fury.io/py/elyra.svg)](https://badge.fury.io/py/elyra)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/elyra/badges/version.svg)](https://anaconda.org/conda-forge/elyra)
 [![Downloads](https://pepy.tech/badge/elyra)](https://pepy.tech/project/elyra)
 [![Documentation Status](https://readthedocs.org/projects/elyra/badge/?version=latest)](https://elyra.readthedocs.io/en/latest/?badge=latest)
 [![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
@@ -27,17 +28,16 @@ limitations under the License.
 
 Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
-Elyra currently includes:
+Elyra currently includes the following functionality:
 
-- Notebook Pipelines visual editor
-- Ability to run notebooks as batch jobs
-- Reusable Code Snippets
-- Hybrid runtime support (based on [Jupyter Enterprise Gateway](https://github.com/jupyter/enterprise_gateway))
-- Python script execution capabilities within the editor
-- Python script navigation using auto-generated outlines using Table of Contents
-- Notebook navigation using auto-generated Table of Contents
-- Notebook versioning based on Git integration
-- Reusable configuration and editor for runtimes
+- [Create and run AI pipelines](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ai-pipelines-visual-editor)
+- [Run notebooks as batch jobs](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ability-to-run-a-notebook-as-a-batch-job)
+- [Reusable Code Snippets](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#reusable-code-snippets)
+- [Hybrid runtime support](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#hybrid-runtime-support) based on [Jupyter Enterprise Gateway](https://github.com/jupyter/enterprise_gateway)
+- [Python script editor with local/remote execution capabilities](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
+- [Python script navigation using auto-generated Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
+- [Notebook navigation using auto-generated outlines using Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#notebook-navigation-using-auto-generated-table-of-contents)
+- [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
 
 ![Elyra](docs/source/images/elyra-main-page.png)
 
@@ -171,12 +171,6 @@ Known labextensions:
 ```
 NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable
 it with `jupyter serverextension enable elyra`
-
-## Configuring Runtimes for Pipeline execution
-
-The Elyra Pipeline editor delegates execution of pipelines to remote runtimes. Configure these
-external runtimes as documented in
-[Runtime Configuration](https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html).
 
 ## Starting Elyra
 After verifying Elyra has been installed, start Elyra with:

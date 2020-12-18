@@ -16,7 +16,7 @@
 #
 
 # Ubuntu 18.04 LTS - Bionic
-FROM jupyterhub/k8s-singleuser-sample:0.9.0
+FROM jupyterhub/k8s-singleuser-sample:0.10.6
 
 USER root
 
@@ -41,8 +41,6 @@ RUN conda remove --force -y terminado && \
     npm install -g npm && \
     cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
     cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra
-
-WORKDIR /home/jovyan/work
 
 CMD ["/usr/local/bin/start-elyra.sh"]
 

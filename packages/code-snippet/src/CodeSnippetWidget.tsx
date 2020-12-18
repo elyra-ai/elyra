@@ -29,6 +29,7 @@ import {
 import {
   ExpandableComponent,
   importIcon,
+  RequestErrors,
   trashIcon
 } from '@elyra/ui-components';
 
@@ -379,8 +380,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
-          CodeSnippetService.deleteCodeSnippet(metadata).then(
-            (deleted: any): void => {
+          CodeSnippetService.deleteCodeSnippet(metadata)
+            .then((deleted: any): void => {
               if (deleted) {
                 this.props.updateMetadata();
                 delete this.editors[metadata.name];
@@ -397,8 +398,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
                   editorWidget.dispose();
                 }
               }
-            }
-          );
+            })
+            .catch(error => RequestErrors.serverError(error));
         }
       }
     ];
@@ -430,6 +431,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     return (
       <div
         key={metadata.name}
+        data-item-id={metadata.display_name}
         className={METADATA_ITEM}
         style={
           this.state.metadata.includes(metadata) ? {} : { display: 'none' }
@@ -509,7 +511,9 @@ export class CodeSnippetWidget extends MetadataWidget {
 
   // Request code snippets from server
   async fetchMetadata(): Promise<any> {
-    return await CodeSnippetService.findAll();
+    return CodeSnippetService.findAll().catch(error =>
+      RequestErrors.serverError(error)
+    );
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
