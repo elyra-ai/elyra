@@ -57,7 +57,7 @@ import { Color } from '@material-ui/lab/Alert';
 
 import 'carbon-components/css/carbon-components.min.css';
 import '@elyra/canvas/dist/styles/common-canvas.min.css';
-import 'style-loader!css-loader!sass-loader?{"sassOptions":{"includePaths":["node_modules"]}}!../style/canvas.scss';
+import '../style/index.css';
 import '../style/canvas.css';
 
 import * as React from 'react';
@@ -80,7 +80,6 @@ import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
 import { StringArrayInput } from './StringArrayInput';
-import { StringInput } from './StringInput';
 import Utils from './utils';
 import { checkCircularReferences, ILink } from './validation';
 
@@ -400,7 +399,7 @@ export class PipelineEditor extends React.Component<
           propertiesInfo={this.state.propertiesInfo}
           propertiesConfig={{ containerType: 'Custom', rightFlyout: true }}
           callbacks={propertiesCallbacks}
-          customPanels={[StringArrayInput, StringInput]}
+          customControls={[StringArrayInput]}
         />
       </IntlProvider>
     );
@@ -588,6 +587,9 @@ export class PipelineEditor extends React.Component<
           const dependenciesSet = new Set(
             this.propertiesController.getPropertyValue(propertyId)
           );
+          if (dependenciesSet.has('')) {
+            dependenciesSet.delete('');
+          }
           result.value.forEach((val: any) => {
             dependenciesSet.add(val.path);
           });

@@ -58,6 +58,8 @@
         "label": {
           "default": "File Dependencies"
         },
+        "control": "custom",
+        "custom_control_id": "elyra-string-array-input",
         "description": {
           "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
         }
@@ -76,9 +78,8 @@
         "label": {
           "default": "Environment Variables"
         },
-        "place_holder_text": {
-          "default": "..."
-        },
+        "control": "custom",
+        "custom_control_id": "elyra-string-array-input",
         "description": {
           "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
         }
@@ -88,9 +89,8 @@
         "label": {
           "default": "Output Files"
         },
-        "place_holder_text": {
-          "default": "..."
-        },
+        "control": "custom",
+        "custom_control_id": "elyra-string-array-input",
         "description": {
           "default": "Files generated during execution that will become available to all subsequent pipeline steps.\n One filename or expression (e.g. *.csv) per line. Supported patterns: ? and *."
         }
@@ -128,19 +128,13 @@
         "group_info": [
           {
             "id": "nodeFileControl",
-            "type": "panels",
-            "group_info": [
-              {
-                "id": "elyra-string-input",
-                "type": "customPanel",
-                "parameter_refs": ["filename"]
-              },
-              {
-                "id": "nodeBrowseFileAction",
-                "type": "actionPanel",
-                "action_refs": ["browse_file"]
-              }
-            ]
+            "type": "controls",
+            "parameter_refs": ["filename"]
+          },
+          {
+            "id": "nodeBrowseFileAction",
+            "type": "actionPanel",
+            "action_refs": ["browse_file"]
           },
           {
             "id": "nodeRuntimeImageControl",
@@ -152,8 +146,8 @@
             "type": "panels",
             "group_info": [
               {
-                "id": "elyra-string-array-input",
-                "type": "customPanel",
+                "id": "nodeListDependenciesControl",
+                "type": "controls",
                 "parameter_refs": ["dependencies"]
               },
               {
@@ -170,8 +164,13 @@
           },
           {
             "id": "elyra-string-array-input",
-            "type": "customPanel",
-            "parameter_refs": ["env_vars", "outputs"]
+            "type": "controls",
+            "parameter_refs": ["env_vars"]
+          },
+          {
+            "id": "elyra-string-array-input",
+            "type": "controls",
+            "parameter_refs": ["outputs"]
           }
         ]
       }

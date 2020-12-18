@@ -14,87 +14,79 @@
  * limitations under the License.
  */
 
-import { ControlGroup, FormGroup, Button, InputGroup } from '@blueprintjs/core';
+import { ControlGroup, Button, InputGroup } from '@blueprintjs/core';
 import React from 'react';
 
-export class StringArrayInput {
-  parameters: any;
+export class StringArrayInput extends React.Component {
+  parameter: string;
   controller: any;
-  values: string[][];
+  values: string[];
 
-  static id() {
+  static id(): string {
     return 'elyra-string-array-input';
   }
 
   constructor(parameters: any, controller: any) {
-    this.parameters = parameters;
+    super({});
+    this.parameter = parameters['name'];
     this.controller = controller;
   }
 
-  renderPanel() {
-    console.log('StringArrayInput');
-    const forms: any[] = [];
-    this.values = [];
-    this.parameters.forEach((parameter: string, paramIndex: number) => {
-      let curValues = this.controller.getPropertyValue(parameter);
-      if (!curValues) {
-        curValues = [];
-      }
-      this.values.push(curValues);
-      forms.push(
-        <FormGroup
-          key={parameter}
-          label={parameter}
-          labelFor={parameter}
-          className="string-array-input"
-          labelInfo={this.parameters.required && '(required)'}
-          helperText={this.parameters.helperText}
-        >
-          <div id={this.parameters}>
-            {curValues.map((value: any, index: number) => (
-              <ControlGroup key={value} style={{ marginBottom: 4 }}>
-                <InputGroup
-                  fill
-                  readOnly={this.parameters.includes('dependencies')}
-                  className="jp-InputGroup"
-                  placeholder={this.parameters.placeholder}
-                  defaultValue={value}
-                  onSubmit={(event: any) => {
-                    curValues[index] = event.target.value;
-                    this.controller.updatePropertyValue(parameter, curValues);
-                  }}
-                />
-                <Button
-                  className="jp-Button"
-                  icon="cross"
-                  onClick={() => {
-                    delete this.values[paramIndex][index];
-                    this.controller.updatePropertyValue(
-                      parameter,
-                      this.values[paramIndex]
-                    );
-                  }}
-                />
-              </ControlGroup>
-            ))}
-          </div>
-          {this.parameters.includes('dependencies') ? (
-            <div />
-          ) : (
-            <Button
-              className="jp-Button"
-              onClick={() => {
-                curValues.push('');
-                this.controller.updatePropertyValue(parameter, curValues);
-              }}
-              style={{ marginTop: 8 }}
+  renderControl() {
+    console.log('hi');
+    const parameter = this.parameter;
+    this.values = this.controller.getPropertyValue(parameter);
+    // Start with one empty entry
+    if (this.values.length === 0 && parameter !== 'dependencies') {
+      this.values.push('');
+    }
+    return (
+      <div>
+        <div id={this.parameter}>
+          {this.values.map((value: any, index: number) => (
+            <ControlGroup
+              key={parameter + index + 'ControlGroup'}
+              style={{ marginBottom: 4 }}
             >
-              Add item
-            </Button>
-          )}
-        </FormGroup>
-      );
-    });
-    return forms;
+              <InputGroup
+                fill
+                key={parameter + index + 'InputGroup'}
+                readOnly={parameter === 'dependencies'}
+                className="jp-InputGroup"
+                defaultValue={value}
+                onChange={(event: any): void => {
+                  this.values[index] = event.target.value;
+                  this.controller.updatePropertyValue(parameter, this.values);
+                }}
+              />
+              <Button
+                className="jp-Button"
+                icon="cross"
+                onClick={(): void => {
+                  delete this.values[index];
+                  this.controller.updatePropertyValue(parameter, this.values);
+                }}
+              />
+            </ControlGroup>
+          ))}
+        </div>
+        {parameter === 'dependencies' ? (
+          <div />
+        ) : (
+          <Button
+            className="jp-Button"
+            onClick={(): void => {
+              this.values.push('');
+              this.controller.updatePropertyValue(parameter, this.values);
+            }}
+            style={{ marginTop: 8 }}
+          >
+            Add item
+          </Button>
+        )}
+      </div>
+    );
   }
 }
+
+export default StringArrayInput;

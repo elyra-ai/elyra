@@ -52,17 +52,18 @@
 }
 
 .properties-editor-form .properties-control-panel .properties-control-panel {
-  padding: 14px 0 14px 0.5rem;
-  border-bottom: 1px solid #cfd1d4;
-}
-
-.properties-editor-form .properties-control-panel .string-array-input {
-  padding: 14px 0 14px 0.5rem;
+  padding: 0;
+  margin-bottom: 14px;
+  margin-top: 14px;
   border-bottom: 1px solid #cfd1d4;
 }
 
 .properties-control-item {
   padding: 5px 0 5px 0;
+}
+
+.properties-right-flyout {
+  background-color: #fff;
 }
 
 .bx--text-input__field-outer-wrapper {
@@ -197,6 +198,21 @@ td {
   .bp3-form-group {
   margin-bottom: 8px;
 }
+.properties-control-panel[data-id='properties-nodeDependenciesControls']
+  .properties-control-panel {
+  padding: 0;
+}
+
+.properties-editor-form
+  .properties-control-panel
+  .properties-control-panel[data-id='properties-nodeListDependenciesControl'] {
+  border-bottom: none;
+  padding-left: 0;
+  padding-bottom: 0;
+}
+.properties-control-item[data-id='properties-ci-dependencies'] {
+  padding: 0;
+}
 .properties-action-panel[data-id='properties-nodeBrowseFileAction']
   .properties-action-button {
   padding: 0;
@@ -206,21 +222,52 @@ td {
   button {
   border-radius: 0px 3px 3px 0px;
 }
+.properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
+  position: absolute;
+  right: 0px;
+  top: 21px;
+}
 .properties-control-panel[data-id='properties-nodeFileControl'] {
   display: flex;
   align-items: center;
+  width: 100%;
 }
+.properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-control-item {
+  width: calc(100% - 67px);
+}
+
+.properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-readonly:hover {
+  max-height: 1000px;
+  border-radius: 3px 0px 3px 3px;
+  transition: max-height 10s;
+}
+
+.properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-readonly:hover
+  span:before {
+  display: none;
+}
+
+.properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-readonly:hover
+  span {
+  white-space: normal;
+  padding-left: 10px;
+}
+
 .properties-control-panel > .properties-control-panel {
   padding: 0;
 }
 
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction'] {
-  margin: 0;
+  margin: 0 0 14px 0;
   padding: 0;
 }
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction']
   .properties-action-button {
-  padding-right: 0;
+  padding-left: 0;
 }
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction']
   .bx--btn--tertiary {
