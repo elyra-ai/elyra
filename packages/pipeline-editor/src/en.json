@@ -44,7 +44,7 @@
     "fieldPicker.dataTypeColumn.label": "Data type",
     "flyout.applyButton.label": "OK",
     "flyout.rejectButton.label": "Cancel",
-    "propertiesEdit.applyButton.label": "Save",
+    "propertiesEdit.applyButton.label": "OK",
     "propertiesEdit.rejectButton.label": "Cancel",
     "table.search.placeholder": "Search in column",
     "summary.longTable.placeholder": "More than ten fields...",

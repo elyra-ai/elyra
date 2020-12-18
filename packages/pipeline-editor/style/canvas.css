@@ -256,6 +256,42 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   padding-right: 5px;
   white-space: nowrap;
 }
+.properties-modal-buttons .properties-apply-button {
+  background: var(--md-blue-500);
+  border: 0;
+  color: white;
+  margin-right: 24px;
+}
+
+.properties-cancel-button {
+  background: var(--md-grey-500);
+  border: 0;
+  color: white;
+  margin-right: 10px;
+}
+
+.properties-label-container label,
+.properties-checkbox label,
+.bx--list-box__label,
+.bp3-input {
+  font-size: 13px;
+}
+
+.properties-modal-buttons .properties-apply-button,
+.properties-modal-buttons .properties-cancel-button {
+  width: auto;
+  max-width: unset;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 32px;
+  height: 32px;
+  padding: 0px 12px;
+  margin-top: 14px;
+  letter-spacing: 0.8px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
 .properties-readonly span:before {
   content: '\02026';
   position: absolute;

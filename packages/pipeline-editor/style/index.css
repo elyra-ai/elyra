@@ -202,7 +202,18 @@ td {
   .properties-control-panel {
   padding: 0;
 }
-
+.properties-medium
+  .properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-readonly:hover
+  span:before {
+  display: none;
+}
+.properties-medium
+  .properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-readonly:hover
+  span {
+  text-overflow: ellipsis;
+}
 .properties-editor-form
   .properties-control-panel
   .properties-control-panel[data-id='properties-nodeListDependenciesControl'] {
@@ -225,7 +236,7 @@ td {
 .properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
   position: absolute;
   right: 0px;
-  top: 21px;
+  top: 22px;
 }
 .properties-control-panel[data-id='properties-nodeFileControl'] {
   display: flex;
