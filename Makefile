@@ -20,8 +20,13 @@
 
 SHELL:=/bin/bash
 
+GIT_VERSION:=0.23.1
+TOC_VERSION:=4.0.0
+AIRFLOW_NOTEBOOK_VERSION:=0.0.4
+
 TAG:=dev
 IMAGE=elyra/elyra:$(TAG)
+ELYRA_AIRFLOW_IMAGE=elyra/airflow:$(TAG)
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
@@ -86,7 +91,7 @@ build-ui: yarn-install lint-ui ## Build packages
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
 build-server: lint-server ## Build backend
-	python setup.py bdist_wheel sdist
+	python setup.py bdist_wheel sdist --airflow
 
 build: build-server build-ui
 
@@ -150,10 +155,15 @@ container-image: ## Build container image
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(IMAGE) -t quay.io/$(IMAGE) build/docker/ --progress plain
 
+
 publish-container-image: container-image ## Publish container image
     # this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(IMAGE)
 	docker push quay.io/$(IMAGE)
+
+airflow-image: ## Build airflow image for use with Elyra
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_AIRFLOW_IMAGE) -t quay.io/$(ELYRA_AIRFLOW_IMAGE) \
+	--build-arg AIRFLOW_NOTEBOOK_VERSION=${AIRFLOW_NOTEBOOK_VERSION} build/docker/ --progress plain
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \

@@ -1,27 +1,26 @@
 from airflow import DAG
-from datetime import datetime, timedelta
 from airflow_notebook.pipeline import NotebookOp
+from airflow.utils.dates import days_ago
 
 ## Setup default args with older date to automatically trigger when uploaded
-default_args = {
-    'start_date': datetime(2020, 1, 1),
+args = {
     'project_id' : '{{ pipeline_name }}',
-    'retries': 1,
-    'retry_delay': timedelta(minutes=3),
 }
 
 dag = DAG(
     '{{ pipeline_name }}',
-    default_args=default_args,
+    default_args=args,
+    schedule_interval=None,
+    start_date=days_ago(1),
     description='{{ pipeline_description }}',
     is_paused_upon_creation={{ is_paused_upon_creation }},
 )
 
 {% for key, operation in operations_list.items() %}
-notebook_op_{{ operation.id|replace("-", "_") }} = NotebookOp(name='{{ operation.notebook }}',
+notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|regex_replace }}',
                                           namespace='{{ namespace }}',
-                                          task_id='{{ operation.notebook }}',
-                                          notebook='{{ operation.notebook }}',
+                                          task_id='{{ operation.notebook|regex_replace }}',
+                                          notebook='{{ operation.filename }}',
                                           cos_endpoint='{{ operation.cos_endpoint }}',
                                           cos_bucket='{{ operation.cos_bucket }}',
                                           cos_directory='{{ operation.cos_directory }}',
@@ -36,7 +35,7 @@ notebook_op_{{ operation.id|replace("-", "_") }} = NotebookOp(name='{{ operation
     )
     {% if operation.parent_operations %}
         {% for parent_operation in operation.parent_operations %}
-            notebook_op_{{ operation.id|replace("-", "_") }} << notebook_op_{{ parent_operation|replace("-", "_") }}
+            notebook_op_{{ operation.id|regex_replace }} << notebook_op_{{ parent_operation|regex_replace }}
         {% endfor %}
     {% endif %}
 

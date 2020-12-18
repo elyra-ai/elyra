@@ -97,8 +97,6 @@ setup_args = dict(
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
-            'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor',
-            'airflow = elyra.pipeline.processor_airflow:AirflowPipelineProcessor',
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',
@@ -110,6 +108,25 @@ if "--dev" not in sys.argv:
     setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
 else:
     sys.argv.remove("--dev")
+
+kfp_packages = [
+    'kfp-notebook>=0.14.0,<0.15.0',
+    'kfp==1.1.0'
+    ]
+
+airflow_packages = [
+    'pygithub'
+]
+
+if "--airflow" not in sys.argv:
+    setup_args["install_requires"].append(kfp_packages)
+    setup_args["entry_points"]['elyra.pipeline.processors'].append(
+        'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor')
+else:
+    setup_args["install_requires"].append(airflow_packages)
+    setup_args["entry_points"]['elyra.pipeline.processors'].append(
+        'airflow = elyra.pipeline.processor_airflow:AirflowPipelineProcessor')
+    sys.argv.remove("--airflow")
 
 if __name__ == '__main__':
     setup(**setup_args)

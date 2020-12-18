@@ -17,6 +17,7 @@
 import os
 import autopep8
 import json
+import re
 import tempfile
 import time
 
@@ -40,6 +41,7 @@ class AirflowPipelineProcessor(PipelineProcessor):
         return self._type
 
     def process(self, pipeline):
+        t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
 
@@ -79,28 +81,17 @@ class AirflowPipelineProcessor(PipelineProcessor):
                                      content=content,
                                      branch=github_branch)
 
-                # Upload to S3
-                # cos_client = CosClient(config=runtime_configuration)
-                # cos_client.upload_file_to_dir(dir=cos_directory,
-                #                              file_name=pipeline_name + ".py",
-                #                              file_path=pipeline_filepath,
-                #                              use_dag_bucket='True')
-
                 self.log.info("Uploaded AirFlow Pipeline...waiting for Airflow Scheduler to start a run")
 
             except GithubException as e:
                 print(e)
 
-            # except MaxRetryError as ex:
-            #    raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
-#
-            # except BaseException:
-            #    self.log.error("Error uploading DAG to object storage.", exc_info=True)
-            #    raise
+            self.log_pipeline_info(pipeline_name,
+                                   f"pipeline submitted: https://github.com/{github_repo}/tree/{github_branch}",
+                                   duration=(time.time() - t0_all))
 
             return PipelineProcessorResponse(
-                # TODO - update the api endpoint url context
-                run_url=f'{github_repo}/{github_branch}',
+                run_url=f'https://github.com/{github_repo}/tree/{github_branch}',
                 object_storage_url=f'{cos_endpoint}',
                 object_storage_path=f'/{cos_bucket}/{pipeline_name}',
             )
@@ -186,6 +177,7 @@ class AirflowPipelineProcessor(PipelineProcessor):
 
             notebook = {'notebook': operation.name,
                         'id': operation.id,
+                        'filename': operation.filename,
                         'runtime_image': operation.runtime_image,
                         'cos_endpoint': cos_endpoint,
                         'cos_bucket': cos_bucket,
@@ -261,6 +253,10 @@ class AirflowPipelineProcessor(PipelineProcessor):
             # Load template from installed elyra package
             loader = PackageLoader('elyra', 'templates/airflow')
             template_env = Environment(loader=loader)
+
+            template_env.filters['regex_replace'] = lambda string: re.sub("[-!@#$%^&*(){};:,/<>?|`~=+ ]",
+                                                                          "_",
+                                                                          string)  # nopep8 E731
 
             template = template_env.get_template('airflow_template.jinja2')
 
