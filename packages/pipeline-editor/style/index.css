@@ -202,18 +202,6 @@ td {
   .properties-control-panel {
   padding: 0;
 }
-.properties-medium
-  .properties-control-panel[data-id='properties-nodeFileControl']
-  .properties-readonly:hover
-  span:before {
-  display: none;
-}
-.properties-medium
-  .properties-control-panel[data-id='properties-nodeFileControl']
-  .properties-readonly:hover
-  span {
-  text-overflow: ellipsis;
-}
 .properties-editor-form
   .properties-control-panel
   .properties-control-panel[data-id='properties-nodeListDependenciesControl'] {
@@ -250,22 +238,15 @@ td {
 
 .properties-control-panel[data-id='properties-nodeFileControl']
   .properties-readonly:hover {
-  max-height: 1000px;
   border-radius: 3px 0px 3px 3px;
-  transition: max-height 10s;
-}
-
-.properties-control-panel[data-id='properties-nodeFileControl']
-  .properties-readonly:hover
-  span:before {
-  display: none;
 }
 
 .properties-control-panel[data-id='properties-nodeFileControl']
   .properties-readonly:hover
   span {
   white-space: normal;
-  padding-left: 10px;
+  max-height: 1000px;
+  background: #e0e3e4;
 }
 
 .properties-control-panel > .properties-control-panel {

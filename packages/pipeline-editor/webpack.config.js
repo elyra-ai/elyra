@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import autoPrefixer from 'autoprefixer';
-import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-
 /* global module, path, __dirname */
 module.exports = {
   entry: './src/index.tsx',
@@ -26,14 +22,12 @@ module.exports = {
     libraryTarget: 'commonjs2'
   },
 
-  plugins: [new MiniCssExtractPlugin()],
-
   // Enable sourcemaps for debugging webpack's output.
   devtool: 'source-map',
 
   resolve: {
     // Add '.ts' and '.tsx' as resolvable extensions.
-    extensions: ['.ts', '.tsx', '.js', '.json', '.scss']
+    extensions: ['.ts', '.tsx', '.js', '.json']
   },
 
   options: { includePaths: ['node_modules'] },
@@ -42,32 +36,6 @@ module.exports = {
     rules: [
       // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
       { test: /\.tsx?$/, loader: 'ts-loader' },
-
-      {
-        test: /\.s*css$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader
-          },
-          { loader: 'css-loader', options: { url: false } },
-          {
-            loader: 'postcss-loader',
-            options: {
-              postcssOptions: {
-                plugins: [autoPrefixer]
-              }
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sassOptions: {
-                includePaths: ['.', 'node_modules']
-              }
-            }
-          }
-        ]
-      },
 
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
       { enforce: 'pre', test: /\.js$/, loader: 'source-map-loader' }
