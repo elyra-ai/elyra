@@ -21,13 +21,15 @@ export class StringArrayInput extends React.Component {
   parameter: string;
   controller: any;
   values: string[];
+  singleItemLabel: string;
 
   static id(): string {
     return 'elyra-string-array-input';
   }
 
-  constructor(parameters: any, controller: any) {
+  constructor(parameters: any, controller: any, data: any) {
     super({});
+    this.singleItemLabel = data.single_item_label;
     this.parameter = parameters['name'];
     this.controller = controller;
   }
@@ -36,10 +38,6 @@ export class StringArrayInput extends React.Component {
     console.log('hi');
     const parameter = this.parameter;
     this.values = this.controller.getPropertyValue(parameter);
-    // Start with one empty entry
-    if (this.values.length === 0 && parameter !== 'dependencies') {
-      this.values.push('');
-    }
     return (
       <div>
         <div id={this.parameter}>
@@ -81,7 +79,7 @@ export class StringArrayInput extends React.Component {
             }}
             style={{ marginTop: 8 }}
           >
-            Add item
+            Add {this.singleItemLabel ? this.singleItemLabel : 'item'}
           </Button>
         )}
       </div>

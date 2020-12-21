@@ -247,6 +247,15 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .bx--modal .bx--dropdown {
   background-color: var(--ui-02);
 }
+.properties-required-indicator {
+  margin-left: 3px;
+}
+.properties-required-indicator::before {
+  content: '(';
+}
+.properties-required-indicator::after {
+  content: 'required)';
+}
 .properties-readonly span {
   position: absolute;
   margin: 3px;

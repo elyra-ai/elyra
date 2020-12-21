@@ -10,27 +10,33 @@
   "parameters": [
     {
       "id": "filename",
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     {
       "id": "runtime_image",
-      "enum": []
+      "enum": [],
+      "required": true
     },
     {
       "id": "dependencies",
-      "type": "array[string]"
+      "type": "array[string]",
+      "required": false
     },
     {
       "id": "include_subdirectories",
-      "type": "boolean"
+      "type": "boolean",
+      "required": false
     },
     {
       "id": "env_vars",
-      "type": "array[string]"
+      "type": "array[string]",
+      "required": false
     },
     {
       "id": "outputs",
-      "type": "array[string]"
+      "type": "array[string]",
+      "required": false
     }
   ],
   "uihints": {
@@ -62,6 +68,9 @@
         "custom_control_id": "elyra-string-array-input",
         "description": {
           "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
+        },
+        "data": {
+          "single_item_label": "Dependency"
         }
       },
       {
@@ -82,6 +91,9 @@
         "custom_control_id": "elyra-string-array-input",
         "description": {
           "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
+        },
+        "data": {
+          "single_item_label": "Environmental Variable"
         }
       },
       {
@@ -93,6 +105,9 @@
         "custom_control_id": "elyra-string-array-input",
         "description": {
           "default": "Files generated during execution that will become available to all subsequent pipeline steps.\n One filename or expression (e.g. *.csv) per line. Supported patterns: ? and *."
+        },
+        "data": {
+          "single_item_label": "Output File"
         }
       }
     ],
