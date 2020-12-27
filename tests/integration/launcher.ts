@@ -15,11 +15,15 @@
  */
 
 describe('Elyra launcher is in use', () => {
+  beforeEach(() => {
+    cy.openJupyterLab();
+  });
+
   it('should have Elyra extensions', () => {
-    // open jupyterlab with a clean workspace
-    cy.visit('?token=test&reset');
-    cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click();
-    // Jupyter notebook default kernel is avilable
+    // cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click({
+    //   force: true
+    // });
+    // Jupyter notebook default kernel is available
     cy.get(
       '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
     );

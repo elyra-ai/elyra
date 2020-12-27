@@ -30,15 +30,14 @@ describe('Pipeline Editor tests', () => {
   beforeEach(() => {
     cy.readFile('tests/assets/helloworld.ipynb').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.ipynb', file);
+      cy.exec('jupyter trust build/cypress-tests/helloworld.ipynb');
     });
     cy.readFile('tests/assets/helloworld.py').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.py', file);
     });
-    // open jupyterlab
-    cy.visit('?token=test&reset');
-    cy.wait(1000);
+    cy.openJupyterLab();
     // wait for the file browser to load
-    cy.get('.jp-DirListing-content');
+    cy.get('.jp-DirListing-content', { timeout: 10000 }).should('be.visible');
   });
 
   afterEach(() => {
@@ -177,6 +176,8 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/invalid.pipeline').then((file: any) => {
       cy.writeFile('build/cypress-tests/invalid.pipeline', file);
     });
+    cy.wait(300);
+
     // opens pileine from the file browser
     cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
     // try to run invalid pipeline
@@ -238,6 +239,7 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/helloworld.pipeline').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.pipeline', file);
     });
+    cy.wait(300);
 
     getFileByName('helloworld.pipeline').rightclick();
     cy.get('[data-command="filebrowser:open"]').click();
@@ -279,6 +281,8 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/invalid.pipeline').then((file: any) => {
       cy.writeFile('build/cypress-tests/invalid.pipeline', file);
     });
+    cy.wait(300);
+
     // opens pileine from the file browser
     cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
     // try to export invalid pipeline
@@ -294,6 +298,7 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/helloworld.pipeline').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.pipeline', file);
     });
+    cy.wait(300);
 
     getFileByName('helloworld.pipeline').rightclick();
     cy.get('[data-command="filebrowser:open"]').click();
@@ -327,11 +332,15 @@ describe('Pipeline Editor tests', () => {
       .should('have.value', 'yaml');
 
     // actual export requires minio
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+    cy.get('button.jp-mod-accept', { timeout: 10000 }).should('be.visible');
+    cy.get('button.jp-mod-accept').click({
+      force: true
+    });
     // dismiss 'Making request' dialog
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(1000);
+    cy.get('button.jp-mod-accept', { timeout: 10000 }).should('be.visible');
+    cy.get('button.jp-mod-accept').click({
+      force: true
+    });
     cy.readFile('build/cypress-tests/helloworld.yaml');
     cy.exec('find build/cypress-tests/ -name helloworld.yaml -delete', {
       failOnNonZeroExit: false
@@ -361,7 +370,7 @@ const closePipelineEditorWithoutSaving = (): void => {
     '.lm-TabBar-tab.lm-mod-current > .lm-TabBar-tabCloseIcon:visible'
   ).click();
   cy.get('button.jp-mod-reject').click();
-  cy.get('.jp-Dialog-content').should('not.be.visible');
+  cy.get('.jp-Dialog-content').should('not.exist');
 };
 
 const getFileByName = (name: string): any => {

@@ -24,7 +24,7 @@ declare namespace Cypress {
 
 Cypress.Commands.add('openJupyterLab', (): void => {
   // open jupyterlab with a clean workspace
-  cy.visit('?token=test&reset').wait(1000);
+  cy.visit('?token=test&reset').wait(15000);
 });
 
 Cypress.Commands.add('closeCurrentTab', (): void => {
