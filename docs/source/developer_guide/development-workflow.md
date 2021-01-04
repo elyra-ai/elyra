@@ -68,6 +68,15 @@ You can check that the JupyterLab extension was successful installed with:
 jupyter labextension list
 ```
 
+NOTE: 
+When switching between Elyra major versions, it is recommended to clean your jupyterlab environemnt before a build.
+To clean your environment, you can run the script:
+
+```bash
+etc/scripts/clean-jupyterlab.sh
+```
+
+
 ### Incremental Development
 
 Elyra supports incremental development using `--watch`. This allows you to make code changes to
