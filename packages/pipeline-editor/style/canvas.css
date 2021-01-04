@@ -249,12 +249,16 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 }
 .properties-required-indicator {
   margin-left: 3px;
+  visibility: hidden;
 }
 .properties-required-indicator::before {
   content: '(';
+  visibility: visible;
 }
 .properties-required-indicator::after {
   content: 'required)';
+  visibility: visible;
+  margin-left: -6px;
 }
 .properties-readonly span {
   position: absolute;

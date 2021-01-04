@@ -93,7 +93,7 @@
           "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
         },
         "data": {
-          "single_item_label": "Environmental Variable"
+          "single_item_label": "Environment Variable"
         }
       },
       {
