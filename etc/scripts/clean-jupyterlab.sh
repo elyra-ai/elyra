@@ -14,6 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+################################################################################
+# DISCLAIMER:
+# *** This script will completely clean your Jupyter/JupyterLab environment. ***
+# *** Any important data stored in your Jupyter/JupyterLab workspace will be removed. ***
+# *** Any package installed in your Jupyter/JupyterLab workspace will be removed. ***
+#
+#
+# INSTRUCTIONS:
+# This script is intended to help setting up a clean environment for Elyra's development.
+# It is recommended to use a virtual environment (eg. conda env).
+# It will reinstall JupyterLab after an environment cleanup.
+#
+# Make sure you have a conda environment setup (https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
+# Export the variable ANACONDA_HOME with your conda installation path to the environment:
+# export ANACONDA_HOME='/Users/my_username/my_anaconda_dir/'
+#
+# To install a specific JupyterLab version, add the version argument as below:
+# etc/scripts/clean-jupyterlab.sh --version 2.2.9
+# When no argument is passed to the command, the script will install the latest JupyterLab version.
+################################################################################
 
 ANACONDA_HOME=${ANACONDA_HOME:='~/anaconda'}
 
