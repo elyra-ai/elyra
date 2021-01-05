@@ -15,25 +15,31 @@
 # limitations under the License.
 #
 ################################################################################
-# DISCLAIMER:
-# *** This script will completely clean your Jupyter/JupyterLab environment. ***
-# *** Any important data stored in your Jupyter/JupyterLab workspace will be removed. ***
-# *** Any package installed in your Jupyter/JupyterLab workspace will be removed. ***
-#
-#
 # INSTRUCTIONS:
-# This script is intended to help setting up a clean environment for Elyra's development.
+# This script is intended to help clean your JupyterLab/Elyra environment. It can be very useful when switching back and forth between different JupyterLab versions during the development of Elyra.
 # It is recommended to use a virtual environment (eg. conda env).
-# It will reinstall JupyterLab after an environment cleanup.
+# It reinstalls JupyterLab after an environment cleanup.
 #
 # Make sure you have a conda environment setup (https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
 # Export the variable ANACONDA_HOME with your conda installation path to the environment:
 # export ANACONDA_HOME='/Users/my_username/my_anaconda_dir/'
 #
-# To install a specific JupyterLab version, add the version argument as below:
+# WARNING: The following resources will be deleted:
+# ~/.jupyter
+# $ANACONDA_HOME/etc/jupyter
+# $ANACONDA_HOME/share/jupyter
+# $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/etc/jupyter
+# $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter
+#
+# To install a specific JupyterLab version, run the script adding the version argument as below:
 # etc/scripts/clean-jupyterlab.sh --version 2.2.9
-# When no argument is passed to the command, the script will install the latest JupyterLab version.
+# When no argument is passed to the command, it will install the latest JupyterLab version.
 ################################################################################
+
+echo "This script removes your JupyterLab installation"
+echo "Any packages or data stored in your JupyterLab environment will be removed"
+echo " "
+read -p "Press ENTER to continue or CTRL+C to abort"
 
 ANACONDA_HOME=${ANACONDA_HOME:='~/anaconda'}
 
