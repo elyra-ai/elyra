@@ -236,21 +236,43 @@ td {
   width: calc(100% - 67px);
 }
 
-.properties-control-panel[data-id='properties-nodeFileControl']
-  .properties-readonly:hover {
-  border-radius: 3px 0px 3px 3px;
-}
-
-.properties-control-panel[data-id='properties-nodeFileControl']
-  .properties-readonly:hover
-  span {
-  white-space: normal;
-  max-height: 1000px;
-  background: #e0e3e4;
-}
-
 .properties-control-panel > .properties-control-panel {
   padding: 0;
+}
+
+.elyra-Tooltip {
+  top: 89px;
+  visibility: hidden;
+  opacity: 100%;
+}
+
+.properties-readonly:hover .elyra-Tooltip-arrow {
+  visibility: visible;
+}
+
+.elyra-Tooltip-arrow {
+  height: 0;
+  position: absolute;
+  visibility: hidden;
+  width: 0;
+  top: 51px;
+  left: 94px;
+  z-index: 1000000;
+  border: 10px solid transparent;
+  border-right-color: var(--ui-02);
+  opacity: 100%;
+  transform: rotate(90deg);
+}
+.elyra-Tooltip-arrow-outline {
+  top: 50px;
+  z-index: 999999;
+  border-right-color: var(--ui-03);
+}
+
+.properties-readonly:hover .elyra-Tooltip {
+  visibility: visible;
+  white-space: initial;
+  opacity: 100%;
 }
 
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction'] {

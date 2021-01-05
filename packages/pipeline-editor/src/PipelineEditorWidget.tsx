@@ -525,10 +525,7 @@ export class PipelineEditor extends React.Component<
     }
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
-      node.label = PathExt.basename(
-        propertySet.filename,
-        PathExt.extname(propertySet.filename)
-      );
+      node.label = PathExt.basename(propertySet.filename);
     }
 
     app_data.runtime_image = propertySet.runtime_image;
@@ -1300,6 +1297,27 @@ export class PipelineEditor extends React.Component<
     this.initPropertiesInfo().finally(() => {
       this.handleOpenPipeline();
     });
+  }
+
+  componentDidUpdate(): void {
+    const inputFields = document.querySelectorAll('.properties-readonly');
+    for (const inputField of inputFields) {
+      if (inputField.children.length > 1) {
+        continue;
+      }
+      const tooltip = document.createElement('span');
+      tooltip.className = 'elyra-Tooltip common-canvas-tooltip';
+      tooltip.setAttribute('direction', 'bottom');
+      const arrow = document.createElement('div');
+      arrow.className = 'elyra-Tooltip-arrow';
+      inputField.appendChild(arrow);
+      const arrowOutline = document.createElement('div');
+      arrowOutline.className =
+        'elyra-Tooltip-arrow elyra-Tooltip-arrow-outline';
+      inputField.appendChild(arrowOutline);
+      tooltip.innerText = inputField.children[0].innerHTML;
+      inputField.appendChild(tooltip);
+    }
   }
 }
 

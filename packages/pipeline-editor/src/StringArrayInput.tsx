@@ -35,7 +35,6 @@ export class StringArrayInput extends React.Component {
   }
 
   renderControl() {
-    console.log('hi');
     const parameter = this.parameter;
     this.values = this.controller.getPropertyValue(parameter);
     return (
