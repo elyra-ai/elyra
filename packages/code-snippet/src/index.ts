@@ -36,6 +36,10 @@ import { CodeSnippetWidget } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
 
+const commandIDs = {
+  saveAsSnippet: 'codesnippet:save-as-snippet'
+};
+
 /**
  * Initialization data for the code-snippet extension.
  */
@@ -74,6 +78,28 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     // Rank has been chosen somewhat arbitrarily to give priority to the running
     // sessions widget in the sidebar.
     app.shell.add(codeSnippetWidget, 'left', { rank: 900 });
+
+    app.commands.addCommand(commandIDs.saveAsSnippet, {
+      label: 'Save As Code Snippet',
+      isEnabled: () => true,
+      isVisible: () => true,
+      execute: () => {
+        const selection = document.getSelection().toString();
+
+        console.log('SAVING AS CODE SNIPPET...');
+        console.log(selection);
+      }
+    });
+
+    app.contextMenu.addItem({
+      command: commandIDs.saveAsSnippet,
+      selector: '.jp-Cell'
+    });
+
+    app.contextMenu.addItem({
+      command: commandIDs.saveAsSnippet,
+      selector: '.jp-FileEditor'
+    });
   }
 };
 
