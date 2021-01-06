@@ -34,6 +34,15 @@ auto_extension_path = "./etc/config/jupyter_server_config.d/*.json"
 settings_path = './etc/config/settings/*.json'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 
+kfp_packages = [
+    'kfp-notebook~=0.18.0',
+    'kfp==1.3.0',
+    'kfp-tekton==0.6.0',
+    ]
+
+airflow_packages = [
+    'pygithub',
+]
 
 setup_args = dict(
     name="elyra",
@@ -59,9 +68,6 @@ setup_args = dict(
         'jupyterlab-git==0.30.0b1',
         'jupyterlab-lsp>=3.0.0',
         'jupyter-resource-usage>=0.5.1',
-        'kfp-notebook~=0.18.0',
-        'kfp==1.3.0',
-        'kfp-tekton==0.6.0',
         'minio>=5.0.7,<7.0.0',
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1,<6.0',
@@ -108,15 +114,6 @@ if "--dev" not in sys.argv:
     setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
 else:
     sys.argv.remove("--dev")
-
-kfp_packages = [
-    'kfp-notebook>=0.14.0,<0.15.0',
-    'kfp==1.1.0'
-    ]
-
-airflow_packages = [
-    'pygithub'
-]
 
 if "--airflow" not in sys.argv:
     setup_args["install_requires"].append(kfp_packages)
