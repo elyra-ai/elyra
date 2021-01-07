@@ -18,6 +18,8 @@ import entrypoints
 import os
 
 from abc import abstractmethod
+from elyra.metadata import MetadataManager
+from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
 
@@ -171,3 +173,41 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             op_clause = f":'{operation_name}'" if operation_name else ""
 
             self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
+
+
+class RuntimePipelineProcess(PipelineProcessor):
+
+    def _get_dependency_archive_name(self, operation):
+        artifact_name = os.path.basename(operation.filename)
+        (name, ext) = os.path.splitext(artifact_name)
+        return name + '-' + operation.id + ".tar.gz"
+
+    def _get_dependency_source_dir(self, operation):
+        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
+
+    def _generate_dependency_archive(self, operation):
+        archive_artifact_name = self._get_dependency_archive_name(operation)
+        archive_source_dir = self._get_dependency_source_dir(operation)
+
+        dependencies = [os.path.basename(operation.filename)]
+        dependencies.extend(operation.dependencies)
+
+        archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
+                                               source_dir=archive_source_dir,
+                                               filenames=dependencies,
+                                               recursive=operation.include_subdirectories,
+                                               require_complete=True)
+
+        return archive_artifact
+
+    def _get_runtime_configuration(self, name):
+        """
+        Retrieve associated runtime configuration based on processor type
+        :return: metadata in json format
+        """
+        try:
+            runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
+            return runtime_configuration
+        except BaseException as err:
+            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
+            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err

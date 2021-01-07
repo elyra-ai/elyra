@@ -23,9 +23,7 @@ import requests
 
 from datetime import datetime
 from elyra._version import __version__
-from elyra.metadata import MetadataManager
-from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
-from elyra.util.archive import create_temp_archive
+from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
 from elyra.util.cos import CosClient
 from jinja2 import Environment, PackageLoader
@@ -34,7 +32,7 @@ from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
 
 
-class KfpPipelineProcessor(PipelineProcessor):
+class KfpPipelineProcessor(RuntimePipelineProcess):
     _type = 'kfp'
 
     # Provide users with the ability to identify a writable directory in the
@@ -342,41 +340,6 @@ class KfpPipelineProcessor(PipelineProcessor):
         self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration=(time.time() - t0_all))
 
         return notebook_ops
-
-    def _get_dependency_archive_name(self, operation):
-        archive_name = os.path.basename(operation.filename)
-        (name, ext) = os.path.splitext(archive_name)
-        return name + '-' + operation.id + ".tar.gz"
-
-    def _get_dependency_source_dir(self, operation):
-        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
-
-    def _generate_dependency_archive(self, operation):
-        archive_artifact_name = self._get_dependency_archive_name(operation)
-        archive_source_dir = self._get_dependency_source_dir(operation)
-
-        dependencies = [os.path.basename(operation.filename)]
-        dependencies.extend(operation.dependencies)
-
-        archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
-                                               source_dir=archive_source_dir,
-                                               filenames=dependencies,
-                                               recursive=operation.include_subdirectories,
-                                               require_complete=True)
-
-        return archive_artifact
-
-    def _get_runtime_configuration(self, name):
-        """
-        Retrieve associated runtime configuration based on processor type
-        :return: metadata in json format
-        """
-        try:
-            runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
-            return runtime_configuration
-        except BaseException as err:
-            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
-            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err
 
     def _get_user_auth_session_cookie(self, url, username, password):
         get_response = requests.get(url)

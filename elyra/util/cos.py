@@ -72,10 +72,9 @@ class CosClient(LoggingConfigurable):
         :param file_path: Path on the local filesystem from which object data will be read.
         :return:
         """
-        bucket = self.bucket
 
         try:
-            self.client.fput_object(bucket_name=bucket,
+            self.client.fput_object(bucket_name=self.bucket,
                                     object_name=file_name,
                                     file_path=file_path)
         except BaseException as ex:

@@ -17,7 +17,8 @@
 from .handlers import PipelineExportHandler, PipelineSchedulerHandler
 from .parser import PipelineParser
 from .pipeline import Operation, Pipeline
-from .processor import PipelineProcessorRegistry, PipelineProcessorManager, PipelineProcessor, PipelineProcessorResponse
+from .processor import PipelineProcessorRegistry, PipelineProcessorManager, PipelineProcessor, \
+    PipelineProcessorResponse, RuntimePipelineProcess
 from .processor_kfp import KfpPipelineProcessor
 from .processor_local import LocalPipelineProcessor
 from .processor_airflow import AirflowPipelineProcessor

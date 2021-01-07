@@ -24,16 +24,16 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from elyra._version import __version__
-from elyra.metadata import MetadataManager
-from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
-from elyra.util.archive import create_temp_archive
+
+from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
+
 from elyra.util.path import get_absolute_path
 from elyra.util.cos import CosClient
 from github import Github, GithubException
 from jinja2 import Environment, PackageLoader
 
 
-class AirflowPipelineProcessor(PipelineProcessor):
+class AirflowPipelineProcessor(RuntimePipelineProcess):
     _type = 'airflow'
 
     @property
@@ -277,38 +277,3 @@ class AirflowPipelineProcessor(PipelineProcessor):
                 fh.write(autopep8.fix_code(python_output))
 
         return pipeline_export_path
-
-    def _get_dependency_archive_name(self, operation):
-        artifact_name = os.path.basename(operation.filename)
-        (name, ext) = os.path.splitext(artifact_name)
-        return name + '-' + operation.id + ".tar.gz"
-
-    def _get_dependency_source_dir(self, operation):
-        return os.path.join(os.getcwd(), os.path.dirname(operation.filename))
-
-    def _generate_dependency_archive(self, operation):
-        archive_artifact_name = self._get_dependency_archive_name(operation)
-        archive_source_dir = self._get_dependency_source_dir(operation)
-
-        dependencies = [os.path.basename(operation.filename)]
-        dependencies.extend(operation.dependencies)
-
-        archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
-                                               source_dir=archive_source_dir,
-                                               filenames=dependencies,
-                                               recursive=operation.include_subdirectories,
-                                               require_complete=True)
-
-        return archive_artifact
-
-    def _get_runtime_configuration(self, name):
-        """
-        Retrieve associated runtime configuration based on processor type
-        :return: metadata in json format
-        """
-        try:
-            runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
-            return runtime_configuration
-        except BaseException as err:
-            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
-            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err
