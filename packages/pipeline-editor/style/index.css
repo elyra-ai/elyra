@@ -241,7 +241,7 @@ td {
 }
 
 .elyra-Tooltip {
-  top: 89px;
+  top: 84px;
   visibility: hidden;
   opacity: 100%;
 }
@@ -258,7 +258,7 @@ td {
   top: 51px;
   left: 94px;
   z-index: 1000000;
-  border: 10px solid transparent;
+  border: 8px solid transparent;
   border-right-color: var(--ui-02);
   opacity: 100%;
   transform: rotate(90deg);
