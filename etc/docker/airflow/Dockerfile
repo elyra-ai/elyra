@@ -1,4 +1,3 @@
-ARG AIRFLOW_NOTEBOOK_VERSION
 # syntax=docker/dockerfile:experimental
 #
 # Copyright 2018-2020 Elyra Authors
@@ -18,4 +17,6 @@ ARG AIRFLOW_NOTEBOOK_VERSION
 
 FROM apache/airflow:1.10.12-python3.6
 
-RUN python -m pip install airflow-notebook==${AIRFLOW_NOTEBOOK_VERSION} --user
+ARG AIRFLOW_NOTEBOOK_VERSION
+
+RUN python -m pip install airflow-notebook==$AIRFLOW_NOTEBOOK_VERSION --user

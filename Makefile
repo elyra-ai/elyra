@@ -163,7 +163,7 @@ publish-container-image: container-image ## Publish container image
 
 airflow-image: ## Build airflow image for use with Elyra
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_AIRFLOW_IMAGE) -t quay.io/$(ELYRA_AIRFLOW_IMAGE) \
-	--build-arg AIRFLOW_NOTEBOOK_VERSION=${AIRFLOW_NOTEBOOK_VERSION} build/docker/ --progress plain
+	--build-arg AIRFLOW_NOTEBOOK_VERSION=$(AIRFLOW_NOTEBOOK_VERSION) etc/docker/airflow/ --progress plain
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
