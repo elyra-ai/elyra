@@ -62,7 +62,7 @@ uninstall:
 	$(call UNINSTALL_LAB_EXTENSION,@jupyterlab/toc)
 	pip uninstall -y jupyterlab-git
 	pip uninstall -y jupyter-lsp
-	jupyter labextension uninstall @krassowski/jupyterlab-lsp
+	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
 	pip uninstall -y jupyterlab-lsp
 	pip uninstall -y python-language-server
 	pip uninstall -y elyra
