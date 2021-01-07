@@ -37,7 +37,8 @@ Elyra currently includes the following functionality:
 - [Python script editor with local/remote execution capabilities](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
 - [Python script navigation using auto-generated Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
 - [Notebook navigation using auto-generated outlines using Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#notebook-navigation-using-auto-generated-table-of-contents)
-- [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
+- [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#version-control-using-git-integration)
+- [Language Server Protocol integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#language-server-protocol-integration)
 
 ![Elyra](docs/source/images/elyra-main-page.png)
 
