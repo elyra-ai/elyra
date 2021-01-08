@@ -53,7 +53,7 @@ OpenShift Cluster.
 - Once the Operator has finished installing, navigate to the `Installed Operators` page under  the `Operators` dropdown
  and click on 'Open Data Hub'
 ![Elyra](../images/odh-deploy-create-kfdef.png) 
-- Click on `Create KfDef`, you should see a default configuration. Replace it with the following:  
+- Click on `Create KfDef`, then select 'YAML View'. You should now see a default configuration. Replace it with the following:  
 NOTE: Make sure to fill in the namespace field with the `Project` name you created earlier
 ```yaml
 apiVersion: kfdef.apps.kubeflow.org/v1
