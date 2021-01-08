@@ -339,31 +339,27 @@ const saveAndCloseMetadataEditor = (): void => {
   ).click();
 };
 
-const fillMetadaEditorForm = (snippetName: string): void => {
-  // Name code snippet
-  cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
+// const fillMetadaEditorForm = (snippetName: string): void => {
+//   // Name code snippet
+//   cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
 
-  // Select python language from dropdown list
-  editSnippetLanguage(snippetName, 'Python');
+//   // Select python language from dropdown list
+//   editSnippetLanguage(snippetName, 'Python');
 
-  // Add snippet code
-  cy.get('.elyra-metadataEditor-code > .bp3-form-content').type(
-    'print("Code Snippet Test")'
-  );
+//   // Add snippet code
+//   cy.get('.elyra-metadataEditor-code > .bp3-form-content').type(
+//     'print("Code Snippet Test")'
+//   );
 
-  saveAndCloseMetadataEditor();
-};
+//   saveAndCloseMetadataEditor();
+// };
 
 const deleteSnippet = (snippetName: string): void => {
   // Find element by name
   const item = getSnippetByName(snippetName);
 
   // Click on delete button
-  item
-    .parentsUntil('.elyra-metadata-item')
-    .first()
-    .find('button[title="Delete"]')
-    .click();
+  item.find('button[title="Delete"]').click();
 
   // Confirm action in dialog
   cy.get('.jp-Dialog-header').contains(`Delete snippet: ${snippetName}?`);
@@ -371,9 +367,9 @@ const deleteSnippet = (snippetName: string): void => {
 };
 
 const getActionButtonsElement = (snippetName: string): any => {
-  const actionButtonsElement = getSnippetByName(snippetName)
-    .parentsUntil('.elyra-metadata-item')
-    .find('.elyra-expandableContainer-action-buttons');
+  const actionButtonsElement = getSnippetByName(snippetName).find(
+    '.elyra-expandableContainer-action-buttons'
+  );
 
   return actionButtonsElement;
 };
