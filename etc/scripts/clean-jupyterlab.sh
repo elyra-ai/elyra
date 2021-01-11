@@ -74,7 +74,7 @@ echo " "
 
 echo "Installing/Updating JupyterLab"
 pip install --upgrade tornado
-pip install --upgrade --pre "jupyterlab$LAB_VERSION"
+pip install --upgrade "jupyterlab$LAB_VERSION"
 echo " "
 
 echo "Installing Xeus kernel"

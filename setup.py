@@ -54,8 +54,8 @@ setup_args = dict(
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
-        'jupyter_server>=1.0.5',
-        'jupyterlab>==3.0.0rc10',
+        'jupyter_server>=1.2.0',
+        'jupyterlab>=3.0.0',
         # 'jupyterlab-git==0.21.1',
         'kfp-notebook>=0.17.0,<0.18.0',
         'kfp==1.1.2',
@@ -72,7 +72,7 @@ setup_args = dict(
         'websocket-client',
     ],
     extras_require={
-        'test': ['pytest', 'pytest-tornasync', 'pytest-jupyter'],
+        'test': ['pytest', 'pytest-tornasync'],
     },
     include_package_data=True,
     classifiers=(
