@@ -212,6 +212,14 @@ td {
 .properties-control-item[data-id='properties-ci-dependencies'] {
   padding: 0;
 }
+.properties-control-panel[data-id='properties-nodePropertiesControls'] {
+  border-bottom: none;
+}
+.properties-control-panel[data-id='properties-nodePropertiesControls']
+  .properties-control-item {
+  border-bottom: 1px solid #cfd1d4;
+  margin-top: 10px;
+}
 .properties-action-panel[data-id='properties-nodeBrowseFileAction']
   .properties-action-button {
   padding: 0;

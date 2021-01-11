@@ -231,6 +231,7 @@ export class PipelineEditor extends React.Component<
   node: React.RefObject<HTMLDivElement>;
   propertiesInfo: any;
   propertiesController: any;
+  CommonProperties: any;
 
   constructor(props: any) {
     super(props);
@@ -396,8 +397,15 @@ export class PipelineEditor extends React.Component<
         messages={i18nData.messages}
       >
         <CommonProperties
+          ref={(instance: any): void => {
+            this.CommonProperties = instance;
+          }}
           propertiesInfo={this.state.propertiesInfo}
-          propertiesConfig={{ containerType: 'Custom', rightFlyout: true }}
+          propertiesConfig={{
+            containerType: 'Custom',
+            rightFlyout: true,
+            applyOnBlur: true
+          }}
           callbacks={propertiesCallbacks}
           customControls={[StringArrayInput]}
         />
@@ -539,6 +547,9 @@ export class PipelineEditor extends React.Component<
   closePropertiesDialog(): void {
     console.log('Closing properties dialog');
     const propsInfo = JSON.parse(JSON.stringify(this.propertiesInfo));
+    if (this.CommonProperties) {
+      this.CommonProperties.applyPropertiesEditing(false);
+    }
     this.setState({ showPropertiesDialog: false, propertiesInfo: propsInfo });
   }
 
@@ -636,18 +647,17 @@ export class PipelineEditor extends React.Component<
   /*
    * Handles mouse click actions
    */
-  clickActionHandler(source: any): void {
+  async clickActionHandler(source: any): Promise<void> {
     // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
       this.handleOpenFile(source.selectedObjectIds);
     } else if (
       source.clickType === 'SINGLE_CLICK' &&
-      source.objectType === 'node'
+      source.objectType === 'node' &&
+      this.state.showPropertiesDialog
     ) {
-      if (this.state.showPropertiesDialog) {
-        this.closePropertiesDialog();
-        this.openPropertiesDialog(source);
-      }
+      this.closePropertiesDialog();
+      this.openPropertiesDialog(source);
     }
   }
 

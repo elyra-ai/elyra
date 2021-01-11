@@ -21,7 +21,9 @@ export class StringArrayInput extends React.Component {
   parameter: string;
   controller: any;
   values: string[];
-  singleItemLabel: string;
+  singleItemLabel?: string;
+  placeholder?: string;
+  readonly?: boolean;
 
   static id(): string {
     return 'elyra-string-array-input';
@@ -30,6 +32,8 @@ export class StringArrayInput extends React.Component {
   constructor(parameters: any, controller: any, data: any) {
     super({});
     this.singleItemLabel = data.single_item_label;
+    this.placeholder = data.placeholder;
+    this.readonly = data.readonly;
     this.parameter = parameters['name'];
     this.controller = controller;
   }
@@ -48,9 +52,10 @@ export class StringArrayInput extends React.Component {
               <InputGroup
                 fill
                 key={parameter + index + 'InputGroup'}
-                readOnly={parameter === 'dependencies'}
+                readOnly={this.readonly}
                 className="jp-InputGroup"
                 defaultValue={value}
+                placeholder={this.placeholder}
                 onChange={(event: any): void => {
                   this.values[index] = event.target.value;
                   this.controller.updatePropertyValue(parameter, this.values);

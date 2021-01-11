@@ -277,13 +277,6 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   margin-right: 24px;
 }
 
-.properties-cancel-button {
-  background: var(--md-grey-500);
-  border: 0;
-  color: white;
-  margin-right: 10px;
-}
-
 .properties-label-container label,
 .properties-checkbox label,
 .bx--list-box__label,

@@ -70,7 +70,8 @@
           "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
         },
         "data": {
-          "single_item_label": "Dependency"
+          "single_item_label": "Dependency",
+          "readonly": true
         }
       },
       {
@@ -93,6 +94,7 @@
           "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
         },
         "data": {
+          "placeholder": "env_var=VALUE",
           "single_item_label": "Environment Variable"
         }
       },
@@ -107,6 +109,7 @@
           "default": "Files generated during execution that will become available to all subsequent pipeline steps.\n One filename or expression (e.g. *.csv) per line. Supported patterns: ? and *."
         },
         "data": {
+          "placeholder": "foo.csv",
           "single_item_label": "Output File"
         }
       }
@@ -175,17 +178,7 @@
           {
             "id": "nodePropertiesControls",
             "type": "controls",
-            "parameter_refs": ["include_subdirectories"]
-          },
-          {
-            "id": "elyra-string-array-input",
-            "type": "controls",
-            "parameter_refs": ["env_vars"]
-          },
-          {
-            "id": "elyra-string-array-input",
-            "type": "controls",
-            "parameter_refs": ["outputs"]
+            "parameter_refs": ["include_subdirectories", "env_vars", "outputs"]
           }
         ]
       }
