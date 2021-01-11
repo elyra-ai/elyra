@@ -48,16 +48,16 @@ echo " "
 
 echo "Installing/Updating JupyterLab"
 pip install --upgrade tornado
-pip install --upgrade --pre "jupyterlab$LAB_VERSION"
+pip install --upgrade "jupyterlab$LAB_VERSION"
 echo " "
 
 echo "Installing Xeus kernel"
-XPYTHON_VERSION="$(python --version)"
-if [[ "$XPYTHON_VERSION" == *"Python 3.7"* ]]
+XPYTHON_VERSION="$(python --version 2>&1)"
+if [[ "$XPYTHON_VERSION" == *"Python 3.6"* ]]
 then
     conda install -y xeus-python">=0.8.0,<0.9.0" -c conda-forge
 else
-    conda install -y xeus-python=0.9.0 -c conda-forge
+    conda install -y xeus-python">=0.9.3" -c conda-forge
 fi
 echo " "
 

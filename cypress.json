@@ -1,5 +1,6 @@
 {
   "baseUrl": "http://localhost:58888/lab",
+  "numTestsKeptInMemory": 10,
   "integrationFolder": "./tests/integration",
   "supportFile": "./tests/support/commands.ts",
   "pluginsFile": "./tests/plugins/index.js",
@@ -9,7 +10,9 @@
   "videoUploadOnPasses": false,
   "fixturesFolder": false,
   "defaultCommandTimeout": 8000,
+  "execTimeout": 120000,
   "pageLoadTimeout": 120000,
+  "responseTimeout": 60000,
   "viewportWidth": 1400,
   "viewportHeight": 800,
   "retries": {

@@ -56,7 +56,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip wheel jupyter_server
-        python -m pip install --upgrade --pre jupyterlab
+        python -m pip install --upgrade jupyterlab
     - name: Log current Python dependencies version
       run: |
         pip freeze

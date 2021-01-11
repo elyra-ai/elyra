@@ -15,7 +15,7 @@
  */
 describe('SubmitButton', () => {
   it('opens jupyterlab', () => {
-    cy.visit('?token=test&reset');
+    cy.openJupyterLab();
   });
 
   it('opens blank notebook', () => {

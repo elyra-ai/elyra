@@ -15,5 +15,5 @@
 #
 import pytest
 
-pytest_plugins = ["pytest_jupyter.jupyter_server"]
+pytest_plugins = ["jupyter_server.pytest_plugin"]
 
