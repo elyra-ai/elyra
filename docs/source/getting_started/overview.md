@@ -28,6 +28,7 @@ The main features include:
 * [Python script execution support](#python-script-execution-support)
 * [Version control using git integration](#version-control-using-git-integration)
 * [Notebook navigation using auto-generated Table of Contents](#notebook-navigation-using-auto-generated-table-of-contents)
+* [Language Server Protocol integration](#language-server-protocol-integration)
 
 You can try out some of these features using the getting started tour [on Binder](https://github.com/elyra-ai/elyra#using-binder) without having to install anything.
 
@@ -103,4 +104,22 @@ a Table of Contents providing enhanced navigation capabilities.
 
 To access the Table of Contents, open a notebook and select the _Table of Contents_ tab from the sidebar.
 
-![Notebook Table of Contents](../images/notebook-toc.png) 
+![Notebook Table of Contents](../images/notebook-toc.png)
+
+#### Language Server Protocol integration
+
+The integration with Language Server Protocol (LSP) provides a high level support for programming languages in JupyterLab. It enhances the development experience, bringing features common in IDEs such as autocopletion, code navigation, hover suggestions, linters and rename. It works for notebooks and file editors without a running kernel.
+
+![LSP Integration](../images/lsp.gif)
+
+By default, Elyra provides access to the python server package, levaraging the tools in the Python Editor extension.
+User can also expand the support to other programming languages of their choice to boost their File Editor. 
+
+To manually install other LSP servers (eg. R server - first make sure you have R language installed in your system or environment, then) :
+``` bash
+R -e 'install.packages("languageserver")'
+``` 
+
+Refer to the [jupyterlab-lsp documentation](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) for a full list of other language servers supported by the extension and how to install them.
+
+To learn more about the extension and its features check out the [jupyterlab-lsp repository](https://github.com/krassowski/jupyterlab-lsp).

@@ -145,7 +145,7 @@ describe('Pipeline Editor tests', () => {
     cy.get('[data-command="pipeline-editor:add-node"]').click();
     // Open notebook with double-click
     cy.get('.d3-node-label').dblclick();
-    cy.wait(100);
+    cy.wait(500);
     cy.get(
       '#jp-main-dock-panel > .lm-TabBar > .lm-TabBar-content > .lm-TabBar-tab > .lm-TabBar-tabLabel'
     )
