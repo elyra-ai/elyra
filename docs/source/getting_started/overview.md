@@ -108,18 +108,12 @@ To access the Table of Contents, open a notebook and select the _Table of Conten
 
 #### Language Server Protocol integration
 
-The integration with Language Server Protocol (LSP) provides a high level support for programming languages in JupyterLab. It enhances the development experience, bringing features common in IDEs such as autocopletion, code navigation, hover suggestions, linters and rename. It works for notebooks and file editors without a running kernel.
+The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/krassowski/jupyterlab-lsp) enhances the development experience in the notebook editor and file editors, delivering features common in IDEs such as autocompletion, code navigation, hover suggestions, code linting, and renaming. 
 
 ![LSP Integration](../images/lsp.gif)
 
-By default, Elyra provides access to the python server package, levaraging the tools in the Python Editor extension.
-User can also expand the support to other programming languages of their choice to boost their File Editor. 
+By default, Elyra installs the [Python Language Server package](https://pypi.org/project/python-language-server/), enabling the productivity features in the notebook editor and the Python editor. Support for other languages can be added by manually installing additional Language Server packages and their prerequisites.
 
-To manually install other LSP servers (eg. R server - first make sure you have R language installed in your system or environment, then) :
-``` bash
-R -e 'install.packages("languageserver")'
-``` 
+Refer to the [`jupyterlab-lsp` extension documentation](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) for a full list of supported Language Servers and installation instructions.
 
-Refer to the [jupyterlab-lsp documentation](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) for a full list of other language servers supported by the extension and how to install them.
-
-To learn more about the extension and its features check out the [jupyterlab-lsp repository](https://github.com/krassowski/jupyterlab-lsp).
+To learn more about the `jupyterlab-lsp` extension and its features check out the [repository](https://github.com/krassowski/jupyterlab-lsp).
