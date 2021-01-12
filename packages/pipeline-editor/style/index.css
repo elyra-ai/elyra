@@ -57,7 +57,6 @@
   margin-top: 14px;
   border-bottom: 1px solid #cfd1d4;
 }
-
 .properties-control-item {
   padding: 5px 0 5px 0;
 }
@@ -212,12 +211,8 @@ td {
 .properties-control-item[data-id='properties-ci-dependencies'] {
   padding: 0;
 }
-.properties-control-panel[data-id='properties-nodePropertiesControls'] {
-  border-bottom: none;
-}
 .properties-control-panel[data-id='properties-nodePropertiesControls']
   .properties-control-item {
-  border-bottom: 1px solid #cfd1d4;
   margin-top: 10px;
 }
 .properties-action-panel[data-id='properties-nodeBrowseFileAction']
@@ -242,6 +237,14 @@ td {
 .properties-control-panel[data-id='properties-nodeFileControl']
   .properties-control-item {
   width: calc(100% - 67px);
+}
+.properties-control-panel[data-id='properties-nodePropertiesControls']
+  .properties-control-item[data-id='properties-ci-include_subdirectories'] {
+  border-bottom: 1px solid #cfd1d4;
+}
+.properties-control-panel[data-id='properties-nodePropertiesControls']
+  .properties-control-item[data-id='properties-ci-env_vars'] {
+  border-bottom: 1px solid #cfd1d4;
 }
 
 .properties-control-panel > .properties-control-panel {

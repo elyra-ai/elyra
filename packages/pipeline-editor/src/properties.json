@@ -67,7 +67,7 @@
         "control": "custom",
         "custom_control_id": "elyra-string-array-input",
         "description": {
-          "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
+          "default": "Local file dependencies that need to be copied to remote execution environment."
         },
         "data": {
           "single_item_label": "Dependency",
