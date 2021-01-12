@@ -205,7 +205,7 @@ describe('Pipeline Editor tests', () => {
     // selects the first item of the runtimes dropdown
     cy.get('#downshift-0-item-0').click();
     cy.get('.bx--btn--primary')
-      .contains('Save')
+      .contains('Close')
       .click();
     // Checks that validation passed
     cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
