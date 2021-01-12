@@ -25,6 +25,9 @@ import {
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
+import { DocumentWidget } from '@jupyterlab/docregistry';
+import { FileEditor } from '@jupyterlab/fileeditor';
+import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 
 import { Widget } from '@lumino/widgets';
 
@@ -81,13 +84,29 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
 
     app.commands.addCommand(commandIDs.saveAsSnippet, {
       label: 'Save As Code Snippet',
-      isEnabled: () => true,
+      isEnabled: () => {
+        const currentWidget = app.shell.currentWidget;
+        const editor = getEditor(currentWidget);
+
+        if (editor) {
+          const selection = getTextSelection(editor);
+          if (selection) {
+            return true;
+          }
+          return false;
+        }
+        return false;
+      },
       isVisible: () => true,
       execute: () => {
-        const selection = document.getSelection().toString();
+        const currentWidget = app.shell.currentWidget;
+        const editor = getEditor(currentWidget);
+        if (editor) {
+          const selection = getTextSelection(editor);
 
-        console.log('SAVING AS CODE SNIPPET...');
-        console.log(selection);
+          console.log('SAVING AS CODE SNIPPET...');
+          console.log('SELECTION: ' + selection);
+        }
       }
     });
 
@@ -100,6 +119,37 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       command: commandIDs.saveAsSnippet,
       selector: '.jp-FileEditor'
     });
+
+    const getTextSelection = (editor: any): any => {
+      const selectionObj = editor.getSelection();
+      const start = editor.getOffsetAt(selectionObj.start);
+      const end = editor.getOffsetAt(selectionObj.end);
+      const selection = editor.model.value.text.substring(start, end);
+
+      return selection;
+    };
+
+    const isFileEditor = (currentWidget: any): boolean => {
+      return (
+        currentWidget instanceof DocumentWidget &&
+        (currentWidget as DocumentWidget).content instanceof FileEditor
+      );
+    };
+
+    const isNotebookEditor = (currentWidget: any): boolean => {
+      return currentWidget instanceof NotebookPanel;
+    };
+
+    const getEditor = (currentWidget: any): any => {
+      if (isFileEditor(currentWidget)) {
+        const documentWidget = currentWidget as DocumentWidget;
+        return (documentWidget.content as FileEditor).editor;
+      } else if (isNotebookEditor(currentWidget)) {
+        const notebookWidget = currentWidget as NotebookPanel;
+        const notebookCell = (notebookWidget.content as Notebook).activeCell;
+        return notebookCell.editor;
+      }
+    };
   }
 };
 
