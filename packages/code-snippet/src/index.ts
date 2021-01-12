@@ -103,9 +103,13 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         const editor = getEditor(currentWidget);
         if (editor) {
           const selection = getTextSelection(editor);
-
-          console.log('SAVING AS CODE SNIPPET...');
-          console.log('SELECTION: ' + selection);
+          if (selection) {
+            codeSnippetWidget.openMetadataEditor({
+              namespace: CODE_SNIPPET_NAMESPACE,
+              schema: CODE_SNIPPET_SCHEMA,
+              code: selection.split('\n')
+            });
+          }
         }
       }
     });
