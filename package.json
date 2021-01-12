@@ -1,6 +1,6 @@
 {
   "name": "elyra",
-  "version": "1.6.0-dev",
+  "version": "1.5.3",
   "private": true,
   "workspaces": {
     "packages": [
