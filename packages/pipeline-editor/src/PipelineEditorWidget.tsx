@@ -563,6 +563,9 @@ export class PipelineEditor extends React.Component<
       this.widgetContext.path,
       this.propertiesController.getPropertyValue('filename')
     );
+    if (this.CommonProperties) {
+      this.CommonProperties.applyPropertiesEditing(false);
+    }
 
     if (id === 'browse_file') {
       const currentExt = PathExt.extname(filename);
@@ -594,19 +597,24 @@ export class PipelineEditor extends React.Component<
         }
       }).then((result: any) => {
         if (result.button.accept && result.value.length) {
-          const dependenciesSet = new Set(
+          const dependencies = Array.from(
             this.propertiesController.getPropertyValue(propertyId)
           );
-          if (dependenciesSet.has('')) {
-            dependenciesSet.delete('');
-          }
-          result.value.forEach((val: any) => {
-            dependenciesSet.add(val.path);
+
+          // If multiple files are selected, replace the given index in the dependencies list
+          // and insert the rest of the values after that index.
+          result.value.forEach((val: any, index: number) => {
+            if (index === 0) {
+              dependencies[data.index] = val.path;
+            } else {
+              dependencies.splice(data.index, 0, val.path);
+            }
           });
 
-          this.propertiesController.updatePropertyValue(propertyId, [
-            ...dependenciesSet
-          ]);
+          this.propertiesController.updatePropertyValue(
+            propertyId,
+            dependencies
+          );
         }
       });
     }

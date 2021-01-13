@@ -21,9 +21,9 @@ export class StringArrayInput extends React.Component {
   parameter: string;
   controller: any;
   values: string[];
+  fileBrowser?: boolean;
   singleItemLabel?: string;
   placeholder?: string;
-  readonly?: boolean;
 
   static id(): string {
     return 'elyra-string-array-input';
@@ -33,7 +33,7 @@ export class StringArrayInput extends React.Component {
     super({});
     this.singleItemLabel = data.single_item_label;
     this.placeholder = data.placeholder;
-    this.readonly = data.readonly;
+    this.fileBrowser = data.filebrowser;
     this.parameter = parameters['name'];
     this.controller = controller;
   }
@@ -52,7 +52,6 @@ export class StringArrayInput extends React.Component {
               <InputGroup
                 fill
                 key={parameter + index + 'InputGroup'}
-                readOnly={this.readonly}
                 className="jp-InputGroup"
                 defaultValue={value}
                 placeholder={this.placeholder}
@@ -61,6 +60,25 @@ export class StringArrayInput extends React.Component {
                   this.controller.updatePropertyValue(parameter, this.values);
                 }}
               />
+              {this.fileBrowser ? (
+                <Button
+                  className="jp-Button"
+                  icon="folder-close"
+                  onClick={(): void => {
+                    const actionHandler = this.controller.getHandlers()
+                      .actionHandler;
+                    if (typeof actionHandler === 'function') {
+                      actionHandler(
+                        'add_dependencies',
+                        this.controller.getAppData(),
+                        { parameter_ref: 'dependencies', index: index }
+                      );
+                    }
+                  }}
+                ></Button>
+              ) : (
+                <div></div>
+              )}
               <Button
                 className="jp-Button"
                 icon="cross"
@@ -72,20 +90,16 @@ export class StringArrayInput extends React.Component {
             </ControlGroup>
           ))}
         </div>
-        {parameter === 'dependencies' ? (
-          <div />
-        ) : (
-          <Button
-            className="jp-Button"
-            onClick={(): void => {
-              this.values.push('');
-              this.controller.updatePropertyValue(parameter, this.values);
-            }}
-            style={{ marginTop: 8 }}
-          >
-            Add {this.singleItemLabel ? this.singleItemLabel : 'item'}
-          </Button>
-        )}
+        <Button
+          className="jp-Button"
+          onClick={(): void => {
+            this.values.push('');
+            this.controller.updatePropertyValue(parameter, this.values);
+          }}
+          style={{ marginTop: 8 }}
+        >
+          Add {this.singleItemLabel ? this.singleItemLabel : 'item'}
+        </Button>
       </div>
     );
   }

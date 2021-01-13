@@ -55,7 +55,7 @@
     "control.summary.error": "There are {errorMsgCount} parameters with errors.",
     "control.summary.warning": "There are {warningMsgCount} parameters with warnings.",
     "control.summary.error.warning": "There are {errorMsgCount} parameters with errors and {warningMsgCount} parameters with warnings.",
-    "required.error": "Required parameter '{label}' has no value.",
+    "required.error": "Required parameter ''{label}'' has no value.",
     "datetime.format.error": "Invalid {role}. Format should be {format}.",
     "invalid.field.error": "Invalid {label}, field not found in dataset.",
     "expression.operators.label": "Operators",

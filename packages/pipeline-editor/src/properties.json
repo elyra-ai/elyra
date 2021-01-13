@@ -56,7 +56,7 @@
           "default": "Runtime Image"
         },
         "description": {
-          "default": "Docker image used as execution environment"
+          "default": "Container image used as execution environment"
         }
       },
       {
@@ -67,11 +67,12 @@
         "control": "custom",
         "custom_control_id": "elyra-string-array-input",
         "description": {
-          "default": "Local file dependencies that need to be copied to remote execution environment."
+          "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
         },
         "data": {
           "single_item_label": "Dependency",
-          "readonly": true
+          "placeholder": "*.py",
+          "filebrowser": true
         }
       },
       {
@@ -124,16 +125,6 @@
         "data": {
           "parameter_ref": "filename"
         }
-      },
-      {
-        "id": "add_dependencies",
-        "label": {
-          "default": "Add Dependencies"
-        },
-        "control": "button",
-        "data": {
-          "parameter_ref": "dependencies"
-        }
       }
     ],
     "group_info": [
@@ -167,11 +158,6 @@
                 "id": "nodeListDependenciesControl",
                 "type": "controls",
                 "parameter_refs": ["dependencies"]
-              },
-              {
-                "id": "nodeAddDependenciesAction",
-                "type": "actionPanel",
-                "action_refs": ["add_dependencies"]
               }
             ]
           },
