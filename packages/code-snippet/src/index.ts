@@ -107,7 +107,8 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
             codeSnippetWidget.openMetadataEditor({
               namespace: CODE_SNIPPET_NAMESPACE,
               schema: CODE_SNIPPET_SCHEMA,
-              code: selection.split('\n')
+              code: selection.split('\n'),
+              onSave: codeSnippetWidget.updateMetadata
             });
           }
         }

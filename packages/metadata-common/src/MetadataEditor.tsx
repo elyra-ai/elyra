@@ -311,6 +311,7 @@ export class MetadataEditor extends ReactWidget {
         initialCodeValue = this.metadata['code'].join('\n');
       } else {
         if (this.code) {
+          this.metadata['code'] = this.code;
           initialCodeValue = this.code.join('\n');
         } else {
           initialCodeValue = '';
