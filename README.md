@@ -119,21 +119,6 @@ using Conda:
 conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
 ```
 
-
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
-
-via PyPi:
-```bash
-pip install --upgrade "elyra>=2.0.0" && jupyter lab build
-```
-
-Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
-
-using Conda:
-```bash
-conda install -c conda-forge "elyra>=2.0.0" && jupyter lab build
-```
-
 ### Verify Installation 
 ```bash
 jupyter serverextension list
