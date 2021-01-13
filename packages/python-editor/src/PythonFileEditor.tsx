@@ -116,12 +116,21 @@ export class PythonFileEditor extends DocumentWidget<
       tooltip: 'Stop'
     });
 
+    const submitButton = new ToolbarButton({
+      label: 'Submit Script',
+      onClick: () => {
+        window.alert('Submit button clicked!');
+      },
+      tooltip: 'Submit Script'
+    });
+
     // Populate toolbar with button widgets
     const toolbar = this.toolbar;
     toolbar.addItem('save', saveButton);
     toolbar.addItem('run', runButton);
     toolbar.addItem('stop', stopButton);
     toolbar.addItem('select', dropDown);
+    toolbar.addItem('submit', submitButton);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
 
