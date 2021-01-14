@@ -3,16 +3,16 @@
 ## 1.5.3 (1/12/2021)
 
 - Update Elyra deployment documentation for Open Data Hub [#1182](https://github.com/elyra-ai/elyra/pull/1182)
-- Remove 'enzime' dependency on Pipeline Editor tests (#1169)[https://github.com/elyra-ai/elyra/pull/1169]
+- Remove 'enzime' dependency on Pipeline Editor tests [#1169](https://github.com/elyra-ai/elyra/pull/1169)
 
 ## 1.5.2 (12/14/2020)
 
 - Update kfp dependencies
-- Add link to GitHub discussion forum to docs (#1150)[https://github.com/elyra-ai/elyra/pull/1150]
-- Add "getting help" section to documentation (#1100)[https://github.com/elyra-ai/elyra/pull/1100]
-- Update the metrics visualization content (#1156)[https://github.com/elyra-ai/elyra/pull/1156]
-- Add visualization recipe to documentation (#1057)[https://github.com/elyra-ai/elyra/pull/1057]
-- Enables removal of optiona metadata fields (#1155)[https://github.com/elyra-ai/elyra/pull/1155]
+- Add link to GitHub discussion forum to docs [#1150](https://github.com/elyra-ai/elyra/pull/1150)
+- Add "getting help" section to documentation [#1100](https://github.com/elyra-ai/elyra/pull/1100)
+- Update the metrics visualization content [#1156](https://github.com/elyra-ai/elyra/pull/1156)
+- Add visualization recipe to documentation [#1057](https://github.com/elyra-ai/elyra/pull/1057)
+- Enables removal of optiona metadata fields [#1155](https://github.com/elyra-ai/elyra/pull/1155)
 
 ## 1.5.1 (12/11/2020)
 
