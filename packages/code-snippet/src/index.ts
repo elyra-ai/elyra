@@ -27,6 +27,7 @@ import { ICommandPalette } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
+import { MarkdownDocument } from '@jupyterlab/markdownviewer';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 
 import { Widget } from '@lumino/widgets';
@@ -87,13 +88,16 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       isEnabled: () => {
         const currentWidget = app.shell.currentWidget;
         const editor = getEditor(currentWidget);
+        let selection = '';
 
         if (editor) {
-          const selection = getTextSelection(editor);
-          if (selection) {
-            return true;
-          }
-          return false;
+          selection = getTextSelection(editor);
+        } else if (isMarkdownDocument(currentWidget)) {
+          selection = document.getSelection().toString();
+        }
+
+        if (selection) {
+          return true;
         }
         return false;
       },
@@ -101,16 +105,21 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       execute: () => {
         const currentWidget = app.shell.currentWidget;
         const editor = getEditor(currentWidget);
+        let selection = '';
+
         if (editor) {
-          const selection = getTextSelection(editor);
-          if (selection) {
-            codeSnippetWidget.openMetadataEditor({
-              namespace: CODE_SNIPPET_NAMESPACE,
-              schema: CODE_SNIPPET_SCHEMA,
-              code: selection.split('\n'),
-              onSave: codeSnippetWidget.updateMetadata
-            });
-          }
+          selection = getTextSelection(editor);
+        } else if (isMarkdownDocument(currentWidget)) {
+          selection = document.getSelection().toString();
+        }
+
+        if (selection) {
+          codeSnippetWidget.openMetadataEditor({
+            namespace: CODE_SNIPPET_NAMESPACE,
+            schema: CODE_SNIPPET_SCHEMA,
+            code: selection.split('\n'),
+            onSave: codeSnippetWidget.updateMetadata
+          });
         }
       }
     });
@@ -125,11 +134,24 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       selector: '.jp-FileEditor'
     });
 
-    const getTextSelection = (editor: any): any => {
+    app.contextMenu.addItem({
+      command: commandIDs.saveAsSnippet,
+      selector: '.jp-MarkdownViewer'
+    });
+
+    const getTextSelection = (
+      editor: any,
+      markdownPreview?: boolean
+    ): string => {
       const selectionObj = editor.getSelection();
       const start = editor.getOffsetAt(selectionObj.start);
       const end = editor.getOffsetAt(selectionObj.end);
       const selection = editor.model.value.text.substring(start, end);
+
+      if (!selection && editor.model.value.text) {
+        // Allow selections from a rendered notebook cell
+        return document.getSelection().toString();
+      }
 
       return selection;
     };
@@ -143,6 +165,10 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
 
     const isNotebookEditor = (currentWidget: any): boolean => {
       return currentWidget instanceof NotebookPanel;
+    };
+
+    const isMarkdownDocument = (currentWidget: any): boolean => {
+      return currentWidget instanceof MarkdownDocument;
     };
 
     const getEditor = (currentWidget: any): any => {
