@@ -71,7 +71,7 @@ export class StringArrayInput extends React.Component {
     this.controller.updatePropertyValue({ name: this.parameter }, this.values);
   };
 
-  renderControl() {
+  renderControl(): any {
     this.values = this.controller.getPropertyValue(this.parameter);
     return (
       <div>
