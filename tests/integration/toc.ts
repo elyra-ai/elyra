@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 describe('Toc', () => {
-  it('opens jupyterlab', () => {
-    cy.visit('?token=test&reset');
+  beforeEach(() => {
+    cy.openJupyterLab();
   });
 
   it('opens ToC extension', () => {

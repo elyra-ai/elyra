@@ -28,6 +28,7 @@ The main features include:
 * [Python script execution support](#python-script-execution-support)
 * [Version control using git integration](#version-control-using-git-integration)
 * [Notebook navigation using auto-generated Table of Contents](#notebook-navigation-using-auto-generated-table-of-contents)
+* [Language Server Protocol integration](#language-server-protocol-integration)
 
 You can try out some of these features using the getting started tour [on Binder](https://github.com/elyra-ai/elyra#using-binder) without having to install anything.
 
@@ -103,4 +104,16 @@ a Table of Contents providing enhanced navigation capabilities.
 
 To access the Table of Contents, open a notebook and select the _Table of Contents_ tab from the sidebar.
 
-![Notebook Table of Contents](../images/notebook-toc.png) 
+![Notebook Table of Contents](../images/notebook-toc.png)
+
+#### Language Server Protocol integration
+
+The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/krassowski/jupyterlab-lsp) enhances the development experience in the notebook editor and file editors, delivering features common in IDEs such as autocompletion, code navigation, hover suggestions, code linting, and renaming. 
+
+![LSP Integration](../images/lsp.gif)
+
+By default, Elyra installs the [Python Language Server package](https://pypi.org/project/python-language-server/), enabling the productivity features in the notebook editor and the Python editor. Support for other languages can be added by manually installing additional Language Server packages and their prerequisites.
+
+Refer to the [`jupyterlab-lsp` extension documentation](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) for a full list of supported Language Servers and installation instructions.
+
+To learn more about the `jupyterlab-lsp` extension and its features check out the [repository](https://github.com/krassowski/jupyterlab-lsp).

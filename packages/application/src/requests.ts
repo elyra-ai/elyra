@@ -205,7 +205,7 @@ export class RequestHandler {
                 response['requestPath'] = requestPath;
                 return reject(response);
               } else if (response.status == 204) {
-                resolve();
+                resolve({});
               } else {
                 return reject(reason);
               }

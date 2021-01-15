@@ -10,27 +10,33 @@
   "parameters": [
     {
       "id": "filename",
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     {
       "id": "runtime_image",
-      "enum": []
+      "enum": [],
+      "required": true
     },
     {
       "id": "dependencies",
-      "type": "array[string]"
+      "type": "array[string]",
+      "required": false
     },
     {
       "id": "include_subdirectories",
-      "type": "boolean"
+      "type": "boolean",
+      "required": false
     },
     {
       "id": "env_vars",
-      "type": "array[string]"
+      "type": "array[string]",
+      "required": false
     },
     {
       "id": "outputs",
-      "type": "array[string]"
+      "type": "array[string]",
+      "required": false
     }
   ],
   "uihints": {
@@ -47,7 +53,10 @@
         "parameter_ref": "runtime_image",
         "control": "oneofselect",
         "label": {
-          "default": "Runtime Image (docker image used as execution environment)"
+          "default": "Runtime Image"
+        },
+        "description": {
+          "default": "Container image used as execution environment"
         }
       },
       {
@@ -55,14 +64,24 @@
         "label": {
           "default": "File Dependencies"
         },
-        "place_holder_text": {
+        "control": "custom",
+        "custom_control_id": "elyra-string-array-input",
+        "description": {
           "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
+        },
+        "data": {
+          "single_item_label": "Dependency",
+          "placeholder": "*.py",
+          "filebrowser": true
         }
       },
       {
         "parameter_ref": "include_subdirectories",
         "label": {
-          "default": "Include Subdirectories in Dependencies (may increase submission time)"
+          "default": "Include Subdirectories in Dependencies"
+        },
+        "description": {
+          "default": "May increase submission time"
         }
       },
       {
@@ -70,8 +89,14 @@
         "label": {
           "default": "Environment Variables"
         },
-        "place_holder_text": {
+        "control": "custom",
+        "custom_control_id": "elyra-string-array-input",
+        "description": {
           "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
+        },
+        "data": {
+          "placeholder": "env_var=VALUE",
+          "single_item_label": "Environment Variable"
         }
       },
       {
@@ -79,8 +104,14 @@
         "label": {
           "default": "Output Files"
         },
-        "place_holder_text": {
+        "control": "custom",
+        "custom_control_id": "elyra-string-array-input",
+        "description": {
           "default": "Files generated during execution that will become available to all subsequent pipeline steps.\n One filename or expression (e.g. *.csv) per line. Supported patterns: ? and *."
+        },
+        "data": {
+          "placeholder": "foo.csv",
+          "single_item_label": "Output File"
         }
       }
     ],
@@ -88,21 +119,11 @@
       {
         "id": "browse_file",
         "label": {
-          "default": "Browse..."
+          "default": "Browse"
         },
         "control": "button",
         "data": {
           "parameter_ref": "filename"
-        }
-      },
-      {
-        "id": "add_dependencies",
-        "label": {
-          "default": "Add Dependencies..."
-        },
-        "control": "button",
-        "data": {
-          "parameter_ref": "dependencies"
         }
       }
     ],
@@ -134,14 +155,9 @@
             "type": "panels",
             "group_info": [
               {
-                "id": "nodeAddDependenciesControl",
+                "id": "nodeListDependenciesControl",
                 "type": "controls",
                 "parameter_refs": ["dependencies"]
-              },
-              {
-                "id": "nodeAddDependenciesAction",
-                "type": "actionPanel",
-                "action_refs": ["add_dependencies"]
               }
             ]
           },

@@ -68,6 +68,15 @@ You can check that the JupyterLab extension was successful installed with:
 jupyter labextension list
 ```
 
+> NOTE: 
+When switching between Elyra major versions, it is recommended to clean your JupyterLab environment before a build.
+The `clean-jupyterlab` removes your JupyterLab packages and completely deletes your Jupyter workspace.
+Make sure to backup any important data in your environment before running the script.
+To clean your environment and install the latest JupyterLab:
+`etc/scripts/clean-jupyterlab.sh`
+To specify a JupyterLab version to be installed:
+`etc/scripts/clean-jupyterlab.sh --version 2.2.9`
+
 ### Incremental Development
 
 Elyra supports incremental development using `--watch`. This allows you to make code changes to

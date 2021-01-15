@@ -79,6 +79,7 @@ import {
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
+import { StringArrayInput } from './StringArrayInput';
 import Utils from './utils';
 import { checkCircularReferences, ILink } from './validation';
 
@@ -230,6 +231,7 @@ export class PipelineEditor extends React.Component<
   node: React.RefObject<HTMLDivElement>;
   propertiesInfo: any;
   propertiesController: any;
+  CommonProperties: any;
 
   constructor(props: any) {
     super(props);
@@ -388,19 +390,27 @@ export class PipelineEditor extends React.Component<
       closePropertiesDialog: this.closePropertiesDialog
     };
 
-    const commProps = this.state.showPropertiesDialog ? (
+    const commProps = (
       <IntlProvider
         key="IntlProvider2"
         locale={'en'}
         messages={i18nData.messages}
       >
         <CommonProperties
+          ref={(instance: any): void => {
+            this.CommonProperties = instance;
+          }}
           propertiesInfo={this.state.propertiesInfo}
-          propertiesConfig={{}}
+          propertiesConfig={{
+            containerType: 'Custom',
+            rightFlyout: true,
+            applyOnBlur: true
+          }}
           callbacks={propertiesCallbacks}
+          customControls={[StringArrayInput]}
         />
       </IntlProvider>
-    ) : null;
+    );
 
     return (
       <Dropzone
@@ -425,9 +435,10 @@ export class PipelineEditor extends React.Component<
             config={canvasConfig}
             notificationConfig={{ enable: false }}
             contextMenuConfig={contextMenuConfig}
+            rightFlyoutContent={commProps}
+            showRightFlyout={this.state.showPropertiesDialog}
           />
         </IntlProvider>
-        {commProps}
       </Dropzone>
     );
   }
@@ -456,12 +467,16 @@ export class PipelineEditor extends React.Component<
 
     this.propertiesInfo = {
       parameterDef: properties,
-      appData: { id: '' }
+      appData: { id: '' },
+      labelEditable: true
     };
   }
 
   openPropertiesDialog(source: any): void {
     console.log('Opening properties dialog');
+    if (!source.targetObject) {
+      source.targetObject = this.canvasController.getNode(source.id);
+    }
     const node_id = source.targetObject.id;
     const app_data = source.targetObject.app_data;
 
@@ -477,6 +492,10 @@ export class PipelineEditor extends React.Component<
       app_data.dependencies;
     node_props.parameterDef.current_parameters.include_subdirectories =
       app_data.include_subdirectories;
+    node_props.parameterDef.titleDefinition = {
+      title: this.canvasController.getNode(source.id).label,
+      editable: true
+    };
 
     this.setState({
       showValidationError: false,
@@ -485,7 +504,11 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  applyPropertyChanges(propertySet: any, appData: any): void {
+  applyPropertyChanges(
+    propertySet: any,
+    appData: any,
+    additionalData: any
+  ): void {
     console.log('Applying changes to properties');
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     let node = this.canvasController.getNode(appData.id, pipelineId);
@@ -504,12 +527,12 @@ export class PipelineEditor extends React.Component<
     }
     const app_data = node.app_data;
 
+    if (additionalData.title) {
+      node.label = additionalData.title;
+    }
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
-      node.label = PathExt.basename(
-        propertySet.filename,
-        PathExt.extname(propertySet.filename)
-      );
+      node.label = PathExt.basename(propertySet.filename);
     }
 
     app_data.runtime_image = propertySet.runtime_image;
@@ -524,6 +547,9 @@ export class PipelineEditor extends React.Component<
   closePropertiesDialog(): void {
     console.log('Closing properties dialog');
     const propsInfo = JSON.parse(JSON.stringify(this.propertiesInfo));
+    if (this.CommonProperties) {
+      this.CommonProperties.applyPropertiesEditing(false);
+    }
     this.setState({ showPropertiesDialog: false, propertiesInfo: propsInfo });
   }
 
@@ -537,6 +563,9 @@ export class PipelineEditor extends React.Component<
       this.widgetContext.path,
       this.propertiesController.getPropertyValue('filename')
     );
+    if (this.CommonProperties) {
+      this.CommonProperties.applyPropertiesEditing(false);
+    }
 
     if (id === 'browse_file') {
       const currentExt = PathExt.extname(filename);
@@ -568,16 +597,24 @@ export class PipelineEditor extends React.Component<
         }
       }).then((result: any) => {
         if (result.button.accept && result.value.length) {
-          const dependenciesSet = new Set(
+          const dependencies = Array.from(
             this.propertiesController.getPropertyValue(propertyId)
           );
-          result.value.forEach((val: any) => {
-            dependenciesSet.add(val.path);
+
+          // If multiple files are selected, replace the given index in the dependencies list
+          // and insert the rest of the values after that index.
+          result.value.forEach((val: any, index: number) => {
+            if (index === 0) {
+              dependencies[data.index] = val.path;
+            } else {
+              dependencies.splice(data.index, 0, val.path);
+            }
           });
 
-          this.propertiesController.updatePropertyValue(propertyId, [
-            ...dependenciesSet
-          ]);
+          this.propertiesController.updatePropertyValue(
+            propertyId,
+            dependencies
+          );
         }
       });
     }
@@ -618,10 +655,17 @@ export class PipelineEditor extends React.Component<
   /*
    * Handles mouse click actions
    */
-  clickActionHandler(source: any): void {
+  async clickActionHandler(source: any): Promise<void> {
     // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
       this.handleOpenFile(source.selectedObjectIds);
+    } else if (
+      source.clickType === 'SINGLE_CLICK' &&
+      source.objectType === 'node' &&
+      this.state.showPropertiesDialog
+    ) {
+      this.closePropertiesDialog();
+      this.openPropertiesDialog(source);
     }
   }
 
@@ -689,9 +733,10 @@ export class PipelineEditor extends React.Component<
           break;
         case 'properties':
           if (data.type === 'node') {
-            this.state.showPropertiesDialog
-              ? this.closePropertiesDialog()
-              : this.openPropertiesDialog(data);
+            if (this.state.showPropertiesDialog) {
+              this.closePropertiesDialog();
+            }
+            this.openPropertiesDialog(data);
           }
           break;
       }
@@ -1269,6 +1314,27 @@ export class PipelineEditor extends React.Component<
     this.initPropertiesInfo().finally(() => {
       this.handleOpenPipeline();
     });
+  }
+
+  componentDidUpdate(): void {
+    const inputFields = document.querySelectorAll('.properties-readonly');
+    for (const inputField of inputFields) {
+      if (inputField.children.length > 1) {
+        continue;
+      }
+      const tooltip = document.createElement('span');
+      tooltip.className = 'elyra-Tooltip common-canvas-tooltip';
+      tooltip.setAttribute('direction', 'bottom');
+      const arrow = document.createElement('div');
+      arrow.className = 'elyra-Tooltip-arrow';
+      inputField.appendChild(arrow);
+      const arrowOutline = document.createElement('div');
+      arrowOutline.className =
+        'elyra-Tooltip-arrow elyra-Tooltip-arrow-outline';
+      inputField.appendChild(arrowOutline);
+      tooltip.innerText = inputField.children[0].innerHTML;
+      inputField.appendChild(tooltip);
+    }
   }
 }
 

@@ -37,7 +37,8 @@ Elyra currently includes the following functionality:
 - [Python script editor with local/remote execution capabilities](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
 - [Python script navigation using auto-generated Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
 - [Notebook navigation using auto-generated outlines using Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#notebook-navigation-using-auto-generated-table-of-contents)
-- [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
+- [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#version-control-using-git-integration)
+- [Language Server Protocol integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#language-server-protocol-integration)
 
 ![Elyra](docs/source/images/elyra-main-page.png)
 
@@ -51,7 +52,7 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.4.1?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.5.3?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
 - [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
 #### Using Docker
@@ -99,39 +100,40 @@ Elyra can be installed via PyPi:
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.x and below**
 
-via PyPi:
-```bash
-pip install elyra==0.10.3 && jupyter lab build
-```
+  Install from PyPI:
+  ```bash
+  pip install elyra==0.10.3 && jupyter lab build
+  ```
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 1.0.0 and above**
 
-via PyPi:
-```bash
-pip install --upgrade "elyra<2.0.0" && jupyter lab build
-```
+  Install from PyPI:
+  ```bash
+  pip install --upgrade "elyra<2.0.0" && jupyter lab build
+  ```
 
-Note: Ubuntu and CentOS users may need to use `pip3 install elyra`
+  Note: Ubuntu and CentOS users may need to use `pip3 install elyra`
 
-using Conda:
-```bash
-conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
-```
-
+  Install from Conda:
+  ```bash
+  conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
+  ```
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
 
-via PyPi:
-```bash
-pip install --upgrade "elyra>=2.0.0" && jupyter lab build
-```
+  > Elyra version 2.0.0 has not been released yet.
 
-Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
+  Install from PyPI:
+  ```bash
+  pip install --upgrade "elyra>=2.0.0" && jupyter lab build
+  ```
 
-using Conda:
-```bash
-conda install -c conda-forge "elyra>=2.0.0" && jupyter lab build
-```
+  Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
+
+  Install fom Conda:
+  ```bash
+  conda install -c conda-forge "elyra>=2.0.0" && jupyter lab build
+  ```
 
 ### Verify Installation 
 ```bash

@@ -14,84 +14,66 @@
  * limitations under the License.
  */
 
-describe('Test for Code Snippet extension load and render', () => {
-  before(() => {
-    cy.openJupyterLab();
-  });
+describe('Code Snippet tests', () => {
+  const snippetName = 'test-code-snippet';
 
-  it('Test opening Code Snippet extension', () => {
-    openCodeSnippetExtension();
-  });
-
-  it('Test checking extension rendered', () => {
-    cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
-  });
-
-  it('Test persistency on page reload', () => {
-    // Reload jupyterlab
-    cy.openJupyterLab();
-    cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
-  });
-});
-
-describe('Test for creating new Code Snippet', () => {
-  before(() => {
+  beforeEach(() => {
     cy.openJupyterLab();
     openCodeSnippetExtension();
   });
 
-  it('Test "Create new Code Snippet" button', () => {
-    clickCreateNewSnippetButton();
+  afterEach(() => {
+    // delete code-snippet used for testing
+    cy.exec(`elyra-metadata remove code-snippets --name=${snippetName}`, {
+      failOnNonZeroExit: false
+    });
+  });
 
-    // Metadata editor is displayed
+  it('should open the Code Snippet extension', () => {
+    // make sure it is rendered properly
+    cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
+    // and code-snippet create new button is visible
     cy.get(
-      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]:visible'
-    );
+      '.elyra-metadata .elyra-metadataHeader-button[title="Create new Code Snippet"]'
+    ).should('be.visible');
     // Close metadata editor tab
     cy.closeCurrentTab();
   });
 
-  it('Test saving empty form', () => {
-    clickCreateNewSnippetButton();
-    saveAndCloseMetadataEditor();
+  it('should provide warnings when required fields are not entered properly', () => {
+    createInvalidCodeSnippet(snippetName);
 
     // Metadata editor should not close
     cy.get(
-      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]:visible'
-    );
+      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
+    ).should('be.visible');
 
     // Fields marked as required should be highlighted
     cy.get('.bp3-intent-danger').as('required-warnings');
-    cy.get('@required-warnings').should('have.length', 3);
+    cy.get('@required-warnings').should('have.length', 2);
 
     // Close metadata editor tab
     cy.closeCurrentTab();
   });
 
-  it('Test creating valid form', () => {
-    clickCreateNewSnippetButton();
-
-    const snippetName = 'test-code-snippet';
-
-    fillMetadaEditorForm(snippetName);
+  it('should create valid code-snippet', () => {
+    createValidCodeSnippet(snippetName);
 
     // Metadata editor tab should not be visible
     cy.get(
       'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
-    ).should('not.be.visible');
-
-    cy.wait(500);
+    ).should('not.exist');
 
     // Check new code snippet is displayed
     getSnippetByName(snippetName);
   });
 
-  it('Test creating duplicate Code Snippet', () => {
-    clickCreateNewSnippetButton();
+  it('should fail to create duplicate Code Snippet', () => {
+    // create code snippet
+    createValidCodeSnippet(snippetName);
 
-    // Use the name of an as existing code snippet
-    const snippetName = 'test-code-snippet';
-    fillMetadaEditorForm(snippetName);
+    // tries to create duplicate code snippet
+    createValidCodeSnippet(snippetName);
 
     // Should display dialog
     cy.get('.jp-Dialog-header').contains('Error making request');
@@ -101,28 +83,18 @@ describe('Test for creating new Code Snippet', () => {
   });
 
   // Delete snippet
-  it('Test deleting Code Snippet', () => {
-    deleteSnippet('test-code-snippet');
-  });
-});
-
-describe('Test for Code Snippet display', () => {
-  before(() => {
-    cy.openJupyterLab();
-  });
-
-  afterEach(() => {
-    deleteSnippet('test-code-snippet');
-  });
-
-  it('Test action buttons are visible', () => {
-    openCodeSnippetExtension();
-    clickCreateNewSnippetButton();
-
-    const snippetName = 'test-code-snippet';
-    fillMetadaEditorForm(snippetName);
+  it('should delete existing Code Snippet', () => {
+    createValidCodeSnippet(snippetName);
 
     cy.wait(500);
+
+    getSnippetByName(snippetName);
+
+    deleteSnippet(snippetName);
+  });
+
+  it('should have visible action buttons for existing code snippet', () => {
+    createValidCodeSnippet(snippetName);
 
     const actionButtons = getActionButtonsElement(snippetName);
     const buttonTitles = ['Copy', 'Insert', 'Edit', 'Delete'];
@@ -135,13 +107,8 @@ describe('Test for Code Snippet display', () => {
     });
   });
 
-  it('Test display on expand/collapse button', () => {
-    clickCreateNewSnippetButton();
-
-    const snippetName = 'test-code-snippet';
-    fillMetadaEditorForm(snippetName);
-
-    cy.wait(500);
+  it('should display/hide code snippet content on expand/collapse button', () => {
+    createValidCodeSnippet(snippetName);
 
     // Check new code snippet is displayed
     const item = getSnippetByName(snippetName);
@@ -168,25 +135,9 @@ describe('Test for Code Snippet display', () => {
     // Check code mirror is not visible
     cy.get('.elyra-expandableContainer-details-visible').should('not.exist');
   });
-});
 
-describe('Test for editing a Code Snippet', () => {
-  before(() => {
-    cy.openJupyterLab();
-  });
-
-  after(() => {
-    deleteSnippet('new-name');
-  });
-
-  it('Test editing a code snippet name', () => {
-    openCodeSnippetExtension();
-    clickCreateNewSnippetButton();
-
-    const snippetName = 'test-code-snippet';
-    fillMetadaEditorForm(snippetName);
-
-    cy.wait(500);
+  it('should update code snippet name after editing it', () => {
+    createValidCodeSnippet(snippetName);
 
     // Find new snippet in display and click on edit button
     getActionButtonsElement(snippetName).within(() => {
@@ -208,32 +159,13 @@ describe('Test for editing a Code Snippet', () => {
 
     // Check old snippet name does not exist
     expect(updatedSnippetItem.innerText).not.to.eq(snippetName);
+
+    // Delete updated code snippet
+    deleteSnippet(newSnippetName);
   });
-});
 
-describe('Test for inserting a Code Snippet', () => {
-  beforeEach(() => {
-    cy.openJupyterLab();
-  });
-  afterEach(() => {
-    deleteSnippet('test-code-snippet');
-  });
-  // after(() => {
-  // Delete new files created
-  // cy.get('li[title="File Browser (⇧ ⌘ F)"]').click();
-  // deleteFileByType('notebook');
-  // deleteFileByType('python');
-  // deleteFileByType('markdown');
-  // });
-
-  it('Test inserting a code snippet into unsupported widget', () => {
-    openCodeSnippetExtension();
-    clickCreateNewSnippetButton();
-
-    const snippetName = 'test-code-snippet';
-    fillMetadaEditorForm(snippetName);
-
-    cy.wait(500);
+  it('should fail to insert a code snippet into unsupported widget', () => {
+    createValidCodeSnippet(snippetName);
 
     // Insert snippet into launcher widget
     insert(snippetName);
@@ -363,23 +295,22 @@ const openCodeSnippetExtension = (): void => {
   cy.get('.jp-SideBar .lm-mod-current[title="Code Snippets"]');
 };
 
-const clickCreateNewSnippetButton = (): void => {
-  cy.get(
-    '.elyra-metadataHeader-button[title="Create new Code Snippet"]'
-  ).click();
-};
-
-const saveAndCloseMetadataEditor = (): void => {
-  cy.get(
-    '.elyra-metadataEditor-saveButton > .bp3-form-content > button:visible'
-  ).click();
-};
-
 const getSnippetByName = (snippetName: string): any => {
   return cy.get(`[data-item-id="${snippetName}"]`);
 };
 
-const fillMetadaEditorForm = (snippetName: string): void => {
+const createInvalidCodeSnippet = (snippetName: string): any => {
+  clickCreateNewSnippetButton();
+
+  // Name code snippet
+  cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
+
+  saveAndCloseMetadataEditor();
+};
+
+const createValidCodeSnippet = (snippetName: string): any => {
+  clickCreateNewSnippetButton();
+
   // Name code snippet
   cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
 
@@ -392,18 +323,43 @@ const fillMetadaEditorForm = (snippetName: string): void => {
   );
 
   saveAndCloseMetadataEditor();
+
+  cy.wait(1000);
 };
+
+const clickCreateNewSnippetButton = (): void => {
+  cy.get(
+    '.elyra-metadataHeader-button[title="Create new Code Snippet"]'
+  ).click();
+};
+
+const saveAndCloseMetadataEditor = (): void => {
+  cy.get(
+    '.elyra-metadataEditor-saveButton > .bp3-form-content > button:visible'
+  ).click();
+};
+
+// const fillMetadaEditorForm = (snippetName: string): void => {
+//   // Name code snippet
+//   cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
+
+//   // Select python language from dropdown list
+//   editSnippetLanguage(snippetName, 'Python');
+
+//   // Add snippet code
+//   cy.get('.elyra-metadataEditor-code > .bp3-form-content').type(
+//     'print("Code Snippet Test")'
+//   );
+
+//   saveAndCloseMetadataEditor();
+// };
 
 const deleteSnippet = (snippetName: string): void => {
   // Find element by name
   const item = getSnippetByName(snippetName);
 
   // Click on delete button
-  item
-    .parentsUntil('.elyra-metadata-item')
-    .first()
-    .find('button[title="Delete"]')
-    .click();
+  item.find('button[title="Delete"]').click();
 
   // Confirm action in dialog
   cy.get('.jp-Dialog-header').contains(`Delete snippet: ${snippetName}?`);
@@ -411,9 +367,9 @@ const deleteSnippet = (snippetName: string): void => {
 };
 
 const getActionButtonsElement = (snippetName: string): any => {
-  const actionButtonsElement = getSnippetByName(snippetName)
-    .parentsUntil('.elyra-metadata-item')
-    .find('.elyra-expandableContainer-action-buttons');
+  const actionButtonsElement = getSnippetByName(snippetName).find(
+    '.elyra-expandableContainer-action-buttons'
+  );
 
   return actionButtonsElement;
 };
