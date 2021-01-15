@@ -20,7 +20,7 @@
 
 SHELL:=/bin/bash
 
-GIT_VERSION:=0.23.1
+GIT_VERSION:=0.30.0
 LSP_VERSION:=3.0.0
 TOC_VERSION:=4.0.0
 
@@ -107,7 +107,7 @@ install-ui: build-ui
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 
 install-external-extensions:
-#	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
+	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
 	pip install jupyterlab-lsp==$(LSP_VERSION)
 	pip install python-language-server[all]
 
@@ -149,8 +149,8 @@ dist-ui: build-ui
 	$(call PACKAGE_LAB_EXTENSION,metadata)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
-#	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
-#	cd dist && curl -o jupyterlab-lsp-$(LSP_VERSION).tgz $$(npm view @jupyterlab/git@$(LSP_VERSION) dist.tarball) && cd -
+	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
+	cd dist && curl -o jupyterlab-lsp-$(LSP_VERSION).tgz $$(npm view @jupyterlab/git@$(LSP_VERSION) dist.tarball) && cd -
 
 release: dist-ui build-server ## Build wheel file for release
 
