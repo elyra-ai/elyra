@@ -17,7 +17,7 @@
 
 ## 1.5.1 (12/11/2020)
 
-- Bump kfp-notebook min required version to v0.16.0
+- Update KFP Notebook to release v0.16.0
 - Update release script with publish option
 
 ## 1.5.0 (12/10/2020)
