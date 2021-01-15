@@ -43,6 +43,7 @@
     "@jupyterlab/docregistry": "^3.0.0",
     "@jupyterlab/fileeditor": "^3.0.0",
     "@jupyterlab/mainmenu": "^3.0.0",
+    "@jupyterlab/markdownviewer": "^3.0.0",
     "@jupyterlab/notebook": "^3.0.0",
     "@jupyterlab/ui-components": "^3.0.0",
     "@lumino/algorithm": "^1.3.3",
