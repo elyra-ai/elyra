@@ -7,7 +7,8 @@
 
 ## 1.5.2 (12/14/2020)
 
-- Update kfp dependencies
+- Update KFP Notebook to release v0.17.0
+- Update KFP to release 1.1.2
 - Add link to GitHub discussion forum to docs [#1150](https://github.com/elyra-ai/elyra/pull/1150)
 - Add "getting help" section to documentation [#1100](https://github.com/elyra-ai/elyra/pull/1100)
 - Update the metrics visualization content [#1156](https://github.com/elyra-ai/elyra/pull/1156)
