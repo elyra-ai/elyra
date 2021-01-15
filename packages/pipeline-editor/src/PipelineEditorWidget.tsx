@@ -492,6 +492,9 @@ export class PipelineEditor extends React.Component<
       app_data.dependencies;
     node_props.parameterDef.current_parameters.include_subdirectories =
       app_data.include_subdirectories;
+    node_props.parameterDef.current_parameters.cpu = app_data.cpu;
+    node_props.parameterDef.current_parameters.memory = app_data.memory;
+    node_props.parameterDef.current_parameters.gpu = app_data.gpu;
     node_props.parameterDef.titleDefinition = {
       title: this.canvasController.getNode(source.id).label,
       editable: true
@@ -540,6 +543,10 @@ export class PipelineEditor extends React.Component<
     app_data.env_vars = propertySet.env_vars;
     app_data.dependencies = propertySet.dependencies;
     app_data.include_subdirectories = propertySet.include_subdirectories;
+    app_data.cpu = propertySet.cpu;
+    app_data.memory_dbl = propertySet.memory_dbl;
+    app_data.memory_unit = propertySet.memory_unit;
+    app_data.gpu = propertySet.gpu;
     this.validateAllNodes();
     this.updateModel();
   }
