@@ -36,28 +36,59 @@ export class StringArrayInput extends React.Component {
     this.fileBrowser = data.filebrowser;
     this.parameter = parameters['name'];
     this.controller = controller;
+
+    this.deleteHandler = this.deleteHandler.bind(this);
+    this.onTextAreaChange = this.onTextAreaChange.bind(this);
+    this.onInputChange = this.onInputChange.bind(this);
+    this.addHandler = this.addHandler.bind(this);
   }
 
-  renderControl() {
-    const parameter = this.parameter;
-    this.values = this.controller.getPropertyValue(parameter);
+  deleteHandler = (index: number): void => {
+    delete this.values[index];
+    this.controller.updatePropertyValue({ name: this.parameter }, this.values);
+  };
+
+  onTextAreaChange = (props: any): void => {
+    this.values = props.value.split('\n');
+  };
+
+  onInputChange = (event: any, index: number): void => {
+    event.target.value
+      .split('\n')
+      .forEach((element: string, valueIndex: number): void => {
+        if (valueIndex === 0) {
+          this.values[index] = element;
+        } else {
+          this.values.splice(index, 0, element);
+        }
+      });
+    this.values[index] = event.target.value;
+    this.controller.updatePropertyValue({ name: this.parameter }, this.values);
+  };
+
+  addHandler = (): void => {
+    this.values.push('');
+    this.controller.updatePropertyValue({ name: this.parameter }, this.values);
+  };
+
+  renderControl(): any {
+    this.values = this.controller.getPropertyValue(this.parameter);
     return (
       <div>
         <div id={this.parameter}>
           {this.values.map((value: any, index: number) => (
             <ControlGroup
-              key={parameter + index + 'ControlGroup'}
+              key={this.parameter + index + 'ControlGroup'}
               style={{ marginBottom: 4 }}
             >
               <InputGroup
                 fill
-                key={parameter + index + 'InputGroup'}
+                key={this.parameter + index + 'InputGroup'}
                 className="jp-InputGroup"
                 defaultValue={value}
                 placeholder={this.placeholder}
                 onChange={(event: any): void => {
-                  this.values[index] = event.target.value;
-                  this.controller.updatePropertyValue(parameter, this.values);
+                  this.onInputChange(event, index);
                 }}
               />
               {this.fileBrowser ? (
@@ -83,23 +114,21 @@ export class StringArrayInput extends React.Component {
                 className="jp-Button"
                 icon="cross"
                 onClick={(): void => {
-                  delete this.values[index];
-                  this.controller.updatePropertyValue(parameter, this.values);
+                  this.deleteHandler(index);
                 }}
               />
             </ControlGroup>
           ))}
         </div>
-        <Button
-          className="jp-Button"
-          onClick={(): void => {
-            this.values.push('');
-            this.controller.updatePropertyValue(parameter, this.values);
-          }}
-          style={{ marginTop: 8 }}
-        >
-          Add {this.singleItemLabel ? this.singleItemLabel : 'item'}
-        </Button>
+        <div style={{ display: 'flex' }}>
+          <Button
+            className="jp-Button"
+            onClick={this.addHandler}
+            style={{ marginTop: 8 }}
+          >
+            Add {this.singleItemLabel ? this.singleItemLabel : 'item'}
+          </Button>
+        </div>
       </div>
     );
   }
