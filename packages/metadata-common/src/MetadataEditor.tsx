@@ -39,6 +39,7 @@ interface IMetadataEditorProps {
   schema: string;
   namespace: string;
   name?: string;
+  code?: string[];
   onSave: () => void;
   editorServices: IEditorServices | null;
   status: ILabStatus;
@@ -57,6 +58,7 @@ export class MetadataEditor extends ReactWidget {
   schemaDisplayName: string;
   namespace: string;
   name: string;
+  code: string[];
   dirty: boolean;
   allTags: string[];
   clearDirty: IDisposable;
@@ -80,6 +82,7 @@ export class MetadataEditor extends ReactWidget {
     this.allTags = [];
     this.onSave = props.onSave;
     this.name = props.name;
+    this.code = props.code;
 
     this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : 'new'}`;
     this.addClass(this.widgetClass);
@@ -307,7 +310,12 @@ export class MetadataEditor extends ReactWidget {
       if (this.name) {
         initialCodeValue = this.metadata['code'].join('\n');
       } else {
-        initialCodeValue = '';
+        if (this.code) {
+          this.metadata['code'] = this.code;
+          initialCodeValue = this.code.join('\n');
+        } else {
+          initialCodeValue = '';
+        }
       }
       this.editor = this.editorServices.factoryService.newInlineEditor({
         host: document.getElementById('code:' + this.id),
