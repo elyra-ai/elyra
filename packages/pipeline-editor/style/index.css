@@ -56,7 +56,6 @@
   margin-bottom: 14px;
   margin-top: 14px;
   border-bottom: 1px solid #cfd1d4;
-  min-width: 50%;
 }
 .properties-control-item {
   padding: 5px 0 5px 0;
@@ -235,19 +234,16 @@ td {
   align-items: center;
   width: 100%;
 }
-.properties-control-panel[data-id='properties-nodeMemoryControls'] {
-  display: flex;
-}
 .properties-control-panel[data-id='properties-nodeUsageControls'] {
   display: flex;
   flex-wrap: wrap;
 }
-.properties-control-panel[data-id='properties-nodeUsageControls']
-  .properties-control-panel {
-  margin-bottom: 0px;
-}
-.properties-control-panel[data-id='properties-nodeUsageControls']
-  .properties-control-panel[data-id='properties-nodeGPUControls'] {
+.properties-editor-form
+  .properties-control-panel[data-id='properties-nodeUsageControls']
+  .properties-control-item {
+  margin: 0;
+  padding: 0px 3px 14px 3px;
+  max-width: 32%;
   border-bottom: none;
 }
 .properties-control-panel[data-id='properties-nodeFileControl']
@@ -257,6 +253,7 @@ td {
 .properties-control-panel[data-id='properties-nodePropertiesControls']
   .properties-control-item[data-id='properties-ci-include_subdirectories'] {
   border-bottom: 1px solid #cfd1d4;
+  padding: 0 0 10px 0;
 }
 .properties-control-panel[data-id='properties-nodePropertiesControls']
   .properties-control-item[data-id='properties-ci-env_vars'] {
@@ -266,26 +263,11 @@ td {
 .properties-control-panel > .properties-control-panel {
   padding: 0;
 }
-.properties-control-item[data-id='properties-ci-memory_unit'] {
-  margin-top: 17px;
-  margin-bottom: 7px;
-  max-width: 60px;
-}
-.properties-numberfield[data-id='properties-memory_dbl'] {
-  padding: 5px 0;
-}
-.properties-numberfield[data-id='properties-memory_dbl']
-  .bx--number
-  input[type='number'] {
-  border-radius: 3px 0 0 3px;
-}
-#properties-memory_unit-dropdown .bx--list-box__field {
-  border-radius: 0 3px 3px 0;
-}
 .properties-numberfield .bx--number input[type='number'] {
   border-radius: 3px;
   border-bottom: 0;
   box-shadow: inset 0 0 0 var(--jp-border-width) var(--jp-input-border-color);
+  min-width: auto;
 }
 .properties-numberfield .bx--number input[type='number']:focus {
   box-shadow: inset 0 0 0 var(--jp-border-width)
