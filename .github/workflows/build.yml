@@ -20,7 +20,7 @@ on:
   pull_request:
     branches: '*'
   schedule:
-    # once a day
+    # once a day at 3 am (UTC) (7 pm (PST))
     - cron:  '0 3 * * *'
 
 jobs:
