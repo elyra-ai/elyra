@@ -23,7 +23,7 @@ If applicable, add screenshots or log output to help explain your problem.
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-** Deployment information**
+**Deployment information**
 Describe what you've deployed and how:
  - Elyra version: [e.g. 1.5.3]
  - Operating system: [e.g. macos, linux]
