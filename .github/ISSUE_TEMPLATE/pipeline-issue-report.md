@@ -19,6 +19,11 @@ Steps to reproduce the behavior:
 
 **Screenshots or log output**
 If applicable, add screenshots or log output to help explain your problem.
+<details><summary>Log Output</summary>
+<pre>
+Paste the log output here.
+</pre>
+</details>
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
