@@ -22,6 +22,7 @@ SHELL:=/bin/bash
 
 GIT_VERSION:=0.23.1
 LSP_VERSION:=3.0.0
+RESUSE_VERSION:=0.5.1
 TOC_VERSION:=4.0.0
 
 TAG:=dev
@@ -59,12 +60,13 @@ uninstall:
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-editor-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@jupyterlab/toc)
 	pip uninstall -y jupyterlab-git
 	pip uninstall -y jupyter-lsp
 	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
 	pip uninstall -y jupyterlab-lsp
 	pip uninstall -y python-language-server
+	pip uninstall -y jupyter-resource-usage
+	- jupyter labextension uninstall @jupyter-server/resource-usage
 	pip uninstall -y elyra
 	- jupyter lab clean
 
@@ -109,6 +111,7 @@ install-ui: build-ui
 install-external-extensions:
 #	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
 	pip install jupyterlab-lsp==$(LSP_VERSION)
+	pip install jupyter-resource-usage==$(RESUSE_VERSION)
 	pip install python-language-server[all]
 
 install: install-server install-ui install-external-extensions ## Build and install
@@ -150,7 +153,8 @@ dist-ui: build-ui
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
 #	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
-#	cd dist && curl -o jupyterlab-lsp-$(LSP_VERSION).tgz $$(npm view @jupyterlab/git@$(LSP_VERSION) dist.tarball) && cd -
+	cd dist && curl -o jupyterlab-lsp-$(LSP_VERSION).tgz $$(npm view @krassowski/jupyterlab-lsp@$(LSP_VERSION) dist.tarball) && cd -
+	cd dist && curl -o jupyter-resource-usage-$(REUSE_VERSION).tgz $$(npm view @jupyter-server/resource-usage@$(RESUSE_VERSION) dist.tarball) && cd -
 
 release: dist-ui build-server ## Build wheel file for release
 
