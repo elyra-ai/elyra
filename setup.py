@@ -66,7 +66,7 @@ setup_args = dict(
         'nbconvert>=5.6.1,<6.0',
         'nbdime>=3.0.0.b1',
         'papermill>=2.1.3',
-        'python-language-server[all]',
+        'python-language-server[all]>=0.36.2',
         'requests>=2.9.1,<3.0',
         'rfc3986-validator>=0.1.1',
         'traitlets>=4.3.2',
