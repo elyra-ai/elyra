@@ -108,8 +108,8 @@ install-ui: build-ui
 
 install-external-extensions:
 #	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
-	pip install jupyterlab-lsp==$(LSP_VERSION)
-	pip install python-language-server[all]
+#	pip install jupyterlab-lsp==$(LSP_VERSION)
+#	pip install python-language-server[all]
 
 install: install-server install-ui install-external-extensions ## Build and install
 	jupyter lab build
