@@ -2,7 +2,7 @@
 name: Pipeline issue report
 about: Report a potential issue related to the pipeline editor or pipeline execution
 title: ''
-labels: component:pipeline-editor, component:pipeline-runtime, status:Needs Triage
+labels: component:pipeline-editor, component:pipeline-runtime, status:Needs Triage, kind:user-feedback
 assignees: ''
 
 ---
