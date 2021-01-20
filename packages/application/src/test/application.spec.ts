@@ -21,6 +21,7 @@ import { JupyterServer, NBTestUtils } from '@jupyterlab/testutils';
 import { MetadataService } from '../metadata';
 import { NotebookParser } from '../parsing';
 import { RequestHandler } from '../requests';
+jest.setTimeout(3 * 60 * 1000);
 
 const server = new JupyterServer();
 const notebookWithEnvVars: any = {
