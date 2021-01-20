@@ -23,7 +23,7 @@ def create_pipeline():
                                                       pipeline_inputs={{ operation.pipeline_inputs }},
                                                       pipeline_outputs={{ operation.pipeline_outputs }},
                                                       cpu_request='{{ operation.cpu_request }}',
-                                                      mem_request='{{ operation.mem_request }}',
+                                                      mem_request='{{ operation.mem_request }}G',
                                                       gpu_request='{{ operation.gpu_request }}',
                                                       image='{{ operation.image }}',
                                                       file_outputs={
