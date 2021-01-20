@@ -544,8 +544,7 @@ export class PipelineEditor extends React.Component<
     app_data.dependencies = propertySet.dependencies;
     app_data.include_subdirectories = propertySet.include_subdirectories;
     app_data.cpu = propertySet.cpu;
-    app_data.memory_dbl = propertySet.memory_dbl;
-    app_data.memory_unit = propertySet.memory_unit;
+    app_data.memory = propertySet.memory;
     app_data.gpu = propertySet.gpu;
     this.validateAllNodes();
     this.updateModel();

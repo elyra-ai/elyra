@@ -24,12 +24,12 @@
       "required": "false"
     },
     {
-      "id": "memory",
+      "id": "gpu",
       "type": "double",
       "required": "false"
     },
     {
-      "id": "gpu",
+      "id": "memory",
       "type": "double",
       "required": "false"
     },
@@ -84,21 +84,21 @@
         }
       },
       {
+        "parameter_ref": "gpu",
+        "label": {
+          "default": "GPU"
+        },
+        "description": {
+          "default": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer."
+        }
+      },
+      {
         "parameter_ref": "memory",
         "label": {
           "default": "RAM(GB)"
         },
         "description": {
           "default": "The total amount of RAM specified."
-        }
-      },
-      {
-        "parameter_ref": "gpu",
-        "label": {
-          "default": "GPU"
-        },
-        "description": {
-          "default": "For GPU-intensive workloads, you can choose more than 1 GPU (e.g. 1.5)."
         }
       },
       {
