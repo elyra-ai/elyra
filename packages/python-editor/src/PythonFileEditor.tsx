@@ -16,6 +16,8 @@
 
 import '../style/index.css';
 
+import { IDictionary, MetadataService } from '@elyra/application';
+import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
@@ -46,8 +48,12 @@ import {
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 
+import * as React from 'react';
+
+import { formDialogWidget } from './formDialogWidget';
 import { KernelDropdown } from './KernelDropdown';
 import { PythonRunner } from './PythonRunner';
+import { PythonScriptSubmissionDialog } from './PythonScriptSubmissionDialog';
 
 /**
  * The CSS class added to widgets.
@@ -118,9 +124,7 @@ export class PythonFileEditor extends DocumentWidget<
 
     const submitButton = new ToolbarButton({
       label: 'Submit Script',
-      onClick: () => {
-        window.alert('Submit button clicked!');
-      },
+      onClick: this.showSubmissionDialog,
       tooltip: 'Submit Script'
     });
 
@@ -385,6 +389,65 @@ export class PythonFileEditor extends DocumentWidget<
     //         return this.context.createCheckpoint();
     //     }
     // });
+  };
+
+  private getRuntimes = async (): Promise<any> => {
+    const runtimes = await MetadataService.getMetadata('runtimes');
+    if (Object.keys(runtimes).length === 0) {
+      return RequestErrors.noMetadataError('runtimes');
+    }
+    return runtimes;
+  };
+
+  private getRuntimeImages = async (): Promise<any> => {
+    try {
+      let runtimeImages = await MetadataService.getMetadata('runtime-images');
+
+      runtimeImages = runtimeImages.sort(
+        (a: any, b: any) => 0 - (a.name > b.name ? -1 : 1)
+      );
+
+      if (Object.keys(runtimeImages).length === 0) {
+        return RequestErrors.noMetadataError('runtime-images');
+      }
+
+      const images: IDictionary<string> = {};
+      for (const image in runtimeImages) {
+        const imageName: string =
+          runtimeImages[image]['metadata']['image_name'];
+        images[imageName] = runtimeImages[image]['display_name'];
+      }
+      return images;
+    } catch (error) {
+      Promise.reject(error);
+    }
+  };
+
+  private showSubmissionDialog = async (): Promise<void> => {
+    console.log('Submitting script...');
+    const runtimes = await this.getRuntimes().catch(error =>
+      RequestErrors.serverError(error)
+    );
+    const images = await this.getRuntimeImages().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
+      title: 'Submit script',
+      body: formDialogWidget(
+        <PythonScriptSubmissionDialog runtimes={runtimes} images={images} />
+      ),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
+      focusNodeSelector: '#runtime_config'
+    };
+
+    const dialogResult = await showFormDialog(dialogOptions);
+
+    if (dialogResult.value == null) {
+      // Cancel button is clicked
+      return;
+    }
   };
 }
 
