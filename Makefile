@@ -15,15 +15,10 @@
 #
 
 .PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
-.PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
+.PHONY: install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
 .PHONY: docker-image, validate-runtime-images
 
 SHELL:=/bin/bash
-
-GIT_VERSION:=0.23.1
-LSP_VERSION:=3.0.0
-RESUSE_VERSION:=0.5.1
-TOC_VERSION:=4.0.0
 
 TAG:=dev
 IMAGE=elyra/elyra:$(TAG)
@@ -96,7 +91,7 @@ build-server: lint-server ## Build backend
 build: build-server build-ui
 
 install-server: build-server ## Install backend
-	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) dist/elyra-*-py3-none-any.whl
+	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
 
 install-ui: build-ui
 	$(call LINK_LAB_EXTENSION,application)
@@ -108,14 +103,7 @@ install-ui: build-ui
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 
-install-external-extensions:
-#	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
-#	pip install jupyterlab-lsp==$(LSP_VERSION)
-	pip install jupyter-resource-usage==$(RESUSE_VERSION)
-#	pip install python-language-server[all]
-
-
-install: install-server install-ui install-external-extensions ## Build and install
+install: install-server install-ui ## Build and install
 	jupyter lab build
 	jupyter serverextension list
 	jupyter server extension list
@@ -153,9 +141,6 @@ dist-ui: build-ui
 	$(call PACKAGE_LAB_EXTENSION,metadata)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
-#	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
-	cd dist && curl -o jupyterlab-lsp-$(LSP_VERSION).tgz $$(npm view @krassowski/jupyterlab-lsp@$(LSP_VERSION) dist.tarball) && cd -
-	cd dist && curl -o jupyter-resource-usage-$(REUSE_VERSION).tgz $$(npm view @jupyter-server/resource-usage@$(RESUSE_VERSION) dist.tarball) && cd -
 
 release: dist-ui build-server ## Build wheel file for release
 
