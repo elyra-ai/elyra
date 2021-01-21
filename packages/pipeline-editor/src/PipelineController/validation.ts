@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2020 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { INode } from "./types";
+
 // 3 seconds should be ample time.
 // should only protect against any infinite loops.
 const TIMEOUT = 3 * 1000;
@@ -25,16 +27,11 @@ export interface ILink {
   type: string;
 }
 
-/**
- * Finds an exhaustive list of node links that are part of a circular reference.
- *
- * @returns array of link IDs.
- */
 export const checkCircularReferences = (links: ILink[]): string[] => {
   const startTime = Date.now();
 
   // filter out comment links.
-  links = links.filter(l => l.type !== 'commentLink');
+  links = links.filter(l => l.type !== "commentLink");
 
   // organize links into easily indexable map:
   // {srcNodeId: link[]}
@@ -101,4 +98,24 @@ export const checkCircularReferences = (links: ILink[]): string[] => {
   }
 
   return [...taintedLinks];
+};
+
+export const validateProperties = (
+  nodeDef: INode,
+  node: any
+): string | undefined => {
+  const errors: string[] = [];
+  for (const prop of nodeDef.properties ?? []) {
+    // this should be safe because a boolean can't be required
+    // otherwise we would need to check strings for undefined or empty string
+    if (prop.required && !node.app_data[prop.id]) {
+      errors.push(`property "${prop.label}" is required`);
+      continue;
+    }
+  }
+
+  if (errors.length > 0) {
+    return errors.join("\n");
+  }
+  return;
 };

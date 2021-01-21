@@ -44,7 +44,7 @@ const DRAGGABLE_CLASS = 'elyra-expandableContainer-draggable';
 export interface IExpandableActionButton {
   title: string;
   icon: LabIcon;
-  onClick: Function;
+  onClick: () => any;
   feedback?: string;
 }
 
@@ -52,9 +52,9 @@ export interface IExpandableComponentProps {
   displayName: string;
   tooltip: string;
   actionButtons?: IExpandableActionButton[];
-  onExpand?: Function;
-  onBeforeExpand?: Function;
-  onMouseDown?: Function;
+  onExpand?: (isExpanded: boolean) => any;
+  onBeforeExpand?: (isExpanded: boolean) => any;
+  onMouseDown?: (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => any;
 }
 
 export interface IExpandableComponentState {
@@ -68,7 +68,7 @@ export class ExpandableComponent extends React.Component<
   IExpandableComponentProps,
   IExpandableComponentState
 > {
-  constructor(props: any) {
+  constructor(props: IExpandableComponentProps) {
     super(props);
     this.state = { expanded: false };
   }

@@ -1,29 +1,14 @@
 {
-  "extends": "../../tsconfig-base",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "module": "commonjs",
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "jsx": "react-jsx",
+    "downlevelIteration": true,
     "outDir": "lib",
-    "rootDir": "src",
-    "target": "es6",
-    "types": ["node", "jest"],
-    "typeRoots": ["./node_modules/@types"]
+    "sourceMap": true,
+    "declaration": true
   },
-  "include": ["src/*", "src/*/*"],
-  "files": [
-    "src/palette.json",
-    "src/properties.json",
-    "src/en.json",
-    "src/pipeline-template.json"
-  ],
-  "references": [
-    {
-      "path": "../application"
-    },
-    {
-      "path": "../metadata-common"
-    },
-    {
-      "path": "../ui-components"
-    }
-  ]
+  "include": ["src"]
 }

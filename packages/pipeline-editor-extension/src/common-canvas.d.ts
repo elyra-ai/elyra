@@ -1,4 +1,20 @@
-declare module "@elyra/canvas";
+/*
+ * Copyright 2018-2020 Elyra Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+declare module '@elyra/canvas';
 
 interface ITipPaletteItemEvent {
   nodeTemplate: any;
@@ -33,22 +49,22 @@ type ITipEvent =
 
 interface ICanvasEditEvent {
   editType: string;
-  editSource: "canvas" | "contextmenu";
+  editSource: 'canvas' | 'contextmenu';
   pipelineId: string;
   [key: string]: any;
 }
 
-type IClickType = "DOUBLE_CLICK" | "SINGLE_CLICK_CONTEXTMENU" | "SINGLE_CLICK";
+type IClickType = 'DOUBLE_CLICK' | 'SINGLE_CLICK_CONTEXTMENU' | 'SINGLE_CLICK';
 
 type ICanvasClickEvent =
   | {
       clickType: IClickType;
-      objectType: "canvas";
+      objectType: 'canvas';
       selectedObjectIds: string[];
     }
   | {
       clickType: IClickType;
-      objectType: "node" | "link" | "comment";
+      objectType: 'node' | 'link' | 'comment';
       selectedObjectIds: string[];
       id: string;
       pipelineId: string;
@@ -85,11 +101,11 @@ interface IPipeline {
   /**
    * Pipeline-flow schema version
    */
-  version: "3.0";
+  version: '3.0';
   /**
    * Refers to the JSON schema used to validate documents of this type
    */
-  json_schema?: "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json";
+  json_schema?: 'http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json';
   /**
    * Preferred authoring application
    */
@@ -165,7 +181,7 @@ interface IExecutionNodeDef {
   /**
    * Node type - always 'execution_node' for non-model pipeline elements
    */
-  type: "execution_node";
+  type: 'execution_node';
   /**
    * Operator type identifier
    */
@@ -246,7 +262,7 @@ interface ISupernodeDef {
   /**
    * Node type - always 'super_node' for supernode elements
    */
-  type: "super_node";
+  type: 'super_node';
   /**
    * Name of the tool which can be used to view or edit the sub-flow for this supernode. The default is 'canvas'
    */
@@ -314,7 +330,7 @@ interface IBindingEntryNodeDef {
   /**
    * Node type - always 'binding' for binding elements
    */
-  type: "binding";
+  type: 'binding';
   outputs?: IPortDef[];
   app_data?: IAppDataDef;
   connection?: {
@@ -345,7 +361,7 @@ interface IBindingExitNodeDef {
   /**
    * Node type - always 'binding' for binding elements
    */
-  type: "binding";
+  type: 'binding';
   inputs?: IPortDef[];
   app_data?: IAppDataDef;
   connection?: {
@@ -376,7 +392,7 @@ interface IModelNodeDef {
   /**
    * Node type - always 'model_node' for model pipeline elements
    */
-  type: "model_node";
+  type: 'model_node';
   /**
    * Reference to the binary model
    */

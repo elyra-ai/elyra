@@ -28,7 +28,7 @@ const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
  */
 class DropDownProps {
   runner: PythonRunner;
-  updateKernel: Function;
+  updateKernel: (k: string) => any;
 }
 
 /**
@@ -42,7 +42,7 @@ class DropDownState {
  * Class: A toolbar dropdown component populated with available kernel specs.
  */
 class DropDown extends React.Component<DropDownProps, DropDownState> {
-  private updateKernel: Function;
+  private updateKernel: (k: string) => any;
   private kernelOptionElems: Record<string, any>[];
 
   /**
@@ -122,12 +122,12 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
  */
 export class KernelDropdown extends ReactWidget {
   private runner: PythonRunner;
-  private updateKernel: Function;
+  private updateKernel: (k: string) => any;
 
   /**
    * Construct a new CellTypeSwitcher widget.
    */
-  constructor(runner: PythonRunner, updateKernel: Function) {
+  constructor(runner: PythonRunner, updateKernel: (k: string) => any) {
     super();
     this.runner = runner;
     this.updateKernel = updateKernel;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2020 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const mockGetRuntimeImages = jest.fn();
-const mock = jest.fn().mockImplementation(() => {
-  return { getRuntimeImages: mockGetRuntimeImages };
-});
+import React from "react";
 
-export default mock;
+import { dragDropIcon } from "@elyra/ui-components";
+
+export const EmptyCanvas: React.FC = () => {
+  return (
+    <div>
+      <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
+      <h1>
+        Start your new pipeline by dragging files from the file browser pane.
+      </h1>
+    </div>
+  );
+};

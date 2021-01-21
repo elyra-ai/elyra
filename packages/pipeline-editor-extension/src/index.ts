@@ -28,7 +28,7 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
-import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
+import { PipelineEditorFactory, commandIDs } from './PipelineEditorFactory';
 import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './PipelineService';
 import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
@@ -110,7 +110,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       label: 'Add File to Pipeline',
       icon: addIcon,
       execute: args => {
-        pipelineEditorFactory.addFileToPipelineSignal.emit(args);
+        // pipelineEditorFactory.addFileToPipelineSignal.emit(args);
       }
     });
     app.contextMenu.addItem({

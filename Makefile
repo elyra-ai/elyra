@@ -55,6 +55,7 @@ uninstall:
 	$(call UNLINK_LAB_EXTENSION,@elyra/application)
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
 	$(call UNLINK_LAB_EXTENSION,@elyra/metadata-common)
+	$(call UNLINK_LAB_EXTENSION,@elyra/pipeline-editor)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-extension)
@@ -102,10 +103,11 @@ install-ui: build-ui
 	$(call LINK_LAB_EXTENSION,application)
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call LINK_LAB_EXTENSION,metadata-common)
+	$(call LINK_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,theme)
 	$(call INSTALL_LAB_EXTENSION,code-snippet)
 	$(call INSTALL_LAB_EXTENSION,metadata)
-	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
+	$(call INSTALL_LAB_EXTENSION,pipeline-editor-extension)
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 
 install-external-extensions:
@@ -150,7 +152,7 @@ dist-ui: build-ui
 	$(call PACKAGE_LAB_EXTENSION,theme)
 	$(call PACKAGE_LAB_EXTENSION,code-snippet)
 	$(call PACKAGE_LAB_EXTENSION,metadata)
-	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
+	$(call PACKAGE_LAB_EXTENSION,pipeline-editor-extension)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
 #	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
 	cd dist && curl -o jupyterlab-lsp-$(LSP_VERSION).tgz $$(npm view @krassowski/jupyterlab-lsp@$(LSP_VERSION) dist.tarball) && cd -

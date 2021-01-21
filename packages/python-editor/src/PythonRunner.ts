@@ -35,7 +35,7 @@ export class PythonRunner {
   kernelManager: KernelManager;
   model: CodeEditor.IModel;
   context: DocumentRegistry.Context;
-  disableRun: Function;
+  disableRun: (x: boolean) => any;
 
   /**
    * Construct a new runner.
@@ -43,7 +43,7 @@ export class PythonRunner {
   constructor(
     model: CodeEditor.IModel,
     context: DocumentRegistry.Context,
-    disableRun: Function
+    disableRun: (x: boolean) => any
   ) {
     this.model = model;
     this.context = context;
@@ -71,7 +71,7 @@ export class PythonRunner {
    */
   runPython = async (
     kernelName: string,
-    handleKernelMsg: Function
+    handleKernelMsg: (x: any) => any
   ): Promise<any> => {
     if (!this.sessionConnection) {
       this.disableRun(true);

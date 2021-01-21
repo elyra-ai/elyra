@@ -161,7 +161,7 @@ export default class Utils {
    * chunkArray(['a', 'b', 'c', 'd', 'e', 'f', 'g'], 4)
    * -> [['a', 'b', 'c', 'd'], ['e', 'f', 'g']]
    */
-  static chunkArray<T extends {}>(arr: T[], n: number): T[][] {
+  static chunkArray<T>(arr: T[], n: number): T[][] {
     return Array.from(Array(Math.ceil(arr.length / n)), (_, i) =>
       arr.slice(i * n, i * n + n)
     );

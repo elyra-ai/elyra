@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2020 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { checkCircularReferences } from './../validation';
+import { checkCircularReferences } from "./validation";
 
 const linkExamples = [
   // ╭───╮      ╭───╮
@@ -23,12 +23,12 @@ const linkExamples = [
   //   ▲          │
   //   ╰────l1────╯
   {
-    it: 'should detect a simple cycle',
+    it: "should detect a simple cycle",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'a', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "a", type: "nodeLink" }
     ],
-    expected: ['l0', 'l1']
+    expected: ["l0", "l1"]
   },
 
   // ╭───╮      ╭───╮      ╭───╮
@@ -47,17 +47,17 @@ const linkExamples = [
   //            │ g │
   //            ╰───╯
   {
-    it: 'should ignore comment links',
+    it: "should ignore comment links",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'c', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'c', trgNodeId: 'e', type: 'nodeLink' },
-      { id: 'l4', srcNodeId: 'e', trgNodeId: 'a', type: 'nodeLink' },
-      { id: 'c0', srcNodeId: 'f', trgNodeId: 'a', type: 'commentLink' },
-      { id: 'c1', srcNodeId: 'g', trgNodeId: 'c', type: 'commentLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "c", type: "nodeLink" },
+      { id: "l2", srcNodeId: "c", trgNodeId: "d", type: "nodeLink" },
+      { id: "l3", srcNodeId: "c", trgNodeId: "e", type: "nodeLink" },
+      { id: "l4", srcNodeId: "e", trgNodeId: "a", type: "nodeLink" },
+      { id: "c0", srcNodeId: "f", trgNodeId: "a", type: "commentLink" },
+      { id: "c1", srcNodeId: "g", trgNodeId: "c", type: "commentLink" }
     ],
-    expected: ['l0', 'l1', 'l3', 'l4']
+    expected: ["l0", "l1", "l3", "l4"]
   },
 
   //    ╭───╮       ╭───╮
@@ -70,14 +70,14 @@ const linkExamples = [
   //  ╰►│ b │─╯   ╰►│ d │─╯
   //    ╰───╯       ╰───╯
   {
-    it: 'should detect multiple simple cycles',
+    it: "should detect multiple simple cycles",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'a', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'c', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'd', trgNodeId: 'c', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "a", type: "nodeLink" },
+      { id: "l2", srcNodeId: "c", trgNodeId: "d", type: "nodeLink" },
+      { id: "l3", srcNodeId: "d", trgNodeId: "c", type: "nodeLink" }
     ],
-    expected: ['l0', 'l1', 'l2', 'l3']
+    expected: ["l0", "l1", "l2", "l3"]
   },
 
   //   ╭────l4────╮
@@ -92,17 +92,17 @@ const linkExamples = [
   // │ d │◄─l3──│ c │    ╰►│ f │─╯
   // ╰───╯      ╰───╯      ╰───╯
   {
-    it: 'should detect multiple cycles in a complex graph',
+    it: "should detect multiple cycles in a complex graph",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'c', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'a', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'c', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l4', srcNodeId: 'b', trgNodeId: 'a', type: 'nodeLink' },
-      { id: 'l5', srcNodeId: 'e', trgNodeId: 'f', type: 'nodeLink' },
-      { id: 'l6', srcNodeId: 'f', trgNodeId: 'e', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "c", trgNodeId: "b", type: "nodeLink" },
+      { id: "l2", srcNodeId: "a", trgNodeId: "d", type: "nodeLink" },
+      { id: "l3", srcNodeId: "c", trgNodeId: "d", type: "nodeLink" },
+      { id: "l4", srcNodeId: "b", trgNodeId: "a", type: "nodeLink" },
+      { id: "l5", srcNodeId: "e", trgNodeId: "f", type: "nodeLink" },
+      { id: "l6", srcNodeId: "f", trgNodeId: "e", type: "nodeLink" }
     ],
-    expected: ['l0', 'l4', 'l5', 'l6']
+    expected: ["l0", "l4", "l5", "l6"]
   },
 
   // ╭───╮      ╭───╮      ╭───╮      ╭───╮
@@ -117,18 +117,18 @@ const linkExamples = [
   //              │          ▲
   //              ╰────l2────╯
   {
-    it: 'should detect multiple cycles in a complex graph - shuffled',
+    it: "should detect multiple cycles in a complex graph - shuffled",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'c', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'd', trgNodeId: 'e', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'c', trgNodeId: 'e', type: 'nodeLink' },
-      { id: 'l4', srcNodeId: 'b', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l5', srcNodeId: 'e', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l6', srcNodeId: 'f', trgNodeId: 'g', type: 'nodeLink' },
-      { id: 'l7', srcNodeId: 'g', trgNodeId: 'f', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "c", trgNodeId: "b", type: "nodeLink" },
+      { id: "l2", srcNodeId: "d", trgNodeId: "e", type: "nodeLink" },
+      { id: "l3", srcNodeId: "c", trgNodeId: "e", type: "nodeLink" },
+      { id: "l4", srcNodeId: "b", trgNodeId: "d", type: "nodeLink" },
+      { id: "l5", srcNodeId: "e", trgNodeId: "d", type: "nodeLink" },
+      { id: "l6", srcNodeId: "f", trgNodeId: "g", type: "nodeLink" },
+      { id: "l7", srcNodeId: "g", trgNodeId: "f", type: "nodeLink" }
     ],
-    expected: ['l2', 'l5', 'l6', 'l7']
+    expected: ["l2", "l5", "l6", "l7"]
   },
 
   // ╭───╮      ╭───╮      ╭───╮
@@ -137,13 +137,13 @@ const linkExamples = [
   //              │          ▲
   //              ╰────l2────╯
   {
-    it: 'should only detect links contributing to the cycle',
+    it: "should only detect links contributing to the cycle",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'c', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "c", trgNodeId: "b", type: "nodeLink" },
+      { id: "l2", srcNodeId: "b", trgNodeId: "c", type: "nodeLink" }
     ],
-    expected: ['l1', 'l2']
+    expected: ["l1", "l2"]
   },
 
   // ╭───╮      ╭───╮      ╭───╮
@@ -152,14 +152,14 @@ const linkExamples = [
   //   ▲         │ ▲         │
   //   ╰────l1───╯ ╰───l3────╯
   {
-    it: 'should detect joined cycles',
+    it: "should detect joined cycles",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'a', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'c', trgNodeId: 'b', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "a", type: "nodeLink" },
+      { id: "l2", srcNodeId: "b", trgNodeId: "c", type: "nodeLink" },
+      { id: "l3", srcNodeId: "c", trgNodeId: "b", type: "nodeLink" }
     ],
-    expected: ['l0', 'l1', 'l2', 'l3']
+    expected: ["l0", "l1", "l2", "l3"]
   },
 
   // ╭───╮      ╭───╮      ╭───╮
@@ -168,14 +168,14 @@ const linkExamples = [
   //   ▲         │ ▲         │
   //   ╰────l1───╯ ╰───l3────╯
   {
-    it: 'should detect joined cycles - shuffled',
+    it: "should detect joined cycles - shuffled",
     given: [
-      { id: 'l3', srcNodeId: 'c', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'a', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' },
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' }
+      { id: "l3", srcNodeId: "c", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "a", type: "nodeLink" },
+      { id: "l2", srcNodeId: "b", trgNodeId: "c", type: "nodeLink" },
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" }
     ],
-    expected: ['l0', 'l1', 'l2', 'l3']
+    expected: ["l0", "l1", "l2", "l3"]
   },
 
   // ╭───╮      ╭───╮
@@ -188,12 +188,12 @@ const linkExamples = [
   // │ d │◄─l2──│ c │
   // ╰───╯      ╰───╯
   {
-    it: 'should not detect fake cycle',
+    it: "should not detect fake cycle",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'c', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'a', trgNodeId: 'd', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "c", type: "nodeLink" },
+      { id: "l2", srcNodeId: "c", trgNodeId: "d", type: "nodeLink" },
+      { id: "l3", srcNodeId: "a", trgNodeId: "d", type: "nodeLink" }
     ],
     expected: []
   },
@@ -210,15 +210,15 @@ const linkExamples = [
   // │ d │◄─l3──│ c │
   // ╰───╯      ╰───╯
   {
-    it: 'should detect cycle when a fork that gets checked first is safe',
+    it: "should detect cycle when a fork that gets checked first is safe",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'c', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'a', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'c', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l4', srcNodeId: 'b', trgNodeId: 'a', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "c", trgNodeId: "b", type: "nodeLink" },
+      { id: "l2", srcNodeId: "a", trgNodeId: "d", type: "nodeLink" },
+      { id: "l3", srcNodeId: "c", trgNodeId: "d", type: "nodeLink" },
+      { id: "l4", srcNodeId: "b", trgNodeId: "a", type: "nodeLink" }
     ],
-    expected: ['l0', 'l4']
+    expected: ["l0", "l4"]
   },
 
   // ╭───╮      ╭───╮      ╭───╮      ╭───╮      ╭───╮
@@ -233,20 +233,20 @@ const linkExamples = [
   //                                                          ▲          │
   //                                                          ╰────l9────╯
   {
-    it: 'should handle long forks',
+    it: "should handle long forks",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'c', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'd', trgNodeId: 'e', type: 'nodeLink' },
-      { id: 'l4', srcNodeId: 'c', trgNodeId: 'f', type: 'nodeLink' },
-      { id: 'l5', srcNodeId: 'f', trgNodeId: 'g', type: 'nodeLink' },
-      { id: 'l6', srcNodeId: 'g', trgNodeId: 'h', type: 'nodeLink' },
-      { id: 'l7', srcNodeId: 'h', trgNodeId: 'i', type: 'nodeLink' },
-      { id: 'l8', srcNodeId: 'i', trgNodeId: 'j', type: 'nodeLink' },
-      { id: 'l9', srcNodeId: 'j', trgNodeId: 'i', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "c", type: "nodeLink" },
+      { id: "l2", srcNodeId: "c", trgNodeId: "d", type: "nodeLink" },
+      { id: "l3", srcNodeId: "d", trgNodeId: "e", type: "nodeLink" },
+      { id: "l4", srcNodeId: "c", trgNodeId: "f", type: "nodeLink" },
+      { id: "l5", srcNodeId: "f", trgNodeId: "g", type: "nodeLink" },
+      { id: "l6", srcNodeId: "g", trgNodeId: "h", type: "nodeLink" },
+      { id: "l7", srcNodeId: "h", trgNodeId: "i", type: "nodeLink" },
+      { id: "l8", srcNodeId: "i", trgNodeId: "j", type: "nodeLink" },
+      { id: "l9", srcNodeId: "j", trgNodeId: "i", type: "nodeLink" }
     ],
-    expected: ['l8', 'l9']
+    expected: ["l8", "l9"]
   },
 
   // ╭───╮      ╭───╮      ╭───╮      ╭───╮      ╭───╮
@@ -261,20 +261,20 @@ const linkExamples = [
   //                                                          ▲          │
   //                                                          ╰────l7────╯
   {
-    it: 'should handle long forks - shuffled',
+    it: "should handle long forks - shuffled",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'c', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'd', trgNodeId: 'e', type: 'nodeLink' },
-      { id: 'l4', srcNodeId: 'e', trgNodeId: 'f', type: 'nodeLink' },
-      { id: 'l5', srcNodeId: 'f', trgNodeId: 'g', type: 'nodeLink' },
-      { id: 'l6', srcNodeId: 'g', trgNodeId: 'h', type: 'nodeLink' },
-      { id: 'l7', srcNodeId: 'h', trgNodeId: 'g', type: 'nodeLink' },
-      { id: 'l8', srcNodeId: 'c', trgNodeId: 'i', type: 'nodeLink' },
-      { id: 'l9', srcNodeId: 'i', trgNodeId: 'j', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "c", type: "nodeLink" },
+      { id: "l2", srcNodeId: "c", trgNodeId: "d", type: "nodeLink" },
+      { id: "l3", srcNodeId: "d", trgNodeId: "e", type: "nodeLink" },
+      { id: "l4", srcNodeId: "e", trgNodeId: "f", type: "nodeLink" },
+      { id: "l5", srcNodeId: "f", trgNodeId: "g", type: "nodeLink" },
+      { id: "l6", srcNodeId: "g", trgNodeId: "h", type: "nodeLink" },
+      { id: "l7", srcNodeId: "h", trgNodeId: "g", type: "nodeLink" },
+      { id: "l8", srcNodeId: "c", trgNodeId: "i", type: "nodeLink" },
+      { id: "l9", srcNodeId: "i", trgNodeId: "j", type: "nodeLink" }
     ],
-    expected: ['l6', 'l7']
+    expected: ["l6", "l7"]
   },
 
   // ╭───╮      ╭───╮      ╭───╮      ╭───╮      ╭───╮
@@ -287,22 +287,22 @@ const linkExamples = [
   //                       │ d │──l3─►│ e │
   //                       ╰───╯      ╰───╯
   {
-    it: 'should not have a bug that a previous implementation had',
+    it: "should not have a bug that a previous implementation had",
     given: [
-      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
-      { id: 'l1', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' },
-      { id: 'l2', srcNodeId: 'c', trgNodeId: 'd', type: 'nodeLink' },
-      { id: 'l3', srcNodeId: 'd', trgNodeId: 'e', type: 'nodeLink' },
-      { id: 'l4', srcNodeId: 'e', trgNodeId: 'f', type: 'nodeLink' },
-      { id: 'l5', srcNodeId: 'c', trgNodeId: 'f', type: 'nodeLink' },
-      { id: 'l6', srcNodeId: 'f', trgNodeId: 'g', type: 'nodeLink' }
+      { id: "l0", srcNodeId: "a", trgNodeId: "b", type: "nodeLink" },
+      { id: "l1", srcNodeId: "b", trgNodeId: "c", type: "nodeLink" },
+      { id: "l2", srcNodeId: "c", trgNodeId: "d", type: "nodeLink" },
+      { id: "l3", srcNodeId: "d", trgNodeId: "e", type: "nodeLink" },
+      { id: "l4", srcNodeId: "e", trgNodeId: "f", type: "nodeLink" },
+      { id: "l5", srcNodeId: "c", trgNodeId: "f", type: "nodeLink" },
+      { id: "l6", srcNodeId: "f", trgNodeId: "g", type: "nodeLink" }
     ],
     expected: []
   }
 ];
 
-describe('@elyra/pipeline-editor', () => {
-  describe('checkCircularReferences', () => {
+describe("@elyra/pipeline-editor", () => {
+  describe("checkCircularReferences", () => {
     for (const { it: should, given, expected } of linkExamples) {
       it(should, async () => {
         const actual = checkCircularReferences(given);
