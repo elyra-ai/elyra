@@ -16,7 +16,6 @@
 
 import { ReactWidget } from '@jupyterlab/apputils';
 import { KernelSpec } from '@jupyterlab/services';
-import { ISpecModel } from '@jupyterlab/services/lib/kernelspec/kernelspec';
 import { HTMLSelect } from '@jupyterlab/ui-components';
 import React from 'react';
 
@@ -84,16 +83,17 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
    * Function: Creates drop down options with available python kernel specs.
    */
   private createOptionElems = (specs: KernelSpec.ISpecModels): void => {
-    const kernelSpecs: ISpecModel[] = Object.values(specs.kernelspecs);
-    kernelSpecs.forEach((spec: ISpecModel, i: number) => {
-      const displayName = spec.display_name;
+    let i = 0;
+    for (const name of Object.keys(specs.kernelspecs)) {
+      const spec = specs.kernelspecs[name];
+      const displayName = spec.display_name ? spec.display_name : name;
       const elem = React.createElement(
         'option',
-        { key: i, value: displayName },
+        { key: i++, value: displayName },
         displayName
       );
       this.kernelOptionElems.push(elem);
-    });
+    }
   };
 
   /**
