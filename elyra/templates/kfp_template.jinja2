@@ -24,7 +24,7 @@ def create_pipeline():
                                                       pipeline_outputs={{ operation.pipeline_outputs }},
                                                       cpu_request='{{ operation.cpu_request }}',
                                                       mem_request='{{ operation.mem_request }}G',
-                                                      gpu_request='{{ operation.gpu_request }}',
+                                                      gpu_limit='{{ operation.gpu_limit }}',
                                                       image='{{ operation.image }}',
                                                       file_outputs={
                                                         'mlpipeline-metrics': '{{ metrics_file }}',

@@ -272,7 +272,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                     emptydir_volume_size=emptydir_volume_size,
                                                     cpu_request=operation.cpu,
                                                     mem_request=operation.memory,
-                                                    gpu_request=operation.gpu,
+                                                    gpu_limit=operation.gpu,
                                                     image=operation.runtime_image,
                                                     file_outputs={
                                                         'mlpipeline-metrics':
