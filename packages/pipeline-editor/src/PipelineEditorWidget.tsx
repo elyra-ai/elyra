@@ -854,6 +854,22 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  cleanNullProperties(): void {
+    // Delete optional fields that have null value
+    for (const node of this.canvasController.getPipelineFlow().pipelines[0]
+      .nodes) {
+      if (node.app_data.cpu === null) {
+        delete node.app_data.cpu;
+      }
+      if (node.app_data.memory === null) {
+        delete node.app_data.memory;
+      }
+      if (node.app_data.gpu === null) {
+        delete node.app_data.gpu;
+      }
+    }
+  }
+
   async handleExportPipeline(): Promise<void> {
     // Warn user if the pipeline has invalid nodes
     const errorMessage = await this.validatePipeline();
@@ -911,6 +927,8 @@ export class PipelineEditor extends React.Component<
       pipelineFlow.pipelines[0],
       this.widgetContext.path
     );
+
+    this.cleanNullProperties();
 
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
@@ -1264,6 +1282,8 @@ export class PipelineEditor extends React.Component<
       pipelineFlow.pipelines[0],
       this.widgetContext.path
     );
+
+    this.cleanNullProperties();
 
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
