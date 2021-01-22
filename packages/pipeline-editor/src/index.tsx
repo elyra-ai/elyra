@@ -50,8 +50,10 @@ const PipelineEditor = forwardRef(
     }, [onError, pipeline]);
 
     useImperativeHandle(ref, () => ({
-      addFile: () => {
+      addFile: (item: any, x?: number, y?: number) => {
         console.log("add file");
+        console.log(item);
+        controller.current.addNode(item, x, y);
       }
     }));
 

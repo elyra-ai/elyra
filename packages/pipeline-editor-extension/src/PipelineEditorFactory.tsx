@@ -28,6 +28,9 @@ import '@elyra/canvas/dist/styles/common-canvas.min.css';
 import '../style/canvas.css';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { IDragEvent } from '@lumino/dragdrop';
+import { toArray } from '@lumino/algorithm';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -40,7 +43,7 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
-const PipelineWrapper = ({ context, widget }: any) => {
+const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
   const ref = useRef(null);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState();
@@ -85,8 +88,18 @@ const PipelineWrapper = ({ context, widget }: any) => {
     });
   }, []);
 
-  const handleDrop = useCallback(async () => {
-    ref.current?.addFile();
+  const handleDrop = useCallback(async (e: IDragEvent): Promise<void> => {
+    const fileBrowser = browserFactory.defaultBrowser;
+
+    toArray(fileBrowser.selectedItems()).map(
+      (item: any, index: number): void => {
+        ref.current?.addFile(
+          item,
+          e.offsetX + 20 * index,
+          e.offsetY + 20 * index
+        );
+      }
+    );
   }, []);
 
   if (loading) {
@@ -111,12 +124,17 @@ const PipelineWrapper = ({ context, widget }: any) => {
 };
 
 export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
+  browserFactory: IFileBrowserFactory;
+
   constructor(options: any) {
     super(options);
+    this.browserFactory = options.browserFactory;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
-    const content = ReactWidget.create(<PipelineWrapper context={context} />);
+    const content = ReactWidget.create(
+      <PipelineWrapper context={context} browserFactory={this.browserFactory} />
+    );
 
     const widget = new DocumentWidget({ content, context });
     widget.addClass(PIPELINE_CLASS);
