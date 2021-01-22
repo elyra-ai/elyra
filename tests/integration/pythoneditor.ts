@@ -56,7 +56,7 @@ describe('PythonEditor', () => {
     cy.get('svg[data-icon="ui-components:stop"]');
   });
 
-  it('check select kernel dropdown exists and has python3', () => {
+  it('check select kernel dropdown exists and has python', () => {
     cy.get('.elyra-PythonEditor .jp-Toolbar select > option[value*=python]');
   });
 });

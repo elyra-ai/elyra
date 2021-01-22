@@ -89,7 +89,7 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
       const displayName = spec.display_name ? spec.display_name : name;
       const elem = React.createElement(
         'option',
-        { key: i++, value: displayName },
+        { key: i++, value: name },
         displayName
       );
       this.kernelOptionElems.push(elem);
