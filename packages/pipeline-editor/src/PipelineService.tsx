@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  MetadataService,
-  IDictionary,
-  RequestHandler
-} from '@elyra/application';
+import { MetadataService, IDictionary, RequestHandler } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 
 import { showDialog, Dialog } from '@jupyterlab/apputils';

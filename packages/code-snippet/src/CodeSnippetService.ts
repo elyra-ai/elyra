@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { MetadataService } from '@elyra/application';
 import { IMetadata } from '@elyra/metadata-common';
+import { MetadataService } from '@elyra/services';
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { MetadataService } from '@elyra/application';
 import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
+import { MetadataService } from '@elyra/services';
 
 import { RequestErrors } from '@elyra/ui-components';
 import {

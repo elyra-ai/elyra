@@ -47,7 +47,7 @@ purge:
 	rm -rf $(yarn cache dir)
 
 uninstall:
-	$(call UNLINK_LAB_EXTENSION,@elyra/application)
+	$(call UNLINK_LAB_EXTENSION,@elyra/services)
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
 	$(call UNLINK_LAB_EXTENSION,@elyra/metadata-common)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
@@ -94,7 +94,7 @@ install-server: build-server ## Install backend
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
 
 install-ui: build-ui
-	$(call LINK_LAB_EXTENSION,application)
+	$(call LINK_LAB_EXTENSION,services)
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call LINK_LAB_EXTENSION,metadata-common)
 	$(call INSTALL_LAB_EXTENSION,theme)
