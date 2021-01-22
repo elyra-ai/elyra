@@ -112,7 +112,7 @@ class Operation(object):
         """
         envs = {}
         for nv in self.env_vars:
-            if len(nv) > 0:
+            if nv and len(nv) > 0:
                 nv_pair = nv.split("=")
                 if len(nv_pair) == 2:
                     envs[nv_pair[0]] = nv_pair[1]
