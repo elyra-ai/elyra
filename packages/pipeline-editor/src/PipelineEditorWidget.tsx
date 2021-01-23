@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { IDictionary } from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,
   CommonProperties
 } from '@elyra/canvas';
+import { IDictionary } from '@elyra/services';
 import {
   IconUtil,
   clearPipelineIcon,

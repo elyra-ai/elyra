@@ -360,7 +360,7 @@ span.elyra-BreadCrumbs-disabled + span {
   color: var(--md-grey-500);
 }
 
-input.elyra-Dialog-checkbox {
+input.elyra-Dialog-checkbox.jp-mod-styled {
   appearance: auto;
   height: auto;
 }

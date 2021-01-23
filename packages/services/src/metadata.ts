@@ -34,8 +34,7 @@ export class MetadataService {
    */
   static async getMetadata(namespace: string): Promise<any> {
     return RequestHandler.makeGetRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace,
-      false
+      ELYRA_METADATA_API_ENDPOINT + namespace
     ).then(metadataResponse => metadataResponse[namespace]);
   }
 
@@ -51,8 +50,7 @@ export class MetadataService {
   static async postMetadata(namespace: string, requestBody: any): Promise<any> {
     return RequestHandler.makePostRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace,
-      requestBody,
-      false
+      requestBody
     );
   }
 
@@ -73,8 +71,7 @@ export class MetadataService {
   ): Promise<any> {
     return RequestHandler.makePutRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
-      requestBody,
-      false
+      requestBody
     );
   }
 
@@ -88,8 +85,7 @@ export class MetadataService {
    */
   static async deleteMetadata(namespace: string, name: string): Promise<any> {
     return RequestHandler.makeDeleteRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
-      false
+      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name
     );
   }
 
@@ -110,8 +106,7 @@ export class MetadataService {
     }
 
     return RequestHandler.makeGetRequest(
-      ELYRA_SCHEMA_API_ENDPOINT + namespace,
-      false
+      ELYRA_SCHEMA_API_ENDPOINT + namespace
     ).then(schemaResponse => {
       if (schemaResponse[namespace]) {
         this.schemaCache[namespace] = schemaResponse[namespace];
@@ -129,10 +124,7 @@ export class MetadataService {
    */
   static async getAllSchema(): Promise<any> {
     try {
-      const namespaces = await RequestHandler.makeGetRequest(
-        'elyra/namespace',
-        false
-      );
+      const namespaces = await RequestHandler.makeGetRequest('elyra/namespace');
       const schemas = [];
       for (const namespace of namespaces['namespaces']) {
         const schema = await this.getSchema(namespace);
