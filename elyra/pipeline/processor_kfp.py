@@ -252,13 +252,12 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             if operation.env_vars:
                 for env_var in operation.env_vars:
-                    if env_var:
-                        # Strip any of these special characters from both key and value
-                        # Splits on the first occurrence of '='
-                        result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
-                        # Should be non empty key with a value
-                        if len(result) == 2 and result[0] != '':
-                            pipeline_envs[result[0]] = result[1]
+                    # Strip any of these special characters from both key and value
+                    # Splits on the first occurrence of '='
+                    result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
+                    # Should be non empty key with a value
+                    if len(result) == 2 and result[0] != '':
+                        pipeline_envs[result[0]] = result[1]
 
             # create pipeline operation
             notebook_ops[operation.id] = NotebookOp(name=operation.name,

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import os
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 
 class Operation(object):
@@ -61,11 +61,11 @@ class Operation(object):
         self._classifier = classifier
         self._filename = filename
         self._runtime_image = runtime_image
-        self._dependencies = dependencies or []
+        self._dependencies = Operation.scrub_list(dependencies)
         self._include_subdirectories = include_subdirectories
-        self._env_vars = env_vars or []
-        self._inputs = inputs or []
-        self._outputs = outputs or []
+        self._env_vars = Operation.scrub_list(env_vars)
+        self._inputs = Operation.scrub_list(inputs)
+        self._outputs = Operation.scrub_list(outputs)
         self._parent_operations = parent_operations or []
 
     @property
@@ -112,9 +112,9 @@ class Operation(object):
         """
         envs = {}
         for nv in self.env_vars:
-            if nv and len(nv) > 0:
+            if len(nv) > 0:
                 nv_pair = nv.split("=")
-                if len(nv_pair) == 2:
+                if len(nv_pair) == 2 and nv_pair[0].strip():
                     envs[nv_pair[0]] = nv_pair[1]
                 else:
                     if logger:
@@ -175,6 +175,16 @@ class Operation(object):
                                                     inputs=self.inputs,
                                                     outputs=self.outputs,
                                                     image=self.runtime_image)
+
+    @staticmethod
+    def scrub_list(dirty: Optional[List]) -> List:
+        """
+        :param dirty: a List of values
+        :return: a list that contains all the values from `dirty` after filtering out None and empty string values
+        """
+        if not dirty:
+            return []
+        return [clean for clean in dirty if clean]
 
 
 class Pipeline(object):
