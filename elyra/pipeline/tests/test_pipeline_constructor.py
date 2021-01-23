@@ -241,13 +241,6 @@ def test_fail_pipelines_are_equal(good_pipeline):
         assert compare_pipeline == good_pipeline
 
 
-def test_scrub_list_function(good_operation):
-    env_variables_input = ['FOO=Bar', 'BAR=Foo', None, '']
-    env_variables_output = ['FOO=Bar', 'BAR=Foo']
-
-    assert good_operation.scrub_list(env_variables_input) == env_variables_output
-
-
 def test_env_list_to_dict_function():
     env_variables = ['FOO=Bar', 'BAR=Foo', None, '', '  =Dog', 'DOG=  ']
     env_variables_dict = {"FOO": "Bar", "BAR": "Foo", "DOG": "  "}
