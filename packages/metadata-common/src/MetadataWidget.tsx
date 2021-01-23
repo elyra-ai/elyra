@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IDictionary, MetadataService } from '@elyra/application';
+import { IDictionary, MetadataService } from '@elyra/services';
 import {
   ExpandableComponent,
   JSONComponent,

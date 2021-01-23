@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IDictionary } from '@elyra/application';
+import { IDictionary } from '@elyra/services';
 import * as React from 'react';
 
 import { IRuntime } from './PipelineService';
