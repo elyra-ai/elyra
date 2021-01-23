@@ -191,7 +191,7 @@ class PipelineParser(LoggingConfigurable):
         return input_node_ids
 
     @staticmethod
-    def _get_parent_operation_links(node: Dict, embedded_node_id: Optional[str] = None) -> List[str]:
+    def _get_parent_operation_links(node: Dict, embedded_node_id: Optional[str] = None) -> List[List[str]]:
         """
         Gets a list nodes_ids corresponding to parent nodes (outputs directed to this node).
         For super_nodes, the node to use has an id of the embedded_node_id suffixed with '_inPort'.
@@ -208,7 +208,7 @@ class PipelineParser(LoggingConfigurable):
         return links
 
     @staticmethod
-    def _scrub_list(dirty: Optional[List]) -> List:
+    def _scrub_list(dirty: Optional[List[Optional[str]]]) -> List[str]:
         """
         Clean an existing list by filtering out None and empty string values
         :param dirty: a List of values
