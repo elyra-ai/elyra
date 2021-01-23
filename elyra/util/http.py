@@ -60,7 +60,7 @@ class HttpErrorMixin(object):
             if isinstance(exception, web.HTTPError):
                 reply['message'] = exception.log_message or message
             else:
-                if isinstance(exception, Exception):
+                if isinstance(exception, Exception) and exception.args:
                     reply['message'] = exception.args[0]
                 else:
                     reply['message'] = "{}: {}".format(exception.__class__.__name__, str(exception))
