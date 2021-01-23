@@ -260,4 +260,3 @@ def test_env_list_to_dict_function():
                                runtime_image='tensorflow/tensorflow:latest')
 
     assert test_operation.env_vars_as_dict() == env_variables_dict
-
