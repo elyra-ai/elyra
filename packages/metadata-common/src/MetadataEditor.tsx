@@ -16,7 +16,7 @@
 
 import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
 
-import { MetadataService, IDictionary } from '@elyra/application';
+import { MetadataService, IDictionary } from '@elyra/services';
 import { DropDown, RequestErrors } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';

@@ -83,7 +83,7 @@ afterAll(async () => {
   await server.shutdown();
 });
 
-describe('@elyra/application', () => {
+describe('@elyra/services', () => {
   describe('MetadataService', () => {
     describe('#getSchema', () => {
       it('should get schema', async () => {

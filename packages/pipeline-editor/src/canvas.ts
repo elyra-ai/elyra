@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { NotebookParser } from '@elyra/application';
+import { NotebookParser } from '@elyra/services';
 import { IconUtil } from '@elyra/ui-components';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
