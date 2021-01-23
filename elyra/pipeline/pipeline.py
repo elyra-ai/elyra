@@ -61,11 +61,11 @@ class Operation(object):
         self._classifier = classifier
         self._filename = filename
         self._runtime_image = runtime_image
-        self._dependencies = dependencies
+        self._dependencies = dependencies or []
         self._include_subdirectories = include_subdirectories
-        self._env_vars = env_vars
-        self._inputs = inputs
-        self._outputs = outputs
+        self._env_vars = env_vars or []
+        self._inputs = inputs or []
+        self._outputs = outputs or []
         self._parent_operations = parent_operations or []
 
     @property
