@@ -44,6 +44,18 @@ def test_valid_pipeline(valid_operation):
     assert pipeline.operations['{{uuid}}'] == valid_operation
 
 
+def test_pipeline_with_dirty_list_values(valid_operation):
+    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_with_invalid_list_values.json')
+
+    pipeline = PipelineParser().parse(pipeline_definitions)
+
+    assert pipeline.name == '{{name}}'
+    assert pipeline.runtime == '{{runtime}}'
+    assert pipeline.runtime_config == '{{runtime-config}}'
+    assert len(pipeline.operations) == 1
+    assert pipeline.operations['{{uuid}}'] == valid_operation
+
+
 def test_missing_primary():
     pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
     pipeline_definitions.pop('primary_pipeline')
@@ -237,3 +249,10 @@ def test_missing_operation_image():
         PipelineParser().parse(pipeline_definitions)
 
     assert "Missing field 'operation runtime image'" in str(e.value)
+
+
+def test_scrub_list_function():
+    env_variables_input = ['FOO=Bar', 'BAR=Foo', None, '']
+    env_variables_output = ['FOO=Bar', 'BAR=Foo']
+
+    assert PipelineParser()._scrub_list(env_variables_input) == env_variables_output

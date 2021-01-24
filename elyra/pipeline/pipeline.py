@@ -130,9 +130,9 @@ class Operation(object):
         """
         envs = {}
         for nv in self.env_vars:
-            if len(nv) > 0:
+            if nv and len(nv) > 0:
                 nv_pair = nv.split("=")
-                if len(nv_pair) == 2:
+                if len(nv_pair) == 2 and nv_pair[0].strip():
                     envs[nv_pair[0]] = nv_pair[1]
                 else:
                     if logger:
