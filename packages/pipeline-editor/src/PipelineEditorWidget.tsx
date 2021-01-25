@@ -920,8 +920,19 @@ export class PipelineEditor extends React.Component<
 
   async handleOpenPipeline(): Promise<void> {
     this.widgetContext.ready.then(async () => {
-      let pipelineJson: any = this.widgetContext.model.toJSON();
-      if (pipelineJson == null) {
+      let pipelineJson: any = null;
+
+      try {
+        pipelineJson = this.widgetContext.model.toJSON();
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          RequestErrors.syntaxError('Pipeline', error).then(result => {
+            this.handleClosePipeline();
+          });
+        }
+      }
+
+      if (pipelineJson === null) {
         // creating new pipeline
         pipelineJson = this.canvasController.getPipelineFlow();
         if (Utils.isEmptyPipeline(pipelineJson)) {
