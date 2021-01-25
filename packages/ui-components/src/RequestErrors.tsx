@@ -94,23 +94,4 @@ export class RequestErrors {
       buttons: [Dialog.okButton()]
     });
   }
-
-  /**
-   * Displays an error dialog containing a syntax error.
-   *
-   * @param fileType - the type of file that was being accessed when
-   * the error occurred
-   *
-   * @returns A promise that resolves with whether the dialog was accepted.
-   */
-  static syntaxError(
-    fileType: string,
-    error: SyntaxError
-  ): Promise<Dialog.IResult<any>> {
-    return showDialog({
-      title: `${fileType} file ${error.name}:`,
-      body: <p>{error.message}</p>,
-      buttons: [Dialog.okButton()]
-    });
-  }
 }

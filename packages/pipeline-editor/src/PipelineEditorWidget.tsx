@@ -949,11 +949,7 @@ export class PipelineEditor extends React.Component<
       try {
         pipelineJson = this.widgetContext.model.toJSON();
       } catch (error) {
-        if (error instanceof SyntaxError) {
-          RequestErrors.syntaxError('Pipeline', error).then(result => {
-            this.handleClosePipeline();
-          });
-        }
+        this.handleJSONError(error);
       }
 
       if (pipelineJson === null) {
@@ -1236,6 +1232,23 @@ export class PipelineEditor extends React.Component<
     } else {
       return null;
     }
+  }
+
+  /**
+   * Displays a dialog containing a JSON error
+   */
+  handleJSONError(error: any): void {
+    showDialog({
+      title: 'Error opening pipeline',
+      body: (
+        <p>
+          {error.name}: {error.message}
+        </p>
+      ),
+      buttons: [Dialog.okButton()]
+    }).then(result => {
+      this.handleClosePipeline();
+    });
   }
 
   async handleRunPipeline(): Promise<void> {
