@@ -944,8 +944,15 @@ export class PipelineEditor extends React.Component<
 
   async handleOpenPipeline(): Promise<void> {
     this.widgetContext.ready.then(async () => {
-      let pipelineJson: any = this.widgetContext.model.toJSON();
-      if (pipelineJson == null) {
+      let pipelineJson: any = null;
+
+      try {
+        pipelineJson = this.widgetContext.model.toJSON();
+      } catch (error) {
+        this.handleJSONError(error);
+      }
+
+      if (pipelineJson === null) {
         // creating new pipeline
         pipelineJson = this.canvasController.getPipelineFlow();
         if (Utils.isEmptyPipeline(pipelineJson)) {
@@ -1225,6 +1232,23 @@ export class PipelineEditor extends React.Component<
     } else {
       return null;
     }
+  }
+
+  /**
+   * Displays a dialog containing a JSON error
+   */
+  handleJSONError(error: any): void {
+    showDialog({
+      title: 'The pipeline file is not valid JSON.',
+      body: (
+        <p>
+          {error.name}: {error.message}
+        </p>
+      ),
+      buttons: [Dialog.okButton()]
+    }).then(result => {
+      this.handleClosePipeline();
+    });
   }
 
   async handleRunPipeline(): Promise<void> {
