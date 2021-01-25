@@ -1239,7 +1239,7 @@ export class PipelineEditor extends React.Component<
    */
   handleJSONError(error: any): void {
     showDialog({
-      title: 'Error opening pipeline',
+      title: 'The pipeline file is not valid JSON.',
       body: (
         <p>
           {error.name}: {error.message}
