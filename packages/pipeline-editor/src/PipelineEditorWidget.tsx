@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { IDictionary } from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,
   CommonProperties
 } from '@elyra/canvas';
+import { IDictionary } from '@elyra/services';
 import {
   IconUtil,
   clearPipelineIcon,
@@ -492,6 +492,9 @@ export class PipelineEditor extends React.Component<
       app_data.dependencies;
     node_props.parameterDef.current_parameters.include_subdirectories =
       app_data.include_subdirectories;
+    node_props.parameterDef.current_parameters.cpu = app_data.cpu;
+    node_props.parameterDef.current_parameters.memory = app_data.memory;
+    node_props.parameterDef.current_parameters.gpu = app_data.gpu;
     node_props.parameterDef.titleDefinition = {
       title: this.canvasController.getNode(source.id).label,
       editable: true
@@ -540,6 +543,9 @@ export class PipelineEditor extends React.Component<
     app_data.env_vars = propertySet.env_vars;
     app_data.dependencies = propertySet.dependencies;
     app_data.include_subdirectories = propertySet.include_subdirectories;
+    app_data.cpu = propertySet.cpu;
+    app_data.memory = propertySet.memory;
+    app_data.gpu = propertySet.gpu;
     this.validateAllNodes();
     this.updateModel();
   }
@@ -848,6 +854,22 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  cleanNullProperties(): void {
+    // Delete optional fields that have null value
+    for (const node of this.canvasController.getPipelineFlow().pipelines[0]
+      .nodes) {
+      if (node.app_data.cpu === null) {
+        delete node.app_data.cpu;
+      }
+      if (node.app_data.memory === null) {
+        delete node.app_data.memory;
+      }
+      if (node.app_data.gpu === null) {
+        delete node.app_data.gpu;
+      }
+    }
+  }
+
   async handleExportPipeline(): Promise<void> {
     // Warn user if the pipeline has invalid nodes
     const errorMessage = await this.validatePipeline();
@@ -905,6 +927,8 @@ export class PipelineEditor extends React.Component<
       pipelineFlow.pipelines[0],
       this.widgetContext.path
     );
+
+    this.cleanNullProperties();
 
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
@@ -1269,6 +1293,8 @@ export class PipelineEditor extends React.Component<
       pipelineFlow.pipelines[0],
       this.widgetContext.path
     );
+
+    this.cleanNullProperties();
 
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;

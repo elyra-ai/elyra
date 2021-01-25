@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { IDictionary } from '@elyra/application';
 import {
   MetadataWidget,
   IMetadataWidgetProps,
@@ -23,6 +22,7 @@ import {
   IMetadataDisplayProps,
   IMetadataDisplayState
 } from '@elyra/metadata-common';
+import { IDictionary } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import React from 'react';
 

@@ -239,3 +239,17 @@ def test_fail_pipelines_are_equal(good_pipeline):
 
     with pytest.raises(AssertionError):
         assert compare_pipeline == good_pipeline
+
+
+def test_env_list_to_dict_function():
+    env_variables = ['FOO=Bar', 'BAR=Foo', None, '', '  =Dog', 'DOG=  ']
+    env_variables_dict = {"FOO": "Bar", "BAR": "Foo", "DOG": "  "}
+
+    test_operation = Operation(id='test-id',
+                               type='test',
+                               classifier='execution-node',
+                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                               env_vars=env_variables,
+                               runtime_image='tensorflow/tensorflow:latest')
+
+    assert test_operation.env_vars_as_dict() == env_variables_dict

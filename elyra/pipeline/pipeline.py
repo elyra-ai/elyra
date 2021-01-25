@@ -22,8 +22,8 @@ class Operation(object):
     Represents a single operation in a pipeline
     """
 
-    def __init__(self, id, type, classifier, filename, runtime_image, dependencies=None,
-                 include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
+    def __init__(self, id, type, classifier, filename, runtime_image, memory=None, cpu=None, gpu=None,
+                 dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
                  parent_operations=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -42,6 +42,9 @@ class Operation(object):
         :param inputs: List of files to be consumed by this operation, produced by parent operation(s)
         :param outputs: List of files produced by this operation to be included in a child operation(s)
         :param parent_operations: List of parent operation 'ids' required to execute prior to this operation
+        :param cpu: number of cpus requested to run the operation
+        :param memory: amount of memory requested to run the operation (in Gi)
+        :param gpu: number of gpus requested to run the operation
         """
 
         # validate that the operation has all required properties
@@ -67,6 +70,9 @@ class Operation(object):
         self._inputs = inputs or []
         self._outputs = outputs or []
         self._parent_operations = parent_operations or []
+        self._cpu = cpu
+        self._gpu = gpu
+        self._memory = memory
 
     @property
     def id(self):
@@ -104,6 +110,18 @@ class Operation(object):
     def env_vars(self):
         return self._env_vars
 
+    @property
+    def cpu(self):
+        return self._cpu
+
+    @property
+    def memory(self):
+        return self._memory
+
+    @property
+    def gpu(self):
+        return self._gpu
+
     def env_vars_as_dict(self, logger: Optional[object] = None) -> Dict:
         """Operation stores environment variables in a list of name=value pairs, while
            subprocess.run() requires a dictionary - so we must convert.  If no envs are
@@ -112,9 +130,9 @@ class Operation(object):
         """
         envs = {}
         for nv in self.env_vars:
-            if len(nv) > 0:
+            if nv and len(nv) > 0:
                 nv_pair = nv.split("=")
-                if len(nv_pair) == 2:
+                if len(nv_pair) == 2 and nv_pair[0].strip():
                     envs[nv_pair[0]] = nv_pair[1]
                 else:
                     if logger:
@@ -155,7 +173,10 @@ class Operation(object):
                 self.include_subdirectories == other.include_subdirectories and \
                 self.outputs == other.outputs and \
                 self.inputs == other.inputs and \
-                self.parent_operations == other.parent_operations
+                self.parent_operations == other.parent_operations and \
+                self.cpu == other.cpu and \
+                self.gpu == other.gpu and \
+                self.memory == other.memory
 
     def __str__(self) -> str:
         return "componentID : {id} \n " \
@@ -166,15 +187,21 @@ class Operation(object):
                "filename : {filename} \n " \
                "inputs : {inputs} \n " \
                "outputs : {outputs} \n " \
-               "runtime image : {image} \n ".format(id=self.id,
-                                                    name=self.name,
-                                                    parent_op=self.parent_operations,
-                                                    depends=self.dependencies,
-                                                    inc_subdirs=self.include_subdirectories,
-                                                    filename=self.filename,
-                                                    inputs=self.inputs,
-                                                    outputs=self.outputs,
-                                                    image=self.runtime_image)
+               "image : {image} \n " \
+               "gpu: {gpu} \n " \
+               "memory: {memory} \n " \
+               "cpu : {cpu} \n ".format(id=self.id,
+                                        name=self.name,
+                                        parent_op=self.parent_operations,
+                                        depends=self.dependencies,
+                                        inc_subdirs=self.include_subdirectories,
+                                        filename=self.filename,
+                                        inputs=self.inputs,
+                                        outputs=self.outputs,
+                                        image=self.runtime_image,
+                                        gpu=self.gpu,
+                                        cpu=self.cpu,
+                                        memory=self.memory)
 
 
 class Pipeline(object):
