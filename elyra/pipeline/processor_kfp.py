@@ -155,8 +155,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
 
                 if 'Tekton' == engine:
+                    self.log.info(f"Compiling pipeline for Tekton engine")
                     kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
                 else:
+                    self.log.info(f"Compiling pipeline for Argo engine")
                     kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
