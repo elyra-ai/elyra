@@ -15,6 +15,7 @@
 #
 import autopep8
 import kfp
+import kfp_tekton
 import os
 import tempfile
 import time
@@ -68,10 +69,14 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             self.log.debug("Creating temp directory %s", temp_dir)
 
+            engine = runtime_configuration.metadata.get('engine')
             # Compile the new pipeline
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8 E731
-                kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
+                if ('Tekton' == engine):
+                    kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, pipeline_path)
+                else:
+                    kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} at {}'.
                                    format(pipeline_name, pipeline_path), str(ex)) from ex
