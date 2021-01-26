@@ -190,12 +190,16 @@ export class FilterTools extends React.Component<
             type="text"
             placeholder="Search..."
             onChange={this.handleSearch}
-            rightIcon="search"
+            rightIcon="ui-components:search"
             value={this.state.searchValue}
           />
         </div>
         <div className={FILTER_CLASS} id={this.props.schemaId}>
-          <button className={FILTER_BUTTON} onClick={this.createFilterBox}>
+          <button
+            title="Filter by tag"
+            className={FILTER_BUTTON}
+            onClick={this.createFilterBox}
+          >
             <tagIcon.react />
           </button>
           {this.renderFilterOption()}
