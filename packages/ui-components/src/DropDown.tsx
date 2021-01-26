@@ -30,6 +30,7 @@ export interface IDropDownProps {
   defaultChoices?: string[];
   handleDropdownChange: any;
   intent: Intent;
+  allowCreate: boolean;
 }
 
 export class DropDown extends React.Component<IDropDownProps> {
@@ -91,10 +92,16 @@ export class DropDown extends React.Component<IDropDownProps> {
         <Select
           items={this.props.defaultChoices}
           itemPredicate={this.filterDropdown}
-          createNewItemFromQuery={(newValue: any): void => {
-            return newValue;
-          }}
-          createNewItemRenderer={this.renderCreateOption}
+          createNewItemFromQuery={
+            this.props.allowCreate
+              ? (newValue: any): void => {
+                  return newValue;
+                }
+              : undefined
+          }
+          createNewItemRenderer={
+            this.props.allowCreate ? this.renderCreateOption : undefined
+          }
           onItemSelect={(value: string): void => {
             this.props.handleDropdownChange(this.props.schemaField, value);
           }}

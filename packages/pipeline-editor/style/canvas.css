@@ -466,10 +466,6 @@ img.toolbar-icons[disabled] {
     inset 0 -1px 0 rgba(16, 22, 26, 0.1);
 }
 
-.bp3-input {
-  background: #000000;
-}
-
 .bp3-input[readonly] {
   color: rgba(92, 112, 128, 0.6);
   cursor: not-allowed;
