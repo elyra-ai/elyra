@@ -144,7 +144,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
-        engine = runtime_configuration.metadata['engine']
+        engine = runtime_configuration.metadata.get('engine')
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
