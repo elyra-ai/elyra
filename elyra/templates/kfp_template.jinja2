@@ -28,7 +28,7 @@ def create_pipeline():
         {% if operation.mem_request %}
                                                       mem_request='{{ operation.mem_request }}',
         {% endif %}
-        {% if operation.gpu_request %}
+        {% if operation.gpu_limit %}
                                                       gpu_limit='{{ operation.gpu_limit }}',
         {% endif %}
                                                       image='{{ operation.image }}',
