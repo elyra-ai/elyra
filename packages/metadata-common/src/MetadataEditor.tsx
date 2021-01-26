@@ -335,20 +335,22 @@ export class MetadataEditor extends ReactWidget {
   }
 
   getDefaultChoices(fieldName: string): any[] {
-    let defaultChoices = this.schema[fieldName].uihints.default_choices;
-    if (defaultChoices === undefined) {
-      defaultChoices = [];
-    }
-    for (const otherMetadata of this.allMetadata) {
-      if (
-        !find(defaultChoices, (choice: string) => {
-          return (
-            choice.toLowerCase() ===
-            otherMetadata.metadata[fieldName].toLowerCase()
-          );
-        })
-      ) {
-        defaultChoices.push(otherMetadata.metadata[fieldName]);
+    let defaultChoices = this.schema[fieldName].enum;
+    if (!defaultChoices) {
+      defaultChoices = this.schema[fieldName].uihints.default_choices || [];
+      for (const otherMetadata of this.allMetadata) {
+        if (
+          // Don't add if otherMetadata hasn't defined field
+          otherMetadata.metadata[fieldName] &&
+          !find(defaultChoices, (choice: string) => {
+            return (
+              choice.toLowerCase() ===
+              otherMetadata.metadata[fieldName].toLowerCase()
+            );
+          })
+        ) {
+          defaultChoices.push(otherMetadata.metadata[fieldName]);
+        }
       }
     }
     return defaultChoices;
@@ -459,6 +461,7 @@ export class MetadataEditor extends ReactWidget {
           choice={this.metadata[fieldName]}
           defaultChoices={this.getDefaultChoices(fieldName)}
           handleDropdownChange={this.handleDropdownChange}
+          allowCreate={!this.schema[fieldName].enum}
         ></DropDown>
       );
     } else if (uihints.field_type === 'code') {
