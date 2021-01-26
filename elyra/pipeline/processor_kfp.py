@@ -78,7 +78,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 else:
                     kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
             except Exception as ex:
-                raise RuntimeError('Error compiling pipeline {} at {}'.
+                raise RuntimeError('Error compiling pipeline {} for engine '{}' at {}'.
                                    format(pipeline_name, pipeline_path), str(ex)) from ex
 
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
