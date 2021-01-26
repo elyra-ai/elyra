@@ -74,7 +74,8 @@
           "enum": ["Argo", "Tekton"],
           "default": "Argo",
           "uihints": {
-            "field_type": "dropdown"
+            "field_type": "dropdown",
+            "category": "Kubeflow Pipelines"
           }
         },
         "cos_endpoint": {
