@@ -73,7 +73,7 @@ class KfpPipelineProcessor(PipelineProcessor):
             # Compile the new pipeline
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8 E731
-                if ('Tekton' == engine):
+                if 'Tekton' == engine:
                     kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, pipeline_path)
                 else:
                     kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
@@ -93,7 +93,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                                     api_username,
                                                                     api_password)
 
-            client = kfp.Client(host=api_endpoint, cookies=session_cookie)
+            client = kfp_tekton.TektonClient(host=api_endpoint, cookies=session_cookie)
 
             try:
                 description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.name}.pipeline'."
@@ -144,6 +144,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
+        engine = runtime_configuration.metadata['engine']
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
@@ -152,7 +153,11 @@ class KfpPipelineProcessor(PipelineProcessor):
         if pipeline_export_format != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
-                kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
+
+                if 'Tekton' == engine:
+                    kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
+                else:
+                    kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
                                    format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
@@ -181,6 +186,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
+                                            engine=engine,
                                             api_endpoint=api_endpoint,
                                             pipeline_description=description,
                                             writable_container_dir=self.WCD)
