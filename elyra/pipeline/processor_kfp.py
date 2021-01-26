@@ -78,8 +78,8 @@ class KfpPipelineProcessor(PipelineProcessor):
                 else:
                     kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
             except Exception as ex:
-                raise RuntimeError('Error compiling pipeline {} for engine '{}' at {}'.
-                                   format(pipeline_name, pipeline_path), str(ex)) from ex
+                raise RuntimeError('Error compiling pipeline {} for engine {} at {}'.
+                                   format(pipeline_name, engine, pipeline_path), str(ex)) from ex
 
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
 
@@ -155,10 +155,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
 
                 if 'Tekton' == engine:
-                    self.log.info(f"Compiling pipeline for Tekton engine")
+                    self.log.info("Compiling pipeline for Tekton engine")
                     kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
                 else:
-                    self.log.info(f"Compiling pipeline for Argo engine")
+                    self.log.info("Compiling pipeline for Argo engine")
                     kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
