@@ -90,6 +90,7 @@ elyra-metadata install runtimes \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --api_username=username@email.com \
        --api_password=mypassword \
+       --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
@@ -111,6 +112,7 @@ elyra-metadata install runtimes \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --api_username=username@email.com \
        --api_password=mynewpassword \
+       --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
@@ -184,7 +186,7 @@ Password used to access your KubeFlow Pipelines API endpoint. This setting is re
 Example: `mypassword`
 
 ##### engine
-The engine being used by Kubeflow Pipelines: Argo or Tekton (default is Argo).
+The engine being used by Kubeflow Pipelines: `Argo` or `Tekton` (default is `Argo`).
 
 Example: `Argo`
 
