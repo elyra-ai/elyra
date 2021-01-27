@@ -118,7 +118,7 @@ export class PipelineService {
     return RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
-      this.getWaitDialog('Preparing and running pipeline ...')
+      this.getWaitDialog('Packaging and submitting pipeline ...')
     ).then(response => {
       let dialogTitle;
       let dialogBody;
