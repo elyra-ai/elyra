@@ -50,5 +50,8 @@ git checkout tags/v2.0.0
 make container-image publish-container-image
 ```  
 - Merge changes for conda-forge
-  - repo 
-  - repo
+  - https://github.com/conda-forge/elyra-feedstock/pulls
+  - https://github.com/conda-forge/elyra-server-feedstock/pulls
+  - https://github.com/conda-forge/elyra-code-snippet-extension-feedstock/pulls
+  - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
+  - https://github.com/conda-forge/elyra-pipeline-editor-extension-feedstock/pulls
