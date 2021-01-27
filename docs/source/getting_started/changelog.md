@@ -1,5 +1,49 @@
 # Changelog
 
+## 2.0.0 (1/26/2021)
+
+High level enhancements
+- Add support for JupyterLab 3.x 
+- Add new Language Server Protocol (LSP) capabilities
+- Add support for Kubeflow Pipelines using Argo and Tekton engines
+- Publishing Elyra images to both docker.io and quay.io  
+- Multiple updates to overall documentation
+- Increased test coverage
+
+Other enhancements and bug fixes
+
+- Add support for running pipelines on Argo and Tekton (#1239) [#1239](https://github.com/elyra-ai/elyra/pull/1239)
+- Add support for pipeline node level resource configuration [#1203](https://github.com/elyra-ai/elyra/pull/1203)
+- Update KFP Notebook to 0.18.0
+- Rename application package to services [#1231](https://github.com/elyra-ai/elyra/pull/1231)
+- Use kernel display name on Python editor dropdown [#1224](https://github.com/elyra-ai/elyra/pull/1224)
+- Reenable git extension support [#1202](https://github.com/elyra-ai/elyra/pull/1202)
+- Re-add support for showing resource utilization on status bar [#1204](https://github.com/elyra-ai/elyra/pull/1204)
+- Replace pipeline node properties dialog with side pane [#1084](https://github.com/elyra-ai/elyra/pull/1084)
+- Add 'Save as code snippet' from editor selection [#1186](https://github.com/elyra-ai/elyra/pull/1186)
+- Add jupyterlab-lsp 3.0.0 integration [#1176](https://github.com/elyra-ai/elyra/pull/1176) [#1184](https://github.com/elyra-ai/elyra/pull/1184)
+- Update to Jupyter Server 1.2.0 [#1178](https://github.com/elyra-ai/elyra/pull/1178)
+- Update KFP Notebook to 0.17.0 and KFP 1.1.2 [#1162](https://github.com/elyra-ai/elyra/pull/1162)
+- Update release script with publish option [#1151](https://github.com/elyra-ai/elyra/pull/1151)
+- Update KFP Notebook to 0.16.0
+- Enables removal of optiona metadata fields (#1155) [#1155](https://github.com/elyra-ai/elyra/pull/1155)
+- Set minio python package dependency to version <7 (#1143) [#1143](https://github.com/elyra-ai/elyra/pull/1143) 
+- Enable display of metrics and metadata in KFP UI [#1054](https://github.com/elyra-ai/elyra/pull/1054)
+- Enable Elyra image to auto-start JupyterLab
+- Update to JupyterHub SingleUser 0.10.6 docker image
+- Upgrade KFP to version 1.1.0 [#1104](https://github.com/elyra-ai/elyra/pull/1104)
+- Update Jupyter Client minimum version to 6.1.7 [#1099](https://github.com/elyra-ai/elyra/pull/1099)
+- Add support to JupyterLab 3.0 RC [#1063](https://github.com/elyra-ai/elyra/pull/1063)
+- Attribute Elyra copyright notice to Elyra authors [#1097](https://github.com/elyra-ai/elyra/pull/1097)
+- Properly handle references to missing schema files [#1096](https://github.com/elyra-ai/elyra/pull/1096)
+- Multiple enhancements to stabilize CI tests on GitHub actions slower environments
+- Enhance pipeline circular reference detection [#1080](https://github.com/elyra-ai/elyra/pull/1080)
+- Update Elyra Canvas to release 9.2.1 [#1082](https://github.com/elyra-ai/elyra/pull/1082)
+- Implements "Add to Pipeline" context menu for py files [#1079](https://github.com/elyra-ai/elyra/pull/1079)
+- Create a dropzone component for Pipeline Editor [#1062](https://github.com/elyra-ai/elyra/pull/1062)
+- Update NodeJS to version 12.18 on CI environment
+- Update Cypress to version 5.6.0
+
 ## 1.5.3 (1/12/2021)
 
 - Update Elyra deployment documentation for Open Data Hub [#1182](https://github.com/elyra-ai/elyra/pull/1182)
