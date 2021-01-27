@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,7 +200,9 @@ describe('Pipeline Editor tests', () => {
     cy.get('.react-contextmenu-item:nth-child(9)')
       .contains('Properties')
       .click();
-    cy.get('div.properties-dropdown').click();
+    cy.get(
+      'div.properties-dropdown[data-id="properties-runtime_image"]'
+    ).click();
 
     // selects the first item of the runtimes dropdown
     cy.get('#downshift-0-item-0').click();

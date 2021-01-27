@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 IBM Corporation
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,4 +31,5 @@ If you encounter a problem or have suggestions for improvements please [open an 
 
 The Elyra community meeting is held [online](https://ibm.webex.com/meet/akchin) every Thursday at [9AM Pacific](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&) (excluding holidays).
 
+### Elyra chat room
 You can reach many Elyra contributors in the [Elyra community on gitter](https://gitter.im/elyra-ai/community).

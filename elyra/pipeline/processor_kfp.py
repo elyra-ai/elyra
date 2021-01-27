@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 Elyra Authors
+# Copyright 2018-2021 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -270,6 +270,9 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                     pipeline_outputs=operation.outputs,
                                                     pipeline_envs=pipeline_envs,
                                                     emptydir_volume_size=emptydir_volume_size,
+                                                    cpu_request=operation.cpu,
+                                                    mem_request=operation.memory,
+                                                    gpu_limit=operation.gpu,
                                                     image=operation.runtime_image,
                                                     file_outputs={
                                                         'mlpipeline-metrics':

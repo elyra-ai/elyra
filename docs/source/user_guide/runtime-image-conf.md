@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ Runtime image configurations can be added, modified, and removed in the _Runtime
 
 To access the panel in JupyterLab:
 
-- Open the JupyterLab command palette (`<cmd/ctrl><shift><c>`).
-- Click `Show Runtime Images` in the `Elyra` section.
+- Open the JupyterLab command palette (`Cmd/Ctrl + Shift + C`).
+- Click `Manage Runtime Images` in the `Elyra` section.
 
 ![Runtime Images UI](../images/runtime-images-ui.png)
 

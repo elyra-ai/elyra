@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ export interface IDropDownProps {
   defaultChoices?: string[];
   handleDropdownChange: any;
   intent: Intent;
+  allowCreate: boolean;
 }
 
 export class DropDown extends React.Component<IDropDownProps> {
@@ -91,10 +92,16 @@ export class DropDown extends React.Component<IDropDownProps> {
         <Select
           items={this.props.defaultChoices}
           itemPredicate={this.filterDropdown}
-          createNewItemFromQuery={(newValue: any): void => {
-            return newValue;
-          }}
-          createNewItemRenderer={this.renderCreateOption}
+          createNewItemFromQuery={
+            this.props.allowCreate
+              ? (newValue: any): void => {
+                  return newValue;
+                }
+              : undefined
+          }
+          createNewItemRenderer={
+            this.props.allowCreate ? this.renderCreateOption : undefined
+          }
           onItemSelect={(value: string): void => {
             this.props.handleDropdownChange(this.props.schemaField, value);
           }}

@@ -40,6 +40,16 @@
             "category": "Kubeflow Pipelines"
           }
         },
+        "user_namespace": {
+          "title": "Kubeflow Pipelines User Namespace",
+          "description": "The Kubeflow Pipelines user namespace used to create experiments",
+          "type": "string",
+          "pattern": "^[a-z0-9][-a-z0-9]*[a-z0-9]$",
+          "maxLength": 63,
+          "uihints": {
+            "category": "Kubeflow Pipelines"
+          }
+        },
         "api_username": {
           "title": "Kubeflow Pipelines API Endpoint Username",
           "description": "The Kubeflow Pipelines API endpoint username",
@@ -54,16 +64,6 @@
           "type": "string",
           "uihints": {
             "secure": true,
-            "category": "Kubeflow Pipelines"
-          }
-        },
-        "user_namespace": {
-          "title": "Kubeflow Pipelines User Namespace",
-          "description": "The Kubeflow Pipelines user namespace used to create experiments",
-          "type": "string",
-          "pattern": "^[a-z0-9][-a-z0-9]*[a-z0-9]$",
-          "maxLength": 63,
-          "uihints": {
             "category": "Kubeflow Pipelines"
           }
         },
