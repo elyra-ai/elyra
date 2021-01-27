@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1 (1/27/2021)
+
+- Update to kfp-tekton 0.5.1rc1
+- Update NBFormat to release 5.1.2
+
 ## 2.0.0 (1/26/2021)
 
 High level enhancements
