@@ -61,6 +61,7 @@ setup_args = dict(
         'jupyter-resource-usage>=0.5.1',
         'kfp-notebook~=0.18.0',
         'kfp==1.1.2',
+        'kfp-tekton==0.5.0',
         'minio>=5.0.7,<7.0.0',
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1,<6.0',

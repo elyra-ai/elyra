@@ -1,4 +1,7 @@
 import kfp
+{% if engine == "Tekton" %}
+import kfp_tekton
+{% endif %}
 from kfp_notebook.pipeline import NotebookOp
 
 
@@ -46,9 +49,15 @@ def create_pipeline():
 if __name__ == "__main__":
     pipeline_func = create_pipeline
     pipeline_filename = '{{ pipeline_name }}' + '.pipeline.tgz'
+{% if engine == "Tekton" %}
+    kfp_tekton.compiler.TektonCompiler().compile(pipeline_func, pipeline_filename)
+
+    client = kfp_tekton.TektonClient(host='{{ api_endpoint }}')
+{% else %}
     kfp.compiler.Compiler().compile(pipeline_func, pipeline_filename)
 
     client = kfp.Client(host='{{ api_endpoint }}')
+{% endif %}
     name = '{{ pipeline_name }}'
     exp = client.create_experiment('{{ pipeline_name }}')
     run_result = client.run_pipeline(exp.id, name, pipeline_filename, {})
