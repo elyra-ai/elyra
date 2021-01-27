@@ -168,6 +168,11 @@ The KubeFlow Pipelines API endpoint you want to utilize. This setting is require
 
 Example: `https://kubernetes-service.ibm.com/pipeline`
 
+##### user_namespace
+The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
+
+Example: `mynamespace`
+
 ##### api_username
 Username used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
 
@@ -178,10 +183,10 @@ Password used to access your KubeFlow Pipelines API endpoint. This setting is re
 
 Example: `mypassword`
 
-##### user_namespace
-The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
+##### engine
+The engine being used by Kubeflow Pipelines: Argo or Tekton (default is Argo).
 
-Example: `mynamespace`
+Example: `Argo`
 
 #### Cloud Storage settings
 
