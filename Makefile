@@ -20,7 +20,7 @@
 
 SHELL:=/bin/bash
 
-TAG:=dev
+TAG:=2.0.0
 IMAGE=elyra/elyra:$(TAG)
 
 # Contains the set of commands required to be used by elyra
