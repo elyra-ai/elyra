@@ -22,9 +22,15 @@ def create_pipeline():
                                                       cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
                                                       pipeline_inputs={{ operation.pipeline_inputs }},
                                                       pipeline_outputs={{ operation.pipeline_outputs }},
+        {% if operation.cpu_request %}
                                                       cpu_request='{{ operation.cpu_request }}',
-                                                      mem_request='{{ operation.mem_request }}G',
+        {% endif %}
+        {% if operation.mem_request %}
+                                                      mem_request='{{ operation.mem_request }}',
+        {% endif %}
+        {% if operation.gpu_limit %}
                                                       gpu_limit='{{ operation.gpu_limit }}',
+        {% endif %}
                                                       image='{{ operation.image }}',
                                                       file_outputs={
                                                         'mlpipeline-metrics': '{{ metrics_file }}',
