@@ -107,6 +107,7 @@ setup_args = dict(
     entry_points={
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
+            'elyra = elyra.cli:cli',
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
