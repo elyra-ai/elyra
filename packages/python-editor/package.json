@@ -1,6 +1,6 @@
 {
   "name": "@elyra/python-editor-extension",
-  "version": "2.0.1",
+  "version": "2.1.0-dev",
   "description": "JupyterLab extension - Run python files using a kernel runtime",
   "keywords": [
     "jupyter",
