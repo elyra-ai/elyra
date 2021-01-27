@@ -66,6 +66,7 @@ setup_args = dict(
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1,<6.0',
         'nbdime>=3.0.0.b1',
+        'nbformat>=5.1.2',
         'papermill>=2.1.3',
         'python-language-server[all]>=0.36.2',
         'requests>=2.9.1,<3.0',
