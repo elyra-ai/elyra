@@ -67,6 +67,17 @@
             "category": "Kubeflow Pipelines"
           }
         },
+        "engine": {
+          "title": "Kubeflow Pipelines engine",
+          "description": "The Kubeflow Pipelines engine in use (Argo or Tekton)",
+          "type": "string",
+          "enum": ["Argo", "Tekton"],
+          "default": "Argo",
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Kubeflow Pipelines"
+          }
+        },
         "cos_endpoint": {
           "title": "Cloud Object Storage Endpoint",
           "description": "The Cloud Object Storage endpoint",

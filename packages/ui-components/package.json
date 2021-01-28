@@ -1,6 +1,6 @@
 {
   "name": "@elyra/ui-components",
-  "version": "2.0.0-dev",
+  "version": "2.1.0-dev",
   "description": "JupyterLab - UI components for use in elyra",
   "keywords": [
     "jupyter",
