@@ -185,7 +185,7 @@ Config dir: /.../etc/jupyter
 ```
 
 NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable
-it with `jupyter serverextension enable elyra`
+it with `jupyter server extension enable elyra`
 
 ```bash
 jupyter labextension list
