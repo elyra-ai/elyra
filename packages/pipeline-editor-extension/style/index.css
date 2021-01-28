@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,6 +234,18 @@ td {
   align-items: center;
   width: 100%;
 }
+.properties-control-panel[data-id='properties-nodeUsageControls'] {
+  display: flex;
+  flex-wrap: wrap;
+}
+.properties-editor-form
+  .properties-control-panel[data-id='properties-nodeUsageControls']
+  .properties-control-item {
+  margin: 0;
+  padding: 0px 3px 14px 3px;
+  max-width: 32%;
+  border-bottom: none;
+}
 .properties-control-panel[data-id='properties-nodeFileControl']
   .properties-control-item {
   width: calc(100% - 67px);
@@ -241,6 +253,7 @@ td {
 .properties-control-panel[data-id='properties-nodePropertiesControls']
   .properties-control-item[data-id='properties-ci-include_subdirectories'] {
   border-bottom: 1px solid #cfd1d4;
+  padding: 0 0 10px 0;
 }
 .properties-control-panel[data-id='properties-nodePropertiesControls']
   .properties-control-item[data-id='properties-ci-env_vars'] {
@@ -249,6 +262,25 @@ td {
 
 .properties-control-panel > .properties-control-panel {
   padding: 0;
+}
+.properties-numberfield .bx--number input[type='number'] {
+  border-radius: 3px;
+  border-bottom: 0;
+  box-shadow: inset 0 0 0 var(--jp-border-width) var(--jp-input-border-color);
+  min-width: auto;
+}
+.properties-numberfield .bx--number input[type='number']:focus {
+  box-shadow: inset 0 0 0 var(--jp-border-width)
+      var(--jp-input-active-box-shadow-color),
+    inset 0 0 0 3px var(--jp-input-active-box-shadow-color);
+  outline: none;
+}
+
+.properties-numberfield .bx--number__controls .bx--number__control-btn:focus {
+  box-shadow: inset 0 0 0 var(--jp-border-width)
+      var(--jp-input-active-box-shadow-color),
+    inset 0 0 0 3px var(--jp-input-active-box-shadow-color);
+  outline: none;
 }
 
 .elyra-Tooltip {
@@ -328,7 +360,7 @@ span.elyra-BreadCrumbs-disabled + span {
   color: var(--md-grey-500);
 }
 
-input.elyra-Dialog-checkbox {
+input.elyra-Dialog-checkbox.jp-mod-styled {
   appearance: auto;
   height: auto;
 }

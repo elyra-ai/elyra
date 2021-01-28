@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -90,6 +90,7 @@ elyra-metadata install runtimes \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --api_username=username@email.com \
        --api_password=mypassword \
+       --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
@@ -111,6 +112,7 @@ elyra-metadata install runtimes \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --api_username=username@email.com \
        --api_password=mynewpassword \
+       --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
@@ -168,6 +170,11 @@ The KubeFlow Pipelines API endpoint you want to utilize. This setting is require
 
 Example: `https://kubernetes-service.ibm.com/pipeline`
 
+##### user_namespace
+The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
+
+Example: `mynamespace`
+
 ##### api_username
 Username used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
 
@@ -178,10 +185,10 @@ Password used to access your KubeFlow Pipelines API endpoint. This setting is re
 
 Example: `mypassword`
 
-##### user_namespace
-The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
+##### engine
+The engine being used by Kubeflow Pipelines: `Argo` or `Tekton` (default is `Argo`).
 
-Example: `mynamespace`
+Example: `Argo`
 
 #### Cloud Storage settings
 

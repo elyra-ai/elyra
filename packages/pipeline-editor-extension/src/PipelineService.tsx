@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  MetadataService,
-  IDictionary,
-  RequestHandler
-} from '@elyra/application';
+import { MetadataService, IDictionary, RequestHandler } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 
 import { showDialog, Dialog } from '@jupyterlab/apputils';
@@ -96,6 +92,20 @@ export class PipelineService {
   }
 
   /**
+   * Creates a Dialog for passing to makeServerRequest
+   */
+  static getWaitDialog(
+    title = 'Making server request...',
+    body = 'This may take some time'
+  ): Dialog<any> {
+    return new Dialog({
+      title: title,
+      body: body,
+      buttons: [Dialog.okButton()]
+    });
+  }
+
+  /**
    * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
    *
    * @param pipeline
@@ -108,7 +118,7 @@ export class PipelineService {
     return RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
-      true
+      this.getWaitDialog('Packaging and submitting pipeline ...')
     ).then(response => {
       let dialogTitle;
       let dialogBody;
@@ -187,7 +197,7 @@ export class PipelineService {
     return RequestHandler.makePostRequest(
       'elyra/pipeline/export',
       JSON.stringify(body),
-      true
+      this.getWaitDialog('Generating pipeline artifacts ...')
     ).then(response => {
       return showDialog({
         title: 'Pipeline export succeeded',

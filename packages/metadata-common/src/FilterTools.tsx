@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,12 +190,16 @@ export class FilterTools extends React.Component<
             type="text"
             placeholder="Search..."
             onChange={this.handleSearch}
-            rightIcon="search"
+            rightIcon="ui-components:search"
             value={this.state.searchValue}
           />
         </div>
         <div className={FILTER_CLASS} id={this.props.schemaId}>
-          <button className={FILTER_BUTTON} onClick={this.createFilterBox}>
+          <button
+            title="Filter by tag"
+            className={FILTER_BUTTON}
+            onClick={this.createFilterBox}
+          >
             <tagIcon.react />
           </button>
           {this.renderFilterOption()}

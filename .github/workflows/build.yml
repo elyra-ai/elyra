@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 Elyra Authors
+# Copyright 2018-2021 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ on:
     branches: '*'
   pull_request:
     branches: '*'
+  schedule:
+    # once a day at 3 am (UTC) (7 pm (PST))
+    - cron:  '0 3 * * *'
 
 jobs:
   build:

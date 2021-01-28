@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-// TODO: Enable once git is supporting lab 3
-//
-// describe('Git', () => {
-//   it('opens jupyterlab', () => {
-//     cy.visit('?token=test&reset');
-//   });
-//
-//   it('opens git extension', () => {
-//     cy.get('[title="Git"]').click();
-//   });
-// });
+describe('Git', () => {
+  it('opens jupyterlab', () => {
+    cy.visit('?token=test&reset');
+  });
+
+  it('opens git extension', () => {
+    cy.get('[title="Git"]').click();
+  });
+});

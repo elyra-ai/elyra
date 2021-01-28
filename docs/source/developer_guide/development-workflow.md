@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -95,8 +95,8 @@ jupyter lab --watch
 When in watch mode JupyterLab will watch for changes in the build of each package and rebuild.
 To see your changes just refresh JupyterLab in your browser.
 
-> NOTE: JupyterLab watch mode will not pick up changes in package dependencies like `application`.
-So when making changes to application you will need to stop and restart `jupyter lab --watch` and
+> NOTE: JupyterLab watch mode will not pick up changes in package dependencies like `services`.
+So when making changes to services you will need to stop and restart `jupyter lab --watch` and
 not just refresh your browser.
 
 ### Building the Elyra Container Image
