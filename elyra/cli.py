@@ -25,7 +25,6 @@ from colorama import Fore, Style
 from ._version import __version__
 from .pipeline.parser import PipelineParser
 from .pipeline.processor import PipelineProcessorManager
-from .pipeline.pipeline import Pipeline
 
 
 async def submit_pipeline(pipeline):
@@ -51,7 +50,7 @@ def prepare_pipeline(pipeline_path, name=None, runtime='local', runtime_config='
             if node["app_data"]["filename"]:
                 abs_path = os.path.join(os.getcwd(), pipeline_dir, node["app_data"]["filename"])
                 node["app_data"]["filename"] = abs_path
-    
+
     # NOTE: The frontend just set the info for first pipeline, but shouldn't it
     # search for the primary pipeline and set that?
     # Setting `pipeline_definition["pipelines"][0]` for consistency.
@@ -97,13 +96,13 @@ def submit(pipeline_path, name):
 
     print_banner("Elyra Pipeline Submission")
     print_version()
-    
+
     pipeline_definition = prepare_pipeline(pipeline_path, name=name, runtime='kfp', runtime_config='fun')
     pipeline = PipelineParser().parse(pipeline_definition)
 
     print_info("Info", [("name", pipeline.name)])
     print_info("Runtime", [("type", pipeline.runtime), ("config", pipeline.runtime_config)])
-    
+
     with yaspin(text="Submitting Pipeline..."):
         os.environ["ELYRA_METADATA_PATH"] = os.path.join(os.path.expanduser("~"), ".elyra")
         msg = asyncio.get_event_loop().run_until_complete(submit_pipeline(pipeline))
