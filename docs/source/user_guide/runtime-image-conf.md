@@ -23,7 +23,8 @@ A runtime image configuration identifies a container image that Elyra can utiliz
 
 A runtime image configuration is associated with a container image that must meet these prerequisites:
 
-- The image must be stored in a public container registry (no authentication required) (e.g. [https://hub.docker.com](https://hub.docker.com)).
+- The image is stored in a container registry in a public or private network that the container platform in which the pipeline is executed can connect to. Examples of such registries are hub.docker.com or a self-managed registry in an intranet environment.
+- The image can be pulled from the registry without the need to authenticate.
 - The image must have a current `Python 3` version pre-installed and in the search path.
 - The image must have `curl` pre-installed and in the search path.
 
