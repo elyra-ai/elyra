@@ -23,8 +23,7 @@ from yaspin import yaspin
 from colorama import Fore, Style
 
 from ._version import __version__
-from .pipeline.parser import PipelineParser
-from .pipeline.processor import PipelineProcessorManager
+from .pipeline import PipelineParser, PipelineProcessorManager
 
 
 async def submit_pipeline(pipeline):
@@ -89,23 +88,35 @@ def cli():
 
 @click.command()
 @click.argument('pipeline_path', type=click.Path(exists=True))
-@click.option('-n', '--name')
-def submit(pipeline_path, name):
+@click.option('--name')
+@click.option('--runtime', required=True)
+@click.option('--config', required=True)
+def submit(pipeline_path, name, runtime, config):
     """TODO: Description"""
     click.echo()
 
     print_banner("Elyra Pipeline Submission")
     print_version()
 
-    pipeline_definition = prepare_pipeline(pipeline_path, name=name, runtime='kfp', runtime_config='fun')
-    pipeline = PipelineParser().parse(pipeline_definition)
+    pipeline_definition = prepare_pipeline(pipeline_path, name=name, runtime=runtime, runtime_config=config)
+
+    try:
+        pipeline = PipelineParser().parse(pipeline_definition)
+    except ValueError as ve:
+        click.echo(ve)
+        return
 
     print_info("Info", [("name", pipeline.name)])
     print_info("Runtime", [("type", pipeline.runtime), ("config", pipeline.runtime_config)])
 
-    with yaspin(text="Submitting Pipeline..."):
-        os.environ["ELYRA_METADATA_PATH"] = os.path.join(os.path.expanduser("~"), ".elyra")
-        msg = asyncio.get_event_loop().run_until_complete(submit_pipeline(pipeline))
+    try:
+        with yaspin(text="Submitting Pipeline..."):
+            msg = asyncio.get_event_loop().run_until_complete(submit_pipeline(pipeline))
+    except RuntimeError as re:
+        click.echo(re)
+        if re.__cause__:
+            click.echo("  - {}".format(re.__cause__))
+        return
 
     print_banner("Elyra Pipeline Submission Complete")
 
