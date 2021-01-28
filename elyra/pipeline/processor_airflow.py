@@ -21,6 +21,7 @@ import re
 import tempfile
 import time
 
+from black import format_str, FileMode
 from collections import OrderedDict
 from datetime import datetime
 from elyra._version import __version__
@@ -186,8 +187,12 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                         'pipeline_outputs': operation.outputs,
                         'pipeline_inputs': operation.inputs,
                         'pipeline_envs': pipeline_envs,
-                        'parent_operations': operation.parent_operations
+                        'parent_operations': operation.parent_operations,
+                        'cpu_request': operation.cpu,
+                        'mem_request': operation.memory,
+                        'gpu_request': operation.gpu
                         }
+
             notebook_ops.append(notebook)
 
             self.log_pipeline_info(pipeline_name,
@@ -261,12 +266,14 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             template = template_env.get_template('airflow_template.jinja2')
 
             notebook_ops = self._cc_pipeline(pipeline, pipeline_name)
+            runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
+            user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
 
             description = f"Created with Elyra {__version__} pipeline editor using {pipeline.name}.pipeline."
 
             python_output = template.render(operations_list=notebook_ops,
                                             pipeline_name=pipeline_name,
-                                            namespace='default',
+                                            namespace=user_namespace,
                                             kube_config_path=None,
                                             is_paused_upon_creation='False',
                                             in_cluster='True',
@@ -274,6 +281,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
             # Write to python file and fix formatting
             with open(pipeline_export_path, "w") as fh:
-                fh.write(autopep8.fix_code(python_output))
+                autopep_output = autopep8.fix_code(python_output)
+                output_to_file = format_str(autopep_output, mode=FileMode())
+                fh.write(output_to_file)
 
         return pipeline_export_path

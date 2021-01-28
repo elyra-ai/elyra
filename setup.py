@@ -42,6 +42,7 @@ kfp_packages = [
 
 airflow_packages = [
     'pygithub',
+    'black'
 ]
 
 setup_args = dict(
