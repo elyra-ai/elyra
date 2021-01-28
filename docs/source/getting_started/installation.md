@@ -17,7 +17,7 @@ limitations under the License.
 -->
 ## Installation
 
-The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed using `pip`, `conda`, or from source code.
+The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed from PyPI, conda, or from source code.
 
 Note: JupyterLab currently requires a re-build after installing any extension.
 
@@ -26,15 +26,18 @@ Note: JupyterLab currently requires a re-build after installing any extension.
 * [Node.js 12+](https://nodejs.org/en/)
 * [Python 3.x](https://www.python.org/downloads/)
 
-Note: Elyra 1.0.0 and above require JupyterLab 2.x.
-Note: Elyra 2.0.0 and above require JupyterLab 3.x.
+
+JupyterLab dependencies:
+ - Elyra >= 2.0.0 requires JupyterLab 3.x
+ - Elyra < 2.0.0 requires JupyterLab 2.x
+ - Elyra == 0.10.x requires JupyterLab 1.x
 
 ### pip
 
-If you use `pip`, install Elyra with:
+If you use `pip`, install Elyra 2.x with:
 
 ```bash
-pip install --upgrade elyra && jupyter lab build
+pip install --upgrade "elyra>=2.0.1" && jupyter lab build
 ```
 
 Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
@@ -44,19 +47,19 @@ If desired, you can install these Elyra extensions independently:
 - [Pipeline editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
 
    ```bash
-   pip install --upgrade elyra-pipeline-editor-extension && jupyter lab build
+   pip install --upgrade "elyra-pipeline-editor-extension>=2.0.1" && jupyter lab build
    ```
 
 - [Code snippets](https://pypi.org/project/elyra-code-snippet-extension/)
 
    ```bash
-   pip install --upgrade elyra-code-snippet-extension && jupyter lab build
+   pip install --upgrade "elyra-code-snippet-extension>=2.0.1" && jupyter lab build
    ```
 
 - [Python script editor](https://pypi.org/project/elyra-python-editor-extension/)
 
    ```bash
-   pip install --upgrade elyra-python-editor-extension && jupyter lab build
+   pip install --upgrade "elyra-python-editor-extension>=2.0.1" && jupyter lab build
    ```
 
 ### conda
@@ -64,21 +67,21 @@ If desired, you can install these Elyra extensions independently:
 If you use `conda`, install Elyra with:
 
 ```bash
-conda install -c conda-forge elyra && jupyter lab build
+conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
 ```
 
 or install the Pipeline editor, Code Snippet, or Python editor extensions individually:
 
 ```bash
-conda install -c conda-forge elyra-pipeline-editor-extension && jupyter lab build
+conda install -c conda-forge "elyra-pipeline-editor-extension>=2.0.1" && jupyter lab build
 ```
 
 ```bash
-conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
+conda install -c conda-forge "elyra-code-snippet-extension>=2.0.1" && jupyter lab build
 ```
 
 ```bash
-conda install -c conda-forge elyra-python-editor-extension && jupyter lab build
+conda install -c conda-forge "elyra-python-editor-extension>=2.0.1" && jupyter lab build
 ```
 
 ### Build from source
@@ -100,22 +103,54 @@ jupyter serverextension list
 Should output:
 
 ```
-config dir: /usr/local/etc/jupyter
-    elyra  enabled
+config dir: /.../etc/jupyter
+    jupyter_resource_usage  enabled 
     - Validating...
-      elyra 2.1.0.dev0 OK
-    jupyterlab  enabled
+      jupyter_resource_usage  OK
+    jupyterlab  enabled 
     - Validating...
-      jupyterlab 3.0.0rc10 OK
-    jupyterlab_git  enabled
+      jupyterlab 3.0.5 OK
+    nbdime  enabled 
     - Validating...
-      jupyterlab_git 0.23.1 OK
-    nbdime  enabled
-    - Validating...
-      nbdime 2.0.0 OK
+      nbdime 3.0.0.b1 OK
 ```
 
-NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable it by running `jupyter serverextension enable elyra`.
+```
+jupyter server extension list
+```
+
+Should output:
+
+```
+Config dir: /.../.jupyter
+
+Config dir: /.../etc/jupyter
+    elyra enabled
+    - Validating elyra...
+      elyra 2.0.1 OK
+    jupyter_lsp enabled
+    - Validating jupyter_lsp...
+      jupyter_lsp 1.1.1 OK
+    jupyter_resource_usage enabled
+    - Validating jupyter_resource_usage...
+      jupyter_resource_usage  OK
+    jupyterlab enabled
+    - Validating jupyterlab...
+      jupyterlab 3.0.5 OK
+    jupyterlab_git enabled
+    - Validating jupyterlab_git...
+      jupyterlab_git 0.30.0b1 OK
+    nbclassic enabled
+    - Validating nbclassic...
+      nbclassic  OK
+    nbdime enabled
+    - Validating nbdime...
+      nbdime 3.0.0.b1 OK
+
+Config dir: /.../etc/jupyter
+```
+
+NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable it with `jupyter server extension enable elyra`.
 
 #### Verify the lab extensions
 
@@ -128,15 +163,20 @@ jupyter labextension list
 Should output:
 
 ```
-Known labextensions:
+JupyterLab v3.0.5
+/.../share/jupyter/labextensions
+        @jupyter-server/resource-usage v0.5.0 enabled OK (python, jupyter-resource-usage)
+        @krassowski/jupyterlab-lsp v3.2.0 enabled OK (python, jupyterlab_lsp)
+        @jupyterlab/git v0.30.0-beta.1 enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v2.1.0-dev  enabled  OK*
-        @elyra/metadata-extension v2.1.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension v2.1.0-dev  enabled  OK*
-        @elyra/python-editor-extension v2.1.0-dev  enabled  OK*
-        @elyra/theme-extension v2.1.0-dev  enabled  OK*
-        @jupyterlab/git v0.22.3  enabled  OK
-        nbdime-jupyterlab v2.0.0  enabled  OK
+        @elyra/code-snippet-extension v2.0.1 enabled OK
+        @elyra/metadata-extension v2.0.1 enabled OK
+        @elyra/pipeline-editor-extension v2.0.1 enabled OK
+        @elyra/python-editor-extension v2.0.1 enabled OK
+        @elyra/theme-extension v2.0.1 enabled OK
+        nbdime-jupyterlab v2.1.0-beta.1 enabled OK 
 ```
 
 ### Docker 
@@ -152,13 +192,13 @@ If you have Docker installed, you can use JupyterLab and Elyra by running one of
 Images can be pulled from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) 
 
 ```
-docker pull elyra/elyra:1.4.1
+docker pull elyra/elyra:2.0.1
 ```
 
 or [quay.io](https://quay.io/repository/elyra/elyra?tab=tags)
 
 ```
-docker pull quay.io/elyra/elyra:1.4.1
+docker pull quay.io/elyra/elyra:2.0.1
 ```
 
 #### Running Elyra container images
