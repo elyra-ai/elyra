@@ -82,17 +82,22 @@ def print_version():
 
 
 @click.group()
+@click.version_option(__version__, message='v%(version)s')
 def cli():
+    """
+    Run Elyra pipelines in your local environment or submit them to an external service, such as Kubeflow Pipelines.
+
+    Find more information at: https://elyra.readthedocs.io/en/latest/"""
     pass
 
 
 @click.command()
 @click.argument('pipeline_path', type=click.Path(exists=True))
-@click.option('--name')
-@click.option('--runtime', required=True)
-@click.option('--config', required=True)
-def submit(pipeline_path, name, runtime, config):
-    """TODO: Description"""
+@click.option('--runtime', required=True, type=click.Choice(['kfp'], case_sensitive=False), help='Runtime type')
+@click.option('--config', required=True, help='Name of the runtime config')
+@click.option('--name', help='Name for the submission (defaults to pipeline name)')
+def submit(pipeline_path, runtime, config, name):
+    """Submit a pipeline to an external service"""
     click.echo()
 
     print_banner("Elyra Pipeline Submission")
@@ -127,7 +132,7 @@ def submit(pipeline_path, name, runtime, config):
 @click.command()
 @click.argument('pipeline_path', type=click.Path(exists=True))
 def run(pipeline_path):
-    """TODO: Description"""
+    """Run a pipeline in your local environment"""
     click.echo()
 
     print_banner("Elyra Pipeline Local Run")
