@@ -15,8 +15,16 @@
  */
 
 import { PipelineEditor } from '@elyra/pipeline-editor';
-import { Dropzone, pipelineIcon } from '@elyra/ui-components';
-import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
+import {
+  IconUtil,
+  clearPipelineIcon,
+  exportPipelineIcon,
+  pipelineIcon,
+  savePipelineIcon,
+  runtimesIcon,
+  Dropzone
+} from '@elyra/ui-components';
+import { ReactWidget } from '@jupyterlab/apputils';
 import {
   DocumentRegistry,
   ABCWidgetFactory,
@@ -27,10 +35,13 @@ import 'carbon-components/css/carbon-components.min.css';
 import '@elyra/canvas/dist/styles/common-canvas.min.css';
 import '../style/canvas.css';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
-import { IDragEvent } from '@lumino/dragdrop';
 import { toArray } from '@lumino/algorithm';
+import { IDragEvent } from '@lumino/dragdrop';
+
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
+import nodes from './nodes';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -56,51 +67,106 @@ const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
     });
   }, [context]);
 
-  const handleError = useCallback(async () => {
-    await showDialog({
-      title: 'Error',
-      body: 'hello!',
-      buttons: [Dialog.okButton()]
-    });
-    widget.close();
-  }, [widget]);
+  const [panelOpen, setPanelOpen] = useState(true);
 
-  const handleAction = useCallback(async (type: string) => {
-    await showDialog({
-      title: type,
-      body: 'hello!',
-      buttons: [Dialog.okButton()]
-    });
-  }, []);
-
-  const handleChange = useCallback(
-    pipeline => {
-      context.model.fromString(JSON.stringify(pipeline, null, 2));
+  const onAction = useCallback(
+    (type: string) => {
+      console.log(type);
+      switch (type) {
+        case 'toggleOpenPanel':
+          setPanelOpen(!panelOpen);
+          break;
+        case 'properties':
+          setPanelOpen(true);
+          break;
+        case 'closePanel':
+          setPanelOpen(false);
+          break;
+      }
     },
-    [context]
+    [panelOpen]
   );
 
-  const handleFileRequested = useCallback(async () => {
-    await showDialog({
-      title: 'Give me file',
-      body: 'hello!',
-      buttons: [Dialog.okButton()]
-    });
-  }, []);
-
-  const handleDrop = useCallback(async (e: IDragEvent): Promise<void> => {
-    const fileBrowser = browserFactory.defaultBrowser;
-
-    toArray(fileBrowser.selectedItems()).map(
-      (item: any, index: number): void => {
-        ref.current?.addFile(
-          item,
-          e.offsetX + 20 * index,
-          e.offsetY + 20 * index
-        );
+  const toolbar = {
+    leftBar: [
+      {
+        action: 'run',
+        label: 'Run Pipeline',
+        enable: true
+      },
+      {
+        action: 'save',
+        label: 'Save Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(savePipelineIcon),
+        iconDisabled: IconUtil.encode(savePipelineIcon)
+      },
+      {
+        action: 'export',
+        label: 'Export Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(exportPipelineIcon),
+        iconDisabled: IconUtil.encode(exportPipelineIcon)
+      },
+      {
+        action: 'clear',
+        label: 'Clear Pipeline',
+        enable: true,
+        iconEnabled: IconUtil.encode(clearPipelineIcon),
+        iconDisabled: IconUtil.encode(clearPipelineIcon)
+      },
+      {
+        action: 'openRuntimes',
+        label: 'Open Runtimes',
+        enable: true,
+        iconEnabled: IconUtil.encode(runtimesIcon),
+        iconDisabled: IconUtil.encode(runtimesIcon)
+      },
+      { divider: true },
+      { action: 'undo', label: 'Undo' },
+      { action: 'redo', label: 'Redo' },
+      { action: 'cut', label: 'Cut' },
+      { action: 'copy', label: 'Copy' },
+      { action: 'paste', label: 'Paste' },
+      { action: 'createAutoComment', label: 'Add Comment', enable: true },
+      { action: 'deleteSelectedObjects', label: 'Delete' },
+      {
+        action: 'arrangeHorizontally',
+        label: 'Arrange Horizontally',
+        enable: true
+      },
+      {
+        action: 'arrangeVertically',
+        label: 'Arrange Vertically',
+        enable: true
       }
-    );
-  }, []);
+    ],
+    rightBar: [
+      {
+        action: 'toggleOpenPanel',
+        label: panelOpen ? 'Close panel' : 'Open panel',
+        enable: true,
+        iconTypeOverride: panelOpen ? 'paletteOpen' : 'paletteClose'
+      }
+    ]
+  };
+
+  const handleDrop = useCallback(
+    async (e: IDragEvent): Promise<void> => {
+      const fileBrowser = browserFactory.defaultBrowser;
+
+      toArray(fileBrowser.selectedItems()).map(
+        (item: any, index: number): void => {
+          ref.current?.addFile(
+            item,
+            e.offsetX + 20 * index,
+            e.offsetY + 20 * index
+          );
+        }
+      );
+    },
+    [browserFactory.defaultBrowser]
+  );
 
   if (loading) {
     return <div>loading</div>;
@@ -109,15 +175,12 @@ const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
   return (
     <Dropzone onDrop={handleDrop}>
       <PipelineEditor
-        pipeline={pipeline}
-        nodes={{}}
-        mode="jupyter"
         ref={ref}
-        onAction={handleAction}
-        onChange={handleChange}
-        onError={handleError}
-        onFileRequested={handleFileRequested}
-        readOnly={false}
+        nodes={nodes}
+        toolbar={toolbar}
+        pipeline={pipeline}
+        panelOpen={panelOpen}
+        onAction={onAction}
       />
     </Dropzone>
   );

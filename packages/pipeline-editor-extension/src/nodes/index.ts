@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 IBM Corporation
+ * Copyright 2018-2020 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from "react";
 
-import { dragDropIcon } from "@elyra/ui-components";
+import notebook from './notebook';
+import python from './python';
+import wmlDeploy from './wml-deploy';
 
-export const EmptyCanvas: React.FC = () => {
-  return (
-    <div>
-      <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
-      <h1>
-        Start your new pipeline by dragging files from the file browser pane.
-      </h1>
-    </div>
-  );
-};
+const nodes = [notebook, python, wmlDeploy];
+
+export default nodes;

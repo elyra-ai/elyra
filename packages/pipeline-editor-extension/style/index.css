@@ -332,3 +332,98 @@ input.elyra-Dialog-checkbox {
   appearance: auto;
   height: auto;
 }
+
+.elyra-PipelineEditor {
+  --elyra-border-radius: 0;
+
+  --elyra-color-panel-bg: var(--ui-01);
+  --elyra-color-panel-border: var(--ui-03);
+
+  --elyra-color-comment-text: var(--text-02);
+  --elyra-color-comment-link: var(--ui-04);
+  --elyra-color-comment-bg: var(--ui-01);
+  --elyra-color-comment-border: var(--ui-04);
+
+  --elyra-color-node-text: var(--text-01);
+  --elyra-color-node-link: #78a9ff;
+  --elyra-color-node-bg: var(--ui-02);
+  --elyra-color-node-border: var(--ui-04);
+  --elyra-color-node-hover-bg: var(--ui-03);
+  --elyra-color-node-hover-border: var(--ui-03);
+
+  --elyra-color-text-error: var(--jp-error-color1);
+  --elyra-color-error-border: var(--jp-error-color1);
+
+  --elyra-color-tooltip-text: var(--text-01);
+  --elyra-color-tooltip-text-bold: var(--text-01);
+  --elyra-color-tooltip-bg: var(--ui-02);
+  --elyra-color-tooltip-border: var(--ui-03);
+
+  --elyra-color-icon: var(--icon-01);
+
+  --elyra-font-family-sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --elyra-font-weight-sans: normal;
+  --elyra-font-size-sans: 12px;
+
+  --elyra-font-family-mono: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --elyra-font-weight-mono: normal;
+  --elyra-font-size-mono: 12px;
+}
+
+.elyra-PipelineEditor {
+  background-color: var(--ui-01);
+}
+
+.elyra-PipelineEditor .toolbar-div {
+  border-bottom-color: var(--ui-03);
+}
+.elyra-PipelineEditor .toolbar-div .bx--btn {
+  margin: 0;
+}
+.elyra-PipelineEditor .toolbar-div,
+.elyra-PipelineEditor .toolbar-item.default button,
+.elyra-PipelineEditor .toolbar-item.ghost button,
+.elyra-PipelineEditor .toolbar-overflow-item button {
+  background-color: var(--ui-background);
+}
+.elyra-PipelineEditor .toolbar-item.default button:hover,
+.elyra-PipelineEditor .toolbar-item.ghost button:hover,
+.elyra-PipelineEditor .toolbar-overflow-item button:hover {
+  background-color: var(--ui-03);
+}
+.elyra-PipelineEditor .toolbar-item.default button:disabled:hover,
+.elyra-PipelineEditor .toolbar-item.ghost button:disabled:hover,
+.elyra-PipelineEditor .toolbar-overflow-item button:disabled:hover {
+  background-color: var(--ui-01);
+}
+.elyra-PipelineEditor .toolbar-item-content.default {
+  color: var(--text-01);
+}
+.elyra-PipelineEditor .toolbar-item-content.disabled.default {
+  color: var(--text-03);
+}
+.elyra-PipelineEditor .toolbar-divider,
+.elyra-PipelineEditor .toolbar-overflow-item button {
+  border-right-color: var(--ui-03);
+}
+.elyra-PipelineEditor .overflow-toolbar-divider {
+  border-bottom-color: var(--ui-03);
+}
+.elyra-PipelineEditor .overflow-toolbar-icon-label {
+  color: var(--text-01);
+}
+.elyra-PipelineEditor .toolbar-popover-list {
+  border-color: var(--ui-03);
+  background-color: var(--ui-background);
+}
+.elyra-PipelineEditor img.toolbar-icons[disabled] {
+  opacity: 0.5;
+}
+
+.elyra-PipelineEditor .bx--btn--ghost {
+  border: none;
+}
+
+.elyra-PipelineEditor .d3-comment-link {
+  stroke-width: 1 !important;
+}
