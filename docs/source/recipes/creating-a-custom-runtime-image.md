@@ -31,7 +31,7 @@ Refer to the [Additional considerations](#additional-considerations) section for
 
 ## Requirements
 
-To create a custom container image and publish it on [https://hub.docker.com](https://hub.docker.com)) you need
+To create a custom container image and publish it on [hub.docker.com](https://hub.docker.com) you need
 
 - Docker Desktop
     - Available for [MacOS](https://hub.docker.com/editions/community/docker-ce-desktop-mac) and 
