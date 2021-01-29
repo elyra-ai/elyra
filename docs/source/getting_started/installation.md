@@ -26,18 +26,19 @@ Note: JupyterLab currently requires a re-build after installing any extension.
 * [Node.js 12+](https://nodejs.org/en/)
 * [Python 3.x](https://www.python.org/downloads/)
 
-
 JupyterLab dependencies:
  - Elyra >= 2.0.0 requires JupyterLab 3.x
  - Elyra < 2.0.0 requires JupyterLab 2.x
  - Elyra == 0.10.x requires JupyterLab 1.x
 
+The instructions below are installing the latest release.
+
 ### pip
 
-If you use `pip`, install Elyra 2.x with:
+If you use `pip`, install Elyra with:
 
 ```bash
-pip install --upgrade "elyra>=2.0.1" && jupyter lab build
+pip install --upgrade elyra && jupyter lab build
 ```
 
 Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
@@ -47,19 +48,19 @@ If desired, you can install these Elyra extensions independently:
 - [Pipeline editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
 
    ```bash
-   pip install --upgrade "elyra-pipeline-editor-extension>=2.0.1" && jupyter lab build
+   pip install --upgrade elyra-pipeline-editor-extension && jupyter lab build
    ```
 
 - [Code snippets](https://pypi.org/project/elyra-code-snippet-extension/)
 
    ```bash
-   pip install --upgrade "elyra-code-snippet-extension>=2.0.1" && jupyter lab build
+   pip install --upgrade elyra-code-snippet-extension && jupyter lab build
    ```
 
 - [Python script editor](https://pypi.org/project/elyra-python-editor-extension/)
 
    ```bash
-   pip install --upgrade "elyra-python-editor-extension>=2.0.1" && jupyter lab build
+   pip install --upgrade elyra-python-editor-extension && jupyter lab build
    ```
 
 ### conda
@@ -67,21 +68,21 @@ If desired, you can install these Elyra extensions independently:
 If you use `conda`, install Elyra with:
 
 ```bash
-conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
+conda install -c conda-forge elyra && jupyter lab build
 ```
 
 or install the Pipeline editor, Code Snippet, or Python editor extensions individually:
 
 ```bash
-conda install -c conda-forge "elyra-pipeline-editor-extension>=2.0.1" && jupyter lab build
+conda install -c conda-forge elyra-pipeline-editor-extension && jupyter lab build
 ```
 
 ```bash
-conda install -c conda-forge "elyra-code-snippet-extension>=2.0.1" && jupyter lab build
+conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
 ```
 
 ```bash
-conda install -c conda-forge "elyra-python-editor-extension>=2.0.1" && jupyter lab build
+conda install -c conda-forge elyra-python-editor-extension && jupyter lab build
 ```
 
 ### Build from source
@@ -109,10 +110,10 @@ config dir: /.../etc/jupyter
       jupyter_resource_usage  OK
     jupyterlab  enabled 
     - Validating...
-      jupyterlab 3.0.5 OK
+      jupyterlab [version] OK
     nbdime  enabled 
     - Validating...
-      nbdime 3.0.0.b1 OK
+      nbdime [version] OK
 ```
 
 ```
@@ -127,25 +128,25 @@ Config dir: /.../.jupyter
 Config dir: /.../etc/jupyter
     elyra enabled
     - Validating elyra...
-      elyra 2.0.1 OK
+      elyra [version] OK
     jupyter_lsp enabled
     - Validating jupyter_lsp...
-      jupyter_lsp 1.1.1 OK
+      jupyter_lsp [version] OK
     jupyter_resource_usage enabled
     - Validating jupyter_resource_usage...
       jupyter_resource_usage  OK
     jupyterlab enabled
     - Validating jupyterlab...
-      jupyterlab 3.0.5 OK
+      jupyterlab [version] OK
     jupyterlab_git enabled
     - Validating jupyterlab_git...
-      jupyterlab_git 0.30.0b1 OK
+      jupyterlab_git [version] OK
     nbclassic enabled
     - Validating nbclassic...
       nbclassic  OK
     nbdime enabled
     - Validating nbdime...
-      nbdime 3.0.0.b1 OK
+      nbdime [version] OK
 
 Config dir: /.../etc/jupyter
 ```
@@ -163,20 +164,20 @@ jupyter labextension list
 Should output:
 
 ```
-JupyterLab v3.0.5
+JupyterLab [version]
 /.../share/jupyter/labextensions
-        @jupyter-server/resource-usage v0.5.0 enabled OK (python, jupyter-resource-usage)
-        @krassowski/jupyterlab-lsp v3.2.0 enabled OK (python, jupyterlab_lsp)
-        @jupyterlab/git v0.30.0-beta.1 enabled OK (python, jupyterlab-git)
+        @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
+        @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
 
 Other labextensions (built into JupyterLab)
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v2.0.1 enabled OK
-        @elyra/metadata-extension v2.0.1 enabled OK
-        @elyra/pipeline-editor-extension v2.0.1 enabled OK
-        @elyra/python-editor-extension v2.0.1 enabled OK
-        @elyra/theme-extension v2.0.1 enabled OK
-        nbdime-jupyterlab v2.1.0-beta.1 enabled OK 
+        @elyra/code-snippet-extension [version] enabled OK
+        @elyra/metadata-extension [version] enabled OK
+        @elyra/pipeline-editor-extension [version] enabled OK
+        @elyra/python-editor-extension [version] enabled OK
+        @elyra/theme-extension [version] enabled OK
+        nbdime-jupyterlab [version] enabled OK 
 ```
 
 ### Docker 
@@ -192,13 +193,13 @@ If you have Docker installed, you can use JupyterLab and Elyra by running one of
 Images can be pulled from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) 
 
 ```
-docker pull elyra/elyra:2.0.1
+docker pull elyra/elyra:dev
 ```
 
 or [quay.io](https://quay.io/repository/elyra/elyra?tab=tags)
 
 ```
-docker pull quay.io/elyra/elyra:2.0.1
+docker pull quay.io/elyra/elyra:dev
 ```
 
 #### Running Elyra container images
