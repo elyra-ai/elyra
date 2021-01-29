@@ -10,7 +10,7 @@ args = {
 dag = DAG(
     '{{ pipeline_name }}',
     default_args=args,
-    schedule_interval=None,
+    schedule_interval='@once',
     start_date=days_ago(1),
     description='{{ pipeline_description }}',
     is_paused_upon_creation={{ is_paused_upon_creation }},

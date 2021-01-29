@@ -88,10 +88,13 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                 print(e)
 
             self.log_pipeline_info(pipeline_name,
-                                   f"pipeline submitted: https://github.com/{github_repo}/tree/{github_branch}",
+                                   f"pipeline pushed to git: https://github.com/{github_repo}/tree/{github_branch}",
                                    duration=(time.time() - t0_all))
 
+            # airflow_api_base_url = runtime_configuration.metadata['api_endpoint']
+
             return PipelineProcessorResponse(
+                # TODO - Add another field to return the url of the job in Airflow UI
                 run_url=f'https://github.com/{github_repo}/tree/{github_branch}',
                 object_storage_url=f'{cos_endpoint}',
                 object_storage_path=f'/{cos_bucket}/{pipeline_name}',
