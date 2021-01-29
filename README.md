@@ -218,6 +218,10 @@ After verifying Elyra has been installed, start Elyra with:
 jupyter lab
 ```
 
+## Getting Help
+
+We welcome your questions, ideas, and feedback. Check the [`Getting Help` section in the `Getting Started guide`](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html) to learn more about the channels you can use to get in touch with us.
+
 ## Contributing to Elyra
 If you are interested in helping make Elyra better, we encourage you to take a look at our 
 [Contributing](CONTRIBUTING.md) page,  
