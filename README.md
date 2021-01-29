@@ -133,6 +133,9 @@ Elyra can be installed from PyPI:
   ```
 
 ### Verify Installation 
+
+Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.
+
 ```bash
 jupyter serverextension list
 ```
@@ -144,10 +147,10 @@ config dir: /usr/local/etc/jupyter
       jupyter_resource_usage  OK
     jupyterlab  enabled 
     - Validating...
-      jupyterlab 3.0.5 OK
+      jupyterlab [version] OK
     nbdime  enabled 
     - Validating...
-      nbdime 3.0.0.b1 OK
+      nbdime [version] OK
 ```
 
 
@@ -161,25 +164,25 @@ Config dir: /.../.jupyter
 Config dir: /.../etc/jupyter
     elyra enabled
     - Validating elyra...
-      elyra 2.0.1 OK
+      elyra [version] OK
     jupyter_lsp enabled
     - Validating jupyter_lsp...
-      jupyter_lsp 1.1.1 OK
+      jupyter_lsp [version] OK
     jupyter_resource_usage enabled
     - Validating jupyter_resource_usage...
       jupyter_resource_usage  OK
     jupyterlab enabled
     - Validating jupyterlab...
-      jupyterlab 3.0.5 OK
+      jupyterlab [version] OK
     jupyterlab_git enabled
     - Validating jupyterlab_git...
-      jupyterlab_git 0.30.0b1 OK
+      jupyterlab_git [version] OK
     nbclassic enabled
     - Validating nbclassic...
       nbclassic  OK
     nbdime enabled
     - Validating nbdime...
-      nbdime 3.0.0.b1 OK
+      nbdime [version] OK
 
 Config dir: /.../etc/jupyter
 ```
@@ -192,20 +195,20 @@ jupyter labextension list
 ```
 Should output:
 ```      
-JupyterLab v3.0.5
+JupyterLab [version]
 /.../share/jupyter/labextensions
-        @jupyter-server/resource-usage v0.5.0 enabled OK (python, jupyter-resource-usage)
-        @krassowski/jupyterlab-lsp v3.2.0 enabled OK (python, jupyterlab_lsp)
-        @jupyterlab/git v0.30.0-beta.1 enabled OK (python, jupyterlab-git)
+        @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
+        @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
 
 Other labextensions (built into JupyterLab)
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v2.0.1 enabled OK
-        @elyra/metadata-extension v2.0.1 enabled OK
-        @elyra/pipeline-editor-extension v2.0.1 enabled OK
-        @elyra/python-editor-extension v2.0.1 enabled OK
-        @elyra/theme-extension v2.0.1 enabled OK
-        nbdime-jupyterlab v2.1.0-beta.1 enabled OK        
+        @elyra/code-snippet-extension [version] enabled OK
+        @elyra/metadata-extension [version] enabled OK
+        @elyra/pipeline-editor-extension [version] enabled OK
+        @elyra/python-editor-extension [version] enabled OK
+        @elyra/theme-extension [version] enabled OK
+        nbdime-jupyterlab [version] enabled OK        
         
 ```
 
