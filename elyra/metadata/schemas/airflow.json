@@ -31,22 +31,38 @@
           "description": "The description of this Airflow runtime instance",
           "type": "string"
         },
+        "api_endpoint": {
+          "title": "Airflow UI Endpoint",
+          "description": "The Apache Airflow UI endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Airflow Pipelines"
+          }
+        },
         "github_repo": {
           "title": "Github DAG Repository",
           "description": "The git repository for Airflow DAGs",
-          "type": "string"
+          "type": "string",
+          "uihints": {
+            "category": "Airflow Pipelines"
+          }
         },
         "github_branch": {
           "title": "Github DAG Repository Branch",
           "description": "The git branch to use for Airflow DAGs",
-          "type": "string"
+          "type": "string",
+          "uihints": {
+            "category": "Airflow Pipelines"
+          }
         },
         "github_repo_token": {
           "title": "Github Private Repository Token",
           "description": "The github token to use to push to private repositories",
           "type": "string",
           "uihints": {
-            "secure": true
+            "secure": true,
+            "category": "Airflow Pipelines"
           }
         },
         "cos_endpoint": {
