@@ -87,7 +87,7 @@ to access Elyra in your local browser.
 ```
 
 ## Installation
-Elyra can be installed via PyPi:
+Elyra can be installed from PyPI:
 
 ### Prerequisites :
 * [NodeJS 12+](https://nodejs.org/en/)
@@ -98,11 +98,18 @@ Elyra can be installed via PyPi:
 
 #### JupyterLab support
 
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.x and below**
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
 
   Install from PyPI:
   ```bash
-  pip install elyra==0.10.3 && jupyter lab build
+  pip install --upgrade "elyra>=2.0.1" && jupyter lab build
+  ```
+
+  Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
+
+  Install fom Conda:
+  ```bash
+  conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
   ```
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 1.0.0 and above**
@@ -111,7 +118,6 @@ Elyra can be installed via PyPi:
   ```bash
   pip install --upgrade "elyra<2.0.0" && jupyter lab build
   ```
-
   Note: Ubuntu and CentOS users may need to use `pip3 install elyra`
 
   Install from Conda:
@@ -119,66 +125,102 @@ Elyra can be installed via PyPi:
   conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
   ```
 
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
-
-  > Elyra version 2.0.0 has not been released yet.
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.x and below**
 
   Install from PyPI:
   ```bash
-  pip install --upgrade "elyra>=2.0.0" && jupyter lab build
-  ```
-
-  Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
-
-  Install fom Conda:
-  ```bash
-  conda install -c conda-forge "elyra>=2.0.0" && jupyter lab build
+  pip install elyra==0.10.3 && jupyter lab build
   ```
 
 ### Verify Installation 
+
+Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.
+
 ```bash
 jupyter serverextension list
 ```
 Should output:
-```
+``` 
 config dir: /usr/local/etc/jupyter
-    elyra  enabled
+    jupyter_resource_usage  enabled 
     - Validating...
-      elyra 1.5.0.dev0 OK
-    jupyterlab  enabled
+      jupyter_resource_usage  OK
+    jupyterlab  enabled 
     - Validating...
-      jupyterlab 2.2.8 OK
-    jupyterlab_git  enabled
+      jupyterlab [version] OK
+    nbdime  enabled 
     - Validating...
-      jupyterlab_git 0.23.1 OK
-    nbdime  enabled
-    - Validating...
-      nbdime 2.0.0 OK
+      nbdime [version] OK
 ```
+
+
+```bash
+jupyter server extension list
+```
+Should output:
+```
+Config dir: /.../.jupyter
+
+Config dir: /.../etc/jupyter
+    elyra enabled
+    - Validating elyra...
+      elyra [version] OK
+    jupyter_lsp enabled
+    - Validating jupyter_lsp...
+      jupyter_lsp [version] OK
+    jupyter_resource_usage enabled
+    - Validating jupyter_resource_usage...
+      jupyter_resource_usage  OK
+    jupyterlab enabled
+    - Validating jupyterlab...
+      jupyterlab [version] OK
+    jupyterlab_git enabled
+    - Validating jupyterlab_git...
+      jupyterlab_git [version] OK
+    nbclassic enabled
+    - Validating nbclassic...
+      nbclassic  OK
+    nbdime enabled
+    - Validating nbdime...
+      nbdime [version] OK
+
+Config dir: /.../etc/jupyter
+```
+
+NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable
+it with `jupyter server extension enable elyra`
+
 ```bash
 jupyter labextension list
 ```
 Should output:
-```
-Known labextensions:
+```      
+JupyterLab [version]
+/.../share/jupyter/labextensions
+        @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
+        @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.5.0-dev  enabled  OK*
-        @elyra/metadata-extension v1.5.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension v1.5.0-dev  enabled  OK*
-        @elyra/python-editor-extension v1.5.0-dev  enabled  OK*
-        @elyra/theme-extension v1.5.0-dev  enabled  OK*
-        @jupyterlab/git v0.22.3  enabled  OK
-        @jupyterlab/toc v4.0.0  enabled  OK
-        nbdime-jupyterlab v2.0.0  enabled  OK
+        @elyra/code-snippet-extension [version] enabled OK
+        @elyra/metadata-extension [version] enabled OK
+        @elyra/pipeline-editor-extension [version] enabled OK
+        @elyra/python-editor-extension [version] enabled OK
+        @elyra/theme-extension [version] enabled OK
+        nbdime-jupyterlab [version] enabled OK        
+        
 ```
-NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable
-it with `jupyter serverextension enable elyra`
 
 ## Starting Elyra
 After verifying Elyra has been installed, start Elyra with:
 ```bash
 jupyter lab
 ```
+
+## Getting Help
+
+We welcome your questions, ideas, and feedback. Check the [`Getting Help` section in the `Getting Started guide`](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html) to learn more about the channels you can use to get in touch with us.
 
 ## Contributing to Elyra
 If you are interested in helping make Elyra better, we encourage you to take a look at our 
