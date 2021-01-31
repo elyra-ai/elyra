@@ -271,6 +271,8 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   text-overflow: ellipsis;
 }
 .properties-modal-buttons .properties-apply-button {
+  color: var(--text-01);
+  background-color: var(--ui-01);
   background: var(--md-blue-500);
   border: 0;
   color: white;
@@ -284,8 +286,11 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   font-size: 13px;
 }
 
-.properties-modal-buttons .properties-apply-button,
-.properties-modal-buttons .properties-cancel-button {
+.properties-modal-buttons,
+.properties-apply-button,
+.properties-cancel-button {
+  color: var(--text-01);
+  background-color: var(--ui-01);
   width: auto;
   max-width: unset;
   box-sizing: border-box;
