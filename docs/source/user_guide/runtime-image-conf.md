@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ A runtime image configuration identifies a container image that Elyra can utiliz
 
 A runtime image configuration is associated with a container image that must meet these prerequisites:
 
-- The image must be stored in a public container registry (no authentication required) (e.g. [https://hub.docker.com](https://hub.docker.com)).
+- The image is stored in a container registry in a public or private network that the container platform in which the pipeline is executed can connect to. Examples of such registries are [hub.docker.com](https://hub.docker.com) or a self-managed registry in an intranet environment.
+- The image can be pulled from the registry without the need to authenticate.
 - The image must have a current `Python 3` version pre-installed and in the search path.
 - The image must have `curl` pre-installed and in the search path.
 
@@ -46,8 +47,8 @@ Runtime image configurations can be added, modified, and removed in the _Runtime
 
 To access the panel in JupyterLab:
 
-- Open the JupyterLab command palette (`<cmd/ctrl><shift><c>`).
-- Click `Show Runtime Images` in the `Elyra` section.
+- Open the JupyterLab command palette (`Cmd/Ctrl + Shift + C`).
+- Click `Manage Runtime Images` in the `Elyra` section.
 
 ![Runtime Images UI](../images/runtime-images-ui.png)
 
@@ -65,6 +66,9 @@ To delete a runtime image configuration:
 
 - Click the `delete` icon next to the runtime image name.
 - Confirm deletion.
+
+To search a runtime image configuration:
+- Type a keyword in the search bar at the top. Runtime images can also be filtered by selecting tags when clicking on the tag icon.
 
 #### Managing Runtime Images with the Command Line Interface
 

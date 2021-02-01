@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ limitations under the License.
 
 
 [![PyPI version](https://badge.fury.io/py/elyra.svg)](https://badge.fury.io/py/elyra)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/elyra/badges/version.svg)](https://anaconda.org/conda-forge/elyra)
 [![Downloads](https://pepy.tech/badge/elyra)](https://pepy.tech/project/elyra)
 [![Documentation Status](https://readthedocs.org/projects/elyra/badge/?version=latest)](https://elyra.readthedocs.io/en/latest/?badge=latest)
 [![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
@@ -27,17 +28,17 @@ limitations under the License.
 
 Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
-Elyra currently includes:
+Elyra currently includes the following functionality:
 
-- Notebook Pipelines visual editor
-- Ability to run notebooks as batch jobs
-- Reusable Code Snippets
-- Hybrid runtime support (based on [Jupyter Enterprise Gateway](https://github.com/jupyter/enterprise_gateway))
-- Python script execution capabilities within the editor
-- Python script navigation using auto-generated outlines using Table of Contents
-- Notebook navigation using auto-generated Table of Contents
-- Notebook versioning based on Git integration
-- Reusable configuration and editor for runtimes
+- [Create and run AI pipelines](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ai-pipelines-visual-editor)
+- [Run notebooks as batch jobs](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ability-to-run-a-notebook-as-a-batch-job)
+- [Reusable Code Snippets](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#reusable-code-snippets)
+- [Hybrid runtime support](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#hybrid-runtime-support) based on [Jupyter Enterprise Gateway](https://github.com/jupyter/enterprise_gateway)
+- [Python script editor with local/remote execution capabilities](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
+- [Python script navigation using auto-generated Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
+- [Notebook navigation using auto-generated outlines using Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#notebook-navigation-using-auto-generated-table-of-contents)
+- [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#version-control-using-git-integration)
+- [Language Server Protocol integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#language-server-protocol-integration)
 
 ![Elyra](docs/source/images/elyra-main-page.png)
 
@@ -51,7 +52,7 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v1.4.1?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v2.0.1?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
 - [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
 #### Using Docker
@@ -86,7 +87,7 @@ to access Elyra in your local browser.
 ```
 
 ## Installation
-Elyra can be installed via PyPi:
+Elyra can be installed from PyPI:
 
 ### Prerequisites :
 * [NodeJS 12+](https://nodejs.org/en/)
@@ -97,92 +98,129 @@ Elyra can be installed via PyPi:
 
 #### JupyterLab support
 
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.x and below**
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
 
-via PyPi:
-```bash
-pip install elyra==0.10.3 && jupyter lab build
-```
+  Install from PyPI:
+  ```bash
+  pip install --upgrade "elyra>=2.0.1" && jupyter lab build
+  ```
+
+  Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
+
+  Install fom Conda:
+  ```bash
+  conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
+  ```
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 1.0.0 and above**
 
-via PyPi:
-```bash
-pip install --upgrade "elyra<2.0.0" && jupyter lab build
-```
+  Install from PyPI:
+  ```bash
+  pip install --upgrade "elyra<2.0.0" && jupyter lab build
+  ```
+  Note: Ubuntu and CentOS users may need to use `pip3 install elyra`
 
-Note: Ubuntu and CentOS users may need to use `pip3 install elyra`
+  Install from Conda:
+  ```bash
+  conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
+  ```
 
-using Conda:
-```bash
-conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
-```
+* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.x and below**
 
-
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
-
-via PyPi:
-```bash
-pip install --upgrade "elyra>=2.0.0" && jupyter lab build
-```
-
-Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
-
-using Conda:
-```bash
-conda install -c conda-forge "elyra>=2.0.0" && jupyter lab build
-```
+  Install from PyPI:
+  ```bash
+  pip install elyra==0.10.3 && jupyter lab build
+  ```
 
 ### Verify Installation 
+
+Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.
+
 ```bash
 jupyter serverextension list
 ```
 Should output:
-```
+``` 
 config dir: /usr/local/etc/jupyter
-    elyra  enabled
+    jupyter_resource_usage  enabled 
     - Validating...
-      elyra 1.5.0.dev0 OK
-    jupyterlab  enabled
+      jupyter_resource_usage  OK
+    jupyterlab  enabled 
     - Validating...
-      jupyterlab 2.2.8 OK
-    jupyterlab_git  enabled
+      jupyterlab [version] OK
+    nbdime  enabled 
     - Validating...
-      jupyterlab_git 0.23.1 OK
-    nbdime  enabled
-    - Validating...
-      nbdime 2.0.0 OK
+      nbdime [version] OK
 ```
+
+
+```bash
+jupyter server extension list
+```
+Should output:
+```
+Config dir: /.../.jupyter
+
+Config dir: /.../etc/jupyter
+    elyra enabled
+    - Validating elyra...
+      elyra [version] OK
+    jupyter_lsp enabled
+    - Validating jupyter_lsp...
+      jupyter_lsp [version] OK
+    jupyter_resource_usage enabled
+    - Validating jupyter_resource_usage...
+      jupyter_resource_usage  OK
+    jupyterlab enabled
+    - Validating jupyterlab...
+      jupyterlab [version] OK
+    jupyterlab_git enabled
+    - Validating jupyterlab_git...
+      jupyterlab_git [version] OK
+    nbclassic enabled
+    - Validating nbclassic...
+      nbclassic  OK
+    nbdime enabled
+    - Validating nbdime...
+      nbdime [version] OK
+
+Config dir: /.../etc/jupyter
+```
+
+NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable
+it with `jupyter server extension enable elyra`
+
 ```bash
 jupyter labextension list
 ```
 Should output:
-```
-Known labextensions:
+```      
+JupyterLab [version]
+/.../share/jupyter/labextensions
+        @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
+        @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v1.5.0-dev  enabled  OK*
-        @elyra/metadata-extension v1.5.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension v1.5.0-dev  enabled  OK*
-        @elyra/python-editor-extension v1.5.0-dev  enabled  OK*
-        @elyra/theme-extension v1.5.0-dev  enabled  OK*
-        @jupyterlab/git v0.22.3  enabled  OK
-        @jupyterlab/toc v4.0.0  enabled  OK
-        nbdime-jupyterlab v2.0.0  enabled  OK
+        @elyra/code-snippet-extension [version] enabled OK
+        @elyra/metadata-extension [version] enabled OK
+        @elyra/pipeline-editor-extension [version] enabled OK
+        @elyra/python-editor-extension [version] enabled OK
+        @elyra/theme-extension [version] enabled OK
+        nbdime-jupyterlab [version] enabled OK        
+        
 ```
-NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable
-it with `jupyter serverextension enable elyra`
-
-## Configuring Runtimes for Pipeline execution
-
-The Elyra Pipeline editor delegates execution of pipelines to remote runtimes. Configure these
-external runtimes as documented in
-[Runtime Configuration](https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html).
 
 ## Starting Elyra
 After verifying Elyra has been installed, start Elyra with:
 ```bash
 jupyter lab
 ```
+
+## Getting Help
+
+We welcome your questions, ideas, and feedback. Check the [`Getting Help` section in the `Getting Started guide`](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html) to learn more about the channels you can use to get in touch with us.
 
 ## Contributing to Elyra
 If you are interested in helping make Elyra better, we encourage you to take a look at our 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { IDictionary } from '@elyra/application';
 import {
   CommonCanvas,
   CanvasController,
   CommonProperties
 } from '@elyra/canvas';
+import { IDictionary } from '@elyra/services';
 import {
   IconUtil,
   clearPipelineIcon,
@@ -30,7 +30,8 @@ import {
   runtimesIcon,
   showBrowseFileDialog,
   showFormDialog,
-  errorIcon
+  errorIcon,
+  RequestErrors
 } from '@elyra/ui-components';
 
 import { Dropzone } from '@elyra/ui-components';
@@ -78,6 +79,7 @@ import {
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
+import { StringArrayInput } from './StringArrayInput';
 import Utils from './utils';
 import { checkCircularReferences, ILink } from './validation';
 
@@ -229,6 +231,7 @@ export class PipelineEditor extends React.Component<
   node: React.RefObject<HTMLDivElement>;
   propertiesInfo: any;
   propertiesController: any;
+  CommonProperties: any;
 
   constructor(props: any) {
     super(props);
@@ -387,19 +390,27 @@ export class PipelineEditor extends React.Component<
       closePropertiesDialog: this.closePropertiesDialog
     };
 
-    const commProps = this.state.showPropertiesDialog ? (
+    const commProps = (
       <IntlProvider
         key="IntlProvider2"
         locale={'en'}
         messages={i18nData.messages}
       >
         <CommonProperties
+          ref={(instance: any): void => {
+            this.CommonProperties = instance;
+          }}
           propertiesInfo={this.state.propertiesInfo}
-          propertiesConfig={{}}
+          propertiesConfig={{
+            containerType: 'Custom',
+            rightFlyout: true,
+            applyOnBlur: true
+          }}
           callbacks={propertiesCallbacks}
+          customControls={[StringArrayInput]}
         />
       </IntlProvider>
-    ) : null;
+    );
 
     return (
       <Dropzone
@@ -424,9 +435,10 @@ export class PipelineEditor extends React.Component<
             config={canvasConfig}
             notificationConfig={{ enable: false }}
             contextMenuConfig={contextMenuConfig}
+            rightFlyoutContent={commProps}
+            showRightFlyout={this.state.showPropertiesDialog}
           />
         </IntlProvider>
-        {commProps}
       </Dropzone>
     );
   }
@@ -440,7 +452,9 @@ export class PipelineEditor extends React.Component<
   }
 
   async initPropertiesInfo(): Promise<void> {
-    const runtimeImages = await PipelineService.getRuntimeImages();
+    const runtimeImages = await PipelineService.getRuntimeImages().catch(
+      error => RequestErrors.serverError(error)
+    );
 
     const imageEnum = [];
     for (const runtimeImage in runtimeImages) {
@@ -453,12 +467,16 @@ export class PipelineEditor extends React.Component<
 
     this.propertiesInfo = {
       parameterDef: properties,
-      appData: { id: '' }
+      appData: { id: '' },
+      labelEditable: true
     };
   }
 
   openPropertiesDialog(source: any): void {
     console.log('Opening properties dialog');
+    if (!source.targetObject) {
+      source.targetObject = this.canvasController.getNode(source.id);
+    }
     const node_id = source.targetObject.id;
     const app_data = source.targetObject.app_data;
 
@@ -474,6 +492,13 @@ export class PipelineEditor extends React.Component<
       app_data.dependencies;
     node_props.parameterDef.current_parameters.include_subdirectories =
       app_data.include_subdirectories;
+    node_props.parameterDef.current_parameters.cpu = app_data.cpu;
+    node_props.parameterDef.current_parameters.memory = app_data.memory;
+    node_props.parameterDef.current_parameters.gpu = app_data.gpu;
+    node_props.parameterDef.titleDefinition = {
+      title: this.canvasController.getNode(source.id).label,
+      editable: true
+    };
 
     this.setState({
       showValidationError: false,
@@ -482,7 +507,11 @@ export class PipelineEditor extends React.Component<
     });
   }
 
-  applyPropertyChanges(propertySet: any, appData: any): void {
+  applyPropertyChanges(
+    propertySet: any,
+    appData: any,
+    additionalData: any
+  ): void {
     console.log('Applying changes to properties');
     const pipelineId = this.canvasController.getPrimaryPipelineId();
     let node = this.canvasController.getNode(appData.id, pipelineId);
@@ -501,12 +530,12 @@ export class PipelineEditor extends React.Component<
     }
     const app_data = node.app_data;
 
+    if (additionalData.title) {
+      node.label = additionalData.title;
+    }
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
-      node.label = PathExt.basename(
-        propertySet.filename,
-        PathExt.extname(propertySet.filename)
-      );
+      node.label = PathExt.basename(propertySet.filename);
     }
 
     app_data.runtime_image = propertySet.runtime_image;
@@ -514,6 +543,9 @@ export class PipelineEditor extends React.Component<
     app_data.env_vars = propertySet.env_vars;
     app_data.dependencies = propertySet.dependencies;
     app_data.include_subdirectories = propertySet.include_subdirectories;
+    app_data.cpu = propertySet.cpu;
+    app_data.memory = propertySet.memory;
+    app_data.gpu = propertySet.gpu;
     this.validateAllNodes();
     this.updateModel();
   }
@@ -521,6 +553,9 @@ export class PipelineEditor extends React.Component<
   closePropertiesDialog(): void {
     console.log('Closing properties dialog');
     const propsInfo = JSON.parse(JSON.stringify(this.propertiesInfo));
+    if (this.CommonProperties) {
+      this.CommonProperties.applyPropertiesEditing(false);
+    }
     this.setState({ showPropertiesDialog: false, propertiesInfo: propsInfo });
   }
 
@@ -534,6 +569,9 @@ export class PipelineEditor extends React.Component<
       this.widgetContext.path,
       this.propertiesController.getPropertyValue('filename')
     );
+    if (this.CommonProperties) {
+      this.CommonProperties.applyPropertiesEditing(false);
+    }
 
     if (id === 'browse_file') {
       const currentExt = PathExt.extname(filename);
@@ -565,16 +603,24 @@ export class PipelineEditor extends React.Component<
         }
       }).then((result: any) => {
         if (result.button.accept && result.value.length) {
-          const dependenciesSet = new Set(
+          const dependencies = Array.from(
             this.propertiesController.getPropertyValue(propertyId)
           );
-          result.value.forEach((val: any) => {
-            dependenciesSet.add(val.path);
+
+          // If multiple files are selected, replace the given index in the dependencies list
+          // and insert the rest of the values after that index.
+          result.value.forEach((val: any, index: number) => {
+            if (index === 0) {
+              dependencies[data.index] = val.path;
+            } else {
+              dependencies.splice(data.index, 0, val.path);
+            }
           });
 
-          this.propertiesController.updatePropertyValue(propertyId, [
-            ...dependenciesSet
-          ]);
+          this.propertiesController.updatePropertyValue(
+            propertyId,
+            dependencies
+          );
         }
       });
     }
@@ -615,10 +661,17 @@ export class PipelineEditor extends React.Component<
   /*
    * Handles mouse click actions
    */
-  clickActionHandler(source: any): void {
+  async clickActionHandler(source: any): Promise<void> {
     // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
       this.handleOpenFile(source.selectedObjectIds);
+    } else if (
+      source.clickType === 'SINGLE_CLICK' &&
+      source.objectType === 'node' &&
+      this.state.showPropertiesDialog
+    ) {
+      this.closePropertiesDialog();
+      this.openPropertiesDialog(source);
     }
   }
 
@@ -686,9 +739,10 @@ export class PipelineEditor extends React.Component<
           break;
         case 'properties':
           if (data.type === 'node') {
-            this.state.showPropertiesDialog
-              ? this.closePropertiesDialog()
-              : this.openPropertiesDialog(data);
+            if (this.state.showPropertiesDialog) {
+              this.closePropertiesDialog();
+            }
+            this.openPropertiesDialog(data);
           }
           break;
       }
@@ -800,6 +854,22 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  cleanNullProperties(): void {
+    // Delete optional fields that have null value
+    for (const node of this.canvasController.getPipelineFlow().pipelines[0]
+      .nodes) {
+      if (node.app_data.cpu === null) {
+        delete node.app_data.cpu;
+      }
+      if (node.app_data.memory === null) {
+        delete node.app_data.memory;
+      }
+      if (node.app_data.gpu === null) {
+        delete node.app_data.gpu;
+      }
+    }
+  }
+
   async handleExportPipeline(): Promise<void> {
     // Warn user if the pipeline has invalid nodes
     const errorMessage = await this.validatePipeline();
@@ -813,7 +883,9 @@ export class PipelineEditor extends React.Component<
       });
       return;
     }
-    const runtimes = await PipelineService.getRuntimes();
+    const runtimes = await PipelineService.getRuntimes().catch(error =>
+      RequestErrors.serverError(error)
+    );
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
@@ -839,8 +911,12 @@ export class PipelineEditor extends React.Component<
       PathExt.extname(pipeline_path)
     );
     const pipeline_export_format = dialogResult.value.pipeline_filetype;
-    const pipeline_export_path =
-      pipeline_dir + '/' + pipeline_name + '.' + pipeline_export_format;
+
+    let pipeline_export_path = pipeline_name + '.' + pipeline_export_format;
+    // only prefix the '/' when pipeline_dir is non-empty
+    if (pipeline_dir) {
+      pipeline_export_path = pipeline_dir + '/' + pipeline_export_path;
+    }
 
     const overwrite = dialogResult.value.overwrite;
 
@@ -852,6 +928,8 @@ export class PipelineEditor extends React.Component<
       this.widgetContext.path
     );
 
+    this.cleanNullProperties();
+
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
     pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
@@ -861,13 +939,20 @@ export class PipelineEditor extends React.Component<
       pipeline_export_format,
       pipeline_export_path,
       overwrite
-    );
+    ).catch(error => RequestErrors.serverError(error));
   }
 
   async handleOpenPipeline(): Promise<void> {
     this.widgetContext.ready.then(async () => {
-      let pipelineJson: any = this.widgetContext.model.toJSON();
-      if (pipelineJson == null) {
+      let pipelineJson: any = null;
+
+      try {
+        pipelineJson = this.widgetContext.model.toJSON();
+      } catch (error) {
+        this.handleJSONError(error);
+      }
+
+      if (pipelineJson === null) {
         // creating new pipeline
         pipelineJson = this.canvasController.getPipelineFlow();
         if (Utils.isEmptyPipeline(pipelineJson)) {
@@ -1149,6 +1234,23 @@ export class PipelineEditor extends React.Component<
     }
   }
 
+  /**
+   * Displays a dialog containing a JSON error
+   */
+  handleJSONError(error: any): void {
+    showDialog({
+      title: 'The pipeline file is not valid JSON.',
+      body: (
+        <p>
+          {error.name}: {error.message}
+        </p>
+      ),
+      buttons: [Dialog.okButton()]
+    }).then(result => {
+      this.handleClosePipeline();
+    });
+  }
+
   async handleRunPipeline(): Promise<void> {
     // Check that all nodes are valid
     const errorMessage = await this.validatePipeline();
@@ -1168,7 +1270,9 @@ export class PipelineEditor extends React.Component<
       PathExt.extname(this.widgetContext.path)
     );
 
-    const runtimes = await PipelineService.getRuntimes(false);
+    const runtimes = await PipelineService.getRuntimes(false).catch(error =>
+      RequestErrors.serverError(error)
+    );
     const local_runtime: any = {
       name: 'local',
       display_name: 'Run in-place locally'
@@ -1203,6 +1307,8 @@ export class PipelineEditor extends React.Component<
       this.widgetContext.path
     );
 
+    this.cleanNullProperties();
+
     pipelineFlow.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
@@ -1214,7 +1320,7 @@ export class PipelineEditor extends React.Component<
         dialogResult.value.runtime_config,
         runtimes
       )
-    );
+    ).catch(error => RequestErrors.serverError(error));
   }
 
   handleSavePipeline(): void {
@@ -1258,6 +1364,27 @@ export class PipelineEditor extends React.Component<
     this.initPropertiesInfo().finally(() => {
       this.handleOpenPipeline();
     });
+  }
+
+  componentDidUpdate(): void {
+    const inputFields = document.querySelectorAll('.properties-readonly');
+    for (const inputField of inputFields) {
+      if (inputField.children.length > 1) {
+        continue;
+      }
+      const tooltip = document.createElement('span');
+      tooltip.className = 'elyra-Tooltip common-canvas-tooltip';
+      tooltip.setAttribute('direction', 'bottom');
+      const arrow = document.createElement('div');
+      arrow.className = 'elyra-Tooltip-arrow';
+      inputField.appendChild(arrow);
+      const arrowOutline = document.createElement('div');
+      arrowOutline.className =
+        'elyra-Tooltip-arrow elyra-Tooltip-arrow-outline';
+      inputField.appendChild(arrowOutline);
+      tooltip.innerText = inputField.children[0].innerHTML;
+      inputField.appendChild(tooltip);
+    }
   }
 }
 

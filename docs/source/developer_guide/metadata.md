@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -72,7 +72,10 @@ And each metadata file looks like:
     "cos_endpoint": "http://weakish1.fyre.ibm.com:30427",
     "cos_username": "minio",
     "cos_password": "minio123",
-    "cos_bucket": "lresende"
+    "cos_bucket": "test-bucket",
+    "tags": [
+      "kfp", "v1.1"
+    ]
   }
 }
 ```
@@ -141,6 +144,7 @@ cos_endpoint = runtime_configuration.metadata['cos_endpoint']
 cos_username = runtime_configuration.metadata['cos_username']
 cos_password = runtime_configuration.metadata['cos_password']
 bucket_name = runtime_configuration.metadata['cos_bucket']
+tags = runtime_configuration.metadata['tags']
 
 ```
 

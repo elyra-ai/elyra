@@ -1,0 +1,99 @@
+#
+# Copyright 2018-2021 Elyra Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+name: Elyra Tests
+on:
+  push:
+    branches: '*'
+  pull_request:
+    branches: '*'
+  schedule:
+    # once a day at 3 am (UTC) (7 pm (PST))
+    - cron:  '0 3 * * *'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [ '3.6', '3.7', '3.8' ]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        clean: true
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: 'x64'
+    - name: Set up Node
+      uses: actions/setup-node@v1
+      with:
+         node-version: '12.18'
+    - name: Display dependency info
+      run: |
+        python --version
+        node --version
+        npm --version
+        pip --version
+    - name: Create npm configuration for authentication
+      run: |
+        echo "scripts-prepend-node-path=true" >> ~/.npmrc
+        echo "prefix=~/.npm-global" >> ~/.npmrc
+        mkdir -p ~/.npm-global
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip wheel jupyter_server
+        python -m pip install --upgrade jupyterlab
+    - name: Log current Python dependencies version
+      run: |
+        pip freeze
+    - name: Install NPM dependencies
+      run: |
+        sudo apt install yarn
+        npm install -g lerna@3.19.0
+        npm install -g rimraf@3.0.0
+        npm install -g typescript@3.7.3
+        npm install -g yarn@1.21.0
+    - name: Build
+      run: |
+        export PATH=~/.npm-global/bin:$PATH
+        make install
+    - name: Documentation
+      run: |
+        make docs
+    - name: Test
+      run: |
+        make test
+    - name: Collect logs
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        path: |
+          ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
+          ${{ github.workspace }}/build/cypress-tests/videos//**/*
+          /home/runner/.npm/_logs/*.log
+  image_validation:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        clean: true
+    - name: Validate runtime images
+      run: make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images

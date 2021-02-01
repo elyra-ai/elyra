@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ A runtime image provides the execution environment in which nodes are executed w
 
 Should none of these images meet your needs, you can utilize a custom container image, as long as it meets the following pre-requisites:
 
-- The container image is published on a public container registry (e.g. [https://hub.docker.com](https://hub.docker.com)). (Elyra currently does not support private registries.)
+- The image is stored in a container registry in a public or private network that the container platform in which the pipeline is executed can connect to. Examples of such registries are [hub.docker.com](https://hub.docker.com) or a self-managed registry in an intranet environment.
+- The image can be pulled from the registry without the need to authenticate. 
 - [Python 3](https://www.python.org/) is pre-installed and in the search path. Python versions that have reached their "end of life" are not supported.
 - [`curl`](https://curl.haxx.se/) is pre-installed and in the search path.
 
@@ -30,7 +31,7 @@ Refer to the [Additional considerations](#additional-considerations) section for
 
 ## Requirements
 
-To create a custom container image for [https://hub.docker.com](https://hub.docker.com)) you need
+To create a custom container image and publish it on [hub.docker.com](https://hub.docker.com) you need
 
 - Docker Desktop
     - Available for [MacOS](https://hub.docker.com/editions/community/docker-ce-desktop-mac) and 

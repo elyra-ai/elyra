@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,11 +218,12 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .bx--modal-content {
   color: var(--text-01);
 }
-.properties-control-item {
-  padding: 5px 0 10px 0;
+.properties-control-panel > .properties-control-panel {
+  padding: 0 14px 0 0;
 }
-.properties-dropdown .bx--list-box__field {
-  background-color: transparent;
+.properties-control-item {
+  padding: 0px 0 18px 0;
+  width: 100%;
 }
 .properties-label-container label,
 .properties-checkbox label {
@@ -245,6 +246,78 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .bx--modal .bx--select-input,
 .bx--modal .bx--dropdown {
   background-color: var(--ui-02);
+}
+.properties-required-indicator {
+  margin-left: 3px;
+  visibility: hidden;
+}
+.properties-required-indicator::before {
+  content: '(';
+  visibility: visible;
+}
+.properties-required-indicator::after {
+  content: 'required)';
+  visibility: visible;
+  margin-left: -6px;
+}
+.properties-readonly span {
+  position: absolute;
+  margin: 3px;
+  padding: 3px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow-x: hidden;
+  width: calc(100% - 83px);
+  text-overflow: ellipsis;
+}
+.properties-modal-buttons .properties-apply-button {
+  background: var(--md-blue-500);
+  border: 0;
+  color: white;
+  margin-right: 24px;
+}
+
+.properties-label-container label,
+.properties-checkbox label,
+.bx--list-box__label,
+.bp3-input {
+  font-size: 13px;
+}
+
+.properties-modal-buttons .properties-apply-button,
+.properties-modal-buttons .properties-cancel-button {
+  width: auto;
+  max-width: unset;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 32px;
+  height: 32px;
+  padding: 0px 12px;
+  margin-top: 14px;
+  letter-spacing: 0.8px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.bp3-control-group:not(.bp3-vertical) > *:not(.bp3-divider):focus {
+  box-shadow: inset 0 0 0 var(--jp-border-width)
+      var(--jp-input-active-box-shadow-color),
+    inset 0 0 0 3px var(--jp-input-active-box-shadow-color);
+}
+.properties-readonly {
+  color: rgba(92, 112, 128, 0.6);
+  background: rgba(206, 217, 224, 0.5);
+  height: 30px;
+  display: flex;
+  border: 1px solid #cbd0d4;
+  border-radius: 3px 0 0 3px;
+  width: 100%;
+}
+.bx--dropdown {
+  border-bottom: none;
+}
+.bx--list-box__field:focus {
+  outline: none;
 }
 .properties-checkbox label::before {
   background-color: transparent;
@@ -339,4 +412,87 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 
 img.toolbar-icons[disabled] {
   opacity: 0.5;
+}
+
+.properties-action-button button {
+  background-color: #f5f8fa;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(rgba(255, 255, 255, 0.8)),
+    to(rgba(255, 255, 255, 0))
+  );
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0)
+  );
+  -webkit-box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
+    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
+    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
+  color: #182026;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 5px 10px;
+  text-align: left;
+  vertical-align: middle;
+  min-height: 30px;
+  min-width: 30px;
+}
+
+.properties-action-button button:hover {
+  background-clip: padding-box;
+  background-color: #ebf1f5;
+  -webkit-box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
+    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
+    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
+}
+
+.bp3-input[readonly] {
+  color: rgba(92, 112, 128, 0.6);
+  cursor: not-allowed;
+  background: rgba(206, 217, 224, 0.5);
+}
+
+.bx--btn--tertiary:hover {
+  color: #182026;
+}
+
+.bx--btn--tertiary:focus {
+  background-color: #f5f8fa;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(rgba(255, 255, 255, 0.8)),
+    to(rgba(255, 255, 255, 0))
+  );
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0)
+  );
+  -webkit-box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
+    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
+    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
+  color: #182026;
 }

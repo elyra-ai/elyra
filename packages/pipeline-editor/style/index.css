@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,72 @@
   padding: 0 1rem;
   margin: 0 1rem 0 0;
   text-align: center;
+}
+
+.properties-vt .properties-vt-row-class {
+  display: flex;
+}
+
+.properties-add-fields-button {
+  display: none;
+}
+
+.properties-editor-form .properties-control-panel .properties-control-panel {
+  padding: 0;
+  margin-bottom: 14px;
+  margin-top: 14px;
+  border-bottom: 1px solid #cfd1d4;
+}
+.properties-control-item {
+  padding: 5px 0 5px 0;
+}
+
+.properties-right-flyout {
+  background-color: #fff;
+}
+
+.bx--text-input__field-outer-wrapper {
+  width: 100%;
+}
+
+.properties-dropdown .bx--list-box__field {
+  background-color: #f5f8fa;
+  border-radius: 3px;
+  border-bottom: 0px;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(rgba(255, 255, 255, 0.8)),
+    to(rgba(255, 255, 255, 0))
+  );
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0)
+  );
+  -webkit-box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
+    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
+    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
+  color: #182026;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: row;
+  -ms-flex-align: center;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  -ms-flex-pack: center;
+  padding: 5px 10px;
+  text-align: left;
+  vertical-align: middle;
+  min-height: 30px;
+  min-width: 30px;
 }
 
 .common-canvas-tooltip[data-id^='node_tip'] {
@@ -120,31 +186,145 @@ td {
   padding-right: 10px;
 }
 
+.properties-editor-form {
+  background-color: #ffffff;
+}
 .properties-control-panel[data-id='properties-nodeGroupInfo'],
 .properties-control-panel[data-id='properties-nodeDependenciesControls'] {
   position: relative;
 }
-.properties-control-panel > .properties-control-panel {
+.properties-control-panel[data-id='properties-nodeDependenciesControls']
+  .bp3-form-group {
+  margin-bottom: 8px;
+}
+.properties-control-panel[data-id='properties-nodeDependenciesControls']
+  .properties-control-panel {
   padding: 0;
 }
-.properties-control-panel[data-id='properties-nodeFileControl'] {
-  width: calc(100% - 100px);
+.properties-editor-form
+  .properties-control-panel
+  .properties-control-panel[data-id='properties-nodeListDependenciesControl'] {
+  border-bottom: none;
+  padding-left: 0;
+  padding-bottom: 0;
+}
+.properties-control-item[data-id='properties-ci-dependencies'] {
+  padding: 0;
+}
+.properties-control-panel[data-id='properties-nodePropertiesControls']
+  .properties-control-item {
+  margin-top: 10px;
+}
+.properties-action-panel[data-id='properties-nodeBrowseFileAction']
+  .properties-action-button {
+  padding: 0;
+}
+.properties-action-panel[data-id='properties-nodeBrowseFileAction']
+  .properties-action-button
+  button {
+  border-radius: 0px 3px 3px 0px;
 }
 .properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
   position: absolute;
-  right: 0;
-  top: 0.6rem;
+  right: 0px;
+  top: 22px;
 }
-.properties-action-panel[data-id='properties-nodeAddDependenciesAction'] {
+.properties-control-panel[data-id='properties-nodeFileControl'] {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.properties-control-panel[data-id='properties-nodeUsageControls'] {
+  display: flex;
+  flex-wrap: wrap;
+}
+.properties-editor-form
+  .properties-control-panel[data-id='properties-nodeUsageControls']
+  .properties-control-item {
   margin: 0;
+  padding: 0px 3px 14px 3px;
+  max-width: 32%;
+  border-bottom: none;
+}
+.properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-control-item {
+  width: calc(100% - 67px);
+}
+.properties-control-panel[data-id='properties-nodePropertiesControls']
+  .properties-control-item[data-id='properties-ci-include_subdirectories'] {
+  border-bottom: 1px solid #cfd1d4;
+  padding: 0 0 10px 0;
+}
+.properties-control-panel[data-id='properties-nodePropertiesControls']
+  .properties-control-item[data-id='properties-ci-env_vars'] {
+  border-bottom: 1px solid #cfd1d4;
+}
+
+.properties-control-panel > .properties-control-panel {
   padding: 0;
+}
+.properties-numberfield .bx--number input[type='number'] {
+  border-radius: 3px;
+  border-bottom: 0;
+  box-shadow: inset 0 0 0 var(--jp-border-width) var(--jp-input-border-color);
+  min-width: auto;
+}
+.properties-numberfield .bx--number input[type='number']:focus {
+  box-shadow: inset 0 0 0 var(--jp-border-width)
+      var(--jp-input-active-box-shadow-color),
+    inset 0 0 0 3px var(--jp-input-active-box-shadow-color);
+  outline: none;
+}
+
+.properties-numberfield .bx--number__controls .bx--number__control-btn:focus {
+  box-shadow: inset 0 0 0 var(--jp-border-width)
+      var(--jp-input-active-box-shadow-color),
+    inset 0 0 0 3px var(--jp-input-active-box-shadow-color);
+  outline: none;
+}
+
+.elyra-Tooltip {
+  top: 84px;
+  visibility: hidden;
+  opacity: 100%;
+}
+
+.properties-readonly:hover .elyra-Tooltip-arrow {
+  visibility: visible;
+}
+
+.elyra-Tooltip-arrow {
+  height: 0;
   position: absolute;
-  right: 0;
-  top: 0;
+  visibility: hidden;
+  width: 0;
+  top: 51px;
+  left: 94px;
+  z-index: 1000000;
+  border: 8px solid transparent;
+  border-right-color: var(--ui-02);
+  opacity: 100%;
+  transform: rotate(90deg);
+}
+.elyra-Tooltip-arrow-outline {
+  top: 50px;
+  z-index: 999999;
+  border-right-color: var(--ui-03);
+}
+
+.properties-readonly:hover .elyra-Tooltip {
+  visibility: visible;
+  white-space: initial;
+  opacity: 100%;
+}
+
+.properties-action-panel[data-id='properties-nodeAddDependenciesAction'] {
+  margin: 0 0 14px 0;
+  padding: 0;
 }
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction']
   .properties-action-button {
-  padding-right: 0;
+  padding-left: 0;
 }
 .properties-action-panel[data-id='properties-nodeAddDependenciesAction']
   .bx--btn--tertiary {
@@ -178,4 +358,9 @@ span.elyra-BreadCrumbs-disabled svg path.jp-icon3[fill] {
 }
 span.elyra-BreadCrumbs-disabled + span {
   color: var(--md-grey-500);
+}
+
+input.elyra-Dialog-checkbox.jp-mod-styled {
+  appearance: auto;
+  height: auto;
 }

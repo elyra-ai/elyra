@@ -1,5 +1,5 @@
 ..
-.. Copyright 2018-2020 Elyra Authors
+.. Copyright 2018-2021 Elyra Authors
 ..
 .. Licensed under the Apache License, Version 2.0 (the "License");
 .. you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    getting_started/installation
    getting_started/starting
    getting_started/tutorials
+   getting_started/getting-help
    getting_started/changelog
 
 .. toctree::
@@ -53,6 +54,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    recipes/deploying-kubeflow-locally-for-dev.md
    recipes/deploying-elyra-with-opendatahub.md
    recipes/creating-a-custom-runtime-image.md
+   recipes/visualizing-output-in-the-kfp-ui.md
    
 .. toctree::
    :maxdepth: 1

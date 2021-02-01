@@ -1,0 +1,48 @@
+/*
+ * Copyright 2018-2021 Elyra Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+describe('LSP', () => {
+  before(() => {
+    // read python file used for testing
+    cy.readFile('tests/assets/helloworld.py').then((file: any) => {
+      cy.writeFile('build/cypress-tests/helloworld.py', file);
+    });
+
+    cy.openJupyterLab();
+  });
+
+  after(() => {
+    // delete python file used for testing
+    cy.exec('find build/cypress-tests/ -name helloworld.py -delete', {
+      failOnNonZeroExit: false
+    });
+  });
+
+  it('LSP extension is initialized', () => {
+    // open python editor
+    cy.getFileByType('python').dblclick();
+
+    cy.wait(1000);
+
+    //check for lsp item on status bar
+    cy.get('.lsp-statusbar-item ').find(
+      '[title="Fully connected & initialized (1 virtual document)"]'
+    );
+
+    // close tab
+    cy.closeCurrentTab();
+  });
+});

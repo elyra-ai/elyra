@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,15 +83,17 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
    * Function: Creates drop down options with available python kernel specs.
    */
   private createOptionElems = (specs: KernelSpec.ISpecModels): void => {
-    const kernelNames: string[] = Object.keys(specs.kernelspecs);
-    kernelNames.forEach((specName: string, i: number) => {
+    let i = 0;
+    for (const name of Object.keys(specs.kernelspecs)) {
+      const spec = specs.kernelspecs[name];
+      const displayName = spec.display_name ? spec.display_name : name;
       const elem = React.createElement(
         'option',
-        { key: i, value: specName },
-        specName
+        { key: i++, value: name },
+        displayName
       );
       this.kernelOptionElems.push(elem);
-    });
+    }
   };
 
   /**

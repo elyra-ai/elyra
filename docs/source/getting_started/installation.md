@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ limitations under the License.
 -->
 ## Installation
 
-The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed using `pip`, `conda`, or from source code.
+The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed from PyPI, conda, or from source code.
 
 Note: JupyterLab currently requires a re-build after installing any extension.
 
@@ -26,8 +26,12 @@ Note: JupyterLab currently requires a re-build after installing any extension.
 * [Node.js 12+](https://nodejs.org/en/)
 * [Python 3.x](https://www.python.org/downloads/)
 
-Note: Elyra 1.0.0 and above require JupyterLab 2.x.
-Note: Elyra 2.0.0 and above require JupyterLab 3.x.
+JupyterLab dependencies:
+ - Elyra >= 2.0.0 requires JupyterLab 3.x
+ - Elyra < 2.0.0 requires JupyterLab 2.x
+ - Elyra == 0.10.x requires JupyterLab 1.x
+
+The instructions below are installing the latest release.
 
 ### pip
 
@@ -100,22 +104,54 @@ jupyter serverextension list
 Should output:
 
 ```
-config dir: /usr/local/etc/jupyter
-    elyra  enabled
+config dir: /.../etc/jupyter
+    jupyter_resource_usage  enabled 
     - Validating...
-      elyra 2.0.0.dev0 OK
-    jupyterlab  enabled
+      jupyter_resource_usage  OK
+    jupyterlab  enabled 
     - Validating...
-      jupyterlab 3.0.0rc10 OK
-    jupyterlab_git  enabled
+      jupyterlab [version] OK
+    nbdime  enabled 
     - Validating...
-      jupyterlab_git 0.23.1 OK
-    nbdime  enabled
-    - Validating...
-      nbdime 2.0.0 OK
+      nbdime [version] OK
 ```
 
-NOTE: If you don't see the elyra server extension enabled, you may need to explicitly enable it by running `jupyter serverextension enable elyra`.
+```
+jupyter server extension list
+```
+
+Should output:
+
+```
+Config dir: /.../.jupyter
+
+Config dir: /.../etc/jupyter
+    elyra enabled
+    - Validating elyra...
+      elyra [version] OK
+    jupyter_lsp enabled
+    - Validating jupyter_lsp...
+      jupyter_lsp [version] OK
+    jupyter_resource_usage enabled
+    - Validating jupyter_resource_usage...
+      jupyter_resource_usage  OK
+    jupyterlab enabled
+    - Validating jupyterlab...
+      jupyterlab [version] OK
+    jupyterlab_git enabled
+    - Validating jupyterlab_git...
+      jupyterlab_git [version] OK
+    nbclassic enabled
+    - Validating nbclassic...
+      nbclassic  OK
+    nbdime enabled
+    - Validating nbdime...
+      nbdime [version] OK
+
+Config dir: /.../etc/jupyter
+```
+
+NOTE: If you don't see the Elyra server extension enabled, you may need to explicitly enable it with `jupyter server extension enable elyra`.
 
 #### Verify the lab extensions
 
@@ -128,29 +164,50 @@ jupyter labextension list
 Should output:
 
 ```
-Known labextensions:
+JupyterLab [version]
+/.../share/jupyter/labextensions
+        @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
+        @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
    app dir: /.../share/jupyter/lab
-        @elyra/code-snippet-extension v2.0.0-dev  enabled  OK*
-        @elyra/metadata-extension v2.0.0-dev  enabled  OK*
-        @elyra/pipeline-editor-extension v2.0.0-dev  enabled  OK*
-        @elyra/python-editor-extension v2.0.0-dev  enabled  OK*
-        @elyra/theme-extension v2.0.0-dev  enabled  OK*
-        @jupyterlab/git v0.22.3  enabled  OK
-        nbdime-jupyterlab v2.0.0  enabled  OK
+        @elyra/code-snippet-extension [version] enabled OK
+        @elyra/metadata-extension [version] enabled OK
+        @elyra/pipeline-editor-extension [version] enabled OK
+        @elyra/python-editor-extension [version] enabled OK
+        @elyra/theme-extension [version] enabled OK
+        nbdime-jupyterlab [version] enabled OK 
 ```
 
 ### Docker 
 
-If you have Docker installed, you can use JupyterLab and Elyra by running one of the [ready-to-run Docker images](https://hub.docker.com/r/elyra/elyra/tags) maintained by the Elyra Team:
+If you have Docker installed, you can use JupyterLab and Elyra by running one of the ready-to-run container images:
 
  - `elyra/elyra:latest` has the latest released version installed.
  - `elyra/elyra:x.y.z` has version `x.y.z` installed.
  - `elyra/elyra:dev` is automatically re-built each time a change is committed to the master branch.
 
+#### Pulling Elyra container images
+
+Images can be pulled from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) 
+
+```
+docker pull elyra/elyra:dev
+```
+
+or [quay.io](https://quay.io/repository/elyra/elyra?tab=tags)
+
+```
+docker pull quay.io/elyra/elyra:dev
+```
+
+#### Running Elyra container images
+
 Invocation example 1: Run the most recent Elyra development build in a Docker container. All changes are discarded when the Docker container is stopped.
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:1.2.1 jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
 Invocation example 2: Run the most recent Elyra development build in a Docker container and mount the existing local `$HOME/jupyter-notebooks/` directory as JupyterLab work directory. This enables you to make existing notebooks and other files available in the Docker container. Only files in this working directory are retained when the Docker container is stopped. 

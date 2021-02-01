@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -35,6 +35,12 @@ To edit a code snippet, click the edit button to open an editor in the main area
 
 Click "Save and Close" to see your edits in the code snippets side pane.
 
+### Finding Code Snippets
+
+To search for a code snippet, type a keyword in the search bar. Code snippets can also be filtered by selecting tags when clicking on the tag icon.
+
+![Search Code Snippets](../images/search-code-snippets.png)
+
 #### Code Snippet data
 This extension uses [Elyra Metadata Service](../developer_guide/metadata) and in addition to the frontend editor detailed above, this can also be configured on the backend.
 To configure metadata for code snippets through the backend, locate `[JUPYTER DATA DIR]/metadata/` folder and create the subdirectory `code-snippets/`.
@@ -52,7 +58,10 @@ This is a sample json file:
 		"code": [
 			"def is_even(num):",
 			"   return num % 2 == 0"
-		]
+		],
+        "tags": [
+		  "python"
+        ]
 	}
 }
 ```

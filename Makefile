@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 Elyra Authors
+# Copyright 2018-2021 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
 #
 
 .PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
-.PHONY: install-external-extensions install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
+.PHONY: install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
 .PHONY: docker-image, validate-runtime-images
 
 SHELL:=/bin/bash
-
-GIT_VERSION:=0.23.1
-TOC_VERSION:=4.0.0
 
 TAG:=dev
 IMAGE=elyra/elyra:$(TAG)
@@ -50,7 +47,7 @@ purge:
 	rm -rf $(yarn cache dir)
 
 uninstall:
-	$(call UNLINK_LAB_EXTENSION,@elyra/application)
+	$(call UNLINK_LAB_EXTENSION,@elyra/services)
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
 	$(call UNLINK_LAB_EXTENSION,@elyra/metadata-common)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
@@ -58,8 +55,13 @@ uninstall:
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-editor-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@jupyterlab/toc)
 	pip uninstall -y jupyterlab-git
+	pip uninstall -y jupyter-lsp
+	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
+	pip uninstall -y jupyterlab-lsp
+	pip uninstall -y python-language-server
+	pip uninstall -y jupyter-resource-usage
+	- jupyter labextension uninstall @jupyter-server/resource-usage
 	pip uninstall -y elyra
 	- jupyter lab clean
 
@@ -89,10 +91,10 @@ build-server: lint-server ## Build backend
 build: build-server build-ui
 
 install-server: build-server ## Install backend
-	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) dist/elyra-*-py3-none-any.whl
+	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
 
 install-ui: build-ui
-	$(call LINK_LAB_EXTENSION,application)
+	$(call LINK_LAB_EXTENSION,services)
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call LINK_LAB_EXTENSION,metadata-common)
 	$(call INSTALL_LAB_EXTENSION,theme)
@@ -101,12 +103,10 @@ install-ui: build-ui
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 
-install-external-extensions:
-#	pip install --upgrade jupyterlab-git==$(GIT_VERSION)
-
-install: install-server install-ui install-external-extensions ## Build and install
+install: install-server install-ui ## Build and install
 	jupyter lab build
 	jupyter serverextension list
+	jupyter server extension list
 	jupyter labextension list
 
 watch: ## Watch packages. For use alongside jupyter lab --watch
@@ -141,15 +141,19 @@ dist-ui: build-ui
 	$(call PACKAGE_LAB_EXTENSION,metadata)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
-#	cd dist && curl -o jupyterlab-git-$(GIT_VERSION).tgz $$(npm view @jupyterlab/git@$(GIT_VERSION) dist.tarball) && cd -
 
 release: dist-ui build-server ## Build wheel file for release
 
-docker-image: ## Build docker image
+container-image: ## Build container image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
-	DOCKER_BUILDKIT=1 docker build -t $(IMAGE) build/docker/ --progress plain
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(IMAGE) -t quay.io/$(IMAGE) build/docker/ --progress plain
+
+publish-container-image: container-image ## Publish container image
+    # this is a privileged operation; a `docker login` might be required
+	docker push docker.io/$(IMAGE)
+	docker push quay.io/$(IMAGE)
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2018-2020 Elyra Authors
+# Copyright 2018-2021 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+################################################################################
+# INSTRUCTIONS:
+# This script is intended to help clean your JupyterLab/Elyra environment. It can be very useful when switching back and forth between different JupyterLab versions during the development of Elyra.
+# It is recommended to use a virtual environment (eg. conda env).
+# It reinstalls JupyterLab after an environment cleanup.
+#
+# Make sure you have a conda environment setup (https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
+# Export the variable ANACONDA_HOME with your conda installation path to the environment:
+# export ANACONDA_HOME='/Users/my_username/my_anaconda_dir/'
+#
+# WARNING: The following resources will be deleted:
+# ~/.jupyter
+# $ANACONDA_HOME/etc/jupyter
+# $ANACONDA_HOME/share/jupyter
+# $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/etc/jupyter
+# $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter
+#
+# To install a specific JupyterLab version, run the script adding the version argument as below:
+# etc/scripts/clean-jupyterlab.sh --version 2.2.9
+# When no argument is passed to the command, it will install the latest JupyterLab version.
+################################################################################
+
+echo "This script removes your JupyterLab installation"
+echo "Any packages or data stored in your JupyterLab environment will be removed"
+echo " "
+read -p "Press ENTER to continue or CTRL+C to abort"
 
 ANACONDA_HOME=${ANACONDA_HOME:='~/anaconda'}
 
@@ -47,16 +73,26 @@ rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter
 echo " "
 
 echo "Installing/Updating JupyterLab"
-pip install --upgrade --pre "jupyterlab$LAB_VERSION"
+pip install --upgrade pip
+pip install --upgrade tornado
+pip install --upgrade "jupyterlab$LAB_VERSION"
 echo " "
 
 echo "Installing Xeus kernel"
-conda install -y xeus-python -c conda-forge
+XPYTHON_VERSION="$(python --version 2>&1)"
+if [[ "$XPYTHON_VERSION" == *"Python 3.6"* ]]
+then
+    conda install -y xeus-python">=0.8.0,<0.9.0" -c conda-forge
+else
+    conda install -y xeus-python">=0.9.3" -c conda-forge
+fi
 echo " "
 
 jupyter --version
 echo " "
 jupyter serverextension list
+echo " "
+jupyter server extension list
 echo " "
 jupyter labextension list
 echo " "

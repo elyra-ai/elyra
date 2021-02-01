@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig-base",
+  "compilerOptions": {
+    "outDir": "lib",
+    "rootDir": "src",
+    "types": ["node", "jest"]
+  },
+  "include": ["src/*"],
+  "references": [
+    {
+      "path": "../ui-components"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2020 Elyra Authors
+Copyright 2018-2021 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -68,6 +68,15 @@ You can check that the JupyterLab extension was successful installed with:
 jupyter labextension list
 ```
 
+> NOTE: 
+When switching between Elyra major versions, it is recommended to clean your JupyterLab environment before a build.
+The `clean-jupyterlab` removes your JupyterLab packages and completely deletes your Jupyter workspace.
+Make sure to backup any important data in your environment before running the script.
+To clean your environment and install the latest JupyterLab:
+`etc/scripts/clean-jupyterlab.sh`
+To specify a JupyterLab version to be installed:
+`etc/scripts/clean-jupyterlab.sh --version 2.2.9`
+
 ### Incremental Development
 
 Elyra supports incremental development using `--watch`. This allows you to make code changes to
@@ -86,16 +95,16 @@ jupyter lab --watch
 When in watch mode JupyterLab will watch for changes in the build of each package and rebuild.
 To see your changes just refresh JupyterLab in your browser.
 
-> NOTE: JupyterLab watch mode will not pick up changes in package dependencies like `application`.
-So when making changes to application you will need to stop and restart `jupyter lab --watch` and
+> NOTE: JupyterLab watch mode will not pick up changes in package dependencies like `services`.
+So when making changes to services you will need to stop and restart `jupyter lab --watch` and
 not just refresh your browser.
 
-### Building the Docker Image
+### Building the Elyra Container Image
 
-Elyra's docker image can be built using:
+Elyra's container image can be built using:
 
 ```bash
 make docker-image
 ```
 
-Elyra official docker images are available at the [Elyra organization in dockerhub](https://hub.docker.com/r/elyra/elyra).
+Official container images are published on [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) and [quay.io](https://quay.io/repository/elyra/elyra?tab=tags).

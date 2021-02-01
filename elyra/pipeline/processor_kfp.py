@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 Elyra Authors
+# Copyright 2018-2021 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 #
 import autopep8
 import kfp
+import kfp_tekton
 import os
 import tempfile
 import time
@@ -34,6 +35,12 @@ from urllib3.exceptions import MaxRetryError
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
     _type = 'kfp'
+
+    # Provide users with the ability to identify a writable directory in the
+    # running container where the notebook | script is executed. The location
+    # must exist and be known before the container is started.
+    # Defaults to `/tmp`
+    WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
 
     @property
     def type(self):
@@ -61,13 +68,17 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             self.log.debug("Creating temp directory %s", temp_dir)
 
+            engine = runtime_configuration.metadata.get('engine')
             # Compile the new pipeline
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8 E731
-                kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
+                if 'Tekton' == engine:
+                    kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, pipeline_path)
+                else:
+                    kfp.compiler.Compiler().compile(pipeline_function, pipeline_path)
             except Exception as ex:
-                raise RuntimeError('Error compiling pipeline {} at {}'.
-                                   format(pipeline_name, pipeline_path), str(ex)) from ex
+                raise RuntimeError('Error compiling pipeline {} for engine {} at {}'.
+                                   format(pipeline_name, engine, pipeline_path), str(ex)) from ex
 
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
 
@@ -81,7 +92,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                                     api_username,
                                                                     api_password)
 
-            client = kfp.Client(host=api_endpoint, cookies=session_cookie)
+            client = kfp_tekton.TektonClient(host=api_endpoint, cookies=session_cookie)
 
             try:
                 description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.name}.pipeline'."
@@ -132,6 +143,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
+        engine = runtime_configuration.metadata.get('engine')
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
@@ -140,7 +152,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         if pipeline_export_format != "py":
             try:
                 pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
-                kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
+
+                if 'Tekton' == engine:
+                    self.log.info("Compiling pipeline for Tekton engine")
+                    kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
+                else:
+                    self.log.info("Compiling pipeline for Argo engine")
+                    kfp.compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
             except Exception as ex:
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
                                    format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
@@ -148,7 +166,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Load template from installed elyra package
             t0 = time.time()
             loader = PackageLoader('elyra', 'templates')
-            template_env = Environment(loader=loader)
+            template_env = Environment(loader=loader, trim_blocks=True)
 
             template_env.filters['to_basename'] = lambda path: os.path.basename(path)
 
@@ -169,8 +187,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
+                                            engine=engine,
                                             api_endpoint=api_endpoint,
-                                            pipeline_description=description)
+                                            pipeline_description=description,
+                                            writable_container_dir=self.WCD)
 
             # Write to python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
@@ -238,6 +258,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
             # Convey pipeline logging enablement to operation
             pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
+            # Setting identifies a writable directory in the container image.
+            # Only Unix-style path spec is supported.
+            pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'] = self.WCD
 
             # Collection Operation envs into dictionary
             operation_envs = operation.env_vars_as_dict()
@@ -261,7 +284,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                     pipeline_outputs=operation.outputs,
                                                     pipeline_envs=pipeline_envs,
                                                     emptydir_volume_size=emptydir_volume_size,
-                                                    image=operation.runtime_image)
+                                                    cpu_request=operation.cpu,
+                                                    mem_request=operation.memory,
+                                                    gpu_limit=operation.gpu,
+                                                    image=operation.runtime_image,
+                                                    file_outputs={
+                                                        'mlpipeline-metrics':
+                                                            '{}/mlpipeline-metrics.json'
+                                                            .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),
+                                                        'mlpipeline-ui-metadata':
+                                                            '{}/mlpipeline-ui-metadata.json'
+                                                            .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])
+                                                    })
 
             self.log_pipeline_info(pipeline_name,
                                    f"processing operation dependencies for id: {operation.id}",

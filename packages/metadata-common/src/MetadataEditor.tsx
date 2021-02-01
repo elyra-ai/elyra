@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
 
-import { FrontendServices, IDictionary } from '@elyra/application';
-import { DropDown } from '@elyra/ui-components';
+import { MetadataService, IDictionary } from '@elyra/services';
+import { DropDown, RequestErrors } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
@@ -39,6 +39,7 @@ interface IMetadataEditorProps {
   schema: string;
   namespace: string;
   name?: string;
+  code?: string[];
   onSave: () => void;
   editorServices: IEditorServices | null;
   status: ILabStatus;
@@ -57,6 +58,7 @@ export class MetadataEditor extends ReactWidget {
   schemaDisplayName: string;
   namespace: string;
   name: string;
+  code: string[];
   dirty: boolean;
   allTags: string[];
   clearDirty: IDisposable;
@@ -80,6 +82,7 @@ export class MetadataEditor extends ReactWidget {
     this.allTags = [];
     this.onSave = props.onSave;
     this.name = props.name;
+    this.code = props.code;
 
     this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : 'new'}`;
     this.addClass(this.widgetClass);
@@ -97,34 +100,44 @@ export class MetadataEditor extends ReactWidget {
   }
 
   async initializeMetadata(): Promise<void> {
-    const schemas = await FrontendServices.getSchema(this.namespace);
-    for (const schema of schemas) {
-      if (this.schemaName === schema.name) {
-        this.schema = schema.properties.metadata.properties;
-        this.schemaDisplayName = schema.title;
-        this.requiredFields = schema.properties.metadata.required;
-        if (!this.name) {
-          this.title.label = `New ${this.schemaDisplayName}`;
-        }
-        // Find categories of all schema properties
-        this.schemaPropertiesByCategory = { _noCategory: [] };
-        for (const schemaProperty in this.schema) {
-          const category =
-            this.schema[schemaProperty].uihints &&
-            this.schema[schemaProperty].uihints.category;
-          if (!category) {
-            this.schemaPropertiesByCategory['_noCategory'].push(schemaProperty);
-          } else if (this.schemaPropertiesByCategory[category]) {
-            this.schemaPropertiesByCategory[category].push(schemaProperty);
-          } else {
-            this.schemaPropertiesByCategory[category] = [schemaProperty];
+    try {
+      const schemas = await MetadataService.getSchema(this.namespace);
+      for (const schema of schemas) {
+        if (this.schemaName === schema.name) {
+          this.schema = schema.properties.metadata.properties;
+          this.schemaDisplayName = schema.title;
+          this.requiredFields = schema.properties.metadata.required;
+          if (!this.name) {
+            this.title.label = `New ${this.schemaDisplayName}`;
           }
+          // Find categories of all schema properties
+          this.schemaPropertiesByCategory = { _noCategory: [] };
+          for (const schemaProperty in this.schema) {
+            const category =
+              this.schema[schemaProperty].uihints &&
+              this.schema[schemaProperty].uihints.category;
+            if (!category) {
+              this.schemaPropertiesByCategory['_noCategory'].push(
+                schemaProperty
+              );
+            } else if (this.schemaPropertiesByCategory[category]) {
+              this.schemaPropertiesByCategory[category].push(schemaProperty);
+            } else {
+              this.schemaPropertiesByCategory[category] = [schemaProperty];
+            }
+          }
+          break;
         }
-        break;
       }
+    } catch (error) {
+      RequestErrors.serverError(error);
     }
 
-    this.allMetadata = await FrontendServices.getMetadata(this.namespace);
+    try {
+      this.allMetadata = await MetadataService.getMetadata(this.namespace);
+    } catch (error) {
+      RequestErrors.serverError(error);
+    }
     if (this.name) {
       for (const metadata of this.allMetadata) {
         if (metadata.metadata.tags) {
@@ -219,24 +232,25 @@ export class MetadataEditor extends ReactWidget {
     }
 
     if (!this.name) {
-      FrontendServices.postMetadata(
-        this.namespace,
-        JSON.stringify(newMetadata)
-      ).then((response: any): void => {
-        this.handleDirtyState(false);
-        this.onSave();
-        this.close();
-      });
+      MetadataService.postMetadata(this.namespace, JSON.stringify(newMetadata))
+        .then((response: any): void => {
+          this.handleDirtyState(false);
+          this.onSave();
+          this.close();
+        })
+        .catch(error => RequestErrors.serverError(error));
     } else {
-      FrontendServices.putMetadata(
+      MetadataService.putMetadata(
         this.namespace,
         this.name,
         JSON.stringify(newMetadata)
-      ).then((response: any): void => {
-        this.handleDirtyState(false);
-        this.onSave();
-        this.close();
-      });
+      )
+        .then((response: any): void => {
+          this.handleDirtyState(false);
+          this.onSave();
+          this.close();
+        })
+        .catch(error => RequestErrors.serverError(error));
     }
   }
 
@@ -245,6 +259,11 @@ export class MetadataEditor extends ReactWidget {
     // Special case because all metadata has a display name
     if (schemaField === 'display_name') {
       this.displayName = event.nativeEvent.target.value;
+    } else if (
+      !event.nativeEvent.target.value &&
+      !this.requiredFields.includes(schemaField)
+    ) {
+      delete this.metadata[schemaField];
     } else {
       this.metadata[schemaField] = event.nativeEvent.target.value;
     }
@@ -291,7 +310,12 @@ export class MetadataEditor extends ReactWidget {
       if (this.name) {
         initialCodeValue = this.metadata['code'].join('\n');
       } else {
-        initialCodeValue = '';
+        if (this.code) {
+          this.metadata['code'] = this.code;
+          initialCodeValue = this.code.join('\n');
+        } else {
+          initialCodeValue = '';
+        }
       }
       this.editor = this.editorServices.factoryService.newInlineEditor({
         host: document.getElementById('code:' + this.id),
@@ -311,20 +335,22 @@ export class MetadataEditor extends ReactWidget {
   }
 
   getDefaultChoices(fieldName: string): any[] {
-    let defaultChoices = this.schema[fieldName].uihints.default_choices;
-    if (defaultChoices === undefined) {
-      defaultChoices = [];
-    }
-    for (const otherMetadata of this.allMetadata) {
-      if (
-        !find(defaultChoices, (choice: string) => {
-          return (
-            choice.toLowerCase() ===
-            otherMetadata.metadata[fieldName].toLowerCase()
-          );
-        })
-      ) {
-        defaultChoices.push(otherMetadata.metadata[fieldName]);
+    let defaultChoices = this.schema[fieldName].enum;
+    if (!defaultChoices) {
+      defaultChoices = this.schema[fieldName].uihints.default_choices || [];
+      for (const otherMetadata of this.allMetadata) {
+        if (
+          // Don't add if otherMetadata hasn't defined field
+          otherMetadata.metadata[fieldName] &&
+          !find(defaultChoices, (choice: string) => {
+            return (
+              choice.toLowerCase() ===
+              otherMetadata.metadata[fieldName].toLowerCase()
+            );
+          })
+        ) {
+          defaultChoices.push(otherMetadata.metadata[fieldName]);
+        }
       }
     }
     return defaultChoices;
@@ -435,6 +461,7 @@ export class MetadataEditor extends ReactWidget {
           choice={this.metadata[fieldName]}
           defaultChoices={this.getDefaultChoices(fieldName)}
           handleDropdownChange={this.handleDropdownChange}
+          allowCreate={!this.schema[fieldName].enum}
         ></DropDown>
       );
     } else if (uihints.field_type === 'code') {

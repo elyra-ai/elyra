@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,23 +30,22 @@ describe('Pipeline Editor tests', () => {
   beforeEach(() => {
     cy.readFile('tests/assets/helloworld.ipynb').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.ipynb', file);
+      cy.exec('jupyter trust build/cypress-tests/helloworld.ipynb');
     });
     cy.readFile('tests/assets/helloworld.py').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.py', file);
     });
-    // open jupyterlab
-    cy.visit('?token=test&reset');
-    cy.wait(100);
+    cy.openJupyterLab();
     // wait for the file browser to load
-    cy.get('.jp-DirListing-content');
+    cy.get('.jp-DirListing-content', { timeout: 10000 }).should('be.visible');
   });
 
   afterEach(() => {
-    // delete runtime configuration used for testing
+    // delete notebook file used for testing
     cy.exec('find build/cypress-tests/ -name helloworld.ipynb -delete', {
       failOnNonZeroExit: false
     });
-    // delete runtime configuration used for testing
+    // delete python file used for testing
     cy.exec('find build/cypress-tests/ -name helloworld.py -delete', {
       failOnNonZeroExit: false
     });
@@ -54,7 +53,7 @@ describe('Pipeline Editor tests', () => {
     cy.exec('find build/cypress-tests/ -name output.txt -delete', {
       failOnNonZeroExit: false
     });
-    // delete runtime configuration used for testing
+    // delete pipeline files used for testing
     cy.exec('find build/cypress-tests/ -name *.pipeline -delete', {
       failOnNonZeroExit: false
     });
@@ -146,7 +145,7 @@ describe('Pipeline Editor tests', () => {
     cy.get('[data-command="pipeline-editor:add-node"]').click();
     // Open notebook with double-click
     cy.get('.d3-node-label').dblclick();
-    cy.wait(100);
+    cy.wait(500);
     cy.get(
       '#jp-main-dock-panel > .lm-TabBar > .lm-TabBar-content > .lm-TabBar-tab > .lm-TabBar-tabLabel'
     )
@@ -177,6 +176,8 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/invalid.pipeline').then((file: any) => {
       cy.writeFile('build/cypress-tests/invalid.pipeline', file);
     });
+    cy.wait(300);
+
     // opens pileine from the file browser
     cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
     // try to run invalid pipeline
@@ -199,12 +200,14 @@ describe('Pipeline Editor tests', () => {
     cy.get('.react-contextmenu-item:nth-child(9)')
       .contains('Properties')
       .click();
-    cy.get('div.properties-dropdown').click();
+    cy.get(
+      'div.properties-dropdown[data-id="properties-runtime_image"]'
+    ).click();
 
     // selects the first item of the runtimes dropdown
     cy.get('#downshift-0-item-0').click();
     cy.get('.bx--btn--primary')
-      .contains('Save')
+      .contains('Close')
       .click();
     // Checks that validation passed
     cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
@@ -238,6 +241,7 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/helloworld.pipeline').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.pipeline', file);
     });
+    cy.wait(300);
 
     getFileByName('helloworld.pipeline').rightclick();
     cy.get('[data-command="filebrowser:open"]').click();
@@ -279,6 +283,8 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/invalid.pipeline').then((file: any) => {
       cy.writeFile('build/cypress-tests/invalid.pipeline', file);
     });
+    cy.wait(300);
+
     // opens pileine from the file browser
     cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
     // try to export invalid pipeline
@@ -294,6 +300,7 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('tests/assets/helloworld.pipeline').then((file: any) => {
       cy.writeFile('build/cypress-tests/helloworld.pipeline', file);
     });
+    cy.wait(300);
 
     getFileByName('helloworld.pipeline').rightclick();
     cy.get('[data-command="filebrowser:open"]').click();
@@ -327,12 +334,15 @@ describe('Pipeline Editor tests', () => {
       .should('have.value', 'yaml');
 
     // actual export requires minio
-    // export
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+    cy.get('button.jp-mod-accept', { timeout: 10000 }).should('be.visible');
+    cy.get('button.jp-mod-accept').click({
+      force: true
+    });
     // dismiss 'Making request' dialog
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+    cy.get('button.jp-mod-accept', { timeout: 10000 }).should('be.visible');
+    cy.get('button.jp-mod-accept').click({
+      force: true
+    });
     cy.readFile('build/cypress-tests/helloworld.yaml');
     cy.exec('find build/cypress-tests/ -name helloworld.yaml -delete', {
       failOnNonZeroExit: false
@@ -362,7 +372,7 @@ const closePipelineEditorWithoutSaving = (): void => {
     '.lm-TabBar-tab.lm-mod-current > .lm-TabBar-tabCloseIcon:visible'
   ).click();
   cy.get('button.jp-mod-reject').click();
-  cy.get('.jp-Dialog-content').should('not.be.visible');
+  cy.get('.jp-Dialog-content').should('not.exist');
 };
 
 const getFileByName = (name: string): any => {
@@ -378,7 +388,7 @@ const createRuntimeConfig = (): any => {
   cy.get('.openRuntimes-action button').click();
   cy.get('.jp-SideBar .lm-mod-current[title="Runtimes"]');
   cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
-  // Add a runtime config (a placeholder for now, can't be used to run or export yet)
+  // Add a runtime config
   cy.get(
     'button.elyra-metadataHeader-button[title="Create new Kubeflow Pipelines runtime"]'
   ).click();
