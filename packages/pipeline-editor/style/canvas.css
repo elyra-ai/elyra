@@ -241,11 +241,23 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .bx--text-area__wrapper {
   width: 100%;
 }
+.bx--text-input__field-outer-wrapper {
+  background-color: var(--ui-background);
+}
 .bx--modal .bx--text-input,
 .bx--modal .properties-textarea textarea,
 .bx--modal .bx--select-input,
 .bx--modal .bx--dropdown {
   background-color: var(--ui-02);
+}
+.bx--text-input__field-outer-wrapper
+  > .bx--text-input__field-wrapper
+  > input.bx--text-input.bx--text__input {
+  color: var(--text-01);
+  border-bottom: 1px solid #cfd1d4;
+}
+.properties-field-type {
+  color: var(--text-01);
 }
 .properties-required-indicator {
   margin-left: 3px;
@@ -254,11 +266,13 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 .properties-required-indicator::before {
   content: '(';
   visibility: visible;
+  color: var(--text-02);
 }
 .properties-required-indicator::after {
   content: 'required)';
   visibility: visible;
   margin-left: -6px;
+  color: var(--text-02);
 }
 .properties-readonly span {
   position: absolute;
@@ -278,19 +292,22 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   color: white;
   margin-right: 24px;
 }
-
 .properties-label-container label,
 .properties-checkbox label,
 .bx--list-box__label,
 .bp3-input {
   font-size: 13px;
 }
-
-.properties-modal-buttons,
-.properties-apply-button,
-.properties-cancel-button {
-  color: var(--text-01);
+div.properties-modal-buttons,
+.properties-custom-container {
   background-color: var(--ui-01);
+  bottom: unset;
+}
+.properties-modal-buttons {
+  border-left: 1px solid #e0e0e0;
+}
+.properties-modal-buttons .properties-apply-button,
+.properties-modal-buttons .properties-cancel-button {
   width: auto;
   max-width: unset;
   box-sizing: border-box;
@@ -342,7 +359,6 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   background-color: var(--ui-02);
 }
 .bx--list-box__menu-item,
-.bx--list-box__label,
 .bx--list-box__menu-item__option,
 .bx--list-box__menu-item--active .bx--list-box__menu-item__option,
 .bx--list-box__menu-item--highlighted .bx--list-box__menu-item__option,
