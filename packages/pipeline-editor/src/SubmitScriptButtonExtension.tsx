@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { NotebookParser } from '@elyra/services';
+// import { NotebookParser } from '@elyra/services';
+import { PythonFileEditor } from '@elyra/python-editor-extension';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
-import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+// import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
-import { IDisposable } from '@lumino/disposable';
+// import { IDisposable } from '@lumino/disposable';
 import * as React from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
@@ -29,17 +30,19 @@ import { PipelineService } from './PipelineService';
 import Utils from './utils';
 
 /**
- * Submit notebook button extension
- *  - Attach button to notebook toolbar and launch a dialog requesting
- *  information about the remote location to where submit the notebook
+ * Submit script button extension
+ *  - Attach button to Python Editor toolbar and launch a dialog requesting
+ *  information about the remote location to where submit the script
  *  for execution
  */
-export class SubmitNotebookButtonExtension
-  implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
-  private panel: NotebookPanel;
+
+export class SubmitScriptButtonExtension extends PythonFileEditor {
+  // private panel: NotebookPanel;
+  private widget: PythonFileEditor;
 
   showWidget = async (): Promise<void> => {
-    const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
+    // const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
+    const env: string[] = null;
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -48,7 +51,7 @@ export class SubmitNotebookButtonExtension
     );
 
     const dialogOptions = {
-      title: 'Submit notebook',
+      title: 'Submit script',
       body: formDialogWidget(
         <FileSubmissionDialog env={env} runtimes={runtimes} images={images} />
       ),
@@ -70,9 +73,9 @@ export class SubmitNotebookButtonExtension
       ...envObject
     } = dialogResult.value;
 
-    // prepare notebook submission details
+    // prepare submission details
     const pipeline = Utils.generateNotebookPipeline(
-      this.panel.context.path,
+      this.widget.context.path,
       runtime_config,
       framework,
       dependency_include ? dependencies : undefined,
@@ -89,24 +92,30 @@ export class SubmitNotebookButtonExtension
     );
   };
 
+  // createNew(
+  //   panel: NotebookPanel,
+  //   context: DocumentRegistry.IContext<INotebookModel>
+  // ): IDisposable {
+  //   this.panel = panel;
+
   createNew(
-    panel: NotebookPanel,
-    context: DocumentRegistry.IContext<INotebookModel>
-  ): IDisposable {
-    this.panel = panel;
+    widget: PythonFileEditor,
+    context: DocumentRegistry.ICodeModel
+  ): any {
+    this.widget = widget;
 
     // Create the toolbar button
-    const submitNotebookButton = new ToolbarButton({
-      label: 'Submit Notebook ...',
+    const submitScriptButton = new ToolbarButton({
+      label: 'Submit Script ...',
       onClick: this.showWidget,
-      tooltip: 'Submit Notebook ...'
+      tooltip: 'Submit Script ...'
     });
 
-    // Add the toolbar button to the notebook
-    panel.toolbar.insertItem(10, 'submitNotebook', submitNotebookButton);
+    // Add the toolbar button to Python Editor
+    widget.toolbar.insertItem(20, 'submitScript', submitScriptButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.
-    return submitNotebookButton;
+    return submitScriptButton;
   }
 }
