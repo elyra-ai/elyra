@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,13 @@ import {
   exportPipelineIcon,
   pipelineIcon,
   savePipelineIcon,
+  showBrowseFileDialog,
   runtimesIcon,
   Dropzone
 } from '@elyra/ui-components';
-import { ReactWidget } from '@jupyterlab/apputils';
+import { ILabShell } from '@jupyterlab/application';
+import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
 import {
   DocumentRegistry,
   ABCWidgetFactory,
@@ -42,6 +45,7 @@ import { IDragEvent } from '@lumino/dragdrop';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import nodes from './nodes';
+import { PipelineService } from './PipelineService';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -54,7 +58,7 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
-const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
+const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
   const ref = useRef(null);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState();
@@ -66,6 +70,49 @@ const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
       setLoading(false);
     });
   }, [context]);
+
+  const onChange = (pipelineJson: any) => {
+    if (context.ready) {
+      context.model.fromString(JSON.stringify(pipelineJson, null, 2));
+    }
+  };
+
+  const onError = (error?: string) => {
+    showDialog({
+      title: 'Load pipeline failed!',
+      body: <p> {error || ''} </p>,
+      buttons: [Dialog.okButton()]
+    }).then(() => {
+      if (shell.currentWidget) {
+        shell.currentWidget.close();
+      }
+    });
+  };
+
+  const onFileRequested = (
+    startPath?: string,
+    multiselect?: boolean
+  ): Promise<string> => {
+    const currentExt = PathExt.extname(startPath || '');
+    const filename = PipelineService.getWorkspaceRelativeNodePath(
+      context.path,
+      startPath || ''
+    );
+    return showBrowseFileDialog(browserFactory.defaultBrowser.model.manager, {
+      startPath: PathExt.dirname(filename),
+      multiselect: multiselect,
+      filter: (model: any): boolean => {
+        const ext = PathExt.extname(model.path);
+        return currentExt === '' || currentExt === ext;
+      }
+    }).then((result: any) => {
+      if (result.button.accept && result.value.length) {
+        return result.value.map((val: any) => {
+          return val.path;
+        });
+      }
+    });
+  };
 
   const [panelOpen, setPanelOpen] = useState(true);
 
@@ -81,6 +128,9 @@ const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
           break;
         case 'closePanel':
           setPanelOpen(false);
+          break;
+        case 'save':
+          context.save();
           break;
       }
     },
@@ -154,16 +204,31 @@ const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
   const handleDrop = useCallback(
     async (e: IDragEvent): Promise<void> => {
       const fileBrowser = browserFactory.defaultBrowser;
+      let failedAdd = 0;
 
       toArray(fileBrowser.selectedItems()).map(
         (item: any, index: number): void => {
-          ref.current?.addFile(
-            item,
-            e.offsetX + 20 * index,
-            e.offsetY + 20 * index
-          );
+          if (PipelineService.isSupportedNode(item)) {
+            item.op = PipelineService.getNodeType(item.path);
+            ref.current?.addFile(
+              item,
+              e.offsetX + 20 * index,
+              e.offsetY + 20 * index
+            );
+          } else {
+            failedAdd++;
+          }
         }
       );
+
+      if (failedAdd) {
+        showDialog({
+          title: 'Unsupported File(s)',
+          body:
+            'Currently, only selected notebook and python script files can be added to a pipeline',
+          buttons: [Dialog.okButton()]
+        });
+      }
     },
     [browserFactory.defaultBrowser]
   );
@@ -181,6 +246,9 @@ const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
         pipeline={pipeline}
         panelOpen={panelOpen}
         onAction={onAction}
+        onChange={onChange}
+        onError={onError}
+        onFileRequested={onFileRequested}
       />
     </Dropzone>
   );
@@ -188,15 +256,21 @@ const PipelineWrapper = ({ context, browserFactory, widget }: any) => {
 
 export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   browserFactory: IFileBrowserFactory;
+  shell: ILabShell;
 
   constructor(options: any) {
     super(options);
     this.browserFactory = options.browserFactory;
+    this.shell = options.shell;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
     const content = ReactWidget.create(
-      <PipelineWrapper context={context} browserFactory={this.browserFactory} />
+      <PipelineWrapper
+        context={context}
+        browserFactory={this.browserFactory}
+        shell={this.shell}
+      />
     );
 
     const widget = new DocumentWidget({ content, context });

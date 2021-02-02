@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ const python: any = {
               'Local file dependencies that need to be copied to remote execution environment.',
             placement: 'on_panel'
           },
-          data: { placeholder: '*.py' }
+          data: { placeholder: '*.py', fileBrowser: true }
         },
         {
           control: 'custom',
@@ -92,7 +92,7 @@ const python: any = {
           label: { default: 'Include Subdirectories' },
           data: {
             helperText:
-              'Wether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
+              'Whether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
           }
         },
         {

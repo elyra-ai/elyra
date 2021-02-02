@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Elyra Authors
+ * Copyright 2018-2021 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ const notebook: any = {
               'Local file dependencies that need to be copied to remote execution environment.',
             placement: 'on_panel'
           },
-          data: { placeholder: '*.py' }
+          data: { placeholder: '*.py', fileBrowser: true }
         },
         {
           control: 'custom',
@@ -92,7 +92,7 @@ const notebook: any = {
           label: { default: 'Include Subdirectories' },
           data: {
             helperText:
-              'Wether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
+              'Whether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
           }
         },
         {
@@ -120,13 +120,29 @@ const notebook: any = {
           data: { placeholder: '*.csv' }
         }
       ],
-      action_info: [],
+      action_info: [
+        {
+          id: 'browse_file',
+          label: {
+            default: 'Browse'
+          },
+          control: 'button',
+          data: {
+            parameter_ref: 'filename'
+          }
+        }
+      ],
       group_info: [
         {
           id: 'nodeGroupInfo',
           type: 'panels',
           group_info: [
             { id: 'filename', type: 'controls', parameter_refs: ['filename'] },
+            {
+              id: 'nodeBrowseFileAction',
+              type: 'actionPanel',
+              action_refs: ['browse_file']
+            },
             {
               id: 'runtime_image',
               type: 'controls',
