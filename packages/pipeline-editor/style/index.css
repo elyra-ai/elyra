@@ -203,6 +203,11 @@ td {
 }
 .properties-editor-form
   .properties-control-panel
+  .properties-control-panel[data-id='properties-nodeRuntimeImageControl'] {
+  border-bottom: none;
+}
+.properties-editor-form
+  .properties-control-panel
   .properties-control-panel[data-id='properties-nodeListDependenciesControl'] {
   border-bottom: none;
   padding-left: 0;
