@@ -24,8 +24,8 @@ import {
 } from './PipelineService';
 
 const KFP_FILE_TYPES = [
-  { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' },
-  { label: 'KFP domain-specific language Python code', key: 'py' }
+  { label: 'KFP domain-specific language Python code', key: 'py' },
+  { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' }
 ];
 
 const AIRFLOW_FILE_TYPES = [
@@ -66,12 +66,19 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     });
   };
 
+  sortRuntimesByDisplayName = (): void => {
+    this.props.runtimes.sort((r1, r2) =>
+      r1.display_name.localeCompare(r2.display_name)
+    );
+  };
+
   componentDidMount(): void {
     this.updateDisplayOptions(this.state.runtimePlatform);
   }
 
   render(): React.ReactNode {
-    const { runtimes, fileTypes } = this.state;
+    const { fileTypes, runtimes } = this.state;
+    this.sortRuntimesByDisplayName();
 
     return (
       <form>
