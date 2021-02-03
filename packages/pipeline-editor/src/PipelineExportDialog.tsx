@@ -17,9 +17,9 @@
 import * as React from 'react';
 
 import {
-  AIRFLOW_SCHEMA,
   KFP_SCHEMA,
   IRuntime,
+  ISchema,
   PipelineService
 } from './PipelineService';
 
@@ -34,6 +34,7 @@ const AIRFLOW_FILE_TYPES = [
 
 interface IProps {
   runtimes: IRuntime[];
+  schema: ISchema[];
 }
 
 interface IState {
@@ -78,6 +79,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
 
   render(): React.ReactNode {
     const { fileTypes, runtimes } = this.state;
+    const { schema } = this.props;
     this.sortRuntimesByDisplayName();
 
     return (
@@ -92,12 +94,11 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
           defaultValue={this.state.runtimePlatform}
           onChange={this.handleUpdate}
         >
-          <option key={AIRFLOW_SCHEMA} value={AIRFLOW_SCHEMA}>
-            Apache Airflow
-          </option>
-          <option key={KFP_SCHEMA} value={KFP_SCHEMA}>
-            Kubeflow Pipelines
-          </option>
+          {schema.map(schema => (
+            <option key={schema.name} value={schema.name}>
+              {schema.display_name}
+            </option>
+          ))}
         </select>
         <label htmlFor="runtime_config">Runtime Config:</label>
         <br />

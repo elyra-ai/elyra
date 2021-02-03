@@ -895,9 +895,15 @@ export class PipelineEditor extends React.Component<
       RequestErrors.serverError(error)
     );
 
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
-      body: formDialogWidget(<PipelineExportDialog runtimes={runtimes} />),
+      body: formDialogWidget(
+        <PipelineExportDialog runtimes={runtimes} schema={schema} />
+      ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#runtime_config'

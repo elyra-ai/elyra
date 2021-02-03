@@ -36,6 +36,11 @@ export interface IRuntime {
   schema_name: string;
 }
 
+export interface ISchema {
+  name: string;
+  display_name: string;
+}
+
 export class PipelineService {
   /**
    * Returns a list of external runtime configurations available as
@@ -49,6 +54,19 @@ export class PipelineService {
       }
 
       return runtimes;
+    });
+  }
+
+  /**
+   * Returns a list of runtime schema
+   */
+  static async getRuntimesSchema(showError = true): Promise<any> {
+    return MetadataService.getSchema(RUNTIMES_NAMESPACE).then(schema => {
+      if (showError && Object.keys(schema).length === 0) {
+        return RequestErrors.noMetadataError('schema');
+      }
+
+      return schema;
     });
   }
 
