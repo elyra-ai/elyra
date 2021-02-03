@@ -33,6 +33,7 @@ export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
 export interface IRuntime {
   name: string;
   display_name: string;
+  schema_name: string;
 }
 
 export class PipelineService {
@@ -50,6 +51,16 @@ export class PipelineService {
       return runtimes;
     });
   }
+
+  /**
+   * Returns a list of external runtime configurations
+   * based on the runtimePLatform (Airflow or Kubeflow)
+   */
+  static filterRuntimes = (
+    runtimes: IRuntime[],
+    runtimePlatform: string
+  ): IRuntime[] =>
+    runtimes.filter(runtime => runtime.schema_name === runtimePlatform);
 
   /**
    * Return a list of configured docker images that are used as runtimes environments

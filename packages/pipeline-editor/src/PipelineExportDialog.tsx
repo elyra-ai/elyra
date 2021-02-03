@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import { IDictionary } from '@elyra/services';
-
 import * as React from 'react';
 
-import { KFP_SCHEMA, IRuntime } from './PipelineService';
+import {
+  AIRFLOW_SCHEMA,
+  KFP_SCHEMA,
+  IRuntime,
+  PipelineService
+} from './PipelineService';
 
 const KFP_FILE_TYPES = [
   { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' },
@@ -34,52 +37,61 @@ interface IProps {
 }
 
 interface IState {
-  runtimeSelection: string;
+  runtimePlatform: string;
+  runtimes: IRuntime[];
   fileTypes: Record<string, string>[];
 }
 
 export class PipelineExportDialog extends React.Component<IProps, IState> {
-  constructor(props: IProps) {
-    super(props);
-    this.state = {
-      runtimeSelection: props.runtimes ? props.runtimes[0].name : '',
-      fileTypes: KFP_FILE_TYPES
-    };
-
-    this.handleUpdate.bind(this);
-    this.updateExportFileTypes.bind(this);
-    this.getRuntimeType.bind(this);
-  }
-
-  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const selection = event.target.value;
-    this.updateExportFileTypes(selection);
+  state = {
+    runtimePlatform: KFP_SCHEMA,
+    runtimes: this.props.runtimes,
+    fileTypes: KFP_FILE_TYPES
   };
 
-  updateExportFileTypes = (runtimeSelection: string): void => {
-    const runtimeType = this.getRuntimeType(runtimeSelection);
+  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const selectedPlatform = event.target.value;
+    this.updateDisplayOptions(selectedPlatform);
+  };
+
+  updateDisplayOptions = (platformSelection: string): void => {
+    const runtimes = PipelineService.filterRuntimes(
+      this.props.runtimes,
+      platformSelection
+    );
     this.setState({
-      runtimeSelection: runtimeSelection,
+      runtimes: runtimes,
       fileTypes:
-        runtimeType === KFP_SCHEMA ? KFP_FILE_TYPES : AIRFLOW_FILE_TYPES
+        platformSelection === KFP_SCHEMA ? KFP_FILE_TYPES : AIRFLOW_FILE_TYPES
     });
   };
 
-  getRuntimeType = (name: string): string => {
-    return (this.props.runtimes as IDictionary<any>[]).find(
-      r => r['name'] === name
-    )['schema_name'];
-  };
-
   componentDidMount(): void {
-    this.updateExportFileTypes(this.state.runtimeSelection);
+    this.updateDisplayOptions(this.state.runtimePlatform);
   }
 
   render(): React.ReactNode {
-    const { runtimes } = this.props;
+    const { runtimes, fileTypes } = this.state;
 
     return (
       <form>
+        <label htmlFor="runtime_platform">Runtime Platform:</label>
+        <br />
+        <select
+          id="runtime_platform"
+          name="runtime_platform"
+          className="elyra-form-runtime-platform"
+          data-form-required
+          defaultValue={this.state.runtimePlatform}
+          onChange={this.handleUpdate}
+        >
+          <option key={AIRFLOW_SCHEMA} value={AIRFLOW_SCHEMA}>
+            Apache Airflow
+          </option>
+          <option key={KFP_SCHEMA} value={KFP_SCHEMA}>
+            Kubeflow Pipelines
+          </option>
+        </select>
         <label htmlFor="runtime_config">Runtime Config:</label>
         <br />
         <select
@@ -87,8 +99,6 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
           name="runtime_config"
           className="elyra-form-runtime-config"
           data-form-required
-          defaultValue={this.state.runtimeSelection}
-          onChange={this.handleUpdate}
         >
           {runtimes.map(runtime => (
             <option key={runtime.name} value={runtime.name}>
@@ -104,7 +114,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
           className="elyra-form-export-filetype"
           data-form-required
         >
-          {this.state.fileTypes.map(filetype => (
+          {fileTypes.map(filetype => (
             <option key={filetype['key']} value={filetype['key']}>
               {filetype['label']}
             </option>
