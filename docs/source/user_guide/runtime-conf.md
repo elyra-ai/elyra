@@ -186,7 +186,15 @@ Password used to access your KubeFlow Pipelines API endpoint. This setting is re
 Example: `mypassword`
 
 ##### engine
-The engine being used by Kubeflow Pipelines: `Argo` or `Tekton` (default is `Argo`).
+The engine being used by Kubeflow Pipelines: `Argo` or `Tekton` (default is `Argo`). If you have access to the Kubernetes cluster where Kubeflow Pipelines is deployed, run these commands in a terminal window to determine the engine type.
+
+```
+# If this command completes successfully, the engine type is Argo.
+kubectl describe configmap -n kubeflow workflow-controller-configmap
+
+# If this command completes successfully, the engine type is Tekton.
+kubectl describe configmap -n kubeflow kfp-tekton-config
+```
 
 Example: `Argo`
 
