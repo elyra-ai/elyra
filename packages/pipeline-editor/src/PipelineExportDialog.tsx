@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
+import { IDictionary } from '@elyra/services';
+
 import * as React from 'react';
 
-import { IRuntime } from './PipelineService';
+import { KFP_SCHEMA, IRuntime } from './PipelineService';
 
-const FILE_TYPES = [
+const KFP_FILE_TYPES = [
   { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' },
+  { label: 'KFP domain-specific language Python code', key: 'py' }
+];
+
+const AIRFLOW_FILE_TYPES = [
   { label: 'Airflow domain-specific language Python code', key: 'py' }
 ];
 
@@ -27,9 +33,51 @@ interface IProps {
   runtimes: IRuntime[];
 }
 
-export class PipelineExportDialog extends React.Component<IProps> {
+interface IState {
+  runtimeSelection: string;
+  fileTypes: Record<string, string>[];
+}
+
+export class PipelineExportDialog extends React.Component<IProps, IState> {
+  constructor(props: IProps) {
+    super(props);
+    this.state = {
+      runtimeSelection: props.runtimes ? props.runtimes[0].name : '',
+      fileTypes: KFP_FILE_TYPES
+    };
+
+    this.handleUpdate.bind(this);
+    this.updateExportFileTypes.bind(this);
+    this.getRuntimeType.bind(this);
+  }
+
+  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const selection = event.target.value;
+    this.updateExportFileTypes(selection);
+  };
+
+  updateExportFileTypes = (runtimeSelection: string): void => {
+    const runtimeType = this.getRuntimeType(runtimeSelection);
+    this.setState({
+      runtimeSelection: runtimeSelection,
+      fileTypes:
+        runtimeType === KFP_SCHEMA ? KFP_FILE_TYPES : AIRFLOW_FILE_TYPES
+    });
+  };
+
+  getRuntimeType = (name: string): string => {
+    return (this.props.runtimes as IDictionary<any>[]).find(
+      r => r['name'] === name
+    )['schema_name'];
+  };
+
+  componentDidMount(): void {
+    this.updateExportFileTypes(this.state.runtimeSelection);
+  }
+
   render(): React.ReactNode {
     const { runtimes } = this.props;
+
     return (
       <form>
         <label htmlFor="runtime_config">Runtime Config:</label>
@@ -39,8 +87,10 @@ export class PipelineExportDialog extends React.Component<IProps> {
           name="runtime_config"
           className="elyra-form-runtime-config"
           data-form-required
+          defaultValue={this.state.runtimeSelection}
+          onChange={this.handleUpdate}
         >
-          {runtimes.map((runtime: any) => (
+          {runtimes.map(runtime => (
             <option key={runtime.name} value={runtime.name}>
               {runtime.display_name}
             </option>
@@ -54,7 +104,7 @@ export class PipelineExportDialog extends React.Component<IProps> {
           className="elyra-form-export-filetype"
           data-form-required
         >
-          {FILE_TYPES.map(filetype => (
+          {this.state.fileTypes.map(filetype => (
             <option key={filetype['key']} value={filetype['key']}>
               {filetype['label']}
             </option>
