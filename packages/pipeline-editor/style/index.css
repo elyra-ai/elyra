@@ -215,6 +215,7 @@ td {
 .properties-control-panel[data-id='properties-nodePropertiesControls']
   .properties-control-item {
   margin-top: 10px;
+  padding: 0;
 }
 .properties-action-panel[data-id='properties-nodeBrowseFileAction']
   .properties-action-button {
