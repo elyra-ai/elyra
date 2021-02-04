@@ -100,7 +100,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
             </option>
           ))}
         </select>
-        <label htmlFor="runtime_config">Runtime Config:</label>
+        <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select
           id="runtime_config"
