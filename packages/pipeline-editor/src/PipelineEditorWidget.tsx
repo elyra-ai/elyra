@@ -531,11 +531,12 @@ export class PipelineEditor extends React.Component<
     const app_data = node.app_data;
 
     if (additionalData.title) {
-      this.canvasController.setNodeLabel(additionalData.title);
+      this.canvasController.setNodeLabel(appData.id, additionalData.title);
     }
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
       this.canvasController.setNodeLabel(
+        appData.id,
         PathExt.basename(propertySet.filename)
       );
     }
