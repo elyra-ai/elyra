@@ -61,8 +61,10 @@
   padding: 5px 0 5px 0;
 }
 
-.properties-right-flyout {
-  background-color: #fff;
+.properties-right-flyout,
+.properties.title-editor {
+  color: var(--text-01);
+  background-color: var(--ui-background);
 }
 
 .bx--text-input__field-outer-wrapper {
@@ -187,7 +189,8 @@ td {
 }
 
 .properties-editor-form {
-  background-color: #ffffff;
+  color: var(--text-01);
+  background-color: var(--ui-01);
 }
 .properties-control-panel[data-id='properties-nodeGroupInfo'],
 .properties-control-panel[data-id='properties-nodeDependenciesControls'] {
