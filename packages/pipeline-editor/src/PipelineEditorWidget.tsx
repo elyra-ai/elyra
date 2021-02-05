@@ -531,11 +531,13 @@ export class PipelineEditor extends React.Component<
     const app_data = node.app_data;
 
     if (additionalData.title) {
-      node.label = additionalData.title;
+      this.canvasController.setNodeLabel(additionalData.title);
     }
     if (app_data.filename !== propertySet.filename) {
       app_data.filename = propertySet.filename;
-      node.label = PathExt.basename(propertySet.filename);
+      this.canvasController.setNodeLabel(
+        PathExt.basename(propertySet.filename)
+      );
     }
 
     app_data.runtime_image = propertySet.runtime_image;
@@ -546,6 +548,11 @@ export class PipelineEditor extends React.Component<
     app_data.cpu = propertySet.cpu;
     app_data.memory = propertySet.memory;
     app_data.gpu = propertySet.gpu;
+    this.canvasController.setNodeProperties(
+      appData.id,
+      { app_data },
+      pipelineId
+    );
     this.validateAllNodes();
     this.updateModel();
   }
