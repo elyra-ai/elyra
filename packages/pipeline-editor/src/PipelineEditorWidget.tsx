@@ -1287,6 +1287,10 @@ export class PipelineEditor extends React.Component<
     const runtimes = await PipelineService.getRuntimes(false).catch(error =>
       RequestErrors.serverError(error)
     );
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
     const local_runtime: any = {
       name: 'local',
       display_name: 'Run in-place locally'
@@ -1296,7 +1300,11 @@ export class PipelineEditor extends React.Component<
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
       body: formDialogWidget(
-        <PipelineSubmissionDialog name={pipelineName} runtimes={runtimes} />
+        <PipelineSubmissionDialog
+          name={pipelineName}
+          runtimes={runtimes}
+          schema={schema}
+        />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,

@@ -16,19 +16,103 @@
 
 import * as React from 'react';
 
-import { IRuntime } from './PipelineService';
+import {
+  KFP_SCHEMA,
+  IRuntime,
+  ISchema,
+  PipelineService
+} from './PipelineService';
 
 interface IProps {
   name: string;
   runtimes: IRuntime[];
+  schema: ISchema[];
 }
 
-export class PipelineSubmissionDialog extends React.Component<IProps> {
+interface IState {
+  runtimePlatform: string;
+  runtimes: IRuntime[];
+}
+
+const updateRuntimeOptions = (
+  allRuntimes: IRuntime[],
+  platformSelection: string
+): IRuntime[] => {
+  const filteredRuntimes = PipelineService.filterRuntimes(
+    allRuntimes,
+    platformSelection
+  );
+
+  sortRuntimesByDisplayName(filteredRuntimes);
+  addLocal(allRuntimes, filteredRuntimes);
+
+  return filteredRuntimes;
+};
+
+const sortRuntimesByDisplayName = (runtimes: IRuntime[]): void => {
+  runtimes.sort((r1, r2) => r1.display_name.localeCompare(r2.display_name));
+};
+
+const addLocal = (
+  allRuntimes: IRuntime[],
+  filteredRuntimes: IRuntime[]
+): void => {
+  allRuntimes.forEach(runtime => {
+    runtime.name === 'local' && filteredRuntimes.unshift(runtime);
+  });
+};
+
+export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
+  state = {
+    runtimePlatform: KFP_SCHEMA,
+    runtimes: updateRuntimeOptions(this.props.runtimes, KFP_SCHEMA)
+  };
+
+  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const selectedPlatform = event.target.value;
+    const runtimeOptions = updateRuntimeOptions(
+      this.props.runtimes,
+      selectedPlatform
+    );
+
+    this.setState({
+      runtimes: runtimeOptions
+    });
+  };
+
+  componentDidMount(): void {
+    {
+      this.setState({
+        runtimes: updateRuntimeOptions(
+          this.props.runtimes,
+          this.state.runtimePlatform
+        )
+      });
+    }
+  }
+
   render(): React.ReactNode {
-    const name = this.props.name;
-    const runtimes = this.props.runtimes;
+    const { name, schema } = this.props;
+    const { runtimes } = this.state;
+
     return (
       <form>
+        <label htmlFor="runtime_platform">Runtime:</label>
+        <br />
+        <select
+          id="runtime_platform"
+          name="runtime_platform"
+          className="elyra-form-runtime-platform"
+          data-form-required
+          defaultValue={this.state.runtimePlatform}
+          onChange={this.handleUpdate}
+        >
+          {schema.map(schema => (
+            <option key={schema.name} value={schema.name}>
+              {schema.display_name}
+            </option>
+          ))}
+        </select>
         <label htmlFor="pipeline_name">Pipeline Name:</label>
         <br />
         <input
@@ -40,7 +124,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps> {
         />
         <br />
         <br />
-        <label htmlFor="runtime_config">Runtime Config:</label>
+        <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select
           id="runtime_config"
