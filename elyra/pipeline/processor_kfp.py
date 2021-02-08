@@ -144,6 +144,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
+        namespace = runtime_configuration.metadata.get('user_namespace')
         engine = runtime_configuration.metadata.get('engine')
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
@@ -189,6 +190,7 @@ class KfpPipelineProcessor(PipelineProcessor):
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
                                             engine=engine,
+                                            namespace=namespace,
                                             api_endpoint=api_endpoint,
                                             pipeline_description=description,
                                             writable_container_dir=self.WCD)

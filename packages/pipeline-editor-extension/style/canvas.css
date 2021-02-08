@@ -335,8 +335,35 @@ div.properties-modal-buttons,
   border-radius: 3px 0 0 3px;
   width: 100%;
 }
+.properties-title-editor {
+  padding: 0;
+  height: auto;
+}
+.properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-h-separator {
+  position: absolute;
+  top: 80px;
+  left: 9px;
+  width: calc(100% - 9px);
+}
+.properties-h-separator {
+  width: 100%;
+}
+.properties-category {
+  padding-top: 0;
+}
+.bx--list-box--expanded:hover.bx--list-box--light:hover {
+  background-color: transparent;
+}
 .bx--dropdown {
   border-bottom: none;
+  background-color: transparent;
+}
+.bx--dropdown:hover {
+  background-color: transparent;
+}
+.bx--list-box__field {
+  padding: 0 3em 0 1em;
 }
 .bx--list-box__field:focus {
   outline: none;
