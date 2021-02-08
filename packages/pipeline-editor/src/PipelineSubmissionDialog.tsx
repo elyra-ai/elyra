@@ -16,12 +16,7 @@
 
 import * as React from 'react';
 
-import {
-  KFP_SCHEMA,
-  IRuntime,
-  ISchema,
-  PipelineService
-} from './PipelineService';
+import { IRuntime, ISchema, PipelineService } from './PipelineService';
 
 interface IProps {
   name: string;
@@ -34,17 +29,18 @@ interface IState {
   runtimes: IRuntime[];
 }
 
+const LOCAL = 'local';
+
 const updateRuntimeOptions = (
   allRuntimes: IRuntime[],
   platformSelection: string
 ): IRuntime[] => {
-  const filteredRuntimes = PipelineService.filterRuntimes(
-    allRuntimes,
-    platformSelection
-  );
+  const filteredRuntimes =
+    platformSelection === LOCAL
+      ? [allRuntimes[0]]
+      : PipelineService.filterRuntimes(allRuntimes, platformSelection);
 
   sortRuntimesByDisplayName(filteredRuntimes);
-  addLocal(allRuntimes, filteredRuntimes);
 
   return filteredRuntimes;
 };
@@ -53,19 +49,10 @@ const sortRuntimesByDisplayName = (runtimes: IRuntime[]): void => {
   runtimes.sort((r1, r2) => r1.display_name.localeCompare(r2.display_name));
 };
 
-const addLocal = (
-  allRuntimes: IRuntime[],
-  filteredRuntimes: IRuntime[]
-): void => {
-  allRuntimes.forEach(runtime => {
-    runtime.name === 'local' && filteredRuntimes.unshift(runtime);
-  });
-};
-
 export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
   state = {
-    runtimePlatform: KFP_SCHEMA,
-    runtimes: updateRuntimeOptions(this.props.runtimes, KFP_SCHEMA)
+    runtimePlatform: LOCAL,
+    runtimes: updateRuntimeOptions(this.props.runtimes, LOCAL)
   };
 
   handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -74,8 +61,8 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
       this.props.runtimes,
       selectedPlatform
     );
-
     this.setState({
+      runtimePlatform: selectedPlatform,
       runtimes: runtimeOptions
     });
   };
@@ -94,6 +81,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
   render(): React.ReactNode {
     const { name, schema } = this.props;
     const { runtimes } = this.state;
+    const localRuntime = this.props.runtimes[0];
 
     return (
       <form>
@@ -118,6 +106,9 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
           defaultValue={this.state.runtimePlatform}
           onChange={this.handleUpdate}
         >
+          <option key={localRuntime.name} value={localRuntime.name}>
+            Local Runtime
+          </option>
           {schema.map(schema => (
             <option key={schema.name} value={schema.name}>
               {schema.display_name}
