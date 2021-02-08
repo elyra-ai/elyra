@@ -24,9 +24,9 @@ import * as React from 'react';
 
 import Utils from './utils';
 
-export const RUNTIMES_NAMESPACE = 'runtimes';
-export const KFP_SCHEMA = 'kfp';
 export const AIRFLOW_SCHEMA = 'airflow';
+export const KFP_SCHEMA = 'kfp';
+export const RUNTIMES_NAMESPACE = 'runtimes';
 export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
 
@@ -79,6 +79,13 @@ export class PipelineService {
     runtimePlatform: string
   ): IRuntime[] =>
     runtimes.filter(runtime => runtime.schema_name === runtimePlatform);
+
+  /**
+   * Sorts given list of runtimes by the display_name property
+   */
+  static sortRuntimesByDisplayName = (runtimes: IRuntime[]): void => {
+    runtimes.sort((r1, r2) => r1.display_name.localeCompare(r2.display_name));
+  };
 
   /**
    * Return a list of configured docker images that are used as runtimes environments

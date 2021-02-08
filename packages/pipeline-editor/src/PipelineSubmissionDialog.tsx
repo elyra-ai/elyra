@@ -40,13 +40,9 @@ const updateRuntimeOptions = (
       ? [allRuntimes[0]]
       : PipelineService.filterRuntimes(allRuntimes, platformSelection);
 
-  sortRuntimesByDisplayName(filteredRuntimes);
+  PipelineService.sortRuntimesByDisplayName(filteredRuntimes);
 
   return filteredRuntimes;
-};
-
-const sortRuntimesByDisplayName = (runtimes: IRuntime[]): void => {
-  runtimes.sort((r1, r2) => r1.display_name.localeCompare(r2.display_name));
 };
 
 export class PipelineSubmissionDialog extends React.Component<IProps, IState> {

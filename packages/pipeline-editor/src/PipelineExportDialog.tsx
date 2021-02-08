@@ -67,12 +67,6 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     });
   };
 
-  sortRuntimesByDisplayName = (): void => {
-    this.props.runtimes.sort((r1, r2) =>
-      r1.display_name.localeCompare(r2.display_name)
-    );
-  };
-
   componentDidMount(): void {
     this.updateDisplayOptions(this.state.runtimePlatform);
   }
@@ -80,7 +74,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
   render(): React.ReactNode {
     const { fileTypes, runtimes } = this.state;
     const { schema } = this.props;
-    this.sortRuntimesByDisplayName();
+    PipelineService.sortRuntimesByDisplayName(runtimes);
 
     return (
       <form>
