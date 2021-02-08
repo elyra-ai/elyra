@@ -237,14 +237,16 @@ class RuntimePipelineProcess(PipelineProcessor):
                            format(operation.name), exc_info=True)
             raise ex from ex
 
-    def _get_runtime_configuration(self, name):
+    def _get_metadata_configuration(self, namespace, name=None):
         """
-        Retrieve associated runtime configuration based on processor type
+        Retrieve associated metadata configuration based on namespace provided and optional instance name
         :return: metadata in json format
         """
         try:
-            runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
-            return runtime_configuration
+            if not name:
+                return MetadataManager(namespace=namespace).get_all()
+            else:
+                return MetadataManager(namespace=namespace).get(name)
         except BaseException as err:
-            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
-            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err
+            self.log.error('Error retrieving metadata configuration for {}'.format(name), exc_info=True)
+            raise RuntimeError('Error retrieving metadata configuration for {}', err) from err
