@@ -97,6 +97,17 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
 
     return (
       <form>
+        <label htmlFor="pipeline_name">Pipeline Name:</label>
+        <br />
+        <input
+          type="text"
+          id="pipeline_name"
+          name="pipeline_name"
+          defaultValue={name}
+          data-form-required
+        />
+        <br />
+        <br />
         <label htmlFor="runtime_platform">Runtime:</label>
         <br />
         <select
@@ -113,17 +124,6 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
             </option>
           ))}
         </select>
-        <label htmlFor="pipeline_name">Pipeline Name:</label>
-        <br />
-        <input
-          type="text"
-          id="pipeline_name"
-          name="pipeline_name"
-          defaultValue={name}
-          data-form-required
-        />
-        <br />
-        <br />
         <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select
