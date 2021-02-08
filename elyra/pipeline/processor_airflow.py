@@ -37,6 +37,12 @@ from jinja2 import Environment, PackageLoader
 class AirflowPipelineProcessor(RuntimePipelineProcess):
     _type = 'airflow'
 
+    # Provide users with the ability to identify a writable directory in the
+    # running container where the notebook | script is executed. The location
+    # must exist and be known before the container is started.
+    # Defaults to `/tmp`
+    WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
+
     @property
     def type(self):
         return self._type
@@ -45,6 +51,15 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
+
+        runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
+        api_endpoint = runtime_configuration.metadata.get('api_endpoint')
+        cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+        cos_bucket = runtime_configuration.metadata.get('cos_bucket')
+
+        github_repo_token = runtime_configuration.metadata.get('github_repo_token')
+        github_repo = runtime_configuration.metadata.get('github_repo')
+        github_branch = runtime_configuration.metadata.get('github_branch')
 
         self.log_pipeline_info(pipeline_name, "Submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -59,17 +74,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
             self.log.debug("Uploading pipeline file: %s", pipeline_filepath)
 
-            runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
-
-            cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-            cos_bucket = runtime_configuration.metadata['cos_bucket']
-
-            github_repo_token = runtime_configuration.metadata['github_repo_token']
-            github_repo = runtime_configuration.metadata['github_repo']
-            github_branch = runtime_configuration.metadata['github_branch']
-
             github_client = Github(login_or_token=github_repo_token)
-
             try:
                 # Upload to github
                 repo = github_client.get_repo(github_repo)
@@ -82,26 +87,26 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                      content=content,
                                      branch=github_branch)
 
-                self.log.info("Uploaded AirFlow Pipeline...waiting for Airflow Scheduler to start a run")
+                self.log.info('Pipeline successfully added to the Airflow git queue')
+                self.log.info('Waiting for Airflow Scheduler to process and start the pipeline')
 
             except GithubException as e:
-                print(e)
+                self.log.debug('Error adding pipeline to Airflow git queue: ' + e)
+                raise RuntimeError('Error adding pipeline to Airflow git queue: ', e)
 
             self.log_pipeline_info(pipeline_name,
                                    f"pipeline pushed to git: https://github.com/{github_repo}/tree/{github_branch}",
                                    duration=(time.time() - t0_all))
 
-            # airflow_api_base_url = runtime_configuration.metadata['api_endpoint']
-
             return PipelineProcessorResponse(
                 # TODO - Add another field to return the url of the job in Airflow UI
-                run_url=f'https://github.com/{github_repo}/tree/{github_branch}',
+                run_url=f'{api_endpoint}',
                 object_storage_url=f'{cos_endpoint}',
                 object_storage_path=f'/{cos_bucket}/{pipeline_name}',
             )
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        if pipeline_export_format not in ["json", "py"]:
+        if pipeline_export_format not in ["py"]:
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
         timestamp = datetime.now().strftime("%m%d%H%M%S")
