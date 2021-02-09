@@ -25,7 +25,6 @@ from datetime import datetime
 from elyra._version import __version__
 from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
-from elyra.util.cos import CosClient
 from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
 from urllib3.exceptions import LocationValueError
@@ -300,35 +299,9 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                    f"processing operation dependencies for id: {operation.id}",
                                    operation_name=operation.name)
 
-            # upload operation dependencies to object storage
-            try:
-                t0 = time.time()
-                dependency_archive_path = self._generate_dependency_archive(operation)
-                self.log_pipeline_info(pipeline_name,
-                                       f"generated dependency archive: {dependency_archive_path}",
-                                       operation_name=operation.name,
-                                       duration=(time.time() - t0))
-
-                cos_client = CosClient(config=runtime_configuration)
-                t0 = time.time()
-                cos_client.upload_file_to_dir(dir=cos_directory,
-                                              file_name=operation_artifact_archive,
-                                              file_path=dependency_archive_path)
-                self.log_pipeline_info(pipeline_name,
-                                       f"uploaded dependency archive to: {cos_directory}/{operation_artifact_archive}",
-                                       operation_name=operation.name,
-                                       duration=(time.time() - t0))
-
-            except FileNotFoundError as ex:
-                self.log.error("Dependencies were not found building archive for operation: {}".
-                               format(operation.name), exc_info=True)
-                raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
-                                        format(operation.name, ex))
-
-            except BaseException as ex:
-                self.log.error("Error uploading artifacts to object storage for operation: {}".
-                               format(operation.name), exc_info=True)
-                raise ex from ex
+            self._upload_dependencies_to_object_store(runtime_configuration,
+                                                      pipeline_name,
+                                                      operation)
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
