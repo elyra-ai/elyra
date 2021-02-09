@@ -173,7 +173,7 @@ export class NotebookSubmissionDialog extends React.Component<IProps, IState> {
           checked={this.state.includeDependency}
           onChange={this.handleCheck}
         />
-        <label htmlFor="dependency_include">Include file dependency</label>
+        <label htmlFor="dependency_include">Include file dependencies</label>
         <br />
         {fileDependencyContent}
         <EnvForm env={env} />
