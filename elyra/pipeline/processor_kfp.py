@@ -189,6 +189,7 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
+                                            pipeline_version='',
                                             engine=engine,
                                             namespace=namespace,
                                             api_endpoint=api_endpoint,
@@ -276,11 +277,14 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             # create pipeline operation
             notebook_ops[operation.id] = NotebookOp(name=operation.name,
+                                                    pipeline_name=pipeline.name,
+                                                    experiment_name=pipeline_name,
                                                     notebook=operation.filename,
                                                     cos_endpoint=cos_endpoint,
                                                     cos_bucket=cos_bucket,
                                                     cos_directory=cos_directory,
                                                     cos_dependencies_archive=operation_artifact_archive,
+                                                    pipeline_version='',
                                                     pipeline_inputs=operation.inputs,
                                                     pipeline_outputs=operation.outputs,
                                                     pipeline_envs=pipeline_envs,
