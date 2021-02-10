@@ -81,6 +81,13 @@ setup_args = dict(
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
         'websocket-client',
+        # KFP runtime dependencies
+        'kfp-notebook~=0.18.0',
+        'kfp==1.3.0',
+        'kfp-tekton==0.6.0',
+        # Airflow runtime dependencies
+        'pygithub',
+        'black'
     ],
     extras_require={
         'test': ['pytest', 'pytest-tornasync'],
