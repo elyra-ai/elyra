@@ -169,7 +169,7 @@ This section defines the settings for the Kubeflow Pipelines deployment that you
 
 The KubeFlow Pipelines API endpoint you want to utilize. This setting is required.
 
-KubeFlow Example: `https://kubernetes-service.ibm.com/pipeline`
+Example: `https://kubernetes-service.ibm.com/pipeline`
 
 ##### user_namespace
 The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
@@ -207,7 +207,7 @@ This section defines the settings for the Apache Airflow deployment that you wan
 
 The Apache Airflow API endpoint you want to utilize. This setting is required.
 
-Airflow Example: `http://your.apache.webserver:port`
+Example: `http://your.apache.webserver:port`
 
 ##### github_repo
 
