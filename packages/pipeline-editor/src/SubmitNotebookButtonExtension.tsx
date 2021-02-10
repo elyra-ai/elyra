@@ -23,8 +23,8 @@ import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import { IDisposable } from '@lumino/disposable';
 import * as React from 'react';
 
-import { formDialogWidget } from './formDialogWidget';
 import { FileSubmissionDialog } from './FileSubmissionDialog';
+import { formDialogWidget } from './formDialogWidget';
 import { PipelineService } from './PipelineService';
 import Utils from './utils';
 

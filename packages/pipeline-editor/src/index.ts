@@ -177,11 +177,14 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // SubmitScriptButtonExtension initialization code
     const scriptButtonExtension = new SubmitScriptButtonExtension();
-    app.docRegistry.addWidgetExtension('Notebook', scriptButtonExtension);
+    app.docRegistry.addWidgetExtension(
+      'PythonFileEditor',
+      scriptButtonExtension
+    );
     app.contextMenu.addItem({
-      selector: '.jp-Notebook',
-      command: commandIDs.submitNotebook,
-      rank: -1
+      selector: '.elyra-PythonEditor',
+      command: commandIDs.submitPythonScript,
+      rank: -0.5
     });
 
     const runtimesWidget = new RuntimesWidget({

@@ -15,17 +15,17 @@
  */
 
 // import { NotebookParser } from '@elyra/services';
-import { PythonFileEditor } from '@elyra/python-editor-extension';
+// import { PythonFileEditor } from '@elyra/python-editor-extension';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
-// import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
-// import { IDisposable } from '@lumino/disposable';
+import { IDisposable } from '@lumino/disposable';
 import * as React from 'react';
 
-import { formDialogWidget } from './formDialogWidget';
 import { FileSubmissionDialog } from './FileSubmissionDialog';
+import { formDialogWidget } from './formDialogWidget';
 import { PipelineService } from './PipelineService';
 import Utils from './utils';
 
@@ -36,13 +36,14 @@ import Utils from './utils';
  *  for execution
  */
 
-export class SubmitScriptButtonExtension extends PythonFileEditor {
-  // private panel: NotebookPanel;
-  private widget: PythonFileEditor;
+export class SubmitScriptButtonExtension
+  implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
+  private panel: NotebookPanel;
+  // private widget: PythonFileEditor;
 
   showWidget = async (): Promise<void> => {
     // const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
-    const env: string[] = null;
+    const env: string[] = [];
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -75,7 +76,7 @@ export class SubmitScriptButtonExtension extends PythonFileEditor {
 
     // prepare submission details
     const pipeline = Utils.generateNotebookPipeline(
-      this.widget.context.path,
+      this.panel.context.path,
       runtime_config,
       framework,
       dependency_include ? dependencies : undefined,
@@ -92,17 +93,17 @@ export class SubmitScriptButtonExtension extends PythonFileEditor {
     );
   };
 
-  // createNew(
-  //   panel: NotebookPanel,
-  //   context: DocumentRegistry.IContext<INotebookModel>
-  // ): IDisposable {
-  //   this.panel = panel;
-
   createNew(
-    widget: PythonFileEditor,
-    context: DocumentRegistry.ICodeModel
-  ): any {
-    this.widget = widget;
+    panel: NotebookPanel,
+    context: DocumentRegistry.IContext<INotebookModel>
+  ): IDisposable {
+    this.panel = panel;
+
+    // createNew(
+    //   widget: PythonFileEditor,
+    //   context: DocumentRegistry.ICodeModel
+    // ): any {
+    //   this.widget = widget;
 
     // Create the toolbar button
     const submitScriptButton = new ToolbarButton({
@@ -112,7 +113,7 @@ export class SubmitScriptButtonExtension extends PythonFileEditor {
     });
 
     // Add the toolbar button to Python Editor
-    widget.toolbar.insertItem(20, 'submitScript', submitScriptButton);
+    panel.toolbar.insertItem(10, 'submitScript', submitScriptButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.
