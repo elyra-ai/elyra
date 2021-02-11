@@ -29,9 +29,9 @@ directory.
 
 #### Build & Installation
 
-Elyra uses make to automate some of the development workflow tasks.
+Elyra uses `make` to automate some of the development workflow tasks.
 
-Issuing a make command with no task specified will provide a list of the currently supported tasks.
+Issuing a `make` command with no task specified will provide a list of the currently supported tasks.
 
 ```bash
 $ make
