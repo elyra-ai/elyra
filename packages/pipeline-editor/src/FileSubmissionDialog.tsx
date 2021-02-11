@@ -23,7 +23,7 @@ import Utils from './utils';
 interface IProps {
   runtimes: IRuntime[];
   images: IDictionary<string>;
-  env: string[];
+  env?: string[];
 }
 
 interface IState {
@@ -31,7 +31,7 @@ interface IState {
 }
 
 const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
-  if (env.length > 0) {
+  if (env) {
     return (
       <>
         <br />
@@ -73,7 +73,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
   };
 
   render(): React.ReactNode {
-    const { runtimes, images, env } = this.props;
+    const { env, images, runtimes } = this.props;
     const { includeDependency } = this.state;
     const fileDependencyContent = includeDependency ? (
       <div key="dependencies">

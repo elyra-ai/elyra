@@ -71,7 +71,7 @@ export class SubmitNotebookButtonExtension
     } = dialogResult.value;
 
     // prepare notebook submission details
-    const pipeline = Utils.generateNotebookPipeline(
+    const pipeline = Utils.generateSingleFilePipeline(
       this.panel.context.path,
       runtime_config,
       framework,

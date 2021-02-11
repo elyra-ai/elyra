@@ -30,9 +30,9 @@ export default class Utils {
   }
 
   /**
-   * Utility to create a one node pipeline to submit a single Notebook as a pipeline
+   * Utility to create a one node pipeline to submit a single file as a pipeline
    */
-  static generateNotebookPipeline(
+  static generateSingleFilePipeline(
     filename: string,
     runtime_config: string,
     runtimeImage: string,

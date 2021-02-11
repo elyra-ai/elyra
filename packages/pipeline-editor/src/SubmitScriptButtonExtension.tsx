@@ -43,7 +43,7 @@ export class SubmitScriptButtonExtension
 
   showWidget = async (): Promise<void> => {
     // const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
-    const env: string[] = [];
+    // const env: string[] = [];
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -54,7 +54,7 @@ export class SubmitScriptButtonExtension
     const dialogOptions = {
       title: 'Submit script',
       body: formDialogWidget(
-        <FileSubmissionDialog env={env} runtimes={runtimes} images={images} />
+        <FileSubmissionDialog runtimes={runtimes} images={images} />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     };
@@ -75,7 +75,7 @@ export class SubmitScriptButtonExtension
     } = dialogResult.value;
 
     // prepare submission details
-    const pipeline = Utils.generateNotebookPipeline(
+    const pipeline = Utils.generateSingleFilePipeline(
       this.panel.context.path,
       runtime_config,
       framework,
