@@ -26,10 +26,10 @@ This section describes the steps necessary to build Elyra in a development envir
 
 ### Setting up your development environment
 
-* Install Miniconda and create a new python environment
+* Install Miniconda
 Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/latest/miniconda.html) according to your Operating System
 
-* Create a new python environment
+* Create a new Python environment
 
     `conda create -n <env-name> python`
 
