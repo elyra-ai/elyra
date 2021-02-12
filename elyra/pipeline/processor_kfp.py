@@ -51,6 +51,8 @@ class KfpPipelineProcessor(PipelineProcessor):
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
+        pipeline_version = pipeline_name
+        experiment_name = f'{pipeline.name}-{timestamp}'
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint']
@@ -72,7 +74,10 @@ class KfpPipelineProcessor(PipelineProcessor):
             engine = runtime_configuration.metadata.get('engine')
             # Compile the new pipeline
             try:
-                pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8 E731
+                pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8 E731
+                                                              pipeline_name,
+                                                              pipeline_version,
+                                                              experiment_name)
                 if 'Tekton' == engine:
                     kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, pipeline_path)
                 else:
@@ -93,7 +98,10 @@ class KfpPipelineProcessor(PipelineProcessor):
                                                                     api_username,
                                                                     api_password)
 
-            client = kfp_tekton.TektonClient(host=api_endpoint, cookies=session_cookie)
+            if 'Tekton' == engine:
+                client = kfp_tekton.TektonClient(host=api_endpoint, cookies=session_cookie)
+            else:
+                client = kfp.Client(host=api_endpoint, cookies=session_cookie)
 
             try:
                 description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.name}.pipeline'."
@@ -112,8 +120,11 @@ class KfpPipelineProcessor(PipelineProcessor):
                 else:
                     raise lve
 
-            experiment = client.create_experiment(name=pipeline_name,
+            experiment = client.create_experiment(name=experiment_name,
                                                   namespace=user_namespace)
+            self.log_pipeline_info(pipeline_name,
+                                   f'Created experiment {experiment_name}',
+                                   duration=(time.time() - t0_all))
 
             run = client.run_pipeline(experiment_id=experiment.id,
                                       job_name=timestamp,
@@ -152,8 +163,13 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         self.log_pipeline_info(pipeline_name, f"exporting pipeline as a .{pipeline_export_format} file")
         if pipeline_export_format != "py":
+            # Export pipeline as static configuration file (YAML formatted)
             try:
-                pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
+                # Exported pipeline is not associated with an experiment
+                # or a version. The association is established when the
+                # pipeline is imported into KFP by the user.
+                pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8
+                                                              pipeline_name)
 
                 if 'Tekton' == engine:
                     self.log.info("Compiling pipeline for Tekton engine")
@@ -165,6 +181,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
                                    format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
         else:
+            # Export pipeline as Python DSL
             # Load template from installed elyra package
             t0 = time.time()
             loader = PackageLoader('elyra', 'templates')
@@ -174,7 +191,8 @@ class KfpPipelineProcessor(PipelineProcessor):
 
             template = template_env.get_template('kfp_template.jinja2')
 
-            defined_pipeline = self._cc_pipeline(pipeline, pipeline_name)
+            defined_pipeline = self._cc_pipeline(pipeline,
+                                                 pipeline_name)
 
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.name}.pipeline.'
 
@@ -187,16 +205,24 @@ class KfpPipelineProcessor(PipelineProcessor):
                                operation.inputs,
                                operation.outputs)
 
+            # The exported pipeline is by default associated with
+            # an experiment with the same name but not a version.
+            # The user can manually customize the generated code
+            # and change the associations as desired.
+            experiment_name = f'{pipeline_name}-experiment'
+            pipeline_version = ''
+
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
-                                            pipeline_version='',
+                                            pipeline_version=pipeline_version,
+                                            experiment_name=experiment_name,
                                             engine=engine,
                                             namespace=namespace,
                                             api_endpoint=api_endpoint,
                                             pipeline_description=description,
                                             writable_container_dir=self.WCD)
 
-            # Write to python file and fix formatting
+            # Write to Python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
                 fh.write(autopep8.fix_code(python_output))
 
@@ -208,7 +234,11 @@ class KfpPipelineProcessor(PipelineProcessor):
 
         return pipeline_export_path  # Return the input value, not its absolute form
 
-    def _cc_pipeline(self, pipeline, pipeline_name):
+    def _cc_pipeline(self,
+                     pipeline,
+                     pipeline_name,
+                     pipeline_version='',
+                     experiment_name=''):
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
 
@@ -278,13 +308,13 @@ class KfpPipelineProcessor(PipelineProcessor):
             # create pipeline operation
             notebook_ops[operation.id] = NotebookOp(name=operation.name,
                                                     pipeline_name=pipeline.name,
-                                                    experiment_name=pipeline_name,
+                                                    experiment_name=experiment_name,
                                                     notebook=operation.filename,
                                                     cos_endpoint=cos_endpoint,
                                                     cos_bucket=cos_bucket,
                                                     cos_directory=cos_directory,
                                                     cos_dependencies_archive=operation_artifact_archive,
-                                                    pipeline_version='',
+                                                    pipeline_version=pipeline_version,
                                                     pipeline_inputs=operation.inputs,
                                                     pipeline_outputs=operation.outputs,
                                                     pipeline_envs=pipeline_envs,
