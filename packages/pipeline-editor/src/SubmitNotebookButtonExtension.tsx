@@ -46,14 +46,18 @@ export class SubmitNotebookButtonExtension
     const images = await PipelineService.getRuntimeImages().catch(error =>
       RequestErrors.serverError(error)
     );
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
 
     const dialogOptions = {
       title: 'Submit notebook',
       body: formDialogWidget(
         <NotebookSubmissionDialog
           env={env}
-          runtimes={runtimes}
           images={images}
+          runtimes={runtimes}
+          schema={schema}
         />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]

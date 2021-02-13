@@ -123,10 +123,11 @@ class Operation(object):
         return self._gpu
 
     def env_vars_as_dict(self, logger: Optional[object] = None) -> Dict:
-        """Operation stores environment variables in a list of name=value pairs, while
-           subprocess.run() requires a dictionary - so we must convert.  If no envs are
-           configured on the Operation, the existing env is returned, otherwise envs
-           configured on the Operation are overlayed on the existing env.
+        """
+        Operation stores environment variables in a list of name=value pairs, while
+        subprocess.run() requires a dictionary - so we must convert.  If no envs are
+        configured on the Operation, the existing env is returned, otherwise envs
+        configured on the Operation are overlayed on the existing env.
         """
         envs = {}
         for nv in self.env_vars:
