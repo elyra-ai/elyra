@@ -158,7 +158,7 @@ describe('Pipeline Editor tests', () => {
     closePipelineEditorWithoutSaving();
   });
 
-  it('should save runtime configuration', () => {
+  it.only('should save runtime configuration', () => {
     openPipelineEditor();
     // Create runtime configuration
     createRuntimeConfig();
@@ -390,12 +390,15 @@ const createRuntimeConfig = (): any => {
   cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
   // Add a runtime config
   cy.get(
-    'button.elyra-metadataHeader-button[title="Create new Kubeflow Pipelines runtime"]'
+    'button.elyra-metadataHeader-button[title="Create new Pipeline runtime configuration"]'
   ).click();
   cy.get('.elyra-metadataEditor-form-display_name').type('Test Runtime');
   cy.get('.elyra-metadataEditor-form-api_endpoint').type(
     'https://kubernetes-service.ibm.com/pipeline'
   );
+  cy.get('.elyra-metadataEditor-form-github_repo').type('akchinstc/test-repo');
+  cy.get('.elyra-metadataEditor-form-github_branch').type('main');
+  cy.get('.elyra-metadataEditor-form-github_repo_token').type('xxxxxxxx');
   cy.get('.elyra-metadataEditor-form-cos_endpoint').type('http://0.0.0.0:9000');
   cy.get('.elyra-metadataEditor-form-cos_username').type('minioadmin');
   cy.get('.elyra-metadataEditor-form-cos_password').type('minioadmin');

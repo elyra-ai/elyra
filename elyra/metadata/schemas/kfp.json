@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Kubeflow Pipelines runtime",
+  "title": "Pipeline runtime configuration",
   "name": "kfp",
   "display_name": "Kubeflow Pipelines runtime",
   "namespace": "runtimes",
