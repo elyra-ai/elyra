@@ -62,11 +62,12 @@
         "control": "readonly",
         "label": {
           "default": "Filename"
-        }
+        },
+        "orientation": "horizontal",
+        "separator": "after"
       },
       {
         "parameter_ref": "runtime_image",
-        "control": "oneofselect",
         "label": {
           "default": "Runtime Image"
         },
@@ -99,7 +100,9 @@
         },
         "description": {
           "default": "The total amount of RAM specified."
-        }
+        },
+        "orientation": "horizontal",
+        "separator": "after"
       },
       {
         "parameter_ref": "dependencies",
@@ -111,6 +114,8 @@
         "description": {
           "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
         },
+        "orientation": "horizontal",
+        "separator": "after",
         "data": {
           "single_item_label": "Dependency",
           "placeholder": "*.py",
@@ -124,7 +129,9 @@
         },
         "description": {
           "default": "May increase submission time"
-        }
+        },
+        "orientation": "horizontal",
+        "separator": "after"
       },
       {
         "parameter_ref": "env_vars",
@@ -136,6 +143,8 @@
         "description": {
           "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
         },
+        "orientation": "horizontal",
+        "separator": "after",
         "data": {
           "placeholder": "env_var=VALUE",
           "single_item_label": "Environment Variable"

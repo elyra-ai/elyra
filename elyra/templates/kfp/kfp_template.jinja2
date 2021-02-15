@@ -59,7 +59,12 @@ if __name__ == "__main__":
     client = kfp.Client(host='{{ api_endpoint }}')
 {% endif %}
     name = '{{ pipeline_name }}'
-    exp = client.create_experiment('{{ pipeline_name }}')
+    exp = client.create_experiment('{{ pipeline_name }}',
+    {% if namespace is none  %}
+                                namespace=None)
+    {% else %}
+                                namespace='{{ namespace }}')
+    {% endif %}
     run_result = client.run_pipeline(exp.id, name, pipeline_filename, {})
 
     print("Pipeline Submitted: {{ api_endpoint }}/#/runs/details/" + run_result.id)
