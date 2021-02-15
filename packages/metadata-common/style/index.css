@@ -147,10 +147,21 @@
   height: 100%;
 }
 
-.elyra-metadataEditor .bp3-form-group.elyra-metadataEditor-code {
+.elyra-metadataEditor .elyra-metadataEditor-code {
   height: auto;
   flex-basis: 100%;
   display: flex;
+  flex-direction: column;
+}
+
+.elyra-metadataEditor-formInput {
+  margin: 10px;
+}
+
+.elyra-metadataEditor-saveButton .MuiButtonBase-root {
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  padding: 5px 15px;
+  border-radius: 4px;
 }
 
 .elyra-metadataEditor-code .bp3-form-content {

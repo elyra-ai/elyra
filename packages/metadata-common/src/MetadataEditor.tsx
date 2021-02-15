@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FormGroup, Intent, ResizeSensor, Tooltip } from '@blueprintjs/core';
+import { Intent, ResizeSensor } from '@blueprintjs/core';
 
 import { MetadataService, IDictionary } from '@elyra/services';
 import { DropDown, RequestErrors } from '@elyra/ui-components';
@@ -22,11 +22,18 @@ import { DropDown, RequestErrors } from '@elyra/ui-components';
 import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { InputGroup, Button } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
+import {
+  TextField,
+  InputAdornment,
+  IconButton,
+  InputLabel,
+  Button
+} from '@material-ui/core';
+import { Visibility, VisibilityOff } from '@material-ui/icons';
 
 import * as React from 'react';
 
@@ -361,7 +368,7 @@ export class MetadataEditor extends ReactWidget {
     description: string,
     fieldName: string,
     defaultValue: string,
-    required: string,
+    required: boolean,
     secure: boolean,
     intent?: Intent
   ): React.ReactElement {
@@ -375,45 +382,50 @@ export class MetadataEditor extends ReactWidget {
       this.update();
     };
     let showPassword = false;
-    let toggleShowButton;
-
     if (secure) {
       if (this.showSecure[fieldName]) {
         showPassword = true;
       } else {
         this.showSecure[fieldName] = false;
       }
-
-      toggleShowButton = (
-        <Tooltip content={`${showPassword ? 'Hide' : 'Show'} Password`}>
-          <Button
-            icon={showPassword ? 'eye-open' : 'eye-off'}
-            intent={Intent.WARNING}
-            minimal={true}
-            onClick={toggleShowPassword}
-          />
-        </Tooltip>
-      );
     }
 
     return (
-      <FormGroup
-        key={fieldName}
-        label={label}
-        labelInfo={required}
-        helperText={helperText}
-        intent={intent}
-      >
-        <InputGroup
+      <div className="elyra-metadataEditor-formInput">
+        <TextField
+          key={fieldName}
+          label={label}
+          required={required}
+          variant="outlined"
+          helperText={helperText}
           onChange={(event: any): void => {
             this.handleTextInputChange(event, fieldName);
           }}
           defaultValue={defaultValue}
-          rightElement={toggleShowButton}
           type={showPassword || !secure ? 'text' : 'password'}
+          InputProps={
+            secure
+              ? {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={toggleShowPassword}
+                        onMouseDown={(event: any): void => {
+                          event.preventDefault();
+                        }}
+                        edge="end"
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }
+              : {}
+          }
           className={`elyra-metadataEditor-form-${fieldName}`}
         />
-      </FormGroup>
+      </div>
     );
   }
 
@@ -429,10 +441,8 @@ export class MetadataEditor extends ReactWidget {
 
   renderField(fieldName: string): React.ReactElement {
     let uihints = this.schema[fieldName].uihints;
-    let required = '(optional)';
-    if (this.requiredFields && this.requiredFields.includes(fieldName)) {
-      required = '(required)';
-    }
+    const required =
+      this.requiredFields && this.requiredFields.includes(fieldName);
     if (uihints === undefined) {
       uihints = {};
       this.schema[fieldName].uihints = uihints;
@@ -465,18 +475,21 @@ export class MetadataEditor extends ReactWidget {
         ></DropDown>
       );
     } else if (uihints.field_type === 'code') {
-      let helperText: string;
-      if (uihints.intent === Intent.DANGER) {
-        helperText = 'This field is required.';
-      }
+      // let helperText: string;
+      // if (uihints.intent === Intent.DANGER) {
+      //   helperText = 'This field is required.';
+      // }
       return (
-        <FormGroup
-          className={'elyra-metadataEditor-code'}
-          labelInfo={required}
-          label={this.schema[fieldName].title}
-          intent={uihints.intent}
-          helperText={helperText}
+        <div
+          className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
         >
+          <InputLabel
+            required={required}
+            // intent={uihints.intent}
+            // helperText={helperText}
+          >
+            {this.schema[fieldName].title}
+          </InputLabel>
           <ResizeSensor
             onResize={(): void => {
               this.editor.refresh();
@@ -484,21 +497,18 @@ export class MetadataEditor extends ReactWidget {
           >
             <div id={'code:' + this.id} className="elyra-form-code va-va"></div>
           </ResizeSensor>
-        </FormGroup>
+        </div>
       );
     } else if (uihints.field_type === 'tags') {
       return (
-        <FormGroup
-          labelInfo={'(optional)'}
-          label={'Tags'}
-          intent={uihints.intent}
-        >
+        <div className="elyra-metadataEditor-formInput">
+          <InputLabel> Tags </InputLabel>
           <MetadataEditorTags
             selectedTags={this.metadata.tags}
             tags={this.allTags}
             handleChange={this.handleChangeOnTag}
           />
-        </FormGroup>
+        </div>
       );
     } else {
       return;
@@ -542,21 +552,27 @@ export class MetadataEditor extends ReactWidget {
               '',
               'display_name',
               this.displayName,
-              '(required)',
+              true,
               false,
               intent
             )
           : null}
         {inputElements}
-        <FormGroup className={'elyra-metadataEditor-saveButton'}>
+        <div
+          className={
+            'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
+          }
+        >
           <Button
+            variant="outlined"
+            color="primary"
             onClick={(): void => {
               this.saveMetadata();
             }}
           >
             Save & Close
           </Button>
-        </FormGroup>
+        </div>
       </div>
     );
   }

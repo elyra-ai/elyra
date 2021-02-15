@@ -14,105 +14,135 @@
  * limitations under the License.
  */
 
-import { FormGroup, MenuItem, Intent } from '@blueprintjs/core';
-import { ItemPredicate } from '@blueprintjs/select';
-import { Select, Button } from '@jupyterlab/ui-components';
+// import { FormGroup, MenuItem, Intent } from '@blueprintjs/core';
+// import { ItemPredicate } from '@blueprintjs/select';
+// import { Select, Button } from '@jupyterlab/ui-components';
+import { TextField } from '@material-ui/core';
+import { Autocomplete } from '@material-ui/lab';
+
 import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
+
+type Intent = 'error' | 'warning';
 
 export interface IDropDownProps {
   label: string;
   schemaField: string;
   description?: string;
   choice?: string;
-  required?: string;
+  required?: boolean;
   defaultChoices?: string[];
   handleDropdownChange: any;
   intent: Intent;
   allowCreate: boolean;
 }
 
-export class DropDown extends React.Component<IDropDownProps> {
-  itemRenderer(value: string, options: any): React.ReactElement {
-    return (
-      <Button
-        className={DROPDOWN_ITEM_CLASS}
-        onClick={options.handleClick}
-        key={value}
-        text={value}
-      ></Button>
-    );
-  }
-
-  renderCreateOption = (
-    query: string,
-    active: boolean,
-    handleClick: React.MouseEventHandler<HTMLElement>
-  ): React.ReactElement => (
-    <MenuItem
-      icon="add"
-      key="createOption"
-      text={`Create "${query}"`}
-      active={active}
-      onClick={handleClick}
-      shouldDismissPopover={false}
+// eslint-disable-next-line func-style
+export function DropDown(props: IDropDownProps): any {
+  return (
+    <Autocomplete
+      id="combo-box-demo"
+      freeSolo
+      className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}
+      options={props.defaultChoices}
+      style={{ width: 300 }}
+      defaultValue={props.choice}
+      onChange={props.handleDropdownChange}
+      renderInput={params => (
+        <TextField
+          {...params}
+          label={props.label}
+          required={props.required}
+          helperText={props.description}
+          placeholder={`Create or select ${props.label}`}
+          variant="outlined"
+        />
+      )}
     />
   );
-
-  filterDropdown: ItemPredicate<string> = (
-    query,
-    value,
-    _index,
-    exactMatch
-  ) => {
-    const normalizedTitle = value.toLowerCase();
-    const normalizedQuery = query.toLowerCase();
-
-    if (normalizedQuery === normalizedTitle) {
-      return normalizedTitle === normalizedQuery;
-    } else {
-      return `${normalizedTitle}`.indexOf(normalizedQuery) >= 0;
-    }
-  };
-
-  render(): React.ReactElement {
-    let helperText = this.props.description ? this.props.description : '';
-    if (this.props.intent == Intent.DANGER) {
-      helperText += '\nThis field is required.';
-    }
-    return (
-      <FormGroup
-        key={this.props.label}
-        label={this.props.label}
-        labelInfo={this.props.required}
-        helperText={helperText}
-        intent={this.props.intent}
-      >
-        <Select
-          items={this.props.defaultChoices}
-          itemPredicate={this.filterDropdown}
-          createNewItemFromQuery={
-            this.props.allowCreate
-              ? (newValue: any): void => {
-                  return newValue;
-                }
-              : undefined
-          }
-          createNewItemRenderer={
-            this.props.allowCreate ? this.renderCreateOption : undefined
-          }
-          onItemSelect={(value: string): void => {
-            this.props.handleDropdownChange(this.props.schemaField, value);
-          }}
-          itemRenderer={this.itemRenderer}
-        >
-          <Button
-            rightIcon="caret-down"
-            text={this.props.choice ? this.props.choice : '(No selection)'}
-          />
-        </Select>
-      </FormGroup>
-    );
-  }
 }
+
+// export class DropDown extends React.Component<IDropDownProps> {
+//   itemRenderer(value: string, options: any): React.ReactElement {
+//     return (
+//       <Button
+//         className={DROPDOWN_ITEM_CLASS}
+//         onClick={options.handleClick}
+//         key={value}
+//         text={value}
+//       ></Button>
+//     );
+//   }
+
+//   renderCreateOption = (
+//     query: string,
+//     active: boolean,
+//     handleClick: React.MouseEventHandler<HTMLElement>
+//   ): React.ReactElement => (
+//     <MenuItem
+//       icon="add"
+//       key="createOption"
+//       text={`Create "${query}"`}
+//       active={active}
+//       onClick={handleClick}
+//       shouldDismissPopover={false}
+//     />
+//   );
+
+//   filterDropdown: ItemPredicate<string> = (
+//     query,
+//     value,
+//     _index,
+//     exactMatch
+//   ) => {
+//     const normalizedTitle = value.toLowerCase();
+//     const normalizedQuery = query.toLowerCase();
+
+//     if (normalizedQuery === normalizedTitle) {
+//       return normalizedTitle === normalizedQuery;
+//     } else {
+//       return `${normalizedTitle}`.indexOf(normalizedQuery) >= 0;
+//     }
+//   };
+
+//   render(): React.ReactElement {
+//     let helperText = this.props.description ? this.props.description : '';
+//     if (this.props.intent == Intent.DANGER) {
+//       helperText += '\nThis field is required.';
+//     }
+//     return (
+//       <FormGroup
+//         key={this.props.label}
+//         label={this.props.label}
+//         labelInfo={this.props.required}
+//         helperText={helperText}
+//         intent={this.props.intent}
+//       >
+//         <Select
+//           items={this.props.defaultChoices}
+//           itemPredicate={this.filterDropdown}
+//           createNewItemFromQuery={
+//             this.props.allowCreate
+//               ? (newValue: any): void => {
+//                   return newValue;
+//                 }
+//               : undefined
+//           }
+//           createNewItemRenderer={
+//             this.props.allowCreate ? this.renderCreateOption : undefined
+//           }
+//           onItemSelect={(value: string): void => {
+//             this.props.handleDropdownChange(this.props.schemaField, value);
+//           }}
+//           itemRenderer={this.itemRenderer}
+//         >
+//           <Button
+//             rightIcon="caret-down"
+//             text={this.props.choice ? this.props.choice : '(No selection)'}
+//           />
+//         </Select>
+//       </FormGroup>
+//     );
+//   }
+// }

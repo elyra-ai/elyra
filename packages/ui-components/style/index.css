@@ -183,3 +183,7 @@
 .elyra-expandableContainer-draggable:hover {
   cursor: grab;
 }
+
+.MuiFormControl-root {
+  margin: 10px;
+}
