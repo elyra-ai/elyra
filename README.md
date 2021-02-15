@@ -186,6 +186,11 @@ If you are interested in helping make Elyra better, we encourage you to take a l
 [Development Workflow](https://elyra.readthedocs.io/en/latest/developer_guide/development-workflow.html)
 documentation, and invite you to attend our weekly dev community meetings.
 
+### Code of Conducts & Contibution Guidelines
+We recommend checking out the [Contributor's Guide](https://github.com/elyra-ai/community/blob/master/contributing.md), which will walk you through pull requests
+and the reviewing process, as well as the [Code of Conduct](https://github.com/elyra-ai/community/blob/master/code-of-conduct.md) for the repo.
+
+
 ### Weekly Dev Community Meeting 
 Join us weekly to discuss Elyra development topics.  Everyone is welcome and participation is optional.
 
