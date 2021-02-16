@@ -31,13 +31,17 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
 
 * Create a new Python environment
 
-    `conda create -n <env-name> python`
+    ```
+    conda create -n <env-name> python
+    ```
 
     The python version of your environment will match the miniconda version you installed. You can override the default by explicitly setting `python=3.7`, for example.
 
 * Activate the new environment
 
-    `conda activate dev`
+    ```
+    conda activate <env-name>
+    ```
 
 * Verify your miniconda environment
 
@@ -52,7 +56,9 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
 
 * Install NodeJS
 
-    `conda install -y -c conda-forge/label/main nodejs`
+    ```
+    conda install -y -c conda-forge/label/main nodejs
+    ```
 
 ### Setting up your Elyra Github repository
 
