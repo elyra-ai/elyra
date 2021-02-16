@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Intent, ResizeSensor } from '@blueprintjs/core';
+import { ResizeSensor } from '@blueprintjs/core';
 
 import { MetadataService, IDictionary } from '@elyra/services';
 import { DropDown, RequestErrors } from '@elyra/ui-components';
@@ -31,6 +31,7 @@ import {
   InputAdornment,
   IconButton,
   InputLabel,
+  FormHelperText,
   Button
 } from '@material-ui/core';
 import { Visibility, VisibilityOff } from '@material-ui/icons';
@@ -175,6 +176,9 @@ export class MetadataEditor extends ReactWidget {
       schemaValue === null ||
       schemaValue === '' ||
       (Array.isArray(schemaValue) && schemaValue.length === 0) ||
+      (Array.isArray(schemaValue) &&
+        schemaValue.length === 1 &&
+        schemaValue[0] === '') ||
       schemaValue === '(No selection)'
     );
   }
@@ -195,9 +199,9 @@ export class MetadataEditor extends ReactWidget {
         this.isValueEmpty(this.metadata[schemaField])
       ) {
         this.invalidForm = true;
-        this.schema[schemaField].uihints.intent = Intent.DANGER;
+        this.schema[schemaField].uihints.error = true;
       } else {
-        this.schema[schemaField].uihints.intent = Intent.NONE;
+        this.schema[schemaField].uihints.error = false;
       }
     }
     return this.invalidForm;
@@ -370,11 +374,13 @@ export class MetadataEditor extends ReactWidget {
     defaultValue: string,
     required: boolean,
     secure: boolean,
-    intent?: Intent
+    error?: boolean
   ): React.ReactElement {
-    let helperText = description ? description : '';
-    if (intent === Intent.DANGER) {
-      helperText += '\nThis field is required.';
+    let errorText = null;
+    if (error) {
+      errorText = (
+        <FormHelperText error> This field is required. </FormHelperText>
+      );
     }
 
     const toggleShowPassword = (): void => {
@@ -397,7 +403,7 @@ export class MetadataEditor extends ReactWidget {
           label={label}
           required={required}
           variant="outlined"
-          helperText={helperText}
+          error={error}
           onChange={(event: any): void => {
             this.handleTextInputChange(event, fieldName);
           }}
@@ -425,6 +431,7 @@ export class MetadataEditor extends ReactWidget {
           }
           className={`elyra-metadataEditor-form-${fieldName}`}
         />
+        {errorText}
       </div>
     );
   }
@@ -458,7 +465,7 @@ export class MetadataEditor extends ReactWidget {
         this.metadata[fieldName],
         required,
         uihints.secure,
-        uihints.intent
+        uihints.error
       );
     } else if (uihints.field_type === 'dropdown') {
       return (
@@ -467,7 +474,7 @@ export class MetadataEditor extends ReactWidget {
           schemaField={fieldName}
           description={uihints.description}
           required={required}
-          intent={uihints.intent}
+          error={uihints.error}
           choice={this.metadata[fieldName]}
           defaultChoices={this.getDefaultChoices(fieldName)}
           handleDropdownChange={this.handleDropdownChange}
@@ -475,19 +482,17 @@ export class MetadataEditor extends ReactWidget {
         ></DropDown>
       );
     } else if (uihints.field_type === 'code') {
-      // let helperText: string;
-      // if (uihints.intent === Intent.DANGER) {
-      //   helperText = 'This field is required.';
-      // }
+      let helperText = null;
+      if (uihints.error) {
+        helperText = (
+          <FormHelperText error> This field is required. </FormHelperText>
+        );
+      }
       return (
         <div
           className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
         >
-          <InputLabel
-            required={required}
-            // intent={uihints.intent}
-            // helperText={helperText}
-          >
+          <InputLabel required={required}>
             {this.schema[fieldName].title}
           </InputLabel>
           <ResizeSensor
@@ -497,6 +502,7 @@ export class MetadataEditor extends ReactWidget {
           >
             <div id={'code:' + this.id} className="elyra-form-code va-va"></div>
           </ResizeSensor>
+          {helperText}
         </div>
       );
     } else if (uihints.field_type === 'tags') {
@@ -539,10 +545,7 @@ export class MetadataEditor extends ReactWidget {
     if (!this.name) {
       headerText = `Add new ${this.schemaDisplayName}`;
     }
-    let intent: Intent = Intent.NONE;
-    if (this.displayName === '' && this.invalidForm) {
-      intent = Intent.DANGER;
-    }
+    const error = this.displayName === '' && this.invalidForm;
     return (
       <div className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
@@ -554,7 +557,7 @@ export class MetadataEditor extends ReactWidget {
               this.displayName,
               true,
               false,
-              intent
+              error
             )
           : null}
         {inputElements}

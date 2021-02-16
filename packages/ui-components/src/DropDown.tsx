@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-// import { FormGroup, MenuItem, Intent } from '@blueprintjs/core';
-// import { ItemPredicate } from '@blueprintjs/select';
-// import { Select, Button } from '@jupyterlab/ui-components';
-import { TextField } from '@material-ui/core';
+import { TextField, FormHelperText } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 
 import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
-
-type Intent = 'error' | 'warning';
 
 export interface IDropDownProps {
   label: string;
@@ -34,32 +29,44 @@ export interface IDropDownProps {
   required?: boolean;
   defaultChoices?: string[];
   handleDropdownChange: any;
-  intent: Intent;
+  error: boolean;
   allowCreate: boolean;
 }
 
 // eslint-disable-next-line func-style
 export function DropDown(props: IDropDownProps): any {
+  let errorText = null;
+  if (props.error) {
+    errorText = (
+      <FormHelperText error> This field is required. </FormHelperText>
+    );
+  }
   return (
-    <Autocomplete
-      id="combo-box-demo"
-      freeSolo
-      className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}
-      options={props.defaultChoices}
-      style={{ width: 300 }}
-      defaultValue={props.choice}
-      onChange={props.handleDropdownChange}
-      renderInput={params => (
-        <TextField
-          {...params}
-          label={props.label}
-          required={props.required}
-          helperText={props.description}
-          placeholder={`Create or select ${props.label}`}
-          variant="outlined"
-        />
-      )}
-    />
+    <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
+      <Autocomplete
+        id="combo-box-demo"
+        freeSolo
+        key="elyra-DropDown"
+        options={props.defaultChoices}
+        style={{ width: 300 }}
+        defaultValue={props.choice}
+        onChange={(event: any, newValue: any): void => {
+          props.handleDropdownChange(props.schemaField, newValue);
+        }}
+        renderInput={params => (
+          <TextField
+            {...params}
+            label={props.label}
+            error={props.error}
+            required={props.required}
+            helperText={props.description}
+            placeholder={`Create or select ${props.label}`}
+            variant="outlined"
+          />
+        )}
+      />
+      {errorText}
+    </div>
   );
 }
 
