@@ -271,6 +271,7 @@ button.elyra-editor-tag.applied-tag {
 
 button.elyra-editor-tag.unapplied-tag {
   color: var(--jp-ui-font-color2);
+  white-space: nowrap;
 }
 
 .elyra-editor-tag.tag.unapplied-tag input {
