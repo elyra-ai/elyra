@@ -56,6 +56,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
         cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
         cos_bucket = runtime_configuration.metadata.get('cos_bucket')
 
+        github_api_endpoint = runtime_configuration.metadata.get('github_api_endpoint')
         github_repo_token = runtime_configuration.metadata.get('github_repo_token')
         github_repo = runtime_configuration.metadata.get('github_repo')
         github_branch = runtime_configuration.metadata.get('github_branch')
@@ -74,7 +75,6 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             self.log.debug("Uploading pipeline file: %s", pipeline_filepath)
 
             try:
-                github_api_endpoint = runtime_configuration.metadata.get('github_api_endpoint')
                 github_client = GithubClient(server_url=github_api_endpoint,
                                              token=github_repo_token,
                                              repo=github_repo,
@@ -83,8 +83,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             except BaseException as e:
                 raise RuntimeError(f'Unable to create a connection to {github_api_endpoint}: {str(e)}') from e
 
-            github_client.upload_dag(pipeline_name=pipeline_name,
-                                     pipeline_filepath=pipeline_filepath)
+            github_client.upload_dag(pipeline_filepath, pipeline_name)
 
             self.log.info('Waiting for Airflow Scheduler to process and start the pipeline')
 

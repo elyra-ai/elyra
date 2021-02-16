@@ -62,7 +62,6 @@ class GithubClient(LoggingConfigurable):
         :param pipeline_name: the name of the file to be created in the remote Github Repository
         :return:
         """
-
         try:
             # Upload to github
             with open(pipeline_filepath) as input_file:

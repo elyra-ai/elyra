@@ -429,7 +429,7 @@
           "op": "execute-notebook-node",
           "app_data": {
             "filename": "sandbox/y.ipynb",
-            "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+            "runtime_image": "elyra/examples:1.0.0-py3",
             "env_vars": ["OP_NAME=y"],
             "include_subdirectories": false,
             "ui_data": {
