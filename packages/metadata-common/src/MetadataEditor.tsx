@@ -32,7 +32,9 @@ import {
   IconButton,
   InputLabel,
   FormHelperText,
-  Button
+  Button,
+  createMuiTheme,
+  ThemeProvider
 } from '@material-ui/core';
 import { Visibility, VisibilityOff } from '@material-ui/icons';
 
@@ -51,7 +53,20 @@ interface IMetadataEditorProps {
   onSave: () => void;
   editorServices: IEditorServices | null;
   status: ILabStatus;
+  darkMode?: boolean;
 }
+
+const lightTheme = createMuiTheme({
+  palette: {
+    type: 'light'
+  }
+});
+
+const darkTheme = createMuiTheme({
+  palette: {
+    type: 'dark'
+  }
+});
 
 /**
  * Metadata editor widget
@@ -74,6 +89,7 @@ export class MetadataEditor extends ReactWidget {
   invalidForm: boolean;
   showSecure: IDictionary<boolean>;
   widgetClass: string;
+  _darkMode?: boolean;
 
   schema: IDictionary<any> = {};
   schemaPropertiesByCategory: IDictionary<string[]> = {};
@@ -181,6 +197,15 @@ export class MetadataEditor extends ReactWidget {
         schemaValue[0] === '') ||
       schemaValue === '(No selection)'
     );
+  }
+
+  get darkMode(): boolean {
+    return this._darkMode ?? false;
+  }
+
+  set darkMode(value: boolean) {
+    this._darkMode = value;
+    this.update();
   }
 
   /**
@@ -547,36 +572,38 @@ export class MetadataEditor extends ReactWidget {
     }
     const error = this.displayName === '' && this.invalidForm;
     return (
-      <div className={ELYRA_METADATA_EDITOR_CLASS}>
-        <h3> {headerText} </h3>
-        {this.displayName !== undefined
-          ? this.renderTextInput(
-              'Name',
-              '',
-              'display_name',
-              this.displayName,
-              true,
-              false,
-              error
-            )
-          : null}
-        {inputElements}
-        <div
-          className={
-            'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
-          }
-        >
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={(): void => {
-              this.saveMetadata();
-            }}
+      <ThemeProvider theme={this.darkMode ? darkTheme : lightTheme}>
+        <div className={ELYRA_METADATA_EDITOR_CLASS}>
+          <h3> {headerText} </h3>
+          {this.displayName !== undefined
+            ? this.renderTextInput(
+                'Name',
+                '',
+                'display_name',
+                this.displayName,
+                true,
+                false,
+                error
+              )
+            : null}
+          {inputElements}
+          <div
+            className={
+              'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
+            }
           >
-            Save & Close
-          </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={(): void => {
+                this.saveMetadata();
+              }}
+            >
+              Save & Close
+            </Button>
+          </div>
         </div>
-      </div>
+      </ThemeProvider>
     );
   }
 }
