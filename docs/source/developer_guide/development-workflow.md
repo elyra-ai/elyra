@@ -18,14 +18,63 @@ limitations under the License.
 ## Development Workflow
 This section describes the steps necessary to build Elyra in a development environment. 
 
+#### Requirements
+
+* [Python 3 Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+* [NodeJS 12+](https://nodejs.org/en/)
+* [Yarn](https://yarnpkg.com/lang/en/docs/install)
+
+### Setting up your development environment
+
+* Install Miniconda
+Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/latest/miniconda.html) according to your Operating System
+
+* Create a new Python environment
+
+    ```
+    conda create -n <env-name> python
+    ```
+
+    The python version of your environment will match the miniconda version you installed. You can override the default by explicitly setting `python=3.7`, for example.
+
+* Activate the new environment
+
+    ```
+    conda activate <env-name>
+    ```
+
+* Verify your miniconda environment
+
+    ```
+    python --version
+    which python # Displays current python path
+    pip --version
+    which pip
+    ```
+    Python path must be under miniconda envs folder.
+    Confirm pip location matches where miniconda is installed.
+
+* Install NodeJS
+
+    ```
+    conda install -y -c conda-forge/label/main nodejs
+    ```
+
+### Setting up your Elyra Github repository
+
+* Fork the [Elyra Github repository](https://github.com/elyra-ai/elyra) (if you haven't already)
+
+* Make a local copy of Elyra fork
+    ```
+    git clone https://github.com/<your-github-id>/elyra.git
+    cd elyra
+    ```
+* Set `upstream` as described in the [GitHub documentation](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/configuring-a-remote-for-a-fork)
+
 ### Building
 Elyra is divided in two parts, a collection of Jupyter Notebook backend extensions,
 and their respective JupyterLab UI extensions. Our JupyterLab extensions are located in our `packages`
 directory. 
-
-#### Requirements
-
-* [Yarn](https://yarnpkg.com/lang/en/docs/install) 
 
 #### Build & Installation
 
