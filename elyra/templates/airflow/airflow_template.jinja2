@@ -46,6 +46,10 @@ notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.not
                                                           config_file="{{ kube_config_path }}",
                                                           dag=dag)
 
+    {% if operation.image_pull_policy %}
+        notebook_op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
+    {% endif %}
+
     {% if operation.parent_operations %}
         {% for parent_operation in operation.parent_operations %}
             notebook_op_{{ operation.id|regex_replace }} << notebook_op_{{ parent_operation|regex_replace }}
