@@ -26,7 +26,7 @@ is organized and other information that is pertinent to contributing.
 
 ### Getting Started
 
-Before contributing, we highly suggest reading the [Code of Conduct](https://github.com/elyra-ai/community/blob/master/code-of-conduct.md) & 
+Before contributing, we suggest reading the [Code of Conduct](https://github.com/elyra-ai/community/blob/master/code-of-conduct.md) & 
 [Contributor Repo Setup Documentation](https://elyra.readthedocs.io/en/latest/developer_guide/documentation.html). 
 Once completed, it's encouraged that you look under the [Issues](https://github.com/elyra-ai/elyra/issues) tab for contribution opportunites.
 For those new to the project or OpenSource workflows, we suggest looking under:
@@ -46,10 +46,12 @@ If you are planning to contribute to source code, the following can help you set
 - Data Sources Extension, SQL Editor
 - Property / Metadata Inheritance / Scopes
 
+Check out [Issues](https://github.com/elyra-ai/elyra/issues) with the tag [Good First Project](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+project%22).
+
 Also, we are always open to suggestions for new functionality and/or extensions, user experience enhancements, etc.
 
 #### Asking Questions
 Any questions can be directed to the [Discussions](https://github.com/elyra-ai/elyra/discussions) tab. Be sure to add an appropriate category
 (ie. `General` or `Q&A`). Other great options include the project's [Gitter Community](https://gitter.im/elyra-ai/community), or the weekly
-[Thrusday Meetings](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html#join-the-weekly-community-meetinghttps://elyra.readthedocs.io/en/latest/getting_started/getting-help.html#join-the-weekly-community-meeting)
-held at 9AM Pacific Time.
+[Thursday Meetings](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html#join-the-weekly-community-meetinghttps://elyra.readthedocs.io/en/latest/getting_started/getting-help.html#join-the-weekly-community-meeting)
+held at [9AM Pacific Time](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&).
