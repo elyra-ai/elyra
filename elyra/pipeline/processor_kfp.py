@@ -372,7 +372,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
             # create pipeline operation
             notebook_ops[operation.id] = NotebookOp(name=operation.name,
-                                                    pipeline_name=pipeline.name,
+                                                    pipeline_name=pipeline_name,
                                                     experiment_name=experiment_name,
                                                     notebook=operation.filename,
                                                     cos_endpoint=cos_endpoint,
