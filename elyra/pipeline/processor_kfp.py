@@ -23,18 +23,15 @@ import requests
 
 from datetime import datetime
 from elyra._version import __version__
-from elyra.metadata import MetadataManager
-from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse
-from elyra.util.archive import create_temp_archive
+from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
-from elyra.util.cos import CosClient
 from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
 from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
 
 
-class KfpPipelineProcessor(PipelineProcessor):
+class KfpPipelineProcessor(RuntimePipelineProcess):
     _type = 'kfp'
 
     # Provide users with the ability to identify a writable directory in the
@@ -58,9 +55,9 @@ class KfpPipelineProcessor(PipelineProcessor):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
 
         runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
-        api_endpoint = runtime_configuration.metadata['api_endpoint']
-        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-        cos_bucket = runtime_configuration.metadata['cos_bucket']
+        api_endpoint = runtime_configuration.metadata.get('api_endpoint')
+        cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+        cos_bucket = runtime_configuration.metadata.get('cos_bucket')
 
         user_namespace = runtime_configuration.metadata.get('user_namespace')
 
@@ -404,35 +401,9 @@ class KfpPipelineProcessor(PipelineProcessor):
                                    f"processing operation dependencies for id: {operation.id}",
                                    operation_name=operation.name)
 
-            # upload operation dependencies to object storage
-            try:
-                t0 = time.time()
-                dependency_archive_path = self._generate_dependency_archive(operation)
-                self.log_pipeline_info(pipeline_name,
-                                       f"generated dependency archive: {dependency_archive_path}",
-                                       operation_name=operation.name,
-                                       duration=(time.time() - t0))
-
-                cos_client = CosClient(config=runtime_configuration)
-                t0 = time.time()
-                cos_client.upload_file_to_dir(dir=cos_directory,
-                                              file_name=operation_artifact_archive,
-                                              file_path=dependency_archive_path)
-                self.log_pipeline_info(pipeline_name,
-                                       f"uploaded dependency archive to: {cos_directory}/{operation_artifact_archive}",
-                                       operation_name=operation.name,
-                                       duration=(time.time() - t0))
-
-            except FileNotFoundError as ex:
-                self.log.error("Dependencies were not found building archive for operation: {}".
-                               format(operation.name), exc_info=True)
-                raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
-                                        format(operation.name, ex))
-
-            except BaseException as ex:
-                self.log.error("Error uploading artifacts to object storage for operation: {}".
-                               format(operation.name), exc_info=True)
-                raise ex from ex
+            self._upload_dependencies_to_object_store(runtime_configuration,
+                                                      pipeline_name,
+                                                      operation)
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
@@ -444,41 +415,6 @@ class KfpPipelineProcessor(PipelineProcessor):
         self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration=(time.time() - t0_all))
 
         return notebook_ops
-
-    def _get_dependency_archive_name(self, operation):
-        archive_name = os.path.basename(operation.filename)
-        (name, ext) = os.path.splitext(archive_name)
-        return name + '-' + operation.id + ".tar.gz"
-
-    def _get_dependency_source_dir(self, operation):
-        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
-
-    def _generate_dependency_archive(self, operation):
-        archive_artifact_name = self._get_dependency_archive_name(operation)
-        archive_source_dir = self._get_dependency_source_dir(operation)
-
-        dependencies = [os.path.basename(operation.filename)]
-        dependencies.extend(operation.dependencies)
-
-        archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
-                                               source_dir=archive_source_dir,
-                                               filenames=dependencies,
-                                               recursive=operation.include_subdirectories,
-                                               require_complete=True)
-
-        return archive_artifact
-
-    def _get_runtime_configuration(self, name):
-        """
-        Retrieve associated runtime configuration based on processor type
-        :return: metadata in json format
-        """
-        try:
-            runtime_configuration = MetadataManager(namespace=MetadataManager.NAMESPACE_RUNTIMES).get(name)
-            return runtime_configuration
-        except BaseException as err:
-            self.log.error('Error retrieving runtime configuration for {}'.format(name), exc_info=True)
-            raise RuntimeError('Error retrieving runtime configuration for {}', err) from err
 
     def _get_user_auth_session_cookie(self, url, username, password):
         get_response = requests.get(url)
