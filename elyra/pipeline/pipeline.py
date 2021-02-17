@@ -23,8 +23,8 @@ class Operation(object):
     """
 
     def __init__(self, id, type, classifier, filename, runtime_image, memory=None, cpu=None, gpu=None,
-                 dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
-                 parent_operations=None):
+                 dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None,
+                 outputs=None, parent_operations=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
