@@ -33,20 +33,12 @@ For those new to the project or OpenSource workflows, we suggest looking under:
 
 - Issues tagged as [Good First Use](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
 - Issues tagged as [Help Wanted](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22help+wanted%22 )
+- Issues tagged as [Good First Project](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+project%22)
 
-If you are planning to contribute to source code, the following can help you set up your [development environment](https://elyra.readthedocs.io/en/latest/developer_guide/development-workflow.html).
+If you are planning to contribute to source code, the [development workflow](https://elyra.readthedocs.io/en/latest/developer_guide/development-workflow.html) can help you set up and 
+build Elyra in a development environment.
 
 
-#### Suggested Small to Medium Sized Projects
-
-- Add Support for R Script Editor
-- Seamless Integration with S3/COS from Elyra UI (Integrated Browser)
-- Implement Debug Support for IPython
-- Better Support for Data Processing
-- Data Sources Extension, SQL Editor
-- Property / Metadata Inheritance / Scopes
-
-Check out [Issues](https://github.com/elyra-ai/elyra/issues) with the tag [Good First Project](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+project%22).
 
 Also, we are always open to suggestions for new functionality and/or extensions, user experience enhancements, etc.
 
