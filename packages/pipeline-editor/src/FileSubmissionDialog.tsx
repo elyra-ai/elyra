@@ -17,21 +17,29 @@
 import { IDictionary } from '@elyra/services';
 import * as React from 'react';
 
-import { IRuntime } from './PipelineService';
+import {
+  KFP_SCHEMA,
+  IRuntime,
+  ISchema,
+  PipelineService
+} from './PipelineService';
 import Utils from './utils';
 
 interface IProps {
-  runtimes: IRuntime[];
-  images: IDictionary<string>;
   env?: string[];
+  images: IDictionary<string>;
+  runtimes: IRuntime[];
+  schema: ISchema[];
 }
 
 interface IState {
+  runtimePlatform: string;
+  runtimes: IRuntime[];
   includeDependency: boolean;
 }
 
 const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
-  if (env) {
+  if (env.length > 0) {
     return (
       <>
         <br />
@@ -63,6 +71,8 @@ const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
 
 export class FileSubmissionDialog extends React.Component<IProps, IState> {
   state = {
+    runtimePlatform: KFP_SCHEMA,
+    runtimes: this.props.runtimes,
     includeDependency: true
   };
 
@@ -72,9 +82,27 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
     });
   };
 
+  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const selectedPlatform = event.target.value;
+    this.updateDisplayOptions(selectedPlatform);
+  };
+
+  updateDisplayOptions = (platformSelection: string): void => {
+    const runtimes = PipelineService.filterRuntimes(
+      this.props.runtimes,
+      platformSelection
+    );
+    this.setState({
+      runtimes: runtimes
+    });
+  };
+
+  componentDidMount(): void {
+    this.updateDisplayOptions(this.state.runtimePlatform);
+  }
   render(): React.ReactNode {
-    const { env, images, runtimes } = this.props;
-    const { includeDependency } = this.state;
+    const { includeDependency, runtimes } = this.state;
+    const { env, images, schema } = this.props;
     const fileDependencyContent = includeDependency ? (
       <div key="dependencies">
         <br />
@@ -90,8 +118,25 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
       </div>
     ) : null;
 
+    PipelineService.sortRuntimesByDisplayName(runtimes);
+
     return (
       <form>
+        <label htmlFor="runtime_platform">Runtime Platform:</label>
+        <br />
+        <select
+          id="runtime_platform"
+          name="runtime_platform"
+          className="elyra-form-runtime-platform"
+          defaultValue={this.state.runtimePlatform}
+          onChange={this.handleUpdate}
+        >
+          {schema.map(schema => (
+            <option key={schema.name} value={schema.name}>
+              {schema.display_name}
+            </option>
+          ))}
+        </select>
         <label htmlFor="runtime_config">Runtime Config:</label>
         <br />
         <select

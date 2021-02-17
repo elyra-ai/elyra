@@ -73,7 +73,7 @@ import * as palette from './palette.json';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import {
   PipelineService,
-  KFP_SCHEMA,
+  AIRFLOW_SCHEMA,
   RUNTIMES_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
@@ -896,9 +896,15 @@ export class PipelineEditor extends React.Component<
       RequestErrors.serverError(error)
     );
 
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
-      body: formDialogWidget(<PipelineExportDialog runtimes={runtimes} />),
+      body: formDialogWidget(
+        <PipelineExportDialog runtimes={runtimes} schema={schema} />
+      ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
       focusNodeSelector: '#runtime_config'
@@ -1282,6 +1288,10 @@ export class PipelineEditor extends React.Component<
     const runtimes = await PipelineService.getRuntimes(false).catch(error =>
       RequestErrors.serverError(error)
     );
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
     const local_runtime: any = {
       name: 'local',
       display_name: 'Run in-place locally'
@@ -1291,7 +1301,11 @@ export class PipelineEditor extends React.Component<
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
       body: formDialogWidget(
-        <PipelineSubmissionDialog name={pipelineName} runtimes={runtimes} />
+        <PipelineSubmissionDialog
+          name={pipelineName}
+          runtimes={runtimes}
+          schema={schema}
+        />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
@@ -1359,7 +1373,7 @@ export class PipelineEditor extends React.Component<
 
   handleOpenRuntimes(): void {
     this.shell.activateById(
-      `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`
+      `elyra-metadata:${RUNTIMES_NAMESPACE}:${AIRFLOW_SCHEMA}`
     );
   }
 

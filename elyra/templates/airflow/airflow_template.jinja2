@@ -1,0 +1,58 @@
+from airflow import DAG
+from airflow_notebook.pipeline import NotebookOp
+from airflow.utils.dates import days_ago
+
+## Setup default args with older date to automatically trigger when uploaded
+args = {
+    'project_id' : '{{ pipeline_name }}',
+}
+
+dag = DAG(
+    '{{ pipeline_name }}',
+    default_args=args,
+    schedule_interval='@once',
+    start_date=days_ago(1),
+    description='{{ pipeline_description }}',
+    is_paused_upon_creation={{ is_paused_upon_creation }},
+)
+
+{% for key, operation in operations_list.items() %}
+notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|regex_replace }}',
+                                                          namespace='{{ namespace }}',
+                                                          task_id='{{ operation.notebook|regex_replace }}',
+                                                          notebook='{{ operation.filename }}',
+                                                          cos_endpoint='{{ operation.cos_endpoint }}',
+                                                          cos_bucket='{{ operation.cos_bucket }}',
+                                                          cos_directory='{{ operation.cos_directory }}',
+                                                          cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
+                                                          pipeline_outputs={{ operation.pipeline_outputs }},
+                                                          pipeline_inputs={{ operation.pipeline_inputs }},
+                                                          image='{{ operation.runtime_image }}',
+    {% if operation.cpu_request or operation.mem_request or operation.gpu_limit %}
+                                                          resources = {
+        {% if operation.cpu_request %}
+                                                                       'request_cpu': '{{ operation.cpu_request }}',
+        {% endif %}
+        {% if operation.mem_request %}
+                                                                       'request_memory': '{{ operation.mem_request }}',
+        {% endif %}
+        {% if operation.gpu_limit %}
+                                                                       'limit_gpu': '{{ operation.cpu_request }}',
+        {% endif %}
+        },
+    {% endif %}
+                                                          in_cluster={{ in_cluster }},
+                                                          env_vars={{ operation.pipeline_envs }},
+                                                          config_file="{{ kube_config_path }}",
+                                                          dag=dag)
+
+    {% if operation.image_pull_policy %}
+        notebook_op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
+    {% endif %}
+
+    {% if operation.parent_operations %}
+        {% for parent_operation in operation.parent_operations %}
+            notebook_op_{{ operation.id|regex_replace }} << notebook_op_{{ parent_operation|regex_replace }}
+        {% endfor %}
+    {% endif %}
+{% endfor %}

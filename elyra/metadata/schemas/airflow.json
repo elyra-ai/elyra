@@ -1,11 +1,11 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Pipeline runtime configuration",
-  "name": "kfp",
-  "display_name": "Kubeflow Pipelines runtime",
+  "name": "airflow",
+  "display_name": "Apache Airflow runtime",
   "namespace": "runtimes",
   "uihints": {
-    "title": "Kubeflow Pipelines runtimes",
+    "title": "Apache Airflow runtimes",
     "icon": "elyra:runtimes"
   },
   "properties": {
@@ -18,7 +18,7 @@
     },
     "display_name": {
       "title": "Display Name",
-      "description": "The display name of this KFP instance",
+      "description": "The display name of this Airflow instance",
       "type": "string",
       "minLength": 1
     },
@@ -28,54 +28,41 @@
       "properties": {
         "description": {
           "title": "Description",
-          "description": "The description of this KFP runtime instance",
+          "description": "The description of this Airflow runtime instance",
           "type": "string"
         },
         "api_endpoint": {
-          "title": "Kubeflow Pipelines API Endpoint",
-          "description": "The Kubeflow Pipelines API endpoint",
+          "title": "Airflow UI Endpoint",
+          "description": "The Apache Airflow UI endpoint",
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Kubeflow Pipelines"
+            "category": "Airflow Pipelines"
           }
         },
-        "user_namespace": {
-          "title": "Kubeflow Pipelines User Namespace",
-          "description": "The Kubeflow Pipelines user namespace used to create experiments",
-          "type": "string",
-          "pattern": "^[a-z0-9][-a-z0-9]*[a-z0-9]$",
-          "maxLength": 63,
-          "uihints": {
-            "category": "Kubeflow Pipelines"
-          }
-        },
-        "api_username": {
-          "title": "Kubeflow Pipelines API Endpoint Username",
-          "description": "The Kubeflow Pipelines API endpoint username",
+        "github_repo": {
+          "title": "Github DAG Repository",
+          "description": "The git repository for Airflow DAGs",
           "type": "string",
           "uihints": {
-            "category": "Kubeflow Pipelines"
+            "category": "Airflow Pipelines"
           }
         },
-        "api_password": {
-          "title": "Kubeflow Pipelines API Endpoint Password",
-          "description": "The Kubeflow Pipelines API endpoint password",
+        "github_branch": {
+          "title": "Github DAG Repository Branch",
+          "description": "The git branch to use for Airflow DAGs",
+          "type": "string",
+          "uihints": {
+            "category": "Airflow Pipelines"
+          }
+        },
+        "github_repo_token": {
+          "title": "Github Private Repository Token",
+          "description": "The github token to use to push to private repositories",
           "type": "string",
           "uihints": {
             "secure": true,
-            "category": "Kubeflow Pipelines"
-          }
-        },
-        "engine": {
-          "title": "Kubeflow Pipelines engine",
-          "description": "The Kubeflow Pipelines engine in use (Argo or Tekton)",
-          "type": "string",
-          "enum": ["Argo", "Tekton"],
-          "default": "Argo",
-          "uihints": {
-            "field_type": "dropdown",
-            "category": "Kubeflow Pipelines"
+            "category": "Airflow Pipelines"
           }
         },
         "cos_endpoint": {
@@ -118,7 +105,7 @@
         },
         "tags": {
           "title": "Tags",
-          "description": "Tags for categorizing Kubeflow pipelines",
+          "description": "Tags for categorizing Apache Airflow",
           "type": "array",
           "uihints": {
             "field_type": "tags"
@@ -126,11 +113,13 @@
         }
       },
       "required": [
-        "api_endpoint",
         "cos_endpoint",
         "cos_username",
         "cos_password",
-        "cos_bucket"
+        "cos_bucket",
+        "github_branch",
+        "github_repo_token",
+        "github_repo"
       ]
     }
   },

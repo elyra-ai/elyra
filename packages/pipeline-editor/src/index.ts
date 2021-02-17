@@ -29,7 +29,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
-import { KFP_SCHEMA, RUNTIMES_NAMESPACE } from './PipelineService';
+import { AIRFLOW_SCHEMA, RUNTIMES_NAMESPACE } from './PipelineService';
 import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
@@ -191,10 +191,10 @@ const extension: JupyterFrontEndPlugin<void> = {
       app,
       display_name: 'Runtimes',
       namespace: RUNTIMES_NAMESPACE,
-      schema: KFP_SCHEMA,
+      schema: AIRFLOW_SCHEMA,
       icon: runtimesIcon
     });
-    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}:${KFP_SCHEMA}`;
+    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}:${AIRFLOW_SCHEMA}`;
     runtimesWidget.id = runtimesWidgetID;
     runtimesWidget.title.icon = runtimesIcon;
     runtimesWidget.title.caption = 'Runtimes';

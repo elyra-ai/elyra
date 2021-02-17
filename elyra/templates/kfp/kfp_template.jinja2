@@ -42,6 +42,9 @@ def create_pipeline():
             notebook_op_{{ loop.index }}.name = '{{ operation.name }}'
             notebook_op_{{ loop.index }}.env_variables = {{ operation.env_variables }}
             notebook_op_{{ loop.index }}.dependent_names = {{ operation.dependent_names }}
+        {% if operation.container.image_pull_policy %}
+            notebook_op_{{ loop.index }}.container.image_pull_policy = '{{ operation.container.image_pull_policy }}'
+        {% endif %}
 
     {% endfor %}
 
