@@ -32,8 +32,7 @@ import Utils from './utils';
 /**
  * Submit script button extension
  *  - Attach button to Python Editor toolbar and launch a dialog requesting
- *  information about the remote location to where submit the script
- *  for execution
+ *  information where submit the script for execution
  */
 
 export class SubmitScriptButtonExtension
@@ -50,11 +49,18 @@ export class SubmitScriptButtonExtension
     const images = await PipelineService.getRuntimeImages().catch(error =>
       RequestErrors.serverError(error)
     );
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
 
     const dialogOptions = {
       title: 'Submit script',
       body: formDialogWidget(
-        <FileSubmissionDialog runtimes={runtimes} images={images} />
+        <FileSubmissionDialog
+          runtimes={runtimes}
+          images={images}
+          schema={schema}
+        />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     };
