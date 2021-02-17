@@ -204,7 +204,15 @@ class KfpPipelineProcessor(PipelineProcessor):
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
         t0_all = time.time()
+        timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = pipeline.name
+        pipeline_version_name = f'{pipeline_name}-{timestamp}'
+        experiment_name = pipeline_name
+        # Unique identifier for the pipeline run
+        job_name = f'{pipeline_name}-{timestamp}'
+        # Unique location on COS where the pipeline run artifacts
+        # will be stored
+        cos_directory = f'{pipeline_name}-{timestamp}'
 
         # Since pipeline_export_path may be relative to the notebook directory, ensure
         # we're using its absolute form.
@@ -226,7 +234,7 @@ class KfpPipelineProcessor(PipelineProcessor):
                 # or a version. The association is established when the
                 # pipeline is imported into KFP by the user.
                 pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8
-                                                              pipeline_name)
+                                                              '')
 
                 if 'Tekton' == engine:
                     self.log.info("Compiling pipeline for Tekton engine")
@@ -240,7 +248,6 @@ class KfpPipelineProcessor(PipelineProcessor):
         else:
             # Export pipeline as Python DSL
             # Load template from installed elyra package
-            t0 = time.time()
             loader = PackageLoader('elyra', 'templates')
             template_env = Environment(loader=loader, trim_blocks=True)
 
@@ -249,9 +256,12 @@ class KfpPipelineProcessor(PipelineProcessor):
             template = template_env.get_template('kfp_template.jinja2')
 
             defined_pipeline = self._cc_pipeline(pipeline,
-                                                 pipeline_name)
+                                                 pipeline_name,
+                                                 pipeline_version=pipeline_version_name,
+                                                 experiment_name=experiment_name,
+                                                 cos_directory=cos_directory)
 
-            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.name}.pipeline.'
+            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.name}.'
 
             for key, operation in defined_pipeline.items():
                 self.log.debug("component :\n "
@@ -263,16 +273,15 @@ class KfpPipelineProcessor(PipelineProcessor):
                                operation.outputs)
 
             # The exported pipeline is by default associated with
-            # an experiment with the same name but not a version.
+            # an experiment.
             # The user can manually customize the generated code
             # and change the associations as desired.
-            experiment_name = f'{pipeline_name}-experiment'
-            pipeline_version = ''
 
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
-                                            pipeline_version=pipeline_version,
+                                            pipeline_version=pipeline_version_name,
                                             experiment_name=experiment_name,
+                                            run_name=job_name,
                                             engine=engine,
                                             namespace=namespace,
                                             api_endpoint=api_endpoint,
@@ -283,7 +292,7 @@ class KfpPipelineProcessor(PipelineProcessor):
             with open(absolute_pipeline_export_path, "w") as fh:
                 fh.write(autopep8.fix_code(python_output))
 
-            self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0))
+            self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0_all))
 
         self.log_pipeline_info(pipeline_name,
                                f"pipeline exported: {pipeline_export_path}",
