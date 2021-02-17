@@ -102,6 +102,14 @@
           "uihints": {
             "category": "Cloud Object Storage"
           }
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing Apache Airflow",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
         }
       },
       "required": [
