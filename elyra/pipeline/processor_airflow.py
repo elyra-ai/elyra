@@ -25,9 +25,8 @@ from black import format_str, FileMode
 from collections import OrderedDict
 from datetime import datetime
 from elyra._version import __version__
-
+from elyra.metadata import MetadataManager
 from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
-
 from elyra.util.path import get_absolute_path
 from github import Github, GithubException
 from jinja2 import Environment, PackageLoader
@@ -51,7 +50,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
 
-        runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
+        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+                                                                 name=pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata.get('api_endpoint')
         cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
         cos_bucket = runtime_configuration.metadata.get('cos_bucket')
@@ -127,7 +127,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
     def _cc_pipeline(self, pipeline, pipeline_name):
 
-        runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
+        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+                                                                 name=pipeline.runtime_config)
 
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata['cos_username']
@@ -183,6 +184,13 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                     if len(result) == 2 and result[0] != '':
                         pipeline_envs[result[0]] = result[1]
 
+            image_pull_policy = None
+            image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+            for image_instance in image_namespace:
+                if image_instance.metadata['image_name'] == operation.runtime_image and \
+                        image_instance.metadata.get('pull_policy'):
+                    image_pull_policy = image_instance.metadata['pull_policy']
+
             notebook = {'notebook': operation.name,
                         'id': operation.id,
                         'filename': operation.filename,
@@ -195,6 +203,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                         'pipeline_inputs': operation.inputs,
                         'pipeline_envs': pipeline_envs,
                         'parent_operations': operation.parent_operations,
+                        'image_pull_policy': image_pull_policy,
                         'cpu_request': operation.cpu,
                         'mem_request': operation.memory,
                         'gpu_request': operation.gpu
@@ -246,7 +255,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             template = template_env.get_template('airflow_template.jinja2')
 
             notebook_ops = self._cc_pipeline(pipeline, pipeline_name)
-            runtime_configuration = self._get_runtime_configuration(pipeline.runtime_config)
+            runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+                                                                     name=pipeline.runtime_config)
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
 
             description = f"Created with Elyra {__version__} pipeline editor using {pipeline.name}.pipeline."

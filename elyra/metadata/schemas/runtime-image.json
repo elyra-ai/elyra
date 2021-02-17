@@ -37,6 +37,15 @@
           "type": "string",
           "minLength": 1
         },
+        "pull_policy": {
+          "title": "Image Pull Policy",
+          "description": "The pull policy to use when selecting this image",
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "uihints": {
+            "field_type": "dropdown"
+          }
+        },
         "tags": {
           "title": "Tags",
           "description": "Tags for categorizing runtime images",
