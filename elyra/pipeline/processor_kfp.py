@@ -321,7 +321,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         self.log_pipeline_info(pipeline_name,
                                f"processing pipeline dependencies to: {cos_endpoint} "
-                               f"bucket: {cos_bucket} folder: {pipeline_name}")
+                               f"bucket: {cos_bucket} folder: {cos_directory}")
         t0_all = time.time()
 
         emptydir_volume_size = ''
@@ -414,7 +414,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                    operation_name=operation.name)
 
             self._upload_dependencies_to_object_store(runtime_configuration,
-                                                      pipeline_name,
+                                                      cos_directory,
                                                       operation)
 
         # Process dependencies after all the operations have been created
