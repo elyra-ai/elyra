@@ -34,6 +34,7 @@ export default class Utils {
    */
   static generateNotebookPipeline(
     filename: string,
+    runtime_platform: string,
     runtime_config: string,
     runtimeImage: string,
     dependencies: string[],
@@ -59,7 +60,7 @@ export default class Utils {
     template.pipelines[0].nodes[0].app_data.dependencies = dependencies;
 
     template.pipelines[0].app_data.name = artifactName;
-    template.pipelines[0].app_data.runtime = 'airflow';
+    template.pipelines[0].app_data.runtime = runtime_platform;
     template.pipelines[0].app_data['runtime-config'] = runtime_config;
     template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
 
