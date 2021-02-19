@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { ResizeSensor } from '@blueprintjs/core';
-
 import { MetadataService, IDictionary } from '@elyra/services';
 import { DropDown, RequestErrors, TextInput } from '@elyra/ui-components';
 
@@ -414,7 +412,7 @@ export class MetadataEditor extends ReactWidget {
           description={uihints.description}
           fieldName={fieldName}
           defaultValue={this.metadata[fieldName]}
-          required
+          required={required}
           secure={uihints.secure}
           error={uihints.error}
           handleTextInputChange={this.handleTextInputChange}
@@ -448,15 +446,7 @@ export class MetadataEditor extends ReactWidget {
           <InputLabel required={required}>
             {this.schema[fieldName].title}
           </InputLabel>
-          <ResizeSensor
-            onResize={(): void => {
-              if (this.editor) {
-                this.editor.refresh();
-              }
-            }}
-          >
-            <div id={'code:' + this.id} className="elyra-form-code va-va"></div>
-          </ResizeSensor>
+          <div id={'code:' + this.id} className="elyra-form-code"></div>
           {helperText}
         </div>
       );

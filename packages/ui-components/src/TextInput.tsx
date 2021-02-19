@@ -37,26 +37,20 @@ export interface ITextFieldProps {
 
 // eslint-disable-next-line func-style
 export function TextInput(props: ITextFieldProps): any {
-  let errorText = null;
-  if (props.error) {
-    errorText = (
-      <FormHelperText error> This field is required. </FormHelperText>
-    );
-  }
+  const [errorText, setErrorText] = React.useState(null);
+  React.useEffect(() => {
+    if (props.error) {
+      setErrorText(
+        <FormHelperText error> This field is required. </FormHelperText>
+      );
+    }
+  }, [props.error]);
 
-  const [showSecure, setShowSecure] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const toggleShowPassword = (): void => {
-    setShowSecure(!showSecure);
+    setShowPassword(!showPassword);
   };
-  let showPassword = false;
-  if (props.secure) {
-    if (showSecure) {
-      showPassword = true;
-    } else {
-      setShowSecure(false);
-    }
-  }
 
   const [value, setValue] = React.useState(props.defaultValue);
 
