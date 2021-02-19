@@ -17,7 +17,7 @@
 import { ResizeSensor } from '@blueprintjs/core';
 
 import { MetadataService, IDictionary } from '@elyra/services';
-import { DropDown, RequestErrors } from '@elyra/ui-components';
+import { DropDown, RequestErrors, TextInput } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
@@ -27,16 +27,12 @@ import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 import {
-  TextField,
-  InputAdornment,
-  IconButton,
   InputLabel,
   FormHelperText,
   Button,
   createMuiTheme,
   ThemeProvider
 } from '@material-ui/core';
-import { Visibility, VisibilityOff } from '@material-ui/icons';
 
 import * as React from 'react';
 
@@ -182,7 +178,7 @@ export class MetadataEditor extends ReactWidget {
     } else {
       this.displayName = '';
     }
-
+    this.onInitializedMetadata();
     this.update();
   }
 
@@ -334,12 +330,11 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
-  onUpdateRequest(msg: Message): void {
-    super.onUpdateRequest(msg);
+  onInitializedMetadata(): void {
     // If the update request triggered rendering a 'code' input, and the editor hasn't
     // been initialized yet, create the editor and attach it to the 'code' node
     if (!this.editor && document.getElementById('code:' + this.id) != null) {
-      let initialCodeValue;
+      let initialCodeValue = '';
       const getMimeTypeByLanguage = this.editorServices.mimeTypeService
         .getMimeTypeByLanguage;
       // If the file already exists, initialize the code editor with the existing code
@@ -348,9 +343,7 @@ export class MetadataEditor extends ReactWidget {
       } else {
         if (this.code) {
           this.metadata['code'] = this.code;
-          initialCodeValue = this.code.join('\n');
-        } else {
-          initialCodeValue = '';
+          initialCodeValue = this.code!.join('\n');
         }
       }
       this.editor = this.editorServices.factoryService.newInlineEditor({
@@ -392,75 +385,6 @@ export class MetadataEditor extends ReactWidget {
     return defaultChoices;
   }
 
-  renderTextInput(
-    label: string,
-    description: string,
-    fieldName: string,
-    defaultValue: string,
-    required: boolean,
-    secure: boolean,
-    error?: boolean
-  ): React.ReactElement {
-    let errorText = null;
-    if (error) {
-      errorText = (
-        <FormHelperText error> This field is required. </FormHelperText>
-      );
-    }
-
-    const toggleShowPassword = (): void => {
-      this.showSecure[fieldName] = !this.showSecure[fieldName];
-      this.update();
-    };
-    let showPassword = false;
-    if (secure) {
-      if (this.showSecure[fieldName]) {
-        showPassword = true;
-      } else {
-        this.showSecure[fieldName] = false;
-      }
-    }
-
-    return (
-      <div className="elyra-metadataEditor-formInput">
-        <TextField
-          key={fieldName}
-          label={label}
-          required={required}
-          variant="outlined"
-          error={error}
-          onChange={(event: any): void => {
-            this.handleTextInputChange(event, fieldName);
-          }}
-          defaultValue={defaultValue}
-          type={showPassword || !secure ? 'text' : 'password'}
-          InputProps={
-            secure
-              ? {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={toggleShowPassword}
-                        onMouseDown={(event: any): void => {
-                          event.preventDefault();
-                        }}
-                        edge="end"
-                      >
-                        {showPassword ? <Visibility /> : <VisibilityOff />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }
-              : {}
-          }
-          className={`elyra-metadataEditor-form-${fieldName}`}
-        />
-        {errorText}
-      </div>
-    );
-  }
-
   onAfterShow(msg: Message): void {
     const input = document.querySelector(
       `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
@@ -483,14 +407,17 @@ export class MetadataEditor extends ReactWidget {
       uihints.field_type === 'textinput' ||
       uihints.field_type === undefined
     ) {
-      return this.renderTextInput(
-        this.schema[fieldName].title,
-        uihints.description,
-        fieldName,
-        this.metadata[fieldName],
-        required,
-        uihints.secure,
-        uihints.error
+      return (
+        <TextInput
+          label={this.schema[fieldName].title}
+          description={uihints.description}
+          fieldName={fieldName}
+          defaultValue={this.metadata[fieldName]}
+          required
+          secure={uihints.secure}
+          error={uihints.error}
+          handleTextInputChange={this.handleTextInputChange}
+        />
       );
     } else if (uihints.field_type === 'dropdown') {
       return (
@@ -522,7 +449,9 @@ export class MetadataEditor extends ReactWidget {
           </InputLabel>
           <ResizeSensor
             onResize={(): void => {
-              this.editor.refresh();
+              if (this.editor) {
+                this.editor.refresh();
+              }
             }}
           >
             <div id={'code:' + this.id} className="elyra-form-code va-va"></div>
@@ -575,17 +504,18 @@ export class MetadataEditor extends ReactWidget {
       <ThemeProvider theme={this.darkMode ? darkTheme : lightTheme}>
         <div className={ELYRA_METADATA_EDITOR_CLASS}>
           <h3> {headerText} </h3>
-          {this.displayName !== undefined
-            ? this.renderTextInput(
-                'Name',
-                '',
-                'display_name',
-                this.displayName,
-                true,
-                false,
-                error
-              )
-            : null}
+          {this.displayName !== undefined ? (
+            <TextInput
+              label={'Name'}
+              description={''}
+              fieldName={'display_name'}
+              defaultValue={this.displayName}
+              required={true}
+              secure={false}
+              error={error}
+              handleTextInputChange={this.handleTextInputChange}
+            />
+          ) : null}
           {inputElements}
           <div
             className={

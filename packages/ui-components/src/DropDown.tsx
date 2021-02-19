@@ -41,6 +41,13 @@ export function DropDown(props: IDropDownProps): any {
       <FormHelperText error> This field is required. </FormHelperText>
     );
   }
+
+  const [choice, setChoice] = React.useState(props.choice);
+
+  React.useEffect(() => {
+    setChoice(props.choice);
+  }, [props.choice]);
+
   return (
     <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
       <Autocomplete
@@ -49,9 +56,10 @@ export function DropDown(props: IDropDownProps): any {
         key="elyra-DropDown"
         options={props.defaultChoices}
         style={{ width: 300 }}
-        defaultValue={props.choice}
+        value={choice ?? ''}
         onChange={(event: any, newValue: any): void => {
           props.handleDropdownChange(props.schemaField, newValue);
+          setChoice(newValue);
         }}
         renderInput={params => (
           <TextField
