@@ -298,6 +298,36 @@ const linkExamples = [
       { id: 'l6', srcNodeId: 'f', trgNodeId: 'g', type: 'nodeLink' }
     ],
     expected: []
+  },
+
+  // https://github.com/elyra-ai/elyra/issues/1303
+  //            ╭───╮
+  //            │ e │
+  //            ╰───╯
+  //              ▲
+  //             l3
+  //              │
+  // ╭───╮      ╭───╮      ╭───╮
+  // │ a │──l0─►│ b │──l2─►│ d │
+  // ╰───╯      ╰───╯      ╰───╯
+  //              │          │
+  //             l1          l4
+  //              ▼          ▼
+  //            ╭───╮      ╭───╮      ╭───╮
+  //            │ c │──l5─►│ f │──l6─►│ g │
+  //            ╰───╯      ╰───╯      ╰───╯
+  {
+    it: 'should not detect a cycle when the fork chain pops undefined',
+    given: [
+      { id: 'l0', srcNodeId: 'a', trgNodeId: 'b', type: 'nodeLink' },
+      { id: 'l1', srcNodeId: 'b', trgNodeId: 'c', type: 'nodeLink' },
+      { id: 'l2', srcNodeId: 'b', trgNodeId: 'd', type: 'nodeLink' },
+      { id: 'l3', srcNodeId: 'b', trgNodeId: 'e', type: 'nodeLink' },
+      { id: 'l4', srcNodeId: 'd', trgNodeId: 'f', type: 'nodeLink' },
+      { id: 'l5', srcNodeId: 'c', trgNodeId: 'f', type: 'nodeLink' },
+      { id: 'l6', srcNodeId: 'f', trgNodeId: 'g', type: 'nodeLink' }
+    ],
+    expected: []
   }
 ];
 

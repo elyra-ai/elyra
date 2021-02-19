@@ -78,7 +78,7 @@ export const checkCircularReferences = (links: ILink[]): string[] => {
           taintedLinks.add(item);
         }
 
-        const position = forkStack.pop();
+        const position = forkStack.pop() ?? 0;
         orderedChain = orderedChain.slice(0, position);
         continue;
       }
@@ -89,7 +89,7 @@ export const checkCircularReferences = (links: ILink[]): string[] => {
 
       // We reached the end of a chain.
       if (linksToVisit === undefined) {
-        const position = forkStack.pop();
+        const position = forkStack.pop() ?? 0;
         orderedChain = orderedChain.slice(0, position);
         continue;
       }
