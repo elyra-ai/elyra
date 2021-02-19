@@ -39,6 +39,7 @@ import * as React from 'react';
 import { MetadataEditorTags } from './MetadataEditorTags';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
+const ELYRA_METADATA_EDITOR_DARK = 'elyra-metadataEditor-dark';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
 interface IMetadataEditorProps {
@@ -502,7 +503,11 @@ export class MetadataEditor extends ReactWidget {
     const error = this.displayName === '' && this.invalidForm;
     return (
       <ThemeProvider theme={this.darkMode ? darkTheme : lightTheme}>
-        <div className={ELYRA_METADATA_EDITOR_CLASS}>
+        <div
+          className={`${ELYRA_METADATA_EDITOR_CLASS} ${
+            this.darkMode ? ELYRA_METADATA_EDITOR_DARK : ''
+          }`}
+        >
           <h3> {headerText} </h3>
           {this.displayName !== undefined ? (
             <TextInput

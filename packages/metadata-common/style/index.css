@@ -92,6 +92,11 @@
   width: 100%;
 }
 
+.elyra-metadataEditor-dark.elyra-metadataEditor .MuiButtonBase-root {
+  color: #fff;
+  border-color: #fff;
+}
+
 .elyra-form-DropDown-item {
   width: 100%;
   display: flex;
