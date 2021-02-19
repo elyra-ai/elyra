@@ -31,6 +31,10 @@ Learn how to [create a notebook pipeline and run it in your local JupyterLab env
 
 Learn how to [create a notebook pipeline and run it on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world_kubeflow_pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
 
+#### Running notebook pipelines on Apache Airflow
+
+Learn how to [create a notebook pipeline and run it on Apache Airflow](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world_apache_airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
+
 #### Examples
 
 The [https://github.com/elyra-ai/examples](https://github.com/elyra-ai/examples) repository contains examples you can use to explore Elyra features.
