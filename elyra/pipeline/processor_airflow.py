@@ -90,7 +90,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                 self.log.info('Waiting for Airflow Scheduler to process and start the pipeline')
 
             except GithubException as e:
-                self.log.debug('Error adding pipeline to Airflow git queue: ' + e)
+                self.log.error('Error adding pipeline to Airflow git queue: ' + str(e))
                 raise RuntimeError('Error adding pipeline to Airflow git queue: ', e)
 
             self.log_pipeline_info(pipeline_name,
