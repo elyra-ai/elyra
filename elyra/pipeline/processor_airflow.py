@@ -28,7 +28,7 @@ from elyra._version import __version__
 from elyra.metadata import MetadataManager
 from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
-from github import Github, GithubException
+from elyra.util.git import GithubClient
 from jinja2 import Environment, PackageLoader
 
 
@@ -73,26 +73,15 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
             self.log.debug("Uploading pipeline file: %s", pipeline_filepath)
 
-            github_client = Github(login_or_token=github_repo_token)
-            try:
-                # Upload to github
-                repo = github_client.get_repo(github_repo)
+            github_client = GithubClient(server_url=runtime_configuration.metadata.get('github_api_endpoint'),
+                                         token=github_repo_token,
+                                         repo=github_repo,
+                                         branch=github_branch)
 
-                with open(pipeline_filepath) as input_file:
-                    content = input_file.read()
+            github_client.upload_dag(pipeline_name=pipeline_name,
+                                     pipeline_filepath=pipeline_filepath)
 
-                    repo.create_file(path=pipeline_name + ".py",
-                                     message="Pushed DAG " + pipeline_name,
-                                     content=content,
-                                     branch=github_branch)
-
-                self.log.info('Pipeline successfully added to the Airflow git queue')
-                self.log.info('Waiting for Airflow Scheduler to process and start the pipeline')
-
-            except GithubException as e:
-                self.log.debug('Error adding pipeline to Airflow git queue: ' + e)
-                raise RuntimeError('Error adding pipeline to Airflow git queue: ', e)
-
+            self.log.info('Waiting for Airflow Scheduler to process and start the pipeline')
             self.log_pipeline_info(pipeline_name,
                                    f"pipeline pushed to git: https://github.com/{github_repo}/tree/{github_branch}",
                                    duration=(time.time() - t0_all))
@@ -129,6 +118,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
         runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
+        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
 
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata['cos_username']
@@ -185,7 +175,6 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                         pipeline_envs[result[0]] = result[1]
 
             image_pull_policy = None
-            image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
             for image_instance in image_namespace:
                 if image_instance.metadata['image_name'] == operation.runtime_image and \
                         image_instance.metadata.get('pull_policy'):
