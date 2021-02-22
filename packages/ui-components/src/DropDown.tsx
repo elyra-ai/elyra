@@ -64,11 +64,12 @@ export function DropDown(props: IDropDownProps): any {
         renderInput={params => (
           <TextField
             {...params}
-            label={props.label}
+            label={`${props.label} ${
+              props.required ? '(required)' : '(optional)'
+            }`}
             error={props.error}
-            required={props.required}
             helperText={props.description}
-            placeholder={`Create or select ${props.label}`}
+            placeholder={`Create or select ${props.label.toLocaleLowerCase()}`}
             variant="outlined"
           />
         )}

@@ -443,8 +443,10 @@ export class MetadataEditor extends ReactWidget {
         <div
           className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
         >
-          <InputLabel required={required}>
-            {this.schema[fieldName].title}
+          <InputLabel>
+            {`${this.schema[fieldName].title} ${
+              required ? '(required)' : '(optional)'
+            }`}
           </InputLabel>
           <div id={'code:' + this.id} className="elyra-form-code"></div>
           {helperText}

@@ -97,6 +97,10 @@
   border-color: #fff;
 }
 
+.elyra-metadataEditor-dark.elyra-metadataEditor h4 {
+  color: #fff;
+}
+
 .elyra-form-DropDown-item {
   width: 100%;
   display: flex;

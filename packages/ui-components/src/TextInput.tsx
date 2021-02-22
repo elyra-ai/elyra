@@ -62,8 +62,7 @@ export function TextInput(props: ITextFieldProps): any {
     <div className="elyra-metadataEditor-formInput">
       <TextField
         key={props.fieldName}
-        label={props.label}
-        required={props.required}
+        label={`${props.label} ${props.required ? '(required)' : '(optional)'}`}
         variant="outlined"
         error={props.error}
         onChange={(event: any): void => {
