@@ -16,13 +16,12 @@
 
 // import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
-import { Dialog, ToolbarButton, WidgetTracker } from '@jupyterlab/apputils';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
+import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
+import { FileEditor } from '@jupyterlab/fileeditor';
 
 import { IDisposable } from '@lumino/disposable';
 import * as React from 'react';
-
-import { PythonFileEditor } from '../../../node_modules/@elyra/python-editor-extension/lib';
 
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
@@ -31,25 +30,32 @@ import Utils from './utils';
 
 /**
  * Submit script button extension
- *  - Attach button to Python Editor toolbar and launch a dialog requesting
+ *  - Attach button to FileEditor toolbar and launch a dialog requesting
  *  information where submit the script for execution
  */
 export class SubmitScriptButtonExtension
   implements
+    // DocumentRegistry.IWidgetExtension<
+    //   DocumentWidget,
+    //   DocumentRegistry.ICodeModel
+    // > {
     DocumentRegistry.IWidgetExtension<
-      PythonFileEditor,
+      DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
       DocumentRegistry.ICodeModel
     > {
+  // DocumentRegistry.IWidgetExtension<FileEditor, DocumentRegistry.ICodeModel> {
   // implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
   // private panel: NotebookPanel;
 
-  private widget: PythonFileEditor;
-  private tracker: WidgetTracker<PythonFileEditor>;
+  // private widget: PythonFileEditor;
+  // private editor: FileEditor;
+  private widget: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>;
+  // private widget: DocumentWidget;
 
   showWidget = async (): Promise<void> => {
     // TODO: get env variables from the file
-    // const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
-    const env: string[] = [];
+    const env = this.getEnvVars(this.widget.context.model.toString());
+    // const env: string[] = [];
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -81,6 +87,7 @@ export class SubmitScriptButtonExtension
     }
 
     const {
+      runtime_platform,
       runtime_config,
       framework,
       dependency_include,
@@ -91,6 +98,7 @@ export class SubmitScriptButtonExtension
     // prepare submission details
     const pipeline = Utils.generateSingleFilePipeline(
       this.widget.context.path,
+      runtime_platform,
       runtime_config,
       framework,
       dependency_include ? dependencies : undefined,
@@ -107,14 +115,40 @@ export class SubmitScriptButtonExtension
     );
   };
 
-  createNew(
-    editor: PythonFileEditor,
-    context: DocumentRegistry.CodeContext
-  ): IDisposable {
-    this.tracker = new WidgetTracker<PythonFileEditor>({
-      namespace: 'elyra-python-editor-extension'
-    });
+  // TODO: Rename NotebookParser to ContentParser and adjust getEnvVars according to widget type
+  /**
+   * @param editorContent Raw FileEditor JSON in string format
+   * @returns A string array of the env vars accessed in the given editor
+   */
+  getEnvVars = (editorContent: string): string[] => {
+    const envVars: string[] = [];
+    // const content = JSON.parse(editorContent);
+    // const match_regex = /os\.(?:environb?(?:\["([^"]+)|\['([^']+)|\.get\("([^"]+)|\.get\('([^']+))|getenvb?\("([^"]+)|getenvb?\('([^']+))/;
 
+    console.log(editorContent);
+    // for (const cell of notebook['cells']) {
+    //   if (cell['cell_type'] == 'code') {
+    //     const matchedEnv: string[][] = this.findInCode(
+    //       cell['source'],
+    //       match_regex
+    //     );
+    //     for (const match of matchedEnv) {
+    //       for (let i = 1; i < match.length; i++) {
+    //         if (match[i]) {
+    //           envVars.push(match[i]);
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    return [...new Set(envVars)];
+  };
+
+  createNew(
+    widget: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
+    // widget: DocumentWidget,
+    context: DocumentRegistry.IContext<DocumentRegistry.ICodeModel>
+  ): IDisposable {
     // Create the toolbar button
     const submitScriptButton = new ToolbarButton({
       label: 'Submit Script ...',
@@ -124,11 +158,7 @@ export class SubmitScriptButtonExtension
 
     // Add the toolbar button to Python Editor
     // panel.toolbar.insertItem(10, 'submitScript', submitScriptButton);
-
-    this.tracker.widgetAdded.connect((sender, widget) => {
-      this.widget = widget;
-      widget.context.toolbar.insertItem(10, 'submitScript', submitScriptButton);
-    });
+    widget.toolbar.insertItem(10, 'submitScript', submitScriptButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.

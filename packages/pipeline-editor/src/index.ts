@@ -183,7 +183,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     );
     app.contextMenu.addItem({
       selector: '.elyra-PythonEditor',
-      command: commandIDs.submitPythonScript,
+      command: commandIDs.submitScript,
       rank: -0.5
     });
 
