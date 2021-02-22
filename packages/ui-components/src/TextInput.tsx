@@ -69,6 +69,7 @@ export function TextInput(props: ITextFieldProps): any {
           props.handleTextInputChange(event, props.fieldName);
           setValue(event.nativeEvent.target.value);
         }}
+        helperText={props.description}
         value={value ?? ''}
         type={showPassword || !props.secure ? 'text' : 'password'}
         InputProps={

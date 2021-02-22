@@ -409,7 +409,7 @@ export class MetadataEditor extends ReactWidget {
       return (
         <TextInput
           label={this.schema[fieldName].title}
-          description={uihints.description}
+          description={this.schema[fieldName].description}
           fieldName={fieldName}
           defaultValue={this.metadata[fieldName]}
           required={required}
@@ -423,7 +423,7 @@ export class MetadataEditor extends ReactWidget {
         <DropDown
           label={this.schema[fieldName].title}
           schemaField={fieldName}
-          description={uihints.description}
+          description={this.schema[fieldName].description}
           required={required}
           error={uihints.error}
           choice={this.metadata[fieldName]}
