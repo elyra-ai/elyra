@@ -49,8 +49,8 @@ describe('Code Snippet tests', () => {
     ).should('be.visible');
 
     // Fields marked as required should be highlighted
-    cy.get('.bp3-intent-danger').as('required-warnings');
-    cy.get('@required-warnings').should('have.length', 2);
+    cy.get('.MuiFormHelperText-root.Mui-error').as('required-warnings');
+    cy.get('@required-warnings').should('have.length', 3);
 
     // Close metadata editor tab
     cy.closeCurrentTab();
@@ -318,7 +318,7 @@ const createValidCodeSnippet = (snippetName: string): any => {
   editSnippetLanguage(snippetName, 'Python');
 
   // Add snippet code
-  cy.get('.elyra-metadataEditor-code > .bp3-form-content').type(
+  cy.get('.CodeMirror .CodeMirror-scroll:visible').type(
     'print("Code Snippet Test")'
   );
 
@@ -334,9 +334,7 @@ const clickCreateNewSnippetButton = (): void => {
 };
 
 const saveAndCloseMetadataEditor = (): void => {
-  cy.get(
-    '.elyra-metadataEditor-saveButton > .bp3-form-content > button:visible'
-  ).click();
+  cy.get('.elyra-metadataEditor-saveButton > button:visible').click();
 };
 
 // const fillMetadaEditorForm = (snippetName: string): void => {
@@ -396,10 +394,10 @@ const insert = (snippetName: string): void => {
 
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
   cy.get('.elyra-metadataEditor')
-    .find('button.bp3-button.jp-Button')
+    .find('.elyra-form-DropDown-item .MuiOutlinedInput-root')
     .first()
     .click();
-  cy.get('button.elyra-form-DropDown-item')
+  cy.get('.MuiAutocomplete-listbox')
     .contains(`${lang}`)
     .click();
 };

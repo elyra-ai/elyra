@@ -2,17 +2,6 @@
   width: 100%;
 }
 
-.elyra-metadataEditor .bp3-form-group {
-  margin-bottom: 12px;
-  margin-right: 20px;
-  flex-basis: 40%;
-}
-
-.bp3-select-popover {
-  max-height: 150px;
-  overflow-y: auto;
-}
-
 .elyra-form-DropDown-item {
   width: 100%;
   display: flex;
@@ -34,10 +23,6 @@
 .elyra-metadataEditor h3 {
   flex-basis: 100%;
   margin-bottom: 15px;
-  color: var(--jp-ui-font-color1);
-}
-
-.elyra-metadataEditor label.bp3-label {
   color: var(--jp-ui-font-color1);
 }
 
@@ -67,15 +52,6 @@
   height: 100%;
 }
 
-.bp3-dark .bp3-input {
-  border: var(--jp-border-width) solid var(--jp-input-border-color);
-  color: var(--jp-ui-font-color1);
-}
-
 .elyra-metadata-editor {
   overflow-y: auto;
-}
-
-.elyra-metadata-editor.bp3-dark {
-  background-color: var(--jp-border-color3);
 }
