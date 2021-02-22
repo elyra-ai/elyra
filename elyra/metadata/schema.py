@@ -29,8 +29,9 @@ METADATA_TEST_NAMESPACE = "metadata-tests"  # exposed via METADATA_TESTING env
 
 
 class SchemaManager(SingletonConfigurable):
-    """Singleton used to store all schemas for all metadata types.
-       Note: we currently don't refresh these entries.
+    """
+    Singleton used to store all schemas for all metadata types.
+    Note: we currently don't refresh these entries.
     """
 
     def __init__(self, **kwargs):
@@ -62,13 +63,17 @@ class SchemaManager(SingletonConfigurable):
         return schema_json
 
     def add_schema(self, namespace: str, schema_name: str, schema: dict) -> None:
-        """Adds (updates) schema to set of stored schemas. """
+        """
+        Adds (updates) schema to set of stored schemas.
+        """
         self.validate_namespace(namespace)
         self.log.debug("SchemaManager: Adding schema '{}' to namespace '{}'".format(schema_name, namespace))
         self.namespace_schemas[namespace][schema_name] = schema
 
     def clear_all(self) -> None:
-        """Primarily used for testing, this method reloads schemas from initial values. """
+        """
+        Primarily used for testing, this method reloads schemas from initial values.
+        """
         self.log.debug("SchemaManager: Reloading all schemas for all namespaces.")
         self.namespace_schemas = SchemaManager.load_namespace_schemas()
 
@@ -80,11 +85,12 @@ class SchemaManager(SingletonConfigurable):
 
     @classmethod
     def load_namespace_schemas(cls, schema_dir: Optional[str] = None) -> dict:
-        """Loads the static schema files into a dictionary indexed by namespace.
-           If schema_dir is not specified, the static location relative to this
-           file will be used.
-           Note: The schema file must have a top-level string-valued attribute
-           named 'namespace' to be included in the resulting dictionary.
+        """
+        Loads the static schema files into a dictionary indexed by namespace.
+        If schema_dir is not specified, the static location relative to this
+        file will be used.
+        Note: The schema file must have a top-level string-valued attribute
+        named 'namespace' to be included in the resulting dictionary.
         """
         # The following exposes the metadata-test namespace if true or 1.
         # Metadata testing will enable this env.  Note: this cannot be globally
