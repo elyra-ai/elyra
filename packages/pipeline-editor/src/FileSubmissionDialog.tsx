@@ -26,7 +26,7 @@ import {
 import Utils from './utils';
 
 interface IProps {
-  env?: string[];
+  env: string[];
   images: IDictionary<string>;
   runtimes: IRuntime[];
   schema: ISchema[];
