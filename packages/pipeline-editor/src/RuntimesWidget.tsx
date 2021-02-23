@@ -46,7 +46,7 @@ class RuntimesDisplay extends MetadataDisplay<
 
     return (
       <div>
-        <h6>Kubeflow Pipelines UI</h6>
+        <h6>API Endpoint</h6>
         <a href={apiEndpoint} target="_blank" rel="noreferrer noopener">
           {apiEndpoint}
         </a>
@@ -71,6 +71,7 @@ class RuntimesDisplay extends MetadataDisplay<
 export class RuntimesWidget extends MetadataWidget {
   constructor(props: IMetadataWidgetProps) {
     super(props);
+    this.schemaDisplayName = 'Runtime';
   }
 
   async fetchMetadata(): Promise<any> {
@@ -86,7 +87,6 @@ export class RuntimesWidget extends MetadataWidget {
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
         namespace={RUNTIMES_NAMESPACE}
-        schema={AIRFLOW_SCHEMA}
         sortMetadata={true}
       />
     );

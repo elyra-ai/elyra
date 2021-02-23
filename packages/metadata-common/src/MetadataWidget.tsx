@@ -70,7 +70,6 @@ export interface IMetadataDisplayProps {
   openMetadataEditor: (args: any) => void;
   updateMetadata: () => void;
   namespace: string;
-  schema: string;
   sortMetadata: boolean;
 }
 
@@ -299,7 +298,7 @@ export class MetadataDisplay<
           <FilterTools
             onFilter={this.filteredMetadata}
             tags={this.getActiveTags()}
-            schemaId={`${this.props.namespace}${this.props.schema}`}
+            schemaId={`${this.props.namespace}`}
           />
           <div>{this.props.metadata.map(this.renderMetadata)}</div>
         </div>
@@ -410,7 +409,6 @@ export class MetadataWidget extends ReactWidget {
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
         namespace={this.props.namespace}
-        schema={this.props.schema}
         sortMetadata={true}
       />
     );
