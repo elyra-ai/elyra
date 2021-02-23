@@ -38,12 +38,12 @@ AND
 OR  
   
 - An Existing Apache Airflow Cluster 
-    - Ensure Apache Airflow is at least >=1.10.8,<2.0.0, earlier versions may work (not tested)
+    - Ensure Apache Airflow is at least >= v 1.10.8 and < v2.0.0. Other versions might work but have not been tested.
     - The [airflow-notebook](https://pypi.org/project/airflow-notebook/) python package installed on all schedulers/workers  
     - Using the Kubernetes Executor  
     
 ## Setting up a Github Repository
-A Github repository is needed to host your DAGs(pipelines).  
+A Github repository is needed to host your DAGs (pipelines).
   
 - You will need to setup two things:
     - [Generate an SSH key to be used as a secret for Airflow](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
@@ -54,7 +54,7 @@ A Github repository is needed to host your DAGs(pipelines).
 ### SSH key requirements (Airflow Git-Sync)
 Apache Airflow uses a git-sync container to sync its collection of DAGs (pipelines) from a Github Repository. In order do so, 
 it requires an SSH key with read permissions to the repository added to the cluster as a kubernetes secret and provided during deployment.
-Please note that existing deployments may already have this step or equivalent already configured.  
+Please note that existing deployments may already have this step or equivalent already configured.
   
 1. Create a Kubernetes secret with the SSH key created [earlier](#setting-up-a-github-repository). Please note filenames and locations may be different on your system. 
 Ensure that you update the sample configuration with your correct filenames and paths prior to deploying.  
@@ -99,7 +99,7 @@ For example, if you named your secret `airflow-secret` and github repository was
 ```
   
 3. Install Airflow with the [sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml) or your own custom configuration 
-after making any other changes you might need to the configuration.  
+after making any other changes you might need to the configuration.
   
 - The sample configuration is set to sync Airflow with the Github repository every 10 seconds. You can update this
 as needed. It also uses a custom container image with the `airflow-notebook` package requirement pre-installed.  
@@ -110,10 +110,10 @@ helm install "airflow" stable/airflow --values https://raw.githubusercontent.com
   
 ## Setting up Elyra on existing Airflow Deployments
   
-Getting Airflow to work with Elyra on existing deployments requires two things:  
+Getting Airflow to work with Elyra on existing deployments requires two things:
   
-- The deployment is synced to a Github Repository  
-- The `airflow-notebook` python package is installed on the required Airflow pods (web-server, scheduler, workers)  
+- The deployment is synced to a Github Repository
+- The `airflow-notebook` python package is installed on the required Airflow pods (web-server, scheduler, workers)
   
 ## Elyra Runtime Configuration Requirements
   
