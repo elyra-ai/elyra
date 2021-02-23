@@ -35,12 +35,6 @@ def pipeline():
     return PipelineParser.parse(pipeline_resource)
 
 
-def test_fail_get_metadata_configuration_invalid_namespace(processor):
-    with pytest.raises(RuntimeError):
-        processor._get_metadata_configuration(namespace="non_existent_namespace",
-                                              name='non_existent_metadata')
-
-
 def test_generate_dependency_archive(processor):
     pipelines_test_file = processor.root_dir + '/elyra/pipeline/tests/resources/archive/test.ipynb'
     pipeline_dependencies = ['airflow.json']
