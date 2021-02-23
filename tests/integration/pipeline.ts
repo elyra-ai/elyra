@@ -404,7 +404,7 @@ const createRuntimeConfig = (): any => {
   cy.get('.elyra-metadataEditor-form-cos_password').type('minioadmin');
   cy.get('.elyra-metadataEditor-form-cos_bucket').type('test-bucket');
   // save it
-  cy.get('.elyra-metadataEditor-saveButton > .bp3-form-content > button')
+  cy.get('.elyra-metadataEditor-saveButton > button:visible')
     .click()
     .wait(100);
 };
