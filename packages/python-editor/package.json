@@ -32,8 +32,6 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/services": "^2.0.0-dev",
-    "@elyra/ui-components": "^2.0.0-dev",
     "@jupyterlab/application": "^3.0.0",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/codeeditor": "^3.0.0",

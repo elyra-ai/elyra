@@ -16,8 +16,6 @@
 
 import '../style/index.css';
 
-// import { IDictionary, MetadataService } from '@elyra/services';
-// import { RequestErrors } from '@elyra/ui-components';
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
@@ -124,7 +122,6 @@ export class PythonFileEditor extends DocumentWidget<
     toolbar.addItem('run', runButton);
     toolbar.addItem('stop', stopButton);
     toolbar.addItem('select', dropDown);
-    // toolbar.addItem('submit', submitButton);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
 
