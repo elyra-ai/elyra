@@ -50,26 +50,23 @@
 .properties-add-fields-button {
   display: none;
 }
-
-.properties-editor-form .properties-control-panel .properties-control-panel {
-  padding: 0;
-  margin-bottom: 14px;
-  margin-top: 14px;
-  border-bottom: 1px solid #cfd1d4;
-}
 .properties-control-item {
   padding: 5px 0 5px 0;
 }
 
-.properties-right-flyout {
-  background-color: #fff;
+.properties-right-flyout,
+.properties.title-editor {
+  color: var(--text-01);
+  background-color: var(--ui-background);
 }
 
 .bx--text-input__field-outer-wrapper {
   width: 100%;
 }
-
-.properties-dropdown .bx--list-box__field {
+.properties-dropdown .bx--list-box__wrapper:hover {
+  background-color: #e5e5e5;
+}
+.properties-dropdown .bx--list-box__wrapper {
   background-color: #f5f8fa;
   border-radius: 3px;
   border-bottom: 0px;
@@ -102,11 +99,11 @@
   cursor: pointer;
   font-size: 14px;
   -ms-flex-pack: center;
-  padding: 5px 10px;
   text-align: left;
   vertical-align: middle;
   min-height: 30px;
   min-width: 30px;
+  width: -webkit-fill-available;
 }
 
 .common-canvas-tooltip[data-id^='node_tip'] {
@@ -187,7 +184,8 @@ td {
 }
 
 .properties-editor-form {
-  background-color: #ffffff;
+  color: var(--text-01);
+  background-color: var(--ui-01);
 }
 .properties-control-panel[data-id='properties-nodeGroupInfo'],
 .properties-control-panel[data-id='properties-nodeDependenciesControls'] {
@@ -208,12 +206,19 @@ td {
   padding-left: 0;
   padding-bottom: 0;
 }
+.properties-editor-form
+  .properties-control-panel
+  .properties-control-panel[data-id='properties-nodeListDependenciesControl']
+  .bx--list-box__selection {
+  display: none;
+}
 .properties-control-item[data-id='properties-ci-dependencies'] {
   padding: 0;
 }
 .properties-control-panel[data-id='properties-nodePropertiesControls']
   .properties-control-item {
   margin-top: 10px;
+  padding: 0;
 }
 .properties-action-panel[data-id='properties-nodeBrowseFileAction']
   .properties-action-button {
@@ -227,7 +232,7 @@ td {
 .properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
   position: absolute;
   right: 0px;
-  top: 22px;
+  top: 34px;
 }
 .properties-control-panel[data-id='properties-nodeFileControl'] {
   display: flex;
@@ -240,26 +245,27 @@ td {
 }
 .properties-editor-form
   .properties-control-panel[data-id='properties-nodeUsageControls']
-  .properties-control-item {
+  .properties-ctrl-wrapper {
   margin: 0;
   padding: 0px 3px 14px 3px;
   max-width: 32%;
   border-bottom: none;
 }
-.properties-control-panel[data-id='properties-nodeFileControl']
+.properties-editor-form
+  .properties-control-panel[data-id='properties-nodePropertiesControls']
+  .properties-ctrl-wrapper {
+  padding: 0;
+}
+.properties-editor-form
+  .properties-control-panel[data-id='properties-nodeUsageControls']
   .properties-control-item {
+  padding: 0 0 3px 0;
+}
+.properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-ctrl-wrapper {
   width: calc(100% - 67px);
+  padding-bottom: 30px;
 }
-.properties-control-panel[data-id='properties-nodePropertiesControls']
-  .properties-control-item[data-id='properties-ci-include_subdirectories'] {
-  border-bottom: 1px solid #cfd1d4;
-  padding: 0 0 10px 0;
-}
-.properties-control-panel[data-id='properties-nodePropertiesControls']
-  .properties-control-item[data-id='properties-ci-env_vars'] {
-  border-bottom: 1px solid #cfd1d4;
-}
-
 .properties-control-panel > .properties-control-panel {
   padding: 0;
 }
@@ -283,8 +289,16 @@ td {
   outline: none;
 }
 
+.bx--number__control-btn > svg.up-icon {
+  fill: var(--md-grey-700);
+}
+
+.bx--number__control-btn > svg.down-icon {
+  fill: var(--md-grey-700);
+}
+
 .elyra-Tooltip {
-  top: 84px;
+  top: 90px;
   visibility: hidden;
   opacity: 100%;
 }
@@ -298,7 +312,7 @@ td {
   position: absolute;
   visibility: hidden;
   width: 0;
-  top: 51px;
+  top: 56px;
   left: 94px;
   z-index: 1000000;
   border: 8px solid transparent;
@@ -307,7 +321,7 @@ td {
   transform: rotate(90deg);
 }
 .elyra-Tooltip-arrow-outline {
-  top: 50px;
+  top: 55px;
   z-index: 999999;
   border-right-color: var(--ui-03);
 }

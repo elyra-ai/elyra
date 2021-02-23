@@ -2,6 +2,7 @@ import kfp
 {% if engine == "Tekton" %}
 import kfp_tekton
 {% endif %}
+from datetime import datetime
 from kfp_notebook.pipeline import NotebookOp
 
 
@@ -18,11 +19,14 @@ def create_pipeline():
         {% set operation_id = op_name[0] | to_basename %}
             # Operator for "{{ operation.notebook_name | to_basename }}"
             notebook_op_{{ loop.index }} = NotebookOp(name='{{ operation_id }}',
+                                                      pipeline_name='{{ pipeline_name }}',
+                                                      experiment_name='{{ experiment_name }}',
                                                       notebook='{{ operation.notebook_name | to_basename }}',
                                                       cos_endpoint='{{ operation.cos_endpoint }}',
                                                       cos_bucket='{{ operation.cos_bucket }}',
                                                       cos_directory='{{ operation.cos_directory }}',
                                                       cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
+                                                      pipeline_version='',
                                                       pipeline_inputs={{ operation.pipeline_inputs }},
                                                       pipeline_outputs={{ operation.pipeline_outputs }},
         {% if operation.cpu_request %}
@@ -42,24 +46,71 @@ def create_pipeline():
             notebook_op_{{ loop.index }}.name = '{{ operation.name }}'
             notebook_op_{{ loop.index }}.env_variables = {{ operation.env_variables }}
             notebook_op_{{ loop.index }}.dependent_names = {{ operation.dependent_names }}
+        {% if operation.container.image_pull_policy %}
+            notebook_op_{{ loop.index }}.container.image_pull_policy = '{{ operation.container.image_pull_policy }}'
+        {% endif %}
 
     {% endfor %}
 
 
 if __name__ == "__main__":
+
     pipeline_func = create_pipeline
-    pipeline_filename = '{{ pipeline_name }}' + '.pipeline.tgz'
+    pipeline_name = '{{ pipeline_name }}'
+    pipeline_archive = pipeline_name + '.pipeline.tgz'
+    experiment_name = '{{ experiment_name }}'
+
+    timestamp = datetime.now().strftime("%m%d%H%M%S")
+
+    print('Compiling pipeline using {{ engine }} compiler ...')
 {% if engine == "Tekton" %}
-    kfp_tekton.compiler.TektonCompiler().compile(pipeline_func, pipeline_filename)
+    kfp_tekton.compiler.TektonCompiler().compile(pipeline_func, pipeline_archive)
 
     client = kfp_tekton.TektonClient(host='{{ api_endpoint }}')
 {% else %}
-    kfp.compiler.Compiler().compile(pipeline_func, pipeline_filename)
+    kfp.compiler.Compiler().compile(pipeline_func, pipeline_archive)
 
     client = kfp.Client(host='{{ api_endpoint }}')
 {% endif %}
-    name = '{{ pipeline_name }}'
-    exp = client.create_experiment('{{ pipeline_name }}')
-    run_result = client.run_pipeline(exp.id, name, pipeline_filename, {})
 
-    print("Pipeline Submitted: {{ api_endpoint }}/#/runs/details/" + run_result.id)
+    pipeline_id = client.get_pipeline_id(pipeline_name)
+    if pipeline_id is None:
+        # Upload new pipeline. The call returns a unique pipeline id.
+        print(f'Uploading pipeline {pipeline_name} ...')
+        kfp_pipeline = \
+            client.upload_pipeline(pipeline_archive,
+                                   pipeline_name,
+                                   '{{ pipeline_description }}')
+        pipeline_id = kfp_pipeline.id
+        version_id = None     
+    else:
+        # Append timestamp to generate unique version name
+        pipeline_version_name = f'{pipeline_name}-{timestamp}'
+        # Upload a pipeline version. The call returns a unique version id.
+        print(f'Uploading pipeline version {pipeline_version_name} ...')
+        kfp_pipeline = \
+            client.upload_pipeline_version(pipeline_archive,
+                                           pipeline_version_name,
+                                           pipeline_id=pipeline_id)
+        version_id = kfp_pipeline.id
+
+    # Create an experiment
+    print(f'Creating experiment {experiment_name} ...')
+    experiment = client.create_experiment(experiment_name,
+    {% if namespace is none  %}
+                                          namespace=None)
+    {% else %}
+                                          namespace='{{ namespace }}')
+    {% endif %}
+
+    # Generate unique identifier for the pipeline run
+    run_name = f'{pipeline_name}-{timestamp}'
+
+    # Run the pipeline (or specified pipeline version)
+    print(f'Starting pipeline run {run_name} ...')
+    run = client.run_pipeline(experiment_id=experiment.id,
+                              job_name=run_name,
+                              pipeline_id=pipeline_id,
+                              version_id=version_id)
+
+    print("Pipeline run monitoring URL: {{ api_endpoint }}/#/runs/details/" + run.id)

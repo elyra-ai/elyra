@@ -16,17 +16,69 @@
 
 import * as React from 'react';
 
-import { IRuntime } from './PipelineService';
+import { IRuntime, ISchema, PipelineService } from './PipelineService';
 
 interface IProps {
   name: string;
   runtimes: IRuntime[];
+  schema: ISchema[];
 }
 
-export class PipelineSubmissionDialog extends React.Component<IProps> {
+interface IState {
+  runtimePlatform: string;
+  runtimes: IRuntime[];
+}
+
+const LOCAL = 'local';
+
+const updateRuntimeOptions = (
+  allRuntimes: IRuntime[],
+  platformSelection: string
+): IRuntime[] => {
+  const filteredRuntimes =
+    platformSelection === LOCAL
+      ? [allRuntimes[0]]
+      : PipelineService.filterRuntimes(allRuntimes, platformSelection);
+
+  PipelineService.sortRuntimesByDisplayName(filteredRuntimes);
+
+  return filteredRuntimes;
+};
+
+export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
+  state = {
+    runtimePlatform: LOCAL,
+    runtimes: updateRuntimeOptions(this.props.runtimes, LOCAL)
+  };
+
+  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const selectedPlatform = event.target.value;
+    const runtimeOptions = updateRuntimeOptions(
+      this.props.runtimes,
+      selectedPlatform
+    );
+    this.setState({
+      runtimePlatform: selectedPlatform,
+      runtimes: runtimeOptions
+    });
+  };
+
+  componentDidMount(): void {
+    {
+      this.setState({
+        runtimes: updateRuntimeOptions(
+          this.props.runtimes,
+          this.state.runtimePlatform
+        )
+      });
+    }
+  }
+
   render(): React.ReactNode {
-    const name = this.props.name;
-    const runtimes = this.props.runtimes;
+    const { name, schema } = this.props;
+    const { runtimes } = this.state;
+    const localRuntime = this.props.runtimes[0];
+
     return (
       <form>
         <label htmlFor="pipeline_name">Pipeline Name:</label>
@@ -40,7 +92,26 @@ export class PipelineSubmissionDialog extends React.Component<IProps> {
         />
         <br />
         <br />
-        <label htmlFor="runtime_config">Runtime Config:</label>
+        <label htmlFor="runtime_platform">Runtime:</label>
+        <br />
+        <select
+          id="runtime_platform"
+          name="runtime_platform"
+          className="elyra-form-runtime-platform"
+          data-form-required
+          defaultValue={this.state.runtimePlatform}
+          onChange={this.handleUpdate}
+        >
+          <option key={localRuntime.name} value={localRuntime.name}>
+            Local Runtime
+          </option>
+          {schema.map(schema => (
+            <option key={schema.name} value={schema.name}>
+              {schema.display_name}
+            </option>
+          ))}
+        </select>
+        <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select
           id="runtime_config"

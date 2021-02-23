@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:experimental
 #
 # Copyright 2018-2021 Elyra Authors
 #
@@ -14,11 +15,8 @@
 # limitations under the License.
 #
 
-from .handlers import PipelineExportHandler, PipelineSchedulerHandler
-from .parser import PipelineParser
-from .pipeline import Operation, Pipeline
-from .processor import PipelineProcessorRegistry, PipelineProcessorManager, PipelineProcessor, \
-    PipelineProcessorResponse, RuntimePipelineProcessor
-from .processor_kfp import KfpPipelineProcessor
-from .processor_local import LocalPipelineProcessor
-from .processor_airflow import AirflowPipelineProcessor
+FROM apache/airflow:1.10.12-python3.6
+
+ARG AIRFLOW_NOTEBOOK_VERSION
+
+RUN python -m pip install airflow-notebook==$AIRFLOW_NOTEBOOK_VERSION --user
