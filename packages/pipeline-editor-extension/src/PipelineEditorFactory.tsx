@@ -15,6 +15,7 @@
  */
 
 import { PipelineEditor } from '@elyra/pipeline-editor';
+import { validate } from '@elyra/pipeline-services';
 import {
   IconUtil,
   clearPipelineIcon,
@@ -23,7 +24,9 @@ import {
   savePipelineIcon,
   showBrowseFileDialog,
   runtimesIcon,
-  Dropzone
+  Dropzone,
+  RequestErrors,
+  showFormDialog
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
 import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
@@ -44,7 +47,9 @@ import { IDragEvent } from '@lumino/dragdrop';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { formDialogWidget } from './formDialogWidget';
 import nodes from './nodes';
+import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineService } from './PipelineService';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -77,7 +82,7 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     }
   };
 
-  const onError = (error?: string) => {
+  const onError = (error?: Error) => {
     showDialog({
       title: 'Load pipeline failed!',
       body: <p> {error || ''} </p>,
@@ -114,28 +119,109 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     });
   };
 
-  const [panelOpen, setPanelOpen] = useState(true);
-
-  const onAction = useCallback(
-    (type: string) => {
-      console.log(type);
-      switch (type) {
-        case 'toggleOpenPanel':
-          setPanelOpen(!panelOpen);
-          break;
-        case 'properties':
-          setPanelOpen(true);
-          break;
-        case 'closePanel':
-          setPanelOpen(false);
-          break;
-        case 'save':
-          context.save();
-          break;
+  const cleanNullProperties = (): void => {
+    // Delete optional fields that have null value
+    for (const node of ref.current?.getPipelineFlow().pipelines[0].nodes) {
+      if (node.app_data.cpu === null) {
+        delete node.app_data.cpu;
       }
-    },
-    [panelOpen]
-  );
+      if (node.app_data.memory === null) {
+        delete node.app_data.memory;
+      }
+      if (node.app_data.gpu === null) {
+        delete node.app_data.gpu;
+      }
+    }
+  };
+
+  const handleExportPipeline = async (): Promise<void> => {
+    // Warn user if the pipeline has invalid nodes
+    const errorMessage = validate(pipeline, nodes);
+    if (errorMessage) {
+      // this.setState({
+      //   showValidationError: true,
+      //   validationError: {
+      //     errorMessage: errorMessage,
+      //     errorSeverity: 'error'
+      //   }
+      // });
+      return;
+    }
+    const runtimes = await PipelineService.getRuntimes().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
+      title: 'Export pipeline',
+      body: formDialogWidget(
+        <PipelineExportDialog runtimes={runtimes} schema={schema} />
+      ),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
+      focusNodeSelector: '#runtime_config'
+    };
+    const dialogResult = await showFormDialog(dialogOptions);
+
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
+
+    // prepare pipeline submission details
+    const pipelineFlow = ref.current?.getPipelineFlow();
+    const pipeline_path = context.path;
+
+    const pipeline_dir = PathExt.dirname(pipeline_path);
+    const pipeline_name = PathExt.basename(
+      pipeline_path,
+      PathExt.extname(pipeline_path)
+    );
+    const pipeline_export_format = dialogResult.value.pipeline_filetype;
+
+    let pipeline_export_path = pipeline_name + '.' + pipeline_export_format;
+    // only prefix the '/' when pipeline_dir is non-empty
+    if (pipeline_dir) {
+      pipeline_export_path = pipeline_dir + '/' + pipeline_export_path;
+    }
+
+    const overwrite = dialogResult.value.overwrite;
+
+    const runtime_config = dialogResult.value.runtime_config;
+    const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
+
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipelineFlow.pipelines[0],
+      context.path
+    );
+
+    cleanNullProperties();
+
+    pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
+    pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
+
+    PipelineService.exportPipeline(
+      pipelineFlow,
+      pipeline_export_format,
+      pipeline_export_path,
+      overwrite
+    ).catch(error => RequestErrors.serverError(error));
+  };
+
+  const onAction = useCallback((args: { type: string; payload?: any }) => {
+    console.log(args.type);
+    switch (args.type) {
+      case 'save':
+        context.save();
+        break;
+      case 'export':
+        handleExportPipeline();
+    }
+  }, []);
 
   const toolbar = {
     leftBar: [
@@ -194,9 +280,9 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     rightBar: [
       {
         action: 'toggleOpenPanel',
-        label: panelOpen ? 'Close panel' : 'Open panel',
+        label: 'Open panel',
         enable: true,
-        iconTypeOverride: panelOpen ? 'paletteOpen' : 'paletteClose'
+        iconTypeOverride: 'paletteClose'
       }
     ]
   };
@@ -244,7 +330,6 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
         nodes={nodes}
         toolbar={toolbar}
         pipeline={pipeline}
-        panelOpen={panelOpen}
         onAction={onAction}
         onChange={onChange}
         onError={onError}

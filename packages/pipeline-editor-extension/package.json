@@ -36,7 +36,8 @@
   "dependencies": {
     "@elyra/canvas": "9.2.9",
     "@elyra/metadata-common": "^2.1.0-dev",
-    "@elyra/pipeline-editor": "file:../../../pipeline-editor/packages/pipeline-editor",
+    "@elyra/pipeline-editor": "file:/Users/martha.cryanibm.com/gitrepos/pipeline-editor/packages/pipeline-editor",
+    "@elyra/pipeline-services": "file:/Users/martha.cryanibm.com/gitrepos/pipeline-editor/packages/pipeline-services",
     "@elyra/services": "^2.1.0-dev",
     "@elyra/ui-components": "^2.1.0-dev",
     "@jupyterlab/application": "^3.0.0",
@@ -73,7 +74,7 @@
   "devDependencies": {
     "@types/jest": "^23.3.11",
     "@types/node": "^12.0.10",
-    "@types/react": "^17.0.0",
+    "@types/react": "17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-intl": "^3.0.0",
     "@types/uuid": "^3.4.7",
@@ -86,6 +87,9 @@
     "ts-jest": "^24.0.2",
     "ts-loader": "^6.2.1",
     "typescript": "~4.1.3"
+  },
+  "resolutions": {
+    "@types/react": "17.0.0"
   },
   "publishConfig": {
     "access": "public"

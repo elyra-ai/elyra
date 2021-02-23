@@ -24,19 +24,26 @@ import * as React from 'react';
 
 import Utils from './utils';
 
-export const RUNTIMES_NAMESPACE = 'runtimes';
+export const AIRFLOW_SCHEMA = 'airflow';
 export const KFP_SCHEMA = 'kfp';
+export const RUNTIMES_NAMESPACE = 'runtimes';
 export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
 
 export interface IRuntime {
   name: string;
   display_name: string;
+  schema_name: string;
+}
+
+export interface ISchema {
+  name: string;
+  display_name: string;
 }
 
 enum ContentType {
-  notebook = 'execute-notebook-node',
-  python = 'execute-python-node',
+  notebook = 'notebook',
+  python = 'python',
   other = 'other'
 }
 
@@ -60,6 +67,36 @@ export class PipelineService {
       return runtimes;
     });
   }
+
+  /**
+   * Returns a list of runtime schema
+   */
+  static async getRuntimesSchema(showError = true): Promise<any> {
+    return MetadataService.getSchema(RUNTIMES_NAMESPACE).then(schema => {
+      if (showError && Object.keys(schema).length === 0) {
+        return RequestErrors.noMetadataError('schema');
+      }
+
+      return schema;
+    });
+  }
+
+  /**
+   * Returns a list of external runtime configurations
+   * based on the runtimePLatform (Airflow or Kubeflow)
+   */
+  static filterRuntimes = (
+    runtimes: IRuntime[],
+    runtimePlatform: string
+  ): IRuntime[] =>
+    runtimes.filter(runtime => runtime.schema_name === runtimePlatform);
+
+  /**
+   * Sorts given list of runtimes by the display_name property
+   */
+  static sortRuntimesByDisplayName = (runtimes: IRuntime[]): void => {
+    runtimes.sort((r1, r2) => r1.display_name.localeCompare(r2.display_name));
+  };
 
   /**
    * Return a list of configured docker images that are used as runtimes environments
