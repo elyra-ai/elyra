@@ -46,9 +46,14 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         return self._type
 
     def process(self, pipeline):
+        """Runs a pipeline on Kubeflow Pipelines
+
+        Each time a pipeline is processed, a new version
+        is uploaded and run under the same experiment name.
+        """
+
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
-        pipeline_name = f'{pipeline.name}-{timestamp}'
 
         runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
@@ -63,16 +68,67 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         api_username = runtime_configuration.metadata.get('api_username')
         api_password = runtime_configuration.metadata.get('api_password')
 
+        engine = runtime_configuration.metadata.get('engine')
+
+        pipeline_name = pipeline.name
+        try:
+            # Connect to the KFP server and determine whether
+            # a pipeline with this name was already uploaded
+            session_cookie = None
+
+            if api_username and api_password:
+                endpoint = api_endpoint.replace('/pipeline', '')
+                session_cookie = self._get_user_auth_session_cookie(endpoint,
+                                                                    api_username,
+                                                                    api_password)
+
+            # Create a KFP client
+            if 'Tekton' == engine:
+                client = kfp_tekton.TektonClient(host=api_endpoint,
+                                                 cookies=session_cookie)
+            else:
+                client = kfp.Client(host=api_endpoint,
+                                    cookies=session_cookie)
+
+            # Determine whether a pipeline with the provided
+            # name already exists
+            pipeline_id = client.get_pipeline_id(pipeline_name)
+            if pipeline_id is None:
+                # The KFP default version name is the pipeline
+                # name
+                pipeline_version_name = pipeline_name
+            else:
+                # Append timestamp to generate unique version name
+                pipeline_version_name = f'{pipeline_name}-{timestamp}'
+            # Establish a 1:1 relationship with an experiment
+            experiment_name = pipeline_name
+            # Unique identifier for the pipeline run
+            job_name = f'{pipeline_name}-{timestamp}'
+            # Unique location on COS where the pipeline run artifacts
+            # will be stored
+            cos_directory = f'{pipeline_name}-{timestamp}'
+
+        except MaxRetryError as ex:
+            raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
+        except LocationValueError as lve:
+            if api_username:
+                raise ValueError("Failure occurred uploading pipeline, check your credentials") from lve
+            else:
+                raise lve
+
         self.log_pipeline_info(pipeline_name, "submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
 
             self.log.debug("Creating temp directory %s", temp_dir)
 
-            engine = runtime_configuration.metadata.get('engine')
             # Compile the new pipeline
             try:
-                pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8 E731
+                pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8 E731
+                                                              pipeline_name=pipeline_name,
+                                                              pipeline_version=pipeline_version_name,
+                                                              experiment_name=experiment_name,
+                                                              cos_directory=cos_directory)
                 if 'Tekton' == engine:
                     kfp_tekton.compiler.TektonCompiler().compile(pipeline_function, pipeline_path)
                 else:
@@ -85,22 +141,28 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
             # Upload the compiled pipeline, create an experiment and run
 
-            session_cookie = None
-
-            if api_username and api_password:
-                endpoint = api_endpoint.replace('/pipeline', '')
-                session_cookie = self._get_user_auth_session_cookie(endpoint,
-                                                                    api_username,
-                                                                    api_password)
-
-            client = kfp_tekton.TektonClient(host=api_endpoint, cookies=session_cookie)
-
             try:
-                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.name}.pipeline'."
+                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline_name}'."
                 t0 = time.time()
-                kfp_pipeline = client.upload_pipeline(pipeline_path,
-                                                      pipeline_name,
-                                                      description)
+
+                if pipeline_id is None:
+                    # Upload new pipeline. The call returns
+                    # a unique pipeline id.
+                    kfp_pipeline = \
+                        client.upload_pipeline(pipeline_path,
+                                               pipeline_name,
+                                               description)
+                    pipeline_id = kfp_pipeline.id
+                    version_id = None
+                else:
+                    # Upload a pipeline version. The call returns
+                    # a unique version id.
+                    kfp_pipeline = \
+                        client.upload_pipeline_version(pipeline_path,
+                                                       pipeline_version_name,
+                                                       pipeline_id=pipeline_id)
+                    version_id = kfp_pipeline.id
+
                 self.log_pipeline_info(pipeline_name, 'pipeline uploaded', duration=(time.time() - t0))
             except MaxRetryError as ex:
                 raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
@@ -111,12 +173,19 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 else:
                     raise lve
 
-            experiment = client.create_experiment(name=pipeline_name,
+            # Create a new experiment. If it already exists this is
+            # a no-op.
+            experiment = client.create_experiment(name=experiment_name,
                                                   namespace=user_namespace)
+            self.log_pipeline_info(pipeline_name,
+                                   f'Created experiment {experiment_name}',
+                                   duration=(time.time() - t0_all))
 
+            # Run the pipeline (or specified pipeline version)
             run = client.run_pipeline(experiment_id=experiment.id,
-                                      job_name=timestamp,
-                                      pipeline_id=kfp_pipeline.id)
+                                      job_name=job_name,
+                                      pipeline_id=pipeline_id,
+                                      version_id=version_id)
 
             self.log_pipeline_info(pipeline_name,
                                    f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}",
@@ -125,7 +194,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             return PipelineProcessorResponse(
                 run_url=f'{api_endpoint}/#/runs/details/{run.id}',
                 object_storage_url=f'{cos_endpoint}',
-                object_storage_path=f'/{cos_bucket}/{pipeline_name}',
+                object_storage_path=f'/{cos_bucket}/{cos_directory}',
             )
 
         return None
@@ -135,7 +204,15 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
         t0_all = time.time()
+        timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = pipeline.name
+        pipeline_version_name = f'{pipeline_name}-{timestamp}'
+        experiment_name = pipeline_name
+        # Unique identifier for the pipeline run
+        job_name = f'{pipeline_name}-{timestamp}'
+        # Unique location on COS where the pipeline run artifacts
+        # will be stored
+        cos_directory = f'{pipeline_name}-{timestamp}'
 
         # Since pipeline_export_path may be relative to the notebook directory, ensure
         # we're using its absolute form.
@@ -152,8 +229,13 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         self.log_pipeline_info(pipeline_name, f"exporting pipeline as a .{pipeline_export_format} file")
         if pipeline_export_format != "py":
+            # Export pipeline as static configuration file (YAML formatted)
             try:
-                pipeline_function = lambda: self._cc_pipeline(pipeline, pipeline_name)  # nopep8
+                # Exported pipeline is not associated with an experiment
+                # or a version. The association is established when the
+                # pipeline is imported into KFP by the user.
+                pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8
+                                                              '')
 
                 if 'Tekton' == engine:
                     self.log.info("Compiling pipeline for Tekton engine")
@@ -165,8 +247,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 raise RuntimeError('Error compiling pipeline {} for export at {}'.
                                    format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
         else:
+            # Export pipeline as Python DSL
             # Load template from installed elyra package
-            t0 = time.time()
 
             loader = PackageLoader('elyra', 'templates/kfp')
             template_env = Environment(loader=loader, trim_blocks=True)
@@ -175,9 +257,13 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
             template = template_env.get_template('kfp_template.jinja2')
 
-            defined_pipeline = self._cc_pipeline(pipeline, pipeline_name)
+            defined_pipeline = self._cc_pipeline(pipeline,
+                                                 pipeline_name,
+                                                 pipeline_version=pipeline_version_name,
+                                                 experiment_name=experiment_name,
+                                                 cos_directory=cos_directory)
 
-            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.name}.pipeline.'
+            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.name}.'
 
             for key, operation in defined_pipeline.items():
                 self.log.debug("component :\n "
@@ -188,19 +274,27 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                operation.inputs,
                                operation.outputs)
 
+            # The exported pipeline is by default associated with
+            # an experiment.
+            # The user can manually customize the generated code
+            # and change the associations as desired.
+
             python_output = template.render(operations_list=defined_pipeline,
                                             pipeline_name=pipeline_name,
+                                            pipeline_version=pipeline_version_name,
+                                            experiment_name=experiment_name,
+                                            run_name=job_name,
                                             engine=engine,
                                             namespace=namespace,
                                             api_endpoint=api_endpoint,
                                             pipeline_description=description,
                                             writable_container_dir=self.WCD)
 
-            # Write to python file and fix formatting
+            # Write to Python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
                 fh.write(autopep8.fix_code(python_output))
 
-            self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0))
+            self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0_all))
 
         self.log_pipeline_info(pipeline_name,
                                f"pipeline exported: {pipeline_export_path}",
@@ -208,7 +302,12 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         return pipeline_export_path  # Return the input value, not its absolute form
 
-    def _cc_pipeline(self, pipeline, pipeline_name):
+    def _cc_pipeline(self,
+                     pipeline,
+                     pipeline_name,
+                     pipeline_version='',
+                     experiment_name='',
+                     cos_directory=None):
 
         runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
@@ -216,12 +315,13 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata['cos_username']
         cos_password = runtime_configuration.metadata['cos_password']
-        cos_directory = pipeline_name
+        if cos_directory is None:
+            cos_directory = pipeline_name
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         self.log_pipeline_info(pipeline_name,
                                f"processing pipeline dependencies to: {cos_endpoint} "
-                               f"bucket: {cos_bucket} folder: {pipeline_name}")
+                               f"bucket: {cos_bucket} folder: {cos_directory}")
         t0_all = time.time()
 
         emptydir_volume_size = ''
@@ -278,11 +378,14 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
             # create pipeline operation
             notebook_ops[operation.id] = NotebookOp(name=operation.name,
+                                                    pipeline_name=pipeline_name,
+                                                    experiment_name=experiment_name,
                                                     notebook=operation.filename,
                                                     cos_endpoint=cos_endpoint,
                                                     cos_bucket=cos_bucket,
                                                     cos_directory=cos_directory,
                                                     cos_dependencies_archive=operation_artifact_archive,
+                                                    pipeline_version=pipeline_version,
                                                     pipeline_inputs=operation.inputs,
                                                     pipeline_outputs=operation.outputs,
                                                     pipeline_envs=pipeline_envs,
@@ -311,7 +414,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                    operation_name=operation.name)
 
             self._upload_dependencies_to_object_store(runtime_configuration,
-                                                      pipeline_name,
+                                                      cos_directory,
                                                       operation)
 
         # Process dependencies after all the operations have been created
