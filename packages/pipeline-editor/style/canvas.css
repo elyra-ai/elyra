@@ -230,7 +230,7 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   color: var(--text-01);
 }
 .bx--list-box__menu-icon > svg {
-  fill: var(--text-02);
+  fill: var(--md-grey-700);
 }
 .properties-textarea textarea::placeholder {
   color: var(--text-03);
