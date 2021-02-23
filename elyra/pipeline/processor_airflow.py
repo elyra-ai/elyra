@@ -171,15 +171,16 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             # Convey pipeline logging enablement to operation
             pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
 
-            # Set ENV variables in each container
-            if operation.env_vars:
-                for env_var in operation.env_vars:
-                    # Strip any of these special characters from both key and value
-                    # Splits on the first occurrence of '='
-                    result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
-                    # Should be non empty key with a value
-                    if len(result) == 2 and result[0] != '':
-                        pipeline_envs[result[0]] = result[1]
+            # Collect Operation envs into dictionary
+            operation_envs = operation.env_vars_as_dict()
+
+            # Gather any Gateway configuration
+            enabled_override = str(operation_envs.get("ELYRA_GATEWAY_ENABLED") or "false").lower() == "true"
+            pipeline_envs.update(self._get_gateway_config(pipeline, enabled_override))
+
+            # Transfer any operation envs to pipeline_envs.  If these include gateway configuration
+            # values, they will override those obtained via `_get_gateway_config()`.
+            pipeline_envs.update(operation_envs)
 
             image_pull_policy = None
             runtime_images = self._get_runtime_images()

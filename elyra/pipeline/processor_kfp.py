@@ -363,7 +363,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Only Unix-style path spec is supported.
             pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'] = self.WCD
 
-            # Collection Operation envs into dictionary
+            # Collect Operation envs into dictionary
             operation_envs = operation.env_vars_as_dict()
 
             # Gather any Gateway configuration
