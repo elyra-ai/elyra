@@ -390,7 +390,7 @@ const createRuntimeConfig = (): any => {
   cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
   // Add a runtime config
   cy.get(
-    'button.elyra-metadataHeader-button[title="Create new Pipeline runtime configuration"]'
+    'button.elyra-metadataHeader-button[title="Create new Apache Airflow runtime configuration"]'
   ).click();
   cy.get('.elyra-metadataEditor-form-display_name').type('Test Runtime');
   cy.get('.elyra-metadataEditor-form-api_endpoint').type(
