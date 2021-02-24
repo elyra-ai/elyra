@@ -35,27 +35,16 @@ import Utils from './utils';
  */
 export class SubmitScriptButtonExtension
   implements
-    // DocumentRegistry.IWidgetExtension<
-    //   DocumentWidget,
-    //   DocumentRegistry.ICodeModel
-    // > {
     DocumentRegistry.IWidgetExtension<
       DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
       DocumentRegistry.ICodeModel
     > {
-  // DocumentRegistry.IWidgetExtension<FileEditor, DocumentRegistry.ICodeModel> {
-  // implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
-  // private panel: NotebookPanel;
-
-  // private widget: PythonFileEditor;
-  // private editor: FileEditor;
   private widget: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>;
-  // private widget: DocumentWidget;
 
   showWidget = async (): Promise<void> => {
     // TODO: get env variables from the file
-    const env = this.getEnvVars(this.widget.context.model.toString());
-    // const env: string[] = [];
+    // const env = this.getEnvVars(this.widget.context.model.toString());
+    const env: string[] = [];
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -115,7 +104,7 @@ export class SubmitScriptButtonExtension
     );
   };
 
-  // TODO: Rename NotebookParser to ContentParser and adjust getEnvVars according to widget type
+  // TODO: Rename NotebookParser to ContentParser in from '@elyra/services and adjust getEnvVars according to widget type
   /**
    * @param editorContent Raw FileEditor JSON in string format
    * @returns A string array of the env vars accessed in the given editor
@@ -146,7 +135,6 @@ export class SubmitScriptButtonExtension
 
   createNew(
     widget: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
-    // widget: DocumentWidget,
     context: DocumentRegistry.IContext<DocumentRegistry.ICodeModel>
   ): IDisposable {
     // Create the toolbar button
@@ -157,8 +145,6 @@ export class SubmitScriptButtonExtension
     });
 
     // Add the toolbar button to Python Editor
-    // panel.toolbar.insertItem(10, 'submitScript', submitScriptButton);
-    console.log('TEST: createNew');
     widget.toolbar.insertItem(10, 'submitScript', submitScriptButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
