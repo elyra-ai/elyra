@@ -219,7 +219,7 @@ class Pipeline(object):
         :param runtime: Type of runtime we want to use to execute our pipeline
                         e.g. kfp OR airflow
         :param runtime_config: Runtime configuration that should be used to submit the pipeline to execution
-        :filename: Pipeline filename; optional if generated pipeline
+        :source: The pipeline source, e.g. a pipeline file or a notebook. 
         """
 
         if not name:
