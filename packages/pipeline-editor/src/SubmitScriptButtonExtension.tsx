@@ -158,6 +158,7 @@ export class SubmitScriptButtonExtension
 
     // Add the toolbar button to Python Editor
     // panel.toolbar.insertItem(10, 'submitScript', submitScriptButton);
+    console.log('TEST: createNew');
     widget.toolbar.insertItem(10, 'submitScript', submitScriptButton);
 
     // The ToolbarButton class implements `IDisposable`, so the

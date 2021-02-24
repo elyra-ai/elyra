@@ -33,7 +33,7 @@ describe('PythonEditor', () => {
       ':nth-child(2) > .lm-Menu-itemSubmenuIcon > svg > .jp-icon3 > path'
     ).click();
     cy.get(
-      '[data-command="pyeditor:create-new-python-file"] > .lm-Menu-itemLabel'
+      '[data-command="python-editor:create-new-file"] > .lm-Menu-itemLabel'
     ).click();
   });
 

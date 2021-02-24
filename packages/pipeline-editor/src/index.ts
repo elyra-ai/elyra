@@ -177,10 +177,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // SubmitScriptButtonExtension initialization code
     const scriptButtonExtension = new SubmitScriptButtonExtension();
-    app.docRegistry.addWidgetExtension(
-      'PythonFileEditor',
-      scriptButtonExtension
-    );
+    app.docRegistry.addWidgetExtension('Python Editor', scriptButtonExtension);
     app.contextMenu.addItem({
       selector: '.elyra-PythonEditor',
       command: commandIDs.submitScript,

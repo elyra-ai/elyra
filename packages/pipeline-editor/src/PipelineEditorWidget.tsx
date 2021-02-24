@@ -123,7 +123,7 @@ export const commandIDs = {
   openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
-  submitScript: 'pyeditor:submit',
+  submitScript: 'python-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
 };
