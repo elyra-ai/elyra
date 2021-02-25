@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import os
-import sys
 from glob import glob
 from setuptools import setup, find_packages
 
@@ -34,16 +33,16 @@ auto_extension_path = "./etc/config/jupyter_server_config.d/*.json"
 settings_path = './etc/config/settings/*.json'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 
-kfp_packages = [
-    'kfp-notebook~=0.18.0',
-    'kfp==1.3.0',
-    'kfp-tekton==0.6.0',
-    ]
-
-airflow_packages = [
-    'pygithub',
-    'black'
-]
+# kfp_packages = [
+#     'kfp-notebook~=0.20.0',
+#     'kfp==1.3.0',
+#     'kfp-tekton==0.6.0',
+#     ]
+#
+# airflow_packages = [
+#     'pygithub',
+#     'black'
+# ]
 
 setup_args = dict(
     name="elyra",
@@ -82,7 +81,7 @@ setup_args = dict(
         'urllib3>=1.24.2',
         'websocket-client',
         # KFP runtime dependencies
-        'kfp-notebook~=0.19.0',
+        'kfp-notebook~=0.20.0',
         'kfp==1.3.0',
         'kfp-tekton==0.6.0',
         # Airflow runtime dependencies
