@@ -143,7 +143,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             # Upload the compiled pipeline, create an experiment and run
 
             try:
-                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline_name}'."
+                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.source}'."
                 t0 = time.time()
 
                 if pipeline_id is None:
@@ -265,7 +265,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                  experiment_name=experiment_name,
                                                  cos_directory=cos_directory)
 
-            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.name}.'
+            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             for key, operation in defined_pipeline.items():
                 self.log.debug("component :\n "
