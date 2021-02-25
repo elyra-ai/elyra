@@ -156,6 +156,7 @@
 
 .elyra-metadataEditor-formInput {
   margin: 10px;
+  flex-basis: 45%;
 }
 
 .elyra-metadataEditor .MuiButtonBase-root {
