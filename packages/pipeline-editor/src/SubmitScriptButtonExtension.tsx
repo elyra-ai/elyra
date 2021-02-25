@@ -39,11 +39,15 @@ export class SubmitScriptButtonExtension
       DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
       DocumentRegistry.ICodeModel
     > {
-  private widget: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>;
+  private editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>;
 
   showWidget = async (): Promise<void> => {
-    // TODO: get env variables from the file
-    // const env = this.getEnvVars(this.widget.context.model.toString());
+    /*
+    // TODO: 
+    // get environment variables from the editor
+    // Rename NotebookParser to ContentParser in from '@elyra/services and adjust getEnvVars according to widget type
+    */
+    // const env = this.getEnvVars(this.editor.context.model.toString());
     const env: string[] = [];
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
@@ -86,7 +90,7 @@ export class SubmitScriptButtonExtension
 
     // prepare submission details
     const pipeline = Utils.generateSingleFilePipeline(
-      this.widget.context.path,
+      this.editor.context.path,
       runtime_platform,
       runtime_config,
       framework,
@@ -104,39 +108,12 @@ export class SubmitScriptButtonExtension
     );
   };
 
-  // TODO: Rename NotebookParser to ContentParser in from '@elyra/services and adjust getEnvVars according to widget type
-  /**
-   * @param editorContent Raw FileEditor JSON in string format
-   * @returns A string array of the env vars accessed in the given editor
-   */
-  getEnvVars = (editorContent: string): string[] => {
-    const envVars: string[] = [];
-    // const content = JSON.parse(editorContent);
-    // const match_regex = /os\.(?:environb?(?:\["([^"]+)|\['([^']+)|\.get\("([^"]+)|\.get\('([^']+))|getenvb?\("([^"]+)|getenvb?\('([^']+))/;
-
-    console.log(editorContent);
-    // for (const cell of notebook['cells']) {
-    //   if (cell['cell_type'] == 'code') {
-    //     const matchedEnv: string[][] = this.findInCode(
-    //       cell['source'],
-    //       match_regex
-    //     );
-    //     for (const match of matchedEnv) {
-    //       for (let i = 1; i < match.length; i++) {
-    //         if (match[i]) {
-    //           envVars.push(match[i]);
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-    return [...new Set(envVars)];
-  };
-
   createNew(
-    widget: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
+    editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
     context: DocumentRegistry.IContext<DocumentRegistry.ICodeModel>
   ): IDisposable {
+    this.editor = editor;
+
     // Create the toolbar button
     const submitScriptButton = new ToolbarButton({
       label: 'Submit Script ...',
@@ -144,8 +121,8 @@ export class SubmitScriptButtonExtension
       tooltip: 'Submit Script ...'
     });
 
-    // Add the toolbar button to Python Editor
-    widget.toolbar.insertItem(10, 'submitScript', submitScriptButton);
+    // Add the toolbar button to editor
+    editor.toolbar.insertItem(10, 'submitScript', submitScriptButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.
