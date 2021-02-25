@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { TextField, FormHelperText } from '@material-ui/core';
+import {
+  TextField,
+  FormHelperText,
+  Tooltip,
+  withStyles
+} from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 
 import * as React from 'react';
@@ -33,6 +38,12 @@ export interface IDropDownProps {
   allowCreate: boolean;
 }
 
+const CustomTooltip = withStyles((theme: any): any => ({
+  tooltip: {
+    fontSize: 13
+  }
+}))(Tooltip);
+
 // eslint-disable-next-line func-style
 export function DropDown(props: IDropDownProps): any {
   let errorText = null;
@@ -50,29 +61,30 @@ export function DropDown(props: IDropDownProps): any {
 
   return (
     <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
-      <Autocomplete
-        id="combo-box-demo"
-        freeSolo
-        key="elyra-DropDown"
-        options={props.defaultChoices}
-        style={{ width: 300 }}
-        value={choice ?? ''}
-        onChange={(event: any, newValue: any): void => {
-          props.handleDropdownChange(props.schemaField, newValue);
-          setChoice(newValue);
-        }}
-        renderInput={params => (
-          <TextField
-            {...params}
-            label={props.label}
-            required={props.required}
-            error={props.error}
-            helperText={props.description}
-            placeholder={`Create or select ${props.label.toLocaleLowerCase()}`}
-            variant="outlined"
-          />
-        )}
-      />
+      <CustomTooltip title={props.description} placement="top">
+        <Autocomplete
+          id="combo-box-demo"
+          freeSolo
+          key="elyra-DropDown"
+          options={props.defaultChoices}
+          style={{ width: 300 }}
+          value={choice ?? ''}
+          onChange={(event: any, newValue: any): void => {
+            props.handleDropdownChange(props.schemaField, newValue);
+            setChoice(newValue);
+          }}
+          renderInput={params => (
+            <TextField
+              {...params}
+              label={props.label}
+              required={props.required}
+              error={props.error}
+              placeholder={`Create or select ${props.label.toLocaleLowerCase()}`}
+              variant="outlined"
+            />
+          )}
+        />
+      </CustomTooltip>
       {errorText}
     </div>
   );

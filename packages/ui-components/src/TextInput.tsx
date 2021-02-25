@@ -19,7 +19,8 @@ import {
   InputAdornment,
   IconButton,
   FormHelperText,
-  Tooltip
+  Tooltip,
+  withStyles
 } from '@material-ui/core';
 import { Visibility, VisibilityOff } from '@material-ui/icons';
 
@@ -35,6 +36,12 @@ export interface ITextFieldProps {
   error?: boolean;
   handleTextInputChange: (event: any, fieldName: string) => void;
 }
+
+const CustomTooltip = withStyles((theme: any): any => ({
+  tooltip: {
+    fontSize: 13
+  }
+}))(Tooltip);
 
 // eslint-disable-next-line func-style
 export function TextInput(props: ITextFieldProps): any {
@@ -65,7 +72,7 @@ export function TextInput(props: ITextFieldProps): any {
         props.secure ? 'elyra-metadataEditor-secure' : ''
       }`}
     >
-      <Tooltip title={props.description}>
+      <CustomTooltip title={props.description}>
         <TextField
           key={props.fieldName}
           label={props.label}
@@ -100,7 +107,7 @@ export function TextInput(props: ITextFieldProps): any {
           }
           className={`elyra-metadataEditor-form-${props.fieldName}`}
         />
-      </Tooltip>
+      </CustomTooltip>
       {errorText}
     </div>
   );

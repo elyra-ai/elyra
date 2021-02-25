@@ -477,9 +477,7 @@ export class MetadataEditor extends ReactWidget {
     for (const category in this.schemaPropertiesByCategory) {
       if (category !== '_noCategory') {
         inputElements.push(
-          <h4 style={{ flexBasis: '100%', paddingBottom: '10px' }}>
-            {category}
-          </h4>
+          <h4 style={{ flexBasis: '100%', padding: '10px' }}>{category}</h4>
         );
       }
       for (const schemaProperty of this.schemaPropertiesByCategory[category]) {
@@ -499,11 +497,9 @@ export class MetadataEditor extends ReactWidget {
           }`}
         >
           <h3> {headerText} </h3>
-          <FormHelperText style={{ width: '100%', marginBottom: '10px' }}>
-            {' '}
-            * = required{' '}
-          </FormHelperText>{' '}
-          <br />
+          <InputLabel style={{ width: '100%', marginBottom: '10px' }}>
+            * = required
+          </InputLabel>
           {this.displayName !== undefined ? (
             <TextInput
               label={'Name'}
