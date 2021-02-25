@@ -95,10 +95,13 @@ class MetadataManager(LoggingConfigurable):
         instance_list = self.metadata_store.fetch_instances(name=name)
         metadata_dict = instance_list[0]
         metadata = Metadata.from_dict(self.namespace, metadata_dict)
-        metadata.post_load()  # Allow class instances to handle loads
 
-        # validate the instance prior to return...
+        # Validate the instance on load
         self.validate(name, metadata)
+
+        # Allow class instances to alter instance
+        metadata.post_load()
+
         return metadata
 
     def create(self, name: str, metadata: Metadata) -> Metadata:
@@ -196,12 +199,40 @@ class MetadataManager(LoggingConfigurable):
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
                              "embedded hyphens ('-') and underscores ('_').")
 
-        # Validate the metadata prior to storage then store the instance.
-        self.validate(name, metadata)
-
         # Allow class instances to handle saves
         metadata.pre_save(for_update=for_update)
+
+        self._apply_defaults(metadata)
+
+        # Validate the metadata prior to storage then store the instance.
+        self.validate(name, metadata)
 
         metadata_dict = self.metadata_store.store_instance(name, metadata.prepare_write(), for_update=for_update)
 
         return Metadata.from_dict(self.namespace, metadata_dict)
+
+    def _apply_defaults(self, metadata: Metadata) -> None:
+        """If a given property has a default value defined, and that property is not currently represented,
+
+        assign it the default value.
+        """
+
+        # Get the schema and build a dict consisting of properties and their default values (for those
+        # properties that have defaults).  Then walk the metadata instance looking for missing properties
+        # and assign the corresponding default value.  Note that we do not consider existing properties with
+        # values of None for default replacement since that may be intentional (although those values will
+        # likely fail subsequent validation).
+
+        schema = self.schema_mgr.get_schema(self.namespace, metadata.schema_name)
+
+        meta_properties = schema['properties']['metadata']['properties']
+        property_defaults = {}
+        for name, property in meta_properties.items():
+            if 'default' in property:
+                property_defaults[name] = property['default']
+
+        if property_defaults:  # schema defines defaulted properties
+            instance_properties = metadata.metadata
+            for name, default in property_defaults.items():
+                if name not in instance_properties:
+                    instance_properties[name] = default
