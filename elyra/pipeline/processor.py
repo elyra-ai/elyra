@@ -16,10 +16,15 @@
 import asyncio
 import entrypoints
 import os
+import time
 
 from abc import abstractmethod
+from elyra.metadata import MetadataManager
+from elyra.util.cos import CosClient
+from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
+
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
@@ -171,3 +176,77 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             op_clause = f":'{operation_name}'" if operation_name else ""
 
             self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
+
+
+class RuntimePipelineProcess(PipelineProcessor):
+
+    def _get_dependency_archive_name(self, operation):
+        artifact_name = os.path.basename(operation.filename)
+        (name, ext) = os.path.splitext(artifact_name)
+        return name + '-' + operation.id + ".tar.gz"
+
+    def _get_dependency_source_dir(self, operation):
+        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
+
+    def _generate_dependency_archive(self, operation):
+        archive_artifact_name = self._get_dependency_archive_name(operation)
+        archive_source_dir = self._get_dependency_source_dir(operation)
+
+        dependencies = [os.path.basename(operation.filename)]
+        dependencies.extend(operation.dependencies)
+
+        archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
+                                               source_dir=archive_source_dir,
+                                               filenames=dependencies,
+                                               recursive=operation.include_subdirectories,
+                                               require_complete=True)
+
+        return archive_artifact
+
+    def _upload_dependencies_to_object_store(self, runtime_configuration, pipeline_name, operation):
+        operation_artifact_archive = self._get_dependency_archive_name(operation)
+        cos_directory = pipeline_name
+        # upload operation dependencies to object store
+        try:
+            t0 = time.time()
+            dependency_archive_path = self._generate_dependency_archive(operation)
+            self.log_pipeline_info(pipeline_name,
+                                   f"generated dependency archive: {dependency_archive_path}",
+                                   operation_name=operation.name,
+                                   duration=(time.time() - t0))
+
+            cos_client = CosClient(config=runtime_configuration)
+
+            t0 = time.time()
+            cos_client.upload_file_to_dir(dir=cos_directory,
+                                          file_name=operation_artifact_archive,
+                                          file_path=dependency_archive_path)
+            self.log_pipeline_info(pipeline_name,
+                                   f"uploaded dependency archive to: {cos_directory}/{operation_artifact_archive}",
+                                   operation_name=operation.name,
+                                   duration=(time.time() - t0))
+
+        except FileNotFoundError as ex:
+            self.log.error("Dependencies were not found building archive for operation: {}".
+                           format(operation.name), exc_info=True)
+            raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
+                                    format(operation.name, ex))
+
+        except BaseException as ex:
+            self.log.error("Error uploading artifacts to object storage for operation: {}".
+                           format(operation.name), exc_info=True)
+            raise ex from ex
+
+    def _get_metadata_configuration(self, namespace, name=None):
+        """
+        Retrieve associated metadata configuration based on namespace provided and optional instance name
+        :return: metadata in json format
+        """
+        try:
+            if not name:
+                return MetadataManager(namespace=namespace).get_all()
+            else:
+                return MetadataManager(namespace=namespace).get(name)
+        except BaseException as err:
+            self.log.error('Error retrieving metadata configuration for {}'.format(name), exc_info=True)
+            raise RuntimeError('Error retrieving metadata configuration for {}', err) from err

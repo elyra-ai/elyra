@@ -127,7 +127,7 @@ export class MetadataDisplay<
           this.props.openMetadataEditor({
             onSave: this.props.updateMetadata,
             namespace: this.props.namespace,
-            schema: this.props.schema,
+            schema: metadata.schema_name,
             name: metadata.name
           });
         }

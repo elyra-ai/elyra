@@ -289,6 +289,14 @@ td {
   outline: none;
 }
 
+.bx--number__control-btn > svg.up-icon {
+  fill: var(--md-grey-700);
+}
+
+.bx--number__control-btn > svg.down-icon {
+  fill: var(--md-grey-700);
+}
+
 .elyra-Tooltip {
   top: 90px;
   visibility: hidden;

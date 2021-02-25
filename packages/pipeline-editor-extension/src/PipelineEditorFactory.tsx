@@ -134,9 +134,11 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     }
   };
 
-  const handleExportPipeline = async (): Promise<void> => {
+  const handleExportPipeline = useCallback(async (): Promise<void> => {
+    // prepare pipeline submission details
+    const pipelineFlow = ref.current?.getPipelineFlow();
     // Warn user if the pipeline has invalid nodes
-    const errorMessage = validate(pipeline, nodes);
+    const errorMessage = validate(pipelineFlow.toString(), nodes);
     if (errorMessage) {
       // this.setState({
       //   showValidationError: true,
@@ -171,8 +173,6 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
       return;
     }
 
-    // prepare pipeline submission details
-    const pipelineFlow = ref.current?.getPipelineFlow();
     const pipeline_path = context.path;
 
     const pipeline_dir = PathExt.dirname(pipeline_path);
@@ -210,7 +210,7 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
       pipeline_export_path,
       overwrite
     ).catch(error => RequestErrors.serverError(error));
-  };
+  }, [pipeline, context.path]);
 
   const onAction = useCallback((args: { type: string; payload?: any }) => {
     console.log(args.type);
