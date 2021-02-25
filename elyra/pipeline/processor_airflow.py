@@ -73,10 +73,15 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
             self.log.debug("Uploading pipeline file: %s", pipeline_filepath)
 
-            github_client = GithubClient(server_url=runtime_configuration.metadata.get('github_api_endpoint'),
-                                         token=github_repo_token,
-                                         repo=github_repo,
-                                         branch=github_branch)
+            try:
+                github_api_endpoint = runtime_configuration.metadata.get('github_api_endpoint')
+                github_client = GithubClient(server_url=github_api_endpoint,
+                                             token=github_repo_token,
+                                             repo=github_repo,
+                                             branch=github_branch)
+
+            except BaseException as e:
+                raise RuntimeError(f'Unable to create a connection to {github_api_endpoint}: {str(e)}') from e
 
             github_client.upload_dag(pipeline_name=pipeline_name,
                                      pipeline_filepath=pipeline_filepath)

@@ -25,7 +25,7 @@ class GithubClient(LoggingConfigurable):
                  token: str,
                  repo: str,
                  branch: Optional[str] = None,
-                 server_url: Optional[str] = None):
+                 server_url: Optional[str] = "https://api.github.com"):
         """
         Creates a Github Client for Elyra
         :param token: Personal Access Token for use with Github
@@ -41,10 +41,7 @@ class GithubClient(LoggingConfigurable):
 
         super().__init__()
 
-        if server_url:
-            self.client = Github(login_or_token=token, base_url=server_url)
-        else:
-            self.client = Github(login_or_token=token)
+        self.client = Github(login_or_token=token, base_url=server_url)
 
         try:
             self.repo = self.client.get_repo(repo)

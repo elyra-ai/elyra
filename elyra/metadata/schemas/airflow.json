@@ -127,6 +127,7 @@
         "cos_username",
         "cos_password",
         "cos_bucket",
+        "github_api_endpoint",
         "github_branch",
         "github_api_endpoint",
         "github_repo_token",
