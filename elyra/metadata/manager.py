@@ -219,8 +219,9 @@ class MetadataManager(LoggingConfigurable):
 
         # Get the schema and build a dict consisting of properties and their default values (for those
         # properties that have defaults).  Then walk the metadata instance looking for missing properties
-        # and assign the corresponding default value.  Note that we do not consider exiting properties with
-        # values of None for default replacement since that may be intentional.
+        # and assign the corresponding default value.  Note that we do not consider existing properties with
+        # values of None for default replacement since that may be intentional (although those values will
+        # likely fail subsequent validation).
 
         schema = self.schema_mgr.get_schema(self.namespace, metadata.schema_name)
 
