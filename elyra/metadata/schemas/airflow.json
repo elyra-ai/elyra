@@ -32,10 +32,20 @@
           "type": "string"
         },
         "api_endpoint": {
-          "title": "Apache  Airflow UI Endpoint",
+          "title": "Apache Airflow UI Endpoint",
           "description": "The Apache Airflow UI endpoint",
           "type": "string",
           "format": "uri",
+          "uihints": {
+            "category": "Apache Airflow"
+          }
+        },
+        "github_api_endpoint": {
+          "title": "Github API Endpoint",
+          "description": "The Github Server URL / API endpoint - Public or Enterprise",
+          "type": "string",
+          "format": "uri",
+          "default": "https://api.github.com",
           "uihints": {
             "category": "Apache Airflow"
           }
@@ -118,6 +128,7 @@
         "cos_password",
         "cos_bucket",
         "github_branch",
+        "github_api_endpoint",
         "github_repo_token",
         "github_repo",
         "api_endpoint"
