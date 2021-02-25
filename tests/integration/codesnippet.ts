@@ -50,7 +50,7 @@ describe('Code Snippet tests', () => {
 
     // Fields marked as required should be highlighted
     cy.get('.MuiFormHelperText-root.Mui-error').as('required-warnings');
-    cy.get('@required-warnings').should('have.length', 3);
+    cy.get('@required-warnings').should('have.length', 2);
 
     // Close metadata editor tab
     cy.closeCurrentTab();
