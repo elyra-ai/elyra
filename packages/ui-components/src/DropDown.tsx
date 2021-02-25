@@ -64,9 +64,8 @@ export function DropDown(props: IDropDownProps): any {
         renderInput={params => (
           <TextField
             {...params}
-            label={`${props.label} ${
-              props.required ? '(required)' : '(optional)'
-            }`}
+            label={props.label}
+            required={props.required}
             error={props.error}
             helperText={props.description}
             placeholder={`Create or select ${props.label.toLocaleLowerCase()}`}

@@ -92,6 +92,10 @@
   width: 100%;
 }
 
+.elyra-metadataEditor-formInput.elyra-metadataEditor-secure label {
+  margin-right: 70px;
+}
+
 .elyra-metadataEditor-dark.elyra-metadataEditor .MuiButtonBase-root {
   color: #fff;
   border-color: #fff;

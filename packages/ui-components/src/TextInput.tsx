@@ -18,7 +18,8 @@ import {
   TextField,
   InputAdornment,
   IconButton,
-  FormHelperText
+  FormHelperText,
+  Tooltip
 } from '@material-ui/core';
 import { Visibility, VisibilityOff } from '@material-ui/icons';
 
@@ -59,41 +60,47 @@ export function TextInput(props: ITextFieldProps): any {
   }, [props.defaultValue]);
 
   return (
-    <div className="elyra-metadataEditor-formInput">
-      <TextField
-        key={props.fieldName}
-        label={`${props.label} ${props.required ? '(required)' : '(optional)'}`}
-        variant="outlined"
-        error={props.error}
-        onChange={(event: any): void => {
-          props.handleTextInputChange(event, props.fieldName);
-          setValue(event.nativeEvent.target.value);
-        }}
-        helperText={props.description}
-        value={value ?? ''}
-        type={showPassword || !props.secure ? 'text' : 'password'}
-        InputProps={
-          props.secure
-            ? {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={toggleShowPassword}
-                      onMouseDown={(event: any): void => {
-                        event.preventDefault();
-                      }}
-                      edge="end"
-                    >
-                      {showPassword ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }
-            : {}
-        }
-        className={`elyra-metadataEditor-form-${props.fieldName}`}
-      />
+    <div
+      className={`elyra-metadataEditor-formInput ${
+        props.secure ? 'elyra-metadataEditor-secure' : ''
+      }`}
+    >
+      <Tooltip title={props.description}>
+        <TextField
+          key={props.fieldName}
+          label={props.label}
+          required={props.required}
+          variant="outlined"
+          error={props.error}
+          onChange={(event: any): void => {
+            props.handleTextInputChange(event, props.fieldName);
+            setValue(event.nativeEvent.target.value);
+          }}
+          value={value ?? ''}
+          type={showPassword || !props.secure ? 'text' : 'password'}
+          InputProps={
+            props.secure
+              ? {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={toggleShowPassword}
+                        onMouseDown={(event: any): void => {
+                          event.preventDefault();
+                        }}
+                        edge="end"
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }
+              : {}
+          }
+          className={`elyra-metadataEditor-form-${props.fieldName}`}
+        />
+      </Tooltip>
       {errorText}
     </div>
   );

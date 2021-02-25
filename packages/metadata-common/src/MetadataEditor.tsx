@@ -443,10 +443,8 @@ export class MetadataEditor extends ReactWidget {
         <div
           className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
         >
-          <InputLabel>
-            {`${this.schema[fieldName].title} ${
-              required ? '(required)' : '(optional)'
-            }`}
+          <InputLabel required={required}>
+            {this.schema[fieldName].title}
           </InputLabel>
           <div id={'code:' + this.id} className="elyra-form-code"></div>
           {helperText}
@@ -501,6 +499,11 @@ export class MetadataEditor extends ReactWidget {
           }`}
         >
           <h3> {headerText} </h3>
+          <FormHelperText style={{ width: '100%', marginBottom: '10px' }}>
+            {' '}
+            * = required{' '}
+          </FormHelperText>{' '}
+          <br />
           {this.displayName !== undefined ? (
             <TextInput
               label={'Name'}
