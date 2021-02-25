@@ -298,7 +298,7 @@ export class MetadataDisplay<
           <FilterTools
             onFilter={this.filteredMetadata}
             tags={this.getActiveTags()}
-            schemaId={`${this.props.namespace}`}
+            namespaceId={`${this.props.namespace}`}
           />
           <div>{this.props.metadata.map(this.renderMetadata)}</div>
         </div>
@@ -314,7 +314,6 @@ export interface IMetadataWidgetProps {
   app: JupyterFrontEnd;
   display_name: string;
   namespace: string;
-  schema: string;
   icon: LabIcon;
 }
 
@@ -324,7 +323,7 @@ export interface IMetadataWidgetProps {
 export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
-  schemaDisplayName: string;
+  schemas: IDictionary<any>[];
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -333,37 +332,48 @@ export class MetadataWidget extends ReactWidget {
     this.props = props;
     this.renderSignal = new Signal<this, any>(this);
 
-    this.schemaDisplayName = props.schema;
-
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
     this.renderDisplay = this.renderDisplay.bind(this);
+    this.addMetadata = this.addMetadata.bind(this);
 
-    this.getSchema();
+    this.getSchemas();
   }
 
-  async getSchema(): Promise<void> {
+  async getSchemas(): Promise<void> {
     try {
-      const schemas = await MetadataService.getSchema(this.props.namespace);
-      for (const schema of schemas) {
-        if (this.props.schema === schema.name) {
-          this.schemaDisplayName = schema.title;
-          this.update();
-          break;
-        }
-      }
+      this.schemas = await MetadataService.getSchema(this.props.namespace);
+      this.update();
     } catch (error) {
       RequestErrors.serverError(error);
     }
   }
 
-  addMetadata(): void {
+  addMetadata(schema: string): void {
     this.openMetadataEditor({
       onSave: this.updateMetadata,
       namespace: this.props.namespace,
-      schema: this.props.schema
+      schema: schema
     });
+  }
+
+  getAddMetadataButtons(): React.ReactElement[] {
+    const schemaButtons: React.ReactElement[] = [];
+
+    for (const [schemaName, schema] of Object.entries(this.schemas)) {
+      schemaButtons.push(
+        <button
+          className={METADATA_HEADER_BUTTON_CLASS}
+          onClick={(): void => this.addMetadata(schemaName)}
+          title={`Create new ${schema.title}`}
+        >
+          <addIcon.react tag="span" elementPosition="center" width="16px" />
+        </button>
+      );
+    }
+
+    return schemaButtons;
   }
 
   /**
@@ -428,13 +438,7 @@ export class MetadataWidget extends ReactWidget {
             />
             <p> {this.props.display_name} </p>
           </div>
-          <button
-            className={METADATA_HEADER_BUTTON_CLASS}
-            onClick={this.addMetadata.bind(this)}
-            title={`Create new ${this.schemaDisplayName}`}
-          >
-            <addIcon.react tag="span" elementPosition="center" width="16px" />
-          </button>
+          {this.getAddMetadataButtons()}
         </header>
         <UseSignal signal={this.renderSignal} initialArgs={[]}>
           {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}

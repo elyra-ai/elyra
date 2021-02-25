@@ -125,16 +125,14 @@ const extension: JupyterFrontEndPlugin<void> = {
     const openMetadataWidget = (args: {
       display_name: string;
       namespace: string;
-      schema: string;
       icon: string;
     }): void => {
       const labIcon = LabIcon.resolve({ icon: args.icon });
-      const widgetId = `${METADATA_WIDGET_ID}:${args.namespace}:${args.schema}`;
+      const widgetId = `${METADATA_WIDGET_ID}:${args.namespace}`;
       const metadataWidget = new MetadataWidget({
         app,
         display_name: args.display_name,
         namespace: args.namespace,
-        schema: args.schema,
         icon: labIcon
       });
       metadataWidget.id = widgetId;
@@ -207,7 +205,6 @@ const extension: JupyterFrontEndPlugin<void> = {
             label: `Manage ${title}`,
             display_name: schema.title,
             namespace: schema.namespace,
-            schema: schema.name,
             icon: icon
           },
           category: 'Elyra'

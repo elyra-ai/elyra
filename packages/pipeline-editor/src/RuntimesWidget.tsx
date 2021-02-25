@@ -26,11 +26,7 @@ import { IDictionary } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import React from 'react';
 
-import {
-  PipelineService,
-  AIRFLOW_SCHEMA,
-  RUNTIMES_NAMESPACE
-} from './PipelineService';
+import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 
 /**
  * A React Component for displaying the runtimes list.
@@ -71,7 +67,6 @@ class RuntimesDisplay extends MetadataDisplay<
 export class RuntimesWidget extends MetadataWidget {
   constructor(props: IMetadataWidgetProps) {
     super(props);
-    this.schemaDisplayName = 'Runtime';
   }
 
   async fetchMetadata(): Promise<any> {
