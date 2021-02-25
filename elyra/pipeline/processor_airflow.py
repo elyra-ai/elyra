@@ -87,8 +87,11 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                      pipeline_filepath=pipeline_filepath)
 
             self.log.info('Waiting for Airflow Scheduler to process and start the pipeline')
+
+            github_url = github_client.get_github_url()
+
             self.log_pipeline_info(pipeline_name,
-                                   f"pipeline pushed to git: https://github.com/{github_repo}/tree/{github_branch}",
+                                   f"pipeline pushed to git: {github_url}",
                                    duration=(time.time() - t0_all))
 
             return PipelineProcessorResponse(

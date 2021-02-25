@@ -17,6 +17,7 @@
 from github import Github, GithubException
 from traitlets.config import LoggingConfigurable
 from typing import Optional
+from urllib3.util import parse_url
 
 
 class GithubClient(LoggingConfigurable):
@@ -41,15 +42,16 @@ class GithubClient(LoggingConfigurable):
 
         super().__init__()
 
-        self.client = Github(login_or_token=token, base_url=server_url)
+        self.server_url = server_url
+        self.repo_name = repo
+        self.branch = branch
+        self.client = Github(login_or_token=token, base_url=self.server_url)
 
         try:
-            self.repo = self.client.get_repo(repo)
+            self.github_repository = self.client.get_repo(self.repo_name)
         except GithubException as e:
-            self.log.error(f'Error accessing repository {repo}: ' + str(e))
-            raise RuntimeError(f'Error accessing repository {repo}: {str(e)}') from e
-
-        self.branch = branch
+            self.log.error(f'Error accessing repository {self.repo_name}: ' + str(e))
+            raise RuntimeError(f'Error accessing repository {self.repo_name}: {str(e)}') from e
 
     def upload_dag(self,
                    pipeline_filepath: str,
@@ -66,10 +68,10 @@ class GithubClient(LoggingConfigurable):
             with open(pipeline_filepath) as input_file:
                 content = input_file.read()
 
-                self.repo.create_file(path=pipeline_name + ".py",
-                                      message="Pushed DAG " + pipeline_name,
-                                      content=content,
-                                      branch=self.branch)
+                self.github_repository.create_file(path=pipeline_name + ".py",
+                                                   message="Pushed DAG " + pipeline_name,
+                                                   content=content,
+                                                   branch=self.branch)
 
             self.log.info('Pipeline successfully added to the git queue')
 
@@ -79,3 +81,22 @@ class GithubClient(LoggingConfigurable):
         except GithubException as e:
             self.log.error(f'Error uploading DAG to branch {self.branch}: ' + str(e))
             raise RuntimeError(f'Error uploading DAG to branch {self.branch}: {str(e)}') from e
+
+    def get_github_url(self) -> str:
+        """
+        The URL to the location of the pushed DAG
+        :return: a URL in string format
+        """
+
+        parsed_url = parse_url(self.server_url)
+        scheme = parsed_url.scheme + ":/"
+        host = parsed_url.host
+        port = ''
+
+        if parsed_url.host.split('.')[0] == 'api':
+            host = ".".join(parsed_url.host.split('.')[1:])
+
+        if parsed_url.port:
+            port = ':' + parsed_url.port
+
+        return "/".join([scheme, host, port, self.repo_name, 'tree', self.branch])
