@@ -361,11 +361,11 @@ export class MetadataWidget extends ReactWidget {
   getAddMetadataButtons(): React.ReactElement[] {
     const schemaButtons: React.ReactElement[] = [];
 
-    for (const [schemaName, schema] of Object.entries(this.schemas)) {
+    for (const schema of this.schemas) {
       schemaButtons.push(
         <button
           className={METADATA_HEADER_BUTTON_CLASS}
-          onClick={(): void => this.addMetadata(schemaName)}
+          onClick={(): void => this.addMetadata(schema.name)}
           title={`Create new ${schema.title}`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
