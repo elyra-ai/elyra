@@ -82,13 +82,19 @@ class GithubClient(LoggingConfigurable):
             self.log.error(f'Error uploading DAG to branch {self.branch}: ' + str(e))
             raise RuntimeError(f'Error uploading DAG to branch {self.branch}: {str(e)}') from e
 
-    def get_github_url(self) -> str:
+    @staticmethod
+    def get_github_url(api_url: str,
+                       repository_name: str,
+                       repository_branch: str) -> str:
         """
-        The URL to the location of the pushed DAG
+        Generates the URL to the location of the pushed DAG
+        :param api_url: url of the GitHub API
+        :param repository_name: name of the GitHub repository in the form [name or org]/[repository name]
+        :param repository_branch: name of the GitHub branch
         :return: a URL in string format
         """
 
-        parsed_url = parse_url(self.server_url)
+        parsed_url = parse_url(api_url)
         scheme = parsed_url.scheme + ":/"
         host = parsed_url.host
         port = ''
@@ -99,4 +105,4 @@ class GithubClient(LoggingConfigurable):
         if parsed_url.port:
             port = ':' + parsed_url.port
 
-        return "/".join([scheme, host, port, self.repo_name, 'tree', self.branch])
+        return "/".join([scheme, host, port, repository_name, 'tree', repository_branch])
