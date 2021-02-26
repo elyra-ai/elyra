@@ -26,10 +26,10 @@ Since Elyra is a collection of JupyterLab extensions, every extension in Elyra r
 ### Python File Editor Trackers
 The Python Editor extension in Elyra extends [JupyterLab File Editor](https://github.com/jupyterlab/jupyterlab/tree/master/packages/fileeditor).
 
-When Python File Editor extension is activated, it requests an [File Editor Tracker](https://jupyterlab.github.io/jupyterlab/fileeditor/interfaces/ieditortracker.html). This is how the extension is able to track the editor widget it extends.
+When Python File Editor extension is activated, it requests a File Editor Tracker. This is how the extension is able to track the editor widget it extends.
 In order to File Editors to recognize Python File Editor widgets as File Editors, which they are, the Python Editor widget is then added to the File Editor Tracker, therefore it can properly inherit all default components and behaviors of a File Editor.
 
-Python File Editor widget has its own tracker, which is used by the [restorer](https://jupyterlab.github.io/jupyterlab/application/interfaces/ilayoutrestorer.html) to track the widget state and allow activity restoration on page refresh.
+Python File Editor widget has its own tracker, which is used by the ILayoutRestorer to track the widget state and allow activity restoration on page refresh.
 ```
 const tracker = new WidgetTracker<PythonFileEditor>({
   namespace: PYTHON_EDITOR_NAMESPACE
