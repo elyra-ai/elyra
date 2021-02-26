@@ -28,11 +28,20 @@ import React from 'react';
 
 import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 
+export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
+  metadata: IMetadata[];
+  openMetadataEditor: (args: any) => void;
+  updateMetadata: () => void;
+  namespace: string;
+  sortMetadata: boolean;
+  schemas: IDictionary<any>[];
+}
+
 /**
  * A React Component for displaying the runtimes list.
  */
 class RuntimesDisplay extends MetadataDisplay<
-  IMetadataDisplayProps,
+  IRuntimesDisplayProps,
   IMetadataDisplayState
 > {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
@@ -40,15 +49,29 @@ class RuntimesDisplay extends MetadataDisplay<
       ? metadata.metadata.api_endpoint
       : metadata.metadata.api_endpoint + '/';
 
+    let metadata_props = null;
+
+    for (const schema of this.props.schemas) {
+      if (schema.name === metadata.schema_name) {
+        metadata_props = schema.properties.metadata.properties;
+      }
+    }
+
     return (
       <div>
-        <h6>API Endpoint</h6>
+        <h6>
+          {metadata_props ? metadata_props.api_endpoint.title : 'API Endpoint'}
+        </h6>
         <a href={apiEndpoint} target="_blank" rel="noreferrer noopener">
           {apiEndpoint}
         </a>
         <br />
         <br />
-        <h6>Cloud Object Storage</h6>
+        <h6>
+          {metadata_props
+            ? metadata_props.cos_endpoint.title
+            : 'Cloud Object Storage'}
+        </h6>
         <a
           href={metadata.metadata.cos_endpoint}
           target="_blank"
@@ -83,6 +106,7 @@ export class RuntimesWidget extends MetadataWidget {
         openMetadataEditor={this.openMetadataEditor}
         namespace={RUNTIMES_NAMESPACE}
         sortMetadata={true}
+        schemas={this.schemas}
       />
     );
   }

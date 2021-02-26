@@ -71,11 +71,7 @@ import { formDialogWidget } from './formDialogWidget';
 import * as palette from './palette.json';
 
 import { PipelineExportDialog } from './PipelineExportDialog';
-import {
-  PipelineService,
-  AIRFLOW_SCHEMA,
-  RUNTIMES_NAMESPACE
-} from './PipelineService';
+import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
@@ -1371,9 +1367,7 @@ export class PipelineEditor extends React.Component<
   }
 
   handleOpenRuntimes(): void {
-    this.shell.activateById(
-      `elyra-metadata:${RUNTIMES_NAMESPACE}:${AIRFLOW_SCHEMA}`
-    );
+    this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
   }
 
   handleClosePipeline(): void {

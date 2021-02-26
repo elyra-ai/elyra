@@ -32,7 +32,7 @@
           "type": "string"
         },
         "api_endpoint": {
-          "title": "Apache  Airflow UI Endpoint",
+          "title": "Apache Airflow UI Endpoint",
           "description": "The Apache Airflow UI endpoint",
           "type": "string",
           "format": "uri",
