@@ -71,6 +71,7 @@ export class SubmitNotebookButtonExtension
     }
 
     const {
+      runtime_platform,
       runtime_config,
       framework,
       dependency_include,
@@ -81,6 +82,7 @@ export class SubmitNotebookButtonExtension
     // prepare notebook submission details
     const pipeline = Utils.generateNotebookPipeline(
       this.panel.context.path,
+      runtime_platform,
       runtime_config,
       framework,
       dependency_include ? dependencies : undefined,

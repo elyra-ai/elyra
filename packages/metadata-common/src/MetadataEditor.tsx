@@ -214,9 +214,11 @@ export class MetadataEditor extends ReactWidget {
       this.invalidForm = true;
     }
     for (const schemaField in this.schema) {
+      const value =
+        this.metadata[schemaField] || this.schema[schemaField].default;
       if (
         this.requiredFields.includes(schemaField) &&
-        this.isValueEmpty(this.metadata[schemaField])
+        this.isValueEmpty(value)
       ) {
         this.invalidForm = true;
         this.schema[schemaField].uihints.error = true;
@@ -398,6 +400,7 @@ export class MetadataEditor extends ReactWidget {
     let uihints = this.schema[fieldName].uihints;
     const required =
       this.requiredFields && this.requiredFields.includes(fieldName);
+    const defaultValue = this.schema[fieldName].default || '';
     if (uihints === undefined) {
       uihints = {};
       this.schema[fieldName].uihints = uihints;
@@ -409,12 +412,13 @@ export class MetadataEditor extends ReactWidget {
       return (
         <TextInput
           label={this.schema[fieldName].title}
-          description={this.schema[fieldName].description}
+          description={uihints.description}
           fieldName={fieldName}
-          defaultValue={this.metadata[fieldName]}
+          defaultValue={this.metadata[fieldName] || defaultValue}
           required={required}
           secure={uihints.secure}
           error={uihints.error}
+          placeholder={uihints.placeholder}
           handleTextInputChange={this.handleTextInputChange}
         />
       );
@@ -498,7 +502,7 @@ export class MetadataEditor extends ReactWidget {
         >
           <h3> {headerText} </h3>
           <InputLabel style={{ width: '100%', marginBottom: '10px' }}>
-            * = required
+            All fields marked with an asterisk are required
           </InputLabel>
           {this.displayName !== undefined ? (
             <TextInput

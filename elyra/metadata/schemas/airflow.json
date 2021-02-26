@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Pipeline runtime configuration",
+  "title": "Apache Airflow runtime configuration",
   "name": "airflow",
   "display_name": "Apache Airflow runtime",
   "namespace": "runtimes",
@@ -32,12 +32,22 @@
           "type": "string"
         },
         "api_endpoint": {
-          "title": "Airflow UI Endpoint",
+          "title": "Apache Airflow UI Endpoint",
           "description": "The Apache Airflow UI endpoint",
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Airflow Pipelines"
+            "category": "Apache Airflow"
+          }
+        },
+        "github_api_endpoint": {
+          "title": "Github API Endpoint",
+          "description": "The Github Server URL / API endpoint - Public or Enterprise",
+          "type": "string",
+          "format": "uri",
+          "default": "https://api.github.com",
+          "uihints": {
+            "category": "Apache Airflow"
           }
         },
         "github_repo": {
@@ -45,7 +55,7 @@
           "description": "The git repository for Airflow DAGs",
           "type": "string",
           "uihints": {
-            "category": "Airflow Pipelines"
+            "category": "Apache Airflow"
           }
         },
         "github_branch": {
@@ -53,7 +63,7 @@
           "description": "The git branch to use for Airflow DAGs",
           "type": "string",
           "uihints": {
-            "category": "Airflow Pipelines"
+            "category": "Apache Airflow"
           }
         },
         "github_repo_token": {
@@ -62,7 +72,7 @@
           "type": "string",
           "uihints": {
             "secure": true,
-            "category": "Airflow Pipelines"
+            "category": "Apache Airflow"
           }
         },
         "cos_endpoint": {
@@ -102,6 +112,14 @@
           "uihints": {
             "category": "Cloud Object Storage"
           }
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing Apache Airflow",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
         }
       },
       "required": [
@@ -110,8 +128,10 @@
         "cos_password",
         "cos_bucket",
         "github_branch",
+        "github_api_endpoint",
         "github_repo_token",
-        "github_repo"
+        "github_repo",
+        "api_endpoint"
       ]
     }
   },

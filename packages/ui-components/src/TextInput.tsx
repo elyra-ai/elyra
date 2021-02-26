@@ -34,6 +34,7 @@ export interface ITextFieldProps {
   required: boolean;
   secure: boolean;
   error?: boolean;
+  placeholder?: string;
   handleTextInputChange: (event: any, fieldName: string) => void;
 }
 
@@ -83,6 +84,7 @@ export function TextInput(props: ITextFieldProps): any {
             props.handleTextInputChange(event, props.fieldName);
             setValue(event.nativeEvent.target.value);
           }}
+          placeholder={props.placeholder}
           value={value ?? ''}
           type={showPassword || !props.secure ? 'text' : 'password'}
           InputProps={

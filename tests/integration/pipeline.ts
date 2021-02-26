@@ -390,7 +390,7 @@ const createRuntimeConfig = (): any => {
   cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
   // Add a runtime config
   cy.get(
-    'button.elyra-metadataHeader-button[title="Create new Pipeline runtime configuration"]'
+    'button.elyra-metadataHeader-button[title="Create new Apache Airflow runtime configuration"]'
   ).click();
   cy.get('.elyra-metadataEditor-form-display_name').type('Test Runtime');
   cy.get('.elyra-metadataEditor-form-api_endpoint').type(
@@ -403,6 +403,11 @@ const createRuntimeConfig = (): any => {
   cy.get('.elyra-metadataEditor-form-cos_username').type('minioadmin');
   cy.get('.elyra-metadataEditor-form-cos_password').type('minioadmin');
   cy.get('.elyra-metadataEditor-form-cos_bucket').type('test-bucket');
+  // Check the default value is displayed on github api endpoint field
+  cy.get('.elyra-metadataEditor-form-github_api_endpoint > input').should(
+    'have.value',
+    'https://api.github.com'
+  );
   // save it
   cy.get('.elyra-metadataEditor-saveButton > button:visible')
     .click()

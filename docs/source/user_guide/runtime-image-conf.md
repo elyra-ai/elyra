@@ -147,6 +147,18 @@ Example:
 
 - `quay.io/jdoe/my-image:1.0.0`
 
+##### Image Pull Policy (pull_policy)
+
+This field will be the pull policy of the image when the image is selected to be part of the pipeline. This field
+is optional and not required to run a pipeline. If not selected, the behavior will [default](https://kubernetes.io/docs/concepts/containers/images/#updating-images) to that of the kubernetes 
+cluster. The three options are : `Always` `IfNotPresent` `Never`
+
+Example:
+
+- `IfNotPresent`
+
+This example will tell the kubelet to only pull the image if it does not exist. 
+
 ##### N/A (name)
 
 A unique internal identifier for the runtime image configuration. The property is required when the command line interface is used manage a configuration. An identifier is automatically generated from the user-friendly name when a configuration is added using the UI.
