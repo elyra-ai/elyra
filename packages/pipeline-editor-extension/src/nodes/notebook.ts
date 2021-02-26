@@ -94,7 +94,7 @@ const notebook = {
           label: { default: 'Include Subdirectories' },
           data: {
             helperText:
-              'Wether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
+              'Whether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
           }
         },
         {

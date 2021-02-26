@@ -58,6 +58,8 @@ const python = {
       parameter_info: [
         {
           parameter_ref: 'filename',
+          control: 'custom',
+          custom_control_id: 'pipeline-editor-file-control',
           label: { default: 'File' },
           description: {
             default: 'The path to the notebook file.',

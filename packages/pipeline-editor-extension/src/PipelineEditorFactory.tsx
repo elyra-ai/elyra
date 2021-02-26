@@ -66,12 +66,13 @@ export const commandIDs = {
 const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
   const ref = useRef(null);
   const [loading, setLoading] = useState(true);
-  const [pipeline, setPipeline] = useState();
+  const [pipeline, setPipeline] = useState(null);
+  const [panelOpen, setPanelOpen] = React.useState(false);
 
   useEffect(() => {
     context.ready.then(() => {
       const pipeline = context.model.toJSON();
-      setPipeline(pipeline || undefined);
+      setPipeline(pipeline);
       setLoading(false);
     });
   }, [context]);
@@ -121,9 +122,9 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     });
   };
 
-  const cleanNullProperties = (): void => {
+  const cleanNullProperties = React.useCallback((): void => {
     // Delete optional fields that have null value
-    for (const node of ref.current?.getPipelineFlow().pipelines[0].nodes) {
+    for (const node of pipeline?.pipelines[0].nodes) {
       if (node.app_data.cpu === null) {
         delete node.app_data.cpu;
       }
@@ -134,14 +135,16 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
         delete node.app_data.gpu;
       }
     }
-  };
+  }, [pipeline?.pipelines]);
 
   const handleExportPipeline = useCallback(async (): Promise<void> => {
     // prepare pipeline submission details
-    const pipelineFlow = ref.current?.getPipelineFlow();
     // Warn user if the pipeline has invalid nodes
-    const errorMessage = validate(pipelineFlow.toString(), nodes);
-    if (errorMessage) {
+    if (!pipeline) {
+      return;
+    }
+    const errorMessage = validate(JSON.stringify(pipeline), nodes);
+    if (errorMessage && errorMessage.length > 0) {
       // this.setState({
       //   showValidationError: true,
       //   validationError: {
@@ -196,43 +199,46 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
 
     PipelineService.setNodePathsRelativeToWorkspace(
-      pipelineFlow.pipelines[0],
+      pipeline.pipelines[0],
       context.path
     );
 
     cleanNullProperties();
 
-    pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
-    pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
-    pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
+    pipeline.pipelines[0]['app_data']['name'] = pipeline_name;
+    pipeline.pipelines[0]['app_data']['runtime'] = runtime;
+    pipeline.pipelines[0]['app_data']['runtime-config'] = runtime_config;
 
     PipelineService.exportPipeline(
-      pipelineFlow,
+      pipeline,
       pipeline_export_format,
       pipeline_export_path,
       overwrite
     ).catch(error => RequestErrors.serverError(error));
-  }, [pipeline, context.path]);
+  }, [pipeline, context.path, cleanNullProperties]);
 
-  let panelOpen = false;
-
-  const onAction = useCallback((args: { type: string; payload?: any }) => {
-    console.log(args.type);
-    switch (args.type) {
-      case 'save':
-        context.save();
-        break;
-      case 'export':
-        handleExportPipeline();
-        break;
-      case 'openPanel':
-        panelOpen = true;
-        break;
-      case 'closePanel':
-        panelOpen = false;
-        break;
-    }
-  }, []);
+  const onAction = useCallback(
+    (args: { type: string; payload?: any }) => {
+      console.log(args.type);
+      switch (args.type) {
+        case 'save':
+          context.save();
+          break;
+        case 'export':
+          handleExportPipeline();
+          break;
+        case 'openPanel':
+          setPanelOpen(true);
+          break;
+        case 'closePanel':
+          setPanelOpen(false);
+          break;
+        default:
+          context;
+      }
+    },
+    [context, handleExportPipeline]
+  );
 
   const toolbar = {
     leftBar: [

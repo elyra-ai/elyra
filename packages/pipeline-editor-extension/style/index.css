@@ -531,3 +531,8 @@ body.elyra-dark .react-contextmenu-item.contextmenu-divider {
   background-color: #ffffff;
   opacity: 0.205; /* 0.17, 0.24 */
 }
+
+input.elyra-Dialog-checkbox.jp-mod-styled {
+  appearance: auto;
+  height: auto;
+}
