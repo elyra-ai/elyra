@@ -6,7 +6,8 @@
     "rootDir": "src",
     "target": "es6",
     "types": ["node", "jest"],
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "noImplicitAny": false
   },
   "include": ["src/*", "src/*/*"],
   "files": [

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const pythonSVG: any = `
+const pythonSVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <g transform="translate(-1.5418e-7 -.00046865)">
     <path d="m9.8594 2.0009c-1.58 0-2.8594 1.2794-2.8594 2.8594v1.6797h4.2891c.39 0 .71094.57094.71094.96094h-7.1406c-1.58 0-2.8594 1.2794-2.8594 2.8594v3.7812c0 1.58 1.2794 2.8594 2.8594 2.8594h1.1797v-2.6797c0-1.58 1.2716-2.8594 2.8516-2.8594h5.25c1.58 0 2.8594-1.2716 2.8594-2.8516v-3.75c0-1.58-1.2794-2.8594-2.8594-2.8594zm-.71875 1.6094c.4 0 .71875.12094.71875.71094s-.31875.89062-.71875.89062c-.39 0-.71094-.30062-.71094-.89062s.32094-.71094.71094-.71094z" fill="#3c78aa"/>
@@ -23,7 +23,7 @@ const pythonSVG: any = `
 </svg>
 `;
 
-const python: any = {
+const python = {
   op: 'execute-python-node',
   description: 'Python file',
   label: 'Python',
@@ -36,7 +36,7 @@ const python: any = {
     current_parameters: {
       filename: '',
       runtime_image: '',
-      dependencies: '',
+      dependencies: [],
       include_subdirectories: false,
       env_vars: [],
       outputs: []
@@ -83,7 +83,7 @@ const python: any = {
               'Local file dependencies that need to be copied to remote execution environment.',
             placement: 'on_panel'
           },
-          data: { placeholder: '*.py', fileBrowser: true }
+          data: { placeholder: '*.py', canBrowseFiles: true }
         },
         {
           control: 'custom',

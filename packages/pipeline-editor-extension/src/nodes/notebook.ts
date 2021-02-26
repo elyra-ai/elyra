@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const jupyterSVG: any = `
+const jupyterSVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
   <g transform="translate(-1638,-1844)">
     <path d="m1788 1886a108.02 108.02 0 0 0 -104.92 82.828 114.07 64.249 0 0 1 104.92 -39.053 114.07 64.249 0 0 1 104.96 39.261 108.02 108.02 0 0 0 -104.96 -83.037zm-104.96 133.01a108.02 108.02 0 0 0 104.96 83.037 108.02 108.02 0 0 0 104.92 -82.828 114.07 64.249 0 0 1 -104.92 39.053 114.07 64.249 0 0 1 -104.96 -39.261z" style="fill:#f57c00;paint-order:fill markers stroke"/>
@@ -23,7 +23,7 @@ const jupyterSVG: any = `
 </svg>
 `;
 
-const notebook: any = {
+const notebook = {
   op: 'execute-notebook-node',
   description: 'Notebook file',
   label: 'Notebook',
@@ -36,7 +36,7 @@ const notebook: any = {
     current_parameters: {
       filename: '',
       runtime_image: '',
-      dependencies: '',
+      dependencies: [],
       include_subdirectories: false,
       env_vars: [],
       outputs: []
@@ -57,6 +57,8 @@ const notebook: any = {
       id: 'nodeProperties',
       parameter_info: [
         {
+          control: 'custom',
+          custom_control_id: 'pipeline-editor-file-control',
           parameter_ref: 'filename',
           label: { default: 'File' },
           description: {
@@ -83,7 +85,7 @@ const notebook: any = {
               'Local file dependencies that need to be copied to remote execution environment.',
             placement: 'on_panel'
           },
-          data: { placeholder: '*.py', fileBrowser: true }
+          data: { placeholder: '*.py', canBrowseFiles: true }
         },
         {
           control: 'custom',
@@ -92,7 +94,7 @@ const notebook: any = {
           label: { default: 'Include Subdirectories' },
           data: {
             helperText:
-              'Whether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
+              'Wether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
           }
         },
         {
@@ -120,29 +122,12 @@ const notebook: any = {
           data: { placeholder: '*.csv' }
         }
       ],
-      action_info: [
-        {
-          id: 'browse_file',
-          label: {
-            default: 'Browse'
-          },
-          control: 'button',
-          data: {
-            parameter_ref: 'filename'
-          }
-        }
-      ],
       group_info: [
         {
           id: 'nodeGroupInfo',
           type: 'panels',
           group_info: [
             { id: 'filename', type: 'controls', parameter_refs: ['filename'] },
-            {
-              id: 'nodeBrowseFileAction',
-              type: 'actionPanel',
-              action_refs: ['browse_file']
-            },
             {
               id: 'runtime_image',
               type: 'controls',

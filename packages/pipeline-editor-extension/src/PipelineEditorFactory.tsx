@@ -95,13 +95,15 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
   };
 
   const onFileRequested = (
-    startPath?: string,
+    startPathInfo?: any,
     multiselect?: boolean
   ): Promise<string> => {
+    const startPath = startPathInfo.defaultUri;
     const currentExt = PathExt.extname(startPath || '');
     const filename = PipelineService.getWorkspaceRelativeNodePath(
       context.path,
-      startPath || ''
+      //TODO: need to work out the logic to match current behavior
+      ''
     );
     return showBrowseFileDialog(browserFactory.defaultBrowser.model.manager, {
       startPath: PathExt.dirname(filename),
@@ -173,8 +175,6 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
       return;
     }
 
-    console.log('Here');
-
     const pipeline_path = context.path;
 
     const pipeline_dir = PathExt.dirname(pipeline_path);
@@ -214,6 +214,8 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     ).catch(error => RequestErrors.serverError(error));
   }, [pipeline, context.path]);
 
+  let panelOpen = false;
+
   const onAction = useCallback((args: { type: string; payload?: any }) => {
     console.log(args.type);
     switch (args.type) {
@@ -222,6 +224,13 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
         break;
       case 'export':
         handleExportPipeline();
+        break;
+      case 'openPanel':
+        panelOpen = true;
+        break;
+      case 'closePanel':
+        panelOpen = false;
+        break;
     }
   }, []);
 
@@ -284,7 +293,7 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
         action: 'toggleOpenPanel',
         label: 'Open panel',
         enable: true,
-        iconTypeOverride: 'paletteClose'
+        iconTypeOverride: panelOpen ? 'paletteOpen' : 'paletteClose'
       }
     ]
   };
