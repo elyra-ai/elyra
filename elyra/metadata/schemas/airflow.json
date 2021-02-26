@@ -123,16 +123,15 @@
         }
       },
       "required": [
+        "api_endpoint",
         "cos_endpoint",
         "cos_username",
         "cos_password",
         "cos_bucket",
         "github_api_endpoint",
         "github_branch",
-        "github_api_endpoint",
         "github_repo_token",
-        "github_repo",
-        "api_endpoint"
+        "github_repo"
       ]
     }
   },
