@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-describe('PythonEditor', () => {
-  it('opens jupyterlab', () => {
+describe('Python Editor tests', () => {
+  before(() => {
     cy.openJupyterLab();
+  });
+
+  after(() => {
+    cy.deleteFileByName('untitled.py');
   });
 
   it('opens blank python from launcher', () => {
@@ -25,6 +29,7 @@ describe('PythonEditor', () => {
 
   it('close python editor', () => {
     cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.deleteFileByName('untitled.py');
   });
 
   it('opens blank python from new menu', () => {
@@ -58,5 +63,16 @@ describe('PythonEditor', () => {
 
   it('check select kernel dropdown exists and has python', () => {
     cy.get('.elyra-PythonEditor .jp-Toolbar select > option[value*=python]');
+  });
+
+  it('check submit script buttton exists', () => {
+    cy.contains('Submit Script');
+  });
+
+  it('click the submit script buttton should display dialog', () => {
+    cy.contains('Submit Script').click();
+    cy.get('.jp-Dialog-header').should('have.text', 'Submit script');
+    // dismiss  dialog
+    cy.get('button.jp-mod-reject').click();
   });
 });

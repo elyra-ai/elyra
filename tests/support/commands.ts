@@ -19,6 +19,7 @@ declare namespace Cypress {
     openJupyterLab(): Cypress.Chainable<void>;
     closeCurrentTab(): Cypress.Chainable<void>;
     getFileByType(type: string): Cypress.Chainable<JQuery<HTMLElement>>;
+    deleteFileByName(fileName: string): Cypress.Chainable<void>;
   }
 }
 
@@ -37,3 +38,11 @@ Cypress.Commands.add(
     return cy.get(`.jp-DirListing-content > [data-file-type="${type}"]`);
   }
 );
+
+Cypress.Commands.add('deleteFileByName', (fileName: string): void => {
+  cy.get(`.jp-DirListing-itemText:contains(${fileName})`).rightclick();
+  cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
+  cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
+    .should('be.visible')
+    .click();
+});

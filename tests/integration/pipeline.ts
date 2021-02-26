@@ -414,15 +414,6 @@ const createRuntimeConfig = (): any => {
     .wait(100);
 };
 
-// const deleteFileByName = (name: string): any => {
-//   getFileByName(`${name}`).rightclick();
-//   cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
-//   cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
-//     .should('be.visible')
-//     .click();
-//   cy.wait(100);
-// };
-
 const checkEnabledToolbarButtons = (buttons: string[]): void => {
   buttons.forEach((buttonClass: string) => {
     cy.get(`${buttonClass} button`)
