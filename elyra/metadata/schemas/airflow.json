@@ -38,7 +38,7 @@
           "format": "uri",
           "uihints": {
             "category": "Apache Airflow",
-            "placeholder": "http://your-apache-webserver:port"
+            "placeholder": "https://your-airflow-webserver:port"
           }
         },
         "github_api_endpoint": {
@@ -49,7 +49,7 @@
           "default": "https://api.github.com",
           "uihints": {
             "category": "Apache Airflow",
-            "placeholder": "https://api.github.com"
+            "placeholder": "https://your-github-endpoint"
           }
         },
         "github_repo": {
