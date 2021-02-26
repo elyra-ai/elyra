@@ -42,8 +42,8 @@ export interface ISchema {
 }
 
 enum ContentType {
-  notebook = 'notebook',
-  python = 'python',
+  notebook = 'execute-notebook-node',
+  python = 'execute-python-node',
   other = 'other'
 }
 

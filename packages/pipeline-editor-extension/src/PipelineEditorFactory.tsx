@@ -71,7 +71,7 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
   useEffect(() => {
     context.ready.then(() => {
       const pipeline = context.model.toJSON();
-      setPipeline(pipeline);
+      setPipeline(pipeline || undefined);
       setLoading(false);
     });
   }, [context]);
@@ -172,6 +172,8 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
       // When Cancel is clicked on the dialog, just return
       return;
     }
+
+    console.log('Here');
 
     const pipeline_path = context.path;
 
