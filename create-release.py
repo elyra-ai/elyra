@@ -130,6 +130,9 @@ def update_version_to_release() -> None:
         sed(_source('docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md'),
             r"dev",
             f"{new_version}")
+        sed(_source('docs/source/recipes/configure-airflow-as-a-runtime.md'),
+            r"master",
+            f"{new_version}")
 
         sed(_source('etc/docker/elyra/Dockerfile'),
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
