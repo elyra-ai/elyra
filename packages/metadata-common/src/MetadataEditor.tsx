@@ -183,9 +183,11 @@ export class MetadataEditor extends ReactWidget {
       this.invalidForm = true;
     }
     for (const schemaField in this.schema) {
+      const value =
+        this.metadata[schemaField] || this.schema[schemaField].default;
       if (
         this.requiredFields.includes(schemaField) &&
-        this.isValueEmpty(this.metadata[schemaField])
+        this.isValueEmpty(value)
       ) {
         this.invalidForm = true;
         this.schema[schemaField].uihints.intent = Intent.DANGER;
@@ -429,6 +431,7 @@ export class MetadataEditor extends ReactWidget {
 
   renderField(fieldName: string): React.ReactElement {
     let uihints = this.schema[fieldName].uihints;
+    const defaultValue = this.schema[fieldName].default || '';
     let required = '(optional)';
     if (this.requiredFields && this.requiredFields.includes(fieldName)) {
       required = '(required)';
@@ -445,7 +448,7 @@ export class MetadataEditor extends ReactWidget {
         this.schema[fieldName].title,
         uihints.description,
         fieldName,
-        this.metadata[fieldName],
+        this.metadata[fieldName] || defaultValue,
         required,
         uihints.secure,
         uihints.intent
