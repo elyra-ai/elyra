@@ -101,7 +101,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 # Append timestamp to generate unique version name
                 pipeline_version_name = f'{pipeline_name}-{timestamp}'
             # Establish a 1:1 relationship with an experiment
-            experiment_name = pipeline_name
+            # work around https://github.com/kubeflow/pipelines/issues/5172
+            experiment_name = pipeline_name.lower()
             # Unique identifier for the pipeline run
             job_name = f'{pipeline_name}-{timestamp}'
             # Unique location on COS where the pipeline run artifacts
@@ -142,7 +143,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             # Upload the compiled pipeline, create an experiment and run
 
             try:
-                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline_name}'."
+                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.source}'."
                 t0 = time.time()
 
                 if pipeline_id is None:
@@ -207,7 +208,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = pipeline.name
         pipeline_version_name = f'{pipeline_name}-{timestamp}'
-        experiment_name = pipeline_name
+        # work around https://github.com/kubeflow/pipelines/issues/5172
+        experiment_name = pipeline_name.lower()
         # Unique identifier for the pipeline run
         job_name = f'{pipeline_name}-{timestamp}'
         # Unique location on COS where the pipeline run artifacts
@@ -263,7 +265,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                  experiment_name=experiment_name,
                                                  cos_directory=cos_directory)
 
-            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.name}.'
+            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             for key, operation in defined_pipeline.items():
                 self.log.debug("component :\n "
@@ -386,6 +388,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                     cos_directory=cos_directory,
                                                     cos_dependencies_archive=operation_artifact_archive,
                                                     pipeline_version=pipeline_version,
+                                                    pipeline_source=pipeline.source,
                                                     pipeline_inputs=operation.inputs,
                                                     pipeline_outputs=operation.outputs,
                                                     pipeline_envs=pipeline_envs,
