@@ -54,10 +54,13 @@ class PipelineParser(LoggingConfigurable):
         if 'nodes' not in primary_pipeline or len(primary_pipeline['nodes']) == 0:
             raise ValueError("Invalid pipeline: At least one node must exist in the primary pipeline.")
 
+        source = PipelineParser._get_app_data_field(primary_pipeline, 'source')
+
         pipeline_object = Pipeline(id=id,
                                    name=PipelineParser._get_app_data_field(primary_pipeline, 'name', 'untitled'),
                                    runtime=runtime,
-                                   runtime_config=runtime_config)
+                                   runtime_config=runtime_config,
+                                   source=source)
         self._nodes_to_operations(pipeline_definitions, pipeline_object, primary_pipeline['nodes'])
         return pipeline_object
 
