@@ -31,11 +31,23 @@
           "description": "The description of this Runtime Image instance",
           "type": "string"
         },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing runtime images",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
+        },
         "image_name": {
           "title": "Image Name",
           "description": "The image name (including optional tag)",
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "uihints": {
+            "placeholder": "registry/owner/image:tag",
+            "category": "Source"
+          }
         },
         "pull_policy": {
           "title": "Image Pull Policy",
@@ -43,15 +55,8 @@
           "type": "string",
           "enum": ["Always", "IfNotPresent", "Never"],
           "uihints": {
-            "field_type": "dropdown"
-          }
-        },
-        "tags": {
-          "title": "Tags",
-          "description": "Tags for categorizing runtime images",
-          "type": "array",
-          "uihints": {
-            "field_type": "tags"
+            "field_type": "dropdown",
+            "category": "Source"
           }
         }
       },
