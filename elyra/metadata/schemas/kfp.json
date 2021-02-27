@@ -37,7 +37,8 @@
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Kubeflow Pipelines"
+            "category": "Kubeflow Pipelines",
+            "placeholder": "https://your-kubeflow-service:port/pipeline"
           }
         },
         "user_namespace": {
@@ -84,7 +85,8 @@
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Cloud Object Storage"
+            "category": "Cloud Object Storage",
+            "placeholder": "https://your-cos-service:port"
           }
         },
         "cos_username": {
