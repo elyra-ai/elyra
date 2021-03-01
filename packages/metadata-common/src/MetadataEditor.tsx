@@ -367,9 +367,12 @@ export class MetadataEditor extends ReactWidget {
   getDefaultChoices(fieldName: string): any[] {
     let defaultChoices = this.schema[fieldName].enum;
     if (!defaultChoices) {
-      defaultChoices = this.schema[fieldName].uihints.default_choices || [];
+      defaultChoices =
+        Object.assign([], this.schema[fieldName].uihints.default_choices) || [];
       for (const otherMetadata of this.allMetadata) {
         if (
+          // Don't include the current metadata
+          otherMetadata !== this.metadata &&
           // Don't add if otherMetadata hasn't defined field
           otherMetadata.metadata[fieldName] &&
           !find(defaultChoices, (choice: string) => {

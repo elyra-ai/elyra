@@ -79,6 +79,12 @@ export function DropDown(props: IDropDownProps): any {
               label={props.label}
               required={props.required}
               error={props.error}
+              onChange={(event: any): void => {
+                props.handleDropdownChange(
+                  props.schemaField,
+                  event.target.value
+                );
+              }}
               placeholder={`Create or select ${props.label.toLocaleLowerCase()}`}
               variant="outlined"
             />
