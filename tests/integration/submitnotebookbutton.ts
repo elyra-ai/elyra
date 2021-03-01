@@ -19,19 +19,37 @@ describe('Submit Notebook Button tests', () => {
   });
 
   after(() => {
+    // go back to file browser and delete file created for testing
+    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
     cy.deleteFileByName('Untitled.ipynb');
+
+    // Delete runtime configuration used for testing
+    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+      failOnNonZeroExit: false
+    });
   });
 
-  it('presses the submit notebook buttton in the notebook toolbar', () => {
+  it('check Submit Notebook button exists', () => {
     openNewNotebookFile();
-    clickSubmitNotebookButton();
+    cy.contains('Submit Notebook');
   });
 
-  it('should display Submit Notebook dialog', () => {
+  it('click the Submit Script button should display dialog', () => {
+    // Open runtimes sidebar
+    cy.get('.jp-SideBar [title="Runtimes"]').click();
+    // Create runtime configuration
+    cy.createRuntimeConfig();
+    // Validate it is now available
+    cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
+      'Test Runtime'
+    );
+    // Click submit notebook button
+    cy.contains('Submit Notebook').click();
+    // Check for expected dialog title
     cy.get('.jp-Dialog')
       .find('div.jp-Dialog-header')
       .should('have.text', 'Submit notebook');
-    // dismiss  dialog
+    // Dismiss  dialog
     cy.get('button.jp-mod-reject').click();
   });
 });
@@ -44,8 +62,4 @@ const openNewNotebookFile = (): void => {
   cy.get(
     '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
   ).click();
-};
-
-const clickSubmitNotebookButton = (): void => {
-  cy.contains('Submit Notebook').click();
 };

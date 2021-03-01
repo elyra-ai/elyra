@@ -19,7 +19,14 @@ describe('Python Editor tests', () => {
   });
 
   after(() => {
+    // go back to file browser and delete file created for testing
+    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
     cy.deleteFileByName('untitled.py');
+
+    // Delete runtime configuration used for testing
+    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+      failOnNonZeroExit: false
+    });
   });
 
   it('opens blank python from launcher', () => {
@@ -65,14 +72,24 @@ describe('Python Editor tests', () => {
     cy.get('.elyra-PythonEditor .jp-Toolbar select > option[value*=python]');
   });
 
-  it('check submit script buttton exists', () => {
+  it('check Submit Script button exists', () => {
     cy.contains('Submit Script');
   });
 
-  it('click the submit script buttton should display dialog', () => {
+  it('click the Submit Script button should display dialog', () => {
+    // Open runtimes sidebar
+    cy.get('.jp-SideBar [title="Runtimes"]').click();
+    // Create runtime configuration
+    cy.createRuntimeConfig();
+    // Validate it is now available
+    cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
+      'Test Runtime'
+    );
+    // Click Submit Script button
     cy.contains('Submit Script').click();
+    // Check for expected dialog title
     cy.get('.jp-Dialog-header').should('have.text', 'Submit script');
-    // dismiss  dialog
+    // Dismiss  dialog
     cy.get('button.jp-mod-reject').click();
   });
 });
