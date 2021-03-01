@@ -44,7 +44,8 @@ def parsed_pipeline():
 
 @pytest.fixture
 def sample_metadata():
-    return {"github_repo": "examples/test-repo",
+    return {"github_api_endpoint": "https://api.github.com",
+            "github_repo": "examples/test-repo",
             "github_repo_token": "c564d8dfgdsfgdfgdsfgdsfgdfsgdfsgdsfgdsfg",
             "github_branch": "main",
             "api_endpoint": "http://examples.com:31737",
