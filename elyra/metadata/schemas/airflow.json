@@ -37,7 +37,8 @@
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Apache Airflow"
+            "category": "Apache Airflow",
+            "placeholder": "https://your-airflow-webserver:port"
           }
         },
         "github_api_endpoint": {
@@ -47,7 +48,8 @@
           "format": "uri",
           "default": "https://api.github.com",
           "uihints": {
-            "category": "Apache Airflow"
+            "category": "Apache Airflow",
+            "placeholder": "https://your-github-endpoint"
           }
         },
         "github_repo": {
@@ -55,7 +57,8 @@
           "description": "The git repository for Airflow DAGs",
           "type": "string",
           "uihints": {
-            "category": "Apache Airflow"
+            "category": "Apache Airflow",
+            "placeholder": "user-or-org/dag-repo-name"
           }
         },
         "github_branch": {
@@ -81,7 +84,8 @@
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Cloud Object Storage"
+            "category": "Cloud Object Storage",
+            "placeholder": "https://your-cos-service:port"
           }
         },
         "cos_username": {
@@ -123,15 +127,15 @@
         }
       },
       "required": [
+        "api_endpoint",
         "cos_endpoint",
         "cos_username",
         "cos_password",
         "cos_bucket",
-        "github_branch",
         "github_api_endpoint",
+        "github_branch",
         "github_repo_token",
-        "github_repo",
-        "api_endpoint"
+        "github_repo"
       ]
     }
   },

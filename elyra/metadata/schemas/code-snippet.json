@@ -31,13 +31,22 @@
           "description": "Code snippet description",
           "type": "string"
         },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing snippets",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
+        },
         "language": {
           "title": "Language",
           "description": "Code snippet implementation language",
           "type": "string",
           "uihints": {
             "field_type": "dropdown",
-            "default_choices": ["Python", "Java", "R", "Scala", "Markdown"]
+            "default_choices": ["Python", "Java", "R", "Scala", "Markdown"],
+            "category": "Source"
           },
           "minLength": 1
         },
@@ -46,15 +55,8 @@
           "description": "Code snippet code lines",
           "type": "array",
           "uihints": {
-            "field_type": "code"
-          }
-        },
-        "tags": {
-          "title": "Tags",
-          "description": "Tags for categorizing snippets",
-          "type": "array",
-          "uihints": {
-            "field_type": "tags"
+            "field_type": "code",
+            "category": "Source"
           }
         }
       },
