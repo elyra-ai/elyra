@@ -73,7 +73,7 @@ export function TextInput(props: ITextFieldProps): any {
         props.secure ? 'elyra-metadataEditor-secure' : ''
       }`}
     >
-      <CustomTooltip title={props.description}>
+      <CustomTooltip title={props.description || ''}>
         <TextField
           key={props.fieldName}
           label={props.label}

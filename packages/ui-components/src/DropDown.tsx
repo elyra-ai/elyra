@@ -61,7 +61,7 @@ export function DropDown(props: IDropDownProps): any {
 
   return (
     <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
-      <CustomTooltip title={props.description} placement="top">
+      <CustomTooltip title={props.description || ''} placement="top">
         <Autocomplete
           id="combo-box-demo"
           freeSolo
