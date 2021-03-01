@@ -40,7 +40,7 @@ body {
 
   /* node */
   --elyra-color-node-text: var(--vscode-foreground);
-  --elyra-color-node-link: var(--vscode-textLink-foreground);
+  --elyra-color-node-link: var(--jp-content-link-color);
   --elyra-color-node-bg: var(--vscode-notifications-background);
   --elyra-color-node-border: transparent;
   --elyra-color-node-hover-bg: var(--vscode-notifications-background);
@@ -131,17 +131,9 @@ body {
   user-select: none;
 }
 
-body.vscode-dark .elyra-empty-text {
-  color: rgba(255, 255, 255, 0.6);
-}
-
 .elyra-empty-image {
   opacity: 0.05;
   margin-bottom: 50px;
-}
-
-body.vscode-dark .elyra-empty-image {
-  opacity: 0.3;
 }
 
 .properties-control-panel[data-id='properties-nodeGroupInfo']

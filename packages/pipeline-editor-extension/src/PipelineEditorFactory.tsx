@@ -29,7 +29,12 @@ import {
   showFormDialog
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
-import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
+import {
+  Dialog,
+  ReactWidget,
+  showDialog,
+  showErrorMessage
+} from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
 import {
   DocumentRegistry,
@@ -51,6 +56,7 @@ import { formDialogWidget } from './formDialogWidget';
 import nodes from './nodes';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import { PipelineService } from './PipelineService';
+import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -141,17 +147,16 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     // prepare pipeline submission details
     // Warn user if the pipeline has invalid nodes
     if (!pipeline) {
+      showErrorMessage('Failed export', 'Cannot export empty pipelines.');
       return;
     }
-    const errorMessage = validate(JSON.stringify(pipeline), nodes);
-    if (errorMessage && errorMessage.length > 0) {
-      // this.setState({
-      //   showValidationError: true,
-      //   validationError: {
-      //     errorMessage: errorMessage,
-      //     errorSeverity: 'error'
-      //   }
-      // });
+    const errorMessages = validate(JSON.stringify(pipeline), nodes);
+    if (errorMessages && errorMessages.length > 0) {
+      let errorMessage = '';
+      for (const error of errorMessages) {
+        errorMessage += error.message;
+      }
+      showErrorMessage('Failed export.', errorMessage);
       return;
     }
     const runtimes = await PipelineService.getRuntimes().catch(error =>
@@ -217,12 +222,113 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     ).catch(error => RequestErrors.serverError(error));
   }, [pipeline, context.path, cleanNullProperties]);
 
+  const handleRunPipeline = useCallback(async (): Promise<void> => {
+    // Check that all nodes are valid
+    const errorMessages = validate(JSON.stringify(pipeline), nodes);
+    if (errorMessages && errorMessages.length > 0) {
+      let errorMessage = '';
+      for (const error of errorMessages) {
+        errorMessage += error.message;
+      }
+      showErrorMessage('Failed export.', errorMessage);
+      return;
+    }
+
+    const pipelineName = PathExt.basename(
+      context.path,
+      PathExt.extname(context.path)
+    );
+
+    const runtimes = await PipelineService.getRuntimes(false).catch(error =>
+      RequestErrors.serverError(error)
+    );
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
+    const local_runtime: any = {
+      name: 'local',
+      display_name: 'Run in-place locally'
+    };
+    runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
+
+    const dialogOptions: Partial<Dialog.IOptions<any>> = {
+      title: 'Run pipeline',
+      body: formDialogWidget(
+        <PipelineSubmissionDialog
+          name={pipelineName}
+          runtimes={runtimes}
+          schema={schema}
+        />
+      ),
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      defaultButton: 1,
+      focusNodeSelector: '#pipeline_name'
+    };
+    const dialogResult = await showFormDialog(dialogOptions);
+
+    if (dialogResult.value == null) {
+      // When Cancel is clicked on the dialog, just return
+      return;
+    }
+
+    // prepare pipeline submission details
+    const runtime_config = dialogResult.value.runtime_config;
+    const runtime =
+      PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
+
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipeline.pipelines[0],
+      context.path
+    );
+
+    cleanNullProperties();
+
+    pipeline.pipelines[0]['app_data']['name'] =
+      dialogResult.value.pipeline_name;
+    pipeline.pipelines[0]['app_data']['runtime'] = runtime;
+    pipeline.pipelines[0]['app_data']['runtime-config'] = runtime_config;
+    pipeline.pipelines[0]['app_data']['source'] = PathExt.basename(
+      context.path
+    );
+
+    PipelineService.submitPipeline(
+      pipeline,
+      PipelineService.getDisplayName(
+        dialogResult.value.runtime_config,
+        runtimes
+      )
+    ).catch(error => RequestErrors.serverError(error));
+  }, [pipeline, context.path, cleanNullProperties]);
+
+  const handleClearPipeline = useCallback(
+    async (data: any): Promise<any> => {
+      return showDialog({
+        title: 'Clear Pipeline',
+        body: 'Are you sure you want to clear the pipeline?',
+        buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
+      }).then(result => {
+        if (result.button.accept) {
+          // select all canvas elements
+          setPipeline(null);
+        }
+      });
+    },
+    [pipeline]
+  );
+
   const onAction = useCallback(
     (args: { type: string; payload?: any }) => {
       console.log(args.type);
       switch (args.type) {
         case 'save':
           context.save();
+          break;
+        case 'run':
+          handleRunPipeline();
+          break;
+        case 'clear':
+          handleClearPipeline(args.payload);
           break;
         case 'export':
           handleExportPipeline();
@@ -237,7 +343,7 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
           context;
       }
     },
-    [context, handleExportPipeline]
+    [context, handleExportPipeline, handleRunPipeline]
   );
 
   const toolbar = {
