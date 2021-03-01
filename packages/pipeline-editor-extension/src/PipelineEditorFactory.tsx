@@ -333,17 +333,14 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
         case 'export':
           handleExportPipeline();
           break;
-        case 'openPanel':
-          setPanelOpen(true);
-          break;
-        case 'closePanel':
-          setPanelOpen(false);
+        case 'toggleOpenPanel':
+          setPanelOpen(!panelOpen);
           break;
         default:
           context;
       }
     },
-    [context, handleExportPipeline, handleRunPipeline]
+    [context, panelOpen, handleExportPipeline, handleRunPipeline]
   );
 
   const toolbar = {
