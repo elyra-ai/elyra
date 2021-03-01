@@ -404,7 +404,7 @@ const createRuntimeConfig = (): any => {
   cy.get('.elyra-metadataEditor-form-cos_password').type('minioadmin');
   cy.get('.elyra-metadataEditor-form-cos_bucket').type('test-bucket');
   // Check the default value is displayed on github api endpoint field
-  cy.get('.elyra-metadataEditor-form-github_api_endpoint > input').should(
+  cy.get('.elyra-metadataEditor-form-github_api_endpoint >> input').should(
     'have.value',
     'https://api.github.com'
   );
