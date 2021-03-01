@@ -18,7 +18,7 @@
     },
     "display_name": {
       "title": "Display Name",
-      "description": "The display name of this KFP instance",
+      "description": "Display name of this Kubeflow Pipelines configuration",
       "type": "string",
       "minLength": 1
     },
@@ -28,7 +28,7 @@
       "properties": {
         "description": {
           "title": "Description",
-          "description": "The description of this KFP runtime instance",
+          "description": "Description of this Kubeflow Pipelines configuration",
           "type": "string"
         },
         "api_endpoint": {
@@ -61,7 +61,7 @@
         },
         "api_password": {
           "title": "Kubeflow Pipelines API Endpoint Password",
-          "description": "The Kubeflow Pipelines API endpoint password",
+          "description": "Password for the specified username",
           "type": "string",
           "uihints": {
             "secure": true,
@@ -70,7 +70,7 @@
         },
         "engine": {
           "title": "Kubeflow Pipelines engine",
-          "description": "The Kubeflow Pipelines engine in use (Argo or Tekton)",
+          "description": "The Kubeflow Pipelines engine in use ('Argo' or 'Tekton')",
           "type": "string",
           "enum": ["Argo", "Tekton"],
           "default": "Argo",
