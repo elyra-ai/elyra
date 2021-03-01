@@ -43,10 +43,6 @@
   align-self: flex-end;
 }
 
-.elyra-metadataHeader-button svg {
-  transform: translate(-3px, 0px);
-}
-
 .elyra-metadataHeader-button:hover {
   background-color: var(--jp-layout-color2);
   cursor: pointer;

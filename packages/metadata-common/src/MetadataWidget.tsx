@@ -32,6 +32,17 @@ import {
 import { addIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
+import {
+  Box,
+  IconButton,
+  ButtonGroup,
+  Popper,
+  Paper,
+  ClickAwayListener,
+  MenuList,
+  MenuItem
+} from '@material-ui/core';
+
 import React from 'react';
 
 import { FilterTools } from './FilterTools';
@@ -307,6 +318,68 @@ export class MetadataDisplay<
   }
 }
 
+interface IButtonProps {
+  display_name: string;
+  schemas: IDictionary<any>[];
+  addMetadata: (schema: string) => void;
+}
+
+// eslint-disable-next-line func-style
+function AddMetadataButton(props: IButtonProps): React.ReactElement {
+  const [open, setOpen] = React.useState(false);
+  const anchorRef = React.useRef<HTMLDivElement>(null);
+
+  const handleToggle = (): void => {
+    setOpen((prevOpen: boolean) => !prevOpen);
+  };
+
+  const handleClose = (event: React.MouseEvent<Document, MouseEvent>): void => {
+    if (
+      anchorRef.current &&
+      anchorRef.current.contains(event.target as HTMLElement)
+    ) {
+      return;
+    }
+
+    setOpen(false);
+  };
+
+  return (
+    <Box>
+      <ButtonGroup ref={anchorRef}>
+        <IconButton
+          size="small"
+          className={METADATA_HEADER_BUTTON_CLASS}
+          onClick={handleToggle}
+          title={`Create New ${props.display_name}`}
+        >
+          <addIcon.react tag="span" elementPosition="center" width="16px" />
+        </IconButton>
+      </ButtonGroup>
+      <Popper open={open} anchorEl={anchorRef.current} placement="bottom-start">
+        <Paper>
+          <ClickAwayListener onClickAway={handleClose}>
+            <MenuList id="split-button-menu">
+              {props.schemas.map((schema: IDictionary<any>) => (
+                <MenuItem
+                  key={schema.title}
+                  onClick={(event: any): void => {
+                    props.addMetadata(schema.name);
+                    handleClose(event);
+                  }}
+                  title={`Create new ${schema.title}`}
+                >
+                  {`Create new ${schema.title}`}
+                </MenuItem>
+              ))}
+            </MenuList>
+          </ClickAwayListener>
+        </Paper>
+      </Popper>
+    </Box>
+  );
+}
+
 /**
  * MetadataWidget props.
  */
@@ -356,24 +429,6 @@ export class MetadataWidget extends ReactWidget {
       namespace: this.props.namespace,
       schema: schema
     });
-  }
-
-  getAddMetadataButtons(): React.ReactElement[] {
-    const schemaButtons: React.ReactElement[] = [];
-
-    for (const schema of this.schemas) {
-      schemaButtons.push(
-        <button
-          className={METADATA_HEADER_BUTTON_CLASS}
-          onClick={(): void => this.addMetadata(schema.name)}
-          title={`Create new ${schema.title}`}
-        >
-          <addIcon.react tag="span" elementPosition="center" width="16px" />
-        </button>
-      );
-    }
-
-    return schemaButtons;
   }
 
   /**
@@ -438,7 +493,11 @@ export class MetadataWidget extends ReactWidget {
             />
             <p> {this.props.display_name} </p>
           </div>
-          {this.getAddMetadataButtons()}
+          <AddMetadataButton
+            display_name={this.props.display_name}
+            schemas={this.schemas}
+            addMetadata={this.addMetadata}
+          />
         </header>
         <UseSignal signal={this.renderSignal} initialArgs={[]}>
           {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
