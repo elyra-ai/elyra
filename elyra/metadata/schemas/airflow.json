@@ -63,7 +63,7 @@
         },
         "github_branch": {
           "title": "GitHub DAG Repository Branch",
-          "description": "Existing branch in the DAG repository where DAGs are stored",
+          "description": "Existing branch in the GitHub repository where DAGs are stored",
           "type": "string",
           "uihints": {
             "category": "Apache Airflow"
