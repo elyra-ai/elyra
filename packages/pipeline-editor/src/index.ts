@@ -32,6 +32,7 @@ import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { AIRFLOW_SCHEMA, RUNTIMES_NAMESPACE } from './PipelineService';
 import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
+import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
 
 import '../style/index.css';
 
@@ -166,11 +167,20 @@ const extension: JupyterFrontEndPlugin<void> = {
     );
 
     // SubmitNotebookButtonExtension initialization code
-    const buttonExtension = new SubmitNotebookButtonExtension();
-    app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
+    const notebookButtonExtension = new SubmitNotebookButtonExtension();
+    app.docRegistry.addWidgetExtension('Notebook', notebookButtonExtension);
     app.contextMenu.addItem({
       selector: '.jp-Notebook',
       command: commandIDs.submitNotebook,
+      rank: -0.5
+    });
+
+    // SubmitScriptButtonExtension initialization code
+    const scriptButtonExtension = new SubmitScriptButtonExtension();
+    app.docRegistry.addWidgetExtension('Python Editor', scriptButtonExtension);
+    app.contextMenu.addItem({
+      selector: '.elyra-PythonEditor',
+      command: commandIDs.submitScript,
       rank: -0.5
     });
 

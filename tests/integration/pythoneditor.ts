@@ -13,9 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-describe('PythonEditor', () => {
-  it('opens jupyterlab', () => {
+describe('Python Editor tests', () => {
+  before(() => {
     cy.openJupyterLab();
+  });
+
+  after(() => {
+    // go back to file browser and delete file created for testing
+    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
+    cy.deleteFileByName('untitled.py');
+
+    // Delete runtime configuration used for testing
+    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+      failOnNonZeroExit: false
+    });
   });
 
   it('opens blank python from launcher', () => {
@@ -25,6 +36,7 @@ describe('PythonEditor', () => {
 
   it('close python editor', () => {
     cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.deleteFileByName('untitled.py');
   });
 
   it('opens blank python from new menu', () => {
@@ -33,7 +45,7 @@ describe('PythonEditor', () => {
       ':nth-child(2) > .lm-Menu-itemSubmenuIcon > svg > .jp-icon3 > path'
     ).click();
     cy.get(
-      '[data-command="pyeditor:create-new-python-file"] > .lm-Menu-itemLabel'
+      '[data-command="python-editor:create-new-file"] > .lm-Menu-itemLabel'
     ).click();
   });
 
@@ -58,5 +70,26 @@ describe('PythonEditor', () => {
 
   it('check select kernel dropdown exists and has python', () => {
     cy.get('.elyra-PythonEditor .jp-Toolbar select > option[value*=python]');
+  });
+
+  it('check Submit Script button exists', () => {
+    cy.contains('Submit Script');
+  });
+
+  it('click the Submit Script button should display dialog', () => {
+    // Open runtimes sidebar
+    cy.get('.jp-SideBar [title="Runtimes"]').click();
+    // Create runtime configuration
+    cy.createRuntimeConfig();
+    // Validate it is now available
+    cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
+      'Test Runtime'
+    );
+    // Click Submit Script button
+    cy.contains('Submit Script').click();
+    // Check for expected dialog title
+    cy.get('.jp-Dialog-header').should('have.text', 'Submit script');
+    // Dismiss  dialog
+    cy.get('button.jp-mod-reject').click();
   });
 });
