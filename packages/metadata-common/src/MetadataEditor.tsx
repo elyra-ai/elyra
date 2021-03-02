@@ -415,7 +415,7 @@ export class MetadataEditor extends ReactWidget {
       return (
         <TextInput
           label={this.schema[fieldName].title}
-          description={uihints.description}
+          description={this.schema[fieldName].description}
           fieldName={fieldName}
           defaultValue={this.metadata[fieldName] || defaultValue}
           required={required}
