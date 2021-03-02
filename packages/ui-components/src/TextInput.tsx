@@ -44,8 +44,7 @@ const CustomTooltip = withStyles((theme: any): any => ({
   }
 }))(Tooltip);
 
-// eslint-disable-next-line func-style
-export function TextInput(props: ITextFieldProps): any {
+export const TextInput = (props: ITextFieldProps): any => {
   const [errorText, setErrorText] = React.useState(null);
   React.useEffect(() => {
     if (props.error) {
@@ -113,4 +112,4 @@ export function TextInput(props: ITextFieldProps): any {
       {errorText}
     </div>
   );
-}
+};
