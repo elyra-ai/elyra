@@ -52,7 +52,7 @@ Cypress.Commands.add('createRuntimeConfig', (): void => {
     'https://api.github.com'
   );
   // save it
-  cy.get('.elyra-metadataEditor-saveButton > .bp3-form-content > button')
+  cy.get('.elyra-metadataEditor-saveButton > button')
     .click()
     .wait(100);
 });
