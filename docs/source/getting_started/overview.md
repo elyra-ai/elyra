@@ -22,7 +22,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 The main features include:
 
 * [AI Pipelines visual editor](#ai-pipelines-visual-editor)
-* [Ability to run a notebook as a batch job](#ability-to-run-a-notebook-as-a-batch-job)
+* [Ability to run a notebook or Python script as a batch job](#ability-to-run-a-notebook-or-python-script-as-a-batch-job)
 * [Reusable Code Snippets](#reusable-code-snippets)
 * [Hybrid runtime support](#hybrid-runtime-support)
 * [Python script execution support](#python-script-execution-support)
@@ -51,13 +51,15 @@ Learn more about the Pipeline Visual Editor in the [AI Pipelines topic](/user_gu
 
 The pipeline editor feature can optionally be [installed as a stand-alone extension](installation).
 
-#### Ability to run a notebook as a batch job
+#### Ability to run a notebook or Python script as a batch job
 
-Elyra extends the Jupyter Notebook UI to to allow for execution of a notebook as a batch job in local or remote cloud environments. This feature leverages the AI pipelines feature and requires access to a Kubeflow Pipelines deployment via a [runtime configuration](../user_guide/runtime-conf).
+Elyra extends the Jupyter Notebook UI to to allow for execution of a notebook as a batch job in local or remote cloud environments. This feature leverages the AI pipelines feature and requires either a Kubeflow Pipeline or Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
 
-To run a notebook as a batch job open the notebook and select "Submit Notebook ..." from the menu bar.
+To run a notebook as a batch job open the notebook and select `Submit Notebook...` button from the menu bar.
 
 ![Submit Notebook as batch jobs](../images/submit-notebook-batch-job.gif)
+
+Similarly, to submit a Python script as a batch job, open a Python script file and select `Submit Script...` button from the editor toolbar.
 
 #### Reusable Code Snippets
 
