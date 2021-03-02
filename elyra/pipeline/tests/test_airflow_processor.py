@@ -136,7 +136,7 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
 
 
 def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
-    correct_hash_value = 'a2ec9f9f7f4d191540d2967a1db8dcec4c6c7c6c0b2c801237d4d23982f9fc3c'
+    correct_hash_value = '9a15eba3337ba3c90457d5b60495720333f944fd2cec8e4ce40c32238d2a4206'
 
     export_pipeline_name = "some-name"
     export_file_type = "py"
@@ -233,4 +233,7 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                 assert ordered_dict[key]['cos_bucket'] == sample_metadata['cos_bucket']
                 assert ordered_dict[key]['pipeline_envs']['AWS_ACCESS_KEY_ID'] == sample_metadata['cos_username']
                 assert ordered_dict[key]['pipeline_envs']['AWS_SECRET_ACCESS_KEY'] == sample_metadata['cos_password']
-                # TODO: Test for pipeline inputs and outputs
+                for arg in ["inputs", "outputs"]:
+                    if node['app_data'].get(arg):
+                        for file in node['app_data'][arg]:
+                            assert file in ordered_dict[key]["pipeline_"+arg]
