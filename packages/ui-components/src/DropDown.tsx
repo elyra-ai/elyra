@@ -45,7 +45,7 @@ const CustomTooltip = withStyles((theme: any): any => ({
 }))(Tooltip);
 
 // eslint-disable-next-line func-style
-export function DropDown(props: IDropDownProps): any {
+export const DropDown = (props: IDropDownProps): any => {
   let errorText = null;
   if (props.error) {
     errorText = (
@@ -94,4 +94,4 @@ export function DropDown(props: IDropDownProps): any {
       {errorText}
     </div>
   );
-}
+};
