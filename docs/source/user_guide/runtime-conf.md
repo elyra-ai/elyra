@@ -17,42 +17,45 @@ limitations under the License.
 -->
 ## Runtime Configuration
 
-A runtime configuration provides Elyra access to external resources, such as a Kubeflow Pipelines deployment. You can manage runtime configurations using the [JupyterLab UI](#managing-runtime-configurations-using-the-jupyterlab-ui) or the [Elyra CLI](#managing-runtime-configurations-using-the-elyra-cli).
+A runtime configuration provides Elyra access to external resources, such as Kubeflow Pipelines or Apache Airflow for scalable pipeline execution.
+
+You can manage runtime configurations using the [JupyterLab UI](#managing-runtime-configurations-using-the-jupyterlab-ui) or the [Elyra CLI](#managing-runtime-configurations-using-the-elyra-cli).
 
 ### Prerequisites
 
 A Kubeflow Pipelines runtime configuration requires connectivity details for 
-* A Kubeflow Pipelines deployment
+* A Kubeflow Pipelines deployment or an Apache Airflow deployment
 * S3-based Object Storage (e.g. minio or IBM Cloud Object Storage)
 
 ### Managing runtime configurations using the JupyterLab UI
 
-To create, edit, or delete runtime configurations using the UI select the `Runtimes` tab from the JupyterLab sidebar.
+To create, edit, or delete runtime configurations using the UI select the `Runtimes` tab from the JupyterLab sidebar, or click the `Runtimes` button in the Pipeline Editor.
 
   ![Access runtime configurations](../images/access-runtime-configurations.png)
 
 #### Creating a runtime configuration
 
-To create a runtime configuration for a Kubeflow Pipelines deployment:
+To create a runtime configuration:
 1. Select the `Runtimes` tab from the JupyterLab sidebar.
 1. Click `+` to add a new runtime configuration.
    ![Create runtime configuration](../images/runtime-create-config.png) 
 1. Provide a runtime display name, an optional description, and tag the configuration to make it more easily discoverable. 
-1. Enter the Kubeflow Pipelines and Cloud Storage connectivity information. Refer to section [Configuration settings](#configuration-settings) for details.
+1. Enter the Kubeflow Pipelines or Apache Airflow deployment information. Refer to section [Kubeflow Pipelines configuration settings](#kubeflow-pipelines-configuration-settings) or [Apache Airflow configuration settings](#apache-airflow-configuration-settings) for details.
+1. Enter the Cloud Storage connectivity information.
 1. Save the runtime configuration. The new entry is displayed in the list.
-1. Expand the entry and verify that you can access the Kubeflow Pipelines UI and the Cloud Storage UI using the displayed links.
+1. Expand the entry and verify that you can access the Kubeflow Pipelines or Apache Airflow GUI and the Cloud Storage GUI using the displayed links.
 
    ![Access runtime configuration](../images/runtime-access-config.png) 
 
 #### Modifying a runtime configuration
 
-To edit a runtime configuration for a Kubeflow Pipelines deployment:
+To edit a runtime configuration:
 1. Select the `Runtimes` tab from the JupyterLab sidebar.
 1. Click the pencil next to the runtime configuration.
 
 #### Deleting a runtime configuration
 
-To delete a runtime configuration for a Kubeflow Pipelines deployment:
+To delete a runtime configuration:
 1. Select the `Runtimes` tab from the JupyterLab sidebar.
 1. Click the trash can next to the runtime configuration.
 
@@ -98,7 +101,7 @@ elyra-metadata install runtimes \
        --tags="['kfp', 'v1.0']"
 ```
 
-Refer to section [Configuration settings](#configuration-settings) for an explanation of the parameters.
+Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters.
 
 #### Modifying a runtime configuration
 
@@ -120,12 +123,11 @@ elyra-metadata install runtimes \
        --tags="['kfp', 'v1.1']"
 ```
 
-Refer to section [Configuration settings](#configuration-settings) for an explanation of the parameters. Note that you must specify the `--name` parameter. 
+Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 
 
 #### Deleting a runtime configuration
 
-To delete a runtime configuration run the following command, replacing the configuration name
-as appropriate.
+To delete a runtime configuration run the following command, replacing the configuration name as appropriate.
 
 ```bash
 elyra-metadata remove runtimes --name=my_kubeflow_pipelines_runtime
@@ -133,61 +135,61 @@ elyra-metadata remove runtimes --name=my_kubeflow_pipelines_runtime
 
 ### Configuration settings
 
-#### Runtime configuration settings
+#### Common configuration settings
 
-This section defines the runtime configuration settings.
+Configurations include the following   common settings for all supported runtime types. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
 
-##### display_name
+##### Name (display_name)
 
-A user-friendly name for the runtime configuration. This setting is required.
+A user-friendly name for runtime configuration. This property is required.
 
 Example: `Kubeflow Pipelines dev environment`
 
-##### name
+##### N/A (name)
 
 A unique identifier for this configuration. A value is automatically generated from `display_name`.
 
 Example: `kubeflow_pipelines_dev_environment`
 
-##### description
+##### description (description)
 
-A user-friendly description for this runtime configuration.
+Description for this runtime image configuration. This property is optional.
 
 Example: `Kubeflow Pipelines deployment in QA`
 
-##### tags
+##### tags (tags)
 
 Zero or more tags for this runtime configuration.
 
-Example: `['test','unsecured']`
+Example: `['test-env','airflow']`
 
-#### Kubeflow Pipelines settings
+#### Kubeflow Pipelines configuration settings
 
 This section defines the settings for the Kubeflow Pipelines deployment that you want to associate with this runtime configuration.
 
-##### api_endpoint
+##### Kubeflow Pipelines API endpoint (api_endpoint)
 
 The KubeFlow Pipelines API endpoint you want to utilize. This setting is required.
 
 Example: `https://kubernetes-service.ibm.com/pipeline`
 
-##### user_namespace
-The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
+##### Kubeflow Pipelines user namespace (user_namespace)
+The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if namespaces are defined in Kubeflow Pipelines. SEE NOTE.
 
-Example: `mynamespace`
+Example: `anonymous`
 
-##### api_username
-Username used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
+##### Kubeflow Pipelines API endpoint username (api_username)
+Username used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled.
 
 Example: `username@email.com`
 
-##### api_password
-Password used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled. SEE NOTE.
+##### Kubeflow Pipelines API endpoint (api_password)
+Password used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled.
 
 Example: `mypassword`
 
-##### engine
-The engine being used by Kubeflow Pipelines: `Argo` or `Tekton` (default is `Argo`). If you have access to the Kubernetes cluster where Kubeflow Pipelines is deployed, run these commands in a terminal window to determine the engine type.
+##### Kubeflow Pipelines engine (engine)
+The engine being used by Kubeflow Pipelines to run pipelines: `Argo` or `Tekton`. If you have access to the Kubernetes cluster where Kubeflow Pipelines is deployed, run these commands in a terminal window to determine the engine type.
 
 ```
 # If this command completes successfully, the engine type is Argo.
@@ -197,76 +199,70 @@ kubectl describe configmap -n kubeflow workflow-controller-configmap
 kubectl describe configmap -n kubeflow kfp-tekton-config
 ```
 
+The default is `Argo`.
+
 Example: `Argo`
 
-#### Apache Airflow settings
+#### Apache Airflow configuration settings
 
 This section defines the settings for the Apache Airflow deployment that you want to associate with this runtime configuration.
 
-##### api_endpoint
+##### Apache Airflow UI endpoint (api_endpoint)
 
 The Apache Airflow API endpoint you want to utilize. This setting is required.
 
-Example: `http://your.apache.webserver:port`
+Example: `https://your-airflow-webserver:port`
 
-##### github_api_endpoint
+##### GitHub API Endpoint (github_api_endpoint)
 
-The GitHub API endpoint where the git client will attempt to connect. This can be a private deployment of GitHub Enterprise.
-This setting is required. By default, it is configured to point to `https://api.github.com`
+The GitHub (or GitHub Enterprise) API endpoint where the git client will attempt to connect. This setting is required. Keep the default  `https://api.github.com` for github.com
 
 Example: `https://api.private.githubenterprise.com`
 
-##### github_repo
+##### GitHub DAG Repository (github_repo)
 
-The GitHub repository where you will be pushing your DAGs. This setting is required.
+The GitHub repository that Apache Airflow utilizes to store DAGs. This setting is required and the repository must exist.
 
-Example: `elyra-ai/test-repository`
+Example: `user-or-org/dag-repo-name`
 
-##### github_repo_token
-This is the GitHub token generated by your user or organization that will allow write access to the repository.
-This setting is required. 
+##### GitHub DAG Repository Branch (github_branch)
+The name of the branch in `github_repo` where DAGs are stored. 
+This setting is required and the branch must exist.
 
-Example: `f879dfsg79gsvgsdg97gdfgdfg97dfg89dfg6g46`
+Example: `dag-branch`
 
-##### github_branch
-The name of the branch within the repository of the `github_repo` that you wish to use. 
-This setting is required.
+##### GitHub Personal Access Token (github_repo_token)
+A [GitHub personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. This setting is required. 
 
-Example: `master`
-
+Example: `766f7c267519fee7c71d7f96bdf42e646dc65433`
 
 #### Cloud Storage settings
 
 This section defines the settings for the cloud storage that you want to associate with this runtime configuration.
-This section is required regardless of which pipeline runtime you use.
 
-##### cos_endpoint
-This should be the URL address of your S3 Object Storage. If running an Object Storage Service within a Kubernetes cluster (Minio), you can use the Kubernetes local DNS address. This setting is required
+##### Cloud Object Storage endpoint (cos_endpoint)
+This should be the URL address of your S3-compatible Object Storage. If running an Object Storage Service within a Kubernetes cluster (Minio), you can use the Kubernetes local DNS address. This setting is required.
 
 Example: `https://minio-service.kubeflow:9000`
 
-##### cos_username
-Username used to access the Object Store. This setting is required. SEE NOTE.
+##### Cloud Object Storage username (cos_username)
+Username used to access the Object Storage. This setting is required.
 
 Example: `minio`
 
-##### cos_password
-Password for cos_username. This setting is required. SEE NOTE.
+##### Cloud Object Storage password (cos_password)
+Password for cos_username. This setting is required.
 
 Example: `minio123`
 
-##### cos_bucket
-Name of the bucket you want your artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the object storage service.
+##### Cloud Object Storage bucket name (cos_bucket)
+Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
 
 Example: `test-bucket`
 
-NOTE: 
-If using an authentication-restricted Kubeflow environment, you must enter your credentials in `api_username` and `api_password` fields 
-to allow pipeline uploads through Elyra.
-
-If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
+> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
-Your `access_key_id` and `secret_access_key` will be used as your `cos_username` and `cos_password` respectively.
+Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
 
 ### Troubleshooting 
 
@@ -274,10 +270,9 @@ I am seeing this error when using Elyra with Kubeflow Pipelines that is Dex enab
 ```bash
 HTTP response body: {"error":"Validate experiment request failed.: Invalid input error: Invalid resource references for experiment. Expect one namespace type with owner relationship.
 ```
-- Ensure that you have logged into the Kubeflow dex landing page (https://kubeflow.cluster:31380....) at least once with 
-your credentials via the UI. You should have been greeted with a dialog box and request to create a new namespace. 
+- Ensure that you have logged into the Kubeflow Dex landing page (https://kubeflow.cluster:31380....) at least once with 
+your credentials via the GUI. You should have been greeted with a dialog box and request to create a new namespace. 
 Without this step complete, Elyra will not be able to create pipelines on the Kubeflow cluster. 
 
-- Ensure your credentials in the `runtimes` section of Elyra is accurate and up to date. Ensure that 
-`user_namespace`, `api_username` and `api_password` are all filled out. When using Dex, the `api_username` is typically 
-your email address and `user_namespace` is your email shortname (elyra if elyra@email.org)
+- Ensure you've configured Kubeflow Pipelines credentials and that they are correct. When using Dex, the `api_username` is typically 
+your email address and `user_namespace` is your email shortname (e.g. `elyra` for `elyra@email.org`).
