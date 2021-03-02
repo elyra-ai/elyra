@@ -29,30 +29,19 @@ import {
   showDialog,
   UseSignal
 } from '@jupyterlab/apputils';
-import { addIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
+import { editIcon, LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
-import {
-  Box,
-  IconButton,
-  ButtonGroup,
-  Popper,
-  Paper,
-  ClickAwayListener,
-  MenuList,
-  MenuItem
-} from '@material-ui/core';
 
 import React from 'react';
 
+import { AddMetadataButton } from './AddMetadataButton';
 import { FilterTools } from './FilterTools';
 
 /**
  * The CSS class added to metadata widgets.
  */
 export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
-export const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
-export const METADATA_HEADER_POPPER_CLASS = 'elyra-metadataHeader-popper';
 export const METADATA_ITEM = 'elyra-metadata-item';
 const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
 
@@ -318,82 +307,6 @@ export class MetadataDisplay<
     );
   }
 }
-
-interface IButtonProps {
-  schemas: IDictionary<any>[];
-  addMetadata: (schema: string) => void;
-}
-
-const AddMetadataButton = (props: IButtonProps): React.ReactElement => {
-  const [open, setOpen] = React.useState(false);
-  const anchorRef = React.useRef<HTMLDivElement>(null);
-  let singleSchema = false;
-
-  if (props.schemas && props.schemas.length === 1) {
-    singleSchema = true;
-  }
-
-  const handleToggle = (): void => {
-    setOpen((prevOpen: boolean) => !prevOpen);
-  };
-
-  const handleClose = (event: React.MouseEvent<Document, MouseEvent>): void => {
-    if (
-      anchorRef.current &&
-      anchorRef.current.contains(event.target as HTMLElement)
-    ) {
-      return;
-    }
-
-    setOpen(false);
-  };
-
-  return (
-    <Box>
-      <ButtonGroup ref={anchorRef}>
-        <IconButton
-          size="small"
-          className={METADATA_HEADER_BUTTON_CLASS}
-          onClick={
-            singleSchema
-              ? () => props.addMetadata(props.schemas[0].name)
-              : handleToggle
-          }
-          title={`Create New${
-            singleSchema ? ` ${props.schemas[0].title}` : ''
-          }`}
-        >
-          <addIcon.react tag="span" elementPosition="center" width="16px" />
-        </IconButton>
-      </ButtonGroup>
-      <Popper
-        className={METADATA_HEADER_POPPER_CLASS}
-        open={open}
-        anchorEl={anchorRef.current}
-        placement="bottom-start"
-      >
-        <Paper>
-          <ClickAwayListener onClickAway={handleClose}>
-            <MenuList id="split-button-menu">
-              {props.schemas.map((schema: IDictionary<any>) => (
-                <MenuItem
-                  key={schema.title}
-                  title={`New ${schema.title}`}
-                  onClick={(event: any): void => {
-                    props.addMetadata(schema.name);
-                    handleClose(event);
-                  }}
-                >
-                  {`New ${schema.title}`}
-                </MenuItem>
-              ))}
-            </MenuList>
-          </ClickAwayListener>
-        </Paper>
-      </Popper>
-    </Box>
-  );
-};
 
 /**
  * MetadataWidget props.
