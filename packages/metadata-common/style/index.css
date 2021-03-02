@@ -31,16 +31,12 @@
   font-weight: bold;
 }
 
-.elyra-metadataHeader-button {
-  background-color: transparent;
-  vertical-align: middle;
-  padding: 5px;
-  width: 20px;
-  background-repeat: no-repeat;
-  background-position: center;
-  border: none;
-  display: inline-flex;
-  align-self: flex-end;
+.MuiButtonGroup-grouped.elyra-metadataHeader-button {
+  min-width: auto;
+}
+
+.elyra-metadataHeader-popper {
+  z-index: 100;
 }
 
 .elyra-metadataHeader-button:hover {

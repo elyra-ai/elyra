@@ -52,6 +52,7 @@ import { FilterTools } from './FilterTools';
  */
 export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
 export const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
+export const METADATA_HEADER_POPPER_CLASS = 'elyra-metadataHeader-popper';
 export const METADATA_ITEM = 'elyra-metadata-item';
 const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
 
@@ -319,7 +320,6 @@ export class MetadataDisplay<
 }
 
 interface IButtonProps {
-  display_name: string;
   schemas: IDictionary<any>[];
   addMetadata: (schema: string) => void;
 }
@@ -330,6 +330,10 @@ function AddMetadataButton(props: IButtonProps): React.ReactElement {
   const anchorRef = React.useRef<HTMLDivElement>(null);
 
   const handleToggle = (): void => {
+    if (props.schemas && props.schemas.length === 1) {
+      props.addMetadata(props.schemas[0].name);
+      return;
+    }
     setOpen((prevOpen: boolean) => !prevOpen);
   };
 
@@ -351,25 +355,30 @@ function AddMetadataButton(props: IButtonProps): React.ReactElement {
           size="small"
           className={METADATA_HEADER_BUTTON_CLASS}
           onClick={handleToggle}
-          title={`Create New ${props.display_name}`}
+          title={`Create New`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
         </IconButton>
       </ButtonGroup>
-      <Popper open={open} anchorEl={anchorRef.current} placement="bottom-start">
+      <Popper
+        className={METADATA_HEADER_POPPER_CLASS}
+        open={open}
+        anchorEl={anchorRef.current}
+        placement="bottom-start"
+      >
         <Paper>
           <ClickAwayListener onClickAway={handleClose}>
             <MenuList id="split-button-menu">
               {props.schemas.map((schema: IDictionary<any>) => (
                 <MenuItem
                   key={schema.title}
+                  title={`New ${schema.title}`}
                   onClick={(event: any): void => {
                     props.addMetadata(schema.name);
                     handleClose(event);
                   }}
-                  title={`Create new ${schema.title}`}
                 >
-                  {`Create new ${schema.title}`}
+                  {`New ${schema.title}`}
                 </MenuItem>
               ))}
             </MenuList>
@@ -494,7 +503,6 @@ export class MetadataWidget extends ReactWidget {
             <p> {this.props.display_name} </p>
           </div>
           <AddMetadataButton
-            display_name={this.props.display_name}
             schemas={this.schemas}
             addMetadata={this.addMetadata}
           />
