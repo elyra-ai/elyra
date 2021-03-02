@@ -69,7 +69,7 @@ const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
   return null;
 };
 
-export class NotebookSubmissionDialog extends React.Component<IProps, IState> {
+export class FileSubmissionDialog extends React.Component<IProps, IState> {
   state = {
     runtimePlatform: KFP_SCHEMA,
     runtimes: this.props.runtimes,
