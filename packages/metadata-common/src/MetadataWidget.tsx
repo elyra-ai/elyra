@@ -324,16 +324,16 @@ interface IButtonProps {
   addMetadata: (schema: string) => void;
 }
 
-// eslint-disable-next-line func-style
-function AddMetadataButton(props: IButtonProps): React.ReactElement {
+const AddMetadataButton = (props: IButtonProps): React.ReactElement => {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLDivElement>(null);
+  let singleSchema = false;
+
+  if (props.schemas && props.schemas.length === 1) {
+    singleSchema = true;
+  }
 
   const handleToggle = (): void => {
-    if (props.schemas && props.schemas.length === 1) {
-      props.addMetadata(props.schemas[0].name);
-      return;
-    }
     setOpen((prevOpen: boolean) => !prevOpen);
   };
 
@@ -354,8 +354,14 @@ function AddMetadataButton(props: IButtonProps): React.ReactElement {
         <IconButton
           size="small"
           className={METADATA_HEADER_BUTTON_CLASS}
-          onClick={handleToggle}
-          title={`Create New`}
+          onClick={
+            singleSchema
+              ? () => props.addMetadata(props.schemas[0].name)
+              : handleToggle
+          }
+          title={`Create New${
+            singleSchema ? ` ${props.schemas[0].title}` : ''
+          }`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
         </IconButton>
@@ -387,7 +393,7 @@ function AddMetadataButton(props: IButtonProps): React.ReactElement {
       </Popper>
     </Box>
   );
-}
+};
 
 /**
  * MetadataWidget props.
