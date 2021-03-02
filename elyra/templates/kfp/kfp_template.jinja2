@@ -27,6 +27,7 @@ def create_pipeline():
                                                       cos_directory='{{ operation.cos_directory }}',
                                                       cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
                                                       pipeline_version='',
+                                                      pipeline_source='{{ operation.pipeline_source }}',
                                                       pipeline_inputs={{ operation.pipeline_inputs }},
                                                       pipeline_outputs={{ operation.pipeline_outputs }},
         {% if operation.cpu_request %}

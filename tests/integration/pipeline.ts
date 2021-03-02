@@ -160,8 +160,10 @@ describe('Pipeline Editor tests', () => {
 
   it.only('should save runtime configuration', () => {
     openPipelineEditor();
+    // Open runtimes sidebar
+    cy.get('.openRuntimes-action button').click();
     // Create runtime configuration
-    createRuntimeConfig();
+    cy.createRuntimeConfig();
     // validate it is now available
     cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
       'Test Runtime'
@@ -308,8 +310,10 @@ describe('Pipeline Editor tests', () => {
     // Checks that validation passed
     cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
 
+    // Open runtimes sidebar
+    cy.get('.openRuntimes-action button').click();
     // Create runtime configuration
-    createRuntimeConfig();
+    cy.createRuntimeConfig();
     // go back to file browser
     cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
 
@@ -382,41 +386,6 @@ const getFileByName = (name: string): any => {
 const getFileByType = (type: string): any => {
   return cy.get(`.jp-DirListing-content > [data-file-type="${type}"]`);
 };
-
-const createRuntimeConfig = (): any => {
-  // open runtimes sidebar
-  cy.get('.openRuntimes-action button').click();
-  cy.get('.jp-SideBar .lm-mod-current[title="Runtimes"]');
-  cy.get('.elyra-metadata .elyra-metadataHeader').contains('Runtimes');
-  // Add a runtime config
-  cy.get(
-    'button.elyra-metadataHeader-button[title="Create new Apache Airflow runtime configuration"]'
-  ).click();
-  cy.get('.elyra-metadataEditor-form-display_name').type('Test Runtime');
-  cy.get('.elyra-metadataEditor-form-api_endpoint').type(
-    'https://kubernetes-service.ibm.com/pipeline'
-  );
-  cy.get('.elyra-metadataEditor-form-github_repo').type('akchinstc/test-repo');
-  cy.get('.elyra-metadataEditor-form-github_branch').type('main');
-  cy.get('.elyra-metadataEditor-form-github_repo_token').type('xxxxxxxx');
-  cy.get('.elyra-metadataEditor-form-cos_endpoint').type('http://0.0.0.0:9000');
-  cy.get('.elyra-metadataEditor-form-cos_username').type('minioadmin');
-  cy.get('.elyra-metadataEditor-form-cos_password').type('minioadmin');
-  cy.get('.elyra-metadataEditor-form-cos_bucket').type('test-bucket');
-  // save it
-  cy.get('.elyra-metadataEditor-saveButton > .bp3-form-content > button')
-    .click()
-    .wait(100);
-};
-
-// const deleteFileByName = (name: string): any => {
-//   getFileByName(`${name}`).rightclick();
-//   cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
-//   cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
-//     .should('be.visible')
-//     .click();
-//   cy.wait(100);
-// };
 
 const checkEnabledToolbarButtons = (buttons: string[]): void => {
   buttons.forEach((buttonClass: string) => {

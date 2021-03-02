@@ -119,6 +119,7 @@ export const commandIDs = {
   openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
+  submitScript: 'python-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
 };
@@ -943,6 +944,9 @@ export class PipelineEditor extends React.Component<
     pipelineFlow.pipelines[0]['app_data']['name'] = pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
     pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['source'] = PathExt.basename(
+      this.widgetContext.path
+    );
 
     PipelineService.exportPipeline(
       pipelineFlow,
@@ -1331,6 +1335,9 @@ export class PipelineEditor extends React.Component<
       dialogResult.value.pipeline_name;
     pipelineFlow.pipelines[0]['app_data']['runtime'] = runtime;
     pipelineFlow.pipelines[0]['app_data']['runtime-config'] = runtime_config;
+    pipelineFlow.pipelines[0]['app_data']['source'] = PathExt.basename(
+      this.widgetContext.path
+    );
 
     PipelineService.submitPipeline(
       pipelineFlow,

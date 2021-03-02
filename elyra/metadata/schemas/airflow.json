@@ -18,7 +18,7 @@
     },
     "display_name": {
       "title": "Display Name",
-      "description": "The display name of this Airflow instance",
+      "description": "Display name of this Apache Airflow configuration",
       "type": "string",
       "minLength": 1
     },
@@ -28,7 +28,7 @@
       "properties": {
         "description": {
           "title": "Description",
-          "description": "The description of this Airflow runtime instance",
+          "description": "Description of this Apache Airflow configuration",
           "type": "string"
         },
         "api_endpoint": {
@@ -37,28 +37,41 @@
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Apache Airflow"
+            "category": "Apache Airflow",
+            "placeholder": "https://your-airflow-webserver:port"
+          }
+        },
+        "github_api_endpoint": {
+          "title": "GitHub API Endpoint",
+          "description": "The GitHub Server URL / API endpoint - Public or Enterprise",
+          "type": "string",
+          "format": "uri",
+          "default": "https://api.github.com",
+          "uihints": {
+            "category": "Apache Airflow",
+            "placeholder": "https://your-github-endpoint"
           }
         },
         "github_repo": {
-          "title": "Github DAG Repository",
-          "description": "The git repository for Airflow DAGs",
+          "title": "GitHub DAG Repository",
+          "description": "Existing repository where DAGs are stored",
           "type": "string",
           "uihints": {
-            "category": "Apache Airflow"
+            "category": "Apache Airflow",
+            "placeholder": "user-or-org/dag-repo-name"
           }
         },
         "github_branch": {
-          "title": "Github DAG Repository Branch",
-          "description": "The git branch to use for Airflow DAGs",
+          "title": "GitHub DAG Repository Branch",
+          "description": "Existing branch in the GitHub repository where DAGs are stored",
           "type": "string",
           "uihints": {
             "category": "Apache Airflow"
           }
         },
         "github_repo_token": {
-          "title": "Github Private Repository Token",
-          "description": "The github token to use to push to private repositories",
+          "title": "GitHub Personal Access Token",
+          "description": "GitHub token with push access for the DAG repository",
           "type": "string",
           "uihints": {
             "secure": true,
@@ -71,7 +84,8 @@
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Cloud Object Storage"
+            "category": "Cloud Object Storage",
+            "placeholder": "https://your-cos-service:port"
           }
         },
         "cos_username": {
@@ -113,14 +127,15 @@
         }
       },
       "required": [
+        "api_endpoint",
         "cos_endpoint",
         "cos_username",
         "cos_password",
         "cos_bucket",
+        "github_api_endpoint",
         "github_branch",
         "github_repo_token",
-        "github_repo",
-        "api_endpoint"
+        "github_repo"
       ]
     }
   },

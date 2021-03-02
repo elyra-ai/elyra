@@ -480,6 +480,33 @@ def test_manager_update(tests_hierarchy_manager, namespace_location):
     assert instance2.metadata['number_range_test'] == 7
 
 
+def test_manager_default_value(tests_hierarchy_manager, namespace_location):
+
+    # Create some metadata, then attempt to update it with a known schema violation
+    # and ensure the previous copy still exists...
+
+    # Create a user instance...
+    metadata = Metadata.from_dict(METADATA_TEST_NAMESPACE, {**byo_metadata_json})
+    metadata.display_name = 'user1'
+    instance = tests_hierarchy_manager.create('default_value', metadata)
+    assert instance.metadata['number_default_test'] == 42  # Ensure default value was applied when not present
+
+    instance2 = tests_hierarchy_manager.get('default_value')
+    instance2.metadata['number_default_test'] = 37
+    tests_hierarchy_manager.update('default_value', instance2)
+
+    instance3 = tests_hierarchy_manager.get('default_value')
+    assert instance3.metadata['number_default_test'] == 37
+
+    # Now remove the updated value and ensure it comes back with the default
+    instance3.metadata.pop('number_default_test')
+    assert 'number_default_test' not in instance3.metadata
+    tests_hierarchy_manager.update('default_value', instance3)
+
+    instance4 = tests_hierarchy_manager.get('default_value')
+    assert instance4.metadata['number_default_test'] == 42
+
+
 def test_manager_bad_update(tests_hierarchy_manager, namespace_location):
 
     # Create some metadata, then attempt to update it with a known schema violation
