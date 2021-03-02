@@ -51,8 +51,9 @@ class GithubClient(LoggingConfigurable):
         try:
             self.github_repository = self.client.get_repo(self.repo_name)
         except GithubException as e:
-            self.log.error(f'Error accessing repository {self.repo_name}: ' + str(e))
-            raise RuntimeError(f'Error accessing repository {self.repo_name}: {str(e)}') from e
+            self.log.error(f'Error accessing repository {self.repo_name}: {e.data["message"]} ({e.status})')
+            raise RuntimeError(f'Error accessing repository {self.repo_name}: {e.data["message"]} ({e.status}). ' +
+                               'Please validate your runtime configuration details and retry.') from e
 
     def upload_dag(self,
                    pipeline_filepath: str,
@@ -80,8 +81,9 @@ class GithubClient(LoggingConfigurable):
             self.log.error(f'Unable to locate local DAG file to upload: {pipeline_filepath}: ' + str(fnfe))
             raise RuntimeError(f'Unable to locate local DAG file to upload: {pipeline_filepath}: {str(fnfe)}') from fnfe
         except GithubException as e:
-            self.log.error(f'Error uploading DAG to branch {self.branch}: ' + str(e))
-            raise RuntimeError(f'Error uploading DAG to branch {self.branch}: {str(e)}') from e
+            self.log.error(f'Error uploading DAG to branch {self.branch}: {e.data["message"]} ({e.status})')
+            raise RuntimeError(f'Error uploading DAG to branch {self.branch}: {e.data["message"]} ({e.status}). ' +
+                               'Please validate your runtime configuration details and retry.') from e
 
     @staticmethod
     def get_github_url(api_url: str,
