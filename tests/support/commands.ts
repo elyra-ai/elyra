@@ -47,12 +47,12 @@ Cypress.Commands.add('createRuntimeConfig', (): void => {
   cy.get('.elyra-metadataEditor-form-cos_password').type('minioadmin');
   cy.get('.elyra-metadataEditor-form-cos_bucket').type('test-bucket');
   // Check the default value is displayed on github api endpoint field
-  cy.get('.elyra-metadataEditor-form-github_api_endpoint > input').should(
+  cy.get('.elyra-metadataEditor-form-github_api_endpoint >> input').should(
     'have.value',
     'https://api.github.com'
   );
   // save it
-  cy.get('.elyra-metadataEditor-saveButton > .bp3-form-content > button')
+  cy.get('.elyra-metadataEditor-saveButton > button')
     .click()
     .wait(100);
 });

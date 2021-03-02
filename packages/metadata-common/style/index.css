@@ -92,20 +92,23 @@
   width: 100%;
 }
 
-.elyra-metadataEditor .bp3-form-group {
-  margin-bottom: 12px;
-  margin-right: 20px;
-  flex-basis: 45%;
+.elyra-metadataEditor-formInput.elyra-metadataEditor-secure label {
+  margin-right: 70px;
 }
 
-.bp3-select-popover {
-  max-height: 150px;
-  overflow-y: auto;
+.elyra-metadataEditor-dark.elyra-metadataEditor .MuiButtonBase-root {
+  color: #fff;
+  border-color: #fff;
+}
+
+.elyra-metadataEditor-dark.elyra-metadataEditor h4 {
+  color: #fff;
 }
 
 .elyra-form-DropDown-item {
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: left;
   margin: 0;
   border-radius: 0;
@@ -127,10 +130,6 @@
   color: var(--jp-ui-font-color1);
 }
 
-.elyra-metadataEditor label.bp3-label {
-  color: var(--jp-ui-font-color1);
-}
-
 .elyra-metadataEditor .elyra-form-code.jp-CodeMirrorEditor {
   background-color: var(--jp-cell-editor-background);
   border: var(--jp-border-width) solid var(--jp-input-border-color);
@@ -140,6 +139,7 @@
   height: 150px;
   padding-bottom: 10px;
   cursor: initial;
+  margin-top: 5px;
 }
 
 .elyra-metadataEditor .CodeMirror.cm-s-jupyter {
@@ -147,27 +147,26 @@
   height: 100%;
 }
 
-.elyra-metadataEditor .bp3-form-group.elyra-metadataEditor-code {
+.elyra-metadataEditor .elyra-metadataEditor-code {
   height: auto;
   flex-basis: 100%;
   display: flex;
+  flex-direction: column;
 }
 
-.elyra-metadataEditor-code .bp3-form-content {
-  height: 100%;
+.elyra-metadataEditor-formInput {
+  margin: 10px;
+  flex-basis: 45%;
 }
 
-.bp3-dark .bp3-input {
-  border: var(--jp-border-width) solid var(--jp-input-border-color);
-  color: var(--jp-ui-font-color1);
+.elyra-metadataEditor .MuiButtonBase-root {
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  padding: 5px 15px;
+  border-radius: 4px;
 }
 
 .elyra-metadata-editor {
   overflow-y: auto;
-}
-
-.elyra-metadata-editor.bp3-dark {
-  background-color: var(--jp-border-color3);
 }
 
 .elyra-metadataEditor .elyra-metadataEditor-saveButton {
@@ -286,6 +285,7 @@ button.elyra-editor-tag.applied-tag {
 
 button.elyra-editor-tag.unapplied-tag {
   color: var(--jp-ui-font-color2);
+  white-space: nowrap;
 }
 
 .elyra-editor-tag.tag.unapplied-tag input {

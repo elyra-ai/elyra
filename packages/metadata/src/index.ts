@@ -30,7 +30,6 @@ import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
 import { find } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
 
-const BP_DARK_THEME_CLASS = 'bp3-dark';
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 const METADATA_WIDGET_ID = 'elyra-metadata';
 
@@ -94,6 +93,14 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
       app.shell.add(metadataEditorWidget, 'main');
 
+      const updateTheme = (): void => {
+        const isLight =
+          themeManager.theme && themeManager.isLight(themeManager.theme);
+        metadataEditorWidget.darkMode = !isLight;
+      };
+      if (themeManager) {
+        themeManager.themeChanged.connect(updateTheme);
+      }
       updateTheme();
     };
 
@@ -102,25 +109,6 @@ const extension: JupyterFrontEndPlugin<void> = {
         openMetadataEditor(args);
       }
     });
-
-    const updateTheme = (): void => {
-      const isLight =
-        themeManager.theme && themeManager.isLight(themeManager.theme);
-      document
-        .querySelectorAll(`.${METADATA_EDITOR_ID}`)
-        .forEach((element: any) => {
-          if (isLight) {
-            element.className = element.className
-              .replace(new RegExp(`${BP_DARK_THEME_CLASS}`, 'gi'), '')
-              .trim();
-          } else {
-            element.className += ` ${BP_DARK_THEME_CLASS}`;
-          }
-        });
-    };
-    if (themeManager) {
-      themeManager.themeChanged.connect(updateTheme);
-    }
 
     const openMetadataWidget = (args: {
       display_name: string;
