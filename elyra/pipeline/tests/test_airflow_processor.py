@@ -236,4 +236,4 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                 for arg in ["inputs", "outputs"]:
                     if node['app_data'].get(arg):
                         for file in node['app_data'][arg]:
-                            assert file in ordered_dict[key]["pipeline_"+arg]
+                            assert file in ordered_dict[key]["pipeline_" + arg]
