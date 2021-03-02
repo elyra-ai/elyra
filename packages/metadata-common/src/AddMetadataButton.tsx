@@ -73,8 +73,10 @@ export const AddMetadataButton = (
               ? (): void => props.addMetadata(props.schemas[0].name)
               : handleToggle
           }
-          title={`Create New${
-            singleSchema ? ` ${props.schemas[0].title}` : ''
+          title={`Create new ${
+            singleSchema
+              ? props.schemas[0].display_name
+              : props.schemas[0].namespace
           }`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
@@ -91,14 +93,14 @@ export const AddMetadataButton = (
             <MenuList id="split-button-menu">
               {props.schemas.map((schema: IDictionary<any>) => (
                 <MenuItem
-                  key={schema.title}
-                  title={`New ${schema.title}`}
+                  key={schema.display_name}
+                  title={`New ${schema.display_name}`}
                   onClick={(event: any): void => {
                     props.addMetadata(schema.name);
                     handleClose(event);
                   }}
                 >
-                  {`New ${schema.title}`}
+                  {`New ${schema.display_name}`}
                 </MenuItem>
               ))}
             </MenuList>
