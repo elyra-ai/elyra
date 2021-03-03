@@ -72,7 +72,6 @@ export class PipelineService {
 
   /**
    * Returns a list of external runtime configurations
-   * Returns a list of external runtime configurations
    * based on the runtimePLatform (Airflow or Kubeflow)
    */
   static filterRuntimes = (
