@@ -18,13 +18,12 @@ import entrypoints
 import os
 import time
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from elyra.metadata import MetadataManager
 from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
-from typing import Optional
 
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -88,17 +87,21 @@ class PipelineProcessorManager(SingletonConfigurable):
         return res
 
 
-class PipelineProcessorResponse(object):
-    def __init__(self,
-                 run_url: str = '',
-                 object_storage_url: str = '',
-                 object_storage_path: str = '',
-                 git_url: Optional[str] = ''):
+class PipelineProcessorResponse(ABC):
 
+    _type = None
+
+    def __init__(self, run_url, object_storage_url, object_storage_path, **kwargs):
+
+        super(PipelineProcessorResponse, self).__init__(**kwargs)
         self._run_url = run_url
-        self._git_url = git_url
         self._object_storage_url = object_storage_url
         self._object_storage_path = object_storage_path
+
+    @property
+    @abstractmethod
+    def type(self):
+        raise NotImplementedError()
 
     @property
     def run_url(self):
@@ -123,19 +126,9 @@ class PipelineProcessorResponse(object):
         """
         return self._object_storage_path
 
-    @property
-    def git_url(self):
-        """
-        :return: The GitHub URL where the DAG was uploaded to
-        """
-        return self._git_url
-
+    @abstractmethod
     def to_json(self):
-        return {"run_url": self.run_url,
-                "git_url": self.git_url,
-                "object_storage_url": self.object_storage_url,
-                "object_storage_path": self.object_storage_path
-                }
+        raise NotImplementedError()
 
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
