@@ -20,7 +20,7 @@ import {
   Box,
   ButtonGroup,
   ClickAwayListener,
-  IconButton,
+  Button,
   MenuItem,
   MenuList,
   Paper,
@@ -64,8 +64,8 @@ export const AddMetadataButton = (
 
   return (
     <Box>
-      <ButtonGroup ref={anchorRef}>
-        <IconButton
+      <ButtonGroup ref={anchorRef} variant="text">
+        <Button
           size="small"
           className={METADATA_HEADER_BUTTON_CLASS}
           onClick={
@@ -80,7 +80,7 @@ export const AddMetadataButton = (
           }`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
-        </IconButton>
+        </Button>
       </ButtonGroup>
       <Popper
         className={METADATA_HEADER_POPPER_CLASS}
