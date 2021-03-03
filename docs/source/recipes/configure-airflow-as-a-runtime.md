@@ -17,7 +17,7 @@ limitations under the License.
 -->
 
 
-# Configuring Airflow on Kubernetes for use with Elyra 
+# Configuring Apache Airflow on Kubernetes for use with Elyra 
 
 Pipelines in Elyra can be run locally in JupyterLab, or remotely on Kubeflow Pipelines or Apache Airflow to take advantage of shared resources that speed up processing of compute intensive tasks.
 
