@@ -97,7 +97,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                    duration=(time.time() - t0_all))
 
             return PipelineProcessorResponse(
-                # TODO - Add another field to return the url of the job in Airflow UI
+                git_url=f'{github_url}',
                 run_url=f'{api_endpoint}',
                 object_storage_url=f'{cos_endpoint}',
                 object_storage_path=f'/{cos_bucket}/{pipeline_name}',

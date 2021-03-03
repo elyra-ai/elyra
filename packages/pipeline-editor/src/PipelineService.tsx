@@ -159,7 +159,44 @@ export class PipelineService {
     ).then(response => {
       let dialogTitle;
       let dialogBody;
-      if (response['run_url']) {
+      if (response['git_url']) {
+        // pipeline executed in an apache airflow runtime
+        dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
+        dialogBody = (
+          <p>
+            Apache Airflow DAG has been pushed to the{' '}
+            <a
+              href={response['git_url']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub Repository.
+            </a>
+            <br />
+            Check the status of your job at{' '}
+            <a
+              href={response['run_url']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Run Details.
+            </a>
+            <br />
+            The results and outputs are in the {
+              response['object_storage_path']
+            }{' '}
+            working directory in{' '}
+            <a
+              href={response['object_storage_url']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              object storage
+            </a>
+            .
+          </p>
+        );
+      } else if (response['run_url']) {
         // pipeline executed remotely in a runtime of choice
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
