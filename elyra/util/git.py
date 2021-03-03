@@ -42,7 +42,8 @@ class GithubClient(LoggingConfigurable):
 
         super().__init__()
 
-        self.server_url = server_url
+        # Remove trailing slash(es) from server URL to prevent failure
+        self.server_url = server_url.rstrip('/')
         self.repo_name = repo
         self.branch = branch
         self.client = Github(login_or_token=token, base_url=self.server_url)
