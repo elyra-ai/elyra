@@ -73,7 +73,7 @@ export const DropDown = (props: IDropDownProps): any => {
             props.handleDropdownChange(props.schemaField, newValue);
             setChoice(newValue);
           }}
-          renderInput={params => (
+          renderInput={(params): any => (
             <TextField
               {...params}
               label={props.label}
