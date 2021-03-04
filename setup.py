@@ -79,6 +79,7 @@ setup_args = dict(
         'python-language-server[all]>=0.36.2',
         'requests>=2.9.1,<3.0',
         'rfc3986-validator>=0.1.1',
+        'tornado >=6.1.0',
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
         'websocket-client',
