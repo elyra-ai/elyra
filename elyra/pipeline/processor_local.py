@@ -80,7 +80,21 @@ class LocalPipelineProcessor(PipelineProcessor):
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
-        return PipelineProcessorResponse('', '', '')
+        return self.LocalPipelineProcessorResponse()
+
+    class LocalPipelineProcessorResponse(PipelineProcessorResponse):
+
+        _type = 'local'
+
+        def __init__(self):
+            super().__init__('', '', '')
+
+        @property
+        def type(self):
+            return self._type
+
+        def to_json(self):
+            return {"platform": self.type}
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')
