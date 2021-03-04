@@ -28,7 +28,7 @@ from types import SimpleNamespace
 
 config: SimpleNamespace
 
-VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<release>[a-z]+)(?P<build>\d+))?"
+VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
 DEFAULT_GIT_URL = 'git@github.com:elyra-ai/elyra.git'
 DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:elyra-ai/elyra-package-template.git'
@@ -38,11 +38,14 @@ DEFAULT_BUILD_DIR = 'build/release'
 class DependencyException(Exception):
     """Error if dependency is missing"""
 
+
 class MissingReleaseArtifactException(Exception):
     """Error if an artifact being released is not available"""
 
+
 class UpdateVersionException(Exception):
     """Error if the old version is invalid or cannot be found, or if there's a duplicate version"""
+
 
 def check_run(args, cwd=os.getcwd(), capture_output=True, env=None, shell=False) -> subprocess.CompletedProcess:
     try:
@@ -85,6 +88,7 @@ def validate_dependencies() -> None:
     if not dependency_exists("twine"):
         raise DependencyException("Please install twine https://twine.readthedocs.io/en/latest/#installation")
 
+
 def validate_environment() -> None:
     """Validate environment configurations are valid"""
     pass
@@ -94,21 +98,23 @@ def update_version_to_release() -> None:
     global config
 
     old_version = config.old_version
+    old_npm_version = config.old_npm_version
     new_version = config.new_version
+    new_npm_version = config.new_npm_version
 
     try:
         # Update backend version
         sed(_source('.bumpversion.cfg'),
-            rf"^current_version* =* {_python_dev_version(old_version)}",
+            rf"^current_version* =* {old_version}",
             f"current_version = {new_version}")
         sed(_source('elyra/_version.py'),
-            rf"^__version__* =* '{_python_dev_version(old_version)}'",
+            rf"^__version__* =* '{old_version}'",
             f"__version__ = '{new_version}'"),
         sed(_source('README.md'),
-            rf"elyra {_python_dev_version(old_version)}",
+            rf"elyra {old_version}",
             f"elyra {new_version}")
         sed(_source('docs/source/getting_started/installation.md'),
-            rf"elyra {_python_dev_version(old_version)}",
+            rf"elyra {old_version}",
             f"elyra {new_version}")
 
         # Update docker related tags
@@ -132,7 +138,7 @@ def update_version_to_release() -> None:
             f"{new_version}")
         sed(_source('docs/source/recipes/configure-airflow-as-a-runtime.md'),
             r"master",
-            f"{new_version}")
+            f"{config.tag}")
 
         sed(_source('etc/docker/elyra/Dockerfile'),
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
@@ -140,18 +146,18 @@ def update_version_to_release() -> None:
 
         # Update UI component versions
         sed(_source('README.md'),
-            rf"v{_npm_dev_version(old_version)}",
+            rf"v{old_npm_version}",
             f"v{new_version}")
         sed(_source('docs/source/getting_started/installation.md'),
-            rf"v{_npm_dev_version(old_version)}",
+            rf"v{old_npm_version}",
             f"v{new_version}")
 
         sed(_source('packages/theme/src/index.ts'),
             r"https://elyra.readthedocs.io/en/latest/",
             f"https://elyra.readthedocs.io/en/stable/")
 
-        check_run(["lerna", "version", new_version, "--no-git-tag-version", "--no-push", "--yes"], cwd=config.source_dir)
-        check_run(["yarn", "version", "--new-version", new_version, "--no-git-tag-version"], cwd=config.source_dir)
+        check_run(["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes"], cwd=config.source_dir)
+        check_run(["yarn", "version", "--new-version", new_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
 
     except Exception as ex:
         raise UpdateVersionException from ex
@@ -161,21 +167,24 @@ def update_version_to_dev() -> None:
     global config
 
     new_version = config.new_version
+    new_npm_version = config.new_npm_version
     dev_version = config.dev_version
+    dev_npm_version = config.dev_npm_version
+
     try:
         # Update backend version
         sed(_source('.bumpversion.cfg'),
             rf"^current_version* =* {new_version}",
-            f"current_version = {_python_dev_version(dev_version)}")
+            f"current_version = {dev_version}")
         sed(_source('elyra/_version.py'),
             rf"^__version__* =* '{new_version}'",
-            f"__version__ = '{_python_dev_version(dev_version)}'")
+            f"__version__ = '{dev_version}'")
         sed(_source('README.md'),
             rf"elyra {new_version}",
-            f"elyra {_python_dev_version(dev_version)}")
+            f"elyra {dev_version}")
         sed(_source('docs/source/getting_started/installation.md'),
             rf"elyra {new_version}",
-            f"elyra {_python_dev_version(dev_version)}")
+            f"elyra {dev_version}")
 
         # Update docker related tags
         sed(_source('Makefile'),
@@ -195,7 +204,7 @@ def update_version_to_dev() -> None:
             rf"{new_version}",
             "dev")
         sed(_source('docs/source/recipes/configure-airflow-as-a-runtime.md'),
-            rf"{new_version}",
+            rf"{config.tag}",
             "master")
 
         sed(_source('etc/docker/elyra/Dockerfile'),
@@ -205,17 +214,17 @@ def update_version_to_dev() -> None:
         # Update UI component versions
         sed(_source('README.md'),
             rf"extension v{new_version}",
-            f"extension v{_npm_dev_version(dev_version)}")
+            f"extension v{dev_npm_version}")
         sed(_source('docs/source/getting_started/installation.md'),
             rf"extension v{new_version}",
-            f"extension v{_npm_dev_version(dev_version)}")
+            f"extension v{dev_npm_version}")
 
         sed(_source('packages/theme/src/index.ts'),
             r"https://elyra.readthedocs.io/en/stable/",
             f"https://elyra.readthedocs.io/en/latest/")
 
-        check_run(["lerna", "version", _npm_dev_version(dev_version), "--no-git-tag-version", "--no-push", "--yes"], cwd=config.source_dir)
-        check_run(["yarn", "version", "--new-version", _npm_dev_version(dev_version), "--no-git-tag-version"], cwd=config.source_dir)
+        check_run(["lerna", "version", dev_npm_version, "--no-git-tag-version", "--no-push", "--yes"], cwd=config.source_dir)
+        check_run(["yarn", "version", "--new-version", dev_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
 
     except Exception as ex:
         raise UpdateVersionException from ex
@@ -225,16 +234,6 @@ def _source(file: str) -> str:
     global config
 
     return os.path.join(config.source_dir, file)
-
-
-def _python_dev_version(version: str) -> str:
-    v = re.search(VERSION_REG_EX, version)
-    return f"{v['major']}.{v['minor']}.{v['patch']}.dev0"
-
-
-def _npm_dev_version(version: str) -> str:
-    v = re.search(VERSION_REG_EX, version)
-    return f"{v['major']}.{v['minor']}.{v['patch']}-dev"
 
 
 def checkout_code() -> None:
@@ -307,7 +306,7 @@ def show_release_artifacts():
 def copy_extension_archive(extension: str, work_dir: str) -> None:
     global config
 
-    extension_package_name = f'{extension}-{config.new_version}.tgz'
+    extension_package_name = f'{extension}-{config.new_npm_version}.tgz'
     extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
     extension_package_dest_file = os.path.join(work_dir, 'dist', extension_package_name)
     os.makedirs(os.path.dirname(extension_package_dest_file), exist_ok=True)
@@ -438,6 +437,8 @@ def initialize_config(args=None) -> SimpleNamespace:
     if not args:
         raise ValueError("Invalid command line arguments")
 
+    v = re.search(VERSION_REG_EX, elyra.__version__)
+
     configuration = {
         'goal': args.goal,
         'git_url': DEFAULT_GIT_URL,
@@ -448,10 +449,14 @@ def initialize_config(args=None) -> SimpleNamespace:
         'base_dir': os.getcwd(),
         'work_dir': os.path.join(os.getcwd(), DEFAULT_BUILD_DIR),
         'source_dir': os.path.join(os.getcwd(), DEFAULT_BUILD_DIR, 'elyra'),
-        'old_version': elyra.__version__.replace(r".dev[0-9]", ""),
-        'new_version': args.version,
-        'dev_version': args.dev_version,
-        'tag': f'v{args.version}'
+        'old_version': elyra.__version__,
+        'old_npm_version': f"{v['major']}.{v['minor']}.{v['patch']}-dev",
+        'new_version': args.version if not str.isdigit(args.rc) else f'{args.version}rc{args.rc}',
+        'new_npm_version': args.version if not str.isdigit(args.rc) else f'{args.version}-rc.{args.rc}',
+        'rc': args.rc,
+        'dev_version': f'{args.dev_version}.dev0',
+        'dev_npm_version': f'{args.dev_version}-dev',
+        'tag': f'v{args.version}' if not str.isdigit(args.rc) else f'v{args.version}rc{args.rc}'
     }
 
     global config
@@ -465,17 +470,22 @@ def print_config() -> None:
     print("--------------------- Release configuration ---------------------")
     print("-----------------------------------------------------------------")
     print(f'Goal \t\t -> {config.goal}')
-    print(f'Git URL \t -> {config.git_url}')
+    print(f'Git URL \t\t -> {config.git_url}')
     print(f'Git Extension URL \t -> {config.git_extension_package_url}')
-    print(f'Git reference \t -> {config.git_hash}')
-    print(f'Git user \t -> {config.git_user_name}')
-    print(f'Git user emain \t -> {config.git_user_email}')
-    print(f'Work dir \t -> {config.work_dir}')
-    print(f'Source dir \t -> {config.source_dir}')
-    print(f'Old Version \t -> {config.old_version}')
-    print(f'New Version \t -> {config.new_version}')
-    print(f'Dev Version \t -> {config.dev_version}')
-    print(f'Release Tag \t -> {config.tag}')
+    print(f'Git reference \t\t -> {config.git_hash}')
+    print(f'Git user \t\t -> {config.git_user_name}')
+    print(f'Git user emain \t\t -> {config.git_user_email}')
+    print(f'Work dir \t\t -> {config.work_dir}')
+    print(f'Source dir \t\t -> {config.source_dir}')
+    print(f'Old Version \t\t -> {config.old_version}')
+    print(f'Old NPM Version \t -> {config.old_npm_version}')
+    print(f'New Version \t\t -> {config.new_version}')
+    print(f'New NPN Version \t -> {config.new_npm_version}')
+    if config.rc is not None:
+        print(f'RC number \t\t -> {config.rc}')
+    print(f'Dev Version \t\t -> {config.dev_version}')
+    print(f'Dev NPM Version \t -> {config.dev_npm_version}')
+    print(f'Release Tag \t\t -> {config.tag}')
     print("-----------------------------------------------------------------")
     print('')
 
@@ -487,7 +497,7 @@ def print_help() -> str:
     DESCRIPTION
     Creates Elyra release based on git commit hash or from HEAD.
     
-    create-release.py prepare --version 1.3.0 --dev-version 1.4.0
+    create-release.py prepare --version 1.3.0 --dev-version 1.4.0 [--rc 0]
     This form will prepare a release candidate, build it locally and push the changes to a branch for review.  
     
     create-release.py publish --version 1.3.0
@@ -513,6 +523,7 @@ def main(args=None):
     parser.add_argument('goal', help='Supported goals: {prepare | publish}', type=str, choices={'prepare', 'publish'})
     parser.add_argument('--version', help='the new release version', type=str, required=True)
     parser.add_argument('--dev-version', help='the new development version', type=str, required=False, )
+    parser.add_argument('--rc', help='the release candidate number', type=str, required=False, )
     args = parser.parse_args()
 
     global config
