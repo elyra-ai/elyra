@@ -25,6 +25,7 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import {
   Dialog,
+  IThemeManager,
   ReactWidget,
   showDialog,
   UseSignal
@@ -313,6 +314,7 @@ export class MetadataDisplay<
  */
 export interface IMetadataWidgetProps {
   app: JupyterFrontEnd;
+  themeManager: IThemeManager;
   display_name: string;
   namespace: string;
   icon: LabIcon;
@@ -424,6 +426,7 @@ export class MetadataWidget extends ReactWidget {
           <AddMetadataButton
             schemas={this.schemas}
             addMetadata={this.addMetadata}
+            themeManager={this.props.themeManager}
           />
         </header>
         <UseSignal signal={this.renderSignal} initialArgs={[]}>

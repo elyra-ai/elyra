@@ -15,6 +15,8 @@
  */
 
 import { IDictionary } from '@elyra/services';
+import { JpThemeProvider } from '@elyra/ui-components';
+import { IThemeManager } from '@jupyterlab/apputils';
 import { addIcon } from '@jupyterlab/ui-components';
 import {
   Box,
@@ -34,6 +36,7 @@ export const METADATA_HEADER_POPPER_CLASS = 'elyra-metadataHeader-popper';
 export interface IAddMetadataButtonProps {
   schemas: IDictionary<any>[];
   addMetadata: (schema: string) => void;
+  themeManager: IThemeManager;
 }
 
 export const AddMetadataButton = (
@@ -63,50 +66,52 @@ export const AddMetadataButton = (
   };
 
   return (
-    <Box>
-      <ButtonGroup ref={anchorRef} variant="text">
-        <Button
-          size="small"
-          className={METADATA_HEADER_BUTTON_CLASS}
-          onClick={
-            singleSchema
-              ? (): void => props.addMetadata(props.schemas[0].name)
-              : handleToggle
-          }
-          title={`Create new ${
-            singleSchema
-              ? props.schemas[0].display_name
-              : props.schemas[0].namespace
-          }`}
+    <JpThemeProvider themeManager={props.themeManager}>
+      <Box>
+        <ButtonGroup ref={anchorRef} variant="text">
+          <Button
+            size="small"
+            className={METADATA_HEADER_BUTTON_CLASS}
+            onClick={
+              singleSchema
+                ? (): void => props.addMetadata(props.schemas[0].name)
+                : handleToggle
+            }
+            title={`Create new ${
+              singleSchema
+                ? props.schemas[0].display_name
+                : props.schemas[0].namespace
+            }`}
+          >
+            <addIcon.react tag="span" elementPosition="center" width="16px" />
+          </Button>
+        </ButtonGroup>
+        <Popper
+          className={METADATA_HEADER_POPPER_CLASS}
+          open={open}
+          anchorEl={anchorRef.current}
+          placement="bottom-start"
         >
-          <addIcon.react tag="span" elementPosition="center" width="16px" />
-        </Button>
-      </ButtonGroup>
-      <Popper
-        className={METADATA_HEADER_POPPER_CLASS}
-        open={open}
-        anchorEl={anchorRef.current}
-        placement="bottom-start"
-      >
-        <Paper>
-          <ClickAwayListener onClickAway={handleClose}>
-            <MenuList id="split-button-menu">
-              {props.schemas.map((schema: IDictionary<any>) => (
-                <MenuItem
-                  key={schema.display_name}
-                  title={`New ${schema.display_name}`}
-                  onClick={(event: any): void => {
-                    props.addMetadata(schema.name);
-                    handleClose(event);
-                  }}
-                >
-                  {`New ${schema.display_name}`}
-                </MenuItem>
-              ))}
-            </MenuList>
-          </ClickAwayListener>
-        </Paper>
-      </Popper>
-    </Box>
+          <Paper>
+            <ClickAwayListener onClickAway={handleClose}>
+              <MenuList id="split-button-menu">
+                {props.schemas.map((schema: IDictionary<any>) => (
+                  <MenuItem
+                    key={schema.display_name}
+                    title={`New ${schema.display_name}`}
+                    onClick={(event: any): void => {
+                      props.addMetadata(schema.name);
+                      handleClose(event);
+                    }}
+                  >
+                    {`New ${schema.display_name}`}
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </ClickAwayListener>
+          </Paper>
+        </Popper>
+      </Box>
+    </JpThemeProvider>
   );
 };

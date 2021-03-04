@@ -15,29 +15,32 @@
  */
 
 import { MetadataService, IDictionary } from '@elyra/services';
-import { DropDown, RequestErrors, TextInput } from '@elyra/ui-components';
+import {
+  DropDown,
+  JpThemeProvider,
+  RequestErrors,
+  TextInput
+} from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
-import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
+import {
+  ReactWidget,
+  showDialog,
+  Dialog,
+  IThemeManager
+} from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 
 import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
-import {
-  InputLabel,
-  FormHelperText,
-  Button,
-  createMuiTheme,
-  ThemeProvider
-} from '@material-ui/core';
+import { InputLabel, FormHelperText, Button } from '@material-ui/core';
 
 import * as React from 'react';
 
 import { MetadataEditorTags } from './MetadataEditorTags';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
-const ELYRA_METADATA_EDITOR_DARK_CLASS = 'elyra-metadataEditor-dark';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
 interface IMetadataEditorProps {
@@ -48,20 +51,8 @@ interface IMetadataEditorProps {
   onSave: () => void;
   editorServices: IEditorServices | null;
   status: ILabStatus;
-  darkMode?: boolean;
+  themeManager: IThemeManager;
 }
-
-const lightTheme = createMuiTheme({
-  palette: {
-    type: 'light'
-  }
-});
-
-const darkTheme = createMuiTheme({
-  palette: {
-    type: 'dark'
-  }
-});
 
 /**
  * Metadata editor widget
@@ -84,7 +75,7 @@ export class MetadataEditor extends ReactWidget {
   invalidForm: boolean;
   showSecure: IDictionary<boolean>;
   widgetClass: string;
-  _darkMode?: boolean;
+  themeManager: IThemeManager;
 
   schema: IDictionary<any> = {};
   schemaPropertiesByCategory: IDictionary<string[]> = {};
@@ -102,6 +93,7 @@ export class MetadataEditor extends ReactWidget {
     this.onSave = props.onSave;
     this.name = props.name;
     this.code = props.code;
+    this.themeManager = props.themeManager;
 
     this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : 'new'}`;
     this.addClass(this.widgetClass);
@@ -110,6 +102,7 @@ export class MetadataEditor extends ReactWidget {
     this.handleChangeOnTag = this.handleChangeOnTag.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.renderField = this.renderField.bind(this);
+    this.updateWidget = this.updateWidget.bind(this);
 
     this.invalidForm = false;
 
@@ -192,15 +185,6 @@ export class MetadataEditor extends ReactWidget {
         schemaValue[0] === '') ||
       schemaValue === '(No selection)'
     );
-  }
-
-  get darkMode(): boolean {
-    return this._darkMode ?? false;
-  }
-
-  set darkMode(value: boolean) {
-    this._darkMode = value;
-    this.update();
   }
 
   /**
@@ -473,6 +457,10 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
+  updateWidget(): void {
+    this.update();
+  }
+
   handleChangeOnTag(selectedTags: string[], allTags: string[]): void {
     this.handleDirtyState(true);
     this.metadata.tags = selectedTags;
@@ -497,12 +485,11 @@ export class MetadataEditor extends ReactWidget {
     }
     const error = this.displayName === '' && this.invalidForm;
     return (
-      <ThemeProvider theme={this.darkMode ? darkTheme : lightTheme}>
-        <div
-          className={`${ELYRA_METADATA_EDITOR_CLASS} ${
-            this.darkMode ? ELYRA_METADATA_EDITOR_DARK_CLASS : ''
-          }`}
-        >
+      <JpThemeProvider
+        themeManager={this.themeManager}
+        updateWidget={this.updateWidget}
+      >
+        <div className={ELYRA_METADATA_EDITOR_CLASS}>
           <h3> {headerText} </h3>
           <InputLabel style={{ width: '100%', marginBottom: '10px' }}>
             All fields marked with an asterisk are required
@@ -536,7 +523,7 @@ export class MetadataEditor extends ReactWidget {
             </Button>
           </div>
         </div>
-      </ThemeProvider>
+      </JpThemeProvider>
     );
   }
 }
