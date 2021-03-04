@@ -33,7 +33,7 @@ AND
     - Ensure Kubernetes is >=1.18, earlier versions may work (not tested)
     - Helm >=3.0
       OR
-    - Use the [Helm chart](https://github.com/airflow-helm/charts/tree/main/charts/airflow) available in the Airflow source distribution with our [sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml))
+    - Use the [Helm chart](https://github.com/airflow-helm/charts/tree/main/charts/airflow) available in the Airflow source distribution with our [sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/v2.1.0rc0/etc/kubernetes/airflow/helm/values.yaml))
     
 OR  
   
@@ -97,14 +97,14 @@ For example, if you named your secret `airflow-secret` and GitHub repository was
     ##
 ```
   
-3. Install Airflow with the [sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml) or your own custom configuration 
+3. Install Airflow with the [sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/v2.1.0rc0/etc/kubernetes/airflow/helm/values.yaml) or your own custom configuration 
 after making any other changes you might need to the configuration.
   
 - The sample configuration is set to sync Airflow with the GitHub repository every 10 seconds. You can update this
 as needed. It also uses a custom container image with the `airflow-notebook` package requirement pre-installed.  
   
 ```bash
-helm install "airflow" stable/airflow --values https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml
+helm install "airflow" stable/airflow --values https://raw.githubusercontent.com/elyra-ai/elyra/v2.1.0rc0/etc/kubernetes/airflow/helm/values.yaml
 ```
   
 ## Setting up Elyra on existing Airflow deployments
