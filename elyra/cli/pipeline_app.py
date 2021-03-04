@@ -114,7 +114,12 @@ def submit(pipeline, runtime, runtime_config, work_dir):
         _preprocess_pipeline(pipeline, runtime=runtime, runtime_config=runtime_config, work_dir=work_dir)
 
     try:
-        serverinfo = list(list_running_servers())[0]
+        running_servers = list(list_running_servers())
+        if len(running_servers) == 0:
+            click.echo('Could not discover a running Jupyter Notebook server\n')
+            return
+
+        serverinfo = running_servers[0]
         server_url = f'{serverinfo["url"]}?token={serverinfo["token"]}'
         server_api_url = f'{serverinfo["url"]}elyra/pipeline/schedule'
 
@@ -126,7 +131,7 @@ def submit(pipeline, runtime, runtime_config, work_dir):
                              data=json.dumps(pipeline_definition),
                              headers=xsfr_header)
     except RuntimeError as re:
-        print(f'Error parsing pipeline: \n {re} \n {re.__cause__}')
+        click.echo(f'Error parsing pipeline: \n {re} \n {re.__cause__}')
         click.echo(re)
         if re.__cause__:
             click.echo("  - {}".format(re.__cause__))
