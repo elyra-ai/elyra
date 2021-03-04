@@ -137,7 +137,7 @@ Once Apache Airflow is deployed you are ready to create and run pipelines, as de
 ## Enabling Elyra pipelines in an existing Apache Airflow deployment
 
 To enable running of notebook pipelines on an existing Apache Airflow deployment  
-- Enable Git as DAG storage
+- Enable Git as DAG storage by customizing the [Git settings in `airflow.cfg`](https://github.com/apache/airflow/blob/6416d898060706787861ff8ecbc4363152a35f45/airflow/config_templates/default_airflow.cfg#L913).
 - Install the [`airflow-notebook` Python package](https://github.com/elyra-ai/airflow-notebook) in the web-server, scheduler, and worker pods.
 
 Once Apache Airflow is deployed you are ready to create and run pipelines, as described in the [tutorial](../getting_started/tutorials).
