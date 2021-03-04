@@ -58,6 +58,8 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         'autopep8',
+        'click',
+        'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11,<3.0',
         'jsonschema>=3.2.0',
