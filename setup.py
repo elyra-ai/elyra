@@ -80,6 +80,7 @@ setup_args = dict(
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
         'websocket-client',
+        'yaspin',
         # KFP runtime dependencies
         'kfp-notebook~=0.20.0',
         'kfp==1.3.0',
@@ -107,7 +108,7 @@ setup_args = dict(
     entry_points={
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
-            'elyra = elyra.cli:cli',
+            'elyra-pipeline = elyra.cli.pipeline_app:pipeline',
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
