@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 import os
+import sys
+
 from glob import glob
 from setuptools import setup, find_packages
 
@@ -120,12 +122,12 @@ setup_args = dict(
 )
 
 
+if "--dev" not in sys.argv:
+    setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
+else:
+    sys.argv.remove("--dev")
+
 # TODO: @akchin document this
-# if "--dev" not in sys.argv:
-#     setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
-# else:
-#     sys.argv.remove("--dev")
-#
 # if "--airflow" not in sys.argv:
 #     setup_args["install_requires"].append(kfp_packages)
 #     setup_args["entry_points"]['elyra.pipeline.processors'].append(
