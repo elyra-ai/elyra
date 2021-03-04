@@ -192,7 +192,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                    f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}",
                                    duration=(time.time() - t0_all))
 
-            return self.KfpPipelineProcessorResponse(
+            return KfpPipelineProcessorResponse(
                 run_url=f'{api_endpoint}/#/runs/details/{run.id}',
                 object_storage_url=f'{cos_endpoint}',
                 object_storage_path=f'/{cos_bucket}/{cos_directory}',
@@ -447,20 +447,14 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             if cookie_auth_value:
                 return cookie_auth_key + '=' + cookie_auth_value
 
-    class KfpPipelineProcessorResponse(PipelineProcessorResponse):
 
-        _type = 'kfp'
+class KfpPipelineProcessorResponse(PipelineProcessorResponse):
 
-        def __init__(self, run_url, object_storage_url, object_storage_path):
-            super().__init__(run_url, object_storage_url, object_storage_path)
+    _type = 'kfp'
 
-        @property
-        def type(self):
-            return self._type
+    def __init__(self, run_url, object_storage_url, object_storage_path):
+        super().__init__(run_url, object_storage_url, object_storage_path)
 
-        def to_json(self):
-            return {"platform": self.type,
-                    "run_url": self.run_url,
-                    "object_storage_url": self.object_storage_url,
-                    "object_storage_path": self.object_storage_path
-                    }
+    @property
+    def type(self):
+        return self._type

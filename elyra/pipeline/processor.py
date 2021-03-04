@@ -91,9 +91,7 @@ class PipelineProcessorResponse(ABC):
 
     _type = None
 
-    def __init__(self, run_url, object_storage_url, object_storage_path, **kwargs):
-
-        super(PipelineProcessorResponse, self).__init__(**kwargs)
+    def __init__(self, run_url, object_storage_url, object_storage_path):
         self._run_url = run_url
         self._object_storage_url = object_storage_url
         self._object_storage_path = object_storage_path
@@ -126,9 +124,12 @@ class PipelineProcessorResponse(ABC):
         """
         return self._object_storage_path
 
-    @abstractmethod
     def to_json(self):
-        raise NotImplementedError()
+        return {"platform": self.type,
+                "run_url": self.run_url,
+                "object_storage_url": self.object_storage_url,
+                "object_storage_path": self.object_storage_path
+                }
 
 
 class PipelineProcessor(LoggingConfigurable):  # ABC

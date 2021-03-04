@@ -96,7 +96,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                    f"pipeline pushed to git: {github_url}",
                                    duration=(time.time() - t0_all))
 
-            return self.AirflowPipelineProcessorResponse(
+            return AirflowPipelineProcessorResponse(
                 git_url=f'{github_url}',
                 run_url=f'{api_endpoint}',
                 object_storage_url=f'{cos_endpoint}',
@@ -276,22 +276,20 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
         return pipeline_export_path
 
-    class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
 
-        _type = 'airflow'
+class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
 
-        def __init__(self, git_url, run_url, object_storage_url, object_storage_path):
-            super().__init__(run_url, object_storage_url, object_storage_path)
-            self.git_url = git_url
+    _type = 'airflow'
 
-        @property
-        def type(self):
-            return self._type
+    def __init__(self, git_url, run_url, object_storage_url, object_storage_path):
+        super().__init__(run_url, object_storage_url, object_storage_path)
+        self.git_url = git_url
 
-        def to_json(self):
-            return {"platform": self.type,
-                    "run_url": self.run_url,
-                    "git_url": self.git_url,
-                    "object_storage_url": self.object_storage_url,
-                    "object_storage_path": self.object_storage_path
-                    }
+    @property
+    def type(self):
+        return self._type
+
+    def to_json(self):
+        response = super().to_json()
+        response['git_url'] = self.git_url
+        return response
