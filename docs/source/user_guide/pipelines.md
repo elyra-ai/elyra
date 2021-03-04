@@ -87,6 +87,28 @@ To run a pipeline on Kubeflow Pipelines:
 
 Refer to the [Kubeflow Pipelines tutorial](/getting_started/tutorials.md) for details.
 
+#### Running a pipeline using the command line
+
+To run a pipeline on your local environment:
+
+```bash
+elyra-pipeline run elyra-pipelines/demo-heterogeneous.pipeline \
+      --work-dir ~/opensource/jupyter-notebooks/
+```
+
+To submit a pipeline to be executed on the context of the JupyterLab server:
+
+```bash
+elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
+      --work-dir ~/opensource/jupyter-notebooks/ \
+      --runtime kfp
+      --runtime-config kfp-shared-tekton
+```
+
+The `runtime` should be one of ['local', 'kfp', 'airflow'] and the `runtime-config`  should be a valid
+[runtime configuration](/user_guide/runtime-conf.md)
+
+
 ### Distributing Your Pipeline
 Oftentimes you'll want to share or distribute your pipeline (including its notebooks and their dependencies) with colleagues.  This section covers some of the best practices for accomplishing that, but first, it's good to understand the relationships between components of a pipeline.
 
