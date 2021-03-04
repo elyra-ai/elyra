@@ -956,11 +956,11 @@ dags:
     ## EXAMPLE: (SSH)
     ##   url: "ssh://git@github.com:torvalds/linux.git"
     ##
-    url: "ssh://git@github.com/elyra-ai/examples"
+    url: "ssh://git@github.com/your-git-org/your-dag-repo"
 
     ## the branch/tag/sha1 which we clone
     ##
-    ref: "airflow"
+    ref: "main"
 
     ## the name of a pre-created secret containing files for ~/.ssh/
     ##

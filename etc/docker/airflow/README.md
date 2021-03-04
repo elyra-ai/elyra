@@ -16,5 +16,6 @@ limitations under the License.
 {% endcomment %}
 -->
 
-### airflow
-Builds the Apache Airflow image with the [airflow-notebook](https://github.com/elyra-ai/airflow-notebook) package pre-installed.
+### Apache Airflow container image for Elyra
+
+This `Dockerfile` is used to build an Apache Airflow container image that has the [airflow-notebook](https://github.com/elyra-ai/airflow-notebook) package pre-installed. The container image is published on [Docker Hub](https://hub.docker.com/r/elyra/airflow) and [quay.io](https://quay.io/repository/elyra/airflow).
