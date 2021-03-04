@@ -27,6 +27,13 @@ from elyra.pipeline import PipelineParser, PipelineProcessorManager
 from jupyter_server.serverapp import list_running_servers
 
 
+def _validate_pipeline_file(pipeline_file):
+    extension = os.path.splitext(pipeline_file)[1]
+    if extension != '.pipeline':
+        click.echo('Pipeline file should be a [.pipeline] file\n')
+        raise click.Abort()
+
+
 def _preprocess_pipeline(pipeline_path, runtime, runtime_config, work_dir):
     pipeline_path = os.path.expanduser(pipeline_path)
     working_dir = os.path.expanduser(work_dir)
@@ -110,6 +117,8 @@ def submit(pipeline, runtime, runtime_config, work_dir):
 
     print_banner("Elyra Pipeline Submission")
 
+    _validate_pipeline_file(pipeline)
+
     pipeline_definition = \
         _preprocess_pipeline(pipeline, runtime=runtime, runtime_config=runtime_config, work_dir=work_dir)
 
@@ -153,6 +162,8 @@ def run(pipeline, work_dir):
     click.echo()
 
     print_banner("Elyra Pipeline Local Run")
+
+    _validate_pipeline_file(pipeline)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline, runtime='local', runtime_config='local', work_dir=work_dir)
