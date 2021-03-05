@@ -164,6 +164,19 @@ export class PipelineService {
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
           <p>
+            {response['platform'] == 'airflow' ? (
+              <p>
+                Apache Airflow DAG has been pushed to the{' '}
+                <a
+                  href={response['git_url']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub Repository.
+                </a>
+                <br />
+              </p>
+            ) : null}
             Check the status of your job at{' '}
             <a
               href={response['run_url']}

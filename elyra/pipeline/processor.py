@@ -18,7 +18,7 @@ import entrypoints
 import os
 import time
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from elyra.metadata import MetadataManager
 from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
@@ -87,11 +87,19 @@ class PipelineProcessorManager(SingletonConfigurable):
         return res
 
 
-class PipelineProcessorResponse(object):
-    def __init__(self, run_url='', object_storage_url='', object_storage_path=''):
+class PipelineProcessorResponse(ABC):
+
+    _type = None
+
+    def __init__(self, run_url, object_storage_url, object_storage_path):
         self._run_url = run_url
         self._object_storage_url = object_storage_url
         self._object_storage_path = object_storage_path
+
+    @property
+    @abstractmethod
+    def type(self):
+        raise NotImplementedError()
 
     @property
     def run_url(self):
@@ -117,7 +125,8 @@ class PipelineProcessorResponse(object):
         return self._object_storage_path
 
     def to_json(self):
-        return {"run_url": self.run_url,
+        return {"platform": self.type,
+                "run_url": self.run_url,
                 "object_storage_url": self.object_storage_url,
                 "object_storage_path": self.object_storage_path
                 }
