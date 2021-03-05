@@ -24,6 +24,7 @@ from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
+from urllib3.exceptions import MaxRetryError
 
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -239,8 +240,12 @@ class RuntimePipelineProcess(PipelineProcessor):
             self.log.error("Dependencies were not found building archive for operation: {}".
                            format(operation.name), exc_info=True)
             raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
-                                    format(operation.name, ex))
-
+                                    format(operation.name, ex)) from ex
+        except MaxRetryError as ex:
+            cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+            self.log.error("Connection was refused when attempting to connect to : {}".
+                           format(cos_endpoint), exc_info=True)
+            raise ex from ex
         except BaseException as ex:
             self.log.error("Error uploading artifacts to object storage for operation: {}".
                            format(operation.name), exc_info=True)

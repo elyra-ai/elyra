@@ -28,8 +28,7 @@ from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
 from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
-from urllib3.exceptions import LocationValueError
-from urllib3.exceptions import MaxRetryError
+from urllib3.exceptions import LocationValueError, MaxRetryError
 
 
 class KfpPipelineProcessor(RuntimePipelineProcess):
@@ -416,9 +415,13 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                    f"processing operation dependencies for id: {operation.id}",
                                    operation_name=operation.name)
 
-            self._upload_dependencies_to_object_store(runtime_configuration,
-                                                      cos_directory,
-                                                      operation)
+            try:
+                self._upload_dependencies_to_object_store(runtime_configuration,
+                                                          cos_directory,
+                                                          operation)
+            except MaxRetryError as ex:
+                raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
+                                   "check your object storage settings ".format(cos_endpoint)) from ex
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
