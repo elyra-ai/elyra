@@ -170,7 +170,7 @@ export class MetadataEditor extends ReactWidget {
     } else {
       this.displayName = '';
     }
-    this.onInitializedMetadata();
+    this.initializeEditor();
     this.update();
   }
 
@@ -315,7 +315,7 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
-  onInitializedMetadata(): void {
+  initializeEditor(): void {
     // If the update request triggered rendering a 'code' input, and the editor hasn't
     // been initialized yet, create the editor and attach it to the 'code' node
     if (!this.editor && document.getElementById('code:' + this.id) != null) {
@@ -458,6 +458,7 @@ export class MetadataEditor extends ReactWidget {
   }
 
   updateWidget(): void {
+    this.initializeEditor();
     this.update();
   }
 

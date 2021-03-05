@@ -18,7 +18,7 @@ import { IThemeManager } from '@jupyterlab/apputils';
 
 import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 export interface IJpThemeProviderProps {
   children: React.ReactElement;
@@ -26,47 +26,47 @@ export interface IJpThemeProviderProps {
   updateWidget?: () => void;
 }
 
-export const JpThemeProvider = (
-  props: IJpThemeProviderProps
-): React.ReactElement => {
-  let isLight =
-    props.themeManager.theme &&
-    props.themeManager.isLight(props.themeManager.theme);
-
-  const updateTheme = (): void => {
-    const isLightUpdate =
-      props.themeManager.theme &&
-      props.themeManager.isLight(props.themeManager.theme);
-
-    if (isLightUpdate != isLight) {
-      isLight = isLightUpdate;
-      if (props.updateWidget) {
-        props.updateWidget();
-      }
-    }
-  };
-
-  updateTheme();
-
-  const lightTheme = createMuiTheme({
-    palette: {
-      type: 'light'
-    }
-  });
-
-  const darkTheme = createMuiTheme({
-    palette: {
-      type: 'dark'
-    }
-  });
-
-  if (props.themeManager) {
-    props.themeManager.themeChanged.connect(updateTheme);
+const lightTheme = createMuiTheme({
+  palette: {
+    type: 'light'
   }
+});
+
+const darkTheme = createMuiTheme({
+  palette: {
+    type: 'dark'
+  }
+});
+
+const isLightTheme = (themeManager: IThemeManager): boolean => {
+  return themeManager.theme && themeManager.isLight(themeManager.theme);
+};
+
+export const JpThemeProvider = ({
+  children,
+  themeManager,
+  updateWidget
+}: IJpThemeProviderProps): React.ReactElement => {
+  const [isLight, setIsLight] = useState(isLightTheme(themeManager));
+
+  useEffect(() => {
+    const updateTheme = (): void => {
+      setIsLight(isLightTheme(themeManager));
+      if (updateWidget) {
+        updateWidget();
+      }
+    };
+
+    updateTheme();
+
+    if (themeManager) {
+      themeManager.themeChanged.connect(updateTheme);
+    }
+  }, [themeManager, updateWidget]);
 
   return (
     <ThemeProvider theme={isLight ? lightTheme : darkTheme}>
-      {props.children}
+      {children}
     </ThemeProvider>
   );
 };
