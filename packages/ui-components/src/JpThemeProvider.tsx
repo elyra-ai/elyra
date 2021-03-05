@@ -18,55 +18,47 @@ import { IThemeManager } from '@jupyterlab/apputils';
 
 import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
-export interface IJpThemeProviderProps {
-  children: React.ReactElement;
+export interface IProps {
   themeManager: IThemeManager;
-  updateWidget?: () => void;
 }
 
-const lightTheme = createMuiTheme({
-  palette: {
-    type: 'light'
-  }
-});
-
-const darkTheme = createMuiTheme({
-  palette: {
-    type: 'dark'
-  }
-});
-
 const isLightTheme = (themeManager: IThemeManager): boolean => {
-  return themeManager.theme && themeManager.isLight(themeManager.theme);
+  // Default to light theme
+  if (themeManager?.theme === undefined) {
+    return true;
+  }
+
+  return themeManager.isLight(themeManager.theme);
 };
 
-export const JpThemeProvider = ({
-  children,
+export const JpThemeProvider: React.FC<IProps> = ({
   themeManager,
-  updateWidget
-}: IJpThemeProviderProps): React.ReactElement => {
+  children
+}) => {
   const [isLight, setIsLight] = useState(isLightTheme(themeManager));
+
+  const theme = useMemo(() => {
+    return createMuiTheme({
+      palette: {
+        type: isLight ? 'light' : 'dark'
+      }
+    });
+  }, [isLight]);
 
   useEffect(() => {
     const updateTheme = (): void => {
       setIsLight(isLightTheme(themeManager));
-      if (updateWidget) {
-        updateWidget();
-      }
     };
-
-    updateTheme();
 
     if (themeManager) {
       themeManager.themeChanged.connect(updateTheme);
     }
-  }, [themeManager, updateWidget]);
+    return (): void => {
+      themeManager.themeChanged.disconnect(updateTheme);
+    };
+  }, [themeManager]);
 
-  return (
-    <ThemeProvider theme={isLight ? lightTheme : darkTheme}>
-      {children}
-    </ThemeProvider>
-  );
+  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
 };

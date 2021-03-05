@@ -17,6 +17,7 @@
 import { IDictionary, MetadataService } from '@elyra/services';
 import {
   ExpandableComponent,
+  JpThemeProvider,
   JSONComponent,
   RequestErrors,
   trashIcon
@@ -411,28 +412,29 @@ export class MetadataWidget extends ReactWidget {
 
   render(): React.ReactElement {
     return (
-      <div>
-        <header className={METADATA_HEADER_CLASS}>
-          <div style={{ display: 'flex' }}>
-            <this.props.icon.react
-              tag="span"
-              width="auto"
-              height="24px"
-              verticalAlign="middle"
-              marginRight="5px"
+      <JpThemeProvider themeManager={this.props.themeManager}>
+        <div>
+          <header className={METADATA_HEADER_CLASS}>
+            <div style={{ display: 'flex' }}>
+              <this.props.icon.react
+                tag="span"
+                width="auto"
+                height="24px"
+                verticalAlign="middle"
+                marginRight="5px"
+              />
+              <p> {this.props.display_name} </p>
+            </div>
+            <AddMetadataButton
+              schemas={this.schemas}
+              addMetadata={this.addMetadata}
             />
-            <p> {this.props.display_name} </p>
-          </div>
-          <AddMetadataButton
-            schemas={this.schemas}
-            addMetadata={this.addMetadata}
-            themeManager={this.props.themeManager}
-          />
-        </header>
-        <UseSignal signal={this.renderSignal} initialArgs={[]}>
-          {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
-        </UseSignal>
-      </div>
+          </header>
+          <UseSignal signal={this.renderSignal} initialArgs={[]}>
+            {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
+          </UseSignal>
+        </div>
+      </JpThemeProvider>
     );
   }
 }

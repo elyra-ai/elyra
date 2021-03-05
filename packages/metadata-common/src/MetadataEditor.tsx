@@ -36,7 +36,7 @@ import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 import { InputLabel, FormHelperText, Button } from '@material-ui/core';
 
-import * as React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { MetadataEditorTags } from './MetadataEditorTags';
 
@@ -53,6 +53,65 @@ interface IMetadataEditorProps {
   status: ILabStatus;
   themeManager: IThemeManager;
 }
+
+interface ICodeBlockProps {
+  editorServices: IEditorServices;
+  initialValue: string;
+  language: string;
+  onChange?: (value: string) => any;
+}
+
+const CodeBlock: React.FC<ICodeBlockProps> = ({
+  editorServices,
+  initialValue,
+  language,
+  onChange
+}) => {
+  const codeBlockRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<CodeEditor.IEditor>(null);
+
+  // `editorServices` should never change so make it a ref.
+  const servicesRef = useRef(editorServices);
+
+  useEffect(() => {
+    const handleChange = (args: any): void => {
+      onChange?.(args.text.split('\n'));
+    };
+
+    editorRef.current = servicesRef.current.factoryService.newInlineEditor({
+      host: codeBlockRef.current,
+      model: new CodeEditor.Model({
+        value: initialValue,
+        mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
+          name: language,
+          codemirror_mode: language
+        })
+      })
+    });
+    editorRef.current.model.value.changed.connect(handleChange);
+    return (): void => {
+      editorRef.current.model.value.changed.disconnect(handleChange);
+    };
+    // NOTE: The parent component is unstable so props change frequently causing
+    // new editors to be created unnecessarily. This effect on mount should only
+    // run on mount. Keep in mind this could have side effects, for example if
+    // the `onChange` callback actually does change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (editorRef !== null) {
+      editorRef.current.model.mimeType = servicesRef.current.mimeTypeService.getMimeTypeByLanguage(
+        {
+          name: language,
+          codemirror_mode: language
+        }
+      );
+    }
+  }, [language]);
+
+  return <div ref={codeBlockRef} className="elyra-form-code" />;
+};
 
 /**
  * Metadata editor widget
@@ -76,6 +135,8 @@ export class MetadataEditor extends ReactWidget {
   showSecure: IDictionary<boolean>;
   widgetClass: string;
   themeManager: IThemeManager;
+
+  language: string;
 
   schema: IDictionary<any> = {};
   schemaPropertiesByCategory: IDictionary<string[]> = {};
@@ -102,7 +163,6 @@ export class MetadataEditor extends ReactWidget {
     this.handleChangeOnTag = this.handleChangeOnTag.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.renderField = this.renderField.bind(this);
-    this.updateWidget = this.updateWidget.bind(this);
 
     this.invalidForm = false;
 
@@ -170,7 +230,7 @@ export class MetadataEditor extends ReactWidget {
     } else {
       this.displayName = '';
     }
-    this.initializeEditor();
+
     this.update();
   }
 
@@ -290,12 +350,7 @@ export class MetadataEditor extends ReactWidget {
     this.handleDirtyState(true);
     this.metadata[schemaField] = value;
     if (schemaField === 'language') {
-      const getMimeTypeByLanguage = this.editorServices.mimeTypeService
-        .getMimeTypeByLanguage;
-      this.editor.model.mimeType = getMimeTypeByLanguage({
-        name: value,
-        codemirror_mode: value
-      });
+      this.language = value;
     }
     this.update();
   };
@@ -312,39 +367,6 @@ export class MetadataEditor extends ReactWidget {
       this.title.className += DIRTY_CLASS;
     } else if (!this.dirty) {
       this.title.className = this.title.className.replace(DIRTY_CLASS, '');
-    }
-  }
-
-  initializeEditor(): void {
-    // If the update request triggered rendering a 'code' input, and the editor hasn't
-    // been initialized yet, create the editor and attach it to the 'code' node
-    if (!this.editor && document.getElementById('code:' + this.id) != null) {
-      let initialCodeValue = '';
-      const getMimeTypeByLanguage = this.editorServices.mimeTypeService
-        .getMimeTypeByLanguage;
-      // If the file already exists, initialize the code editor with the existing code
-      if (this.name) {
-        initialCodeValue = this.metadata['code'].join('\n');
-      } else {
-        if (this.code) {
-          this.metadata['code'] = this.code;
-          initialCodeValue = this.code!.join('\n');
-        }
-      }
-      this.editor = this.editorServices.factoryService.newInlineEditor({
-        host: document.getElementById('code:' + this.id),
-        model: new CodeEditor.Model({
-          value: initialCodeValue,
-          mimeType: getMimeTypeByLanguage({
-            name: this.metadata['language'],
-            codemirror_mode: this.metadata['language']
-          })
-        })
-      });
-      this.editor.model.value.changed.connect((args: any) => {
-        this.metadata['code'] = args.text.split('\n');
-        this.handleDirtyState(true);
-      });
     }
   }
 
@@ -430,6 +452,15 @@ export class MetadataEditor extends ReactWidget {
           <FormHelperText error> This field is required. </FormHelperText>
         );
       }
+
+      let initialCodeValue = '';
+      if (this.name) {
+        initialCodeValue = this.metadata.code.join('\n');
+      } else if (this.code) {
+        this.metadata.code = this.code;
+        initialCodeValue = this.code.join('\n');
+      }
+
       return (
         <div
           className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
@@ -437,7 +468,16 @@ export class MetadataEditor extends ReactWidget {
           <InputLabel required={required}>
             {this.schema[fieldName].title}
           </InputLabel>
-          <div id={'code:' + this.id} className="elyra-form-code"></div>
+          <CodeBlock
+            editorServices={this.editorServices}
+            language={this.language ?? this.metadata.language}
+            initialValue={initialCodeValue}
+            onChange={(value): void => {
+              this.metadata.code = value;
+              this.handleDirtyState(true);
+              return;
+            }}
+          />
           {helperText}
         </div>
       );
@@ -455,11 +495,6 @@ export class MetadataEditor extends ReactWidget {
     } else {
       return;
     }
-  }
-
-  updateWidget(): void {
-    this.initializeEditor();
-    this.update();
   }
 
   handleChangeOnTag(selectedTags: string[], allTags: string[]): void {
@@ -486,10 +521,7 @@ export class MetadataEditor extends ReactWidget {
     }
     const error = this.displayName === '' && this.invalidForm;
     return (
-      <JpThemeProvider
-        themeManager={this.themeManager}
-        updateWidget={this.updateWidget}
-      >
+      <JpThemeProvider themeManager={this.themeManager}>
         <div className={ELYRA_METADATA_EDITOR_CLASS}>
           <h3> {headerText} </h3>
           <InputLabel style={{ width: '100%', marginBottom: '10px' }}>
