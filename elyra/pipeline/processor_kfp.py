@@ -415,13 +415,9 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                    f"processing operation dependencies for id: {operation.id}",
                                    operation_name=operation.name)
 
-            try:
-                self._upload_dependencies_to_object_store(runtime_configuration,
-                                                          cos_directory,
-                                                          operation)
-            except MaxRetryError as ex:
-                raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
-                                   "check your object storage settings ".format(cos_endpoint)) from ex
+            self._upload_dependencies_to_object_store(runtime_configuration,
+                                                      cos_directory,
+                                                      operation)
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():

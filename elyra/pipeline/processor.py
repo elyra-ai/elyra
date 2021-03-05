@@ -245,7 +245,8 @@ class RuntimePipelineProcess(PipelineProcessor):
             cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
             self.log.error("Connection was refused when attempting to connect to : {}".
                            format(cos_endpoint), exc_info=True)
-            raise ex from ex
+            raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
+                               "check your object storage settings. ".format(cos_endpoint)) from ex
         except BaseException as ex:
             self.log.error("Error uploading artifacts to object storage for operation: {}".
                            format(operation.name), exc_info=True)

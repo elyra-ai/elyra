@@ -30,7 +30,6 @@ from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
 from elyra.util.git import GithubClient
 from jinja2 import Environment, PackageLoader
-from urllib3.exceptions import MaxRetryError
 
 
 class AirflowPipelineProcessor(RuntimePipelineProcess):
@@ -215,13 +214,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                    f"processing operation dependencies for id: {operation.id}",
                                    operation_name=operation.name)
 
-            try:
-                self._upload_dependencies_to_object_store(runtime_configuration,
-                                                          pipeline_name,
-                                                          operation)
-            except MaxRetryError as ex:
-                raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
-                                   "check your object storage settings ".format(cos_endpoint)) from ex
+            self._upload_dependencies_to_object_store(runtime_configuration,
+                                                      pipeline_name,
+                                                      operation)
 
         ordered_notebook_ops = OrderedDict()
 
