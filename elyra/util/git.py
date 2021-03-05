@@ -105,4 +105,4 @@ class GithubClient(LoggingConfigurable):
         if parsed_url.port:
             port = ':' + parsed_url.port
 
-        return "/".join([scheme, host, port, repository_name, 'tree', repository_branch])
+        return "/".join([scheme, host + port, repository_name, 'tree', repository_branch])
