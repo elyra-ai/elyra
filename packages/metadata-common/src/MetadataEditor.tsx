@@ -395,7 +395,7 @@ export class MetadataEditor extends ReactWidget {
     return defaultChoices;
   }
 
-  onAfterShow(msg: Message): void {
+  setFormFocus(): void {
     const input = document.querySelector(
       `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
     ) as HTMLInputElement;
@@ -403,6 +403,15 @@ export class MetadataEditor extends ReactWidget {
       input.focus();
       input.setSelectionRange(input.value.length, input.value.length);
     }
+  }
+
+  onAfterShow(msg: Message): void {
+    this.setFormFocus();
+  }
+
+  onUpdateRequest(msg: Message): void {
+    super.onUpdateRequest(msg);
+    this.setFormFocus();
   }
 
   renderField(fieldName: string): React.ReactElement {

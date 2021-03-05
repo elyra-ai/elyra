@@ -26,11 +26,7 @@ export interface IProps {
 
 const isLightTheme = (themeManager: IThemeManager): boolean => {
   // Default to light theme
-  if (themeManager?.theme === undefined) {
-    return true;
-  }
-
-  return themeManager.isLight(themeManager.theme);
+  return themeManager?.theme ? themeManager.isLight(themeManager.theme) : true;
 };
 
 export const JpThemeProvider: React.FC<IProps> = ({
