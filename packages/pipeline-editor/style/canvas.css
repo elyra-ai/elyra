@@ -48,7 +48,7 @@ body[data-jp-theme-light='false'] .common-canvas-tooltip {
   --ui-04: #c6c6c6;
   --ui-05: #f4f4f4;
   --text-01: #f4f4f4;
-  --text-02: #c6c6c6;
+  --text-02: #ffffff;
   --text-03: #6f6f6f;
   --icon-01: #f4f4f4;
   --link-01: #78a9ff;
@@ -63,6 +63,7 @@ body[data-jp-theme-light='false'] .common-canvas-tooltip {
   border-color: var(--ui-03);
   color: var(--text-01);
 }
+
 .common-canvas-tooltip #tipArrow polyline {
   fill: var(--ui-02);
 }
@@ -84,6 +85,7 @@ body[data-jp-theme-light='false'] .common-canvas-tooltip {
   fill: transparent;
 }
 .d3-comment-text {
+  color: var(--text-02);
   fill: var(--text-02);
 }
 .d3-comment-entry {
@@ -130,6 +132,7 @@ g .d3-link-selection-area:hover ~ .d3-selectable-link {
 }
 
 .d3-node-label {
+  color: var(--text-01);
   fill: var(--text-01);
 }
 
