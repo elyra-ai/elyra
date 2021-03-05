@@ -91,7 +91,11 @@ export class RequestErrors {
     return showDialog({
       title: 'Error retrieving metadata',
       body: <p>No {namespace} metadata has been configured.</p>,
-      buttons: [Dialog.okButton()]
+      buttons: [
+        namespace === 'runtimes'
+          ? Dialog.okButton({ label: `Open ${namespace}` })
+          : Dialog.okButton()
+      ]
     });
   }
 }

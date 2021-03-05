@@ -47,7 +47,9 @@ export class PipelineService {
   static async getRuntimes(showError = true): Promise<any> {
     return MetadataService.getMetadata('runtimes').then(runtimes => {
       if (showError && Object.keys(runtimes).length === 0) {
-        return RequestErrors.noMetadataError('runtimes');
+        return RequestErrors.noMetadataError('runtimes').then(result => {
+          return result.button.accept;
+        });
       }
 
       return runtimes;
