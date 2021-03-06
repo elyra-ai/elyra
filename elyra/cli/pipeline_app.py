@@ -67,7 +67,7 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config, work_dir):
     for pipeline in pipeline_definition["pipelines"]:
         for node in pipeline["nodes"]:
             if node["app_data"]["filename"]:
-                abs_path = os.path.join(os.getcwd(), pipeline_dir, node["app_data"]["filename"])
+                abs_path = os.path.join(pipeline_dir, node["app_data"]["filename"])
                 node["app_data"]["filename"] = abs_path
 
     # NOTE: The frontend just set the info for first pipeline, but shouldn't it
