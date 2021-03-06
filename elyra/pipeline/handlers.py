@@ -81,7 +81,12 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
     async def post(self, *args, **kwargs):
         self.log.debug("Pipeline SchedulerHandler now executing post request")
 
-        pipeline_definition = self.get_json_body()
+        try:
+            pipeline_definition = self.get_json_body()
+        except Exception as e:
+            self.log.error(f'Request body could not be parsed: {str(e)}')
+            raise RuntimeError(f'Request body could not be parsed: {str(e)}') from e
+
         self.log.debug("JSON payload: %s", pipeline_definition)
 
         pipeline = PipelineParser().parse(pipeline_definition)
