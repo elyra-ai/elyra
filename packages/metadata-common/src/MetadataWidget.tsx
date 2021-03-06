@@ -17,7 +17,7 @@
 import { IDictionary, MetadataService } from '@elyra/services';
 import {
   ExpandableComponent,
-  JpThemeProvider,
+  ThemeComponent,
   JSONComponent,
   RequestErrors,
   trashIcon
@@ -412,7 +412,7 @@ export class MetadataWidget extends ReactWidget {
 
   render(): React.ReactElement {
     return (
-      <JpThemeProvider themeManager={this.props.themeManager}>
+      <ThemeComponent themeManager={this.props.themeManager}>
         <div>
           <header className={METADATA_HEADER_CLASS}>
             <div style={{ display: 'flex' }}>
@@ -434,7 +434,7 @@ export class MetadataWidget extends ReactWidget {
             {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
           </UseSignal>
         </div>
-      </JpThemeProvider>
+      </ThemeComponent>
     );
   }
 }

@@ -17,7 +17,7 @@
 import { MetadataService, IDictionary } from '@elyra/services';
 import {
   DropDown,
-  JpThemeProvider,
+  ThemeComponent,
   RequestErrors,
   TextInput
 } from '@elyra/ui-components';
@@ -530,7 +530,7 @@ export class MetadataEditor extends ReactWidget {
     }
     const error = this.displayName === '' && this.invalidForm;
     return (
-      <JpThemeProvider themeManager={this.themeManager}>
+      <ThemeComponent themeManager={this.themeManager}>
         <div className={ELYRA_METADATA_EDITOR_CLASS}>
           <h3> {headerText} </h3>
           <InputLabel style={{ width: '100%', marginBottom: '10px' }}>
@@ -565,7 +565,7 @@ export class MetadataEditor extends ReactWidget {
             </Button>
           </div>
         </div>
-      </JpThemeProvider>
+      </ThemeComponent>
     );
   }
 }

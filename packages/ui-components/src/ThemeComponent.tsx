@@ -29,12 +29,13 @@ const isLightTheme = (themeManager: IThemeManager): boolean => {
   return themeManager?.theme ? themeManager.isLight(themeManager.theme) : true;
 };
 
-export const JpThemeProvider: React.FC<IProps> = ({
+export const ThemeComponent: React.FC<IProps> = ({
   themeManager,
   children
 }) => {
   const [isLight, setIsLight] = useState(isLightTheme(themeManager));
 
+  // useMemo caches the theme for each value of isLight
   const theme = useMemo(() => {
     return createMuiTheme({
       palette: {
