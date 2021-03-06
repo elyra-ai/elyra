@@ -57,6 +57,10 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config, work_dir):
     pipeline_dir = os.path.dirname(pipeline_abs_path)
     pipeline_name = os.path.splitext(os.path.basename(pipeline_abs_path))[0]
 
+    if not os.path.exists(pipeline_abs_path):
+        click.echo(f"Pipeline file not found: '{pipeline_abs_path}'\n")
+        raise click.Abort()
+
     with open(pipeline_abs_path) as f:
         pipeline_definition = json.load(f)
 
@@ -162,7 +166,7 @@ def submit(pipeline, server_url, runtime, runtime_config, work_dir):
 
         print_banner("Elyra pipeline execution complete")
 
-    except requests.exceptions.ConnectionError as rce:
+    except requests.exceptions.ConnectionError:
         click.echo(f'Error connecting to server: {server_api_url}')
         click.echo()
         raise click.Abort()
