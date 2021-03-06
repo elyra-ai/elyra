@@ -88,13 +88,8 @@
   margin-right: 70px;
 }
 
-.elyra-metadataEditor-dark.elyra-metadataEditor .MuiButtonBase-root {
-  color: #fff;
-  border-color: #fff;
-}
-
-.elyra-metadataEditor-dark.elyra-metadataEditor h4 {
-  color: #fff;
+.elyra-metadataEditor h4 {
+  color: var(--jp-ui-font-color1);
 }
 
 .elyra-form-DropDown-item {
@@ -152,9 +147,16 @@
 }
 
 .elyra-metadataEditor .MuiButtonBase-root {
-  border: 1px solid rgba(0, 0, 0, 0.23);
   padding: 5px 15px;
-  border-radius: 4px;
+}
+
+.elyra-metadataEditor-saveButton .MuiButtonBase-root {
+  border-color: var(--jp-border-color0);
+  color: var(--jp-ui-font-color1);
+}
+
+.elyra-metadataEditor-saveButton .MuiButton-outlinedPrimary:hover {
+  border-color: var(--jp-ui-font-color1);
 }
 
 .elyra-metadata-editor {
