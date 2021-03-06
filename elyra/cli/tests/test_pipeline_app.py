@@ -14,13 +14,14 @@
 # limitations under the License.
 #
 """Tests for elyra-pipeline application"""
-import os
+# import os
 from elyra.cli.pipeline_app import pipeline
 from click.testing import CliRunner
 
 
 SUB_COMMANDS = ['run', 'submit']
-PIPELINE_SOURCE = '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[],"schemas":[]}'
+# PIPELINE_SOURCE =
+# '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[],"schemas":[]}'
 
 
 def test_no_opts():
@@ -50,7 +51,7 @@ def test_subcommand_no_opts():
 def test_subcommand_with_invalid_pipeline():
     runner = CliRunner()
     for command in SUB_COMMANDS:
-        result = runner.invoke(pipeline, [command,'foo.pipeline'])
+        result = runner.invoke(pipeline, [command, 'foo.pipeline'])
         assert "Pipeline file not found:" in result.output
         assert "foo.pipeline" in result.output
         assert result.exit_code != 0
@@ -59,7 +60,7 @@ def test_subcommand_with_invalid_pipeline():
 def test_subcommand_with_unsuported_file_type():
     runner = CliRunner()
     for command in SUB_COMMANDS:
-        result = runner.invoke(pipeline, [command,'foo.ipynb'])
+        result = runner.invoke(pipeline, [command, 'foo.ipynb'])
         assert "Pipeline file should be a [.pipeline] file" in result.output
         assert result.exit_code != 0
 
