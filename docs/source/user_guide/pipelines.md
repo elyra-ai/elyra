@@ -96,13 +96,23 @@ elyra-pipeline run elyra-pipelines/demo-heterogeneous.pipeline \
       --work-dir ~/opensource/jupyter-notebooks/
 ```
 
-To submit a pipeline to be executed on the context of the JupyterLab server:
+To submit a pipeline to be executed on the context of the JupyterLab server running locally:
 
 ```bash
 elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
       --work-dir ~/opensource/jupyter-notebooks/ \
       --runtime kfp
       --runtime-config kfp-shared-tekton
+```
+
+To submit a pipeline to be executed on the context of a remote JupyterLab server:
+
+```bash
+elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
+      --work-dir ~/opensource/jupyter-notebooks/ \
+      --runtime kfp
+      --runtime-config kfp-shared-tekton
+      --server-url http://jupyter-server.ibm.com:8888/lab?token=<valid token>
 ```
 
 The `runtime` should be one of ['local', 'kfp', 'airflow'] and the `runtime-config`  should be a valid
