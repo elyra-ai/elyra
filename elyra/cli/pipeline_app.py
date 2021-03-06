@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 import asyncio
 import click
 import json
@@ -21,10 +22,25 @@ import requests
 
 from yaspin import yaspin
 from colorama import Fore, Style
+from urllib.parse import urlparse
 
 from elyra import __version__
 from elyra.pipeline import PipelineParser, PipelineProcessorManager
 from jupyter_server.serverapp import list_running_servers
+
+
+def _get_server_url(url=None):
+    server_url = url
+
+    if not server_url:
+        running_servers = list(list_running_servers())
+        if len(running_servers) == 0:
+            raise RuntimeError('Could not discover a running Jupyter Notebook server\n')
+
+        server_info = running_servers[0]
+        server_url = f'{server_info["url"]}?token={server_info["token"]}'
+
+    return server_url
 
 
 def _validate_pipeline_file(pipeline_file):
@@ -95,6 +111,10 @@ def pipeline():
 
 @click.command()
 @click.argument('pipeline')
+@click.option('--server-url',
+              required=False,
+              default=None,
+              help='Jupyter Notebook server url including access token')
 @click.option('--runtime',
               required=False,
               type=click.Choice(['local', 'kfp', 'airflow'], case_sensitive=False),
@@ -108,7 +128,7 @@ def pipeline():
               required=False,
               default=os.getcwd(),
               help='Base working directory for finding pipeline dependencies')
-def submit(pipeline, runtime, runtime_config, work_dir):
+def submit(pipeline, server_url, runtime, runtime_config, work_dir):
     """
     Submit a pipeline to be executed on the server
     """
@@ -123,30 +143,36 @@ def submit(pipeline, runtime, runtime_config, work_dir):
         _preprocess_pipeline(pipeline, runtime=runtime, runtime_config=runtime_config, work_dir=work_dir)
 
     try:
-        running_servers = list(list_running_servers())
-        if len(running_servers) == 0:
-            click.echo('Could not discover a running Jupyter Notebook server\n')
-            return
-
-        serverinfo = running_servers[0]
-        server_url = f'{serverinfo["url"]}?token={serverinfo["token"]}'
-        server_api_url = f'{serverinfo["url"]}elyra/pipeline/schedule'
+        server_url = _get_server_url(server_url)
+        if not server_url:
+            click.echo('Could not discover a running Jupyter Notebook server, please provide --server-url option')
+        server_url_parsed = urlparse(server_url)
+        server_api_url = f'{server_url_parsed.scheme}://{server_url_parsed.netloc}/elyra/pipeline/schedule'
 
         with requests.Session() as session:
             session.get(server_url)
             xsfr_header = {'X-XSRFToken': session.cookies.get('_xsrf')}
             with yaspin(text="Executing pipeline on the server..."):
-                session.post(url=server_api_url,
-                             data=json.dumps(pipeline_definition),
-                             headers=xsfr_header)
+                response = session.post(url=server_api_url,
+                                        data=json.dumps(pipeline_definition),
+                                        headers=xsfr_header)
+
+                if not response.ok:
+                    response.raise_for_status()
+
+        print_banner("Elyra pipeline execution complete")
+
+    except requests.exceptions.ConnectionError as rce:
+        click.echo(f'Error connecting to server: {server_api_url}')
+        click.echo()
+        raise click.Abort()
     except RuntimeError as re:
-        click.echo(f'Error parsing pipeline: \n {re} \n {re.__cause__}')
+        click.echo(f'Error submitting pipeline: \n {re} \n {re.__cause__}')
         click.echo(re)
         if re.__cause__:
             click.echo("  - {}".format(re.__cause__))
-        return
-
-    print_banner("Elyra pipeline execution complete")
+        click.echo()
+        raise click.Abort()
 
 
 @click.command()
