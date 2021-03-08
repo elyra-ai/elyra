@@ -30,6 +30,7 @@ This guide assumes a general working knowledge of and administration of a Kubern
 ## Prerequisites
   
 - A private repository on github.com or GitHub Enterprise that is used to store DAGs.
+- S3-based cloud object storage e.g. IBM Cloud Object Storage, Amazon S3, MinIO
 
 AND  
   
@@ -59,7 +60,7 @@ Take note of the following information:
  - Repository branch name (e.g. `main`)
  - Personal access token (e.g. `4d79206e616d6520697320426f6e642e204a616d657320426f6e64`)
 
-You need to provide this information when you [create a runtime configuration](../user_guide/runtime-conf) in Elyra for the Apache Airflow deployment.
+You need to provide this information in addition to your cloud object storage credentials when you [create a runtime configuration](../user_guide/runtime-conf) in Elyra for the Apache Airflow deployment.
 
 ![Example Apache Airflow runtime configuration](../images/airflow-runtime-config-sample.png)
 

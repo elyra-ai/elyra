@@ -80,7 +80,7 @@ class LocalPipelineProcessor(PipelineProcessor):
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
-        return PipelineProcessorResponse('', '', '')
+        return LocalPipelineProcessorResponse()
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')
@@ -114,6 +114,18 @@ class LocalPipelineProcessor(PipelineProcessor):
                                                                         ordered_operations,
                                                                         parent_operation)
             ordered_operations.append(operation)
+
+
+class LocalPipelineProcessorResponse(PipelineProcessorResponse):
+
+    _type = 'local'
+
+    def __init__(self):
+        super().__init__('', '', '')
+
+    @property
+    def type(self):
+        return self._type
 
 
 class OperationProcessor(ABC):

@@ -24,11 +24,8 @@ import * as React from 'react';
 
 import Utils from './utils';
 
-export const AIRFLOW_SCHEMA = 'airflow';
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_NAMESPACE = 'runtimes';
-export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
-export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
 
 export interface IRuntime {
   name: string;
@@ -175,6 +172,19 @@ export class PipelineService {
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
           <p>
+            {response['platform'] == 'airflow' ? (
+              <p>
+                Apache Airflow DAG has been pushed to the{' '}
+                <a
+                  href={response['git_url']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub Repository.
+                </a>
+                <br />
+              </p>
+            ) : null}
             Check the status of your job at{' '}
             <a
               href={response['run_url']}
