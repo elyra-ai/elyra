@@ -16,7 +16,7 @@
 
 import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
-import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
+import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
@@ -39,6 +39,17 @@ export class SubmitNotebookButtonExtension
   private panel: NotebookPanel;
 
   showWidget = async (): Promise<void> => {
+    if (this.panel.model.dirty) {
+      await showDialog({
+        title: 'This notebook has unsaved changes. Save before submitting?',
+        buttons: [Dialog.okButton(), Dialog.cancelButton()]
+      }).then(async (dialogResult: any) => {
+        if (dialogResult.button && dialogResult.button.accept === true) {
+          await this.panel.context.save();
+        } // Don't do anything if cancel button is pressed
+      });
+    }
+
     const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
