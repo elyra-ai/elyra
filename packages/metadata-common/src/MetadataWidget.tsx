@@ -29,18 +29,19 @@ import {
   showDialog,
   UseSignal
 } from '@jupyterlab/apputils';
-import { addIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
+import { editIcon, LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
+
 import React from 'react';
 
+import { AddMetadataButton } from './AddMetadataButton';
 import { FilterTools } from './FilterTools';
 
 /**
  * The CSS class added to metadata widgets.
  */
 export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
-export const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
 export const METADATA_ITEM = 'elyra-metadata-item';
 const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
 
@@ -70,7 +71,6 @@ export interface IMetadataDisplayProps {
   openMetadataEditor: (args: any) => void;
   updateMetadata: () => void;
   namespace: string;
-  schema: string;
   sortMetadata: boolean;
 }
 
@@ -299,7 +299,7 @@ export class MetadataDisplay<
           <FilterTools
             onFilter={this.filteredMetadata}
             tags={this.getActiveTags()}
-            schemaId={`${this.props.namespace}${this.props.schema}`}
+            namespaceId={`${this.props.namespace}`}
           />
           <div>{this.props.metadata.map(this.renderMetadata)}</div>
         </div>
@@ -315,7 +315,6 @@ export interface IMetadataWidgetProps {
   app: JupyterFrontEnd;
   display_name: string;
   namespace: string;
-  schema: string;
   icon: LabIcon;
 }
 
@@ -325,7 +324,7 @@ export interface IMetadataWidgetProps {
 export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
-  schemaDisplayName: string;
+  schemas: IDictionary<any>[];
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -334,36 +333,29 @@ export class MetadataWidget extends ReactWidget {
     this.props = props;
     this.renderSignal = new Signal<this, any>(this);
 
-    this.schemaDisplayName = props.schema;
-
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
     this.renderDisplay = this.renderDisplay.bind(this);
+    this.addMetadata = this.addMetadata.bind(this);
 
-    this.getSchema();
+    this.getSchemas();
   }
 
-  async getSchema(): Promise<void> {
+  async getSchemas(): Promise<void> {
     try {
-      const schemas = await MetadataService.getSchema(this.props.namespace);
-      for (const schema of schemas) {
-        if (this.props.schema === schema.name) {
-          this.schemaDisplayName = schema.title;
-          this.update();
-          break;
-        }
-      }
+      this.schemas = await MetadataService.getSchema(this.props.namespace);
+      this.update();
     } catch (error) {
       RequestErrors.serverError(error);
     }
   }
 
-  addMetadata(): void {
+  addMetadata(schema: string): void {
     this.openMetadataEditor({
       onSave: this.updateMetadata,
       namespace: this.props.namespace,
-      schema: this.props.schema
+      schema: schema
     });
   }
 
@@ -410,7 +402,6 @@ export class MetadataWidget extends ReactWidget {
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
         namespace={this.props.namespace}
-        schema={this.props.schema}
         sortMetadata={true}
       />
     );
@@ -430,13 +421,10 @@ export class MetadataWidget extends ReactWidget {
             />
             <p> {this.props.display_name} </p>
           </div>
-          <button
-            className={METADATA_HEADER_BUTTON_CLASS}
-            onClick={this.addMetadata.bind(this)}
-            title={`Create new ${this.schemaDisplayName}`}
-          >
-            <addIcon.react tag="span" elementPosition="center" width="16px" />
-          </button>
+          <AddMetadataButton
+            schemas={this.schemas}
+            addMetadata={this.addMetadata}
+          />
         </header>
         <UseSignal signal={this.renderSignal} initialArgs={[]}>
           {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}

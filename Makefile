@@ -94,6 +94,7 @@ build-server: lint-server ## Build backend
 build: build-server build-ui
 
 install-server: build-server ## Install backend
+	pip install --upgrade pip
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
 
 install-ui: build-ui

@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-import { FormGroup, MenuItem, Intent } from '@blueprintjs/core';
-import { ItemPredicate } from '@blueprintjs/select';
-import { Select, Button } from '@jupyterlab/ui-components';
+import {
+  TextField,
+  FormHelperText,
+  Tooltip,
+  withStyles
+} from '@material-ui/core';
+import { Autocomplete } from '@material-ui/lab';
+
 import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
@@ -26,93 +31,67 @@ export interface IDropDownProps {
   schemaField: string;
   description?: string;
   choice?: string;
-  required?: string;
+  required?: boolean;
   defaultChoices?: string[];
   handleDropdownChange: any;
-  intent: Intent;
+  error: boolean;
   allowCreate: boolean;
 }
 
-export class DropDown extends React.Component<IDropDownProps> {
-  itemRenderer(value: string, options: any): React.ReactElement {
-    return (
-      <Button
-        className={DROPDOWN_ITEM_CLASS}
-        onClick={options.handleClick}
-        key={value}
-        text={value}
-      ></Button>
+const CustomTooltip = withStyles((theme: any): any => ({
+  tooltip: {
+    fontSize: 13
+  }
+}))(Tooltip);
+
+// eslint-disable-next-line func-style
+export const DropDown = (props: IDropDownProps): any => {
+  let errorText = null;
+  if (props.error) {
+    errorText = (
+      <FormHelperText error> This field is required. </FormHelperText>
     );
   }
 
-  renderCreateOption = (
-    query: string,
-    active: boolean,
-    handleClick: React.MouseEventHandler<HTMLElement>
-  ): React.ReactElement => (
-    <MenuItem
-      icon="add"
-      key="createOption"
-      text={`Create "${query}"`}
-      active={active}
-      onClick={handleClick}
-      shouldDismissPopover={false}
-    />
-  );
+  const [choice, setChoice] = React.useState(props.choice);
 
-  filterDropdown: ItemPredicate<string> = (
-    query,
-    value,
-    _index,
-    exactMatch
-  ) => {
-    const normalizedTitle = value.toLowerCase();
-    const normalizedQuery = query.toLowerCase();
+  React.useEffect(() => {
+    setChoice(props.choice);
+  }, [props.choice]);
 
-    if (normalizedQuery === normalizedTitle) {
-      return normalizedTitle === normalizedQuery;
-    } else {
-      return `${normalizedTitle}`.indexOf(normalizedQuery) >= 0;
-    }
-  };
-
-  render(): React.ReactElement {
-    let helperText = this.props.description ? this.props.description : '';
-    if (this.props.intent == Intent.DANGER) {
-      helperText += '\nThis field is required.';
-    }
-    return (
-      <FormGroup
-        key={this.props.label}
-        label={this.props.label}
-        labelInfo={this.props.required}
-        helperText={helperText}
-        intent={this.props.intent}
-      >
-        <Select
-          items={this.props.defaultChoices}
-          itemPredicate={this.filterDropdown}
-          createNewItemFromQuery={
-            this.props.allowCreate
-              ? (newValue: any): void => {
-                  return newValue;
-                }
-              : undefined
-          }
-          createNewItemRenderer={
-            this.props.allowCreate ? this.renderCreateOption : undefined
-          }
-          onItemSelect={(value: string): void => {
-            this.props.handleDropdownChange(this.props.schemaField, value);
+  return (
+    <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
+      <CustomTooltip title={props.description || ''} placement="top">
+        <Autocomplete
+          id="combo-box-demo"
+          freeSolo
+          key="elyra-DropDown"
+          options={props.defaultChoices}
+          style={{ width: 300 }}
+          value={choice ?? ''}
+          onChange={(event: any, newValue: any): void => {
+            props.handleDropdownChange(props.schemaField, newValue);
+            setChoice(newValue);
           }}
-          itemRenderer={this.itemRenderer}
-        >
-          <Button
-            rightIcon="caret-down"
-            text={this.props.choice ? this.props.choice : '(No selection)'}
-          />
-        </Select>
-      </FormGroup>
-    );
-  }
-}
+          renderInput={(params): any => (
+            <TextField
+              {...params}
+              label={props.label}
+              required={props.required}
+              error={props.error}
+              onChange={(event: any): void => {
+                props.handleDropdownChange(
+                  props.schemaField,
+                  event.target.value
+                );
+              }}
+              placeholder={`Create or select ${props.label.toLocaleLowerCase()}`}
+              variant="outlined"
+            />
+          )}
+        />
+      </CustomTooltip>
+      {errorText}
+    </div>
+  );
+};

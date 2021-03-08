@@ -24,7 +24,7 @@ limitations under the License.
 - Update the [changelog.md](../getting_started/changelog.md)
 - Run the release script
 ```bash
-create-release.py prepare --version 2.0.0 --dev-version 2.1.0
+create-release.py prepare --version 2.0.0 --dev-version 2.1.0 [--rc 0]
 ```
 - The artifacts for the new release will then be available at `./build/release/`
   - The Elyra folder is the main release
@@ -41,7 +41,7 @@ elyra-python-editor-extension
   - Run the NOAA sample
 - Publish the release
 ```bash
-create-release.py publish --version 2.0.0
+create-release.py publish --version 2.0.0 [--rc 0]
 ```
 - Build and publish docker images based on release tag
 ```bash

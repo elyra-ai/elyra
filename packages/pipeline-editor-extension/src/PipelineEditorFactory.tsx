@@ -55,7 +55,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { formDialogWidget } from './formDialogWidget';
 import nodes from './nodes';
 import { PipelineExportDialog } from './PipelineExportDialog';
-import { PipelineService } from './PipelineService';
+import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -65,6 +65,7 @@ export const commandIDs = {
   openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
+  submitScript: 'python-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
 };
@@ -335,6 +336,9 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
           break;
         case 'toggleOpenPanel':
           setPanelOpen(!panelOpen);
+          break;
+        case 'openRuntimes':
+          shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
           break;
         default:
           context;

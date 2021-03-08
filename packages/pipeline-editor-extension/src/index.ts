@@ -29,9 +29,10 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorFactory';
-import { AIRFLOW_SCHEMA, RUNTIMES_NAMESPACE } from './PipelineService';
+import { RUNTIMES_NAMESPACE } from './PipelineService';
 import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
+import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
 
 import '../style/index.css';
 
@@ -166,11 +167,20 @@ const extension: JupyterFrontEndPlugin<void> = {
     );
 
     // SubmitNotebookButtonExtension initialization code
-    const buttonExtension = new SubmitNotebookButtonExtension();
-    app.docRegistry.addWidgetExtension('Notebook', buttonExtension);
+    const notebookButtonExtension = new SubmitNotebookButtonExtension();
+    app.docRegistry.addWidgetExtension('Notebook', notebookButtonExtension);
     app.contextMenu.addItem({
       selector: '.jp-Notebook',
       command: commandIDs.submitNotebook,
+      rank: -0.5
+    });
+
+    // SubmitScriptButtonExtension initialization code
+    const scriptButtonExtension = new SubmitScriptButtonExtension();
+    app.docRegistry.addWidgetExtension('Python Editor', scriptButtonExtension);
+    app.contextMenu.addItem({
+      selector: '.elyra-PythonEditor',
+      command: commandIDs.submitScript,
       rank: -0.5
     });
 
@@ -178,10 +188,9 @@ const extension: JupyterFrontEndPlugin<void> = {
       app,
       display_name: 'Runtimes',
       namespace: RUNTIMES_NAMESPACE,
-      schema: AIRFLOW_SCHEMA,
       icon: runtimesIcon
     });
-    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}:${AIRFLOW_SCHEMA}`;
+    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}`;
     runtimesWidget.id = runtimesWidgetID;
     runtimesWidget.title.icon = runtimesIcon;
     runtimesWidget.title.caption = 'Runtimes';

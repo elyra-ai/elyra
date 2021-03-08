@@ -35,13 +35,13 @@ import { JSONObject } from '@lumino/coreutils';
 
 import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
 
-const PYTHON_FACTORY = 'PyEditor';
+const PYTHON_FACTORY = 'Python Editor';
 const PYTHON = 'python';
 const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
 
 const commandIDs = {
-  createNewPython: 'pyeditor:create-new-python-file',
-  openPyEditor: 'pyeditor:open',
+  createNewFile: 'python-editor:create-new-file',
+  openPythonFile: 'python-editor:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
@@ -186,7 +186,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Add a python launcher
     if (launcher) {
       launcher.add({
-        command: commandIDs.createNewPython,
+        command: commandIDs.createNewFile,
         category: 'Elyra',
         rank: 2
       });
@@ -195,7 +195,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (menu) {
       // Add new python file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
-        [{ command: commandIDs.createNewPython }],
+        [{ command: commandIDs.createNewFile }],
         30
       );
     }
@@ -217,7 +217,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     };
 
     // Add a command to create new Python file
-    app.commands.addCommand(commandIDs.createNewPython, {
+    app.commands.addCommand(commandIDs.createNewFile, {
       label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
       caption: 'Create a new python file',
       icon: args => (args['isPalette'] ? undefined : pythonIcon),
@@ -228,7 +228,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     palette.addItem({
-      command: commandIDs.createNewPython,
+      command: commandIDs.createNewFile,
       args: { isPalette: true },
       category: 'Elyra'
     });

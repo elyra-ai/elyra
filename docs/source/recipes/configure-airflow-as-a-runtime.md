@@ -17,112 +17,127 @@ limitations under the License.
 -->
 
 
-# Configuring Airflow on Kubernetes for use with Elyra (Experimental)
+# Configuring Apache Airflow on Kubernetes for use with Elyra 
 
-Using Apache Airflow with Elyra requires configuring two parts,
-the Airflow Deployment on Kubernetes and Elyra's runtime configuration.
+Pipelines in Elyra can be run locally in JupyterLab, or remotely on Kubeflow Pipelines or Apache Airflow to take advantage of shared resources that speed up processing of compute intensive tasks.
 
-This guide assumes a general working knowledge of kubernetes and administration of a cluster
+**Note: Support for Apache Airflow is experimental.**
 
-## Requirements
+This document outlines how to set up a new Elyra-enabled Apache Airflow environment or add Elyra support to an existing deployment.
+  
+This guide assumes a general working knowledge of and administration of a Kubernetes cluster.
 
-- A Private Github Repository
-    
+## Prerequisites
+  
+- A private repository on github.com or GitHub Enterprise that is used to store DAGs.
+
 AND  
-
-- A Kubernetes Cluster 
-    - Ensure Kubernetes is at least v1.18+, earlier versions may work (not tested)
-    - Helm v3.0  
-    - Great guide on how to deploy an Airflow cluster:
-    [Apache Airflow with Kubernetes Executor and Minikube](https://marclamberti.com/blog/airflow-kubernetes-executor/)
-      OR
-    - Use the [Helm chart](https://github.com/airflow-helm/charts/tree/main/charts/airflow) available in the Airflow source distribution with our [sample configuration](../../../etc/kubernetes/airflow/helm/values.yaml)  
+  
+- A Kubernetes Cluster without Apache Airflow installed
+    - Ensure Kubernetes is at least v1.18. Earlier versions might work  but have not been tested.
+    - Helm v3.0 or later
+    - Use the [Helm chart](https://github.com/airflow-helm/charts/tree/main/charts/airflow) available in the Airflow source distribution with the [Elyra sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml).
     
 OR  
   
-- An Existing Apache Airflow Cluster 
-    - Ensure Apache Airflow is at least v1.10.8+, earlier versions may work (not tested)
-    - The [airflow-notebook](https://pypi.org/project/airflow-notebook/) python package installed on all schedulers/workers  
-    - Using the Kubernetes Executor  
+- An existing Apache Airflow cluster 
+    - Ensure Apache Airflow is at least v1.10.8 and below v2.0.0. Other versions might work but have not been tested.
+    - Apache Airflow is configured to use the Kubernetes Executor.
+    - The [`airflow-notebook`](https://pypi.org/project/airflow-notebook/) operator package is installed on the webserver, scheduler, and workers.  
     
-## Setting up a Github Repository
-A Github repository is needed to host your DAGs(pipelines). 
+## Setting up a DAG repository on GitHub
 
-- You will need to setup two things:
-    - [Generate an SSH key to be used as a secret for Airflow](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
-    - [A Github Access Token with write access to the repo](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
-    
-## Deploying Airflow on a new Kubernetes Cluster
+In order to use Apache Airflow with Elyra, it must be configured to use a GitHub repository to store DAGs.
 
-### SSH key requirements (Airflow Git-Sync)
-Apache Airflow uses a git-sync container to sync its collection of DAGs (pipelines) from a Github Repository. In order do so, 
-it requires an SSH key with read permissions to the repository added to the cluster as a kubernetes secret and provided during deployment.
-Please note that existing deployments may already have this step or equivalent already configured. 
+- Create a private repository on github.com or GitHub Enterprise. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.)
+- [Generate a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with push access to the repository. This token is used by Elyra to upload DAGs.
+- [Generate an SSH key](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account) with read access for the repository. Apache Airflow uses a git-sync container to keep its collection of DAGs in synch with the content of the GitHub Repository and the SSH key is used to authenticate.
 
-1. Create a Kubernetes secret with the SSH key created [earlier](#setting-up-a-github-repository). Please note filenames and locations may be different on your system. 
-Ensure that you update the sample configuration with your correct filenames and paths prior to deploying.
-```bash
-kubectl create secret generic airflow-secret --from-file=id_rsa=.ssh/id_rsa --from-file=known_hosts=.ssh/known_hosts --from-file=id_rsa.pub=.ssh/id_rsa.pub -n airflow
-```
+Take note of the following information:
+ - GitHub API endpoint (e.g. `https://api.github.com` if the repository is hosted on github.com)
+ - Repository name (e.g. `your-git-org/your-dag-repo`)
+ - Repository branch name (e.g. `main`)
+ - Personal access token (e.g. `4d79206e616d6520697320426f6e642e204a616d657320426f6e64`)
 
-2. After creating your secret, enter the name of the kubernetes secret in the sample configuration for `helm` or in your own custom configuration.
-Also, update the `git url` section to the private github repository created [earlier](#setting-up-a-github-repository)  
-For example, if you named your secret `airflow-secret` and github repository was under the `elyra` organization and named `examples` under the 
-`airflow` branch, your sample configuration would look something like this:
-```bash
-  ## configs for the DAG git repository & sync container
-  ##
-  git:
-    ## url of the git repository
-    ##
-    ## EXAMPLE: (HTTP)
-    ##   url: "https://github.com/torvalds/linux.git"
-    ##
-    ## EXAMPLE: (SSH)
-    ##   url: "ssh://git@github.com:torvalds/linux.git"
-    ##
-    url: "ssh://git@github.com/elyra-ai/examples"
+You need to provide this information when you [create a runtime configuration](../user_guide/runtime-conf) in Elyra for the Apache Airflow deployment.
 
-    ## the branch/tag/sha1 which we clone
-    ##
-    ref: "airflow"
+![Example Apache Airflow runtime configuration](../images/airflow-runtime-config-sample.png)
 
-    ## the name of a pre-created secret containing files for ~/.ssh/
-    ##
-    ## NOTE:
-    ## - this is ONLY RELEVANT for SSH git repos
-    ## - the secret commonly includes files: id_rsa, id_rsa.pub, known_hosts
-    ## - known_hosts is NOT NEEDED if `git.sshKeyscan` is true
-    ##
-    secret: "airflow-secret"
-
-    ## if we should implicitly trust [git.repoHost]:git.repoPort, by auto creating a ~/.ssh/known_hosts
-    ##
-```
-
-4. Install Airflow with the [sample configuration](../../../etc/kubernetes/airflow/helm/values.yaml) or your own custom configuration 
-after making any other changes you might need to the configuration.
-
-- The sample configuration is set to sync Airflow with the Github repository every 10 seconds. You can update this
-as needed. It also uses a custom container image with the `airflow-notebook` package requirement pre-installed.
+## Deploying Airflow on a new Kubernetes cluster
   
+To deploy Apache Airflow on a new Kubernetes cluster:
 
+1. Create a Kubernetes secret containing the SSH key that you [created earlier](#setting-up-a-dag-repository-on-github).
+ The example below creates a secret named `airflow-secret` from three files. Replace the secret name, file names and locations as appropriate for your environment. 
+     
+   ```bash
+   kubectl create secret generic airflow-secret --from-file=id_rsa=.ssh/id_rsa --from-file=known_hosts=.ssh/known_hosts --from-file=id_rsa.pub=.ssh/id_rsa.pub -n airflow
+   ```
+  
+2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration):
+   - Set `git.url` to the URL of the private repository you created earlier, e.g. `ssh://git@github.com/your-git-org/your-dag-repo`
+   - Set `git.ref` to the DAG branch, e.g. `main`.
+   - Set `git.secret` to the name of the secret you created, e.g. `airflow-secret`.
+   - Adjust the `git.gitSync.refreshTime` as desired.
 
-```bash
-helm install "airflow" stable/airflow --values https://raw.github.com/elyra-ai/elyra/etc/kubernetes/helm/airflow/values.yaml
-```
+   Example excerpt from a customized configuration:
 
-## Setting up Elyra on existing Airflow Deployments
+   ```bash
+   ## configs for the DAG git repository & sync container
+   ##
+   git:
+     ## url of the git repository
+     ##
+     ## EXAMPLE: (HTTP)
+     ##   url: "https://github.com/torvalds/linux.git"
+     ##
+     ## EXAMPLE: (SSH)
+     ##   url: "ssh://git@github.com:torvalds/linux.git"
+     ##
+     url: "ssh://git@github.com/your-git-org/your-dag-repo"
 
-Getting Airflow to work with Elyra on existing deployments requires two things:
+     ## the branch/tag/sha1 which we clone
+     ##
+     ref: "main"
 
-- The deployment is synced to a Github Repository
-- The `airflow-notebook` python package is installed on the required Airflow pods (web-server, scheduler, workers)
+     ## the name of a pre-created secret containing files for ~/.ssh/
+     ##
+     ## NOTE:
+     ## - this is ONLY RELEVANT for SSH git repos
+     ## - the secret commonly includes files: id_rsa, id_rsa.pub, known_hosts
+     ## - known_hosts is NOT NEEDED if `git.sshKeyscan` is true
+     ##
+     secret: "airflow-secret"
+     ...
+     gitSync:
+       ...
+       refreshTime: 10
+   ```
 
-## Elyra Runtime Configuration Requirements
+   Note: The example configuration references the pre-built `elyra/airflow` container image, which has the [`airflow-notebook` package](https://pypi.org/project/airflow-notebook/) pre-installed. This package contains the [operator](https://github.com/elyra-ai/airflow-notebook) that supports running of Jupyter notebooks or Python scripts as tasks.
 
-1. A Github Personal Access Token under the user/organization where the DAG repository is located. This step was done [earlier](#setting-up-a-github-repository).
+   ```bash
+   airflow:
+   ## configs for the docker image of the web/scheduler/worker
+   ##
+   image:
+     repository: elyra/airflow
+   ```    
+  
+   The container image is created using [this `Dockerfile`](https://github.com/elyra-ai/elyra/tree/master/etc/docker/airflow) and published on [Docker Hub](https://hub.docker.com/r/elyra/airflow) and [quay.io](https://quay.io/repository/elyra/airflow).
 
-2. Add the token to your Airflow metadata runtime configuration 
+3. Install Apache Airflow using the customized configuration.
+  
+   ```bash
+   helm install "airflow" stable/airflow --values path/to/your_customized_helm_values.yaml
+   ```
 
+Once Apache Airflow is deployed you are ready to create and run pipelines, as described in the [tutorial](../getting_started/tutorials).
 
+## Enabling Elyra pipelines in an existing Apache Airflow deployment
+
+To enable running of notebook pipelines on an existing Apache Airflow deployment  
+- Enable Git as DAG storage by customizing the [Git settings in `airflow.cfg`](https://github.com/apache/airflow/blob/6416d898060706787861ff8ecbc4363152a35f45/airflow/config_templates/default_airflow.cfg#L913).
+- Install the [`airflow-notebook` Python package](https://github.com/elyra-ai/airflow-notebook) in the web-server, scheduler, and worker pods.
+
+Once Apache Airflow is deployed you are ready to create and run pipelines, as described in the [tutorial](../getting_started/tutorials).
