@@ -77,6 +77,7 @@ setup_args = dict(
         'nbformat>=5.1.2',
         'papermill>=2.1.3',
         'python-language-server[all]>=0.36.2',
+        'pyyaml>=5.3.1,<6.0',
         'requests>=2.9.1,<3.0',
         'rfc3986-validator>=0.1.1',
         'tornado >=6.1.0',
