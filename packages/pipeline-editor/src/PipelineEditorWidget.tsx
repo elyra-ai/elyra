@@ -888,6 +888,23 @@ export class PipelineEditor extends React.Component<
       });
       return;
     }
+
+    if (this.widgetContext.model.dirty) {
+      const dialogResult = await showDialog({
+        title: 'This notebook has unsaved changes. Save before submitting?',
+        buttons: [
+          Dialog.cancelButton({ label: "Don't submit" }),
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
+      });
+      if (dialogResult.button && dialogResult.button.accept === true) {
+        await this.widgetContext.save();
+      } else {
+        // Don't proceed if cancel button pressed
+        return;
+      }
+    }
+
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -1277,6 +1294,22 @@ export class PipelineEditor extends React.Component<
         }
       });
       return;
+    }
+
+    if (this.widgetContext.model.dirty) {
+      const dialogResult = await showDialog({
+        title: 'This notebook has unsaved changes. Save before submitting?',
+        buttons: [
+          Dialog.cancelButton({ label: "Don't submit" }),
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
+      });
+      if (dialogResult.button && dialogResult.button.accept === true) {
+        await this.widgetContext.save();
+      } else {
+        // Don't proceed if cancel button pressed
+        return;
+      }
     }
 
     const pipelineName = PathExt.basename(
