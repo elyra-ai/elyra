@@ -891,7 +891,7 @@ export class PipelineEditor extends React.Component<
 
     if (this.widgetContext.model.dirty) {
       const dialogResult = await showDialog({
-        title: 'This notebook has unsaved changes. Save before submitting?',
+        title: 'This pipeline has unsaved changes. Save before submitting?',
         buttons: [
           Dialog.cancelButton({ label: "Don't submit" }),
           Dialog.okButton({ label: 'Save and Submit' })
@@ -1298,7 +1298,7 @@ export class PipelineEditor extends React.Component<
 
     if (this.widgetContext.model.dirty) {
       const dialogResult = await showDialog({
-        title: 'This notebook has unsaved changes. Save before submitting?',
+        title: 'This pipeline has unsaved changes. Save before submitting?',
         buttons: [
           Dialog.cancelButton({ label: "Don't submit" }),
           Dialog.okButton({ label: 'Save and Submit' })
