@@ -70,9 +70,9 @@ class Operation(object):
         self._inputs = inputs or []
         self._outputs = outputs or []
         self._parent_operations = parent_operations or []
-        self._cpu = cpu
-        self._gpu = gpu
-        self._memory = memory
+        self._cpu = self.validate_resource_value("CPU", cpu)
+        self._gpu = self.validate_resource_value("GPU", gpu)
+        self._memory = self.validate_resource_value("MEMORY", memory)
 
     @property
     def id(self):
@@ -141,6 +141,13 @@ class Operation(object):
                     else:
                         print(f"Could not process environment variable entry `{nv}`, skipping...")
         return envs
+
+    def validate_resource_value(self, name: str, value):
+        if value is None or int(value) > 0:
+            return value
+        else:
+            raise ValueError(f"Zero or negative values are not permitted for {name} "
+                             f"for operation with {os.path.basename(self.filename)}")
 
     @property
     def inputs(self):
