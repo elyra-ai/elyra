@@ -101,7 +101,7 @@ To submit a pipeline to be executed on the context of the JupyterLab server runn
 ```bash
 elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
       --work-dir ~/opensource/jupyter-notebooks/ \
-      --runtime kfp
+      --runtime kfp \
       --runtime-config kfp-shared-tekton
 ```
 
@@ -110,8 +110,8 @@ To submit a pipeline to be executed on the context of a remote JupyterLab server
 ```bash
 elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
       --work-dir ~/opensource/jupyter-notebooks/ \
-      --runtime kfp
-      --runtime-config kfp-shared-tekton
+      --runtime kfp \
+      --runtime-config kfp-shared-tekton \
       --server-url http://jupyter-server.ibm.com:8888/lab?token=<valid token>
 ```
 
