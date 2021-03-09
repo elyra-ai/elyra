@@ -48,8 +48,8 @@ export const TextInput = (props: ITextFieldProps): any => {
   const [error, setError] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
   React.useEffect(() => {
+    setError(props.error);
     if (props.error) {
-      setError(props.error);
       setErrorText(
         <FormHelperText key={`${props.fieldName}Error`} error>
           This field is required.

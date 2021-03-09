@@ -59,14 +59,25 @@ interface ICodeBlockProps {
   initialValue: string;
   language: string;
   onChange?: (value: string) => any;
+  error: boolean;
 }
 
 const CodeBlock: React.FC<ICodeBlockProps> = ({
   editorServices,
   initialValue,
   language,
-  onChange
+  onChange,
+  error
 }) => {
+  const [errorText, setErrorText] = React.useState(null);
+  React.useEffect(() => {
+    if (error) {
+      setErrorText(
+        <FormHelperText error>This field is required.</FormHelperText>
+      );
+    }
+  }, [error]);
+
   const codeBlockRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<CodeEditor.IEditor>(null);
 
@@ -75,6 +86,9 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
 
   useEffect(() => {
     const handleChange = (args: any): void => {
+      if (args.text !== '') {
+        setErrorText(null);
+      }
       onChange?.(args.text.split('\n'));
     };
 
@@ -110,7 +124,12 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
     }
   }, [language]);
 
-  return <div ref={codeBlockRef} className="elyra-form-code" />;
+  return (
+    <div>
+      <div ref={codeBlockRef} className="elyra-form-code" />
+      {errorText}
+    </div>
+  );
 };
 
 /**
@@ -352,7 +371,6 @@ export class MetadataEditor extends ReactWidget {
     if (schemaField === 'language') {
       this.language = value;
     }
-    this.update();
   };
 
   handleDirtyState(dirty: boolean): void {
@@ -431,6 +449,7 @@ export class MetadataEditor extends ReactWidget {
         <TextInput
           label={this.schema[fieldName].title}
           description={this.schema[fieldName].description}
+          key={`${fieldName}TextInput`}
           fieldName={fieldName}
           defaultValue={this.metadata[fieldName] || defaultValue}
           required={required}
@@ -444,6 +463,7 @@ export class MetadataEditor extends ReactWidget {
       return (
         <DropDown
           label={this.schema[fieldName].title}
+          key={`${fieldName}DropDown`}
           schemaField={fieldName}
           description={this.schema[fieldName].description}
           required={required}
@@ -455,13 +475,6 @@ export class MetadataEditor extends ReactWidget {
         ></DropDown>
       );
     } else if (uihints.field_type === 'code') {
-      let helperText = null;
-      if (uihints.error) {
-        helperText = (
-          <FormHelperText error> This field is required. </FormHelperText>
-        );
-      }
-
       let initialCodeValue = '';
       if (this.name) {
         initialCodeValue = this.metadata.code.join('\n');
@@ -473,6 +486,7 @@ export class MetadataEditor extends ReactWidget {
       return (
         <div
           className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
+          key={`${fieldName}CodeEditor`}
         >
           <InputLabel required={required}>
             {this.schema[fieldName].title}
@@ -486,13 +500,16 @@ export class MetadataEditor extends ReactWidget {
               this.handleDirtyState(true);
               return;
             }}
+            error={uihints.error}
           />
-          {helperText}
         </div>
       );
     } else if (uihints.field_type === 'tags') {
       return (
-        <div className="elyra-metadataEditor-formInput">
+        <div
+          className="elyra-metadataEditor-formInput"
+          key={`${fieldName}TagList`}
+        >
           <InputLabel> Tags </InputLabel>
           <MetadataEditorTags
             selectedTags={this.metadata.tags}
@@ -517,7 +534,12 @@ export class MetadataEditor extends ReactWidget {
     for (const category in this.schemaPropertiesByCategory) {
       if (category !== '_noCategory') {
         inputElements.push(
-          <h4 style={{ flexBasis: '100%', padding: '10px' }}>{category}</h4>
+          <h4
+            style={{ flexBasis: '100%', padding: '10px' }}
+            key={`${category}Category`}
+          >
+            {category}
+          </h4>
         );
       }
       for (const schemaProperty of this.schemaPropertiesByCategory[category]) {
@@ -532,14 +554,18 @@ export class MetadataEditor extends ReactWidget {
     return (
       <ThemeComponent themeManager={this.themeManager}>
         <div className={ELYRA_METADATA_EDITOR_CLASS}>
-          <h3> {headerText} </h3>
-          <InputLabel style={{ width: '100%', marginBottom: '10px' }}>
+          <h3 key={`${this.displayName}Header`}>{headerText}</h3>
+          <InputLabel
+            style={{ width: '100%', marginBottom: '10px' }}
+            key={`${this.displayName}AsteriskInfo`}
+          >
             All fields marked with an asterisk are required
           </InputLabel>
           {this.displayName !== undefined ? (
             <TextInput
               label={'Name'}
               description={''}
+              key={'displayNameTextInput'}
               fieldName={'display_name'}
               defaultValue={this.displayName}
               required={true}
@@ -553,6 +579,7 @@ export class MetadataEditor extends ReactWidget {
             className={
               'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
             }
+            key={'SaveButton'}
           >
             <Button
               variant="outlined"

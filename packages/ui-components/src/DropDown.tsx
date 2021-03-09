@@ -46,12 +46,16 @@ const CustomTooltip = withStyles((theme: any): any => ({
 
 // eslint-disable-next-line func-style
 export const DropDown = (props: IDropDownProps): any => {
-  let errorText = null;
-  if (props.error) {
-    errorText = (
-      <FormHelperText error> This field is required. </FormHelperText>
-    );
-  }
+  const [error, setError] = React.useState(false);
+  const [errorText, setErrorText] = React.useState(null);
+  React.useEffect(() => {
+    setError(props.error);
+    if (props.error) {
+      setErrorText(
+        <FormHelperText error>This field is required.</FormHelperText>
+      );
+    }
+  }, [props.error]);
 
   const [choice, setChoice] = React.useState(props.choice);
 
@@ -78,8 +82,12 @@ export const DropDown = (props: IDropDownProps): any => {
               {...params}
               label={props.label}
               required={props.required}
-              error={props.error}
+              error={error}
               onChange={(event: any): void => {
+                if (error && event.nativeEvent.target.value !== '') {
+                  setErrorText(null);
+                  setError(false);
+                }
                 props.handleDropdownChange(
                   props.schemaField,
                   event.target.value
