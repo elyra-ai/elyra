@@ -178,12 +178,15 @@ def pipeline():
               help='Runtime config where the pipeline should be processed')
 @click.option('--work-dir',
               required=False,
-              default=os.getcwd(),
+              default=None,
               help='Base working directory for finding pipeline dependencies')
 def submit(pipeline, server_url, runtime, runtime_config, work_dir):
     """
     Submit a pipeline to be executed on the server
     """
+
+    if work_dir is None:
+        work_dir = os.getcwd()
 
     click.echo()
 
@@ -229,12 +232,16 @@ def submit(pipeline, server_url, runtime, runtime_config, work_dir):
 @click.argument('pipeline')
 @click.option('--work-dir',
               required=False,
-              default=os.getcwd(),
+              default=None,
               help='Base working directory for finding pipeline dependencies')
 def run(pipeline, work_dir):
     """
     Run a pipeline in your local environment
     """
+
+    if work_dir is None:
+        work_dir = os.getcwd()
+
     click.echo()
 
     print_banner("Elyra Pipeline Local Run")

@@ -59,10 +59,15 @@ def test_subcommand_with_invalid_pipeline():
 
 def test_subcommand_with_unsupported_file_type():
     runner = CliRunner()
-    for command in SUB_COMMANDS:
-        result = runner.invoke(pipeline, [command, 'foo.ipynb'])
-        assert "Pipeline file should be a [.pipeline] file" in result.output
-        assert result.exit_code != 0
+    with runner.isolated_filesystem():
+        with open('foo.ipynb', 'w') as f:
+            f.write('{ "nbformat": 4, "cells": [] }')
+
+        for command in SUB_COMMANDS:
+            result = runner.invoke(pipeline, [command, 'foo.ipynb'])
+            assert "Pipeline file is invalid:" in result.output
+            assert "Missing field 'primary_pipeline'" in result.output
+            assert result.exit_code != 0
 
 
 # def test_run_subcommand():
