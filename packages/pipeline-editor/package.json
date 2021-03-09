@@ -34,7 +34,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/canvas": "9.2.9",
+    "@elyra/canvas": "^10.1.0",
     "@elyra/metadata-common": "^2.1.0-dev",
     "@elyra/services": "^2.1.0-dev",
     "@elyra/ui-components": "^2.1.0-dev",
