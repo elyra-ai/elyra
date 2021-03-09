@@ -277,7 +277,7 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   margin-left: -6px;
   color: var(--text-02);
 }
-.properties-readonly span {
+.properties-readonly .properties-field-type {
   position: absolute;
   margin: 3px;
   padding: 3px;
@@ -330,6 +330,8 @@ div.properties-modal-buttons,
     inset 0 0 0 3px var(--jp-input-active-box-shadow-color);
 }
 .properties-readonly {
+  overflow: visible;
+  margin-top: 25px;
   color: rgba(92, 112, 128, 0.6);
   background: rgba(206, 217, 224, 0.5);
   height: 30px;
@@ -546,4 +548,11 @@ img.toolbar-icons[disabled] {
   box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
     inset 0 -1px 0 rgba(16, 22, 26, 0.1);
   color: #182026;
+}
+
+/* HACK - fix common properties layout for canvas v10.1.0 */
+.properties-control-panel[data-id='properties-nodeFileControl']
+  .properties-control-item {
+  position: relative;
+  top: -24px;
 }
