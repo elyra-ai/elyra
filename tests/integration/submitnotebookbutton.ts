@@ -45,6 +45,10 @@ describe('Submit Notebook Button tests', () => {
     );
     // Click submit notebook button
     cy.contains('Submit Notebook').click();
+    // Should have warning for unsaved changes
+    cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
+      .contains('Save and Submit')
+      .click();
     // Check for expected dialog title
     cy.get('.jp-Dialog')
       .find('div.jp-Dialog-header')
