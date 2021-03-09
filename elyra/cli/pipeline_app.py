@@ -29,6 +29,10 @@ from elyra.pipeline import PipelineParser, PipelineProcessorManager
 from jupyter_server.serverapp import list_running_servers
 
 
+# TODO: Is there a place to get this version number already?
+CURRENT_PIPELINE_VERSION = 3
+
+
 def _get_server_url(url=None):
     server_url = url
 
@@ -43,10 +47,47 @@ def _get_server_url(url=None):
     return server_url
 
 
-def _validate_pipeline_file(pipeline_file):
-    extension = os.path.splitext(pipeline_file)[1]
-    if extension != '.pipeline':
-        click.echo('Pipeline file should be a [.pipeline] file\n')
+def _validate_pipeline_contents(pipeline_contents):
+    if 'primary_pipeline' not in pipeline_contents:
+        click.echo(f"Pipeline file is invalid: \n Missing field 'primary_pipeline'")
+        raise click.Abort()
+
+    if not isinstance(pipeline_contents["primary_pipeline"], str):
+        click.echo(f"Pipeline file is invalid: \n Field 'primary_pipeline' should be a string")
+        raise click.Abort()
+
+    if 'pipelines' not in pipeline_contents:
+        click.echo(f"Pipeline file is invalid: \n Missing field 'pipelines'")
+        raise click.Abort()
+
+    if not isinstance(pipeline_contents["pipelines"], list):
+        click.echo(f"Pipeline file is invalid: \n Field 'pipelines' should be a list")
+        raise click.Abort()
+
+    try:
+        found_primary_pipeline = next(x for x in pipeline_contents["pipelines"] if x["id"] == pipeline_contents["primary_pipeline"])
+    except StopIteration as si:
+        click.echo(f"Pipeline file is invalid: \n Primary pipeline does not exist")
+        raise click.Abort()
+
+    if 'app_data' not in found_primary_pipeline:
+        click.echo(f"Pipeline file is invalid: \n Primary pipeline is missing field 'app_data'")
+        raise click.Abort()
+
+    if 'version' not in found_primary_pipeline["app_data"]:
+        click.echo(f"Pipeline file is invalid: \n Primary pipeline is missing field 'app_data.version'")
+        raise click.Abort()
+
+    if found_primary_pipeline["app_data"]["version"] != CURRENT_PIPELINE_VERSION:
+        click.echo(f"Pipeline file is invalid: \n Primary pipeline version is incompatible")
+        raise click.Abort()
+
+    if 'nodes' not in found_primary_pipeline:
+        click.echo(f"Pipeline file is invalid: \n Primary pipeline is missing field 'nodes'")
+        raise click.Abort()
+
+    if not isinstance(found_primary_pipeline["nodes"], list):
+        click.echo(f"Pipeline file is invalid: \n Primary pipeline field 'nodes' should be a list")
         raise click.Abort()
 
 
@@ -62,11 +103,17 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config, work_dir):
         raise click.Abort()
 
     with open(pipeline_abs_path) as f:
-        pipeline_definition = json.load(f)
+        try:
+            pipeline_definition = json.load(f)
+        except ValueError as ve:
+            click.echo(f"Pipeline file is invalid: \n {ve}")
+            raise click.Abort()
+
+    _validate_pipeline_contents(pipeline_definition)
 
     for pipeline in pipeline_definition["pipelines"]:
         for node in pipeline["nodes"]:
-            if node["app_data"]["filename"]:
+            if 'filename' in node["app_data"]:
                 abs_path = os.path.join(pipeline_dir, node["app_data"]["filename"])
                 node["app_data"]["filename"] = abs_path
 
@@ -141,8 +188,6 @@ def submit(pipeline, server_url, runtime, runtime_config, work_dir):
 
     print_banner("Elyra Pipeline Submission")
 
-    _validate_pipeline_file(pipeline)
-
     pipeline_definition = \
         _preprocess_pipeline(pipeline, runtime=runtime, runtime_config=runtime_config, work_dir=work_dir)
 
@@ -192,8 +237,6 @@ def run(pipeline, work_dir):
     click.echo()
 
     print_banner("Elyra Pipeline Local Run")
-
-    _validate_pipeline_file(pipeline)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline, runtime='local', runtime_config='local', work_dir=work_dir)
