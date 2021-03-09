@@ -49,45 +49,46 @@ def _get_server_url(url=None):
 
 def _validate_pipeline_contents(pipeline_contents):
     if 'primary_pipeline' not in pipeline_contents:
-        click.echo(f"Pipeline file is invalid: \n Missing field 'primary_pipeline'")
+        click.echo("Pipeline file is invalid: \n Missing field 'primary_pipeline'")
         raise click.Abort()
 
     if not isinstance(pipeline_contents["primary_pipeline"], str):
-        click.echo(f"Pipeline file is invalid: \n Field 'primary_pipeline' should be a string")
+        click.echo("Pipeline file is invalid: \n Field 'primary_pipeline' should be a string")
         raise click.Abort()
 
     if 'pipelines' not in pipeline_contents:
-        click.echo(f"Pipeline file is invalid: \n Missing field 'pipelines'")
+        click.echo("Pipeline file is invalid: \n Missing field 'pipelines'")
         raise click.Abort()
 
     if not isinstance(pipeline_contents["pipelines"], list):
-        click.echo(f"Pipeline file is invalid: \n Field 'pipelines' should be a list")
+        click.echo("Pipeline file is invalid: \n Field 'pipelines' should be a list")
         raise click.Abort()
 
     try:
-        found_primary_pipeline = next(x for x in pipeline_contents["pipelines"] if x["id"] == pipeline_contents["primary_pipeline"])
-    except StopIteration as si:
-        click.echo(f"Pipeline file is invalid: \n Primary pipeline does not exist")
+        found_primary_pipeline = next(
+            x for x in pipeline_contents["pipelines"] if x["id"] == pipeline_contents["primary_pipeline"])
+    except StopIteration:
+        click.echo("Pipeline file is invalid: \n Primary pipeline does not exist")
         raise click.Abort()
 
     if 'app_data' not in found_primary_pipeline:
-        click.echo(f"Pipeline file is invalid: \n Primary pipeline is missing field 'app_data'")
+        click.echo("Pipeline file is invalid: \n Primary pipeline is missing field 'app_data'")
         raise click.Abort()
 
     if 'version' not in found_primary_pipeline["app_data"]:
-        click.echo(f"Pipeline file is invalid: \n Primary pipeline is missing field 'app_data.version'")
+        click.echo("Pipeline file is invalid: \n Primary pipeline is missing field 'app_data.version'")
         raise click.Abort()
 
     if found_primary_pipeline["app_data"]["version"] != CURRENT_PIPELINE_VERSION:
-        click.echo(f"Pipeline file is invalid: \n Primary pipeline version is incompatible")
+        click.echo("Pipeline file is invalid: \n Primary pipeline version is incompatible")
         raise click.Abort()
 
     if 'nodes' not in found_primary_pipeline:
-        click.echo(f"Pipeline file is invalid: \n Primary pipeline is missing field 'nodes'")
+        click.echo("Pipeline file is invalid: \n Primary pipeline is missing field 'nodes'")
         raise click.Abort()
 
     if not isinstance(found_primary_pipeline["nodes"], list):
-        click.echo(f"Pipeline file is invalid: \n Primary pipeline field 'nodes' should be a list")
+        click.echo("Pipeline file is invalid: \n Primary pipeline field 'nodes' should be a list")
         raise click.Abort()
 
 
