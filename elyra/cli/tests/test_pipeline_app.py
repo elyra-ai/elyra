@@ -57,7 +57,7 @@ def test_subcommand_with_invalid_pipeline():
         assert result.exit_code != 0
 
 
-def test_subcommand_with_unsuported_file_type():
+def test_subcommand_with_unsupported_file_type():
     runner = CliRunner()
     for command in SUB_COMMANDS:
         result = runner.invoke(pipeline, [command, 'foo.ipynb'])
