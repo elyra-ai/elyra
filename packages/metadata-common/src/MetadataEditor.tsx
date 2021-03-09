@@ -34,7 +34,7 @@ import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
-import { InputLabel, FormHelperText, Button } from '@material-ui/core';
+import { InputLabel, FormHelperText, Button, Link } from '@material-ui/core';
 
 import React, { useEffect, useRef } from 'react';
 
@@ -135,7 +135,7 @@ export class MetadataEditor extends ReactWidget {
   showSecure: IDictionary<boolean>;
   widgetClass: string;
   themeManager: IThemeManager;
-  schemaUIHints: IDictionary<any>;
+  referenceURL: string;
   language: string;
 
   schema: IDictionary<any> = {};
@@ -177,7 +177,7 @@ export class MetadataEditor extends ReactWidget {
       for (const schema of schemas) {
         if (this.schemaName === schema.name) {
           this.schema = schema.properties.metadata.properties;
-          this.schemaUIHints = schema.uihints;
+          this.referenceURL = schema.uihints?.reference_url;
           this.schemaDisplayName = schema.title;
           this.requiredFields = schema.properties.metadata.required;
           if (!this.name) {
@@ -535,16 +535,15 @@ export class MetadataEditor extends ReactWidget {
         <div className={ELYRA_METADATA_EDITOR_CLASS}>
           <h3> {headerText} </h3>
           <p style={{ width: '100%', marginBottom: '10px' }}>
-            All fields marked with an asterisk are required
-            {this.schemaUIHints?.reference_url ? (
-              <Button
-                href={this.schemaUIHints.reference_url}
+            All fields marked with an asterisk are required.&nbsp;
+            {this.referenceURL ? (
+              <Link
+                href={this.referenceURL}
                 target="_blank"
                 rel="noreferrer noopener"
-                style={{ float: 'right' }}
               >
-                {this.schemaUIHints.title} Documentation
-              </Button>
+                [Learn more ...]
+              </Link>
             ) : null}
           </p>
           {this.displayName !== undefined ? (
