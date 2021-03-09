@@ -273,23 +273,23 @@ def test_validate_resource_values():
 
 def test_fail_validate_resource_values_zero_value():
     with pytest.raises(ValueError):
-        test_operation = Operation(id='test-id',
-                                   type='test',
-                                   classifier='execution-node',
-                                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                                   cpu='0',
-                                   gpu='6',
-                                   memory='10',
-                                   runtime_image='tensorflow/tensorflow:latest')
+        Operation(id='test-id',
+                  type='test',
+                  classifier='execution-node',
+                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                  cpu='0',
+                  gpu='6',
+                  memory='10',
+                  runtime_image='tensorflow/tensorflow:latest')
 
 
 def test_fail_validate_resource_values_negative_value():
     with pytest.raises(ValueError):
-        test_operation = Operation(id='test-id',
-                                   type='test',
-                                   classifier='execution-node',
-                                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                                   cpu='5',
-                                   gpu='-1',
-                                   memory='10',
-                                   runtime_image='tensorflow/tensorflow:latest')
+        Operation(id='test-id',
+                  type='test',
+                  classifier='execution-node',
+                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                  cpu='5',
+                  gpu='-1',
+                  memory='10',
+                  runtime_image='tensorflow/tensorflow:latest')
