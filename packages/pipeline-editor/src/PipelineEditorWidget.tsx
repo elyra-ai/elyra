@@ -1172,6 +1172,15 @@ export class PipelineEditor extends React.Component<
     ) {
       validationErrors.push('no runtime image');
     }
+    if (node.app_data.cpu <= 0) {
+      validationErrors.push('CPU must be greater than 0');
+    }
+    if (node.app_data.gpu <= 0) {
+      validationErrors.push('GPU must be greater than 0');
+    }
+    if (node.app_data.memory <= 0) {
+      validationErrors.push('Memory must be greater than 0');
+    }
     return validationErrors.length == 0 ? null : validationErrors.join('\n');
   }
 
