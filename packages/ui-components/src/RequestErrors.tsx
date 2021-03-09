@@ -87,7 +87,10 @@ export class RequestErrors {
    *
    * @returns A promise that resolves with whether the dialog was accepted.
    */
-  static noMetadataError(namespace: string): Promise<Dialog.IResult<any>> {
+  static noMetadataError(
+    namespace: string
+    // ): Promise<void | Dialog.IResult<any>> {
+  ): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: 'Error retrieving metadata',
       body: <p>No {namespace} metadata has been configured.</p>,

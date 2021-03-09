@@ -20,6 +20,7 @@ import uuid4 from 'uuid/v4';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
 import pipeline_template from './pipeline-template.json';
+import { RUNTIMES_NAMESPACE } from './PipelineService';
 
 /**
  * A utilities class for static functions.
@@ -167,6 +168,17 @@ export default class Utils {
   static chunkArray<T extends {}>(arr: T[], n: number): T[][] {
     return Array.from(Array(Math.ceil(arr.length / n)), (_, i) =>
       arr.slice(i * n, i * n + n)
+    );
+  }
+
+  /**
+   * Check if the object is not a runtimes array, but the result of a runtimes error Dialog instead
+   */
+  static isNoRuntimeDialogResult(runtimesObj: any): boolean {
+    return (
+      runtimesObj &&
+      !(runtimesObj instanceof Array) &&
+      runtimesObj.button.label.includes(RUNTIMES_NAMESPACE)
     );
   }
 }

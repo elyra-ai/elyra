@@ -892,6 +892,12 @@ export class PipelineEditor extends React.Component<
       RequestErrors.serverError(error)
     );
 
+    if (Utils.isNoRuntimeDialogResult(runtimes)) {
+      // Open the runtimes widget
+      this.handleOpenRuntimes();
+      return;
+    }
+
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -1319,7 +1325,7 @@ export class PipelineEditor extends React.Component<
     };
     const dialogResult = await showFormDialog(dialogOptions);
 
-    if (dialogResult.value == null) {
+    if (dialogResult.value === null) {
       // When Cancel is clicked on the dialog, just return
       return;
     }
