@@ -45,11 +45,15 @@ const CustomTooltip = withStyles((theme: any): any => ({
 }))(Tooltip);
 
 export const TextInput = (props: ITextFieldProps): any => {
+  const [error, setError] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
   React.useEffect(() => {
     if (props.error) {
+      setError(props.error);
       setErrorText(
-        <FormHelperText error> This field is required. </FormHelperText>
+        <FormHelperText key={`${props.fieldName}Error`} error>
+          This field is required.
+        </FormHelperText>
       );
     }
   }, [props.error]);
@@ -71,15 +75,23 @@ export const TextInput = (props: ITextFieldProps): any => {
       className={`elyra-metadataEditor-formInput ${
         props.secure ? 'elyra-metadataEditor-secure' : ''
       }`}
+      key={`${props.fieldName}FormInput`}
     >
-      <CustomTooltip title={props.description || ''}>
+      <CustomTooltip
+        key={`${props.fieldName}Tooltip`}
+        title={props.description || ''}
+      >
         <TextField
           key={props.fieldName}
           label={props.label}
           required={props.required}
           variant="outlined"
-          error={props.error}
+          error={error}
           onChange={(event: any): void => {
+            if (error && event.nativeEvent.target.value !== '') {
+              setErrorText(null);
+              setError(false);
+            }
             props.handleTextInputChange(event, props.fieldName);
             setValue(event.nativeEvent.target.value);
           }}
