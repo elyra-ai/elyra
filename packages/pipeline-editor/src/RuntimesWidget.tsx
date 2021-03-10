@@ -28,12 +28,31 @@ import React from 'react';
 
 import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 
+const RUNTIMES_METADATA_CLASS = 'elyra-metadata-runtimes';
+
+const addTrailingSlash = (url: string): string => {
+  return url.endsWith('/') ? url : url + '/';
+};
+
+const getGithubURLFromAPI = (apiEndpoint: string): string => {
+  // For enterprise instances the api is located at <hostname>/api/
+  let baseURL = new URL(apiEndpoint).origin;
+
+  // For github.com the api endpoint is located at api.github.com
+  if (baseURL.includes('api.github.com')) {
+    baseURL = baseURL.replace('api.', '');
+  }
+
+  return addTrailingSlash(baseURL);
+};
+
 export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
   metadata: IMetadata[];
   openMetadataEditor: (args: any) => void;
   updateMetadata: () => void;
   namespace: string;
   sortMetadata: boolean;
+  className: string;
   schemas: IDictionary<any>[];
 }
 
@@ -45,16 +64,34 @@ class RuntimesDisplay extends MetadataDisplay<
   IMetadataDisplayState
 > {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
-    const apiEndpoint = metadata.metadata.api_endpoint.endsWith('/')
-      ? metadata.metadata.api_endpoint
-      : metadata.metadata.api_endpoint + '/';
+    const apiEndpoint = addTrailingSlash(metadata.metadata.api_endpoint);
+    const cosEndpoint = addTrailingSlash(metadata.metadata.cos_endpoint);
 
+    let githubRepoElement = null;
     let metadata_props = null;
 
     for (const schema of this.props.schemas) {
       if (schema.name === metadata.schema_name) {
         metadata_props = schema.properties.metadata.properties;
       }
+    }
+
+    if (metadata.schema_name === 'airflow' && metadata_props) {
+      const githubRepoUrl =
+        getGithubURLFromAPI(metadata.metadata.github_api_endpoint) +
+        metadata.metadata.github_repo +
+        '/tree/' +
+        metadata.metadata.github_branch;
+      githubRepoElement = (
+        <span>
+          <br />
+          <br />
+          <h6>{metadata_props.github_repo.title}</h6>
+          <a href={githubRepoUrl} target="_blank" rel="noreferrer noopener">
+            {githubRepoUrl}
+          </a>
+        </span>
+      );
     }
 
     return (
@@ -72,13 +109,10 @@ class RuntimesDisplay extends MetadataDisplay<
             ? metadata_props.cos_endpoint.title
             : 'Cloud Object Storage'}
         </h6>
-        <a
-          href={metadata.metadata.cos_endpoint}
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {metadata.metadata.cos_endpoint}
+        <a href={cosEndpoint} target="_blank" rel="noreferrer noopener">
+          {cosEndpoint}
         </a>
+        {githubRepoElement}
       </div>
     );
   }
@@ -107,6 +141,7 @@ export class RuntimesWidget extends MetadataWidget {
         namespace={RUNTIMES_NAMESPACE}
         sortMetadata={true}
         schemas={this.schemas}
+        className={RUNTIMES_METADATA_CLASS}
       />
     );
   }

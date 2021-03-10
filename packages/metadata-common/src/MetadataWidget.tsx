@@ -75,6 +75,7 @@ export interface IMetadataDisplayProps {
   updateMetadata: () => void;
   namespace: string;
   sortMetadata: boolean;
+  className: string;
 }
 
 /**
@@ -297,15 +298,13 @@ export class MetadataDisplay<
       this.sortMetadata();
     }
     return (
-      <div>
-        <div id="elyra-metadata">
-          <FilterTools
-            onFilter={this.filteredMetadata}
-            tags={this.getActiveTags()}
-            namespaceId={`${this.props.namespace}`}
-          />
-          <div>{this.props.metadata.map(this.renderMetadata)}</div>
-        </div>
+      <div id="elyra-metadata" className={this.props.className}>
+        <FilterTools
+          onFilter={this.filteredMetadata}
+          tags={this.getActiveTags()}
+          namespaceId={`${this.props.namespace}`}
+        />
+        <div>{this.props.metadata.map(this.renderMetadata)}</div>
       </div>
     );
   }
@@ -407,6 +406,7 @@ export class MetadataWidget extends ReactWidget {
         openMetadataEditor={this.openMetadataEditor}
         namespace={this.props.namespace}
         sortMetadata={true}
+        className={`${METADATA_CLASS}-${this.props.namespace}`}
       />
     );
   }
