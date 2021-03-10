@@ -16,6 +16,7 @@
 
 // import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
+import { showDialog } from '@jupyterlab/apputils';
 import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
@@ -42,6 +43,23 @@ export class SubmitScriptButtonExtension
   private editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>;
 
   showWidget = async (): Promise<void> => {
+    if (this.editor.context.model.dirty) {
+      const dialogResult = await showDialog({
+        title:
+          'This script contains unsaved changes. To submit the script the changes need to be saved.',
+        buttons: [
+          Dialog.cancelButton(),
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
+      });
+      if (dialogResult.button && dialogResult.button.accept === true) {
+        await this.editor.context.save();
+      } else {
+        // Don't proceed if cancel button pressed
+        return;
+      }
+    }
+
     /*
     // TODO: 
     // get environment variables from the editor
