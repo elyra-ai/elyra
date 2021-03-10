@@ -43,6 +43,7 @@ import { FilterTools } from './FilterTools';
 /**
  * The CSS class added to metadata widgets.
  */
+export const METADATA_CLASS = 'elyra-metadata';
 export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
 export const METADATA_ITEM = 'elyra-metadata-item';
 const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
@@ -413,7 +414,7 @@ export class MetadataWidget extends ReactWidget {
   render(): React.ReactElement {
     return (
       <ThemeComponent themeManager={this.props.themeManager}>
-        <div>
+        <div className={METADATA_CLASS}>
           <header className={METADATA_HEADER_CLASS}>
             <div style={{ display: 'flex' }}>
               <this.props.icon.react
