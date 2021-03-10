@@ -41,7 +41,8 @@ export class SubmitNotebookButtonExtension
   showWidget = async (): Promise<void> => {
     if (this.panel.model.dirty) {
       const dialogResult = await showDialog({
-        title: 'This notebook contains unsaved changes. To submit the notebook the changes need to be saved.',
+        title:
+          'This notebook contains unsaved changes. To submit the notebook the changes need to be saved.',
         buttons: [
           Dialog.cancelButton(),
           Dialog.okButton({ label: 'Save and Submit' })
