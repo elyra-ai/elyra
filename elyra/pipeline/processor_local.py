@@ -21,7 +21,7 @@ from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
 from notebook.gateway.managers import GatewayClient
-from subprocess import run
+from subprocess import run, CalledProcessError
 from traitlets import log
 from typing import Dict
 
@@ -76,7 +76,7 @@ class LocalPipelineProcessor(PipelineProcessor):
                                        operation_name=operation.name,
                                        duration=(time.time() - t0))
             except Exception as ex:
-                raise RuntimeError(f'Error processing operation {operation.name}.') from ex
+                raise RuntimeError(f'Error processing operation {operation.name}: {str(ex)}.') from ex
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
@@ -233,7 +233,9 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         envs.update(operation.env_vars_as_dict())
         t0 = time.time()
         try:
-            run(argv, cwd=file_dir, env=envs, check=True)
+            run(argv, cwd=file_dir, env=envs, check=True, capture_output=True)
+        except CalledProcessError as cpe:
+            raise RuntimeError(f'Internal error executing: {cpe.stderr.decode()}') from cpe
         except Exception as ex:
             raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
 
