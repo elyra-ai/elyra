@@ -45,9 +45,9 @@ export class SubmitScriptButtonExtension
   showWidget = async (): Promise<void> => {
     if (this.editor.context.model.dirty) {
       const dialogResult = await showDialog({
-        title: 'This script has unsaved changes. Save before submitting?',
+        title: 'This script contains unsaved changes. To submit the script the changes need to be saved.',
         buttons: [
-          Dialog.cancelButton({ label: "Don't submit" }),
+          Dialog.cancelButton(),
           Dialog.okButton({ label: 'Save and Submit' })
         ]
       });
