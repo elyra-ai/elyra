@@ -150,39 +150,6 @@ td {
   padding-right: 5px;
 }
 
-.elyra-Table-experiments {
-  font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;
-  width: 100%;
-  background-color: #ffffff;
-  margin-top: 5px;
-  margin-bottom: 10px;
-}
-
-.elyra-Table-experiments tr:hover:nth-child(even) {
-  background-color: #ddd;
-}
-
-.elyra-Table-experiments tr:hover:nth-child(odd) {
-  background-color: #ddd;
-}
-
-.elyra-Table-experiments tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-.elyra-Table-experiments td {
-  font-weight: normal;
-  padding: 10px;
-}
-
-.elyra-Table-experiments thead {
-  color: #495057;
-
-  background-color: #e9ecef;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
 .properties-editor-form {
   color: var(--text-01);
   background-color: var(--ui-01);
