@@ -183,7 +183,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           command: commandIDs.openMetadata,
           args: {
             label: `Manage ${title}`,
-            display_name: schema.title,
+            display_name: schema.uihints.title,
             namespace: schema.namespace,
             icon: icon
           },
