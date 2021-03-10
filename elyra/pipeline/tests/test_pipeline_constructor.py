@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import pytest
+import sys
 from elyra.pipeline import Operation, Pipeline
 
 
@@ -296,6 +297,31 @@ def test_validate_gpu_accepts_zero_as_value():
                                runtime_image='tensorflow/tensorflow:latest')
 
     assert test_operation.gpu == '0'
+
+
+def test_validate_max_resource_value():
+    system_max_size = str(sys.maxsize - 1)
+
+    test_operation = Operation(id='test-id',
+                               type='test',
+                               classifier='execution-node',
+                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                               memory=system_max_size,
+                               runtime_image='tensorflow/tensorflow:latest')
+
+    assert test_operation.memory == system_max_size
+
+
+def test_fail_validate_max_resource_value_exceeded():
+    system_max_size = str(sys.maxsize)
+
+    with pytest.raises(ValueError):
+        Operation(id='test-id',
+                  type='test',
+                  classifier='execution-node',
+                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                  memory=system_max_size,
+                  runtime_image='tensorflow/tensorflow:latest')
 
 
 def test_fail_creating_operation_with_negative_gpu_resources():
