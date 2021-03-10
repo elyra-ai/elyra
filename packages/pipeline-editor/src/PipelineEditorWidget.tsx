@@ -894,6 +894,24 @@ export class PipelineEditor extends React.Component<
       });
       return;
     }
+
+    if (this.widgetContext.model.dirty) {
+      const dialogResult = await showDialog({
+        title:
+          'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
+        buttons: [
+          Dialog.cancelButton(),
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
+      });
+      if (dialogResult.button && dialogResult.button.accept === true) {
+        await this.widgetContext.save();
+      } else {
+        // Don't proceed if cancel button pressed
+        return;
+      }
+    }
+
     const action = 'export pipeline';
     const runtimes = await PipelineService.getRuntimes(
       true,
@@ -1194,6 +1212,15 @@ export class PipelineEditor extends React.Component<
     ) {
       validationErrors.push('no runtime image');
     }
+    if (node.app_data.cpu <= 0) {
+      validationErrors.push('CPU must be greater than 0');
+    }
+    if (node.app_data.gpu < 0) {
+      validationErrors.push('GPU must be greater than or equal to 0');
+    }
+    if (node.app_data.memory <= 0) {
+      validationErrors.push('Memory must be greater than 0');
+    }
     return validationErrors.length == 0 ? null : validationErrors.join('\n');
   }
 
@@ -1299,6 +1326,23 @@ export class PipelineEditor extends React.Component<
         }
       });
       return;
+    }
+
+    if (this.widgetContext.model.dirty) {
+      const dialogResult = await showDialog({
+        title:
+          'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
+        buttons: [
+          Dialog.cancelButton(),
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
+      });
+      if (dialogResult.button && dialogResult.button.accept === true) {
+        await this.widgetContext.save();
+      } else {
+        // Don't proceed if cancel button pressed
+        return;
+      }
     }
 
     const pipelineName = PathExt.basename(
