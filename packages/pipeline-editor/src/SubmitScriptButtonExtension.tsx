@@ -16,16 +16,17 @@
 
 // import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
+import { LabShell } from '@jupyterlab/application';
 import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
-
 import { IDisposable } from '@lumino/disposable';
+
 import * as React from 'react';
 
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
-import { PipelineService } from './PipelineService';
+import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import Utils from './utils';
 
 /**
@@ -40,6 +41,7 @@ export class SubmitScriptButtonExtension
       DocumentRegistry.ICodeModel
     > {
   private editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>;
+  private shell: LabShell;
 
   showWidget = async (): Promise<void> => {
     /*
@@ -52,6 +54,14 @@ export class SubmitScriptButtonExtension
     const runtimes = await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
+
+    if (Utils.isNoRuntimeDialogResult(runtimes)) {
+      // Open the runtimes widget
+      this.shell = Utils.getLabShell(this.editor);
+      this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      return;
+    }
+
     const images = await PipelineService.getRuntimeImages().catch(error =>
       RequestErrors.serverError(error)
     );
