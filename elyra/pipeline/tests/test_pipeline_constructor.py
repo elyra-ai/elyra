@@ -271,7 +271,20 @@ def test_validate_resource_values():
     assert test_operation.memory == '10'
 
 
-def test_validate_resource_values_zero_gpu():
+def test_validate_resource_values_as_none():
+
+    test_operation = Operation(id='test-id',
+                               type='test',
+                               classifier='execution-node',
+                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                               runtime_image='tensorflow/tensorflow:latest')
+
+    assert test_operation.cpu is None
+    assert test_operation.gpu is None
+    assert test_operation.memory is None
+
+
+def test_validate_gpu_accepts_zero_as_value():
 
     test_operation = Operation(id='test-id',
                                type='test',
@@ -285,38 +298,51 @@ def test_validate_resource_values_zero_gpu():
     assert test_operation.gpu == '0'
 
 
-def test_validate_resource_values_none_value():
-
-    test_operation = Operation(id='test-id',
-                               type='test',
-                               classifier='execution-node',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               cpu='2',
-                               gpu='0',
-                               runtime_image='tensorflow/tensorflow:latest')
-
-    assert test_operation.memory is None
+def test_fail_creating_operation_with_negative_gpu_resources():
+    with pytest.raises(ValueError):
+        Operation(id='test-id',
+                  type='test',
+                  classifier='execution-node',
+                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                  gpu='-1',
+                  runtime_image='tensorflow/tensorflow:latest')
 
 
-def test_fail_validate_resource_values_zero_value():
+def test_fail_creating_operation_with_0_cpu_resources():
     with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   cpu='0',
-                  gpu='6',
-                  memory='10',
                   runtime_image='tensorflow/tensorflow:latest')
 
 
-def test_fail_validate_resource_values_negative_value():
+def test_fail_creating_operation_with_negative_cpu_resources():
     with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  cpu='5',
-                  gpu='-1',
-                  memory='10',
+                  cpu='-1',
+                  runtime_image='tensorflow/tensorflow:latest')
+
+
+def test_fail_creating_operation_with_0_memory_resources():
+    with pytest.raises(ValueError):
+        Operation(id='test-id',
+                  type='test',
+                  classifier='execution-node',
+                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                  memory='0',
+                  runtime_image='tensorflow/tensorflow:latest')
+
+
+def test_fail_creating_operation_with_negative_memory_resources():
+    with pytest.raises(ValueError):
+        Operation(id='test-id',
+                  type='test',
+                  classifier='execution-node',
+                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                  memory='-1',
                   runtime_image='tensorflow/tensorflow:latest')

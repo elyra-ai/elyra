@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 import os
+import sys
+
 from typing import Dict, Optional
 
 
@@ -58,6 +60,12 @@ class Operation(object):
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
         if not runtime_image:
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
+        if cpu and not _validate_range(cpu, min_value=1):
+            raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
+        if gpu and not _validate_range(gpu, min_value=0):
+            raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
+        if memory and not _validate_range(memory, min_value=1):
+            raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
 
         self._id = id
         self._type = type
@@ -70,9 +78,9 @@ class Operation(object):
         self._inputs = inputs or []
         self._outputs = outputs or []
         self._parent_operations = parent_operations or []
-        self._cpu = self.validate_resource_value("CPU", cpu)
-        self._gpu = self.validate_resource_value("GPU", gpu)
-        self._memory = self.validate_resource_value("MEMORY", memory)
+        self._cpu = cpu
+        self._gpu = gpu
+        self._memory = memory
 
     @property
     def id(self):
@@ -141,17 +149,6 @@ class Operation(object):
                     else:
                         print(f"Could not process environment variable entry `{nv}`, skipping...")
         return envs
-
-    def validate_resource_value(self, name: str, value):
-        if value is None:
-            return value
-        elif name == 'GPU' and int(value) >= 0:
-            return value
-        elif int(value) > 0:
-            return value
-        else:
-            raise ValueError(f"Invalid value of '{value}' has been entered for {name} "
-                             f"in operation with {os.path.basename(self.filename)}")
 
     @property
     def inputs(self):
@@ -285,3 +282,18 @@ class Pipeline(object):
                 self.runtime == other.runtime and \
                 self.runtime_config == other.runtime_config and \
                 self.operations == other.operations
+
+###########################
+# Utility functions
+###########################
+
+
+def _validate_range(value: str, min_value=0, max_value=sys.maxsize) -> bool:
+    is_valid = False
+
+    if value is None:
+        is_valid = True
+    elif int(value) in range(min_value, max_value):
+        is_valid = True
+
+    return is_valid
