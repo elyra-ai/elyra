@@ -42,14 +42,18 @@ export class SubmitNotebookButtonExtension
 
   showWidget = async (): Promise<void> => {
     const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
-    const runtimes = await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'submit notebook';
+    const runtimes = await PipelineService.getRuntimes(
+      true,
+      action
+    ).catch(error => RequestErrors.serverError(error));
 
     if (Utils.isNoRuntimeDialogResult(runtimes)) {
-      // Open the runtimes widget
-      this.shell = Utils.getLabShell(this.panel);
-      this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+        // Open the runtimes widget
+        this.shell = Utils.getLabShell(this.panel);
+        this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      }
       return;
     }
 

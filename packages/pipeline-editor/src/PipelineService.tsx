@@ -44,10 +44,10 @@ export class PipelineService {
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(showError = true): Promise<any> {
+  static async getRuntimes(showError = true, action?: string): Promise<any> {
     return MetadataService.getMetadata('runtimes').then(runtimes => {
       if (showError && Object.keys(runtimes).length === 0) {
-        return RequestErrors.noMetadataError('runtimes');
+        return RequestErrors.noMetadataError('runtimes', action);
       }
 
       return runtimes;

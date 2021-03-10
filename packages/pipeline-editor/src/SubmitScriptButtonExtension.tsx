@@ -51,14 +51,18 @@ export class SubmitScriptButtonExtension
     */
     // const env = this.getEnvVars(this.editor.context.model.toString());
     const env: string[] = [];
-    const runtimes = await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'submit Python script';
+    const runtimes = await PipelineService.getRuntimes(
+      true,
+      action
+    ).catch(error => RequestErrors.serverError(error));
 
     if (Utils.isNoRuntimeDialogResult(runtimes)) {
-      // Open the runtimes widget
-      this.shell = Utils.getLabShell(this.editor);
-      this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+        // Open the runtimes widget
+        this.shell = Utils.getLabShell(this.editor);
+        this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      }
       return;
     }
 

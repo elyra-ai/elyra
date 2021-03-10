@@ -894,13 +894,16 @@ export class PipelineEditor extends React.Component<
       });
       return;
     }
-    const runtimes = await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'export pipeline';
+    const runtimes = await PipelineService.getRuntimes(
+      true,
+      action
+    ).catch(error => RequestErrors.serverError(error));
 
     if (Utils.isNoRuntimeDialogResult(runtimes)) {
       // Open the runtimes widget
-      this.handleOpenRuntimes();
+      runtimes.button.label.includes(RUNTIMES_NAMESPACE) &&
+        this.handleOpenRuntimes();
       return;
     }
 
@@ -1303,9 +1306,11 @@ export class PipelineEditor extends React.Component<
       PathExt.extname(this.widgetContext.path)
     );
 
-    const runtimes = await PipelineService.getRuntimes(false).catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'run pipeline';
+    const runtimes = await PipelineService.getRuntimes(
+      false,
+      action
+    ).catch(error => RequestErrors.serverError(error));
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
