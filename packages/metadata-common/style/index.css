@@ -20,6 +20,11 @@
   background: var(--jp-layout-color1);
 }
 
+.elyra-metadata a,
+.elyra-metadataEditor a {
+  color: var(--jp-content-link-color);
+}
+
 .elyra-metadataHeader {
   font-weight: bold;
   padding: 8px 10px;
@@ -88,7 +93,7 @@
   margin-right: 70px;
 }
 
-.elyra-metadataEditor h4 {
+.elyra-metadataEditor {
   color: var(--jp-ui-font-color1);
 }
 
