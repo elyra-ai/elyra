@@ -143,11 +143,15 @@ class Operation(object):
         return envs
 
     def validate_resource_value(self, name: str, value):
-        if value is None or int(value) > 0:
+        if value is None:
+            return value
+        elif name == 'GPU' and int(value) >= 0:
+            return value
+        elif int(value) > 0:
             return value
         else:
-            raise ValueError(f"Zero or negative values are not permitted for {name} "
-                             f"for operation with {os.path.basename(self.filename)}")
+            raise ValueError(f"Invalid value of '{value}' has been entered for {name} "
+                             f"in operation with {os.path.basename(self.filename)}")
 
     @property
     def inputs(self):

@@ -271,6 +271,33 @@ def test_validate_resource_values():
     assert test_operation.memory == '10'
 
 
+def test_validate_resource_values_zero_gpu():
+
+    test_operation = Operation(id='test-id',
+                               type='test',
+                               classifier='execution-node',
+                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                               cpu='4',
+                               gpu='0',
+                               memory='10',
+                               runtime_image='tensorflow/tensorflow:latest')
+
+    assert test_operation.gpu == '0'
+
+
+def test_validate_resource_values_none_value():
+
+    test_operation = Operation(id='test-id',
+                               type='test',
+                               classifier='execution-node',
+                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                               cpu='2',
+                               gpu='0',
+                               runtime_image='tensorflow/tensorflow:latest')
+
+    assert test_operation.memory is None
+
+
 def test_fail_validate_resource_values_zero_value():
     with pytest.raises(ValueError):
         Operation(id='test-id',
