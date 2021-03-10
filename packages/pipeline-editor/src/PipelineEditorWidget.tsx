@@ -71,7 +71,13 @@ import { formDialogWidget } from './formDialogWidget';
 import * as palette from './palette.json';
 
 import { PipelineExportDialog } from './PipelineExportDialog';
-import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
+import {
+  IRuntime,
+  ISchema,
+  PipelineService,
+  RUNTIMES_NAMESPACE
+} from './PipelineService';
+
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
@@ -1304,11 +1310,18 @@ export class PipelineEditor extends React.Component<
       RequestErrors.serverError(error)
     );
 
-    const local_runtime: any = {
+    const localRuntime: IRuntime = {
       name: 'local',
-      display_name: 'Run in-place locally'
+      display_name: 'Run in-place locally',
+      schema_name: 'local'
     };
-    runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
+    runtimes.unshift(JSON.parse(JSON.stringify(localRuntime)));
+
+    const localSchema: ISchema = {
+      name: 'local',
+      display_name: 'Local Runtime'
+    };
+    schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
