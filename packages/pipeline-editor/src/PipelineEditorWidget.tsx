@@ -1099,6 +1099,13 @@ export class PipelineEditor extends React.Component<
       return true;
     }
 
+    // update app_data with latest invalidNodeError value
+    this.canvasController.setNodeProperties(
+      node.id,
+      { app_data: node.app_data },
+      pipelineId
+    );
+
     // Add or remove decorations
     if (node.app_data != null && node.app_data.invalidNodeError != null) {
       this.canvasController.setNodeDecorations(
