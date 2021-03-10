@@ -298,7 +298,7 @@
               "condition": {
                 "parameter_ref": "gpu",
                 "op": "greaterThan",
-                "value": 0
+                "value": -1
               }
             },
             {
