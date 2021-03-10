@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { LabShell } from '@jupyterlab/application';
 import { PathExt } from '@jupyterlab/coreutils';
 
 import uuid4 from 'uuid/v4';
@@ -181,4 +182,15 @@ export default class Utils {
       runtimesObj.button.label.includes(RUNTIMES_NAMESPACE)
     );
   }
+
+  /**
+   * From a given widget, find the application shell and return it
+   */
+  static getLabShell = (widget: any): LabShell => {
+    while (widget !== null && !(widget instanceof LabShell)) {
+      widget = widget.parent;
+    }
+
+    return widget;
+  };
 }
