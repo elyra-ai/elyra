@@ -136,7 +136,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
     ) : null;
 
     return (
-      <form>
+      <form className="elyra-dialog-form">
         <label htmlFor="runtime_platform">Runtime Platform:</label>
         <br />
         <select

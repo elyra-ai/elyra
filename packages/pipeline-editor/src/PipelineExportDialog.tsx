@@ -103,7 +103,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     const { displayedRuntimeOptions, fileTypes, validSchemas } = this.state;
 
     return (
-      <form>
+      <form className="elyra-dialog-form">
         <label htmlFor="runtime_platform">Runtime Platform:</label>
         <br />
         <select

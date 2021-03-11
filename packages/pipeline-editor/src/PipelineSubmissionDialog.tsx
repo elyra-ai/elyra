@@ -76,7 +76,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
     } = this.state;
 
     return (
-      <form>
+      <form className="elyra-dialog-form">
         <label htmlFor="pipeline_name">Pipeline Name:</label>
         <br />
         <input
