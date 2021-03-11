@@ -34,7 +34,7 @@ import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
-import { InputLabel, FormHelperText, Button } from '@material-ui/core';
+import { InputLabel, FormHelperText, Button, Link } from '@material-ui/core';
 
 import React, { useEffect, useRef } from 'react';
 
@@ -158,7 +158,7 @@ export class MetadataEditor extends ReactWidget {
   showSecure: IDictionary<boolean>;
   widgetClass: string;
   themeManager: IThemeManager;
-
+  referenceURL: string;
   language: string;
 
   schema: IDictionary<any> = {};
@@ -200,6 +200,7 @@ export class MetadataEditor extends ReactWidget {
       for (const schema of schemas) {
         if (this.schemaName === schema.name) {
           this.schema = schema.properties.metadata.properties;
+          this.referenceURL = schema.uihints?.reference_url;
           this.schemaDisplayName = schema.title;
           this.requiredFields = schema.properties.metadata.required;
           if (!this.name) {
@@ -557,13 +558,19 @@ export class MetadataEditor extends ReactWidget {
     return (
       <ThemeComponent themeManager={this.themeManager}>
         <div className={ELYRA_METADATA_EDITOR_CLASS}>
-          <h3 key={`${this.displayName}Header`}>{headerText}</h3>
-          <InputLabel
-            style={{ width: '100%', marginBottom: '10px' }}
-            key={`${this.displayName}AsteriskInfo`}
-          >
-            All fields marked with an asterisk are required
-          </InputLabel>
+          <h3> {headerText} </h3>
+          <p style={{ width: '100%', marginBottom: '10px' }}>
+            All fields marked with an asterisk are required.&nbsp;
+            {this.referenceURL ? (
+              <Link
+                href={this.referenceURL}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                [Learn more ...]
+              </Link>
+            ) : null}
+          </p>
           {this.displayName !== undefined ? (
             <TextInput
               label={'Name'}

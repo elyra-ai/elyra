@@ -31,6 +31,10 @@ Learn how to [create a notebook pipeline and run it in your local JupyterLab env
 
 Learn how to [create a notebook pipeline and run it on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world_kubeflow_pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
 
+#### Running notebook pipelines on Apache Airflow
+
+Learn how to [create a notebook pipeline and run it on Apache Airflow](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world_apache_airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
+
 #### Examples
 
 The [https://github.com/elyra-ai/examples](https://github.com/elyra-ai/examples) repository contains examples you can use to explore Elyra features.
@@ -46,21 +50,3 @@ The following pipelines were created by members of the extended Elyra community 
 
 - [Analyzing COVID-19 time series data](https://github.com/CODAIT/covid-notebooks)
 - [Analyzing flight delays](https://github.com/CODAIT/flight-delay-notebooks)
-
-#### Running notebook pipelines on Apache Airflow
-
-Creating a pipeline with Elyra and Apache Airflow is very similar to creating a pipeline with Kubeflow. 
-
-##### Submitting a pipeline to Apache Airflow vs. Kubeflow Pipelines
-- The process of creating a pipeline in Elyra's pipeline editor remains mostly the same with the following differences: 
-- When submitting a job to an Airflow runtime, you will need to select `Airflow` in the first dropdown menu, the panel will
-then update the next dropdown list with available Airflow runtimes for you to submit to. Select one and hit submit.
-- After submitting a job, a dialog box will appear with the following:
-    - A link to the main Apache Airflow Dashboard where your pipeline will be running
-    - A link to the Github Repository where you pushed your pipeline file
-    - A link to your Cloud Object Storage bucket, where your pipeline input and output artifacts will reside 
-  
-##### Exporting an Apache Airflow pipeline to File
-- When exporting a pipeline to file, you will need to select `Airflow` in the first dropdown menu, the panel will
-then update the next dropdown list with available Airflow runtimes for you to submit to, lastly, you would 
-select the export file `type`. For now the only option is export to a python (.py) file when using Airflow.
