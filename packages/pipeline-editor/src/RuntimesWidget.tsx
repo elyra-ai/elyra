@@ -35,13 +35,11 @@ const addTrailingSlash = (url: string): string => {
 };
 
 const getGithubURLFromAPI = (apiEndpoint: string): string => {
-  // For enterprise instances the api is located at <hostname>/api/
+  // For Enterprise Server the api is located at <hostname>/api/
   let baseURL = new URL(apiEndpoint).origin;
 
-  // For github.com the api endpoint is located at api.github.com
-  if (baseURL.includes('api.github.com')) {
-    baseURL = baseURL.replace('api.', '');
-  }
+  // For Github.com and Github AE the api is located at api.<hostname>
+  baseURL = baseURL.replace('api.', '');
 
   return addTrailingSlash(baseURL);
 };
@@ -81,15 +79,16 @@ class RuntimesDisplay extends MetadataDisplay<
         getGithubURLFromAPI(metadata.metadata.github_api_endpoint) +
         metadata.metadata.github_repo +
         '/tree/' +
-        metadata.metadata.github_branch;
+        metadata.metadata.github_branch +
+        '/';
       githubRepoElement = (
         <span>
-          <br />
-          <br />
           <h6>{metadata_props.github_repo.title}</h6>
           <a href={githubRepoUrl} target="_blank" rel="noreferrer noopener">
             {githubRepoUrl}
           </a>
+          <br />
+          <br />
         </span>
       );
     }
@@ -104,6 +103,7 @@ class RuntimesDisplay extends MetadataDisplay<
         </a>
         <br />
         <br />
+        {githubRepoElement}
         <h6>
           {metadata_props
             ? metadata_props.cos_endpoint.title
@@ -112,7 +112,6 @@ class RuntimesDisplay extends MetadataDisplay<
         <a href={cosEndpoint} target="_blank" rel="noreferrer noopener">
           {cosEndpoint}
         </a>
-        {githubRepoElement}
       </div>
     );
   }
