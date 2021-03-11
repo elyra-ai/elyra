@@ -59,6 +59,7 @@ import {
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 const SNIPPET_DRAG_IMAGE_CLASS = 'elyra-codeSnippet-drag-image';
+const CODE_SNIPPETS_METADATA_CLASS = 'elyra-metadata-code-snippets';
 
 /**
  * The threshold in pixels to start a drag event.
@@ -80,6 +81,7 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
   namespace: string;
   schema: string;
   sortMetadata: boolean;
+  className: string;
   getCurrentWidget: () => Widget;
   editorServices: IEditorServices;
   shell: JupyterFrontEnd.IShell;
@@ -525,6 +527,7 @@ export class CodeSnippetWidget extends MetadataWidget {
         namespace={CODE_SNIPPET_NAMESPACE}
         schema={CODE_SNIPPET_SCHEMA}
         getCurrentWidget={this.props.getCurrentWidget}
+        className={CODE_SNIPPETS_METADATA_CLASS}
         editorServices={this.props.editorServices}
         shell={this.props.app.shell}
         sortMetadata={true}
