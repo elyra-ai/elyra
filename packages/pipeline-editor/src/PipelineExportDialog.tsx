@@ -84,9 +84,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
   componentDidMount(): void {
     const { schema, runtimes } = this.props;
 
-    const validSchemas = schema.filter(s =>
-      runtimes.some(runtime => runtime.schema_name === s.name)
-    );
+    const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
     const selectedRuntimePlatform = validSchemas[0] && validSchemas[0].name;
     const displayedRuntimeOptions = this.updateRuntimeOptions(
       selectedRuntimePlatform

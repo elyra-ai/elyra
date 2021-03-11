@@ -63,9 +63,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
       displayedRuntimeOptions: this.updateRuntimeOptions(
         this.state.selectedRuntimePlatform
       ),
-      validSchemas: schema.filter(s =>
-        runtimes.some(runtime => runtime.schema_name === s.name)
-      )
+      validSchemas: PipelineService.filterValidSchema(runtimes, schema)
     });
   }
 
