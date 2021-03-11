@@ -21,7 +21,7 @@ from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
 from notebook.gateway.managers import GatewayClient
-from subprocess import run, CalledProcessError
+from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
 from typing import Dict
 
@@ -233,7 +233,7 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         envs.update(operation.env_vars_as_dict())
         t0 = time.time()
         try:
-            run(argv, cwd=file_dir, env=envs, check=True, capture_output=True)
+            run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)
         except CalledProcessError as cpe:
             raise RuntimeError(f'Internal error executing: {cpe.stderr.decode()}') from cpe
         except Exception as ex:
