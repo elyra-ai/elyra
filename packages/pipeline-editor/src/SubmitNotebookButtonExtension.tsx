@@ -65,7 +65,7 @@ export class SubmitNotebookButtonExtension
       action
     ).catch(error => RequestErrors.serverError(error));
 
-    if (Utils.isNoRuntimeDialogResult(runtimes)) {
+    if (Utils.isDialogResult(runtimes)) {
       if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
         // Open the runtimes widget
         this.shell = Utils.getLabShell(this.panel);

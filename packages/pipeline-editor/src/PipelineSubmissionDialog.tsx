@@ -25,49 +25,42 @@ interface IProps {
 }
 
 interface IState {
+  displayedRuntimeOptions: IRuntime[];
   selectedRuntimePlatform: string;
   validSchemas: ISchema[];
-  displayedRuntimeOptions: IRuntime[];
 }
-
-const updateRuntimeOptions = (
-  allRuntimes: IRuntime[],
-  platformSelection: string
-): IRuntime[] => {
-  const filteredRuntimeOptions = PipelineService.filterRuntimes(
-    allRuntimes,
-    platformSelection
-  );
-  PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-  return filteredRuntimeOptions;
-};
 
 export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
   state = {
-    selectedRuntimePlatform:
-      this.props.runtimes[0] && this.props.runtimes[0].schema_name,
     displayedRuntimeOptions: new Array<IRuntime>(),
+    selectedRuntimePlatform: this.props.schema[0] && this.props.schema[0].name,
     validSchemas: new Array<ISchema>()
   };
 
   handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const selectedPlatform = event.target.value;
-    const runtimeOptions = updateRuntimeOptions(
-      this.props.runtimes,
-      selectedPlatform
-    );
+    const runtimeOptions = this.updateRuntimeOptions(selectedPlatform);
+
     this.setState({
-      selectedRuntimePlatform: selectedPlatform,
-      displayedRuntimeOptions: runtimeOptions
+      displayedRuntimeOptions: runtimeOptions,
+      selectedRuntimePlatform: selectedPlatform
     });
+  };
+
+  updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
+    const filteredRuntimeOptions = PipelineService.filterRuntimes(
+      this.props.runtimes,
+      platformSelection
+    );
+    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
+    return filteredRuntimeOptions;
   };
 
   componentDidMount(): void {
     const { schema, runtimes } = this.props;
 
     this.setState({
-      displayedRuntimeOptions: updateRuntimeOptions(
-        runtimes,
+      displayedRuntimeOptions: this.updateRuntimeOptions(
         this.state.selectedRuntimePlatform
       ),
       validSchemas: schema.filter(s =>
@@ -78,7 +71,11 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
 
   render(): React.ReactNode {
     const { name } = this.props;
-    const { displayedRuntimeOptions, validSchemas } = this.state;
+    const {
+      displayedRuntimeOptions,
+      selectedRuntimePlatform,
+      validSchemas
+    } = this.state;
 
     return (
       <form>
@@ -93,14 +90,14 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
         />
         <br />
         <br />
-        <label htmlFor="runtime_platform">Runtime:</label>
+        <label htmlFor="runtime_platform">Runtime Platform:</label>
         <br />
         <select
           id="runtime_platform"
           name="runtime_platform"
           className="elyra-form-runtime-platform"
           data-form-required
-          defaultValue={this.state.selectedRuntimePlatform}
+          defaultValue={selectedRuntimePlatform}
           onChange={this.handleUpdate}
         >
           {validSchemas.map(schema => (

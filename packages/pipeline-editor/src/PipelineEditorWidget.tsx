@@ -918,7 +918,7 @@ export class PipelineEditor extends React.Component<
       action
     ).catch(error => RequestErrors.serverError(error));
 
-    if (Utils.isNoRuntimeDialogResult(runtimes)) {
+    if (Utils.isDialogResult(runtimes)) {
       // Open the runtimes widget
       runtimes.button.label.includes(RUNTIMES_NAMESPACE) &&
         this.handleOpenRuntimes();

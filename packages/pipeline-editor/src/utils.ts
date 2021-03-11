@@ -172,9 +172,9 @@ export default class Utils {
   }
 
   /**
-   * Check if the object is not a runtimes array, but the result of a runtimes error Dialog instead
+   * Check if the object is not an array, but the result of a Dialog instead
    */
-  static isNoRuntimeDialogResult(runtimesObj: any): boolean {
+  static isDialogResult(runtimesObj: any): boolean {
     return runtimesObj && !(runtimesObj instanceof Array) && runtimesObj.button;
   }
 

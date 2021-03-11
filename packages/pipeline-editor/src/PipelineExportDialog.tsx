@@ -38,43 +38,71 @@ interface IProps {
 }
 
 interface IState {
-  runtimePlatform: string;
-  runtimes: IRuntime[];
+  displayedRuntimeOptions: IRuntime[];
   fileTypes: Record<string, string>[];
+  selectedRuntimePlatform: string;
+  validSchemas: ISchema[];
 }
 
 export class PipelineExportDialog extends React.Component<IProps, IState> {
   state = {
-    runtimePlatform: KFP_SCHEMA,
-    runtimes: this.props.runtimes,
-    fileTypes: KFP_FILE_TYPES
+    displayedRuntimeOptions: new Array<IRuntime>(),
+    fileTypes: new Array<Record<string, string>>(),
+    selectedRuntimePlatform: '',
+    validSchemas: new Array<ISchema>()
   };
 
   handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const selectedPlatform = event.target.value;
-    this.updateDisplayOptions(selectedPlatform);
-  };
-
-  updateDisplayOptions = (platformSelection: string): void => {
-    const runtimes = PipelineService.filterRuntimes(
-      this.props.runtimes,
-      platformSelection
-    );
     this.setState({
-      runtimes: runtimes,
-      fileTypes:
-        platformSelection === KFP_SCHEMA ? KFP_FILE_TYPES : AIRFLOW_FILE_TYPES
+      displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
+      fileTypes: this.updateFileTypeOptions(selectedPlatform),
+      selectedRuntimePlatform: selectedPlatform
     });
   };
 
+  updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
+    const filteredRuntimeOptions = PipelineService.filterRuntimes(
+      this.props.runtimes,
+      platformSelection
+    );
+    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
+    return filteredRuntimeOptions;
+  };
+
+  updateFileTypeOptions = (
+    platformSelection: string
+  ): Record<string, string>[] => {
+    if (!platformSelection) {
+      return new Array<Record<string, string>>();
+    } else if (platformSelection === KFP_SCHEMA) {
+      return KFP_FILE_TYPES;
+    }
+    return AIRFLOW_FILE_TYPES;
+  };
+
   componentDidMount(): void {
-    this.updateDisplayOptions(this.state.runtimePlatform);
+    const { schema, runtimes } = this.props;
+
+    const validSchemas = schema.filter(s =>
+      runtimes.some(runtime => runtime.schema_name === s.name)
+    );
+    const selectedRuntimePlatform = validSchemas[0] && validSchemas[0].name;
+    const displayedRuntimeOptions = this.updateRuntimeOptions(
+      selectedRuntimePlatform
+    );
+    const fileTypes = this.updateFileTypeOptions(selectedRuntimePlatform);
+
+    this.setState({
+      displayedRuntimeOptions: displayedRuntimeOptions,
+      fileTypes: fileTypes,
+      selectedRuntimePlatform: selectedRuntimePlatform,
+      validSchemas: validSchemas
+    });
   }
 
   render(): React.ReactNode {
-    const { fileTypes, runtimes } = this.state;
-    const { schema } = this.props;
-    PipelineService.sortRuntimesByDisplayName(runtimes);
+    const { displayedRuntimeOptions, fileTypes, validSchemas } = this.state;
 
     return (
       <form>
@@ -85,10 +113,9 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
           name="runtime_platform"
           className="elyra-form-runtime-platform"
           data-form-required
-          defaultValue={this.state.runtimePlatform}
           onChange={this.handleUpdate}
         >
-          {schema.map(schema => (
+          {validSchemas.map(schema => (
             <option key={schema.name} value={schema.name}>
               {schema.display_name}
             </option>
@@ -102,7 +129,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
           className="elyra-form-runtime-config"
           data-form-required
         >
-          {runtimes.map(runtime => (
+          {displayedRuntimeOptions.map(runtime => (
             <option key={runtime.name} value={runtime.name}>
               {runtime.display_name}
             </option>
