@@ -69,7 +69,6 @@
 .elyra-metadata-item .elyra-expandableContainer-details-visible {
   background-color: var(--jp-cell-editor-background);
   resize: vertical;
-  height: 100px;
 }
 
 .elyra-metadata-item .CodeMirror.cm-s-jupyter {
