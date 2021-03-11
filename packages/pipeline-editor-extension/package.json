@@ -34,7 +34,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/canvas": "9.2.9",
+    "@elyra/canvas": "^10.1.0",
     "@elyra/metadata-common": "^2.1.0-dev",
     "@elyra/pipeline-editor": "file:/Users/martha.cryanibm.com/gitrepos/pipeline-editor/packages/pipeline-editor",
     "@elyra/pipeline-services": "file:/Users/martha.cryanibm.com/gitrepos/pipeline-editor/packages/pipeline-services",

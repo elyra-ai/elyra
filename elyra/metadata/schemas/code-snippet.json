@@ -6,7 +6,8 @@
   "namespace": "code-snippets",
   "uihints": {
     "title": "Code Snippets",
-    "icon": "elyra:code-snippet"
+    "icon": "elyra:code-snippet",
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/code-snippets.html"
   },
   "properties": {
     "schema_name": {

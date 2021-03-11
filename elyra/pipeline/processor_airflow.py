@@ -117,12 +117,12 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
         self.log_pipeline_info(pipeline_name, f"exporting pipeline as a .{pipeline_export_format} file")
 
-        self.create_pipeline_file(pipeline=pipeline,
-                                  pipeline_export_format="py",
-                                  pipeline_export_path=pipeline_export_path,
-                                  pipeline_name=pipeline_name)
+        new_pipeline_file_path = self.create_pipeline_file(pipeline=pipeline,
+                                                           pipeline_export_format="py",
+                                                           pipeline_export_path=absolute_pipeline_export_path,
+                                                           pipeline_name=pipeline_name)
 
-        return pipeline_export_path
+        return new_pipeline_file_path
 
     def _cc_pipeline(self, pipeline, pipeline_name):
 

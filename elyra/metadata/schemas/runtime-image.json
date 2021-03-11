@@ -6,7 +6,8 @@
   "namespace": "runtime-images",
   "uihints": {
     "icon": "elyra:container",
-    "title": "Runtime Images"
+    "title": "Runtime Images",
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/runtime-image-conf.html"
   },
   "properties": {
     "schema_name": {

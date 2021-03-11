@@ -28,8 +28,7 @@ from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
 from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
-from urllib3.exceptions import LocationValueError
-from urllib3.exceptions import MaxRetryError
+from urllib3.exceptions import LocationValueError, MaxRetryError
 
 
 class KfpPipelineProcessor(RuntimePipelineProcess):
