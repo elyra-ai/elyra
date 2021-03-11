@@ -89,7 +89,7 @@ body {
   --elyra-color-formButton-text: var(--jp-ui-font-color0);
   --elyra-color-formButton-bg: var(--jp-layout-color3);
   --elyra-color-formButton-border: transparent;
-  --elyra-color-formButton-hover-bg: var(--jp-input-hover-background);
+  --elyra-color-formButton-hover-bg: var(--jp-content-font-color3);
   --elyra-color-formButton-hover-border: transparent;
 
   /* ======================================================================== */
@@ -164,8 +164,13 @@ body {
   box-shadow: none;
 }
 
-.properties-wrapper .bx--list-box__field {
+.elyra-PipelineEditor .properties-wrapper .bx--list-box__field {
   height: 100%;
+}
+
+.elyra-PipelineEditor .properties-wrapper input[type='text']:disabled {
+  height: 39px;
+  padding-left: 8px;
 }
 
 .properties-dropdown .bx--list-box--expanded .bx--list-box__menu {
@@ -180,9 +185,13 @@ body {
   display: none;
 }
 
+.elyra-stringArrayControl-listItem {
+  padding: 5px;
+}
+
 .elyra-stringArrayControl-listRow:hover {
   position: relative;
-  background-color: var(--jp-cell-editor-background);
+  background-color: var(--jp-border-color2);
 }
 
 /* ======================================================== */
@@ -216,6 +225,11 @@ body {
   left: 0;
   right: 0;
   border-top: 1px solid var(--jp-border-color2);
+}
+
+.elyra-stringArrayControl-listRow {
+  background-color: var(--jp-border-color3);
+  margin-bottom: 5px;
 }
 
 .properties-control-panel[data-id='properties-nodeGroupInfo']
@@ -298,6 +312,7 @@ body {
   display: inline-block;
   transition: transform 50ms ease;
   position: relative;
+  padding: 3px;
 }
 
 .elyra-actionItem:active {
@@ -325,6 +340,16 @@ body {
   margin-right: 4px;
 }
 
+.elyra-stringArrayControl-listRow:hover .elyra-stringArrayControl-listActions {
+  height: 100%;
+  align-items: center;
+  margin-right: 3px;
+}
+
+.elyra-actionItem:hover {
+  background-color: var(--jp-border-color1);
+}
+
 .elyra-stringArrayControl-listActions .elyra-actionItemIcon {
   color: var(--elyra-color-arrayInput-text);
   width: 16px;
@@ -334,6 +359,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-position: center;
 }
 
 .elyra-tabItemIcon {
@@ -352,7 +378,7 @@ body {
 }
 
 .elyra-icon.elyra-item-delete {
-  background-image: url('data:image/svg+xml;utf8,<svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"> <title>Delete item</title> <g class="jp-icon3> <path d="M12 12H14V24H12zM18 12H20V24H18z"></path> <path d="M4 6V8H6V28a2 2 0 002 2H24a2 2 0 002-2V8h2V6zM8 28V8H24V28zM12 2H20V4H12z"></path> </g> </svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="15" height="32" viewBox="0 0 32 32"> <title>Delete item</title> <g class="jp-icon3"> <path d="M12 12H14V24H12zM18 12H20V24H18z"></path> <path d="M4 6V8H6V28a2 2 0 002 2H24a2 2 0 002-2V8h2V6zM8 28V8H24V28zM12 2H20V4H12z"></path> </g> </svg>');
 }
 
 .elyra-icon.elyra-item-edit {
