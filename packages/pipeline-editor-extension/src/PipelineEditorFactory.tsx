@@ -335,6 +335,9 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
         case 'toggleOpenPanel':
           setPanelOpen(!panelOpen);
           break;
+        case 'properties':
+          setPanelOpen(true);
+          break;
         case 'openRuntimes':
           shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
           break;

@@ -156,8 +156,22 @@ body {
   border-color: var(--elyra-color-error-border);
 }
 
+.elyra-stringArrayControl-inputWrapper {
+  height: 35px;
+}
+
+.elyra-PipelineEditor .elyra-stringArrayControl-input {
+  width: 100%;
+  height: 100%;
+  margin-bottom: 5px;
+}
+
 .properties-input-control.error input:not([disabled]) {
   box-shadow: none;
+}
+
+span.bx--list-box__label {
+  color: var(--elyra-color-formLabel-text);
 }
 
 .properties-dropdown.error .bx--list-box__field:not([disabled]) {
