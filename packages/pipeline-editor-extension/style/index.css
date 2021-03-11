@@ -67,7 +67,7 @@ body {
   --elyra-color-textInput-text: var(--jp-content-font-color0);
   --elyra-color-textInput-bg: var(--jp-cell-editor-active-background);
   --elyra-color-textInput-border: var(--jp-border-color1);
-  --elyra-color-textInput-disabled-text: var(--jp-border-color1);
+  --elyra-color-textInput-disabled-text: var(--jp-inverse-layout-color4);
 
   /* array input */
   --elyra-color-arrayInput-text: var(--jp-content-font-color0);
@@ -162,6 +162,14 @@ body {
 
 .properties-dropdown.error .bx--list-box__field:not([disabled]) {
   box-shadow: none;
+}
+
+.properties-wrapper .bx--list-box__field {
+  height: 100%;
+}
+
+.properties-dropdown .bx--list-box--expanded .bx--list-box__menu {
+  top: auto;
 }
 
 .properties-wrapper .bx--list-box__menu-item {
@@ -309,7 +317,7 @@ body {
 }
 
 .elyra-actionBar .elyra-actionItemIcon {
-  color: var(--vscode-foreground);
+  color: var(--elyra-color-arrayInput-text);
   display: block;
   height: 35px;
   line-height: 35px;
@@ -318,7 +326,7 @@ body {
 }
 
 .elyra-stringArrayControl-listActions .elyra-actionItemIcon {
-  color: var(--vscode-foreground);
+  color: var(--elyra-color-arrayInput-text);
   width: 16px;
   height: 20px;
   padding: 2px;
@@ -331,7 +339,7 @@ body {
 .elyra-tabItemIcon {
   cursor: pointer;
   user-select: none;
-  color: var(--vscode-statusBar-foreground);
+  color: var(--elyra-color-arrayInput-text);
   display: inline-block;
   height: 35px;
   line-height: 35px;
@@ -339,32 +347,36 @@ body {
   margin-right: 4px;
 }
 
-.elyra-icon.elyra-item-delete::before {
-  content: '\ea76';
+.elyra-icon {
+  background-repeat: no-repeat;
 }
 
-.elyra-icon.elyra-item-edit::before {
-  content: '\ea73';
+.elyra-icon.elyra-item-delete {
+  background-image: url('data:image/svg+xml;utf8,<svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"> <title>Delete item</title> <g class="jp-icon3""> <path d="M12 12H14V24H12zM18 12H20V24H18z"></path> <path d="M4 6V8H6V28a2 2 0 002 2H24a2 2 0 002-2V8h2V6zM8 28V8H24V28zM12 2H20V4H12z"></path> </g> </svg>');
+}
+
+.elyra-icon.elyra-item-edit {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"> <g class="jp-icon3"> <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/> </g> </svg>');
 }
 
 .elyra-icon.elyra-panel-close::before {
-  content: '\ea76';
+  content: '';
 }
 
 .elyra-icon.properties::before {
-  content: '\eb52';
+  content: '';
 }
 
 .elyra-icon.palette::before {
   content: '\eb5c';
 }
 
-.elyra-icon.properties-checkbox::before {
-  content: '\eab2';
+.elyra-icon.properties-checkbox {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"> <g class="jp-icon-none jp-icon-selectable-inverse jp-icon3-hover" fill="none"> <circle cx="12" cy="12" r="11"/></g><g class="jp-icon3 jp-icon-selectable jp-icon-accent2-hover" fill="#616161"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></g><g class="jp-icon-none jp-icon-busy" fill="none"><circle cx="12" cy="12" r="7"/></g></svg>');
 }
 
-.elyra-icon.elyra-item-folder::before {
-  content: '\ea83';
+.elyra-icon.elyra-item-folder {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" viewBox="0 0 24 24"> <path class="jp-icon3 jp-icon-selectable" d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/> </svg>');
 }
 
 /* context menu */
