@@ -59,7 +59,9 @@ interface ICodeBlockProps {
   initialValue: string;
   language: string;
   onChange?: (value: string) => any;
-  error: boolean;
+  initialError: boolean;
+  label: string;
+  required: boolean;
 }
 
 const CodeBlock: React.FC<ICodeBlockProps> = ({
@@ -67,16 +69,15 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
   initialValue,
   language,
   onChange,
-  error
+  initialError,
+  label,
+  required
 }) => {
-  const [errorText, setErrorText] = React.useState(null);
+  const [error, setError] = React.useState(initialError);
+
   React.useEffect(() => {
-    if (error) {
-      setErrorText(
-        <FormHelperText error>This field is required.</FormHelperText>
-      );
-    }
-  }, [error]);
+    setError(initialError);
+  }, [initialError]);
 
   const codeBlockRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<CodeEditor.IEditor>(null);
@@ -86,9 +87,7 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
 
   useEffect(() => {
     const handleChange = (args: any): void => {
-      if (args.text !== '') {
-        setErrorText(null);
-      }
+      setError(required && args.text === '');
       onChange?.(args.text.split('\n'));
     };
 
@@ -126,8 +125,13 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
 
   return (
     <div>
+      <InputLabel error={error} required={required}>
+        {label}
+      </InputLabel>
       <div ref={codeBlockRef} className="elyra-form-code" />
-      {errorText}
+      {error === true && (
+        <FormHelperText error>This field is required.</FormHelperText>
+      )}
     </div>
   );
 };
@@ -488,9 +492,6 @@ export class MetadataEditor extends ReactWidget {
           className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
           key={`${fieldName}CodeEditor`}
         >
-          <InputLabel required={required}>
-            {this.schema[fieldName].title}
-          </InputLabel>
           <CodeBlock
             editorServices={this.editorServices}
             language={this.language ?? this.metadata.language}
@@ -500,7 +501,9 @@ export class MetadataEditor extends ReactWidget {
               this.handleDirtyState(true);
               return;
             }}
-            error={uihints.error}
+            initialError={uihints.error}
+            required={required}
+            label={this.schema[fieldName].title}
           />
         </div>
       );

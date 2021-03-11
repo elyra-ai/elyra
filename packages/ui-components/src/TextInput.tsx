@@ -45,17 +45,9 @@ const CustomTooltip = withStyles((theme: any): any => ({
 }))(Tooltip);
 
 export const TextInput = (props: ITextFieldProps): any => {
-  const [error, setError] = React.useState(false);
-  const [errorText, setErrorText] = React.useState(null);
+  const [error, setError] = React.useState(props.error);
   React.useEffect(() => {
     setError(props.error);
-    if (props.error) {
-      setErrorText(
-        <FormHelperText key={`${props.fieldName}Error`} error>
-          This field is required.
-        </FormHelperText>
-      );
-    }
   }, [props.error]);
 
   const [showPassword, setShowPassword] = React.useState(false);
@@ -88,10 +80,7 @@ export const TextInput = (props: ITextFieldProps): any => {
           variant="outlined"
           error={error}
           onChange={(event: any): void => {
-            if (error && event.nativeEvent.target.value !== '') {
-              setErrorText(null);
-              setError(false);
-            }
+            setError(props.required && event.nativeEvent.target.value === '');
             props.handleTextInputChange(event, props.fieldName);
             setValue(event.nativeEvent.target.value);
           }}
@@ -121,7 +110,11 @@ export const TextInput = (props: ITextFieldProps): any => {
           className={`elyra-metadataEditor-form-${props.fieldName}`}
         />
       </CustomTooltip>
-      {errorText}
+      {error === true && (
+        <FormHelperText key={`${props.fieldName}Error`} error>
+          This field is required.
+        </FormHelperText>
+      )}
     </div>
   );
 };
