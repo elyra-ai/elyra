@@ -85,6 +85,7 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
   }, [context]);
 
   const onChange = (pipelineJson: any) => {
+    setPipeline(pipelineJson);
     if (context.ready) {
       context.model.fromString(JSON.stringify(pipelineJson, null, 2));
     }
@@ -302,21 +303,18 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     ).catch(error => RequestErrors.serverError(error));
   }, [pipeline, context.path, cleanNullProperties]);
 
-  const handleClearPipeline = useCallback(
-    async (data: any): Promise<any> => {
-      return showDialog({
-        title: 'Clear Pipeline',
-        body: 'Are you sure you want to clear the pipeline?',
-        buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
-      }).then(result => {
-        if (result.button.accept) {
-          // select all canvas elements
-          setPipeline(null);
-        }
-      });
-    },
-    [pipeline]
-  );
+  const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
+    return showDialog({
+      title: 'Clear Pipeline',
+      body: 'Are you sure you want to clear the pipeline?',
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
+    }).then(result => {
+      if (result.button.accept) {
+        // select all canvas elements
+        setPipeline(null);
+      }
+    });
+  }, []);
 
   const onAction = useCallback(
     (args: { type: string; payload?: any }) => {

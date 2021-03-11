@@ -16,89 +16,87 @@
 
 body {
   --elyra-border-radius: 0;
-  --elyra-color-icon: var(--vscode-icon-foreground);
-  --elyra-color-panel-bg: var(--vscode-editor-background);
-  --elyra-color-panel-border: var(--vscode-panel-border);
+  --elyra-color-icon: var(--jp-icon-contrast-color3);
+  --elyra-color-panel-bg: var(--jp-layout-color1);
+  --elyra-color-panel-border: var(--jp-border-color0);
 
-  --elyra-color-focus: var(--vscode-focusBorder);
+  --elyra-color-focus: var(--jp-border-color1);
 
-  --elyra-color-text-primary: var(--vscode-foreground);
+  --elyra-color-text-primary: var(--jp-ui-font-color0);
 
-  --elyra-color-button-text: var(--vscode-button-foreground);
-  --elyra-color-button-bg: var(--vscode-button-background);
-  --elyra-color-button-hover-bg: var(--vscode-button-hoverBackground);
+  --elyra-color-button-text: var(--jp-ui-font-color0);
+  --elyra-color-button-bg: var(--jp-input-active-background);
+  --elyra-color-button-hover-bg: var(--jp-input-hover-background);
 
   /* ======================================================================== */
   /* PIPELINE */
   /* ======================================================================== */
 
   /* comment */
-  --elyra-color-comment-text: var(--vscode-editor-foreground);
-  --elyra-color-comment-link: var(--vscode-panel-border);
-  --elyra-color-comment-bg: var(--vscode-editor-background);
-  --elyra-color-comment-border: var(--vscode-panel-border);
+  --elyra-color-comment-text: var(--jp-ui-font-color0);
+  --elyra-color-comment-link: var(--jp-border-color1);
+  --elyra-color-comment-bg: var(--jp-editor-selected-background);
+  --elyra-color-comment-border: var(--jp-border-color1);
 
   /* node */
-  --elyra-color-node-text: var(--vscode-foreground);
+  --elyra-color-node-text: var(--jp-ui-font-color0);
   --elyra-color-node-link: var(--jp-content-link-color);
-  --elyra-color-node-bg: var(--vscode-notifications-background);
+  --elyra-color-node-bg: var(--jp-cell-editor-active-background);
   --elyra-color-node-border: transparent;
-  --elyra-color-node-hover-bg: var(--vscode-notifications-background);
+  --elyra-color-node-hover-bg: var(--jp-input-hover-background);
   --elyra-color-node-hover-border: transparent;
 
   /* errors */
-  --elyra-color-text-error: var(--vscode-errorForeground);
-  --elyra-color-error-border: var(--vscode-inputValidation-errorBorder);
+  --elyra-color-text-error: var(--jp-rendermime-error-background);
+  --elyra-color-error-border: var(--jp-error-color0);
 
   /* tooltip */
-  --elyra-color-tooltip-text: var(--vscode-editorSuggestWidget-foreground);
-  --elyra-color-tooltip-text-bold: var(--vscode-foreground);
-  --elyra-color-tooltip-bg: var(--vscode-editorSuggestWidget-background);
-  --elyra-color-tooltip-border: var(--vscode-editorSuggestWidget-border);
+  --elyra-color-tooltip-text: var(--jp-content-font-color0);
+  --elyra-color-tooltip-text-bold: var(--jp-editor-selected-background);
+  --elyra-color-tooltip-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-tooltip-border: var(--jp-border-color1);
 
   /* ======================================================================== */
   /* FORM */
   /* ======================================================================== */
 
-  --elyra-color-formLabel-text: var(--vscode-settings-headerForeground);
-  --elyra-color-formDescription-text: var(--vscode-foreground);
+  --elyra-color-formLabel-text: var(--jp-content-font-color0);
+  --elyra-color-formDescription-text: var(--jp-content-font-color0);
 
   /* text input */
-  --elyra-color-textInput-text: var(--vscode-settings-textInputForeground);
-  --elyra-color-textInput-bg: var(--vscode-settings-textInputBackground);
-  --elyra-color-textInput-border: var(--vscode-settings-textInputBorder);
-  --elyra-color-textInput-disabled-text: var(
-    --vscode-tab-unfocusedInactiveForeground
-  );
+  --elyra-color-textInput-text: var(--jp-content-font-color0);
+  --elyra-color-textInput-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-textInput-border: var(--jp-border-color1);
+  --elyra-color-textInput-disabled-text: var(--jp-border-color1);
 
   /* array input */
-  --elyra-color-arrayInput-text: var(--vscode-settings-textInputForeground);
-  --elyra-color-arrayInput-bg: var(--vscode-settings-dropdownBackground);
-  --elyra-color-arrayInput-border: var(--vscode-settings-dropdownBorder);
+  --elyra-color-arrayInput-text: var(--jp-content-font-color0);
+  --elyra-color-arrayInput-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-arrayInput-border: var(--jp-border-color1);
 
   /* dropdown */
-  --elyra-color-dropdown-text: var(--vscode-settings-dropdownForeground);
-  --elyra-color-dropdown-bg: var(--vscode-settings-dropdownBackground);
-  --elyra-color-dropdown-border: var(--vscode-settings-dropdownBorder);
-  --elyra-color-dropdownItem-hover-bg: var(--vscode-menu-selectionBackground);
+  --elyra-color-dropdown-text: var(--jp-content-font-color0);
+  --elyra-color-dropdown-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-dropdown-border: var(--jp-border-color1);
+  --elyra-color-dropdownItem-hover-bg: var(--jp-input-hover-background);
 
   /* checkbox */
-  --elyra-color-checkbox-text: var(--vscode-settings-checkboxForeground);
-  --elyra-color-checkbox-bg: var(--vscode-settings-checkboxBackground);
-  --elyra-color-checkbox-border: var(--vscode-settings-checkboxBorder);
+  --elyra-color-checkbox-text: var(--jp-content-font-color0);
+  --elyra-color-checkbox-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-checkbox-border: var(--jp-border-color1);
 
   /* primary button */
-  --elyra-color-formButton-text: var(--vscode-button-foreground);
-  --elyra-color-formButton-bg: var(--vscode-button-background);
+  --elyra-color-formButton-text: var(--jp-ui-font-color0);
+  --elyra-color-formButton-bg: var(--jp-layout-color3);
   --elyra-color-formButton-border: transparent;
-  --elyra-color-formButton-hover-bg: var(--vscode-button-hoverBackground);
+  --elyra-color-formButton-hover-bg: var(--jp-input-hover-background);
   --elyra-color-formButton-hover-border: transparent;
 
   /* ======================================================================== */
   /* PALETTE */
   /* ======================================================================== */
-  --elyra-color-palette-text: var(--vscode-editor-foreground);
-  --elyra-color-palette-bg: var(--vscode-notifications-background);
+  --elyra-color-palette-text: var(--jp-ui-font-color0);
+  --elyra-color-palette-bg: var(--jp-cell-editor-active-background);
   --elyra-color-palette-border: transparent;
 
   /* ======================================================================== */
@@ -106,18 +104,18 @@ body {
   /* ======================================================================== */
 
   /* sans */
-  --elyra-font-family-sans: var(--vscode-font-family);
-  --elyra-font-weight-sans: var(--vscode-font-weight);
-  --elyra-font-size-sans: var(--vscode-font-size);
+  --elyra-font-family-sans: var(--jp-ui-font-family);
+  --elyra-font-weight-sans: normal;
+  --elyra-font-size-sans: var(--jp-code-font-size);
 
   /* mono */
-  --elyra-font-family-mono: var(--vscode-editor-font-family);
-  --elyra-font-weight-mono: var(--vscode-editor-font-weight);
-  --elyra-font-size-mono: var(--vscode-editor-font-size);
+  --elyra-font-family-mono: var(--jp-ui-font-family);
+  --elyra-font-weight-mono: normal;
+  --elyra-font-size-mono: var(--jp-code-font-size);
 }
 
 body {
-  background-color: var(--vscode-editor-background);
+  background-color: var(--jp-editor-selected-background);
 }
 
 .elyra-empty-text {
@@ -166,21 +164,22 @@ body {
   box-shadow: none;
 }
 
+.properties-wrapper .bx--list-box__menu-item {
+  display: contents;
+}
+
 .properties-required-indicator {
   display: none;
 }
 
 .elyra-stringArrayControl-listRow:hover {
   position: relative;
-  background-color: var(--vscode-list-hoverBackground);
+  background-color: var(--jp-cell-editor-background);
 }
 
 /* ======================================================== */
 /* ======================================================== */
 /* ======================================================== */
-/* --vscode-settings-focusedRowBackground: rgba(128, 128, 128, 0.14);
---vscode-notebook-rowHoverBackground: rgba(128, 128, 128, 0.07);
---vscode-notebook-focusedRowBorder: rgba(255, 255, 255, 0.12); */
 
 .properties-control-panel[data-id='properties-nodeGroupInfo']
   > .properties-control-panel
@@ -191,13 +190,13 @@ body {
 .properties-control-panel[data-id='properties-nodeGroupInfo']
   > .properties-control-panel
   > .properties-control-item:hover {
-  background-color: var(--vscode-notebook-rowHoverBackground);
+  background-color: var(--jp-cell-editor-background);
 }
 
 .properties-control-panel[data-id='properties-nodeGroupInfo']
   > .properties-control-panel
   > .properties-control-item.selected {
-  background-color: var(--vscode-settings-focusedRowBackground);
+  background-color: var(--jp-editor-selected-focused-background);
 }
 
 .properties-control-panel[data-id='properties-nodeGroupInfo']
@@ -208,7 +207,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  border-top: 1px solid var(--vscode-notebook-focusedRowBorder);
+  border-top: 1px solid var(--jp-border-color2);
 }
 
 .properties-control-panel[data-id='properties-nodeGroupInfo']
@@ -219,7 +218,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  border-top: 1px solid var(--vscode-notebook-focusedRowBorder);
+  border-top: 1px solid var(--jp-border-color2);
 }
 /* ======================================================== */
 /* ======================================================== */
@@ -264,16 +263,16 @@ body {
   font-family: var(--elyra-font-family-sans);
   font-size: 11px;
   font-weight: var(--elyra-font-weight-sans);
-  color: var(--vscode-panelTitle-inactiveForeground);
+  color: var(--jp-border-color1);
 }
 
 .elyra-tabText:hover {
-  color: var(--vscode-panelTitle-activeForeground);
+  color: var(--jp-ui-font-color0);
 }
 
 .elyra-tabText.activeTab {
-  color: var(--vscode-panelTitle-activeForeground);
-  border-bottom: 1px solid var(--vscode-panelTitle-activeBorder);
+  color: var(--jp-ui-font-color0);
+  border-bottom: 1px solid var(--jp-border-color2);
 }
 
 .elyra-icon {
@@ -302,7 +301,7 @@ body {
 }
 
 .elyra-verticalTabGroup .elyra-tabItem:hover {
-  background-color: var(--vscode-statusBarItem-hoverBackground);
+  background-color: var(--jp-cell-editor-background);
 }
 
 .elyra-verticalTabGroup .elyra-tabItem:active {
