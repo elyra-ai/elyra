@@ -85,7 +85,7 @@ setup_args = dict(
         'urllib3>=1.24.2',
         'websocket-client',
         # KFP runtime dependencies
-        'kfp-notebook~=0.20.0',
+        'kfp-notebook>=0.20.0',
         'kfp==1.3.0',
         'kfp-tekton==0.6.0',
         # Airflow runtime dependencies

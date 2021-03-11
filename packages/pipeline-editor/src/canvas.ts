@@ -19,23 +19,31 @@ import { IconUtil } from '@elyra/ui-components';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
-import { LabIcon, notebookIcon, pythonIcon } from '@jupyterlab/ui-components';
+import {
+  LabIcon,
+  notebookIcon,
+  pythonIcon,
+  rKernelIcon
+} from '@jupyterlab/ui-components';
 
 import { PipelineService } from './PipelineService';
 
 enum ContentType {
   notebook = 'notebook',
   python = 'python',
+  r = 'r',
   other = 'other'
 }
 
 const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
   ['.py', ContentType.python],
+  ['.r', ContentType.r],
   ['.ipynb', ContentType.notebook]
 ]);
 
 const ICON_MAPPER: Map<string, LabIcon> = new Map([
   ['.py', pythonIcon],
+  ['.r', rKernelIcon],
   ['.ipynb', notebookIcon]
 ]);
 
