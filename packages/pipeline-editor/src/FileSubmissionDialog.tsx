@@ -187,7 +187,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
           checked={this.state.includeDependency}
           onChange={this.handleCheck}
         />
-        <label htmlFor="dependency_include">Include file dependencies</label>
+        <label htmlFor="dependency_include">Include File Dependencies:</label>
         <br />
         {fileDependencyContent}
         <EnvForm env={env} />
