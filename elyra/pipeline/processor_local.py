@@ -205,8 +205,13 @@ class NotebookOperationProcessor(FileOperationProcessor):
                 filepath,
                 **additional_kwargs
             )
+        except papermill.PapermillExecutionError as pmee:
+            self.log.error(f'Internal error executing {file_name}: {str(pmee.ename)}' +
+                           f'{str(pmee.evalue)} in [{str(pmee.exec_count)}]')
+            raise RuntimeError(f'{str(pmee.ename)} {str(pmee.evalue)} in [{str(pmee.exec_count)}]') from pmee
         except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
+            self.log.error(f'Internal error executing {file_name}: {str(ex)}')
+            raise RuntimeError('Internal error executing notebook') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
