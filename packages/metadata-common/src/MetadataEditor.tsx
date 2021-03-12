@@ -36,7 +36,7 @@ import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 import { InputLabel, FormHelperText, Button, Link } from '@material-ui/core';
 
-import React, { useEffect, useRef } from 'react';
+import * as React from 'react';
 
 import { MetadataEditorTags } from './MetadataEditorTags';
 
@@ -56,32 +56,46 @@ interface IMetadataEditorProps {
 
 interface ICodeBlockProps {
   editorServices: IEditorServices;
-  initialValue: string;
+  defaultValue: string;
   language: string;
   onChange?: (value: string) => any;
+  defaultError: boolean;
+  label: string;
+  required: boolean;
 }
 
 const CodeBlock: React.FC<ICodeBlockProps> = ({
   editorServices,
-  initialValue,
+  defaultValue,
   language,
-  onChange
+  onChange,
+  defaultError,
+  label,
+  required
 }) => {
-  const codeBlockRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<CodeEditor.IEditor>(null);
+  const [error, setError] = React.useState(defaultError);
+
+  const codeBlockRef = React.useRef<HTMLDivElement>(null);
+  const editorRef = React.useRef<CodeEditor.IEditor>(null);
 
   // `editorServices` should never change so make it a ref.
-  const servicesRef = useRef(editorServices);
+  const servicesRef = React.useRef(editorServices);
 
-  useEffect(() => {
+  // This is necessary to rerender with error when clicking the save button.
+  React.useEffect(() => {
+    setError(defaultError);
+  }, [defaultError]);
+
+  React.useEffect(() => {
     const handleChange = (args: any): void => {
+      setError(required && args.text === '');
       onChange?.(args.text.split('\n'));
     };
 
     editorRef.current = servicesRef.current.factoryService.newInlineEditor({
       host: codeBlockRef.current,
       model: new CodeEditor.Model({
-        value: initialValue,
+        value: defaultValue,
         mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
           name: language,
           codemirror_mode: language
@@ -99,7 +113,7 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (editorRef !== null) {
       editorRef.current.model.mimeType = servicesRef.current.mimeTypeService.getMimeTypeByLanguage(
         {
@@ -110,7 +124,17 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
     }
   }, [language]);
 
-  return <div ref={codeBlockRef} className="elyra-form-code" />;
+  return (
+    <div>
+      <InputLabel error={error} required={required}>
+        {label}
+      </InputLabel>
+      <div ref={codeBlockRef} className="elyra-form-code" />
+      {error === true && (
+        <FormHelperText error>This field is required.</FormHelperText>
+      )}
+    </div>
+  );
 };
 
 /**
@@ -332,18 +356,15 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
-  handleTextInputChange(event: any, schemaField: string): void {
+  handleTextInputChange(schemaField: string, value: string): void {
     this.handleDirtyState(true);
     // Special case because all metadata has a display name
     if (schemaField === 'display_name') {
-      this.displayName = event.nativeEvent.target.value;
-    } else if (
-      !event.nativeEvent.target.value &&
-      !this.requiredFields.includes(schemaField)
-    ) {
+      this.displayName = value;
+    } else if (!value && !this.requiredFields.includes(schemaField)) {
       delete this.metadata[schemaField];
     } else {
-      this.metadata[schemaField] = event.nativeEvent.target.value;
+      this.metadata[schemaField] = value;
     }
   }
 
@@ -397,12 +418,18 @@ export class MetadataEditor extends ReactWidget {
   }
 
   setFormFocus(): void {
-    const input = document.querySelector(
-      `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
-    ) as HTMLInputElement;
-    if (input) {
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
+    const isFocused = document
+      .querySelector(`.${this.widgetClass}`)
+      .contains(document.activeElement);
+
+    if (!isFocused) {
+      const input = document.querySelector(
+        `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
+      ) as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
     }
   }
 
@@ -432,37 +459,34 @@ export class MetadataEditor extends ReactWidget {
         <TextInput
           label={this.schema[fieldName].title}
           description={this.schema[fieldName].description}
+          key={`${fieldName}TextInput`}
           fieldName={fieldName}
           defaultValue={this.metadata[fieldName] || defaultValue}
           required={required}
           secure={uihints.secure}
-          error={uihints.error}
+          defaultError={uihints.error}
           placeholder={uihints.placeholder}
-          handleTextInputChange={this.handleTextInputChange}
+          onChange={(value): void => {
+            this.handleTextInputChange(fieldName, value);
+          }}
         />
       );
     } else if (uihints.field_type === 'dropdown') {
       return (
         <DropDown
           label={this.schema[fieldName].title}
-          schemaField={fieldName}
+          key={`${fieldName}DropDown`}
           description={this.schema[fieldName].description}
           required={required}
-          error={uihints.error}
-          choice={this.metadata[fieldName]}
-          defaultChoices={this.getDefaultChoices(fieldName)}
-          handleDropdownChange={this.handleDropdownChange}
-          allowCreate={!this.schema[fieldName].enum}
-        ></DropDown>
+          defaultError={uihints.error}
+          defaultValue={this.metadata[fieldName]}
+          options={this.getDefaultChoices(fieldName)}
+          onChange={(value): void => {
+            this.handleDropdownChange(fieldName, value);
+          }}
+        />
       );
     } else if (uihints.field_type === 'code') {
-      let helperText = null;
-      if (uihints.error) {
-        helperText = (
-          <FormHelperText error> This field is required. </FormHelperText>
-        );
-      }
-
       let initialCodeValue = '';
       if (this.name) {
         initialCodeValue = this.metadata.code.join('\n');
@@ -474,26 +498,29 @@ export class MetadataEditor extends ReactWidget {
       return (
         <div
           className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
+          key={`${fieldName}CodeEditor`}
         >
-          <InputLabel required={required}>
-            {this.schema[fieldName].title}
-          </InputLabel>
           <CodeBlock
             editorServices={this.editorServices}
             language={this.language ?? this.metadata.language}
-            initialValue={initialCodeValue}
+            defaultValue={initialCodeValue}
             onChange={(value): void => {
               this.metadata.code = value;
               this.handleDirtyState(true);
               return;
             }}
+            defaultError={uihints.error}
+            required={required}
+            label={this.schema[fieldName].title}
           />
-          {helperText}
         </div>
       );
     } else if (uihints.field_type === 'tags') {
       return (
-        <div className="elyra-metadataEditor-formInput">
+        <div
+          className="elyra-metadataEditor-formInput"
+          key={`${fieldName}TagList`}
+        >
           <InputLabel> Tags </InputLabel>
           <MetadataEditorTags
             selectedTags={this.metadata.tags}
@@ -518,7 +545,12 @@ export class MetadataEditor extends ReactWidget {
     for (const category in this.schemaPropertiesByCategory) {
       if (category !== '_noCategory') {
         inputElements.push(
-          <h4 style={{ flexBasis: '100%', padding: '10px' }}>{category}</h4>
+          <h4
+            style={{ flexBasis: '100%', padding: '10px' }}
+            key={`${category}Category`}
+          >
+            {category}
+          </h4>
         );
       }
       for (const schemaProperty of this.schemaPropertiesByCategory[category]) {
@@ -548,14 +580,16 @@ export class MetadataEditor extends ReactWidget {
           </p>
           {this.displayName !== undefined ? (
             <TextInput
-              label={'Name'}
-              description={''}
-              fieldName={'display_name'}
+              label="Name"
+              key="displayNameTextInput"
+              fieldName="display_name"
               defaultValue={this.displayName}
               required={true}
               secure={false}
-              error={error}
-              handleTextInputChange={this.handleTextInputChange}
+              defaultError={error}
+              onChange={(value): void => {
+                this.handleTextInputChange('display_name', value);
+              }}
             />
           ) : null}
           {inputElements}
@@ -563,6 +597,7 @@ export class MetadataEditor extends ReactWidget {
             className={
               'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
             }
+            key={'SaveButton'}
           >
             <Button
               variant="outlined"
