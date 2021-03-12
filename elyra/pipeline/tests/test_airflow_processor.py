@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import github
-import hashlib
 import mock
 import os
 import pytest
@@ -48,6 +47,7 @@ def sample_metadata():
             "github_repo": "examples/test-repo",
             "github_repo_token": "c564d8dfgdsfgdfgdsfgdsfgdfsgdfsgdsfgdsfg",
             "github_branch": "main",
+            "user_namespace": "default",
             "api_endpoint": "http://examples.com:31737",
             "cos_endpoint": "http://examples.com:31671",
             "cos_username": "example",
@@ -102,6 +102,15 @@ def parsed_ordered_dict(monkeypatch, processor, parsed_pipeline,
     return processor._cc_pipeline(parsed_pipeline, pipeline_name="some-name")
 
 
+def read_key_pair(key_pair, sep='='):
+    return {'key': key_pair.split(sep)[0].strip('" '),
+            'value': key_pair.split(sep)[1].rstrip(',').strip('" ')}
+
+
+def string_to_list(stringed_list):
+    return stringed_list.replace(" ", "").replace("\"", "").strip('[]').split(',')
+
+
 def test_processor_type(processor):
     assert processor.type == "airflow"
 
@@ -136,7 +145,7 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
 
 
 def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
-    correct_hash_value = '9a15eba3337ba3c90457d5b60495720333f944fd2cec8e4ce40c32238d2a4206'
+    pipeline_json = _read_pipeline_resource(PIPELINE_FILE)
 
     export_pipeline_name = "some-name"
     export_file_type = "py"
@@ -162,9 +171,59 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
         assert export_pipeline_output_path == response
         assert os.path.isfile(export_pipeline_output_path)
 
-        bites = open(export_pipeline_output_path, "rb").read()
-        hash_value = hashlib.sha256(bites).hexdigest()
-        assert hash_value == correct_hash_value
+        file_as_lines = open(response).read().splitlines()
+
+        # Check DAG project name
+        for i in range(len(file_as_lines)):
+            if "args = {" == file_as_lines[i]:
+                assert "project_id" == read_key_pair(file_as_lines[i + 1], sep=':')['key']
+                assert export_pipeline_name == read_key_pair(file_as_lines[i + 1], sep=':')['value']
+
+        # For every node in the original pipeline json
+        for node in pipeline_json['pipelines'][0]['nodes']:
+            for i in range(len(file_as_lines)):
+                # Matches an op with a node ID
+                if "notebook_op_" + node['id'].replace("-", "_") + " = NotebookOp(" in file_as_lines[i]:
+                    sub_list_line_counter = 0
+                    # Gets sub-list slice starting where the Notebook Op starts
+                    for line in file_as_lines[i+1:]:
+                        if 'namespace=' in line:
+                            assert sample_metadata['user_namespace'] == read_key_pair(line)['value']
+                        elif 'cos_endpoint=' in line:
+                            assert sample_metadata['cos_endpoint'] == read_key_pair(line)['value']
+                        elif 'cos_bucket=' in line:
+                            assert sample_metadata['cos_bucket'] == read_key_pair(line)['value']
+                        elif 'name=' in line:
+                            assert node['app_data']['ui_data']['label'] == read_key_pair(line)['value']
+                        elif 'notebook=' in line:
+                            assert node['app_data']['filename'] == read_key_pair(line)['value']
+                        elif 'image=' in line:
+                            assert node['app_data']['runtime_image'] == read_key_pair(line)['value']
+                        elif 'env_vars=' in line:
+                            for env in node['app_data']['env_vars']:
+                                var, value = env.split("=")
+                                # Gets sub-list slice starting where the env vars starts
+                                for env_line in file_as_lines[i+sub_list_line_counter+2:]:
+                                    if "AWS_ACCESS_KEY_ID" in env_line:
+                                        assert sample_metadata['cos_username'] == read_key_pair(env_line,
+                                                                                                sep=':')['value']
+                                    elif "AWS_SECRET_ACCESS_KEY" in env_line:
+                                        assert sample_metadata['cos_password'] == read_key_pair(env_line,
+                                                                                                sep=':')['value']
+                                    elif var in env_line:
+                                        assert var == read_key_pair(env_line, sep=':')['key']
+                                        assert value == read_key_pair(env_line, sep=':')['value']
+                                    elif env_line.strip() == '},':  # end of env vars
+                                        break
+                        elif 'pipeline_inputs=' in line and node['app_data'].get('inputs'):
+                            for input in node['app_data']['inputs']:
+                                assert input in string_to_list(read_key_pair(line)['value'])
+                        elif 'pipeline_outputs=' in line and node['app_data'].get('outputs'):
+                            for output in node['app_data']['outputs']:
+                                assert output in string_to_list(read_key_pair(line)['value'])
+                        elif line == ')':  # End of this Notebook Op
+                            break
+                        sub_list_line_counter += 1
 
 
 def test_export_overwrite(monkeypatch, processor, parsed_pipeline):
