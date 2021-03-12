@@ -40,7 +40,7 @@ const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
       <>
         <br />
         <br />
-        <div>Environmental Variables:</div>
+        <div>Environment Variables:</div>
         <br />
         {Utils.chunkArray(env, 4).map((col, i) => (
           <div key={i}>
