@@ -71,7 +71,13 @@ import { formDialogWidget } from './formDialogWidget';
 import * as palette from './palette.json';
 
 import { PipelineExportDialog } from './PipelineExportDialog';
-import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
+import {
+  IRuntime,
+  ISchema,
+  PipelineService,
+  RUNTIMES_NAMESPACE
+} from './PipelineService';
+
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 
 import * as properties from './properties.json';
@@ -906,9 +912,18 @@ export class PipelineEditor extends React.Component<
       }
     }
 
-    const runtimes = await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'export pipeline';
+    const runtimes = await PipelineService.getRuntimes(
+      true,
+      action
+    ).catch(error => RequestErrors.serverError(error));
+
+    if (Utils.isDialogResult(runtimes)) {
+      // Open the runtimes widget
+      runtimes.button.label.includes(RUNTIMES_NAMESPACE) &&
+        this.handleOpenRuntimes();
+      return;
+    }
 
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
@@ -1335,18 +1350,27 @@ export class PipelineEditor extends React.Component<
       PathExt.extname(this.widgetContext.path)
     );
 
-    const runtimes = await PipelineService.getRuntimes(false).catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'run pipeline';
+    const runtimes = await PipelineService.getRuntimes(
+      false,
+      action
+    ).catch(error => RequestErrors.serverError(error));
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
 
-    const local_runtime: any = {
+    const localRuntime: IRuntime = {
       name: 'local',
-      display_name: 'Run in-place locally'
+      display_name: 'Run in-place locally',
+      schema_name: 'local'
     };
-    runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
+    runtimes.unshift(JSON.parse(JSON.stringify(localRuntime)));
+
+    const localSchema: ISchema = {
+      name: 'local',
+      display_name: 'Local Runtime'
+    };
+    schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
@@ -1363,7 +1387,7 @@ export class PipelineEditor extends React.Component<
     };
     const dialogResult = await showFormDialog(dialogOptions);
 
-    if (dialogResult.value == null) {
+    if (dialogResult.value === null) {
       // When Cancel is clicked on the dialog, just return
       return;
     }
