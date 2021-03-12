@@ -99,16 +99,13 @@ export class RequestErrors {
       title: action ? `Cannot ${action}` : 'Error retrieving metadata',
       body: (
         <div>
-          <p>No {namespace} configuration has been defined.</p>
+          <p>No {namespace} configuration is defined.</p>
           <p>Please create one and try again.</p>
         </div>
       ),
       buttons:
-        namespace === 'runtimes'
-          ? [
-              Dialog.cancelButton(),
-              Dialog.okButton({ label: `Open ${namespace}` })
-            ]
+        namespace === 'runtime'
+          ? [Dialog.cancelButton(), Dialog.okButton({ label: `Open runtimes` })]
           : [Dialog.okButton()]
     });
   }
