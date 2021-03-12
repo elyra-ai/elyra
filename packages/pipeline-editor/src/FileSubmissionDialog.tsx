@@ -164,7 +164,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
             </option>
           ))}
         </select>
-        <label htmlFor="framework">Runtime Images:</label>
+        <label htmlFor="framework">Runtime Image:</label>
         <br />
         <select
           id="framework"
