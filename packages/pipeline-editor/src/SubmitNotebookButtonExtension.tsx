@@ -16,16 +16,17 @@
 
 import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
+import { LabShell } from '@jupyterlab/application';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
-
 import { IDisposable } from '@lumino/disposable';
+
 import * as React from 'react';
 
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
-import { PipelineService } from './PipelineService';
+import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import Utils from './utils';
 
 /**
@@ -37,6 +38,7 @@ import Utils from './utils';
 export class SubmitNotebookButtonExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
   private panel: NotebookPanel;
+  private shell: LabShell;
 
   showWidget = async (): Promise<void> => {
     if (this.panel.model.dirty) {
@@ -57,9 +59,21 @@ export class SubmitNotebookButtonExtension
     }
 
     const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
-    const runtimes = await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'submit notebook';
+    const runtimes = await PipelineService.getRuntimes(
+      true,
+      action
+    ).catch(error => RequestErrors.serverError(error));
+
+    if (Utils.isDialogResult(runtimes)) {
+      if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+        // Open the runtimes widget
+        this.shell = Utils.getLabShell(this.panel);
+        this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      }
+      return;
+    }
+
     const images = await PipelineService.getRuntimeImages().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -126,7 +140,7 @@ export class SubmitNotebookButtonExtension
     const submitNotebookButton = new ToolbarButton({
       label: 'Submit Notebook ...',
       onClick: this.showWidget,
-      tooltip: 'Submit Notebook ...'
+      tooltip: 'Run notebook as batch'
     });
 
     // Add the toolbar button to the notebook

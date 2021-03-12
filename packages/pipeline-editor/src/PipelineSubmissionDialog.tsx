@@ -25,62 +25,58 @@ interface IProps {
 }
 
 interface IState {
-  runtimePlatform: string;
-  runtimes: IRuntime[];
+  displayedRuntimeOptions: IRuntime[];
+  selectedRuntimePlatform: string;
+  validSchemas: ISchema[];
 }
-
-const LOCAL = 'local';
-
-const updateRuntimeOptions = (
-  allRuntimes: IRuntime[],
-  platformSelection: string
-): IRuntime[] => {
-  const filteredRuntimes =
-    platformSelection === LOCAL
-      ? [allRuntimes[0]]
-      : PipelineService.filterRuntimes(allRuntimes, platformSelection);
-
-  PipelineService.sortRuntimesByDisplayName(filteredRuntimes);
-
-  return filteredRuntimes;
-};
 
 export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
   state = {
-    runtimePlatform: LOCAL,
-    runtimes: updateRuntimeOptions(this.props.runtimes, LOCAL)
+    displayedRuntimeOptions: new Array<IRuntime>(),
+    selectedRuntimePlatform: this.props.schema[0] && this.props.schema[0].name,
+    validSchemas: new Array<ISchema>()
   };
 
   handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const selectedPlatform = event.target.value;
-    const runtimeOptions = updateRuntimeOptions(
-      this.props.runtimes,
-      selectedPlatform
-    );
+    const runtimeOptions = this.updateRuntimeOptions(selectedPlatform);
+
     this.setState({
-      runtimePlatform: selectedPlatform,
-      runtimes: runtimeOptions
+      displayedRuntimeOptions: runtimeOptions,
+      selectedRuntimePlatform: selectedPlatform
     });
   };
 
+  updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
+    const filteredRuntimeOptions = PipelineService.filterRuntimes(
+      this.props.runtimes,
+      platformSelection
+    );
+    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
+    return filteredRuntimeOptions;
+  };
+
   componentDidMount(): void {
-    {
-      this.setState({
-        runtimes: updateRuntimeOptions(
-          this.props.runtimes,
-          this.state.runtimePlatform
-        )
-      });
-    }
+    const { schema, runtimes } = this.props;
+
+    this.setState({
+      displayedRuntimeOptions: this.updateRuntimeOptions(
+        this.state.selectedRuntimePlatform
+      ),
+      validSchemas: PipelineService.filterValidSchema(runtimes, schema)
+    });
   }
 
   render(): React.ReactNode {
-    const { name, schema } = this.props;
-    const { runtimes } = this.state;
-    const localRuntime = this.props.runtimes[0];
+    const { name } = this.props;
+    const {
+      displayedRuntimeOptions,
+      selectedRuntimePlatform,
+      validSchemas
+    } = this.state;
 
     return (
-      <form>
+      <form className="elyra-dialog-form">
         <label htmlFor="pipeline_name">Pipeline Name:</label>
         <br />
         <input
@@ -92,20 +88,17 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
         />
         <br />
         <br />
-        <label htmlFor="runtime_platform">Runtime:</label>
+        <label htmlFor="runtime_platform">Runtime Platform:</label>
         <br />
         <select
           id="runtime_platform"
           name="runtime_platform"
           className="elyra-form-runtime-platform"
           data-form-required
-          defaultValue={this.state.runtimePlatform}
+          defaultValue={selectedRuntimePlatform}
           onChange={this.handleUpdate}
         >
-          <option key={localRuntime.name} value={localRuntime.name}>
-            Local Runtime
-          </option>
-          {schema.map(schema => (
+          {validSchemas.map(schema => (
             <option key={schema.name} value={schema.name}>
               {schema.display_name}
             </option>
@@ -119,7 +112,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
           className="elyra-form-runtime-config"
           data-form-required
         >
-          {runtimes.map(runtime => (
+          {displayedRuntimeOptions.map(runtime => (
             <option key={runtime.name} value={runtime.name}>
               {runtime.display_name}
             </option>

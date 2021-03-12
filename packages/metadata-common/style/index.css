@@ -325,3 +325,7 @@ input.elyra-inputTag {
 .elyra-tags {
   margin-top: 8px;
 }
+
+.elyra-no-metadata-msg {
+  padding-left: 8px;
+}

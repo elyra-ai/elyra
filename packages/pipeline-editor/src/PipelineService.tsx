@@ -44,10 +44,10 @@ export class PipelineService {
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(showError = true): Promise<any> {
+  static async getRuntimes(showError = true, action?: string): Promise<any> {
     return MetadataService.getMetadata('runtimes').then(runtimes => {
       if (showError && Object.keys(runtimes).length === 0) {
-        return RequestErrors.noMetadataError('runtimes');
+        return RequestErrors.noMetadataError('runtimes', action);
       }
 
       return runtimes;
@@ -69,13 +69,25 @@ export class PipelineService {
 
   /**
    * Returns a list of external runtime configurations
-   * based on the runtimePLatform (Airflow or Kubeflow)
+   * based on the runtimePlatform (Airflow or Kubeflow)
    */
   static filterRuntimes = (
     runtimes: IRuntime[],
     runtimePlatform: string
   ): IRuntime[] =>
     runtimes.filter(runtime => runtime.schema_name === runtimePlatform);
+
+  /**
+   * Returns a list of external schema configurations
+   * based a list of runtimes instances
+   */
+  static filterValidSchema = (
+    runtimes: IRuntime[],
+    schema: ISchema[]
+  ): ISchema[] =>
+    schema.filter(s =>
+      runtimes.some(runtime => runtime.schema_name === s.name)
+    );
 
   /**
    * Sorts given list of runtimes by the display_name property
