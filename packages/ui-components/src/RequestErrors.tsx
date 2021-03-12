@@ -99,7 +99,7 @@ export class RequestErrors {
       title: action ? `Cannot ${action}` : 'Error retrieving metadata',
       body: (
         <div>
-          <p>No {namespace} configuration has been defined.</p>
+          <p>No {namespace.slice(0, -1)} configuration is defined.</p>
           <p>Please create one and try again.</p>
         </div>
       ),
