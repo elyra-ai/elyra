@@ -235,9 +235,17 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         try:
             run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)
         except CalledProcessError as cpe:
-            raise RuntimeError(f'Internal error executing: {cpe.stderr.decode()}') from cpe
+            error_msg = str(cpe.stderr.decode())
+            self.log.error(f'Internal error executing {file_name}: {error_msg}')
+
+            error_trim_index = error_msg.rfind('\n', 0, error_msg.rfind('Error'))
+            if error_trim_index != -1:
+                raise RuntimeError(error_msg[error_trim_index:]) from cpe
+            else:
+                raise RuntimeError('Internal error executing Python script') from cpe
         except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
+            self.log.error(f'Internal error executing {file_name}: {str(ex)}')
+            raise RuntimeError('Internal error executing Python script') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
