@@ -27,71 +27,75 @@ import * as React from 'react';
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
 export interface IDropDownProps {
+  defaultError: boolean;
+  defaultValue?: string;
+  options?: string[];
   label: string;
-  schemaField: string;
   description?: string;
-  choice?: string;
   required?: boolean;
-  defaultChoices?: string[];
-  handleDropdownChange: any;
-  error: boolean;
-  allowCreate: boolean;
+  onChange: (value: string) => any;
 }
 
-const CustomTooltip = withStyles((theme: any): any => ({
+const CustomTooltip = withStyles(_theme => ({
   tooltip: {
     fontSize: 13
   }
 }))(Tooltip);
 
-// eslint-disable-next-line func-style
-export const DropDown = (props: IDropDownProps): any => {
-  let errorText = null;
-  if (props.error) {
-    errorText = (
-      <FormHelperText error> This field is required. </FormHelperText>
-    );
-  }
+export const DropDown: React.FC<IDropDownProps> = ({
+  defaultError,
+  defaultValue,
+  options,
+  label,
+  description,
+  required,
+  onChange
+}) => {
+  const [error, setError] = React.useState(defaultError);
+  const [value, setValue] = React.useState(defaultValue);
 
-  const [choice, setChoice] = React.useState(props.choice);
-
+  // This is necessary to rerender with error when clicking the save button.
   React.useEffect(() => {
-    setChoice(props.choice);
-  }, [props.choice]);
+    setError(defaultError);
+  }, [defaultError]);
+
+  const handleChange = (newValue: string): void => {
+    setValue(newValue);
+    setError(required && newValue === '');
+    onChange(newValue);
+  };
 
   return (
     <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
-      <CustomTooltip title={props.description || ''} placement="top">
+      <CustomTooltip title={description ?? ''} placement="top">
         <Autocomplete
           id="combo-box-demo"
           freeSolo
           key="elyra-DropDown"
-          options={props.defaultChoices}
+          options={options}
           style={{ width: 300 }}
-          value={choice ?? ''}
-          onChange={(event: any, newValue: any): void => {
-            props.handleDropdownChange(props.schemaField, newValue);
-            setChoice(newValue);
+          value={value ?? ''}
+          onChange={(_event, newValue): void => {
+            handleChange(newValue);
           }}
-          renderInput={(params): any => (
+          renderInput={(params): React.ReactNode => (
             <TextField
               {...params}
-              label={props.label}
-              required={props.required}
-              error={props.error}
+              label={label}
+              required={required}
+              error={error}
               onChange={(event: any): void => {
-                props.handleDropdownChange(
-                  props.schemaField,
-                  event.target.value
-                );
+                handleChange(event.target.value);
               }}
-              placeholder={`Create or select ${props.label.toLocaleLowerCase()}`}
+              placeholder={`Create or select ${label.toLocaleLowerCase()}`}
               variant="outlined"
             />
           )}
         />
       </CustomTooltip>
-      {errorText}
+      {error === true && (
+        <FormHelperText error>This field is required.</FormHelperText>
+      )}
     </div>
   );
 };
