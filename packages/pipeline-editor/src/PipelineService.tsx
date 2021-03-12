@@ -45,9 +45,9 @@ export class PipelineService {
    * executed on these runtimes.
    */
   static async getRuntimes(showError = true, action?: string): Promise<any> {
-    return MetadataService.getMetadata('runtimes').then(runtimes => {
+    return MetadataService.getMetadata(RUNTIMES_NAMESPACE).then(runtimes => {
       if (showError && Object.keys(runtimes).length === 0) {
-        return RequestErrors.noMetadataError('runtimes', action);
+        return RequestErrors.noMetadataError('runtime', action);
       }
 
       return runtimes;
@@ -109,7 +109,7 @@ export class PipelineService {
       );
 
       if (Object.keys(runtimeImages).length === 0) {
-        return RequestErrors.noMetadataError('runtime-images');
+        return RequestErrors.noMetadataError('runtime image');
       }
 
       const images: IDictionary<string> = {};
