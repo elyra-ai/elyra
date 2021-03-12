@@ -96,6 +96,12 @@
   color: var(--jp-ui-font-color1);
 }
 
+.elyra-metadataHeader-popper li.MuiButtonBase-root {
+  display: flex;
+  justify-content: flex-start;
+  padding: 6px 16px;
+}
+
 .elyra-form-DropDown-item {
   width: 100%;
   display: flex;
