@@ -81,6 +81,11 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
   // `editorServices` should never change so make it a ref.
   const servicesRef = React.useRef(editorServices);
 
+  // This is necessary to rerender with error when clicking the save button.
+  React.useEffect(() => {
+    setError(defaultError);
+  }, [defaultError]);
+
   React.useEffect(() => {
     const handleChange = (args: any): void => {
       setError(required && args.text === '');

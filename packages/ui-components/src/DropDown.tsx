@@ -54,6 +54,11 @@ export const DropDown: React.FC<IDropDownProps> = ({
   const [error, setError] = React.useState(defaultError);
   const [value, setValue] = React.useState(defaultValue);
 
+  // This is necessary to rerender with error when clicking the save button.
+  React.useEffect(() => {
+    setError(defaultError);
+  }, [defaultError]);
+
   const handleChange = (newValue: string): void => {
     setValue(newValue);
     setError(required && newValue === '');

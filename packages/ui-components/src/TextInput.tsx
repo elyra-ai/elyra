@@ -59,6 +59,11 @@ export const TextInput: React.FC<ITextFieldProps> = ({
   const [error, setError] = React.useState(defaultError);
   const [value, setValue] = React.useState(defaultValue);
 
+  // This is necessary to rerender with error when clicking the save button.
+  React.useEffect(() => {
+    setError(defaultError);
+  }, [defaultError]);
+
   const [showPassword, setShowPassword] = React.useState(false);
 
   const toggleShowPassword = (): void => {
