@@ -186,7 +186,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                 if "notebook_op_" + node['id'].replace("-", "_") + " = NotebookOp(" in file_as_lines[i]:
                     sub_list_line_counter = 0
                     # Gets sub-list slice starting where the Notebook Op starts
-                    for line in file_as_lines[i+1:]:
+                    for line in file_as_lines[i + 1:]:
                         if 'namespace=' in line:
                             assert sample_metadata['user_namespace'] == read_key_pair(line)['value']
                         elif 'cos_endpoint=' in line:
@@ -203,7 +203,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                             for env in node['app_data']['env_vars']:
                                 var, value = env.split("=")
                                 # Gets sub-list slice starting where the env vars starts
-                                for env_line in file_as_lines[i+sub_list_line_counter+2:]:
+                                for env_line in file_as_lines[i + sub_list_line_counter + 2:]:
                                     if "AWS_ACCESS_KEY_ID" in env_line:
                                         assert sample_metadata['cos_username'] == read_key_pair(env_line,
                                                                                                 sep=':')['value']
