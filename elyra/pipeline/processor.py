@@ -20,6 +20,7 @@ import time
 
 from abc import ABC, abstractmethod
 from elyra.metadata import MetadataManager
+from elyra.pipeline.parser import Pipeline, Operation
 from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
@@ -186,6 +187,57 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             op_clause = f":'{operation_name}'" if operation_name else ""
 
             self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
+
+    @staticmethod
+    def _propagate_operation_inputs_outputs(pipeline: Pipeline, sorted_operations) -> None:
+        """
+        All previous operation outputs should be propagated throughout the pipeline.
+        In order to process this recursively, the current operation's inputs should be combined
+        from its parent's inputs (which, themselves are derived from the outputs of their parent)
+        and its parent's outputs.
+        """
+        for operation in sorted_operations:
+            parent_io = set()  # gathers inputs & outputs relative to parent
+            for parent_operation_id in operation.parent_operations:
+                parent_operation = pipeline.operations[parent_operation_id]
+                if parent_operation.inputs:
+                    parent_io.update(parent_operation.inputs)
+                if parent_operation.outputs:
+                    parent_io.update(parent_operation.outputs)
+
+            if parent_io:
+                parent_io.update(operation.inputs)
+                operation.inputs = parent_io
+
+    @staticmethod
+    def _sort_operations(operations_by_id: dict) -> list:
+        """
+        Sort the list of operations based on its dependency graph
+        """
+        ordered_operations = []
+
+        for operation in operations_by_id.values():
+            PipelineProcessor._sort_operation_dependencies(operations_by_id,
+                                                           ordered_operations,
+                                                           operation)
+
+        return ordered_operations
+
+    @staticmethod
+    def _sort_operation_dependencies(operations_by_id: dict, ordered_operations: list, operation: Operation) -> None:
+        """
+        Helper method to the main sort operation function
+        """
+        # Optimization: check if already processed
+        if operation not in ordered_operations:
+            # process each of the dependencies that needs to be executed first
+            for parent_operation_id in operation.parent_operations:
+                parent_operation = operations_by_id[parent_operation_id]
+                if parent_operation not in ordered_operations:
+                    PipelineProcessor._sort_operation_dependencies(operations_by_id,
+                                                                   ordered_operations,
+                                                                   parent_operation)
+            ordered_operations.append(operation)
 
 
 class RuntimePipelineProcess(PipelineProcessor):
