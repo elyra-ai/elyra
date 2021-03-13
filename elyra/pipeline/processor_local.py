@@ -66,7 +66,7 @@ class LocalPipelineProcessor(PipelineProcessor):
         t0_all = time.time()
 
         # Sort operations based on dependency graph (topological order)
-        operations = LocalPipelineProcessor._sort_operations(pipeline.operations)
+        operations = PipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
             try:
                 t0 = time.time()
@@ -84,36 +84,6 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError('Local pipelines does not support export functionality')
-
-    @staticmethod
-    def _sort_operations(operations_by_id: dict) -> list:
-        """
-        Sort the list of operations based on its dependency graph
-        """
-        ordered_operations = []
-
-        for operation in operations_by_id.values():
-            LocalPipelineProcessor._sort_operation_dependencies(operations_by_id,
-                                                                ordered_operations,
-                                                                operation)
-
-        return ordered_operations
-
-    @staticmethod
-    def _sort_operation_dependencies(operations_by_id: dict, ordered_operations: list, operation: Operation) -> None:
-        """
-        Helper method to the main sort operation function
-        """
-        # Optimization: check if already processed
-        if operation not in ordered_operations:
-            # process each of the dependencies that needs to be executed first
-            for parent_operation_id in operation.parent_operations:
-                parent_operation = operations_by_id[parent_operation_id]
-                if parent_operation not in ordered_operations:
-                    LocalPipelineProcessor._sort_operation_dependencies(operations_by_id,
-                                                                        ordered_operations,
-                                                                        parent_operation)
-            ordered_operations.append(operation)
 
 
 class LocalPipelineProcessorResponse(PipelineProcessorResponse):
