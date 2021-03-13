@@ -24,6 +24,7 @@ from elyra.pipeline.parser import Pipeline, Operation
 from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
+from typing import List
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
 from urllib3.exceptions import MaxRetryError
 
@@ -189,7 +190,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
 
     @staticmethod
-    def _propagate_operation_inputs_outputs(pipeline: Pipeline, sorted_operations) -> None:
+    def _propagate_operation_inputs_outputs(pipeline: Pipeline, sorted_operations: List[Operation]) -> None:
         """
         All previous operation outputs should be propagated throughout the pipeline.
         In order to process this recursively, the current operation's inputs should be combined
@@ -207,10 +208,10 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
             if parent_io:
                 parent_io.update(operation.inputs)
-                operation.inputs = parent_io
+                operation.inputs = list(parent_io)
 
     @staticmethod
-    def _sort_operations(operations_by_id: dict) -> list:
+    def _sort_operations(operations_by_id: dict) -> List[Operation]:
         """
         Sort the list of operations based on its dependency graph
         """
