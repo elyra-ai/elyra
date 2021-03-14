@@ -19,7 +19,7 @@ import { KernelSpec } from '@jupyterlab/services';
 import { HTMLSelect } from '@jupyterlab/ui-components';
 import React from 'react';
 
-import { PythonRunner } from './PythonRunner';
+import { ScriptRunner } from './ScriptRunner';
 
 const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
 
@@ -27,7 +27,7 @@ const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
  * Class: Holds properties for toolbar dropdown.
  */
 class DropDownProps {
-  runner: PythonRunner;
+  runner: ScriptRunner;
   updateKernel: Function;
 }
 
@@ -53,13 +53,13 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
     this.state = { kernelSpecs: null };
     this.updateKernel = this.props.updateKernel;
     this.kernelOptionElems = [];
-    this.getKernelSPecs();
+    this.getKernelSpecs();
   }
 
   /**
    * Function: Gets kernel specs and state.
    */
-  private async getKernelSPecs(): Promise<void> {
+  private async getKernelSpecs(): Promise<void> {
     const specs: KernelSpec.ISpecModels = await this.props.runner.getKernelSpecs();
     this.filterPythonKernels(specs);
 
@@ -123,13 +123,13 @@ class DropDown extends React.Component<DropDownProps, DropDownState> {
  * Class: A CellTypeSwitcher widget that renders the Dropdown component.
  */
 export class KernelDropdown extends ReactWidget {
-  private runner: PythonRunner;
+  private runner: ScriptRunner;
   private updateKernel: Function;
 
   /**
    * Construct a new CellTypeSwitcher widget.
    */
-  constructor(runner: PythonRunner, updateKernel: Function) {
+  constructor(runner: ScriptRunner, updateKernel: Function) {
     super();
     this.runner = runner;
     this.updateKernel = updateKernel;

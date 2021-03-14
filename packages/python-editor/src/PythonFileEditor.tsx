@@ -47,7 +47,7 @@ import {
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 
 import { KernelDropdown } from './KernelDropdown';
-import { PythonRunner } from './PythonRunner';
+import { ScriptRunner } from './ScriptRunner';
 
 /**
  * The CSS class added to widgets.
@@ -62,13 +62,13 @@ const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
 const TOOLBAR_CLASS = 'elyra-PythonEditor-Toolbar';
 
 /**
- * A widget for python editors.
+ * A widget for script editors.
  */
 export class PythonFileEditor extends DocumentWidget<
   FileEditor,
   DocumentRegistry.ICodeModel
 > {
-  private runner: PythonRunner;
+  private runner: ScriptRunner;
   private kernelName: string;
   private dockPanel: DockPanelSvg;
   private outputAreaWidget: OutputArea;
@@ -86,7 +86,7 @@ export class PythonFileEditor extends DocumentWidget<
     super(options);
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
     this.model = this.content.model;
-    this.runner = new PythonRunner(this.model, this.context, this.disableRun);
+    this.runner = new ScriptRunner(this.disableRun);
     this.kernelName = null;
     this.emptyOutput = true;
     this.runDisabled = false;
@@ -106,7 +106,7 @@ export class PythonFileEditor extends DocumentWidget<
     const runButton = new ToolbarButton({
       className: RUN_BUTTON_CLASS,
       icon: runIcon,
-      onClick: this.runPython,
+      onClick: this.runScript,
       tooltip: 'Run'
     });
 
@@ -163,18 +163,24 @@ export class PythonFileEditor extends DocumentWidget<
   };
 
   /**
-   * Function: Clears existing output area and runs python code from file editor.
+   * Function: Clears existing output area and runs script
+   * code from file editor in the selected kernel context.
    */
-  private runPython = async (): Promise<void> => {
+  private runScript = async (): Promise<void> => {
     if (!this.runDisabled) {
       this.resetOutputArea();
       this.displayOutputArea();
-      this.runner.runPython(this.kernelName, this.handleKernelMsg);
+      await this.runner.runScript(
+        this.kernelName,
+        this.context.path,
+        this.model.value.text,
+        this.handleKernelMsg
+      );
     }
   };
 
   private stopRun = async (): Promise<void> => {
-    this.runner.shutdownSession();
+    await this.runner.shutdownSession();
     if (!this.dockPanel.isEmpty) {
       this.updatePromptText(' ');
     }
