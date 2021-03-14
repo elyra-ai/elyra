@@ -106,6 +106,23 @@ You can build and install all Elyra packages with:
 ```bash
 make clean install
 ```
+##### Windows Users
+
+Windows does not recognize `make`
+
+You can get Windows to recognize make with:
+
+If you have Chocolatey:
+
+```bash
+choco install make
+```
+
+or 
+
+```bash
+conda install m2-base
+```
 
 You can check that the notebook server extension was successful installed with:
 ```bash
