@@ -76,7 +76,7 @@ class LocalPipelineProcessor(PipelineProcessor):
                                        operation_name=operation.name,
                                        duration=(time.time() - t0))
             except Exception as ex:
-                raise RuntimeError(f'Error processing operation {operation.name}: {str(ex)}.') from ex
+                raise RuntimeError(f'Error processing node {operation.name} {str(ex)}.') from ex
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
@@ -206,12 +206,13 @@ class NotebookOperationProcessor(FileOperationProcessor):
                 **additional_kwargs
             )
         except papermill.PapermillExecutionError as pmee:
-            self.log.error(f'Internal error executing {file_name}: {str(pmee.ename)}' +
-                           f'{str(pmee.evalue)} in [{str(pmee.exec_count)}]')
-            raise RuntimeError(f'{str(pmee.ename)} {str(pmee.evalue)} in [{str(pmee.exec_count)}]') from pmee
+            self.log.error(f'Error executing {file_name}: {str(pmee.ename)} {str(pmee.evalue)} ' +
+                           f'in cell {pmee.cell_index}')
+            raise RuntimeError(f'({file_name}): {str(pmee.ename)} {str(pmee.evalue)} ' +
+                               f'in cell {pmee.cell_index}') from pmee
         except Exception as ex:
-            self.log.error(f'Internal error executing {file_name}: {str(ex)}')
-            raise RuntimeError('Internal error executing notebook') from ex
+            self.log.error(f'Error executing {file_name}: {str(ex)}')
+            raise RuntimeError(f'({file_name})') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
@@ -241,16 +242,16 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
             run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)
         except CalledProcessError as cpe:
             error_msg = str(cpe.stderr.decode())
-            self.log.error(f'Internal error executing {file_name}: {error_msg}')
+            self.log.error(f'Error executing {file_name}: {error_msg}')
 
             error_trim_index = error_msg.rfind('\n', 0, error_msg.rfind('Error'))
             if error_trim_index != -1:
-                raise RuntimeError(error_msg[error_trim_index:]) from cpe
+                raise RuntimeError(f'({file_name}): {error_msg[error_trim_index:].strip()}') from cpe
             else:
-                raise RuntimeError('Internal error executing Python script') from cpe
+                raise RuntimeError(f'({file_name})') from cpe
         except Exception as ex:
-            self.log.error(f'Internal error executing {file_name}: {str(ex)}')
-            raise RuntimeError('Internal error executing Python script') from ex
+            self.log.error(f'Error executing {file_name}: {str(ex)}')
+            raise RuntimeError(f'({file_name})') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
