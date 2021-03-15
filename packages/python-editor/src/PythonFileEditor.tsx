@@ -45,8 +45,10 @@ import {
   TabBarSvg
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
+import React from 'react';
 
-import { KernelDropdown } from './KernelDropdown';
+import { KernelDropdown, ISelect } from './KernelDropdown';
+import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
 /**
@@ -76,6 +78,7 @@ export class PythonFileEditor extends DocumentWidget<
   private model: any;
   private emptyOutput: boolean;
   private runDisabled: boolean;
+  private kernelDropDown: KernelDropdown;
 
   /**
    * Construct a new editor widget.
@@ -87,6 +90,7 @@ export class PythonFileEditor extends DocumentWidget<
     this.addClass(PYTHON_FILE_EDITOR_CLASS);
     this.model = this.content.model;
     this.runner = new ScriptRunner(this.disableRun);
+    this.kernelDropDown = null;
     this.kernelName = null;
     this.emptyOutput = true;
     this.runDisabled = false;
@@ -100,8 +104,6 @@ export class PythonFileEditor extends DocumentWidget<
       onClick: this.saveFile,
       tooltip: 'Save file contents'
     });
-
-    const dropDown = new KernelDropdown(this.runner, this.updateSelectedKernel);
 
     const runButton = new ToolbarButton({
       className: RUN_BUTTON_CLASS,
@@ -121,13 +123,22 @@ export class PythonFileEditor extends DocumentWidget<
     toolbar.addItem('save', saveButton);
     toolbar.addItem('run', runButton);
     toolbar.addItem('stop', stopButton);
-    toolbar.addItem('select', dropDown);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
 
     // Create output area widget
     this.createOutputAreaWidget();
   }
+
+  componentDidMount = async (): Promise<void> => {
+    console.log('>>> inside componentDidMount');
+    const controller = new ScriptEditorController();
+    const kernelSpecs = await controller.getKernelSpecsByLanguage('python');
+    const ref = React.createRef<ISelect>();
+    this.kernelDropDown = new KernelDropdown(kernelSpecs, ref);
+
+    this.toolbar.addItem('select', this.kernelDropDown);
+  };
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.
@@ -155,12 +166,12 @@ export class PythonFileEditor extends DocumentWidget<
     layout.addWidget(this.dockPanel);
   };
 
-  /**
-   * Function: Updates kernel settings as per drop down selection.
-   */
-  private updateSelectedKernel = (selection: string): void => {
-    this.kernelName = selection;
-  };
+  // /**
+  //  * Function: Updates kernel settings as per drop down selection.
+  //  */
+  // private updateSelectedKernel = (selection: string): void => {
+  //   this.kernelName = selection;
+  // };
 
   /**
    * Function: Clears existing output area and runs script
