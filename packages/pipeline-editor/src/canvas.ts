@@ -30,14 +30,14 @@ import { PipelineService } from './PipelineService';
 
 enum ContentType {
   notebook = 'notebook',
-  python = 'python',
-  r = 'r',
+  python_script = 'python',
+  r_script = 'r',
   other = 'other'
 }
 
 const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
-  ['.py', ContentType.python],
-  ['.r', ContentType.r],
+  ['.py', ContentType.python_script],
+  ['.r', ContentType.r_script],
   ['.ipynb', ContentType.notebook]
 ]);
 
