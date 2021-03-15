@@ -108,7 +108,7 @@ make clean install
 ```
 ##### Windows Users
 
-Windows does not recognize `make`
+Windows does not recognize `make` command
 
 You can get Windows to recognize make with:
 
