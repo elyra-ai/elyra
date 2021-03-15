@@ -110,7 +110,7 @@ make clean install
 
 Windows does not recognize `make` command
 
-You can get Windows to recognize make with:
+You can install `make` on Windows with:
 
 If you have Chocolatey:
 
