@@ -63,7 +63,7 @@ If desired, you can install these Elyra extensions independently:
    pip install --upgrade elyra-python-editor-extension && jupyter lab build
    ```
 
-**NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use Pip 20.3, you need to add option `--use-deprecated legacy-resolver` to your pip install command.
+**NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
 
 
 ### conda
