@@ -35,7 +35,9 @@ Cypress.Commands.add('createRuntimeConfig', (): void => {
   cy.get(
     'button.elyra-metadataHeader-button[title="Create new runtimes"]'
   ).click();
-  cy.get('li.MuiListItem-button[title="New Apache Airflow runtime"]').click();
+  cy.get(
+    'li.elyra-MuiListItem-button[title="New Apache Airflow runtime"]'
+  ).click();
   cy.get('.elyra-metadataEditor-form-display_name').type('Test Runtime');
   cy.get('.elyra-metadataEditor-form-api_endpoint').type(
     'https://kubernetes-service.ibm.com/pipeline'
