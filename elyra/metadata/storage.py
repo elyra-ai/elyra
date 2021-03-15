@@ -280,11 +280,11 @@ class FileMetadataStore(MetadataStore):
         # then system, where shared files will reside
         # Note, we're using getattr for these, since tests adjust the value of these
         # and we need to pull them at runtime, rather than during load.
-        system_path = getattr(jupyter_core.paths, 'SYSTEM_JUPYTER_PATH')
+        system_path = jupyter_core.paths.SYSTEM_JUPYTER_PATH
         paths.extend(system_path)
 
         # then sys.prefix, where installed files will reside (factory data)
-        env_path = getattr(jupyter_core.paths, 'ENV_JUPYTER_PATH')
+        env_path = jupyter_core.paths.ENV_JUPYTER_PATH
         for p in env_path:
             if p not in system_path:
                 paths.append(p)
