@@ -36,10 +36,6 @@
   font-weight: bold;
 }
 
-.MuiButtonGroup-grouped.elyra-metadataHeader-button {
-  min-width: auto;
-}
-
 .elyra-metadataHeader-popper {
   z-index: 100;
 }
@@ -96,12 +92,6 @@
   color: var(--jp-ui-font-color1);
 }
 
-.elyra-metadataHeader-popper li.MuiButtonBase-root {
-  display: flex;
-  justify-content: flex-start;
-  padding: 6px 16px;
-}
-
 .elyra-form-DropDown-item {
   width: 100%;
   display: flex;
@@ -154,19 +144,6 @@
 .elyra-metadataEditor-formInput {
   margin: 10px;
   flex-basis: 45%;
-}
-
-.elyra-metadataEditor .MuiButtonBase-root {
-  padding: 5px 15px;
-}
-
-.elyra-metadataEditor-saveButton .MuiButtonBase-root {
-  border-color: var(--jp-border-color0);
-  color: var(--jp-ui-font-color1);
-}
-
-.elyra-metadataEditor-saveButton .MuiButton-outlinedPrimary:hover {
-  border-color: var(--jp-ui-font-color1);
 }
 
 .elyra-metadata-editor {

@@ -87,11 +87,25 @@ if (window.ELYRA_generateClassName === undefined) {
   window.ELYRA_generateClassName = createGenerateClassName();
 }
 
+const overrides = {
+  MuiFormControl: {
+    root: {
+      width: '100%'
+    }
+  },
+  MuiButtonBase: {
+    root: {
+      padding: '5px 15px'
+    }
+  }
+};
+
 if (window.ELYRA_darkTheme === undefined) {
   window.ELYRA_darkTheme = createMuiTheme({
     palette: {
       type: 'dark'
-    }
+    },
+    overrides
   });
 }
 
@@ -99,7 +113,8 @@ if (window.ELYRA_lightTheme === undefined) {
   window.ELYRA_lightTheme = createMuiTheme({
     palette: {
       type: 'light'
-    }
+    },
+    overrides
   });
 }
 

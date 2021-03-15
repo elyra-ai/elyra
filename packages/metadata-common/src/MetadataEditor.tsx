@@ -34,7 +34,13 @@ import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
-import { InputLabel, FormHelperText, Button, Link } from '@material-ui/core';
+import {
+  InputLabel,
+  FormHelperText,
+  Button,
+  Link,
+  styled
+} from '@material-ui/core';
 
 import * as React from 'react';
 
@@ -136,6 +142,14 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
     </div>
   );
 };
+
+const SaveButton = styled(Button)({
+  borderColor: 'var(--jp-border-color0)',
+  color: 'var(--jp-ui-font-color1)',
+  '&:hover': {
+    borderColor: ' var(--jp-ui-font-color1)'
+  }
+});
 
 /**
  * Metadata editor widget
@@ -599,7 +613,7 @@ export class MetadataEditor extends ReactWidget {
             }
             key={'SaveButton'}
           >
-            <Button
+            <SaveButton
               variant="outlined"
               color="primary"
               onClick={(): void => {
@@ -607,7 +621,7 @@ export class MetadataEditor extends ReactWidget {
               }}
             >
               Save & Close
-            </Button>
+            </SaveButton>
           </div>
         </div>
       </ThemeProvider>
