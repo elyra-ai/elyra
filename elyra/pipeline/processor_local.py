@@ -207,9 +207,9 @@ class NotebookOperationProcessor(FileOperationProcessor):
             )
         except papermill.PapermillExecutionError as pmee:
             self.log.error(f'Error executing {file_name}: {str(pmee.ename)} {str(pmee.evalue)} ' +
-                           f'in cell {pmee.cell_index}')
+                           f'in cell {pmee.exec_count}')
             raise RuntimeError(f'({file_name}): {str(pmee.ename)} {str(pmee.evalue)} ' +
-                               f'in cell {pmee.cell_index}') from pmee
+                               f'in cell {pmee.exec_count}') from pmee
         except Exception as ex:
             self.log.error(f'Error executing {file_name}: {str(ex)}')
             raise RuntimeError(f'({file_name})') from ex
