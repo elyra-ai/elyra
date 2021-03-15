@@ -107,7 +107,7 @@ def test_pipeline_execution_bad_notebook(pipeline_dir):
 
     with pytest.raises(RuntimeError) as e:
         LocalPipelineProcessor(pipeline_dir).process(pipeline)
-    assert 'Error processing operation node3' in str(e.value)
+    assert 'Error processing node node3' in str(e.value)
 
     # Confirm outputs (and non-outputs)
     for node in processed_nodes:
@@ -133,7 +133,7 @@ def test_pipeline_execution_bad_python(pipeline_dir):
 
     with pytest.raises(RuntimeError) as e:
         LocalPipelineProcessor(pipeline_dir).process(pipeline)
-    assert 'Error processing operation node2' in str(e.value)
+    assert 'Error processing node node2' in str(e.value)
 
     # Confirm outputs (and non-outputs)
     for node in processed_nodes:
