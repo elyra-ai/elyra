@@ -77,7 +77,8 @@
           "default": "Argo",
           "uihints": {
             "field_type": "dropdown",
-            "category": "Kubeflow Pipelines"
+            "category": "Kubeflow Pipelines",
+            "placeholder": "Select engine type"
           }
         },
         "cos_endpoint": {
