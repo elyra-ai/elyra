@@ -206,6 +206,9 @@ class NotebookOperationProcessor(FileOperationProcessor):
                 **additional_kwargs
             )
         except papermill.PapermillExecutionError as pmee:
+            if pmee.evalue and pmee.evalue[-1] in ['.', '?', '!']:
+                pmee.evalue = pmee.evalue[:len(pmee.evalue) - 1]
+
             self.log.error(f'Error executing {file_name}: {str(pmee.ename)} {str(pmee.evalue)} ' +
                            f'in cell {pmee.exec_count}')
             raise RuntimeError(f'({file_name}): {str(pmee.ename)} {str(pmee.evalue)} ' +
