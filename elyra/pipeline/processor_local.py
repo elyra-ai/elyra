@@ -209,10 +209,10 @@ class NotebookOperationProcessor(FileOperationProcessor):
             if pmee.evalue and pmee.evalue[-1] in ['.', '?', '!']:
                 pmee.evalue = pmee.evalue[:len(pmee.evalue) - 1]
 
-            self.log.error(f'Error executing {file_name}: {str(pmee.ename)} {str(pmee.evalue)} ' +
-                           f'in cell {pmee.exec_count}')
-            raise RuntimeError(f'({file_name}): {str(pmee.ename)} {str(pmee.evalue)} ' +
-                               f'in cell {pmee.exec_count}') from pmee
+            self.log.error(f'Error executing {file_name} in cell {pmee.exec_count}: ' +
+                           f'{str(pmee.ename)} {str(pmee.evalue)}')
+            raise RuntimeError(f'({file_name}) in cell {pmee.exec_count}: ' +
+                               f'{str(pmee.ename)} {str(pmee.evalue)}') from pmee
         except Exception as ex:
             self.log.error(f'Error executing {file_name}: {str(ex)}')
             raise RuntimeError(f'({file_name})') from ex
