@@ -76,7 +76,7 @@ class LocalPipelineProcessor(PipelineProcessor):
                                        operation_name=operation.name,
                                        duration=(time.time() - t0))
             except Exception as ex:
-                raise RuntimeError(f'Error processing node {operation.name} {str(ex)}.') from ex
+                raise RuntimeError(f'Error processing node {operation.name} {str(ex)}') from ex
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
@@ -206,9 +206,6 @@ class NotebookOperationProcessor(FileOperationProcessor):
                 **additional_kwargs
             )
         except papermill.PapermillExecutionError as pmee:
-            if pmee.evalue and pmee.evalue[-1] in ['.', '?', '!']:
-                pmee.evalue = pmee.evalue[:len(pmee.evalue) - 1]
-
             self.log.error(f'Error executing {file_name} in cell {pmee.exec_count}: ' +
                            f'{str(pmee.ename)} {str(pmee.evalue)}')
             raise RuntimeError(f'({file_name}) in cell {pmee.exec_count}: ' +
