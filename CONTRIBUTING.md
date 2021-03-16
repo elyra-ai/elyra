@@ -26,6 +26,7 @@ The [Elyra community repo](https://github.com/elyra-ai/community) contains infor
 is organized and other information that is pertinent to contributing.
 
 ### Getting Started
+
 It's encouraged that you look under the [Issues](https://github.com/elyra-ai/elyra/issues) tab for contribution opportunites.
 For those new to the project, we suggest looking under:
 
