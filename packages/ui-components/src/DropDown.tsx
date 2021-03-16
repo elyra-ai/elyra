@@ -34,6 +34,8 @@ export interface IDropDownProps {
   description?: string;
   required?: boolean;
   onChange: (value: string) => any;
+  placeholder?: string;
+  initialValue?: string;
 }
 
 const CustomTooltip = withStyles(_theme => ({
@@ -49,10 +51,12 @@ export const DropDown: React.FC<IDropDownProps> = ({
   label,
   description,
   required,
-  onChange
+  onChange,
+  placeholder,
+  initialValue
 }) => {
   const [error, setError] = React.useState(defaultError);
-  const [value, setValue] = React.useState(defaultValue);
+  const [value, setValue] = React.useState(initialValue || defaultValue);
 
   // This is necessary to rerender with error when clicking the save button.
   React.useEffect(() => {
@@ -87,7 +91,9 @@ export const DropDown: React.FC<IDropDownProps> = ({
               onChange={(event: any): void => {
                 handleChange(event.target.value);
               }}
-              placeholder={`Create or select ${label.toLocaleLowerCase()}`}
+              placeholder={
+                placeholder || `Create or select ${label.toLocaleLowerCase()}`
+              }
               variant="outlined"
             />
           )}
