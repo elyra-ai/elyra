@@ -36,7 +36,7 @@ settings_path = './etc/config/settings/*.json'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 
 # kfp_packages = [
-#     'kfp-notebook~=0.20.0',
+#     'kfp-notebook~=0.21.0',
 #     'kfp==1.3.0',
 #     'kfp-tekton==0.6.0',
 #     ]
