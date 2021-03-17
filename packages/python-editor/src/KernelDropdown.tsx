@@ -52,7 +52,7 @@ const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
   return (
     <select
       className={DROPDOWN_CLASS}
-      onChange={e => setSelection(e.target.value)}
+      onChange={(e): void => setSelection(e.target.value)}
       value={selection}
     >
       {Object.entries(specs.kernelspecs).map(([key, val]) => (
@@ -82,9 +82,6 @@ export class KernelDropdown extends ReactWidget {
     return (
       <div>
         <DropDown ref={this.ref} specs={this.specs} />
-        <button onClick={(): void => alert(this.ref.current?.getSelection())}>
-          show selection
-        </button>
       </div>
     );
   }

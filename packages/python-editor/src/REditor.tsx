@@ -38,35 +38,36 @@ import {
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
   DockPanelSvg,
-  pythonIcon,
+  rKernelIcon,
   runIcon,
   saveIcon,
   stopIcon,
   TabBarSvg
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
+
 import React from 'react';
 
-import { KernelDropdown, ISelect } from './KernelDropdown';
+import { ISelect, KernelDropdown } from './KernelDropdown';
 import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
 /**
  * The CSS class added to widgets.
  */
-const PYTHON_FILE_EDITOR_CLASS = 'elyra-PythonEditor';
-const OUTPUT_AREA_CLASS = 'elyra-PythonEditor-OutputArea';
-const OUTPUT_AREA_ERROR_CLASS = 'elyra-PythonEditor-OutputArea-error';
-const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
-const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
-const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
-const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
-const TOOLBAR_CLASS = 'elyra-PythonEditor-Toolbar';
+const R_FILE_EDITOR_CLASS = 'elyra-REditor';
+const OUTPUT_AREA_CLASS = 'elyra-REditor-OutputArea';
+const OUTPUT_AREA_ERROR_CLASS = 'elyra-REditor-OutputArea-error';
+const OUTPUT_AREA_CHILD_CLASS = 'elyra-REditor-OutputArea-child';
+const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-REditor-OutputArea-output';
+const OUTPUT_AREA_PROMPT_CLASS = 'elyra-REditor-OutputArea-prompt';
+const RUN_BUTTON_CLASS = 'elyra-REditor-Run';
+const TOOLBAR_CLASS = 'elyra-REditor-Toolbar';
 
 /**
  * A widget for script editors.
  */
-export class PythonFileEditor extends DocumentWidget<
+export class REditor extends DocumentWidget<
   FileEditor,
   DocumentRegistry.ICodeModel
 > {
@@ -87,7 +88,7 @@ export class PythonFileEditor extends DocumentWidget<
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
-    this.addClass(PYTHON_FILE_EDITOR_CLASS);
+    this.addClass(R_FILE_EDITOR_CLASS);
     this.model = this.content.model;
     this.runner = new ScriptRunner(this.disableRun);
     this.kernelDropDown = null;
@@ -95,8 +96,8 @@ export class PythonFileEditor extends DocumentWidget<
     this.emptyOutput = true;
     this.runDisabled = false;
 
-    // Add python icon to main tab
-    this.title.icon = pythonIcon;
+    // Add R icon to main tab
+    this.title.icon = rKernelIcon;
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -129,24 +130,22 @@ export class PythonFileEditor extends DocumentWidget<
     // Create output area widget
     this.createOutputAreaWidget();
 
-    this.initializeEditor();
+    this.initializeREditor();
   }
 
-  initializeEditor = async (): Promise<void> => {
+  async initializeREditor(): Promise<void> {
     const controller = new ScriptEditorController();
-    const kernelSpecs = await controller.getKernelSpecsByLanguage('python');
+    const kernelSpecs = await controller.getKernelSpecsByLanguage('R');
     const ref = React.createRef<ISelect>();
     this.kernelDropDown = new KernelDropdown(kernelSpecs, ref);
 
     this.toolbar.addItem('select', this.kernelDropDown);
-  };
+  }
 
   // componentDidMount = async (): Promise<void> => {
-  //   console.log('>>> inside componentDidMount');
   //   const controller = new ScriptEditorController();
-  //   const kernelSpecs = await controller.getKernelSpecsByLanguage('python');
-  //   const ref = React.createRef<ISelect>();
-  //   this.kernelDropDown = new KernelDropdown(kernelSpecs, ref);
+  //   const kernelSpecs = await controller.getKernelSpecsByLanguage('ir');
+  //   this.kernelDropDown = new KernelDropdown(kernelSpecs);
 
   //   this.toolbar.addItem('select', this.kernelDropDown);
   // };
@@ -248,8 +247,8 @@ export class PythonFileEditor extends DocumentWidget<
   ): void => {
     const scrollUpButton = document.createElement('button');
     const scrollDownButton = document.createElement('button');
-    scrollUpButton.className = 'elyra-PythonEditor-scrollTop';
-    scrollDownButton.className = 'elyra-PythonEditor-scrollBottom';
+    scrollUpButton.className = 'elyra-REditor-scrollTop';
+    scrollDownButton.className = 'elyra-REditor-scrollBottom';
     scrollUpButton.onclick = function(): void {
       scrollingWidget.node.scrollTop = 0;
     };
@@ -286,8 +285,8 @@ export class PythonFileEditor extends DocumentWidget<
       this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
       const outputTab: TabBarSvg<Widget> = this.dockPanel.tabBars().next();
-      outputTab.id = 'tab-python-editor-output';
-      outputTab.currentTitle.label = 'Python Console Output';
+      outputTab.id = 'tab-r-editor-output';
+      outputTab.currentTitle.label = 'Console Output';
       outputTab.currentTitle.closable = true;
       outputTab.disposed.connect((sender, args) => {
         this.stopRun();
@@ -320,7 +319,7 @@ export class PythonFileEditor extends DocumentWidget<
   };
 
   /**
-   * Function: Displays python code in OutputArea widget.
+   * Function: Displays r code in OutputArea widget.
    */
   private displayOutput = (output: string): void => {
     if (output) {
@@ -408,16 +407,16 @@ export class PythonFileEditor extends DocumentWidget<
 }
 
 /**
- * A widget factory for python editors.
+ * A widget factory for r editors.
  */
-export class PythonFileEditorFactory extends ABCWidgetFactory<
-  PythonFileEditor,
+export class REditorFactory extends ABCWidgetFactory<
+  REditor,
   DocumentRegistry.ICodeModel
 > {
   /**
    * Construct a new editor widget factory.
    */
-  constructor(options: PythonFileEditorFactory.IOptions) {
+  constructor(options: REditorFactory.IOptions) {
     super(options.factoryOptions);
     this._services = options.editorServices;
   }
@@ -425,9 +424,7 @@ export class PythonFileEditorFactory extends ABCWidgetFactory<
   /**
    * Create a new widget given a context.
    */
-  protected createNewWidget(
-    context: DocumentRegistry.CodeContext
-  ): PythonFileEditor {
+  protected createNewWidget(context: DocumentRegistry.CodeContext): REditor {
     const func = this._services.factoryService.newDocumentEditor;
     const factory: CodeEditor.Factory = options => {
       return func(options);
@@ -437,16 +434,16 @@ export class PythonFileEditorFactory extends ABCWidgetFactory<
       context,
       mimeTypeService: this._services.mimeTypeService
     });
-    return new PythonFileEditor({ content, context });
+    return new REditor({ content, context });
   }
 
   private _services: IEditorServices;
 }
 
 /**
- * The namespace for `PythonFileEditorFactory` class statics.
+ * The namespace for `REditorFactory` class statics.
  */
-export namespace PythonFileEditorFactory {
+export namespace REditorFactory {
   /**
    * The options used to create an editor widget factory.
    */
@@ -459,6 +456,6 @@ export namespace PythonFileEditorFactory {
     /**
      * The factory options associated with the factory.
      */
-    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<PythonFileEditor>;
+    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<REditor>;
   }
 }
