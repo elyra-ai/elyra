@@ -45,9 +45,11 @@ class LocalPipelineProcessor(PipelineProcessor):
         super(LocalPipelineProcessor, self).__init__(root_dir, **kwargs)
         notebook_op_processor = NotebookOperationProcessor(self.root_dir)
         python_op_processor = PythonScriptOperationProcessor(self.root_dir)
+        r_op_processor = RScriptOperationProcessor(self.root_dir)
         self._operation_processor_registry = {
             notebook_op_processor.operation_name: notebook_op_processor,
-            python_op_processor.operation_name: python_op_processor
+            python_op_processor.operation_name: python_op_processor,
+            r_op_processor.operation_name: r_op_processor,
         }
 
     @property
@@ -198,6 +200,35 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         self.log.debug(f'Processing python script: {filepath}')
 
         argv = ['python3', filepath, '--PYTHONHOME', file_dir]
+
+        envs = os.environ.copy()  # Make sure this process's env is "available" in subprocess
+        envs.update(operation.env_vars_as_dict())
+        t0 = time.time()
+        try:
+            run(argv, cwd=file_dir, env=envs, check=True)
+        except Exception as ex:
+            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
+
+
+class RScriptOperationProcessor(FileOperationProcessor):
+    _operation_name = 'execute-r-node'
+
+    def __init__(self, root_dir):
+        super(RScriptOperationProcessor, self).__init__(root_dir)
+
+    def process(self, operation: Operation):
+        filepath = self.get_valid_filepath(operation.filename)
+
+        file_dir = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing R script: {filepath}')
+
+        argv = ['Rscript', filepath]
 
         envs = os.environ.copy()  # Make sure this process's env is "available" in subprocess
         envs.update(operation.env_vars_as_dict())

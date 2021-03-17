@@ -111,6 +111,12 @@ describe('Pipeline Editor tests', () => {
       .trigger('mousemove')
       .trigger('mouseup', { button: 0, force: true })
       .wait(100);
+    // add R Script
+    getFileByType('r').trigger('mousedown', { button: 0 });
+    cy.get('.d3-svg-background')
+      .trigger('mousemove')
+      .trigger('mouseup', { button: 0, force: true })
+      .wait(100);
     // check buttons
     const disabledButtons = [
       '.redo-action',
