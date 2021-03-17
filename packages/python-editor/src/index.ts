@@ -16,6 +16,8 @@
 
 import '../style/index.css';
 
+import { pyIcon } from '@elyra/ui-components';
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
@@ -29,7 +31,6 @@ import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { pythonIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
 
@@ -220,7 +221,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(commandIDs.createNewFile, {
       label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
       caption: 'Create a new python file',
-      icon: args => (args['isPalette'] ? undefined : pythonIcon),
+      icon: args => (args['isPalette'] ? undefined : pyIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string);
