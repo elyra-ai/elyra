@@ -76,7 +76,7 @@ class LocalPipelineProcessor(PipelineProcessor):
                                        operation_name=operation.name,
                                        duration=(time.time() - t0))
             except Exception as ex:
-                raise RuntimeError(f'Error processing node {operation.name} {str(ex)}') from ex
+                raise RuntimeError(f'Error processing operation {operation.name} {str(ex)}') from ex
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
