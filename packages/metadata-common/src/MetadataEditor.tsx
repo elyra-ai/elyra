@@ -481,6 +481,7 @@ export class MetadataEditor extends ReactWidget {
           defaultError={uihints.error}
           placeholder={uihints.placeholder}
           defaultValue={this.schema[fieldName].default}
+          readonly={this.schema[fieldName].enum !== undefined}
           initialValue={this.metadata[fieldName]}
           options={this.getDefaultChoices(fieldName)}
           onChange={(value): void => {

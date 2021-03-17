@@ -18,7 +18,11 @@ import {
   TextField,
   FormHelperText,
   Tooltip,
-  withStyles
+  withStyles,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl
 } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 
@@ -36,6 +40,7 @@ export interface IDropDownProps {
   onChange: (value: string) => any;
   placeholder?: string;
   initialValue?: string;
+  readonly?: boolean;
 }
 
 const CustomTooltip = withStyles(_theme => ({
@@ -53,7 +58,8 @@ export const DropDown: React.FC<IDropDownProps> = ({
   required,
   onChange,
   placeholder,
-  initialValue
+  initialValue,
+  readonly
 }) => {
   const [error, setError] = React.useState(defaultError);
   const [value, setValue] = React.useState(initialValue || defaultValue);
@@ -63,41 +69,67 @@ export const DropDown: React.FC<IDropDownProps> = ({
     setError(defaultError);
   }, [defaultError]);
 
-  const handleChange = (newValue: string): void => {
-    setValue(newValue);
-    setError(required && newValue === '');
-    onChange(newValue);
+  const handleChange = (event: any): void => {
+    setValue(event.target.value);
+    setError(required && event.target.value === '');
+    onChange(event.target.value);
   };
 
   return (
     <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
       <CustomTooltip title={description ?? ''} placement="top">
-        <Autocomplete
-          id="combo-box-demo"
-          freeSolo
-          key="elyra-DropDown"
-          options={options}
-          style={{ width: 300 }}
-          value={value ?? ''}
-          onChange={(_event, newValue): void => {
-            handleChange(newValue);
-          }}
-          renderInput={(params): React.ReactNode => (
-            <TextField
-              {...params}
+        {readonly ? (
+          <FormControl variant="outlined">
+            <InputLabel error={error}>{label}</InputLabel>
+            <Select
+              value={value}
+              id={`${label}DropDown`}
               label={label}
-              required={required}
               error={error}
-              onChange={(event: any): void => {
-                handleChange(event.target.value);
-              }}
-              placeholder={
-                placeholder || `Create or select ${label.toLocaleLowerCase()}`
-              }
-              variant="outlined"
-            />
-          )}
-        />
+              onChange={handleChange}
+            >
+              {options.map((option: string) => {
+                return (
+                  <MenuItem
+                    key={`${option}MenuItem`}
+                    value={option}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'flex-start',
+                      padding: '18.5px 14px'
+                    }}
+                  >
+                    {option}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </FormControl>
+        ) : (
+          <Autocomplete
+            id="combo-box-demo"
+            freeSolo
+            key="elyra-DropDown"
+            options={options}
+            style={{ width: 300 }}
+            value={value ?? ''}
+            onChange={handleChange}
+            renderInput={(params): React.ReactNode => (
+              <TextField
+                {...params}
+                label={label}
+                required={required}
+                error={error}
+                onChange={handleChange}
+                placeholder={
+                  placeholder || `Create or select ${label.toLocaleLowerCase()}`
+                }
+                variant="outlined"
+              />
+            )}
+          />
+        )}
       </CustomTooltip>
       {error === true && (
         <FormHelperText error>This field is required.</FormHelperText>
