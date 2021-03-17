@@ -69,10 +69,10 @@ export const DropDown: React.FC<IDropDownProps> = ({
     setError(defaultError);
   }, [defaultError]);
 
-  const handleChange = (event: any): void => {
-    setValue(event.target.value);
-    setError(required && event.target.value === '');
-    onChange(event.target.value);
+  const handleChange = (newValue: string): void => {
+    setValue(newValue);
+    setError(required && newValue === '');
+    onChange(newValue);
   };
 
   return (
@@ -86,7 +86,9 @@ export const DropDown: React.FC<IDropDownProps> = ({
               id={`${label}DropDown`}
               label={label}
               error={error}
-              onChange={handleChange}
+              onChange={(event: any): void => {
+                handleChange(event.target.value);
+              }}
             >
               {options.map((option: string) => {
                 return (
@@ -114,14 +116,18 @@ export const DropDown: React.FC<IDropDownProps> = ({
             options={options}
             style={{ width: 300 }}
             value={value ?? ''}
-            onChange={handleChange}
+            onChange={(event: any, newValue: string): void => {
+              handleChange(newValue);
+            }}
             renderInput={(params): React.ReactNode => (
               <TextField
                 {...params}
                 label={label}
                 required={required}
                 error={error}
-                onChange={handleChange}
+                onChange={(event: any): void => {
+                  handleChange(event.target.value);
+                }}
                 placeholder={
                   placeholder || `Create or select ${label.toLocaleLowerCase()}`
                 }
