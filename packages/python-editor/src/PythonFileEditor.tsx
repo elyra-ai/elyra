@@ -79,6 +79,7 @@ export class PythonFileEditor extends DocumentWidget<
   private emptyOutput: boolean;
   private runDisabled: boolean;
   private kernelDropDown: KernelDropdown;
+  private controller: ScriptEditorController;
 
   /**
    * Construct a new editor widget.
@@ -94,6 +95,7 @@ export class PythonFileEditor extends DocumentWidget<
     this.kernelName = null;
     this.emptyOutput = true;
     this.runDisabled = false;
+    this.controller = new ScriptEditorController();
 
     // Add python icon to main tab
     this.title.icon = pythonIcon;
@@ -129,27 +131,19 @@ export class PythonFileEditor extends DocumentWidget<
     // Create output area widget
     this.createOutputAreaWidget();
 
-    this.initializeEditor();
+    this.initializeKernelSpecs();
   }
 
-  initializeEditor = async (): Promise<void> => {
-    const controller = new ScriptEditorController();
-    const kernelSpecs = await controller.getKernelSpecsByLanguage('python');
+  initializeKernelSpecs = async (): Promise<void> => {
+    const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
+      'python'
+    );
     const ref = React.createRef<ISelect>();
+
+    this.kernelName = kernelSpecs.default;
     this.kernelDropDown = new KernelDropdown(kernelSpecs, ref);
-
-    this.toolbar.addItem('select', this.kernelDropDown);
+    this.toolbar.insertItem(3, 'select', this.kernelDropDown);
   };
-
-  // componentDidMount = async (): Promise<void> => {
-  //   console.log('>>> inside componentDidMount');
-  //   const controller = new ScriptEditorController();
-  //   const kernelSpecs = await controller.getKernelSpecsByLanguage('python');
-  //   const ref = React.createRef<ISelect>();
-  //   this.kernelDropDown = new KernelDropdown(kernelSpecs, ref);
-
-  //   this.toolbar.addItem('select', this.kernelDropDown);
-  // };
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.

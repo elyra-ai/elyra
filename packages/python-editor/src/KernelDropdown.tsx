@@ -24,7 +24,7 @@ import React, {
   RefObject
 } from 'react';
 
-const DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown bp3-minimal';
+const KERNEL_SELECT_CLASS = 'elyra-PythonEditor-KernelSelect';
 
 export interface ISelect {
   getSelection: () => string;
@@ -51,7 +51,7 @@ const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
 
   return (
     <select
-      className={DROPDOWN_CLASS}
+      className={KERNEL_SELECT_CLASS}
       onChange={(e): void => setSelection(e.target.value)}
       value={selection}
     >
@@ -65,7 +65,7 @@ const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
 });
 
 /**
- * Warp the dropDown into a React Widget in order to insert it into a Lab Toolbar Widget
+ * Wrap the dropDown into a React Widget in order to insert it into a Lab Toolbar Widget
  */
 export class KernelDropdown extends ReactWidget {
   /**

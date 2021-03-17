@@ -85,3 +85,11 @@ button.elyra-REditor-scrollBottom:hover {
 .jp-Document .jp-Toolbar.elyra-REditor-Toolbar {
   justify-content: flex-start;
 }
+
+select.elyra-PythonEditor-KernelSelect {
+  border: none;
+  background: none;
+  color: var(--jp-ui-font-color1);
+  display: inline-block;
+  vertical-align: initial;
+}

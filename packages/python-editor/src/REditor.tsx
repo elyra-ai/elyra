@@ -80,6 +80,7 @@ export class REditor extends DocumentWidget<
   private emptyOutput: boolean;
   private runDisabled: boolean;
   private kernelDropDown: KernelDropdown;
+  private controller: ScriptEditorController;
 
   /**
    * Construct a new editor widget.
@@ -95,6 +96,7 @@ export class REditor extends DocumentWidget<
     this.kernelName = null;
     this.emptyOutput = true;
     this.runDisabled = false;
+    this.controller = new ScriptEditorController();
 
     // Add R icon to main tab
     this.title.icon = rKernelIcon;
@@ -130,25 +132,20 @@ export class REditor extends DocumentWidget<
     // Create output area widget
     this.createOutputAreaWidget();
 
-    this.initializeREditor();
+    this.initializeKernelSpecs();
   }
 
-  async initializeREditor(): Promise<void> {
-    const controller = new ScriptEditorController();
-    const kernelSpecs = await controller.getKernelSpecsByLanguage('R');
+  async initializeKernelSpecs(): Promise<void> {
+    const specs = await this.controller.getKernelSpecsByLanguage('R');
+    const kernelSpecs = specs.kernelspecs;
     const ref = React.createRef<ISelect>();
-    this.kernelDropDown = new KernelDropdown(kernelSpecs, ref);
 
+    this.kernelName =
+      Object.keys(kernelSpecs).length !== 0 &&
+      Object.values(kernelSpecs)[0].name;
+    this.kernelDropDown = new KernelDropdown(specs, ref);
     this.toolbar.addItem('select', this.kernelDropDown);
   }
-
-  // componentDidMount = async (): Promise<void> => {
-  //   const controller = new ScriptEditorController();
-  //   const kernelSpecs = await controller.getKernelSpecsByLanguage('ir');
-  //   this.kernelDropDown = new KernelDropdown(kernelSpecs);
-
-  //   this.toolbar.addItem('select', this.kernelDropDown);
-  // };
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.
@@ -176,9 +173,9 @@ export class REditor extends DocumentWidget<
     layout.addWidget(this.dockPanel);
   };
 
-  // /**
-  //  * Function: Updates kernel settings as per drop down selection.
-  //  */
+  /**
+   * Function: Updates kernel settings as per drop down selection.
+   */
   // private updateSelectedKernel = (selection: string): void => {
   //   this.kernelName = selection;
   // };

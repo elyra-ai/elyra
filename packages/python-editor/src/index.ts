@@ -119,8 +119,16 @@ const extension: JupyterFrontEndPlugin<void> = {
         command: commandIDs.openDocManager,
         args: widget => ({
           path: widget.context.path,
-          pythonFactory: PYTHON_FACTORY,
-          rFactory: R_FACTORY
+          pythonFactory: PYTHON_FACTORY
+        }),
+        name: widget => widget.context.path
+      });
+
+      void restorer.restore(rEditorTracker, {
+        command: commandIDs.openDocManager,
+        args: widget => ({
+          path: widget.context.path,
+          pythonFactory: R_FACTORY
         }),
         name: widget => widget.context.path
       });
