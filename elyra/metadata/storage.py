@@ -277,9 +277,6 @@ class FileMetadataStore(MetadataStore):
         # then user dir
         paths.append(jupyter_core.paths.jupyter_data_dir())
 
-        # then system, where shared files will reside
-        # Note, we're using getattr for these, since tests adjust the value of these
-        # and we need to pull them at runtime, rather than during load.
         system_path = jupyter_core.paths.SYSTEM_JUPYTER_PATH
         paths.extend(system_path)
 
