@@ -83,6 +83,15 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     });
 
+    app.docRegistry.addFileType({
+      name: PYTHON,
+      displayName: 'Python File',
+      extensions: ['.py'],
+      pattern: '.*\\.py$',
+      mimeTypes: ['text/x-python'],
+      icon: pyIcon
+    });
+
     const { restored } = app;
 
     /**
