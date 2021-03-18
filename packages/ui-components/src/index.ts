@@ -23,4 +23,4 @@ export * from './TextInput';
 export * from './JSONComponent';
 export * from './Dropzone';
 export * from './RequestErrors';
-export * from './ThemeComponent';
+export * from './ThemeProvider';
