@@ -17,11 +17,14 @@
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import {
   KernelManager,
-  KernelSpec,
   KernelSpecManager,
   Session,
   SessionManager
 } from '@jupyterlab/services';
+
+const KERNEL_ERROR_MSG =
+  'Could not run script because no supporting kernel is defined.';
+const SESSION_ERROR_MSG = 'Could not start session to execute script.';
 
 export interface IScriptOutput {
   readonly type: string;
@@ -70,18 +73,23 @@ export class ScriptRunner {
     code: string,
     handleKernelMsg: Function
   ): Promise<any> => {
+    if (!kernelName) {
+      this.disableRun(true);
+      return this.errorDialog(KERNEL_ERROR_MSG);
+    }
+
     if (!this.sessionConnection) {
       this.disableRun(true);
 
       try {
         await this.startSession(kernelName, contextPath);
       } catch (e) {
-        return this.errorDialog('Could not start session to execute script.');
+        return this.errorDialog(SESSION_ERROR_MSG);
       }
 
       if (!this.sessionConnection) {
         // session didn't get started
-        return this.errorDialog('Failed to start session to execute script.');
+        return this.errorDialog(SESSION_ERROR_MSG);
       }
 
       const future = this.sessionConnection.kernel.requestExecute({ code });
@@ -120,15 +128,6 @@ export class ScriptRunner {
         console.log('Exception: done = ' + JSON.stringify(e));
       }
     }
-  };
-
-  /**
-   * Function: Gets available kernel specs.
-   */
-  getKernelSpecs = async (): Promise<KernelSpec.ISpecModels> => {
-    await this.kernelSpecManager.ready;
-    const kernelSpecs = await this.kernelSpecManager.specs;
-    return kernelSpecs;
   };
 
   /**

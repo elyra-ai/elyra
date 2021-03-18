@@ -185,7 +185,7 @@ export class PythonFileEditor extends DocumentWidget<
   private runScript = async (): Promise<void> => {
     if (!this.runDisabled) {
       this.resetOutputArea();
-      this.displayOutputArea();
+      this.kernelName && this.displayOutputArea();
       await this.runner.runScript(
         this.kernelName,
         this.context.path,

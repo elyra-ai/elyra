@@ -48,6 +48,17 @@ const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
   useImperativeHandle(select, () => ({
     getSelection: (): string => selection
   }));
+  const kernelOptions = !Object.keys(specs.kernelspecs).length ? (
+    <option key="no-kernel" value="no-kernel">
+      No Kernel
+    </option>
+  ) : (
+    Object.entries(specs.kernelspecs).map(([key, val]) => (
+      <option key={key} value={key}>
+        {val.display_name || key}
+      </option>
+    ))
+  );
 
   return (
     <select
@@ -55,11 +66,7 @@ const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
       onChange={(e): void => setSelection(e.target.value)}
       value={selection}
     >
-      {Object.entries(specs.kernelspecs).map(([key, val]) => (
-        <option key={key} value={key}>
-          {val.display_name || key}
-        </option>
-      ))}
+      {kernelOptions}
     </select>
   );
 });
