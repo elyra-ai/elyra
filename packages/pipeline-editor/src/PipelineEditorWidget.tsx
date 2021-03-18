@@ -530,6 +530,10 @@ export class PipelineEditor extends React.Component<
           break;
         }
       }
+      // If still couldn't find the node, cancel this function
+      if (!node) {
+        return;
+      }
     }
     const app_data = node.app_data;
 
@@ -760,6 +764,12 @@ export class PipelineEditor extends React.Component<
             this.openPropertiesDialog(data);
           }
           break;
+        case 'deleteSelectedObjects':
+          if (data.type === 'node') {
+            if (this.state.showPropertiesDialog) {
+              this.closePropertiesDialog();
+            }
+          }
       }
     }
 
