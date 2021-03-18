@@ -765,11 +765,10 @@ export class PipelineEditor extends React.Component<
           }
           break;
         case 'deleteSelectedObjects':
-          if (data.type === 'node') {
-            if (this.state.showPropertiesDialog) {
-              this.closePropertiesDialog();
-            }
+          if (this.state.showPropertiesDialog) {
+            this.closePropertiesDialog();
           }
+          break;
       }
     }
 
