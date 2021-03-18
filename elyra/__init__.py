@@ -51,3 +51,5 @@ def _load_jupyter_server_extension(nb_server_app):
     # Create PipelineProcessorManager instance passing root directory
     PipelineProcessorManager.instance(root_dir=web_app.settings['server_root_dir'], parent=nb_server_app)
 
+# For backward compatibility
+load_jupyter_server_extension = _load_jupyter_server_extension
