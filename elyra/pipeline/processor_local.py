@@ -21,7 +21,7 @@ from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
 from notebook.gateway.managers import GatewayClient
-from subprocess import run
+from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
 from typing import Dict
 
@@ -78,7 +78,7 @@ class LocalPipelineProcessor(PipelineProcessor):
                                        operation_name=operation.name,
                                        duration=(time.time() - t0))
             except Exception as ex:
-                raise RuntimeError(f'Error processing operation {operation.name}.') from ex
+                raise RuntimeError(f'Error processing operation {operation.name} {str(ex)}') from ex
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
@@ -177,8 +177,14 @@ class NotebookOperationProcessor(FileOperationProcessor):
                 filepath,
                 **additional_kwargs
             )
+        except papermill.PapermillExecutionError as pmee:
+            self.log.error(f'Error executing {file_name} in cell {pmee.exec_count}: ' +
+                           f'{str(pmee.ename)} {str(pmee.evalue)}')
+            raise RuntimeError(f'({file_name}) in cell {pmee.exec_count}: ' +
+                               f'{str(pmee.ename)} {str(pmee.evalue)}') from pmee
         except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
+            self.log.error(f'Error executing {file_name}: {str(ex)}')
+            raise RuntimeError(f'({file_name})') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
@@ -205,9 +211,19 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         envs.update(operation.env_vars_as_dict())
         t0 = time.time()
         try:
-            run(argv, cwd=file_dir, env=envs, check=True)
+            run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)
+        except CalledProcessError as cpe:
+            error_msg = str(cpe.stderr.decode())
+            self.log.error(f'Error executing {file_name}: {error_msg}')
+
+            error_trim_index = error_msg.rfind('\n', 0, error_msg.rfind('Error'))
+            if error_trim_index != -1:
+                raise RuntimeError(f'({file_name}): {error_msg[error_trim_index:].strip()}') from cpe
+            else:
+                raise RuntimeError(f'({file_name})') from cpe
         except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
+            self.log.error(f'Error executing {file_name}: {str(ex)}')
+            raise RuntimeError(f'({file_name})') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
