@@ -493,7 +493,10 @@ export class MetadataEditor extends ReactWidget {
           description={this.schema[fieldName].description}
           required={required}
           defaultError={uihints.error}
-          defaultValue={this.metadata[fieldName]}
+          placeholder={uihints.placeholder}
+          defaultValue={this.schema[fieldName].default}
+          readonly={this.schema[fieldName].enum !== undefined}
+          initialValue={this.metadata[fieldName]}
           options={this.getDefaultChoices(fieldName)}
           onChange={(value): void => {
             this.handleDropdownChange(fieldName, value);
