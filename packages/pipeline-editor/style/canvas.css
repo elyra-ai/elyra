@@ -228,6 +228,9 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
   padding: 0px 0 18px 0;
   width: 100%;
 }
+.properties-control-item[data-id='properties-ci-runtime_image'] {
+  padding-bottom: 5px;
+}
 .properties-label-container label,
 .properties-checkbox label {
   color: var(--text-01);
