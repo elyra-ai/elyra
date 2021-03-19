@@ -19,7 +19,7 @@ import { NotebookModel } from '@jupyterlab/notebook';
 import { JupyterServer, NBTestUtils } from '@jupyterlab/testutils';
 
 import { MetadataService } from '../metadata';
-import { NotebookParser } from '../parsing';
+import { FileParser } from '../parsing';
 import { RequestHandler } from '../requests';
 jest.setTimeout(3 * 60 * 1000);
 
@@ -209,14 +209,14 @@ describe('@elyra/services', () => {
     });
   });
 
-  describe('NotebookParser', () => {
+  describe('FileParser', () => {
     describe('getEnvVars', () => {
       it('should find no env vars where there are none', () => {
         const notebook = NBTestUtils.createNotebook();
         NBTestUtils.populateNotebook(notebook);
-        expect(
-          NotebookParser.getEnvVars(notebook.model.toString())
-        ).toMatchObject([]);
+        expect(FileParser.getEnvVars(notebook.model.toString())).toMatchObject(
+          []
+        );
       });
 
       it('should find env vars', () => {
@@ -224,9 +224,7 @@ describe('@elyra/services', () => {
         const model = new NotebookModel();
         model.fromJSON(notebookWithEnvVars as nbformat.INotebookContent);
         notebook.model = model;
-        const foundEnvVars = NotebookParser.getEnvVars(
-          notebook.model.toString()
-        );
+        const foundEnvVars = FileParser.getEnvVars(notebook.model.toString());
         expect(foundEnvVars).toContain('HOME');
         expect(foundEnvVars).toContain('HOME2');
         expect(foundEnvVars).toContain('HOME3');

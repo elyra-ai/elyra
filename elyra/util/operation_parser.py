@@ -29,7 +29,7 @@ from ..util.http import HttpErrorMixin
 
 
 class OperationParserHandler(HttpErrorMixin, APIHandler):
-    """Handler to expose REST API to parse envs from Jupyter Notebook"""
+    """Handler to expose REST API to parse envs from a File"""
 
     @web.authenticated
     async def get(self):
@@ -41,12 +41,12 @@ class OperationParserHandler(HttpErrorMixin, APIHandler):
     async def post(self, *args, **kwargs):
         payload = self.get_json_body()
 
-        self.log.debug("Parsing environmental variables from notebook: %s", payload['notebook_path'])
+        self.log.debug("Parsing environmental variables from notebook: %s", payload['file_path'])
         self.log.debug("JSON payload: %s", json.dumps(payload, sort_keys=True, indent=2, separators=(',', ': ')))
 
-        notebook_path = payload['notebook_path']
+        file_path = payload['file_path']
 
-        response = await ParsingProcessorManager.operation_parser(notebook_path)
+        response = await ParsingProcessorManager.operation_parser(file_path)
         json_msg = json.dumps({"env_list": response})
 
         self.set_status(200)
@@ -57,17 +57,17 @@ class OperationParserHandler(HttpErrorMixin, APIHandler):
 
 class ParsingProcessorManager(SingletonConfigurable):
 
-    async def operation_parser(self, notebook_path):
+    async def operation_parser(self, file_path):
         res = await asyncio.get_event_loop().run_in_executor(
-            None, self.parse_operation_envs, notebook_path)
+            None, self.parse_operation_envs, file_path)
         return res
 
     @staticmethod
     def parse_operation_envs(operation_filepath: str) -> List:
         """
-        Given the path to a Jupyter Notebook, will return a list of parsed environmental variables
-        found in the cells of the notebook
-        :param operation_filepath: absolute path to a python file to be parsed
+        Given the path to a File, will return a list of parsed environmental variables
+        found in File
+        :param operation_filepath: absolute path to a File to be parsed
         :return: a list of environmental variables
         """
         operation = OperationParser.get_instance(filepath=operation_filepath)
@@ -116,7 +116,6 @@ class OperationParser(ABC):
         # TODO : Ensure this is getting the abs path
         return self._operation_filepath
 
-    @property
     @abstractmethod
     def env_list(self):
         raise NotImplementedError()

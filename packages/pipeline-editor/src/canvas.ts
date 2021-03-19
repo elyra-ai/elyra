@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { NotebookParser } from '@elyra/services';
+import { FileParser } from '@elyra/services';
 import { IconUtil, pyIcon, rIcon } from '@elyra/ui-components';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -85,7 +85,7 @@ export class CanvasManager {
 
       let env_vars: any;
       if (CanvasManager.getNodeType(file.path) == ContentType.notebook) {
-        env_vars = NotebookParser.getEnvVars(file.path).map(str => str + '=');
+        env_vars = FileParser.getEnvVars(file.path).map(str => str + '=');
       }
 
       data.nodeTemplate.label = PathExt.basename(file.path);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { NotebookParser } from '@elyra/services';
+import { FileParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -54,7 +54,7 @@ export class SubmitNotebookButtonExtension
       }
     }
 
-    const env = NotebookParser.getEnvVars(panel.content.model.toString());
+    const env = FileParser.getEnvVars(panel.content.model.toString());
     const action = 'submit notebook';
     const runtimes = await PipelineService.getRuntimes(
       true,

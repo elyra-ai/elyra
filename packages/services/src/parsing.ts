@@ -16,7 +16,7 @@
 
 import { RequestHandler } from './requests';
 
-const ELYRA_NOTEBOOK_PARSER_API_ENDPOINT = 'elyra/pipeline/operationparser/';
+const ELYRA_FILE_PARSER_API_ENDPOINT = 'elyra/pipeline/operationparser/';
 
 /**
  * An interface for typing json dictionaries in typescript
@@ -28,19 +28,19 @@ export interface IDictionary<T> {
 /**
  * A utilities class for parsing notebook files.
  */
-export class NotebookParser {
+export class FileParser {
   /**
-   * Takes in a notebook path and finds all env vars accessed in it.
-   * @param notebook_path - Path to the notebook
-   * @returns A string array of the env vars accessed in the given notebook
+   * Takes in a file_path and finds all env vars accessed in that file.
+   * @param file_path - absolute filepath to file
+   * @returns A string array of the env vars accessed in the given file
    */
-  static async getEnvVars(notebook_path: string): Promise<any> {
+  static async getEnvVars(file_path: string): Promise<any> {
     const body = {
-      notebook_path: notebook_path
+      file_path: file_path
     };
     try {
       const response = await RequestHandler.makePostRequest(
-        ELYRA_NOTEBOOK_PARSER_API_ENDPOINT,
+        ELYRA_FILE_PARSER_API_ENDPOINT,
         JSON.stringify(body)
       );
       const response_json = JSON.parse(response);
