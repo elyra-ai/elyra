@@ -162,10 +162,10 @@ def create_instance(metadata_store: MetadataStore, location: str, name: str, con
         else:
             create_file(location, name + '.json', content)
     elif isinstance(metadata_store, MockMetadataStore):
-        instances = getattr(metadata_store, 'instances')
+        instances = metadata_store.instances
         if instances is None:
             setattr(metadata_store, 'instances', dict())
-            instances = getattr(metadata_store, 'instances')
+            instances = metadata_store.instances
         if not isinstance(content, dict):
             content = {'display_name': name, 'reason': "JSON failed to load for instance '{}'".format(name)}
         instances[name] = content

@@ -109,7 +109,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
     filenames_set = set(filenames or [])
 
     # If there's a '*' - less things to check.
-    include_all = len(set([WILDCARDS[0]]) & filenames_set) > 0
+    include_all = len({WILDCARDS[0]} & filenames_set) > 0
     processed_filenames = []
     matched_set = set()
     temp_dir = create_project_temp_dir()

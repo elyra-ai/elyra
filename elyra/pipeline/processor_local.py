@@ -21,7 +21,7 @@ from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
 from notebook.gateway.managers import GatewayClient
-from subprocess import run
+from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
 from typing import Dict
 
@@ -45,9 +45,11 @@ class LocalPipelineProcessor(PipelineProcessor):
         super(LocalPipelineProcessor, self).__init__(root_dir, **kwargs)
         notebook_op_processor = NotebookOperationProcessor(self.root_dir)
         python_op_processor = PythonScriptOperationProcessor(self.root_dir)
+        r_op_processor = RScriptOperationProcessor(self.root_dir)
         self._operation_processor_registry = {
             notebook_op_processor.operation_name: notebook_op_processor,
-            python_op_processor.operation_name: python_op_processor
+            python_op_processor.operation_name: python_op_processor,
+            r_op_processor.operation_name: r_op_processor,
         }
 
     @property
@@ -76,7 +78,7 @@ class LocalPipelineProcessor(PipelineProcessor):
                                        operation_name=operation.name,
                                        duration=(time.time() - t0))
             except Exception as ex:
-                raise RuntimeError(f'Error processing operation {operation.name}.') from ex
+                raise RuntimeError(f'Error processing operation {operation.name} {str(ex)}') from ex
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
@@ -175,8 +177,14 @@ class NotebookOperationProcessor(FileOperationProcessor):
                 filepath,
                 **additional_kwargs
             )
+        except papermill.PapermillExecutionError as pmee:
+            self.log.error(f'Error executing {file_name} in cell {pmee.exec_count}: ' +
+                           f'{str(pmee.ename)} {str(pmee.evalue)}')
+            raise RuntimeError(f'({file_name}) in cell {pmee.exec_count}: ' +
+                               f'{str(pmee.ename)} {str(pmee.evalue)}') from pmee
         except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
+            self.log.error(f'Error executing {file_name}: {str(ex)}')
+            raise RuntimeError(f'({file_name})') from ex
 
         t1 = time.time()
         duration = (t1 - t0)
@@ -198,6 +206,45 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         self.log.debug(f'Processing python script: {filepath}')
 
         argv = ['python3', filepath, '--PYTHONHOME', file_dir]
+
+        envs = os.environ.copy()  # Make sure this process's env is "available" in subprocess
+        envs.update(operation.env_vars_as_dict())
+        t0 = time.time()
+        try:
+            run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)
+        except CalledProcessError as cpe:
+            error_msg = str(cpe.stderr.decode())
+            self.log.error(f'Error executing {file_name}: {error_msg}')
+
+            error_trim_index = error_msg.rfind('\n', 0, error_msg.rfind('Error'))
+            if error_trim_index != -1:
+                raise RuntimeError(f'({file_name}): {error_msg[error_trim_index:].strip()}') from cpe
+            else:
+                raise RuntimeError(f'({file_name})') from cpe
+        except Exception as ex:
+            self.log.error(f'Error executing {file_name}: {str(ex)}')
+            raise RuntimeError(f'({file_name})') from ex
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
+
+
+class RScriptOperationProcessor(FileOperationProcessor):
+    _operation_name = 'execute-r-node'
+
+    def __init__(self, root_dir):
+        super(RScriptOperationProcessor, self).__init__(root_dir)
+
+    def process(self, operation: Operation):
+        filepath = self.get_valid_filepath(operation.filename)
+
+        file_dir = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing R script: {filepath}')
+
+        argv = ['Rscript', filepath]
 
         envs = os.environ.copy()  # Make sure this process's env is "available" in subprocess
         envs.update(operation.env_vars_as_dict())

@@ -17,7 +17,7 @@
 import { MetadataService, IDictionary } from '@elyra/services';
 import {
   DropDown,
-  ThemeComponent,
+  ThemeProvider,
   RequestErrors,
   TextInput
 } from '@elyra/ui-components';
@@ -34,7 +34,13 @@ import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
-import { InputLabel, FormHelperText, Button, Link } from '@material-ui/core';
+import {
+  InputLabel,
+  FormHelperText,
+  Button,
+  Link,
+  styled
+} from '@material-ui/core';
 
 import * as React from 'react';
 
@@ -136,6 +142,14 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
     </div>
   );
 };
+
+const SaveButton = styled(Button)({
+  borderColor: 'var(--jp-border-color0)',
+  color: 'var(--jp-ui-font-color1)',
+  '&:hover': {
+    borderColor: ' var(--jp-ui-font-color1)'
+  }
+});
 
 /**
  * Metadata editor widget
@@ -479,7 +493,10 @@ export class MetadataEditor extends ReactWidget {
           description={this.schema[fieldName].description}
           required={required}
           defaultError={uihints.error}
-          defaultValue={this.metadata[fieldName]}
+          placeholder={uihints.placeholder}
+          defaultValue={this.schema[fieldName].default}
+          readonly={this.schema[fieldName].enum !== undefined}
+          initialValue={this.metadata[fieldName]}
           options={this.getDefaultChoices(fieldName)}
           onChange={(value): void => {
             this.handleDropdownChange(fieldName, value);
@@ -563,7 +580,7 @@ export class MetadataEditor extends ReactWidget {
     }
     const error = this.displayName === '' && this.invalidForm;
     return (
-      <ThemeComponent themeManager={this.themeManager}>
+      <ThemeProvider themeManager={this.themeManager}>
         <div className={ELYRA_METADATA_EDITOR_CLASS}>
           <h3> {headerText} </h3>
           <p style={{ width: '100%', marginBottom: '10px' }}>
@@ -599,7 +616,7 @@ export class MetadataEditor extends ReactWidget {
             }
             key={'SaveButton'}
           >
-            <Button
+            <SaveButton
               variant="outlined"
               color="primary"
               onClick={(): void => {
@@ -607,10 +624,10 @@ export class MetadataEditor extends ReactWidget {
               }}
             >
               Save & Close
-            </Button>
+            </SaveButton>
           </div>
         </div>
-      </ThemeComponent>
+      </ThemeProvider>
     );
   }
 }
