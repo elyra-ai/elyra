@@ -33,22 +33,19 @@ import { pythonIcon, rKernelIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
 
-import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
-import { REditorFactory, REditor } from './REditor';
+import { ScriptEditorFactory, ScriptEditor } from './ScriptEditor';
 
 const PYTHON_FACTORY = 'Python Editor';
 const R_FACTORY = 'R Editor';
 const PYTHON = 'python';
 const R = 'r';
-const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
-const R_EDITOR_NAMESPACE = 'elyra-r-editor-extension';
-const SCRIPT_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
+const SCRIPT_EDITOR_NAMESPACE = 'elyra-script-editor-extension';
+const PYTHON_EDITOR_NAMESPACE = 'elyra-python-script-editor-extension';
+const R_EDITOR_NAMESPACE = 'elyra-r-script-editor-extension';
 
 const commandIDs = {
-  createNewPythonFile: 'python-editor:create-new-file',
-  createNewRFile: 'r-editor:create-new-file',
-  openPythonFile: 'python-editor:open',
-  openRFile: 'r-editor:open',
+  createNewPythonFile: 'script-editor:create-new-python-file',
+  createNewRFile: 'script-editor:create-new-r-file',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
@@ -80,7 +77,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - script-editor extension is activated!');
 
-    const pythonFactory = new PythonFileEditorFactory({
+    const pythonFactory = new ScriptEditorFactory({
       editorServices,
       factoryOptions: {
         name: PYTHON_FACTORY,
@@ -89,7 +86,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    const rFactory = new REditorFactory({
+    const rFactory = new ScriptEditorFactory({
       editorServices,
       factoryOptions: {
         name: R_FACTORY,
@@ -103,11 +100,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Track Editor widget on page refresh
      */
-    const pythonEditorTracker = new WidgetTracker<PythonFileEditor>({
+    const pythonEditorTracker = new WidgetTracker<ScriptEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
-
-    const rEditorTracker = new WidgetTracker<REditor>({
+    const rEditorTracker = new WidgetTracker<ScriptEditor>({
       namespace: R_EDITOR_NAMESPACE
     });
 
@@ -128,7 +124,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         command: commandIDs.openDocManager,
         args: widget => ({
           path: widget.context.path,
-          pythonFactory: R_FACTORY
+          rFactory: R_FACTORY
         }),
         name: widget => widget.context.path
       });
@@ -278,6 +274,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string, '.py', PYTHON_FACTORY);
+        // return createNew(cwd as string, '.py', SCRIPT_EDITOR_FACTORY);
       }
     });
 
@@ -295,6 +292,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string, '.r', R_FACTORY);
+        // return createNew(cwd as string, '.r', SCRIPT_EDITOR_FACTORY);
       }
     });
 

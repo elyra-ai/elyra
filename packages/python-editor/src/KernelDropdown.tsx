@@ -24,7 +24,7 @@ import React, {
   RefObject
 } from 'react';
 
-const KERNEL_SELECT_CLASS = 'elyra-PythonEditor-KernelSelect';
+const KERNEL_SELECT_CLASS = 'elyra-ScriptEditor-KernelSelect';
 
 export interface ISelect {
   getSelection: () => string;

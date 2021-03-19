@@ -14,45 +14,38 @@
  * limitations under the License.
  */
 
-.elyra-PythonEditor-OutputArea-error,
-.elyra-REditor-OutputArea-error {
+.elyra-ScriptEditor-OutputArea-error {
   background-color: var(--jp-rendermime-error-background);
 }
 
-.elyra-PythonEditor-OutputArea-child,
-.elyra-REditor-OutputArea-child {
+.elyra-ScriptEditor-OutputArea-child {
   border-top: 1px solid var(--jp-border-color2);
   border-bottom: 1px solid var(--jp-border-color2);
 }
 
-.elyra-PythonEditor-OutputArea-prompt,
-.elyra-REditor-OutputArea-prompt {
+.elyra-ScriptEditor-OutputArea-prompt {
   flex: 0 0 37px;
   border-right: 1px solid var(--jp-border-color2);
   padding: unset;
   text-align: center;
 }
 
-.elyra-PythonEditor-OutputArea-output,
-.elyra-REditor-OutputArea-output {
+.elyra-ScriptEditor-OutputArea-output {
   padding: var(--jp-code-padding);
   border: var(--jp-border-width) solid transparent;
   margin-right: 64px;
 }
 
-.elyra-PythonEditor-scrollTop .elyra-REditor-scrollTop {
+.elyra-ScriptEditor-scrollTop {
   top: 33px;
 }
 
-.elyra-PythonEditor-scrollBottom,
-.elyra-REditor-scrollBottom {
+.elyra-ScriptEditor-scrollBottom {
   top: 62px;
 }
 
-.elyra-PythonEditor-scrollBottom,
-.elyra-PythonEditor-scrollTop,
-.elyra-REditor-scrollBottom,
-.elyra-REditor-scrollTop {
+.elyra-ScriptEditor-scrollBottom,
+.elyra-ScriptEditor-scrollTop {
   position: absolute;
   right: 21px;
   z-index: 1;
@@ -64,29 +57,24 @@
   border-radius: 5px;
 }
 
-button.elyra-PythonEditor-scrollTop:hover,
-button.elyra-REditor-scrollTop:hover {
+button.elyra-ScriptEditor-scrollTop:hover {
   background-color: var(--jp-layout-color2);
 }
 
-button.elyra-PythonEditor-scrollBottom:hover,
-button.elyra-REditor-scrollBottom:hover {
+button.elyra-ScriptEditor-scrollBottom:hover {
   background-color: var(--jp-layout-color2);
 }
 
-.elyra-PythonEditor-scrollBottom g[fill],
-.elyra-PythonEditor-scrollTop g[fill],
-.elyra-REditor-scrollBottom g[fill],
-.elyra-REditor-scrollTop g[fill] {
+.elyra-ScriptEditor-scrollBottom g[fill],
+.elyra-ScriptEditor-scrollTop g[fill] {
   fill: var(--jp-inverse-layout-color3);
 }
 
-.jp-Document .jp-Toolbar.elyra-PythonEditor-Toolbar,
-.jp-Document .jp-Toolbar.elyra-REditor-Toolbar {
+.jp-Document .jp-Toolbar.elyra-ScriptEditor-Toolbar {
   justify-content: flex-start;
 }
 
-select.elyra-PythonEditor-KernelSelect {
+select.elyra-ScriptEditor-KernelSelect {
   border: none;
   background: none;
   color: var(--jp-ui-font-color1);

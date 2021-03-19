@@ -38,6 +38,7 @@ import {
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
   DockPanelSvg,
+  pythonIcon,
   rKernelIcon,
   runIcon,
   saveIcon,
@@ -45,29 +46,30 @@ import {
   TabBarSvg
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
-
 import React from 'react';
 
-import { ISelect, KernelDropdown } from './KernelDropdown';
+import { KernelDropdown, ISelect } from './KernelDropdown';
 import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
 /**
  * The CSS class added to widgets.
  */
-const R_FILE_EDITOR_CLASS = 'elyra-REditor';
-const OUTPUT_AREA_CLASS = 'elyra-REditor-OutputArea';
-const OUTPUT_AREA_ERROR_CLASS = 'elyra-REditor-OutputArea-error';
-const OUTPUT_AREA_CHILD_CLASS = 'elyra-REditor-OutputArea-child';
-const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-REditor-OutputArea-output';
-const OUTPUT_AREA_PROMPT_CLASS = 'elyra-REditor-OutputArea-prompt';
-const RUN_BUTTON_CLASS = 'elyra-REditor-Run';
-const TOOLBAR_CLASS = 'elyra-REditor-Toolbar';
+const SCRIPT_EDITOR_CLASS = 'elyra-ScriptEditor';
+const OUTPUT_AREA_CLASS = 'elyra-ScriptEditor-OutputArea';
+const OUTPUT_AREA_ERROR_CLASS = 'elyra-ScriptEditor-OutputArea-error';
+const OUTPUT_AREA_CHILD_CLASS = 'elyra-ScriptEditor-OutputArea-child';
+const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-ScriptEditor-OutputArea-output';
+const OUTPUT_AREA_PROMPT_CLASS = 'elyra-ScriptEditor-OutputArea-prompt';
+const RUN_BUTTON_CLASS = 'elyra-ScriptEditor-Run';
+const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
+const PYTHON = 'python';
+const R = 'R';
 
 /**
  * A widget for script editors.
  */
-export class REditor extends DocumentWidget<
+export class ScriptEditor extends DocumentWidget<
   FileEditor,
   DocumentRegistry.ICodeModel
 > {
@@ -81,6 +83,7 @@ export class REditor extends DocumentWidget<
   private runDisabled: boolean;
   private kernelDropDown: KernelDropdown;
   private controller: ScriptEditorController;
+  private editorLanguage: string;
 
   /**
    * Construct a new editor widget.
@@ -89,17 +92,20 @@ export class REditor extends DocumentWidget<
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
-    this.addClass(R_FILE_EDITOR_CLASS);
+    this.addClass(SCRIPT_EDITOR_CLASS);
     this.model = this.content.model;
     this.runner = new ScriptRunner(this.disableRun);
     this.kernelDropDown = null;
-    this.kernelName = null;
+    this.kernelName = options.context.sessionContext.kernelPreference.language;
     this.emptyOutput = true;
     this.runDisabled = false;
     this.controller = new ScriptEditorController();
+    this.editorLanguage = this.kernelName.toLowerCase().includes(PYTHON)
+      ? PYTHON
+      : R;
 
-    // Add R icon to main tab
-    this.title.icon = rKernelIcon;
+    // Add icon to main tab
+    this.title.icon = this.editorLanguage === PYTHON ? pythonIcon : rKernelIcon;
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -135,17 +141,20 @@ export class REditor extends DocumentWidget<
     this.initializeKernelSpecs();
   }
 
-  async initializeKernelSpecs(): Promise<void> {
-    const specs = await this.controller.getKernelSpecsByLanguage('R');
-    const kernelSpecs = specs.kernelspecs;
+  initializeKernelSpecs = async (): Promise<void> => {
+    const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
+      this.editorLanguage
+    );
     const ref = React.createRef<ISelect>();
 
     this.kernelName =
-      Object.keys(kernelSpecs).length !== 0 &&
-      Object.values(kernelSpecs)[0].name;
-    this.kernelDropDown = new KernelDropdown(specs, ref);
-    this.toolbar.addItem('select', this.kernelDropDown);
-  }
+      this.editorLanguage === PYTHON
+        ? kernelSpecs.default
+        : Object.keys(kernelSpecs).length !== 0 &&
+          Object.values(kernelSpecs.kernelspecs)[0].name;
+    this.kernelDropDown = new KernelDropdown(kernelSpecs, ref);
+    this.toolbar.insertItem(3, 'select', this.kernelDropDown);
+  };
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.
@@ -173,9 +182,9 @@ export class REditor extends DocumentWidget<
     layout.addWidget(this.dockPanel);
   };
 
-  /**
-   * Function: Updates kernel settings as per drop down selection.
-   */
+  // /**
+  //  * Function: Updates kernel settings as per drop down selection.
+  //  */
   // private updateSelectedKernel = (selection: string): void => {
   //   this.kernelName = selection;
   // };
@@ -244,8 +253,8 @@ export class REditor extends DocumentWidget<
   ): void => {
     const scrollUpButton = document.createElement('button');
     const scrollDownButton = document.createElement('button');
-    scrollUpButton.className = 'elyra-REditor-scrollTop';
-    scrollDownButton.className = 'elyra-REditor-scrollBottom';
+    scrollUpButton.className = 'elyra-ScriptEditor-scrollTop';
+    scrollDownButton.className = 'elyra-ScriptEditor-scrollBottom';
     scrollUpButton.onclick = function(): void {
       scrollingWidget.node.scrollTop = 0;
     };
@@ -282,7 +291,7 @@ export class REditor extends DocumentWidget<
       this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
       const outputTab: TabBarSvg<Widget> = this.dockPanel.tabBars().next();
-      outputTab.id = 'tab-r-editor-output';
+      outputTab.id = 'tab-ScriptEditor-output';
       outputTab.currentTitle.label = 'Console Output';
       outputTab.currentTitle.closable = true;
       outputTab.disposed.connect((sender, args) => {
@@ -316,7 +325,7 @@ export class REditor extends DocumentWidget<
   };
 
   /**
-   * Function: Displays r code in OutputArea widget.
+   * Function: Displays python code in OutputArea widget.
    */
   private displayOutput = (output: string): void => {
     if (output) {
@@ -392,28 +401,25 @@ export class REditor extends DocumentWidget<
         buttons: [Dialog.okButton()]
       });
     }
-    void this.context.save();
-    // Future reference for creating a checkpoint
-
-    // .then(() => {
-    //     if (!this.isDisposed) {
-    //         return this.context.createCheckpoint();
-    //     }
-    // });
+    void this.context.save().then(() => {
+      if (!this.isDisposed) {
+        return this.context.createCheckpoint();
+      }
+    });
   };
 }
 
 /**
- * A widget factory for r editors.
+ * A widget factory for script editors.
  */
-export class REditorFactory extends ABCWidgetFactory<
-  REditor,
+export class ScriptEditorFactory extends ABCWidgetFactory<
+  ScriptEditor,
   DocumentRegistry.ICodeModel
 > {
   /**
    * Construct a new editor widget factory.
    */
-  constructor(options: REditorFactory.IOptions) {
+  constructor(options: ScriptEditorFactory.IOptions) {
     super(options.factoryOptions);
     this._services = options.editorServices;
   }
@@ -421,26 +427,28 @@ export class REditorFactory extends ABCWidgetFactory<
   /**
    * Create a new widget given a context.
    */
-  protected createNewWidget(context: DocumentRegistry.CodeContext): REditor {
-    const func = this._services.factoryService.newDocumentEditor;
+  protected createNewWidget(
+    context: DocumentRegistry.CodeContext
+  ): ScriptEditor {
+    const newDocumentEditor = this._services.factoryService.newDocumentEditor;
     const factory: CodeEditor.Factory = options => {
-      return func(options);
+      return newDocumentEditor(options);
     };
     const content = new FileEditor({
       factory,
       context,
       mimeTypeService: this._services.mimeTypeService
     });
-    return new REditor({ content, context });
+    return new ScriptEditor({ content, context });
   }
 
   private _services: IEditorServices;
 }
 
 /**
- * The namespace for `REditorFactory` class statics.
+ * The namespace for `ScriptEditorFactory` class statics.
  */
-export namespace REditorFactory {
+export namespace ScriptEditorFactory {
   /**
    * The options used to create an editor widget factory.
    */
@@ -453,6 +461,6 @@ export namespace REditorFactory {
     /**
      * The factory options associated with the factory.
      */
-    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<REditor>;
+    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<ScriptEditor>;
   }
 }
