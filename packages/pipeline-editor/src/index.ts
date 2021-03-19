@@ -190,6 +190,13 @@ const extension: JupyterFrontEndPlugin<void> = {
       rank: -0.5
     });
 
+    app.docRegistry.addWidgetExtension('R Editor', scriptButtonExtension);
+    app.contextMenu.addItem({
+      selector: '.elyra-PythonEditor',
+      command: commandIDs.submitScript,
+      rank: -0.5
+    });
+
     const runtimesWidget = new RuntimesWidget({
       app,
       themeManager,

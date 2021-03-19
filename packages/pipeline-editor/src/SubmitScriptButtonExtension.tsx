@@ -68,7 +68,7 @@ export class SubmitScriptButtonExtension
     */
     // const env = this.getEnvVars(this.editor.context.model.toString());
     const env: string[] = [];
-    const action = 'submit Python script';
+    const action = 'submit script';
     const runtimes = await PipelineService.getRuntimes(
       true,
       action
