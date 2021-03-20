@@ -30,6 +30,28 @@ export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 
 const RUNTIME_IMAGES_CLASS = 'elyra-metadata-runtime-images';
 
+const getLinkFromImageName = (imageName: string): string => {
+  let hostname = '';
+  const fqinParts = imageName.split('/');
+
+  if (
+    fqinParts[0].includes('.') ||
+    fqinParts[0].includes(':') ||
+    fqinParts[0].includes('localhost')
+  ) {
+    hostname = fqinParts[0];
+    imageName = fqinParts.slice(1).join('/');
+  }
+
+  if (!hostname || hostname.includes('docker.io')) {
+    hostname = 'hub.docker.com/r';
+  }
+
+  const imageRepo = imageName.split(':')[0];
+
+  return `https://${hostname}/${imageRepo}`;
+};
+
 /**
  * A React Component for displaying the runtime images list.
  */
@@ -38,13 +60,11 @@ class RuntimeImagesDisplay extends MetadataDisplay<
   IMetadataDisplayState
 > {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
-    const imageRepo = metadata.metadata.image_name.split(':')[0];
-
     return (
       <div>
         <h6>Container Image</h6>
         <a
-          href={`https://hub.docker.com/r/${imageRepo}`}
+          href={getLinkFromImageName(metadata.metadata.image_name)}
           target="_blank"
           rel="noreferrer noopener"
         >
