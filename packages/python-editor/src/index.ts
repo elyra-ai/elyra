@@ -16,7 +16,7 @@
 
 import '../style/index.css';
 
-import { pyIcon } from '@elyra/ui-components';
+import { pyIcon, rIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -38,6 +38,7 @@ import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
 
 const PYTHON_FACTORY = 'Python Editor';
 const PYTHON = 'python';
+const R = 'r';
 const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
 
 const commandIDs = {
@@ -90,6 +91,15 @@ const extension: JupyterFrontEndPlugin<void> = {
       pattern: '.*\\.py$',
       mimeTypes: ['text/x-python'],
       icon: pyIcon
+    });
+
+    app.docRegistry.addFileType({
+      name: R,
+      displayName: 'R File',
+      extensions: ['.r'],
+      pattern: '.*\\.r$',
+      mimeTypes: ['text/x-rsrc'],
+      icon: rIcon
     });
 
     const { restored } = app;
