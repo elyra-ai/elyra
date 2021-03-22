@@ -393,9 +393,9 @@ export class PipelineEditor extends React.Component<
         }
       ],
       rightBar: [
-        { action: 'zoomIn', label: 'Zoom in', enable: true },
-        { action: 'zoomOut', label: 'Zoom out', enable: true },
-        { action: 'zoomToFit', label: 'Zoom to fit', enable: true },
+        { action: 'zoomIn', label: 'Zoom In', enable: true },
+        { action: 'zoomOut', label: 'Zoom Out', enable: true },
+        { action: 'zoomToFit', label: 'Zoom to Fit', enable: true },
         {
           action: 'toggleOpenPanel',
           label: 'Open panel',
