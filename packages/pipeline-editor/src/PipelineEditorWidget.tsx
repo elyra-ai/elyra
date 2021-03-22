@@ -211,6 +211,11 @@ export namespace PipelineEditor {
      * Whether pipeline is empty.
      */
     emptyPipeline: boolean;
+
+    /**
+     * Nodes that are currently selected
+     */
+    selectedNodes?: any[];
   }
 }
 
@@ -254,6 +259,7 @@ export class PipelineEditor extends React.Component<
 
     this.contextMenuHandler = this.contextMenuHandler.bind(this);
     this.clickActionHandler = this.clickActionHandler.bind(this);
+    this.selectionChangeHandler = this.selectionChangeHandler.bind(this);
     this.editActionHandler = this.editActionHandler.bind(this);
     this.beforeEditActionHandler = this.beforeEditActionHandler.bind(this);
     this.tipHandler = this.tipHandler.bind(this);
@@ -268,13 +274,13 @@ export class PipelineEditor extends React.Component<
       },
       emptyPipeline: Utils.isEmptyPipeline(
         this.canvasController.getPipelineFlow()
-      )
+      ),
+      selectedNodes: []
     };
 
     this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
-    this.closePropertiesDialog = this.closePropertiesDialog.bind(this);
-    this.openPropertiesDialog = this.openPropertiesDialog.bind(this);
     this.propertiesActionHandler = this.propertiesActionHandler.bind(this);
+    this.propertyListener = this.propertyListener.bind(this);
     this.propertiesControllerHandler = this.propertiesControllerHandler.bind(
       this
     );
@@ -332,88 +338,133 @@ export class PipelineEditor extends React.Component<
     };
     const pipelineDefinition = this.canvasController.getPipelineFlow();
     const emptyCanvas = Utils.isEmptyCanvas(pipelineDefinition);
-    const toolbarConfig = [
-      {
-        action: 'run',
-        label: 'Run Pipeline',
-        enable: !this.state.emptyPipeline
-      },
-      {
-        action: 'save',
-        label: 'Save Pipeline',
-        enable: true,
-        iconEnabled: IconUtil.encode(savePipelineIcon),
-        iconDisabled: IconUtil.encode(savePipelineIcon)
-      },
-      {
-        action: 'export',
-        label: 'Export Pipeline',
-        enable: !this.state.emptyPipeline,
-        iconEnabled: IconUtil.encode(exportPipelineIcon),
-        iconDisabled: IconUtil.encode(exportPipelineIcon)
-      },
-      {
-        action: 'clear',
-        label: 'Clear Pipeline',
-        enable: !this.state.emptyPipeline || !emptyCanvas,
-        iconEnabled: IconUtil.encode(clearPipelineIcon),
-        iconDisabled: IconUtil.encode(clearPipelineIcon)
-      },
-      {
-        action: 'openRuntimes',
-        label: 'Open Runtimes',
-        enable: true,
-        iconEnabled: IconUtil.encode(runtimesIcon),
-        iconDisabled: IconUtil.encode(runtimesIcon)
-      },
-      { divider: true },
-      { action: 'undo', label: 'Undo' },
-      { action: 'redo', label: 'Redo' },
-      { action: 'cut', label: 'Cut' },
-      { action: 'copy', label: 'Copy' },
-      { action: 'paste', label: 'Paste' },
-      { action: 'createAutoComment', label: 'Add Comment', enable: true },
-      { action: 'deleteSelectedObjects', label: 'Delete' },
-      {
-        action: 'arrangeHorizontally',
-        label: 'Arrange Horizontally',
-        enable: !this.state.emptyPipeline
-      },
-      {
-        action: 'arrangeVertically',
-        label: 'Arrange Vertically',
-        enable: !this.state.emptyPipeline
-      }
-    ];
+    const toolbarConfig = {
+      leftBar: [
+        {
+          action: 'run',
+          label: 'Run Pipeline',
+          enable: !this.state.emptyPipeline
+        },
+        {
+          action: 'save',
+          label: 'Save Pipeline',
+          enable: true,
+          iconEnabled: IconUtil.encode(savePipelineIcon),
+          iconDisabled: IconUtil.encode(savePipelineIcon)
+        },
+        {
+          action: 'export',
+          label: 'Export Pipeline',
+          enable: !this.state.emptyPipeline,
+          iconEnabled: IconUtil.encode(exportPipelineIcon),
+          iconDisabled: IconUtil.encode(exportPipelineIcon)
+        },
+        {
+          action: 'clear',
+          label: 'Clear Pipeline',
+          enable: !this.state.emptyPipeline || !emptyCanvas,
+          iconEnabled: IconUtil.encode(clearPipelineIcon),
+          iconDisabled: IconUtil.encode(clearPipelineIcon)
+        },
+        {
+          action: 'openRuntimes',
+          label: 'Open Runtimes',
+          enable: true,
+          iconEnabled: IconUtil.encode(runtimesIcon),
+          iconDisabled: IconUtil.encode(runtimesIcon)
+        },
+        { divider: true },
+        { action: 'undo', label: 'Undo' },
+        { action: 'redo', label: 'Redo' },
+        { action: 'cut', label: 'Cut' },
+        { action: 'copy', label: 'Copy' },
+        { action: 'paste', label: 'Paste' },
+        { action: 'createAutoComment', label: 'Add Comment', enable: true },
+        { action: 'deleteSelectedObjects', label: 'Delete' },
+        {
+          action: 'arrangeHorizontally',
+          label: 'Arrange Horizontally',
+          enable: !this.state.emptyPipeline
+        },
+        {
+          action: 'arrangeVertically',
+          label: 'Arrange Vertically',
+          enable: !this.state.emptyPipeline
+        }
+      ],
+      rightBar: [
+        { action: 'zoomIn', label: 'Zoom In', enable: true },
+        { action: 'zoomOut', label: 'Zoom Out', enable: true },
+        { action: 'zoomToFit', label: 'Zoom to Fit', enable: true },
+        {
+          action: 'toggleOpenPanel',
+          label: 'Open panel',
+          enable: true,
+          iconTypeOverride: this.state.showPropertiesDialog
+            ? 'paletteOpen'
+            : 'paletteClose'
+        }
+      ]
+    };
 
     const propertiesCallbacks = {
       actionHandler: this.propertiesActionHandler,
       controllerHandler: this.propertiesControllerHandler,
-      applyPropertyChanges: this.applyPropertyChanges,
-      closePropertiesDialog: this.closePropertiesDialog
+      propertyListener: this.propertyListener,
+      applyPropertyChanges: this.applyPropertyChanges
     };
 
-    const commProps = (
-      <IntlProvider
-        key="IntlProvider2"
-        locale={'en'}
-        messages={i18nData.messages}
-      >
-        <CommonProperties
-          ref={(instance: any): void => {
-            this.CommonProperties = instance;
-          }}
-          propertiesInfo={this.state.propertiesInfo}
-          propertiesConfig={{
-            containerType: 'Custom',
-            rightFlyout: true,
-            applyOnBlur: true
-          }}
-          callbacks={propertiesCallbacks}
-          customControls={[StringArrayInput]}
-        />
-      </IntlProvider>
-    );
+    let commProps = null;
+    if (this.state.selectedNodes && this.state.selectedNodes.length === 0) {
+      commProps = (
+        <div className="elyra-noContentMessage">
+          {'Select a node to edit its properties.'}
+        </div>
+      );
+    } else if (
+      this.state.selectedNodes &&
+      this.state.selectedNodes.length > 1
+    ) {
+      commProps = (
+        <div className="elyra-noContentMessage">
+          {
+            'Multiple nodes are selected. Select a single node to edit its properties.'
+          }
+        </div>
+      );
+    } else if (
+      this.state.propertiesInfo === undefined ||
+      this.state.propertiesInfo === null ||
+      this.state.propertiesInfo === {}
+    ) {
+      commProps = (
+        <div className="elyra-noContentMessage">
+          {"This node type doesn't have any editable properties."}
+        </div>
+      );
+    } else {
+      commProps = (
+        <IntlProvider
+          key="IntlProvider2"
+          locale={'en'}
+          messages={i18nData.messages}
+        >
+          <CommonProperties
+            ref={(instance: any): void => {
+              this.CommonProperties = instance;
+            }}
+            propertiesInfo={this.state.propertiesInfo}
+            propertiesConfig={{
+              containerType: 'Custom',
+              rightFlyout: true,
+              applyOnBlur: true
+            }}
+            callbacks={propertiesCallbacks}
+            customControls={[StringArrayInput]}
+          />
+        </IntlProvider>
+      );
+    }
 
     return (
       <Dropzone
@@ -431,6 +482,7 @@ export class PipelineEditor extends React.Component<
             canvasController={this.canvasController}
             contextMenuHandler={this.contextMenuHandler}
             clickActionHandler={this.clickActionHandler}
+            selectionChangeHandler={this.selectionChangeHandler}
             editActionHandler={this.editActionHandler}
             beforeEditActionHandler={this.beforeEditActionHandler}
             tipHandler={this.tipHandler}
@@ -475,39 +527,50 @@ export class PipelineEditor extends React.Component<
     };
   }
 
-  openPropertiesDialog(source: any): void {
-    console.log('Opening properties dialog');
-    if (!source.targetObject) {
-      source.targetObject = this.canvasController.getNode(source.id);
+  selectionChangeHandler(data: any): void {
+    if (data.selectedNodes && data.selectedNodes.length === 1) {
+      const node = data.selectedNodes[0];
+      const node_id = node.id;
+      const app_data = node.app_data;
+
+      const node_props = JSON.parse(JSON.stringify(this.propertiesInfo));
+      node_props.appData.id = node_id;
+
+      node_props.parameterDef.current_parameters.filename = app_data.filename;
+      node_props.parameterDef.current_parameters.runtime_image =
+        app_data.runtime_image;
+      node_props.parameterDef.current_parameters.outputs = app_data.outputs;
+      node_props.parameterDef.current_parameters.env_vars = app_data.env_vars;
+      node_props.parameterDef.current_parameters.dependencies =
+        app_data.dependencies;
+      node_props.parameterDef.current_parameters.include_subdirectories =
+        app_data.include_subdirectories;
+      node_props.parameterDef.current_parameters.cpu = app_data.cpu;
+      node_props.parameterDef.current_parameters.memory = app_data.memory;
+      node_props.parameterDef.current_parameters.gpu = app_data.gpu;
+      node_props.parameterDef.titleDefinition = {
+        title: this.canvasController.getNode(node.id).label,
+        editable: true
+      };
+
+      this.setState({
+        showValidationError: false,
+        propertiesInfo: node_props,
+        selectedNodes: data.selectedNodes
+      });
+    } else {
+      this.setState({
+        showValidationError: false,
+        propertiesInfo: null,
+        selectedNodes: data.selectedNodes
+      });
     }
-    const node_id = source.targetObject.id;
-    const app_data = source.targetObject.app_data;
+  }
 
-    const node_props = JSON.parse(JSON.stringify(this.propertiesInfo));
-    node_props.appData.id = node_id;
-
-    node_props.parameterDef.current_parameters.filename = app_data.filename;
-    node_props.parameterDef.current_parameters.runtime_image =
-      app_data.runtime_image;
-    node_props.parameterDef.current_parameters.outputs = app_data.outputs;
-    node_props.parameterDef.current_parameters.env_vars = app_data.env_vars;
-    node_props.parameterDef.current_parameters.dependencies =
-      app_data.dependencies;
-    node_props.parameterDef.current_parameters.include_subdirectories =
-      app_data.include_subdirectories;
-    node_props.parameterDef.current_parameters.cpu = app_data.cpu;
-    node_props.parameterDef.current_parameters.memory = app_data.memory;
-    node_props.parameterDef.current_parameters.gpu = app_data.gpu;
-    node_props.parameterDef.titleDefinition = {
-      title: this.canvasController.getNode(source.id).label,
-      editable: true
-    };
-
-    this.setState({
-      showValidationError: false,
-      showPropertiesDialog: true,
-      propertiesInfo: node_props
-    });
+  propertyListener(data: any): void {
+    if (data.action === 'UPDATE_PROPERTY' && this.CommonProperties) {
+      this.CommonProperties.applyPropertiesEditing(false);
+    }
   }
 
   applyPropertyChanges(
@@ -549,9 +612,12 @@ export class PipelineEditor extends React.Component<
     }
 
     app_data.runtime_image = propertySet.runtime_image;
-    app_data.outputs = propertySet.outputs.filter(Boolean);
-    app_data.env_vars = propertySet.env_vars.filter(Boolean);
-    app_data.dependencies = propertySet.dependencies.filter(Boolean);
+    app_data.outputs =
+      propertySet.outputs && propertySet.outputs.filter(Boolean);
+    app_data.env_vars =
+      propertySet.env_vars && propertySet.env_vars.filter(Boolean);
+    app_data.dependencies =
+      propertySet.dependencies && propertySet.dependencies.filter(Boolean);
     app_data.include_subdirectories = propertySet.include_subdirectories;
     app_data.cpu = propertySet.cpu;
     app_data.memory = propertySet.memory;
@@ -563,15 +629,6 @@ export class PipelineEditor extends React.Component<
     );
     this.validateAllNodes();
     this.updateModel();
-  }
-
-  closePropertiesDialog(): void {
-    console.log('Closing properties dialog');
-    const propsInfo = JSON.parse(JSON.stringify(this.propertiesInfo));
-    if (this.CommonProperties) {
-      this.CommonProperties.applyPropertiesEditing(false);
-    }
-    this.setState({ showPropertiesDialog: false, propertiesInfo: propsInfo });
   }
 
   propertiesControllerHandler(propertiesController: any): void {
@@ -680,13 +737,6 @@ export class PipelineEditor extends React.Component<
     // opens the Jupyter Notebook associated with a given node
     if (source.clickType === 'DOUBLE_CLICK' && source.objectType === 'node') {
       this.handleOpenFile(source.selectedObjectIds);
-    } else if (
-      source.clickType === 'SINGLE_CLICK' &&
-      source.objectType === 'node' &&
-      this.state.showPropertiesDialog
-    ) {
-      this.closePropertiesDialog();
-      this.openPropertiesDialog(source);
     }
   }
 
@@ -754,16 +804,13 @@ export class PipelineEditor extends React.Component<
           break;
         case 'properties':
           if (data.type === 'node') {
-            if (this.state.showPropertiesDialog) {
-              this.closePropertiesDialog();
-            }
-            this.openPropertiesDialog(data);
+            this.setState({ showPropertiesDialog: true });
           }
           break;
-        case 'deleteSelectedObjects':
-          if (this.state.showPropertiesDialog) {
-            this.closePropertiesDialog();
-          }
+        case 'toggleOpenPanel':
+          this.setState({
+            showPropertiesDialog: !this.state.showPropertiesDialog
+          });
           break;
       }
     }
