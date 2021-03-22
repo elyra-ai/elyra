@@ -70,7 +70,13 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
-const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
+const PipelineWrapper = ({
+  context,
+  browserFactory,
+  shell,
+  widget,
+  commands
+}: any) => {
   const ref = useRef(null);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState(null);
@@ -129,6 +135,21 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
       }
     });
   };
+
+  /*
+   * TODO: Add this as a callback to double clicking nodes when
+   * feature is available
+   * Open node associated notebook
+   */
+  // const handleOpenFile = (selectedNodes: any): void => {
+  //   for (let i = 0; i < selectedNodes.length; i++) {
+  //     const path = PipelineService.getWorkspaceRelativeNodePath(
+  //       context.path,
+  //       selectedNodes[i].app_data.filename
+  //     );
+  //     commands.execute(commandIDs.openDocManager, { path });
+  //   }
+  // }
 
   const cleanNullProperties = React.useCallback((): void => {
     // Delete optional fields that have null value
@@ -279,10 +300,10 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
     const runtime =
       PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
 
-    PipelineService.setNodePathsRelativeToWorkspace(
-      pipeline.pipelines[0],
-      context.path
-    );
+    // PipelineService.setNodePathsRelativeToWorkspace(
+    //   pipeline.pipelines[0],
+    //   context.path
+    // );
 
     cleanNullProperties();
 
@@ -421,6 +442,10 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
         (item: any, index: number): void => {
           if (PipelineService.isSupportedNode(item)) {
             item.op = PipelineService.getNodeType(item.path);
+            item.path = PipelineService.getWorkspaceRelativeNodePath(
+              context.path,
+              item.path
+            );
             ref.current?.addFile(
               item,
               e.offsetX + 20 * index,
@@ -467,11 +492,13 @@ const PipelineWrapper = ({ context, browserFactory, shell, widget }: any) => {
 export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   browserFactory: IFileBrowserFactory;
   shell: ILabShell;
+  commands: any;
 
   constructor(options: any) {
     super(options);
     this.browserFactory = options.browserFactory;
     this.shell = options.shell;
+    this.commands = options.commands;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
@@ -480,6 +507,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
         context={context}
         browserFactory={this.browserFactory}
         shell={this.shell}
+        commands={this.commands}
       />
     );
 
