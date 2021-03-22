@@ -20,6 +20,25 @@
   text-align: center;
 }
 
+.elyra-noContentMessage {
+  margin-top: 14px;
+  width: 320px;
+  padding: 0 22px;
+  opacity: 0.5;
+}
+
+.elyra-PipelineEditor div.properties-modal-buttons {
+  display: none;
+}
+
+.elyra-PipelineEditor .properties-right-flyout > .properties-custom-container {
+  height: 100%;
+}
+
+.elyra-PipelineEditor .properties-right-flyout {
+  overflow-y: scroll;
+}
+
 .elyra-tooltipError {
   color: var(--jp-error-color1);
 }
