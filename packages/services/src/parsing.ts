@@ -39,7 +39,7 @@ export class FileParser {
       file_path: file_path
     };
     try {
-      const response = await RequestHandler.makePostRequest(
+      const response = await RequestHandler.makeGetRequest(
         ELYRA_FILE_PARSER_API_ENDPOINT,
         JSON.stringify(body)
       );

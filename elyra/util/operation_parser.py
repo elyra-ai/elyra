@@ -14,17 +14,14 @@
 # limitations under the License.
 #
 
-import asyncio
 import json
 import nbformat
-import os
 import re
 
 from abc import ABC, abstractmethod
 from jupyter_server.base.handlers import APIHandler
 from tornado import web
-from traitlets.config import SingletonConfigurable
-from typing import Any, Type, TypeVar, List
+from typing import Any, Type, TypeVar, List, Dict
 from ..util.http import HttpErrorMixin
 
 
@@ -32,48 +29,45 @@ class OperationParserHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to parse envs from a File"""
 
     @web.authenticated
-    async def get(self):
+    async def post(self):
         msg_json = dict(title="Operation not supported.")
         self.write(msg_json)
         self.flush()
 
     @web.authenticated
-    async def post(self, *args, **kwargs):
-        payload = self.get_json_body()
+    async def get(self, path=''):
+        path = path or ''
 
-        self.log.debug("Parsing environmental variables from notebook: %s", payload['file_path'])
-        self.log.debug("JSON payload: %s", json.dumps(payload, sort_keys=True, indent=2, separators=(',', ': ')))
+        # TODO: Query and verify file type
+        # type = self.get_query_argument('type', default=None)
+        # if type not in {None, 'file', 'notebook'}:
+        #     raise web.HTTPError(400, u'Type %r is invalid' % type)
 
-        file_path = payload['file_path']
+        self.log.debug("Parsing file: %s", path)
 
-        response = await ParsingProcessorManager.operation_parser(file_path)
-        json_msg = json.dumps({"env_list": response})
+        model = await self.operation_parser(path)
 
         self.set_status(200)
-        self.set_header("Content-Type", 'application/json')
-        self.finish(json_msg)
-        self.flush()
+        # TODO: Validation of model
+        self._finish_model(model)
 
-
-class ParsingProcessorManager(SingletonConfigurable):
-
-    async def operation_parser(self, file_path):
-        res = await asyncio.get_event_loop().run_in_executor(
-            None, self.parse_operation_envs, file_path)
-        return res
-
-    @staticmethod
-    def parse_operation_envs(operation_filepath: str) -> List:
+    async def operation_parser(self, operation_filepath):
         """
-        Given the path to a File, will return a list of parsed environmental variables
-        found in File
+        Given the path to a File, will return a dictionary model
         :param operation_filepath: absolute path to a File to be parsed
-        :return: a list of environmental variables
+        :return: a model dict
         """
         operation = OperationParser.get_instance(filepath=operation_filepath)
-        env_list = operation.env_list()
+        model = operation.model
 
-        return env_list
+        return model
+
+    def _finish_model(self, model):
+        """Finish a JSON request with a model, setting relevant headers, etc."""
+        self.set_header('Last-Modified', model['last_modified'])
+        self.set_header('Content-Type', 'application/json')
+        self.finish(json.dumps(model))
+
 
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
@@ -87,13 +81,7 @@ class OperationParser(ABC):
         """Creates an appropriate subclass instance based on the extension of the filepath"""
         filepath = kwargs['filepath']
         if '.ipynb' in filepath:
-            notebook = json.loads(open(filepath).read())
-            language = notebook['metadata']['kernelspec']['language']
-            if language == 'python':
-                return PythonOperationParser(filepath)
-            elif language == 'r':
-                pass
-                # return ROperatorParser(filepath)
+            return NotebookOperationParser(filepath)
         elif '.py' in filepath:
             return PythonOperationParser(filepath)
         elif '.r' in filepath:
@@ -112,13 +100,68 @@ class OperationParser(ABC):
         raise NotImplementedError()
 
     @property
+    def model(self):
+        return self.build_model()
+
+    @property
     def operation_filepath(self):
         # TODO : Ensure this is getting the abs path
         return self._operation_filepath
 
+    @property
     @abstractmethod
-    def env_list(self):
+    def regex_dict(self) -> Dict[str, List]:
+        # a dictionary of matching regex expressions to use keyed to the json stanza
+        # Parsing for ENVs e.g. regex_dict['NAME_OF_JSON_STANZA'] = ['REGEX_EXP_1', 'REGEX_EXP_2']
         raise NotImplementedError()
+
+    @abstractmethod
+    def file_as_code_chunks(self) -> List[str]:
+        # A list of code `chunks` to look through. The size and length of the `chunks` is determined
+        # usually by the language. For now the concrete implementations below is by line-by-line in file
+        raise NotImplementedError()
+
+    def build_model(self):
+        """
+        Builds a model dictionary of all the regex matches it for each key in the regex dictionary
+        :return:
+        """
+        model = dict()
+        for chunk in self.file_as_code_chunks():
+            for key in self.regex_dict.keys():
+                regex_list = self.regex_dict[key]
+                for pattern in regex_list:
+                    match_found = re.search(pattern, chunk)
+                    if match_found and match_found.group(1) not in model[key]:
+                        model[key].append(match_found.group(1))
+
+        return model
+
+
+class NotebookOperationParser(OperationParser):
+
+    _type = "notebook"
+
+    def __init__(self, operation_filepath):
+        super().__init__(operation_filepath)
+        self.notebook = nbformat.read(open(self.operation_filepath), as_version=4)
+        self.language = self.notebook['metadata']['kernelspec']['language']
+
+    def type(self):
+        return self._type
+
+    def file_as_code_chunks(self) -> List[str]:
+        for cell in self.notebook.cells:
+            if cell.source:
+                file_by_line = cell.source.split('\n')
+                return file_by_line
+
+    def regex_dict(self) -> Dict[str, List]:
+        if self.language == 'python':
+            return PythonOperationParser(self.operation_filepath).regex_dict()
+        elif self.language == 'r':
+            pass
+            # return ROperationParser.regex_dict()
 
 
 class PythonOperationParser(OperationParser):
@@ -127,37 +170,18 @@ class PythonOperationParser(OperationParser):
 
     def __init__(self, operation_filepath):
         super().__init__(operation_filepath)
+        self.python_file = open(self.operation_filepath)
 
     def type(self):
         return self._type
 
-    def env_list(self) -> List:
-        list_of_envs = []
-        filename, file_extension = os.path.splitext(self.operation_filepath)
+    def file_as_code_chunks(self) -> List[str]:
+        file_by_line = self.python_file.readlines()
+        return file_by_line
 
-        if file_extension == ".py":
-            file_by_line = open(self.operation_filepath).readlines()
-            self.add_env_list(list_of_envs, file_by_line)
-        elif file_extension == ".ipynb":
-            notebook = nbformat.read(open(self.operation_filepath), as_version=4)
-            for cell in notebook.cells:
-                if cell.source:
-                    file_by_line = cell.source.split('\n')
-                    self.add_env_list(list_of_envs, file_by_line)
+    def regex_dict(self) -> Dict[str, List]:
+        regex_dict = dict()
+        # Parsing for ENVs e.g. regex_dict['JSON_STANZA'] = ['REGEX_EXP_1', 'REGEX_EXP_2']
+        regex_dict['env_list'] = [r"os\.environ\[[\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\]\s+=\s+[\"'](.*)[\"']"]
 
-        return list_of_envs
-
-    def regex_patterns(self) -> List:
-        # Matches os.environ
-        pattern_list = [r"os\.environ\[[\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\]\s+=\s+[\"'](.*)[\"']"]
-        # Matches os.getenv
-        # TODO
-
-        return pattern_list
-
-    def add_env_list(self, list_of_envs, file_by_line):
-        for line in file_by_line:
-            for pattern in self.regex_patterns():
-                match_found = re.search(pattern, line)
-                if match_found and match_found.group(1) not in list_of_envs:
-                    list_of_envs.append(match_found.group(1))
+        return regex_dict
