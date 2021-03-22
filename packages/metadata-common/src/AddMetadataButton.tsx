@@ -24,7 +24,8 @@ import {
   MenuItem,
   MenuList,
   Paper,
-  Popper
+  Popper,
+  styled
 } from '@material-ui/core';
 import React from 'react';
 
@@ -35,6 +36,10 @@ export interface IAddMetadataButtonProps {
   schemas: IDictionary<any>[];
   addMetadata: (schema: string) => void;
 }
+
+const StyledButton = styled(Button)({
+  minWidth: 'auto'
+});
 
 export const AddMetadataButton = (
   props: IAddMetadataButtonProps
@@ -65,7 +70,7 @@ export const AddMetadataButton = (
   return (
     <Box>
       <ButtonGroup ref={anchorRef} variant="text">
-        <Button
+        <StyledButton
           size="small"
           className={METADATA_HEADER_BUTTON_CLASS}
           onClick={
@@ -80,7 +85,7 @@ export const AddMetadataButton = (
           }`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
-        </Button>
+        </StyledButton>
       </ButtonGroup>
       <Popper
         className={METADATA_HEADER_POPPER_CLASS}

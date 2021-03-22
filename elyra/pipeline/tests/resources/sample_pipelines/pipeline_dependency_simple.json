@@ -220,6 +220,7 @@
         }
       ],
       "app_data": {
+        "name": "pipeline-title",
         "ui_data": {
           "comments": []
         },

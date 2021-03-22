@@ -21,3 +21,9 @@
   color: var(--jp-ui-font-color1);
   background: var(--jp-layout-color1);
 }
+
+.elyra-metadata-code-snippets
+  .elyra-metadata-item
+  .elyra-expandableContainer-details-visible {
+  height: 100px;
+}

@@ -36,10 +36,6 @@
   font-weight: bold;
 }
 
-.MuiButtonGroup-grouped.elyra-metadataHeader-button {
-  min-width: auto;
-}
-
 .elyra-metadataHeader-popper {
   z-index: 100;
 }
@@ -69,7 +65,6 @@
 .elyra-metadata-item .elyra-expandableContainer-details-visible {
   background-color: var(--jp-cell-editor-background);
   resize: vertical;
-  height: 100px;
 }
 
 .elyra-metadata-item .CodeMirror.cm-s-jupyter {
@@ -149,19 +144,6 @@
 .elyra-metadataEditor-formInput {
   margin: 10px;
   flex-basis: 45%;
-}
-
-.elyra-metadataEditor .MuiButtonBase-root {
-  padding: 5px 15px;
-}
-
-.elyra-metadataEditor-saveButton .MuiButtonBase-root {
-  border-color: var(--jp-border-color0);
-  color: var(--jp-ui-font-color1);
-}
-
-.elyra-metadataEditor-saveButton .MuiButton-outlinedPrimary:hover {
-  border-color: var(--jp-ui-font-color1);
 }
 
 .elyra-metadata-editor {
@@ -325,4 +307,8 @@ input.elyra-inputTag {
 
 .elyra-tags {
   margin-top: 8px;
+}
+
+.elyra-no-metadata-msg {
+  padding-left: 8px;
 }

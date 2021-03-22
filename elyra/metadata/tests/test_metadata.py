@@ -774,7 +774,7 @@ def _create_namespace(store_manager: MetadataStore, namespace_location: str):
     if isinstance(store_manager, FileMetadataStore):
         os.makedirs(namespace_location)
     elif isinstance(store_manager, MockMetadataStore):
-        instances = getattr(store_manager, 'instances')
+        instances = store_manager.instances
         if instances is None:
             setattr(store_manager, 'instances', dict())
 

@@ -28,31 +28,41 @@ import * as React from 'react';
 
 export interface ITextFieldProps {
   label: string;
-  description: string;
-  fieldName: string;
   defaultValue: string;
-  required: boolean;
-  secure: boolean;
-  error?: boolean;
+  description?: string;
+  fieldName?: string;
+  required?: boolean;
+  secure?: boolean;
+  defaultError?: boolean;
   placeholder?: string;
-  handleTextInputChange: (event: any, fieldName: string) => void;
+  onChange: (value: string) => any;
 }
 
-const CustomTooltip = withStyles((theme: any): any => ({
+// TODO: we seem to reuse this a lot, we should make a component for it.
+const CustomTooltip = withStyles(_theme => ({
   tooltip: {
     fontSize: 13
   }
 }))(Tooltip);
 
-export const TextInput = (props: ITextFieldProps): any => {
-  const [errorText, setErrorText] = React.useState(null);
+export const TextInput: React.FC<ITextFieldProps> = ({
+  defaultError,
+  defaultValue,
+  secure,
+  description,
+  label,
+  required,
+  placeholder,
+  onChange,
+  fieldName
+}) => {
+  const [error, setError] = React.useState(defaultError);
+  const [value, setValue] = React.useState(defaultValue);
+
+  // This is necessary to rerender with error when clicking the save button.
   React.useEffect(() => {
-    if (props.error) {
-      setErrorText(
-        <FormHelperText error> This field is required. </FormHelperText>
-      );
-    }
-  }, [props.error]);
+    setError(defaultError);
+  }, [defaultError]);
 
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -60,41 +70,36 @@ export const TextInput = (props: ITextFieldProps): any => {
     setShowPassword(!showPassword);
   };
 
-  const [value, setValue] = React.useState(props.defaultValue);
-
-  React.useEffect(() => {
-    setValue(props.defaultValue);
-  }, [props.defaultValue]);
-
   return (
     <div
       className={`elyra-metadataEditor-formInput ${
-        props.secure ? 'elyra-metadataEditor-secure' : ''
+        secure ? 'elyra-metadataEditor-secure' : ''
       }`}
     >
-      <CustomTooltip title={props.description || ''}>
+      <CustomTooltip title={description ?? ''}>
         <TextField
-          key={props.fieldName}
-          label={props.label}
-          required={props.required}
+          label={label}
+          required={required}
           variant="outlined"
-          error={props.error}
-          onChange={(event: any): void => {
-            props.handleTextInputChange(event, props.fieldName);
-            setValue(event.nativeEvent.target.value);
+          error={error}
+          onChange={(event): void => {
+            const newValue = event.target.value;
+            setError(required && newValue === '');
+            setValue(newValue);
+            onChange(newValue);
           }}
-          placeholder={props.placeholder}
+          placeholder={placeholder}
           value={value ?? ''}
-          type={showPassword || !props.secure ? 'text' : 'password'}
+          type={showPassword || !secure ? 'text' : 'password'}
           InputProps={
-            props.secure
+            secure
               ? {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
                         aria-label="toggle password visibility"
                         onClick={toggleShowPassword}
-                        onMouseDown={(event: any): void => {
+                        onMouseDown={(event): void => {
                           event.preventDefault();
                         }}
                         edge="end"
@@ -106,10 +111,12 @@ export const TextInput = (props: ITextFieldProps): any => {
                 }
               : {}
           }
-          className={`elyra-metadataEditor-form-${props.fieldName}`}
+          className={`elyra-metadataEditor-form-${fieldName ?? ''}`}
         />
       </CustomTooltip>
-      {errorText}
+      {error === true && (
+        <FormHelperText error>This field is required.</FormHelperText>
+      )}
     </div>
   );
 };

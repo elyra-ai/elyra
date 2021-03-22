@@ -52,7 +52,7 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v2.1.0rc0?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v2.1.0?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
 - [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
 #### Using Docker
@@ -132,6 +132,7 @@ Elyra can be installed from PyPI:
   pip install elyra==0.10.3 && jupyter lab build
   ```
 
+**NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
 ### Verify Installation 
 
 Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.

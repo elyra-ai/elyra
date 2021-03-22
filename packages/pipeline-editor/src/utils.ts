@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { LabShell } from '@jupyterlab/application';
 import { PathExt } from '@jupyterlab/coreutils';
 
 import uuid4 from 'uuid/v4';
@@ -169,4 +170,22 @@ export default class Utils {
       arr.slice(i * n, i * n + n)
     );
   }
+
+  /**
+   * Check if the object is not an array, but the result of a Dialog instead
+   */
+  static isDialogResult(runtimesObj: any): boolean {
+    return runtimesObj && !(runtimesObj instanceof Array) && runtimesObj.button;
+  }
+
+  /**
+   * From a given widget, find the application shell and return it
+   */
+  static getLabShell = (widget: any): LabShell => {
+    while (widget !== null && !(widget instanceof LabShell)) {
+      widget = widget.parent;
+    }
+
+    return widget;
+  };
 }

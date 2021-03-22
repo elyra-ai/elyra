@@ -26,7 +26,7 @@ from collections import OrderedDict
 from datetime import datetime
 from elyra._version import __version__
 from elyra.metadata import MetadataManager
-from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
+from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
 from elyra.util.git import GithubClient
 from jinja2 import Environment, PackageLoader
@@ -56,6 +56,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
         cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
         cos_bucket = runtime_configuration.metadata.get('cos_bucket')
 
+        github_api_endpoint = runtime_configuration.metadata.get('github_api_endpoint')
         github_repo_token = runtime_configuration.metadata.get('github_repo_token')
         github_repo = runtime_configuration.metadata.get('github_repo')
         github_branch = runtime_configuration.metadata.get('github_branch')
@@ -74,7 +75,6 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             self.log.debug("Uploading pipeline file: %s", pipeline_filepath)
 
             try:
-                github_api_endpoint = runtime_configuration.metadata.get('github_api_endpoint')
                 github_client = GithubClient(server_url=github_api_endpoint,
                                              token=github_repo_token,
                                              repo=github_repo,
@@ -83,8 +83,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             except BaseException as e:
                 raise RuntimeError(f'Unable to create a connection to {github_api_endpoint}: {str(e)}') from e
 
-            github_client.upload_dag(pipeline_name=pipeline_name,
-                                     pipeline_filepath=pipeline_filepath)
+            github_client.upload_dag(pipeline_filepath, pipeline_name)
 
             self.log.info('Waiting for Airflow Scheduler to process and start the pipeline')
 
@@ -145,23 +144,17 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
         t0_all = time.time()
 
+        # Sort operations based on dependency graph (topological order)
+        sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
+
         # All previous operation outputs should be propagated throughout the pipeline.
         # In order to process this recursively, the current operation's inputs should be combined
         # from its parent's inputs (which, themselves are derived from the outputs of their parent)
         # and its parent's outputs.
-        for operation in pipeline.operations.values():
-            parent_io = []  # gathers inputs & outputs relative to parent
-            for parent_operation_id in operation.parent_operations:
-                parent_operation = pipeline.operations[parent_operation_id]
-                if parent_operation.inputs:
-                    parent_io.extend(parent_operation.inputs)
-                if parent_operation.outputs:
-                    parent_io.extend(parent_operation.outputs)
 
-                if parent_io:
-                    operation.inputs = parent_io
+        PipelineProcessor._propagate_operation_inputs_outputs(pipeline, sorted_operations)
 
-        for operation in pipeline.operations.values():
+        for operation in sorted_operations:
             operation_artifact_archive = self._get_dependency_archive_name(operation)
 
             self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(

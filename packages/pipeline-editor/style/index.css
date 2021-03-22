@@ -577,5 +577,11 @@ body.elyra-dark .react-contextmenu-item.contextmenu-divider {
 
 input.elyra-Dialog-checkbox.jp-mod-styled {
   appearance: auto;
+  -moz-appearance: checkbox;
+  -webkit-appearance: checkbox;
   height: auto;
+}
+
+.elyra-dialog-form input[type='text'] {
+  width: 100%;
 }
