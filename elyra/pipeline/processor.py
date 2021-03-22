@@ -18,12 +18,15 @@ import entrypoints
 import os
 import time
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from elyra.metadata import MetadataManager
+from elyra.pipeline.parser import Pipeline, Operation
 from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
+from typing import List
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
+from urllib3.exceptions import MaxRetryError
 
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -87,11 +90,19 @@ class PipelineProcessorManager(SingletonConfigurable):
         return res
 
 
-class PipelineProcessorResponse(object):
-    def __init__(self, run_url='', object_storage_url='', object_storage_path=''):
+class PipelineProcessorResponse(ABC):
+
+    _type = None
+
+    def __init__(self, run_url, object_storage_url, object_storage_path):
         self._run_url = run_url
         self._object_storage_url = object_storage_url
         self._object_storage_path = object_storage_path
+
+    @property
+    @abstractmethod
+    def type(self):
+        raise NotImplementedError()
 
     @property
     def run_url(self):
@@ -117,7 +128,8 @@ class PipelineProcessorResponse(object):
         return self._object_storage_path
 
     def to_json(self):
-        return {"run_url": self.run_url,
+        return {"platform": self.type,
+                "run_url": self.run_url,
                 "object_storage_url": self.object_storage_url,
                 "object_storage_path": self.object_storage_path
                 }
@@ -177,6 +189,57 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
             self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
 
+    @staticmethod
+    def _propagate_operation_inputs_outputs(pipeline: Pipeline, sorted_operations: List[Operation]) -> None:
+        """
+        All previous operation outputs should be propagated throughout the pipeline.
+        In order to process this recursively, the current operation's inputs should be combined
+        from its parent's inputs (which, themselves are derived from the outputs of their parent)
+        and its parent's outputs.
+        """
+        for operation in sorted_operations:
+            parent_io = set()  # gathers inputs & outputs relative to parent
+            for parent_operation_id in operation.parent_operations:
+                parent_operation = pipeline.operations[parent_operation_id]
+                if parent_operation.inputs:
+                    parent_io.update(parent_operation.inputs)
+                if parent_operation.outputs:
+                    parent_io.update(parent_operation.outputs)
+
+            if parent_io:
+                parent_io.update(operation.inputs)
+                operation.inputs = list(parent_io)
+
+    @staticmethod
+    def _sort_operations(operations_by_id: dict) -> List[Operation]:
+        """
+        Sort the list of operations based on its dependency graph
+        """
+        ordered_operations = []
+
+        for operation in operations_by_id.values():
+            PipelineProcessor._sort_operation_dependencies(operations_by_id,
+                                                           ordered_operations,
+                                                           operation)
+
+        return ordered_operations
+
+    @staticmethod
+    def _sort_operation_dependencies(operations_by_id: dict, ordered_operations: list, operation: Operation) -> None:
+        """
+        Helper method to the main sort operation function
+        """
+        # Optimization: check if already processed
+        if operation not in ordered_operations:
+            # process each of the dependencies that needs to be executed first
+            for parent_operation_id in operation.parent_operations:
+                parent_operation = operations_by_id[parent_operation_id]
+                if parent_operation not in ordered_operations:
+                    PipelineProcessor._sort_operation_dependencies(operations_by_id,
+                                                                   ordered_operations,
+                                                                   parent_operation)
+            ordered_operations.append(operation)
+
 
 class RuntimePipelineProcess(PipelineProcessor):
 
@@ -230,8 +293,13 @@ class RuntimePipelineProcess(PipelineProcessor):
             self.log.error("Dependencies were not found building archive for operation: {}".
                            format(operation.name), exc_info=True)
             raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
-                                    format(operation.name, ex))
-
+                                    format(operation.name, ex)) from ex
+        except MaxRetryError as ex:
+            cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+            self.log.error("Connection was refused when attempting to connect to : {}".
+                           format(cos_endpoint), exc_info=True)
+            raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
+                               "check your object storage settings. ".format(cos_endpoint)) from ex
         except BaseException as ex:
             self.log.error("Error uploading artifacts to object storage for operation: {}".
                            format(operation.name), exc_info=True)

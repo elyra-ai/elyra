@@ -6,7 +6,8 @@
   "namespace": "runtimes",
   "uihints": {
     "title": "Apache Airflow runtimes",
-    "icon": "elyra:runtimes"
+    "icon": "elyra:runtimes",
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html"
   },
   "properties": {
     "schema_name": {

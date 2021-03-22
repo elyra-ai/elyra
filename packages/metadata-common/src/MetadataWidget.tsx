@@ -17,6 +17,7 @@
 import { IDictionary, MetadataService } from '@elyra/services';
 import {
   ExpandableComponent,
+  ThemeProvider,
   JSONComponent,
   RequestErrors,
   trashIcon
@@ -25,6 +26,7 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import {
   Dialog,
+  IThemeManager,
   ReactWidget,
   showDialog,
   UseSignal
@@ -41,6 +43,7 @@ import { FilterTools } from './FilterTools';
 /**
  * The CSS class added to metadata widgets.
  */
+export const METADATA_CLASS = 'elyra-metadata';
 export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
 export const METADATA_ITEM = 'elyra-metadata-item';
 const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
@@ -72,6 +75,7 @@ export interface IMetadataDisplayProps {
   updateMetadata: () => void;
   namespace: string;
   sortMetadata: boolean;
+  className: string;
 }
 
 /**
@@ -294,15 +298,13 @@ export class MetadataDisplay<
       this.sortMetadata();
     }
     return (
-      <div>
-        <div id="elyra-metadata">
-          <FilterTools
-            onFilter={this.filteredMetadata}
-            tags={this.getActiveTags()}
-            namespaceId={`${this.props.namespace}`}
-          />
-          <div>{this.props.metadata.map(this.renderMetadata)}</div>
-        </div>
+      <div id="elyra-metadata" className={this.props.className}>
+        <FilterTools
+          onFilter={this.filteredMetadata}
+          tags={this.getActiveTags()}
+          namespaceId={`${this.props.namespace}`}
+        />
+        <div>{this.props.metadata.map(this.renderMetadata)}</div>
       </div>
     );
   }
@@ -313,6 +315,7 @@ export class MetadataDisplay<
  */
 export interface IMetadataWidgetProps {
   app: JupyterFrontEnd;
+  themeManager: IThemeManager;
   display_name: string;
   namespace: string;
   icon: LabIcon;
@@ -403,33 +406,36 @@ export class MetadataWidget extends ReactWidget {
         openMetadataEditor={this.openMetadataEditor}
         namespace={this.props.namespace}
         sortMetadata={true}
+        className={`${METADATA_CLASS}-${this.props.namespace}`}
       />
     );
   }
 
   render(): React.ReactElement {
     return (
-      <div>
-        <header className={METADATA_HEADER_CLASS}>
-          <div style={{ display: 'flex' }}>
-            <this.props.icon.react
-              tag="span"
-              width="auto"
-              height="24px"
-              verticalAlign="middle"
-              marginRight="5px"
+      <ThemeProvider themeManager={this.props.themeManager}>
+        <div className={METADATA_CLASS}>
+          <header className={METADATA_HEADER_CLASS}>
+            <div style={{ display: 'flex' }}>
+              <this.props.icon.react
+                tag="span"
+                width="auto"
+                height="24px"
+                verticalAlign="middle"
+                marginRight="5px"
+              />
+              <p> {this.props.display_name} </p>
+            </div>
+            <AddMetadataButton
+              schemas={this.schemas}
+              addMetadata={this.addMetadata}
             />
-            <p> {this.props.display_name} </p>
-          </div>
-          <AddMetadataButton
-            schemas={this.schemas}
-            addMetadata={this.addMetadata}
-          />
-        </header>
-        <UseSignal signal={this.renderSignal} initialArgs={[]}>
-          {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
-        </UseSignal>
-      </div>
+          </header>
+          <UseSignal signal={this.renderSignal} initialArgs={[]}>
+            {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
+          </UseSignal>
+        </div>
+      </ThemeProvider>
     );
   }
 }

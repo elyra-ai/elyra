@@ -24,7 +24,7 @@ limitations under the License.
 - Update the [changelog.md](../getting_started/changelog.md)
 - Run the release script
 ```bash
-create-release.py prepare --version 2.0.0 --dev-version 2.1.0
+create-release.py prepare --version 2.0.0 --dev-version 2.1.0 [--rc 0]
 ```
 - The artifacts for the new release will then be available at `./build/release/`
   - The Elyra folder is the main release
@@ -41,7 +41,7 @@ elyra-python-editor-extension
   - Run the NOAA sample
 - Publish the release
 ```bash
-create-release.py publish --version 2.0.0
+create-release.py publish --version 2.0.0 [--rc 0]
 ```
 - Build and publish docker images based on release tag
 ```bash
@@ -49,6 +49,15 @@ git pull --rebase
 git checkout tags/v2.0.0
 make container-image publish-container-image
 ```  
+
+- Update dev and latest image tags based on release tag
+```bash
+docker tag elyra/elyra:2.0.0 elyra/elyra:dev && docker push elyra/elyra:dev
+docker tag elyra/elyra:2.0.0 elyra/elyra:latest && docker push elyra/elyra:latest
+docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:dev && docker push quay.io/elyra/elyra:dev
+docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:latest && docker push quay.io/elyra/elyra:latest
+```
+
 - Merge changes for conda-forge
   - https://github.com/conda-forge/elyra-feedstock/pulls
   - https://github.com/conda-forge/elyra-server-feedstock/pulls

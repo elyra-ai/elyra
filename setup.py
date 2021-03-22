@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 import os
+import sys
+
 from glob import glob
 from setuptools import setup, find_packages
 
@@ -34,7 +36,7 @@ settings_path = './etc/config/settings/*.json'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 
 # kfp_packages = [
-#     'kfp-notebook~=0.20.0',
+#     'kfp-notebook~=0.21.0',
 #     'kfp==1.3.0',
 #     'kfp-tekton==0.6.0',
 #     ]
@@ -77,14 +79,16 @@ setup_args = dict(
         'nbformat>=5.1.2',
         'papermill>=2.1.3',
         'python-language-server[all]>=0.36.2',
+        'pyyaml>=5.3.1,<6.0',
         'requests>=2.9.1,<3.0',
         'rfc3986-validator>=0.1.1',
+        'tornado >=6.1.0',
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp-notebook~=0.20.0',
+        'kfp-notebook>=0.20.0',
         'kfp==1.3.0',
         'kfp-tekton==0.6.0',
         # Airflow runtime dependencies
@@ -124,12 +128,12 @@ setup_args = dict(
 )
 
 
+if "--dev" not in sys.argv:
+    setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
+else:
+    sys.argv.remove("--dev")
+
 # TODO: @akchin document this
-# if "--dev" not in sys.argv:
-#     setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
-# else:
-#     sys.argv.remove("--dev")
-#
 # if "--airflow" not in sys.argv:
 #     setup_args["install_requires"].append(kfp_packages)
 #     setup_args["entry_points"]['elyra.pipeline.processors'].append(

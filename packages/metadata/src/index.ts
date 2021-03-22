@@ -84,7 +84,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       const metadataEditorWidget = new MetadataEditor({
         ...args,
         editorServices,
-        status
+        status,
+        themeManager
       });
       metadataEditorWidget.title.label = widgetLabel;
       metadataEditorWidget.id = widgetId;
@@ -92,16 +93,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.title.icon = textEditorIcon;
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
       app.shell.add(metadataEditorWidget, 'main');
-
-      const updateTheme = (): void => {
-        const isLight =
-          themeManager.theme && themeManager.isLight(themeManager.theme);
-        metadataEditorWidget.darkMode = !isLight;
-      };
-      if (themeManager) {
-        themeManager.themeChanged.connect(updateTheme);
-      }
-      updateTheme();
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
@@ -119,6 +110,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       const widgetId = `${METADATA_WIDGET_ID}:${args.namespace}`;
       const metadataWidget = new MetadataWidget({
         app,
+        themeManager,
         display_name: args.display_name,
         namespace: args.namespace,
         icon: labIcon
@@ -170,7 +162,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
     app.contextMenu.addItem({
       selector:
-        '[data-id^="elyra-metadata:"]:not([data-id$="code-snippet"]):not([data-id$="runtimes:airflow"])',
+        '[data-id^="elyra-metadata:"]:not([data-id$="code-snippets"]):not([data-id$="runtimes"])',
       command: closeTabCommand
     });
 
@@ -191,7 +183,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           command: commandIDs.openMetadata,
           args: {
             label: `Manage ${title}`,
-            display_name: schema.title,
+            display_name: schema.uihints.title,
             namespace: schema.namespace,
             icon: icon
           },

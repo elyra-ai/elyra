@@ -23,7 +23,7 @@ You can manage runtime configurations using the [JupyterLab UI](#managing-runtim
 
 ### Prerequisites
 
-A Kubeflow Pipelines runtime configuration requires connectivity details for 
+A runtime configuration requires connectivity details for 
 * A Kubeflow Pipelines deployment or an Apache Airflow deployment
 * S3-based Object Storage (e.g. minio or IBM Cloud Object Storage)
 
@@ -37,11 +37,11 @@ To create, edit, or delete runtime configurations using the UI select the `Runti
 
 To create a runtime configuration:
 1. Select the `Runtimes` tab from the JupyterLab sidebar.
-1. Click `+` to add a new runtime configuration.
-   ![Create runtime configuration](../images/runtime-create-config.png) 
-1. Provide a runtime display name, an optional description, and tag the configuration to make it more easily discoverable. 
+1. Click `+` to add a new runtime configuration and choose the desired runtime configuration type, e.g. Kubeflow Pipelies or Apache Airflow. 
+   ![Create runtime configuration](../images/runtime-create-config.png)
+1. Provide a runtime configuration display name, an optional description, and tag the configuration to make it more easily discoverable. 
 1. Enter the Kubeflow Pipelines or Apache Airflow deployment information. Refer to section [Kubeflow Pipelines configuration settings](#kubeflow-pipelines-configuration-settings) or [Apache Airflow configuration settings](#apache-airflow-configuration-settings) for details.
-1. Enter the Cloud Storage connectivity information.
+1. Enter the Cloud Storage connectivity information. Refer to section [Cloud Storage settings](#cloud-storage-settings) for details.
 1. Save the runtime configuration. The new entry is displayed in the list.
 1. Expand the entry and verify that you can access the Kubeflow Pipelines or Apache Airflow GUI and the Cloud Storage GUI using the displayed links.
 
@@ -98,7 +98,8 @@ elyra-metadata install runtimes \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.0']"
+       --tags="['kfp', 'v1.0']" \
+       --schema_name=kfp
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters.
@@ -120,7 +121,8 @@ elyra-metadata install runtimes \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.1']"
+       --tags="['kfp', 'v1.1']" \
+       --schema_name=kfp
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 

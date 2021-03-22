@@ -102,6 +102,57 @@
           }
         }
       ]
+    },
+    {
+      "label": "R Script",
+      "image": "",
+      "id": "r-script",
+      "description": "R Script",
+      "node_types": [
+        {
+          "id": "",
+          "op": "execute-r-node",
+          "type": "execution_node",
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ],
+          "parameters": {},
+          "app_data": {
+            "ui_data": {
+              "label": "R",
+              "description": "R Script",
+              "image": "",
+              "x_pos": 0,
+              "y_pos": 0
+            }
+          }
+        }
+      ]
     }
   ]
 }

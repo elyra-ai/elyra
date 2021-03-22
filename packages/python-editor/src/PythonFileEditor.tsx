@@ -16,6 +16,8 @@
 
 import '../style/index.css';
 
+import { pyIcon } from '@elyra/ui-components';
+
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
@@ -38,7 +40,6 @@ import {
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
   DockPanelSvg,
-  pythonIcon,
   runIcon,
   saveIcon,
   stopIcon,
@@ -92,7 +93,7 @@ export class PythonFileEditor extends DocumentWidget<
     this.runDisabled = false;
 
     // Add python icon to main tab
-    this.title.icon = pythonIcon;
+    this.title.icon = pyIcon;
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({

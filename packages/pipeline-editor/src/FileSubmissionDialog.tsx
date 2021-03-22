@@ -17,12 +17,7 @@
 import { IDictionary } from '@elyra/services';
 import * as React from 'react';
 
-import {
-  KFP_SCHEMA,
-  IRuntime,
-  ISchema,
-  PipelineService
-} from './PipelineService';
+import { IRuntime, ISchema, PipelineService } from './PipelineService';
 import Utils from './utils';
 
 interface IProps {
@@ -33,9 +28,10 @@ interface IProps {
 }
 
 interface IState {
-  runtimePlatform: string;
-  runtimes: IRuntime[];
+  displayedRuntimeOptions: IRuntime[];
   includeDependency: boolean;
+  selectedRuntimePlatform: string;
+  validSchemas: ISchema[];
 }
 
 const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
@@ -44,7 +40,7 @@ const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
       <>
         <br />
         <br />
-        <div>Environmental Variables:</div>
+        <div>Environment Variables:</div>
         <br />
         {Utils.chunkArray(env, 4).map((col, i) => (
           <div key={i}>
@@ -71,9 +67,10 @@ const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
 
 export class FileSubmissionDialog extends React.Component<IProps, IState> {
   state = {
-    runtimePlatform: KFP_SCHEMA,
-    runtimes: this.props.runtimes,
-    includeDependency: true
+    displayedRuntimeOptions: new Array<IRuntime>(),
+    includeDependency: true,
+    selectedRuntimePlatform: '',
+    validSchemas: new Array<ISchema>()
   };
 
   handleCheck = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -84,25 +81,45 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
 
   handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const selectedPlatform = event.target.value;
-    this.updateDisplayOptions(selectedPlatform);
-  };
-
-  updateDisplayOptions = (platformSelection: string): void => {
-    const runtimes = PipelineService.filterRuntimes(
-      this.props.runtimes,
-      platformSelection
-    );
     this.setState({
-      runtimes: runtimes
+      displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
+      selectedRuntimePlatform: selectedPlatform
     });
   };
 
+  updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
+    const filteredRuntimeOptions = PipelineService.filterRuntimes(
+      this.props.runtimes,
+      platformSelection
+    );
+    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
+    return filteredRuntimeOptions;
+  };
+
   componentDidMount(): void {
-    this.updateDisplayOptions(this.state.runtimePlatform);
+    const { schema, runtimes } = this.props;
+
+    const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
+    const selectedRuntimePlatform = validSchemas[0] && validSchemas[0].name;
+    const displayedRuntimeOptions = this.updateRuntimeOptions(
+      selectedRuntimePlatform
+    );
+
+    this.setState({
+      displayedRuntimeOptions: displayedRuntimeOptions,
+      selectedRuntimePlatform: selectedRuntimePlatform,
+      validSchemas: validSchemas
+    });
   }
+
   render(): React.ReactNode {
-    const { includeDependency, runtimes } = this.state;
-    const { env, images, schema } = this.props;
+    const { env, images } = this.props;
+    const {
+      displayedRuntimeOptions,
+      includeDependency,
+      validSchemas
+    } = this.state;
+
     const fileDependencyContent = includeDependency ? (
       <div key="dependencies">
         <br />
@@ -118,39 +135,36 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
       </div>
     ) : null;
 
-    PipelineService.sortRuntimesByDisplayName(runtimes);
-
     return (
-      <form>
+      <form className="elyra-dialog-form">
         <label htmlFor="runtime_platform">Runtime Platform:</label>
         <br />
         <select
           id="runtime_platform"
           name="runtime_platform"
           className="elyra-form-runtime-platform"
-          defaultValue={this.state.runtimePlatform}
           onChange={this.handleUpdate}
         >
-          {schema.map(schema => (
+          {validSchemas.map(schema => (
             <option key={schema.name} value={schema.name}>
               {schema.display_name}
             </option>
           ))}
         </select>
-        <label htmlFor="runtime_config">Runtime Config:</label>
+        <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select
           id="runtime_config"
           name="runtime_config"
           className="elyra-form-runtime-config"
         >
-          {runtimes.map(runtime => (
+          {displayedRuntimeOptions.map(runtime => (
             <option key={runtime.name} value={runtime.name}>
               {runtime.display_name}
             </option>
           ))}
         </select>
-        <label htmlFor="framework">Runtime images:</label>
+        <label htmlFor="framework">Runtime Image:</label>
         <br />
         <select
           id="framework"
@@ -173,7 +187,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
           checked={this.state.includeDependency}
           onChange={this.handleCheck}
         />
-        <label htmlFor="dependency_include">Include file dependencies</label>
+        <label htmlFor="dependency_include">Include File Dependencies:</label>
         <br />
         {fileDependencyContent}
         <EnvForm env={env} />

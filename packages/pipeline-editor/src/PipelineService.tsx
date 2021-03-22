@@ -24,11 +24,8 @@ import * as React from 'react';
 
 import Utils from './utils';
 
-export const AIRFLOW_SCHEMA = 'airflow';
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_NAMESPACE = 'runtimes';
-export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
-export const RUNTIME_IMAGE_SCHEMA = 'runtime-image';
 
 export interface IRuntime {
   name: string;
@@ -47,10 +44,10 @@ export class PipelineService {
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(showError = true): Promise<any> {
-    return MetadataService.getMetadata('runtimes').then(runtimes => {
+  static async getRuntimes(showError = true, action?: string): Promise<any> {
+    return MetadataService.getMetadata(RUNTIMES_NAMESPACE).then(runtimes => {
       if (showError && Object.keys(runtimes).length === 0) {
-        return RequestErrors.noMetadataError('runtimes');
+        return RequestErrors.noMetadataError('runtime', action);
       }
 
       return runtimes;
@@ -72,13 +69,25 @@ export class PipelineService {
 
   /**
    * Returns a list of external runtime configurations
-   * based on the runtimePLatform (Airflow or Kubeflow)
+   * based on the runtimePlatform (Airflow or Kubeflow)
    */
   static filterRuntimes = (
     runtimes: IRuntime[],
     runtimePlatform: string
   ): IRuntime[] =>
     runtimes.filter(runtime => runtime.schema_name === runtimePlatform);
+
+  /**
+   * Returns a list of external schema configurations
+   * based a list of runtimes instances
+   */
+  static filterValidSchema = (
+    runtimes: IRuntime[],
+    schema: ISchema[]
+  ): ISchema[] =>
+    schema.filter(s =>
+      runtimes.some(runtime => runtime.schema_name === s.name)
+    );
 
   /**
    * Sorts given list of runtimes by the display_name property
@@ -100,7 +109,7 @@ export class PipelineService {
       );
 
       if (Object.keys(runtimeImages).length === 0) {
-        return RequestErrors.noMetadataError('runtime-images');
+        return RequestErrors.noMetadataError('runtime image');
       }
 
       const images: IDictionary<string> = {};
@@ -164,6 +173,19 @@ export class PipelineService {
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
           <p>
+            {response['platform'] == 'airflow' ? (
+              <p>
+                Apache Airflow DAG has been pushed to the{' '}
+                <a
+                  href={response['git_url']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub Repository.
+                </a>
+                <br />
+              </p>
+            ) : null}
             Check the status of your job at{' '}
             <a
               href={response['run_url']}

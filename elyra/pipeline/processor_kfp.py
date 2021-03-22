@@ -24,12 +24,11 @@ import requests
 from datetime import datetime
 from elyra._version import __version__
 from elyra.metadata import MetadataManager
-from elyra.pipeline import RuntimePipelineProcess, PipelineProcessorResponse
+from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
 from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
-from urllib3.exceptions import LocationValueError
-from urllib3.exceptions import MaxRetryError
+from urllib3.exceptions import LocationValueError, MaxRetryError
 
 
 class KfpPipelineProcessor(RuntimePipelineProcess):
@@ -192,7 +191,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                    f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}",
                                    duration=(time.time() - t0_all))
 
-            return PipelineProcessorResponse(
+            return KfpPipelineProcessorResponse(
                 run_url=f'{api_endpoint}/#/runs/details/{run.id}',
                 object_storage_url=f'{cos_endpoint}',
                 object_storage_path=f'/{cos_bucket}/{cos_directory}',
@@ -332,23 +331,17 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         # Create dictionary that maps component Id to its ContainerOp instance
         notebook_ops = {}
 
+        # Sort operations based on dependency graph (topological order)
+        sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
+
         # All previous operation outputs should be propagated throughout the pipeline.
         # In order to process this recursively, the current operation's inputs should be combined
         # from its parent's inputs (which, themselves are derived from the outputs of their parent)
         # and its parent's outputs.
-        for operation in pipeline.operations.values():
-            parent_io = []  # gathers inputs & outputs relative to parent
-            for parent_operation_id in operation.parent_operations:
-                parent_operation = pipeline.operations[parent_operation_id]
-                if parent_operation.inputs:
-                    parent_io.extend(parent_operation.inputs)
-                if parent_operation.outputs:
-                    parent_io.extend(parent_operation.outputs)
 
-                if parent_io:
-                    operation.inputs = parent_io
+        PipelineProcessor._propagate_operation_inputs_outputs(pipeline, sorted_operations)
 
-        for operation in pipeline.operations.values():
+        for operation in sorted_operations:
 
             operation_artifact_archive = self._get_dependency_archive_name(operation)
 
@@ -446,3 +439,15 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
             if cookie_auth_value:
                 return cookie_auth_key + '=' + cookie_auth_value
+
+
+class KfpPipelineProcessorResponse(PipelineProcessorResponse):
+
+    _type = 'kfp'
+
+    def __init__(self, run_url, object_storage_url, object_storage_path):
+        super().__init__(run_url, object_storage_url, object_storage_path)
+
+    @property
+    def type(self):
+        return self._type

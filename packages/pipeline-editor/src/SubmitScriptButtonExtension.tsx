@@ -16,16 +16,17 @@
 
 // import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
-import { Dialog, ToolbarButton } from '@jupyterlab/apputils';
+import { LabShell } from '@jupyterlab/application';
+import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
-
 import { IDisposable } from '@lumino/disposable';
+
 import * as React from 'react';
 
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
-import { PipelineService } from './PipelineService';
+import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import Utils from './utils';
 
 /**
@@ -40,8 +41,26 @@ export class SubmitScriptButtonExtension
       DocumentRegistry.ICodeModel
     > {
   private editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>;
+  private shell: LabShell;
 
   showWidget = async (): Promise<void> => {
+    if (this.editor.context.model.dirty) {
+      const dialogResult = await showDialog({
+        title:
+          'This script contains unsaved changes. To submit the script the changes need to be saved.',
+        buttons: [
+          Dialog.cancelButton(),
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
+      });
+      if (dialogResult.button && dialogResult.button.accept === true) {
+        await this.editor.context.save();
+      } else {
+        // Don't proceed if cancel button pressed
+        return;
+      }
+    }
+
     /*
     // TODO: 
     // get environment variables from the editor
@@ -49,9 +68,21 @@ export class SubmitScriptButtonExtension
     */
     // const env = this.getEnvVars(this.editor.context.model.toString());
     const env: string[] = [];
-    const runtimes = await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'submit Python script';
+    const runtimes = await PipelineService.getRuntimes(
+      true,
+      action
+    ).catch(error => RequestErrors.serverError(error));
+
+    if (Utils.isDialogResult(runtimes)) {
+      if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+        // Open the runtimes widget
+        this.shell = Utils.getLabShell(this.editor);
+        this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      }
+      return;
+    }
+
     const images = await PipelineService.getRuntimeImages().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -118,7 +149,7 @@ export class SubmitScriptButtonExtension
     const submitScriptButton = new ToolbarButton({
       label: 'Submit Script ...',
       onClick: this.showWidget,
-      tooltip: 'Submit Script ...'
+      tooltip: 'Run script as batch'
     });
 
     // Add the toolbar button to editor

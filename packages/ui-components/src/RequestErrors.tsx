@@ -85,13 +85,28 @@ export class RequestErrors {
    * @param namespace - the metadata namespace that was being accessed when
    * the error occurred
    *
+   * @param action (optional) - the pipeline action that required the metadata when
+   * the error occurred
+   * eg. run pipeline, export pipeline, submit notebook
+   *
    * @returns A promise that resolves with whether the dialog was accepted.
    */
-  static noMetadataError(namespace: string): Promise<Dialog.IResult<any>> {
+  static noMetadataError(
+    namespace: string,
+    action?: string
+  ): Promise<Dialog.IResult<any>> {
     return showDialog({
-      title: 'Error retrieving metadata',
-      body: <p>No {namespace} metadata has been configured.</p>,
-      buttons: [Dialog.okButton()]
+      title: action ? `Cannot ${action}` : 'Error retrieving metadata',
+      body: (
+        <div>
+          <p>No {namespace} configuration is defined.</p>
+          <p>Please create one and try again.</p>
+        </div>
+      ),
+      buttons:
+        namespace === 'runtime'
+          ? [Dialog.cancelButton(), Dialog.okButton({ label: `Open runtimes` })]
+          : [Dialog.okButton()]
     });
   }
 }

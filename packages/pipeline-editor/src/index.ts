@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-import { pipelineIcon, runtimesIcon } from '@elyra/ui-components';
+import {
+  containerIcon,
+  pipelineIcon,
+  runtimesIcon
+} from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
   ILayoutRestorer
 } from '@jupyterlab/application';
-import { ICommandPalette, WidgetTracker } from '@jupyterlab/apputils';
+import {
+  ICommandPalette,
+  IThemeManager,
+  WidgetTracker
+} from '@jupyterlab/apputils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -30,6 +38,10 @@ import { addIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { RUNTIMES_NAMESPACE } from './PipelineService';
+import {
+  RUNTIME_IMAGES_NAMESPACE,
+  RuntimeImagesWidget
+} from './RuntimeImagesWidget';
 import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
@@ -53,13 +65,15 @@ const extension: JupyterFrontEndPlugin<void> = {
     ILayoutRestorer,
     IMainMenu
   ],
+  optional: [IThemeManager],
   activate: (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     launcher: ILauncher,
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
-    menu: IMainMenu
+    menu: IMainMenu,
+    themeManager: IThemeManager | null
   ) => {
     console.log('Elyra - pipeline-editor extension is activated!');
 
@@ -186,6 +200,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const runtimesWidget = new RuntimesWidget({
       app,
+      themeManager,
       display_name: 'Runtimes',
       namespace: RUNTIMES_NAMESPACE,
       icon: runtimesIcon
@@ -197,6 +212,21 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     restorer.add(runtimesWidget, runtimesWidgetID);
     app.shell.add(runtimesWidget, 'left', { rank: 950 });
+
+    const runtimeImagesWidget = new RuntimeImagesWidget({
+      app,
+      themeManager,
+      display_name: 'Runtime Images',
+      namespace: RUNTIME_IMAGES_NAMESPACE,
+      icon: containerIcon
+    });
+    const runtimeImagesWidgetID = `elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`;
+    runtimeImagesWidget.id = runtimeImagesWidgetID;
+    runtimeImagesWidget.title.icon = containerIcon;
+    runtimeImagesWidget.title.caption = 'Runtime Images';
+
+    restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
+    app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
   }
 };
 export default extension;

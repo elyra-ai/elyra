@@ -39,8 +39,8 @@ A typical machine/deep learning pipeline begins as a series of preprocessing ste
 experimentation/optimization and finally deployment. Each of these steps represent a challenge in
 the model development lifecycle.
 
-Elyra provides a **Pipeline Visual Editor** for building AI pipelines from notebooks and Python scripts,
-simplifying the conversion of multiple notebooks or Python scripts into batch jobs or workflows.
+Elyra provides a **Pipeline Visual Editor** for building AI pipelines from notebooks, Python scripts
+and R scripts, simplifying the conversion of multiple notebooks or scripts files into batch jobs or workflows.
 
 Currently, pipelines can be executed locally in JupyterLab or on 
 [**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/).

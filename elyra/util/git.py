@@ -64,7 +64,6 @@ class GithubClient(LoggingConfigurable):
         :param pipeline_name: the name of the file to be created in the remote Github Repository
         :return:
         """
-
         try:
             # Upload to github
             with open(pipeline_filepath) as input_file:
@@ -108,4 +107,4 @@ class GithubClient(LoggingConfigurable):
         if parsed_url.port:
             port = ':' + parsed_url.port
 
-        return "/".join([scheme, host, port, repository_name, 'tree', repository_branch])
+        return "/".join([scheme, host + port, repository_name, 'tree', repository_branch])

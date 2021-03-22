@@ -20,6 +20,25 @@
   text-align: center;
 }
 
+.elyra-noContentMessage {
+  margin-top: 14px;
+  width: 320px;
+  padding: 0 22px;
+  opacity: 0.5;
+}
+
+.elyra-PipelineEditor div.properties-modal-buttons {
+  display: none;
+}
+
+.elyra-PipelineEditor .properties-right-flyout > .properties-custom-container {
+  height: 100%;
+}
+
+.elyra-PipelineEditor .properties-right-flyout {
+  overflow-y: scroll;
+}
+
 .elyra-tooltipError {
   color: var(--jp-error-color1);
 }
@@ -63,10 +82,10 @@
 .bx--text-input__field-outer-wrapper {
   width: 100%;
 }
-.properties-dropdown .bx--list-box__wrapper:hover {
+.properties-dropdown .bx--dropdown:hover {
   background-color: #e5e5e5;
 }
-.properties-dropdown .bx--list-box__wrapper {
+.properties-dropdown .bx--dropdown {
   background-color: #f5f8fa;
   border-radius: 3px;
   border-bottom: 0px;
@@ -148,39 +167,6 @@ td {
 
 .elyra-experiments {
   padding-right: 5px;
-}
-
-.elyra-Table-experiments {
-  font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;
-  width: 100%;
-  background-color: #ffffff;
-  margin-top: 5px;
-  margin-bottom: 10px;
-}
-
-.elyra-Table-experiments tr:hover:nth-child(even) {
-  background-color: #ddd;
-}
-
-.elyra-Table-experiments tr:hover:nth-child(odd) {
-  background-color: #ddd;
-}
-
-.elyra-Table-experiments tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-.elyra-Table-experiments td {
-  font-weight: normal;
-  padding: 10px;
-}
-
-.elyra-Table-experiments thead {
-  color: #495057;
-
-  background-color: #e9ecef;
-  padding-left: 10px;
-  padding-right: 10px;
 }
 
 .properties-editor-form {
@@ -376,5 +362,16 @@ span.elyra-BreadCrumbs-disabled + span {
 
 input.elyra-Dialog-checkbox.jp-mod-styled {
   appearance: auto;
+  -moz-appearance: checkbox;
+  -webkit-appearance: checkbox;
   height: auto;
+}
+
+.elyra-dialog-form input[type='text'] {
+  width: 100%;
+}
+
+/* fix a Safari bug where button margins default to 2px */
+.properties-control-panel button {
+  margin: 0;
 }

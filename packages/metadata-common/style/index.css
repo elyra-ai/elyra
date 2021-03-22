@@ -20,6 +20,11 @@
   background: var(--jp-layout-color1);
 }
 
+.elyra-metadata a,
+.elyra-metadataEditor a {
+  color: var(--jp-content-link-color);
+}
+
 .elyra-metadataHeader {
   font-weight: bold;
   padding: 8px 10px;
@@ -29,10 +34,6 @@
 
 .elyra-metadataHeader p {
   font-weight: bold;
-}
-
-.MuiButtonGroup-grouped.elyra-metadataHeader-button {
-  min-width: auto;
 }
 
 .elyra-metadataHeader-popper {
@@ -64,7 +65,6 @@
 .elyra-metadata-item .elyra-expandableContainer-details-visible {
   background-color: var(--jp-cell-editor-background);
   resize: vertical;
-  height: 100px;
 }
 
 .elyra-metadata-item .CodeMirror.cm-s-jupyter {
@@ -88,13 +88,8 @@
   margin-right: 70px;
 }
 
-.elyra-metadataEditor-dark.elyra-metadataEditor .MuiButtonBase-root {
-  color: #fff;
-  border-color: #fff;
-}
-
-.elyra-metadataEditor-dark.elyra-metadataEditor h4 {
-  color: #fff;
+.elyra-metadataEditor {
+  color: var(--jp-ui-font-color1);
 }
 
 .elyra-form-DropDown-item {
@@ -149,12 +144,6 @@
 .elyra-metadataEditor-formInput {
   margin: 10px;
   flex-basis: 45%;
-}
-
-.elyra-metadataEditor .MuiButtonBase-root {
-  border: 1px solid rgba(0, 0, 0, 0.23);
-  padding: 5px 15px;
-  border-radius: 4px;
 }
 
 .elyra-metadata-editor {
@@ -318,4 +307,8 @@ input.elyra-inputTag {
 
 .elyra-tags {
   margin-top: 8px;
+}
+
+.elyra-no-metadata-msg {
+  padding-left: 8px;
 }

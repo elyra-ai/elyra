@@ -1,6 +1,6 @@
 {
   "name": "@elyra/python-editor-extension",
-  "version": "2.1.0-dev",
+  "version": "2.2.0-dev",
   "description": "JupyterLab extension - Run python files using a kernel runtime",
   "keywords": [
     "jupyter",
@@ -32,6 +32,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
+    "@elyra/ui-components": "^2.2.0-dev",
     "@jupyterlab/application": "^3.0.0",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/codeeditor": "^3.0.0",
