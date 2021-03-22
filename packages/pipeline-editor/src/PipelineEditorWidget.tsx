@@ -593,6 +593,10 @@ export class PipelineEditor extends React.Component<
           break;
         }
       }
+      // If still couldn't find the node, cancel this function
+      if (!node) {
+        return;
+      }
     }
     const app_data = node.app_data;
 
@@ -608,13 +612,9 @@ export class PipelineEditor extends React.Component<
     }
 
     app_data.runtime_image = propertySet.runtime_image;
-    app_data.outputs = propertySet.outputs.filter((x: any) => x !== undefined);
-    app_data.env_vars = propertySet.env_vars.filter(
-      (x: any) => x !== undefined
-    );
-    app_data.dependencies = propertySet.dependencies.filter(
-      (x: any) => x !== undefined
-    );
+    app_data.outputs = propertySet.outputs.filter(Boolean);
+    app_data.env_vars = propertySet.env_vars.filter(Boolean);
+    app_data.dependencies = propertySet.dependencies.filter(Boolean);
     app_data.include_subdirectories = propertySet.include_subdirectories;
     app_data.cpu = propertySet.cpu;
     app_data.memory = propertySet.memory;
@@ -808,6 +808,12 @@ export class PipelineEditor extends React.Component<
           this.setState({
             showPropertiesDialog: !this.state.showPropertiesDialog
           });
+          break;
+        case 'deleteSelectedObjects':
+          if (this.state.showPropertiesDialog) {
+            this.closePropertiesDialog();
+          }
+          break;
       }
     }
 
