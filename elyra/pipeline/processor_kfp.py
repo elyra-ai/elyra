@@ -118,6 +118,18 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             else:
                 raise lve
 
+        try:
+            client.list_experiments(namespace=user_namespace,
+                                    page_size=1)
+        except ApiException as ae:
+            self.log.error(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status})')
+            if ae.body:
+                error_msg = json.loads(ae.body)
+                raise RuntimeError(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status}): ' +
+                                   f'{error_msg["error"]}') from ae
+            else:
+                raise RuntimeError(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status})') from ae
+
         self.log_pipeline_info(pipeline_name, "submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
@@ -175,23 +187,13 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 else:
                     raise lve
 
-            try:
-                # Create a new experiment. If it already exists this is
-                # a no-op.
-                experiment = client.create_experiment(name=experiment_name,
-                                                      namespace=user_namespace)
-                self.log_pipeline_info(pipeline_name,
-                                       f'Created experiment {experiment_name}',
-                                       duration=(time.time() - t0_all))
-            except ApiException as ae:
-                self.log.error(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status})')
-                if ae.body:
-                    error_msg = json.loads(ae.body)
-                    raise RuntimeError(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status}): ' +
-                                       f'{error_msg["error"]}') from ae
-                else:
-                    raise RuntimeError(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status})') \
-                        from ae
+            # Create a new experiment. If it already exists this is
+            # a no-op.
+            experiment = client.create_experiment(name=experiment_name,
+                                                  namespace=user_namespace)
+            self.log_pipeline_info(pipeline_name,
+                                   f'Created experiment {experiment_name}',
+                                   duration=(time.time() - t0_all))
 
             # Run the pipeline (or specified pipeline version)
             run = client.run_pipeline(experiment_id=experiment.id,
