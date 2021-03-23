@@ -14,18 +14,23 @@
 # limitations under the License.
 #
 """Tests for elyra-pipeline application"""
-# import os
+import os
 from elyra.cli.pipeline_app import pipeline
 from click.testing import CliRunner
 
 
 SUB_COMMANDS = ['run', 'submit']
 
+PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD = \
+    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[],"schemas":[]}'
+
+PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD = \
+    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","schemas":[]}'
+
 
 def test_no_opts():
     runner = CliRunner()
     result = runner.invoke(pipeline)
-    print(result.output)
     assert 'run     Run a pipeline in your local environment' in result.output
     assert 'submit  Submit a pipeline to be executed on the server' in result.output
     assert result.exit_code == 0
@@ -77,13 +82,66 @@ def test_run_with_unsupported_file_type():
         assert result.exit_code != 0
 
 
-# def test_run_subcommand():
-#     runner = CliRunner()
-#     with runner.isolated_filesystem():
-#         with open('foo.pipeline', 'w') as pipeline_file:
-#             pipeline_file.write(PIPELINE_SOURCE)
-#             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
-#             for command in SUB_COMMANDS:
-#                 result = runner.invoke(pipeline, [command, pipeline_file_path])
-#                 print(result.output)
-#                 assert result.exit_code == 0
+def test_submit_with_unsupported_file_type():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.ipynb', 'w') as f:
+            f.write('{ "nbformat": 4, "cells": [] }')
+
+        result = runner.invoke(pipeline, ['submit', 'foo.ipynb',
+                                          '--runtime', 'kfp',
+                                          '--runtime-config', 'foo'])
+        assert "Pipeline file should be a [.pipeline] file" in result.output
+        assert result.exit_code != 0
+
+
+def test_run_with_no_pipelines_field():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        result = runner.invoke(pipeline, ['run', pipeline_file_path])
+        assert "Pipeline is missing 'pipelines' field." in result.output
+        assert result.exit_code != 0
+
+
+def test_submit_with_no_pipelines_field():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        result = runner.invoke(pipeline, ['submit', pipeline_file_path,
+                                          '--runtime', 'kfp',
+                                          '--runtime-config', 'foo'])
+        assert "Pipeline is missing 'pipelines' field." in result.output
+        assert result.exit_code != 0
+
+
+def test_run_with_zero_length_pipelines_field():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        result = runner.invoke(pipeline, ['run', pipeline_file_path])
+        assert "Pipeline has zero length 'pipelines' field." in result.output
+        assert result.exit_code != 0
+
+
+def test_submit_with_zero_length_pipelines_field():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        result = runner.invoke(pipeline, ['submit', pipeline_file_path,
+                                          '--runtime', 'kfp',
+                                          '--runtime-config', 'foo'])
+        assert "Pipeline has zero length 'pipelines' field." in result.output
+        assert result.exit_code != 0

@@ -47,18 +47,26 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
         except ValueError as ve:
             raise click.ClickException(f"Pipeline file is invalid: \n {ve}")
 
-    for pipeline in pipeline_definition["pipelines"]:
-        for node in pipeline["nodes"]:
-            if 'filename' in node["app_data"]:
-                abs_path = os.path.join(pipeline_dir, node["app_data"]["filename"])
-                node["app_data"]["filename"] = abs_path
+    if 'pipelines' not in pipeline_definition:
+        raise click.ClickException("Pipeline is missing 'pipelines' field.")
+    if len(pipeline_definition['pipelines']) == 0:
+        raise click.ClickException("Pipeline has zero length 'pipelines' field.")
 
-    # NOTE: The frontend just set the info for first pipeline, but shouldn't it
-    # search for the primary pipeline and set that?
-    # Setting `pipeline_definition["pipelines"][0]` for consistency.
-    pipeline_definition["pipelines"][0]["app_data"]["name"] = pipeline_name
-    pipeline_definition["pipelines"][0]["app_data"]["runtime"] = runtime
-    pipeline_definition["pipelines"][0]["app_data"]["runtime-config"] = runtime_config
+    try:
+        for pipeline in pipeline_definition["pipelines"]:
+            for node in pipeline["nodes"]:
+                if 'filename' in node["app_data"]:
+                    abs_path = os.path.join(pipeline_dir, node["app_data"]["filename"])
+                    node["app_data"]["filename"] = abs_path
+
+        # NOTE: The frontend just set the info for first pipeline, but shouldn't it
+        # search for the primary pipeline and set that?
+        # Setting `pipeline_definition["pipelines"][0]` for consistency.
+        pipeline_definition["pipelines"][0]["app_data"]["name"] = pipeline_name
+        pipeline_definition["pipelines"][0]["app_data"]["runtime"] = runtime
+        pipeline_definition["pipelines"][0]["app_data"]["runtime-config"] = runtime_config
+    except Exception as e:
+        raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
 
     return pipeline_definition
 
