@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 import sys
 
 from typing import Dict, Optional
@@ -24,7 +23,7 @@ class Operation(object):
     Represents a single operation in a pipeline
     """
 
-    def __init__(self, id, type, classifier, filename, runtime_image, memory=None, cpu=None, gpu=None,
+    def __init__(self, id, type, name, classifier, filename, runtime_image, memory=None, cpu=None, gpu=None,
                  dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None,
                  outputs=None, parent_operations=None):
         """
@@ -32,6 +31,7 @@ class Operation(object):
                    e.g. 123e4567-e89b-12d3-a456-426614174000
         :param type: The type of node e.g. execution_node
         :param classifier: classifier for processor execution e.g. Argo
+        :param name: The name of the operation
         :param filename: The relative path to the source file in the users local environment
                          to be executed e.g. path/to/file.ext
         :param runtime_image: The DockerHub image to be used for the operation
@@ -56,6 +56,8 @@ class Operation(object):
             raise ValueError("Invalid pipeline operation: Missing field 'operation type'.")
         if not classifier:
             raise ValueError("Invalid pipeline operation: Missing field 'operation classifier'.")
+        if not name:
+            raise ValueError("Invalid pipeline operation: Missing field 'operation name'.")
         if not filename:
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
         if not runtime_image:
@@ -70,6 +72,7 @@ class Operation(object):
         self._id = id
         self._type = type
         self._classifier = classifier
+        self._name = name
         self._filename = filename
         self._runtime_image = runtime_image
         self._dependencies = dependencies or []
@@ -96,7 +99,7 @@ class Operation(object):
 
     @property
     def name(self):
-        return os.path.basename(self._filename).split(".")[0]
+        return self._name
 
     @property
     def filename(self):
@@ -175,6 +178,7 @@ class Operation(object):
             return self.id == other.id and \
                 self.type == other.type and \
                 self.classifier == other.classifier and \
+                self.name == other.name and \
                 self.filename == other.filename and \
                 self.runtime_image == other.runtime_image and \
                 self.env_vars == other.env_vars and \
