@@ -169,7 +169,6 @@ def pipeline():
 @click.argument('pipeline_path')
 @click.option('--runtime',
               required=True,
-              type=click.Choice(['kfp', 'airflow'], case_sensitive=False),
               help='Runtime type where the pipeline should be processed')
 @click.option('--runtime-config',
               required=True,
