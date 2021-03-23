@@ -16,6 +16,8 @@
 
 import '../style/index.css';
 
+import { pyIcon, rIcon } from '@elyra/ui-components';
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
@@ -29,7 +31,6 @@ import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { pythonIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
 
@@ -37,6 +38,7 @@ import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
 
 const PYTHON_FACTORY = 'Python Editor';
 const PYTHON = 'python';
+const R = 'r';
 const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
 
 const commandIDs = {
@@ -80,6 +82,24 @@ const extension: JupyterFrontEndPlugin<void> = {
         fileTypes: [PYTHON],
         defaultFor: [PYTHON]
       }
+    });
+
+    app.docRegistry.addFileType({
+      name: PYTHON,
+      displayName: 'Python File',
+      extensions: ['.py'],
+      pattern: '.*\\.py$',
+      mimeTypes: ['text/x-python'],
+      icon: pyIcon
+    });
+
+    app.docRegistry.addFileType({
+      name: R,
+      displayName: 'R File',
+      extensions: ['.r'],
+      pattern: '.*\\.r$',
+      mimeTypes: ['text/x-rsrc'],
+      icon: rIcon
     });
 
     const { restored } = app;
@@ -220,7 +240,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(commandIDs.createNewFile, {
       label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
       caption: 'Create a new python file',
-      icon: args => (args['isPalette'] ? undefined : pythonIcon),
+      icon: args => (args['isPalette'] ? undefined : pyIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string);

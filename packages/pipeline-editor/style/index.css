@@ -585,3 +585,8 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 .elyra-dialog-form input[type='text'] {
   width: 100%;
 }
+
+/* fix a Safari bug where button margins default to 2px */
+.properties-control-panel button {
+  margin: 0;
+}

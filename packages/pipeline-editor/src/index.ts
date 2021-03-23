@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import { pipelineIcon, runtimesIcon } from '@elyra/ui-components';
+import {
+  containerIcon,
+  pipelineIcon,
+  runtimesIcon
+} from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -34,6 +38,10 @@ import { addIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorFactory';
 import { RUNTIMES_NAMESPACE } from './PipelineService';
+import {
+  RUNTIME_IMAGES_NAMESPACE,
+  RuntimeImagesWidget
+} from './RuntimeImagesWidget';
 import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
@@ -204,6 +212,21 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     restorer.add(runtimesWidget, runtimesWidgetID);
     app.shell.add(runtimesWidget, 'left', { rank: 950 });
+
+    const runtimeImagesWidget = new RuntimeImagesWidget({
+      app,
+      themeManager,
+      display_name: 'Runtime Images',
+      namespace: RUNTIME_IMAGES_NAMESPACE,
+      icon: containerIcon
+    });
+    const runtimeImagesWidgetID = `elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`;
+    runtimeImagesWidget.id = runtimeImagesWidgetID;
+    runtimeImagesWidget.title.icon = containerIcon;
+    runtimeImagesWidget.title.caption = 'Runtime Images';
+
+    restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
+    app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
   }
 };
 export default extension;
