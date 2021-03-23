@@ -26,10 +26,6 @@ from elyra import __version__
 from elyra.pipeline import PipelineParser, PipelineProcessorManager
 
 
-# TODO: Is there a place to get this version number already?
-CURRENT_PIPELINE_VERSION = 3
-
-
 def _validate_pipeline_file(pipeline_file):
     extension = os.path.splitext(pipeline_file)[1]
     if extension != '.pipeline':
