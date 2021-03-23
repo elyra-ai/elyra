@@ -92,30 +92,18 @@ Refer to the [Kubeflow Pipelines tutorial](/getting_started/tutorials.md) for de
 To run a pipeline on your local environment:
 
 ```bash
-elyra-pipeline run elyra-pipelines/demo-heterogeneous.pipeline \
-      --work-dir ~/opensource/jupyter-notebooks/
+elyra-pipeline run elyra-pipelines/demo-heterogeneous.pipeline
 ```
 
-To submit a pipeline to be executed on the context of the JupyterLab server running locally:
+To submit a pipeline to be executed in a external runtime such as Apache Airflow or Kubeflow Pipeline:
 
 ```bash
 elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
-      --work-dir ~/opensource/jupyter-notebooks/ \
       --runtime kfp \
       --runtime-config kfp-shared-tekton
 ```
 
-To submit a pipeline to be executed on the context of a remote JupyterLab server:
-
-```bash
-elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
-      --work-dir ~/opensource/jupyter-notebooks/ \
-      --runtime kfp \
-      --runtime-config kfp-shared-tekton \
-      --server-url http://jupyter-server.ibm.com:8888/lab?token=<valid token>
-```
-
-The `runtime` should be one of ['local', 'kfp', 'airflow'] and the `runtime-config`  should be a valid
+The `runtime` should be one of ['kfp', 'airflow'] and the `runtime-config`  should be a valid
 [runtime configuration](/user_guide/runtime-conf.md)
 
 
