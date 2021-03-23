@@ -34,9 +34,9 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/pipeline-editor": "file:/Users/martha.cryanibm.com/gitrepos/pipeline-editor/packages/pipeline-editor",
-    "@elyra/pipeline-services": "file:/Users/martha.cryanibm.com/gitrepos/pipeline-editor/packages/pipeline-services",
     "@elyra/metadata-common": "^2.2.0-dev",
+    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/a3d60636/@elyra/pipeline-editor",
+    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/a3d60636/@elyra/pipeline-services",
     "@elyra/services": "^2.2.0-dev",
     "@elyra/ui-components": "^2.2.0-dev",
     "@jupyterlab/application": "^3.0.0",
