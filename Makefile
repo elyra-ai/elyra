@@ -168,7 +168,7 @@ airflow-image: ## Build airflow image for use with Elyra
 
 kf-notebook-image:
     DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE) -t quay.io/$(KF_NOTEBOOK_IMAGE) \
-	etc/docker/airflow/ --progress plain
+	etc/docker/kubeflow/ --progress plain
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
