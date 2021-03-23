@@ -64,7 +64,6 @@ def test_submit_with_invalid_pipeline():
     runner = CliRunner()
 
     result = runner.invoke(pipeline, ['submit', 'foo.pipeline',
-                                      '--runtime', 'kfp',
                                       '--runtime-config', 'foo'])
     assert "Pipeline file not found:" in result.output
     assert "foo.pipeline" in result.output
@@ -89,7 +88,6 @@ def test_submit_with_unsupported_file_type():
             f.write('{ "nbformat": 4, "cells": [] }')
 
         result = runner.invoke(pipeline, ['submit', 'foo.ipynb',
-                                          '--runtime', 'kfp',
                                           '--runtime-config', 'foo'])
         assert "Pipeline file should be a [.pipeline] file" in result.output
         assert result.exit_code != 0
@@ -115,7 +113,6 @@ def test_submit_with_no_pipelines_field():
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
 
         result = runner.invoke(pipeline, ['submit', pipeline_file_path,
-                                          '--runtime', 'kfp',
                                           '--runtime-config', 'foo'])
         assert "Pipeline is missing 'pipelines' field." in result.output
         assert result.exit_code != 0
@@ -141,7 +138,6 @@ def test_submit_with_zero_length_pipelines_field():
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
 
         result = runner.invoke(pipeline, ['submit', pipeline_file_path,
-                                          '--runtime', 'kfp',
                                           '--runtime-config', 'foo'])
         assert "Pipeline has zero length 'pipelines' field." in result.output
         assert result.exit_code != 0
