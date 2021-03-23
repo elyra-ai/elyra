@@ -125,7 +125,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       label: 'Add File to Pipeline',
       icon: addIcon,
       execute: args => {
-        // pipelineEditorFactory.addFileToPipelineSignal.emit(args);
+        pipelineEditorFactory.addFileToPipelineSignal.emit(args);
       }
     });
     app.contextMenu.addItem({

@@ -45,8 +45,10 @@ import {
 import 'carbon-components/css/carbon-components.min.css';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { NotebookPanel } from '@jupyterlab/notebook';
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
+import { Signal } from '@lumino/signaling';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -181,7 +183,8 @@ const PipelineWrapper = ({
   browserFactory,
   shell,
   widget,
-  commands
+  commands,
+  addFileToPipelineSignal
 }: any) => {
   const ref = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -595,31 +598,69 @@ const PipelineWrapper = ({
     ]
   };
 
-  const handleDrop = useCallback(
-    async (e: IDragEvent): Promise<void> => {
-      const fileBrowser = browserFactory.defaultBrowser;
-      let failedAdd = 0;
+  const [defaultPosition, setDefaultPosition] = useState(10);
 
-      toArray(fileBrowser.selectedItems()).map(
-        (item: any, index: number): void => {
-          if (PipelineService.isSupportedNode(item)) {
-            item.op = PipelineService.getNodeType(item.path);
-            item.path = PipelineService.getPipelineRelativeNodePath(
-              context.path,
-              item.path
-            );
-            ref.current?.addFile(item, {
-              x: e.offsetX + 20 * index,
-              y: e.offsetY + 20 * index
-            });
-          } else {
-            failedAdd++;
+  const handleAddFileToPipeline = useCallback(
+    (location?: { x: number; y: number }) => {
+      const fileBrowser = browserFactory.defaultBrowser;
+      // Only add file to pipeline if it is currently in focus
+      // TODO: add check for this. Need to be able to find widgetId first
+      // if (shell.currentWidget.id !== widget.widgetId) {
+      //   return;
+      // }
+
+      let failedAdd = 0;
+      let position = 0;
+      const missingXY = !location;
+
+      // if either x or y is undefined use the default coordinates
+      if (missingXY) {
+        position = defaultPosition;
+        location = {
+          x: 75,
+          y: 85
+        };
+      }
+
+      toArray(fileBrowser.selectedItems()).map((item: any): void => {
+        if (PipelineService.isSupportedNode(item)) {
+          // read the file contents
+          // create a notebook widget to get a string with the node content then dispose of it
+          let itemContent: string;
+          if (item.type == 'notebook') {
+            const fileWidget = fileBrowser.model.manager.open(item.path);
+            itemContent = (fileWidget as NotebookPanel).content.model.toString();
+            fileWidget.dispose();
           }
+          item.op = PipelineService.getNodeType(item.path);
+          item.path = PipelineService.getPipelineRelativeNodePath(
+            context.path,
+            item.path
+          );
+
+          const success = ref.current?.addFile(
+            item,
+            itemContent,
+            location.x + position,
+            location.y + position
+          );
+
+          if (success) {
+            position += 20;
+          } else {
+            // handle error
+          }
+        } else {
+          failedAdd++;
         }
-      );
+      });
+      // update position if the default coordinates were used
+      if (missingXY) {
+        setDefaultPosition(position);
+      }
 
       if (failedAdd) {
-        showDialog({
+        return showDialog({
           title: 'Unsupported File(s)',
           body:
             'Currently, only selected notebook and python script files can be added to a pipeline',
@@ -627,8 +668,16 @@ const PipelineWrapper = ({
         });
       }
     },
-    [browserFactory.defaultBrowser]
+    [browserFactory.defaultBrowser, context.path]
   );
+
+  const handleDrop = async (e: IDragEvent): Promise<void> => {
+    handleAddFileToPipeline({ x: e.offsetX, y: e.offsetY });
+  };
+
+  addFileToPipelineSignal.connect(() => {
+    handleAddFileToPipeline();
+  });
 
   if (loading) {
     return <div>loading</div>;
@@ -656,12 +705,14 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   browserFactory: IFileBrowserFactory;
   shell: ILabShell;
   commands: any;
+  addFileToPipelineSignal: Signal<this, any>;
 
   constructor(options: any) {
     super(options);
     this.browserFactory = options.browserFactory;
     this.shell = options.shell;
     this.commands = options.commands;
+    this.addFileToPipelineSignal = new Signal<this, any>(this);
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
@@ -671,6 +722,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
         browserFactory={this.browserFactory}
         shell={this.shell}
         commands={this.commands}
+        addFileToPipelineSignal={this.addFileToPipelineSignal}
       />
     );
 
