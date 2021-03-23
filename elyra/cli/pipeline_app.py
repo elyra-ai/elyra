@@ -24,6 +24,16 @@ from colorama import Fore, Style
 
 from elyra import __version__
 from elyra.pipeline import PipelineParser, PipelineProcessorManager
+from elyra.metadata import MetadataManager
+
+
+def _get_runtime_type(runtime_config: str) -> str:
+    try:
+        metadata_manager = MetadataManager(namespace='runtimes')
+        metadata = metadata_manager.get(runtime_config)
+        return metadata.schema_name
+    except Exception as e:
+        raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
 
 
 def _validate_pipeline_file(pipeline_file):
@@ -119,13 +129,10 @@ def pipeline():
 
 @click.command()
 @click.argument('pipeline_path')
-@click.option('--runtime',
-              required=True,
-              help='Runtime type where the pipeline should be processed')
 @click.option('--runtime-config',
               required=True,
               help='Runtime config where the pipeline should be processed')
-def submit(pipeline_path, runtime, runtime_config):
+def submit(pipeline_path, runtime_config):
     """
     Submit a pipeline to be executed on the server
     """
@@ -133,6 +140,8 @@ def submit(pipeline_path, runtime, runtime_config):
     click.echo()
 
     print_banner("Elyra Pipeline Submission")
+
+    runtime = _get_runtime_type(runtime_config)
 
     _validate_pipeline_file(pipeline_path)
 
