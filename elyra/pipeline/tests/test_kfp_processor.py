@@ -48,6 +48,7 @@ def test_generate_dependency_archive(processor):
     test_operation = Op(id='123e4567-e89b-12d3-a456-426614174000',
                         type='execution-node',
                         classifier='kfp',
+                        name='test',
                         filename=pipelines_test_file,
                         dependencies=pipeline_dependencies,
                         runtime_image='tensorflow/tensorflow:latest')
@@ -71,6 +72,7 @@ def test_fail_generate_dependency_archive(processor):
     test_operation = Op(id='123e4567-e89b-12d3-a456-426614174000',
                         type='execution-node',
                         classifier='kfp',
+                        name='test',
                         filename=pipelines_test_file,
                         dependencies=pipeline_dependencies,
                         runtime_image='tensorflow/tensorflow:latest')
@@ -87,6 +89,7 @@ def test_get_dependency_source_dir(processor):
     test_operation = Op(id='123e4567-e89b-12d3-a456-426614174000',
                         type='execution-node',
                         classifier='kfp',
+                        name='test',
                         filename=pipelines_test_file,
                         runtime_image='tensorflow/tensorflow:latest')
 
@@ -102,6 +105,7 @@ def test_get_dependency_archive_name(processor):
     test_operation = Op(id='this-is-a-test-id',
                         type='execution-node',
                         classifier='kfp',
+                        name='test',
                         filename=pipelines_test_file,
                         runtime_image='tensorflow/tensorflow:latest')
 

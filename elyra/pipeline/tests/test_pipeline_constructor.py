@@ -23,6 +23,7 @@ def good_operation():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                runtime_image='tensorflow/tensorflow:latest')
     return test_operation
@@ -43,6 +44,7 @@ def test_create_operation_minimal(good_operation):
     assert test_operation.id == 'test-id'
     assert test_operation.type == 'test'
     assert test_operation.classifier == 'execution-node'
+    assert test_operation.name == 'test'
     assert test_operation.filename == 'elyra/pipeline/tests/resources/archive/test.ipynb'
     assert test_operation.runtime_image == 'tensorflow/tensorflow:latest'
     assert test_operation.name == 'test'
@@ -54,6 +56,7 @@ def test_create_operation_with_dependencies():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                dependencies=dependencies,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -67,6 +70,7 @@ def test_create_operation_include_subdirectories():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                include_subdirectories=include_subdirectories,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -80,6 +84,7 @@ def test_create_operation_with_environmental_variables():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                env_vars=env_variables,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -93,6 +98,7 @@ def test_create_operation_with_inputs():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                inputs=inputs,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -106,6 +112,7 @@ def test_create_operation_with_outputs():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                outputs=outputs,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -119,6 +126,7 @@ def test_create_operation_with_parent_operations():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                parent_operations=parent_operation_ids,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -130,6 +138,7 @@ def test_fail_create_operation_missing_id():
     with pytest.raises(TypeError):
         Operation(type='test',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   runtime_image='tensorflow/tensorflow:latest')
 
@@ -138,6 +147,7 @@ def test_fail_create_operation_missing_type():
     with pytest.raises(TypeError):
         Operation(id='test-id',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   runtime_image='tensorflow/tensorflow:latest')
 
@@ -146,6 +156,7 @@ def test_fail_create_operation_missing_classifier():
     with pytest.raises(TypeError):
         Operation(id='test-id',
                   type='test',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   runtime_image='tensorflow/tensorflow:latest')
 
@@ -155,7 +166,16 @@ def test_fail_create_operation_missing_runtime_image():
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb')
+
+def test_fail_create_operation_missing_name():
+    with pytest.raises(TypeError):
+        Operation(id='test-id',
+                  type='test',
+                  classifier='execution-node',
+                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
+                  runtime_image='tensorflow/tensorflow:latest')
 
 
 def test_fail_operations_are_equal(good_operation):
@@ -163,6 +183,7 @@ def test_fail_operations_are_equal(good_operation):
     compare_operation = Operation(id='test-id',
                                   type='test',
                                   classifier='execution-node',
+                                  name='test',
                                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                   parent_operations=parent_operation_ids,
                                   runtime_image='tensorflow/tensorflow:latest')
@@ -174,6 +195,7 @@ def test_operations_are_equal(good_operation):
     compare_operation = Operation(id='test-id',
                                   type='test',
                                   classifier='execution-node',
+                                  name='test',
                                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                   runtime_image='tensorflow/tensorflow:latest')
 
@@ -249,6 +271,7 @@ def test_env_list_to_dict_function():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                env_vars=env_variables,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -261,6 +284,7 @@ def test_validate_resource_values():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                cpu='4',
                                gpu='6',
@@ -277,6 +301,7 @@ def test_validate_resource_values_as_none():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                runtime_image='tensorflow/tensorflow:latest')
 
@@ -290,6 +315,7 @@ def test_validate_gpu_accepts_zero_as_value():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                cpu='4',
                                gpu='0',
@@ -305,6 +331,7 @@ def test_validate_max_resource_value():
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
+                               name='test',
                                filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                memory=system_max_size,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -319,6 +346,7 @@ def test_fail_validate_max_resource_value_exceeded():
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   memory=system_max_size,
                   runtime_image='tensorflow/tensorflow:latest')
@@ -329,6 +357,7 @@ def test_fail_creating_operation_with_negative_gpu_resources():
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   gpu='-1',
                   runtime_image='tensorflow/tensorflow:latest')
@@ -339,6 +368,7 @@ def test_fail_creating_operation_with_0_cpu_resources():
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   cpu='0',
                   runtime_image='tensorflow/tensorflow:latest')
@@ -349,6 +379,7 @@ def test_fail_creating_operation_with_negative_cpu_resources():
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   cpu='-1',
                   runtime_image='tensorflow/tensorflow:latest')
@@ -359,6 +390,7 @@ def test_fail_creating_operation_with_0_memory_resources():
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   memory='0',
                   runtime_image='tensorflow/tensorflow:latest')
@@ -369,6 +401,7 @@ def test_fail_creating_operation_with_negative_memory_resources():
         Operation(id='test-id',
                   type='test',
                   classifier='execution-node',
+                  name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                   memory='-1',
                   runtime_image='tensorflow/tensorflow:latest')
