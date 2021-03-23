@@ -75,10 +75,8 @@ def _execute_pipeline(pipeline_definition):
             # process pipeline
             asyncio.get_event_loop().run_until_complete(PipelineProcessorManager.instance().process(pipeline_object))
     except ValueError as ve:
-        click.echo(f'Error parsing pipeline: \n {ve}')
         raise click.ClickException(f'Error parsing pipeline: \n {ve}')
     except RuntimeError as re:
-        # click.echo(f'Error processing pipeline: \n {re} \n {re.__cause__}')
         raise click.ClickException(f'Error processing pipeline: \n {re} \n {re.__cause__}')
 
 
