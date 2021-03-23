@@ -17,6 +17,7 @@ import autopep8
 import kfp
 import kfp_tekton
 import os
+import re
 import tempfile
 import time
 import requests
@@ -432,7 +433,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         In KFP, only letters, numbers, spaces, "_", and "-" are allowed in name.
         :param name: name of the operation
         """
-        return kfp.dsl._pipeline_param.sanitize_k8s_name(name, allow_capital_underscore=True)
+        return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-',
+                                 name)).lstrip('-').rstrip('-')
 
     @staticmethod
     def _get_user_auth_session_cookie(url, username, password):
