@@ -433,8 +433,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         In KFP, only letters, numbers, spaces, "_", and "-" are allowed in name.
         :param name: name of the operation
         """
-        return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-',
-                                 name)).lstrip('-').rstrip('-')
+        return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-', name)).lstrip('-').rstrip('-')
 
     @staticmethod
     def _get_user_auth_session_cookie(url, username, password):
