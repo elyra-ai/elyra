@@ -99,12 +99,10 @@ To submit a pipeline to be executed in a external runtime such as Apache Airflow
 
 ```bash
 elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
-      --runtime kfp \
       --runtime-config kfp-shared-tekton
 ```
 
-The `runtime` should be one of ['kfp', 'airflow'] and the `runtime-config`  should be a valid
-[runtime configuration](/user_guide/runtime-conf.md)
+The `runtime-config`  should be a valid [runtime configuration](/user_guide/runtime-conf.md).
 
 
 ### Distributing Your Pipeline
