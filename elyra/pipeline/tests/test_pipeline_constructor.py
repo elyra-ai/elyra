@@ -169,6 +169,7 @@ def test_fail_create_operation_missing_runtime_image():
                   name='test',
                   filename='elyra/pipeline/tests/resources/archive/test.ipynb')
 
+
 def test_fail_create_operation_missing_name():
     with pytest.raises(TypeError):
         Operation(id='test-id',
