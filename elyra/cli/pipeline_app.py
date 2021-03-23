@@ -33,53 +33,42 @@ CURRENT_PIPELINE_VERSION = 3
 def _validate_pipeline_file(pipeline_file):
     extension = os.path.splitext(pipeline_file)[1]
     if extension != '.pipeline':
-        click.echo('Pipeline file should be a [.pipeline] file.\n')
-        raise click.Abort()
+        raise click.ClickException('Pipeline file should be a [.pipeline] file.\n')
 
 
 def _validate_pipeline_contents(pipeline_contents):
     if 'primary_pipeline' not in pipeline_contents:
-        click.echo("Pipeline file is invalid: \n Missing field 'primary_pipeline'")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Missing field 'primary_pipeline'")
 
     if not isinstance(pipeline_contents["primary_pipeline"], str):
-        click.echo("Pipeline file is invalid: \n Field 'primary_pipeline' should be a string")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Field 'primary_pipeline' should be a string")
 
     if 'pipelines' not in pipeline_contents:
-        click.echo("Pipeline file is invalid: \n Missing field 'pipelines'")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Missing field 'pipelines'")
 
     if not isinstance(pipeline_contents["pipelines"], list):
-        click.echo("Pipeline file is invalid: \n Field 'pipelines' should be a list")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Field 'pipelines' should be a list")
 
     try:
         found_primary_pipeline = next(
             x for x in pipeline_contents["pipelines"] if x["id"] == pipeline_contents["primary_pipeline"])
     except StopIteration:
-        click.echo("Pipeline file is invalid: \n Primary pipeline does not exist")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline does not exist")
 
     if 'app_data' not in found_primary_pipeline:
-        click.echo("Pipeline file is invalid: \n Primary pipeline is missing field 'app_data'")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline is missing field 'app_data'")
 
     if 'version' not in found_primary_pipeline["app_data"]:
-        click.echo("Pipeline file is invalid: \n Primary pipeline is missing field 'app_data.version'")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline is missing field 'app_data.version'")
 
     if found_primary_pipeline["app_data"]["version"] != CURRENT_PIPELINE_VERSION:
-        click.echo("Pipeline file is invalid: \n Primary pipeline version is incompatible")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline version is incompatible")
 
     if 'nodes' not in found_primary_pipeline:
-        click.echo("Pipeline file is invalid: \n Primary pipeline is missing field 'nodes'")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline is missing field 'nodes'")
 
     if not isinstance(found_primary_pipeline["nodes"], list):
-        click.echo("Pipeline file is invalid: \n Primary pipeline field 'nodes' should be a list")
-        raise click.Abort()
+        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline field 'nodes' should be a list")
 
 
 def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
@@ -89,15 +78,13 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
     pipeline_name = os.path.splitext(os.path.basename(pipeline_abs_path))[0]
 
     if not os.path.exists(pipeline_abs_path):
-        click.echo(f"Pipeline file not found: '{pipeline_abs_path}'\n")
-        raise click.Abort()
+        raise click.ClickException(f"Pipeline file not found: '{pipeline_abs_path}'\n")
 
     with open(pipeline_abs_path) as f:
         try:
             pipeline_definition = json.load(f)
         except ValueError as ve:
-            click.echo(f"Pipeline file is invalid: \n {ve}")
-            raise click.Abort()
+            raise click.ClickException(f"Pipeline file is invalid: \n {ve}")
 
     _validate_pipeline_contents(pipeline_definition)
 
@@ -126,10 +113,10 @@ def _execute_pipeline(pipeline_definition):
             asyncio.get_event_loop().run_until_complete(PipelineProcessorManager.instance().process(pipeline_object))
     except ValueError as ve:
         click.echo(f'Error parsing pipeline: \n {ve}')
-        raise click.Abort
+        raise click.ClickException(f'Error parsing pipeline: \n {ve}')
     except RuntimeError as re:
-        click.echo(f'Error processing pipeline: \n {re} \n {re.__cause__}')
-        raise click.Abort
+        # click.echo(f'Error processing pipeline: \n {re} \n {re.__cause__}')
+        raise click.ClickException(f'Error processing pipeline: \n {re} \n {re.__cause__}')
 
 
 def print_banner(title):
