@@ -20,10 +20,6 @@
   justify-content: flex-start;
 }
 
-.elyra-metadataEditor .MuiFormControl-root {
-  width: 100%;
-}
-
 .elyra-metadataEditor h3 {
   flex-basis: 100%;
   margin-bottom: 15px;

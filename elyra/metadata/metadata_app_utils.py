@@ -309,7 +309,7 @@ class AppBase(object):
            We do this by converting two lists to sets and checking if
            there's an intersection.
         """
-        helps = set(['--help', '-h'])
+        helps = {'--help', '-h'}
         args = set(self.argv_mappings.keys())
         help_list = list(helps & args)
         return len(help_list) > 0

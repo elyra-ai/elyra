@@ -16,6 +16,8 @@
 
 import '../style/index.css';
 
+import { pyIcon, rIcon } from '@elyra/ui-components';
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
@@ -29,7 +31,6 @@ import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { pythonIcon, rKernelIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
 
@@ -93,6 +94,24 @@ const extension: JupyterFrontEndPlugin<void> = {
         fileTypes: [R],
         defaultFor: [R]
       }
+    });
+
+    app.docRegistry.addFileType({
+      name: PYTHON,
+      displayName: 'Python File',
+      extensions: ['.py'],
+      pattern: '.*\\.py$',
+      mimeTypes: ['text/x-python'],
+      icon: pyIcon
+    });
+
+    app.docRegistry.addFileType({
+      name: R,
+      displayName: 'R File',
+      extensions: ['.r'],
+      pattern: '.*\\.r$',
+      mimeTypes: ['text/x-rsrc'],
+      icon: rIcon
     });
 
     const { restored } = app;
@@ -270,11 +289,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(commandIDs.createNewPythonFile, {
       label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
       caption: 'Create a new Python file',
-      icon: args => (args['isPalette'] ? undefined : pythonIcon),
+      icon: args => (args['isPalette'] ? undefined : pyIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string, '.py', PYTHON_FACTORY);
-        // return createNew(cwd as string, '.py', SCRIPT_EDITOR_FACTORY);
       }
     });
 
@@ -288,11 +306,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(commandIDs.createNewRFile, {
       label: args => (args['isPalette'] ? 'New R File' : 'R File'),
       caption: 'Create a new R file',
-      icon: args => (args['isPalette'] ? undefined : rKernelIcon),
+      icon: args => (args['isPalette'] ? undefined : rIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string, '.r', R_FACTORY);
-        // return createNew(cwd as string, '.r', SCRIPT_EDITOR_FACTORY);
       }
     });
 

@@ -20,6 +20,25 @@
   text-align: center;
 }
 
+.elyra-noContentMessage {
+  margin-top: 14px;
+  width: 320px;
+  padding: 0 22px;
+  opacity: 0.5;
+}
+
+.elyra-PipelineEditor div.properties-modal-buttons {
+  display: none;
+}
+
+.elyra-PipelineEditor .properties-right-flyout > .properties-custom-container {
+  height: 100%;
+}
+
+.elyra-PipelineEditor .properties-right-flyout {
+  overflow-y: scroll;
+}
+
 .elyra-tooltipError {
   color: var(--jp-error-color1);
 }
@@ -63,10 +82,10 @@
 .bx--text-input__field-outer-wrapper {
   width: 100%;
 }
-.properties-dropdown .bx--list-box__wrapper:hover {
+.properties-dropdown .bx--dropdown:hover {
   background-color: #e5e5e5;
 }
-.properties-dropdown .bx--list-box__wrapper {
+.properties-dropdown .bx--dropdown {
   background-color: #f5f8fa;
   border-radius: 3px;
   border-bottom: 0px;
@@ -350,4 +369,9 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 
 .elyra-dialog-form input[type='text'] {
   width: 100%;
+}
+
+/* fix a Safari bug where button margins default to 2px */
+.properties-control-panel button {
+  margin: 0;
 }

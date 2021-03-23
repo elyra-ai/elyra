@@ -115,7 +115,7 @@ def test_supernode_pipeline():
     supernode_excution_node_id = "079c0e12-eb5f-4fcc-983b-09e011869fee"
     external_node_id = "7628306d-2cc2-405c-94a1-fe42c95567a1"
 
-    for node_id in pipeline.operations.keys():
+    for node_id in pipeline.operations:
         # Validate operations list
         if node_id in external_input_node_ids:
             # These are input nodes, ensure parent_operations are empty
