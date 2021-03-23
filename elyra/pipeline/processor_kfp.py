@@ -20,6 +20,7 @@ import os
 import tempfile
 import time
 import requests
+import json
 
 from datetime import datetime
 from elyra._version import __version__
@@ -28,6 +29,7 @@ from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelinePr
 from elyra.util.path import get_absolute_path
 from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
+from kfp_server_api.exceptions import ApiException
 from urllib3.exceptions import LocationValueError, MaxRetryError
 
 
@@ -173,13 +175,23 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 else:
                     raise lve
 
-            # Create a new experiment. If it already exists this is
-            # a no-op.
-            experiment = client.create_experiment(name=experiment_name,
-                                                  namespace=user_namespace)
-            self.log_pipeline_info(pipeline_name,
-                                   f'Created experiment {experiment_name}',
-                                   duration=(time.time() - t0_all))
+            try:
+                # Create a new experiment. If it already exists this is
+                # a no-op.
+                experiment = client.create_experiment(name=experiment_name,
+                                                      namespace=user_namespace)
+                self.log_pipeline_info(pipeline_name,
+                                       f'Created experiment {experiment_name}',
+                                       duration=(time.time() - t0_all))
+            except ApiException as ae:
+                self.log.error(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status})')
+                if ae.body:
+                    error_msg = json.loads(ae.body)
+                    raise RuntimeError(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status}): ' +
+                                       f'{error_msg["error"]}') from ae
+                else:
+                    raise RuntimeError(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status})') \
+                        from ae
 
             # Run the pipeline (or specified pipeline version)
             run = client.run_pipeline(experiment_id=experiment.id,
