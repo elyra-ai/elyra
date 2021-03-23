@@ -18,33 +18,23 @@ import asyncio
 import click
 import json
 import os
-import requests
 
 from yaspin import yaspin
 from colorama import Fore, Style
-from urllib.parse import urlparse
 
 from elyra import __version__
 from elyra.pipeline import PipelineParser, PipelineProcessorManager
-from jupyter_server.serverapp import list_running_servers
 
 
 # TODO: Is there a place to get this version number already?
 CURRENT_PIPELINE_VERSION = 3
 
 
-def _get_server_url(url=None):
-    server_url = url
-
-    if not server_url:
-        running_servers = list(list_running_servers())
-        if len(running_servers) == 0:
-            raise RuntimeError('Could not discover a running Jupyter Notebook server\n')
-
-        server_info = running_servers[0]
-        server_url = f'{server_info["url"]}?token={server_info["token"]}'
-
-    return server_url
+def _validate_pipeline_file(pipeline_file):
+    extension = os.path.splitext(pipeline_file)[1]
+    if extension != '.pipeline':
+        click.echo('Pipeline file should be a [.pipeline] file.\n')
+        raise click.Abort()
 
 
 def _validate_pipeline_contents(pipeline_contents):
@@ -92,10 +82,9 @@ def _validate_pipeline_contents(pipeline_contents):
         raise click.Abort()
 
 
-def _preprocess_pipeline(pipeline_path, runtime, runtime_config, work_dir):
+def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
     pipeline_path = os.path.expanduser(pipeline_path)
-    working_dir = os.path.expanduser(work_dir)
-    pipeline_abs_path = os.path.join(working_dir, pipeline_path)
+    pipeline_abs_path = os.path.join(os.getcwd(), pipeline_path)
     pipeline_dir = os.path.dirname(pipeline_abs_path)
     pipeline_name = os.path.splitext(os.path.basename(pipeline_abs_path))[0]
 
@@ -126,6 +115,21 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config, work_dir):
     pipeline_definition["pipelines"][0]["app_data"]["runtime-config"] = runtime_config
 
     return pipeline_definition
+
+
+def _execute_pipeline(pipeline_definition):
+    try:
+        with yaspin(text="Processing pipeline ..."):
+            # parse pipeline
+            pipeline_object = PipelineParser().parse(pipeline_definition)
+            # process pipeline
+            asyncio.get_event_loop().run_until_complete(PipelineProcessorManager.instance().process(pipeline_object))
+    except ValueError as ve:
+        click.echo(f'Error parsing pipeline: \n {ve}')
+        raise click.Abort
+    except RuntimeError as re:
+        click.echo(f'Error processing pipeline: \n {re} \n {re.__cause__}')
+        raise click.Abort
 
 
 def print_banner(title):
@@ -162,103 +166,52 @@ def pipeline():
 
 
 @click.command()
-@click.argument('pipeline')
-@click.option('--server-url',
-              required=False,
-              default=None,
-              help='Jupyter Notebook server url including access token')
+@click.argument('pipeline_path')
 @click.option('--runtime',
-              required=False,
-              type=click.Choice(['local', 'kfp', 'airflow'], case_sensitive=False),
-              default='local',
+              required=True,
+              type=click.Choice(['kfp', 'airflow'], case_sensitive=False),
               help='Runtime type where the pipeline should be processed')
 @click.option('--runtime-config',
-              required=False,
-              default='local',
+              required=True,
               help='Runtime config where the pipeline should be processed')
-@click.option('--work-dir',
-              required=False,
-              default=None,
-              help='Base working directory for finding pipeline dependencies')
-def submit(pipeline, server_url, runtime, runtime_config, work_dir):
+def submit(pipeline_path, runtime, runtime_config):
     """
     Submit a pipeline to be executed on the server
     """
-
-    if work_dir is None:
-        work_dir = os.getcwd()
 
     click.echo()
 
     print_banner("Elyra Pipeline Submission")
 
+    _validate_pipeline_file(pipeline_path)
+
     pipeline_definition = \
-        _preprocess_pipeline(pipeline, runtime=runtime, runtime_config=runtime_config, work_dir=work_dir)
+        _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
-    try:
-        server_url = _get_server_url(server_url)
-        if not server_url:
-            click.echo('Could not discover a running Jupyter Notebook server, please provide --server-url option')
-        server_url_parsed = urlparse(server_url)
-        server_api_url = f'{server_url_parsed.scheme}://{server_url_parsed.netloc}/elyra/pipeline/schedule'
+    _execute_pipeline(pipeline_definition)
 
-        with requests.Session() as session:
-            session.get(server_url)
-            xsfr_header = {'X-XSRFToken': session.cookies.get('_xsrf')}
-            with yaspin(text="Executing pipeline on the server..."):
-                response = session.post(url=server_api_url,
-                                        data=json.dumps(pipeline_definition),
-                                        headers=xsfr_header)
+    click.echo()
 
-                if not response.ok:
-                    response.raise_for_status()
-
-        print_banner("Elyra pipeline execution complete")
-
-    except requests.exceptions.ConnectionError:
-        click.echo(f'Error connecting to server: {server_api_url}')
-        click.echo()
-        raise click.Abort()
-    except RuntimeError as re:
-        click.echo(f'Error submitting pipeline: \n {re} \n {re.__cause__}')
-        click.echo(re)
-        if re.__cause__:
-            click.echo("  - {}".format(re.__cause__))
-        click.echo()
-        raise click.Abort()
+    print_banner("Elyra Pipeline Submission Complete")
 
 
 @click.command()
-@click.argument('pipeline')
-@click.option('--work-dir',
-              required=False,
-              default=None,
-              help='Base working directory for finding pipeline dependencies')
-def run(pipeline, work_dir):
+@click.argument('pipeline_path')
+def run(pipeline_path):
     """
     Run a pipeline in your local environment
     """
-
-    if work_dir is None:
-        work_dir = os.getcwd()
 
     click.echo()
 
     print_banner("Elyra Pipeline Local Run")
 
+    _validate_pipeline_file(pipeline_path)
+
     pipeline_definition = \
-        _preprocess_pipeline(pipeline, runtime='local', runtime_config='local', work_dir=work_dir)
+        _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
-    try:
-        pipeline_object = PipelineParser().parse(pipeline_definition)
-
-        asyncio.get_event_loop().run_until_complete(PipelineProcessorManager.instance().process(pipeline_object))
-    except ValueError as ve:
-        print(f'Error parsing pipeline: \n {ve}')
-        raise ve
-    except RuntimeError as re:
-        print(f'Error parsing pipeline: \n {re} \n {re.__cause__}')
-        raise re
+    _execute_pipeline(pipeline_definition)
 
     click.echo()
 

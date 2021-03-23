@@ -20,8 +20,6 @@ from click.testing import CliRunner
 
 
 SUB_COMMANDS = ['run', 'submit']
-# PIPELINE_SOURCE =
-# '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[],"schemas":[]}'
 
 
 def test_no_opts():
@@ -44,30 +42,39 @@ def test_subcommand_no_opts():
     runner = CliRunner()
     for command in SUB_COMMANDS:
         result = runner.invoke(pipeline, [command])
-        assert "Error: Missing argument 'PIPELINE'" in result.output
+        assert "Error: Missing argument 'PIPELINE_PATH'" in result.output
         assert result.exit_code != 0
 
 
-def test_subcommand_with_invalid_pipeline():
+def test_run_with_invalid_pipeline():
     runner = CliRunner()
-    for command in SUB_COMMANDS:
-        result = runner.invoke(pipeline, [command, 'foo.pipeline'])
-        assert "Pipeline file not found:" in result.output
-        assert "foo.pipeline" in result.output
-        assert result.exit_code != 0
+
+    result = runner.invoke(pipeline, ['run', 'foo.pipeline'])
+    assert "Pipeline file not found:" in result.output
+    assert "foo.pipeline" in result.output
+    assert result.exit_code != 0
 
 
-def test_subcommand_with_unsupported_file_type():
+def test_submit_with_invalid_pipeline():
+    runner = CliRunner()
+
+    result = runner.invoke(pipeline, ['submit', 'foo.pipeline',
+                                      '--runtime', 'kfp',
+                                      '--runtime-config', 'foo'])
+    assert "Pipeline file not found:" in result.output
+    assert "foo.pipeline" in result.output
+    assert result.exit_code != 0
+
+
+def test_run_with_unsupported_file_type():
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.ipynb', 'w') as f:
             f.write('{ "nbformat": 4, "cells": [] }')
 
-        for command in SUB_COMMANDS:
-            result = runner.invoke(pipeline, [command, 'foo.ipynb'])
-            assert "Pipeline file is invalid:" in result.output
-            assert "Missing field 'primary_pipeline'" in result.output
-            assert result.exit_code != 0
+        result = runner.invoke(pipeline, ['run', 'foo.ipynb'])
+        assert "Pipeline file should be a [.pipeline] file" in result.output
+        assert result.exit_code != 0
 
 
 # def test_run_subcommand():
