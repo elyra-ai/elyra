@@ -36,41 +36,6 @@ def _validate_pipeline_file(pipeline_file):
         raise click.ClickException('Pipeline file should be a [.pipeline] file.\n')
 
 
-def _validate_pipeline_contents(pipeline_contents):
-    if 'primary_pipeline' not in pipeline_contents:
-        raise click.ClickException("Pipeline file is invalid: \n Missing field 'primary_pipeline'")
-
-    if not isinstance(pipeline_contents["primary_pipeline"], str):
-        raise click.ClickException("Pipeline file is invalid: \n Field 'primary_pipeline' should be a string")
-
-    if 'pipelines' not in pipeline_contents:
-        raise click.ClickException("Pipeline file is invalid: \n Missing field 'pipelines'")
-
-    if not isinstance(pipeline_contents["pipelines"], list):
-        raise click.ClickException("Pipeline file is invalid: \n Field 'pipelines' should be a list")
-
-    try:
-        found_primary_pipeline = next(
-            x for x in pipeline_contents["pipelines"] if x["id"] == pipeline_contents["primary_pipeline"])
-    except StopIteration:
-        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline does not exist")
-
-    if 'app_data' not in found_primary_pipeline:
-        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline is missing field 'app_data'")
-
-    if 'version' not in found_primary_pipeline["app_data"]:
-        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline is missing field 'app_data.version'")
-
-    if found_primary_pipeline["app_data"]["version"] != CURRENT_PIPELINE_VERSION:
-        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline version is incompatible")
-
-    if 'nodes' not in found_primary_pipeline:
-        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline is missing field 'nodes'")
-
-    if not isinstance(found_primary_pipeline["nodes"], list):
-        raise click.ClickException("Pipeline file is invalid: \n Primary pipeline field 'nodes' should be a list")
-
-
 def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
     pipeline_path = os.path.expanduser(pipeline_path)
     pipeline_abs_path = os.path.join(os.getcwd(), pipeline_path)
@@ -85,8 +50,6 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
             pipeline_definition = json.load(f)
         except ValueError as ve:
             raise click.ClickException(f"Pipeline file is invalid: \n {ve}")
-
-    _validate_pipeline_contents(pipeline_definition)
 
     for pipeline in pipeline_definition["pipelines"]:
         for node in pipeline["nodes"]:
