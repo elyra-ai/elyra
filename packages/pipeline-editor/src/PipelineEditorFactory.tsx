@@ -53,8 +53,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { formDialogWidget } from './formDialogWidget';
 import nodes from './nodes';
 import { PipelineExportDialog } from './PipelineExportDialog';
-import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
+import {
+  IRuntime,
+  ISchema,
+  PipelineService,
+  RUNTIMES_NAMESPACE
+} from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
+import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -282,9 +288,36 @@ const PipelineWrapper = ({
       showErrorMessage('Failed export.', errorMessage);
       return;
     }
-    const runtimes = await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
-    );
+
+    if (context.model.dirty) {
+      const dialogResult = await showDialog({
+        title:
+          'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
+        buttons: [
+          Dialog.cancelButton(),
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
+      });
+      if (dialogResult.button && dialogResult.button.accept === true) {
+        await context.save();
+      } else {
+        // Don't proceed if cancel button pressed
+        return;
+      }
+    }
+
+    const action = 'export pipeline';
+    const runtimes = await PipelineService.getRuntimes(
+      true,
+      action
+    ).catch(error => RequestErrors.serverError(error));
+
+    if (Utils.isDialogResult(runtimes)) {
+      // Open the runtimes widget
+      runtimes.button.label.includes(RUNTIMES_NAMESPACE) &&
+        shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      return;
+    }
 
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
@@ -306,6 +339,7 @@ const PipelineWrapper = ({
       return;
     }
 
+    // prepare pipeline submission details
     const pipeline_path = context.path;
 
     const pipeline_dir = PathExt.dirname(pipeline_path);
@@ -336,6 +370,9 @@ const PipelineWrapper = ({
     pipeline.pipelines[0]['app_data']['name'] = pipeline_name;
     pipeline.pipelines[0]['app_data']['runtime'] = runtime;
     pipeline.pipelines[0]['app_data']['runtime-config'] = runtime_config;
+    pipeline.pipelines[0]['app_data']['source'] = PathExt.basename(
+      context.path
+    );
 
     PipelineService.exportPipeline(
       pipeline,
@@ -357,23 +394,49 @@ const PipelineWrapper = ({
       return;
     }
 
+    if (context.model.dirty) {
+      const dialogResult = await showDialog({
+        title:
+          'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
+        buttons: [
+          Dialog.cancelButton(),
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
+      });
+      if (dialogResult.button && dialogResult.button.accept === true) {
+        await context.save();
+      } else {
+        // Don't proceed if cancel button pressed
+        return;
+      }
+    }
+
     const pipelineName = PathExt.basename(
       context.path,
       PathExt.extname(context.path)
     );
 
-    const runtimes = await PipelineService.getRuntimes(false).catch(error =>
-      RequestErrors.serverError(error)
-    );
+    const action = 'run pipeline';
+    const runtimes = await PipelineService.getRuntimes(
+      false,
+      action
+    ).catch(error => RequestErrors.serverError(error));
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
 
-    const local_runtime: any = {
+    const localRuntime: IRuntime = {
       name: 'local',
-      display_name: 'Run in-place locally'
+      display_name: 'Run in-place locally',
+      schema_name: 'local'
     };
-    runtimes.unshift(JSON.parse(JSON.stringify(local_runtime)));
+    runtimes.unshift(JSON.parse(JSON.stringify(localRuntime)));
+
+    const localSchema: ISchema = {
+      name: 'local',
+      display_name: 'Local Runtime'
+    };
+    schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Run pipeline',
@@ -390,20 +453,19 @@ const PipelineWrapper = ({
     };
     const dialogResult = await showFormDialog(dialogOptions);
 
-    if (dialogResult.value == null) {
+    if (dialogResult.value === null) {
       // When Cancel is clicked on the dialog, just return
       return;
     }
 
-    // prepare pipeline submission details
     const runtime_config = dialogResult.value.runtime_config;
     const runtime =
       PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
 
-    // PipelineService.setNodePathsRelativeToWorkspace(
-    //   pipeline.pipelines[0],
-    //   context.path
-    // );
+    PipelineService.setNodePathsRelativeToWorkspace(
+      pipeline.pipelines[0],
+      context.path
+    );
 
     cleanNullProperties();
 
@@ -422,7 +484,7 @@ const PipelineWrapper = ({
         runtimes
       )
     ).catch(error => RequestErrors.serverError(error));
-  }, [pipeline, context.path, cleanNullProperties]);
+  }, [pipeline, context, cleanNullProperties]);
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
     return showDialog({
@@ -542,15 +604,14 @@ const PipelineWrapper = ({
         (item: any, index: number): void => {
           if (PipelineService.isSupportedNode(item)) {
             item.op = PipelineService.getNodeType(item.path);
-            item.path = PipelineService.getWorkspaceRelativeNodePath(
+            item.path = PipelineService.getPipelineRelativeNodePath(
               context.path,
               item.path
             );
-            ref.current?.addFile(
-              item,
-              e.offsetX + 20 * index,
-              e.offsetY + 20 * index
-            );
+            ref.current?.addFile(item, {
+              x: e.offsetX + 20 * index,
+              y: e.offsetY + 20 * index
+            });
           } else {
             failedAdd++;
           }
