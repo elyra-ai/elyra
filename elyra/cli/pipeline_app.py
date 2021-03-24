@@ -18,6 +18,7 @@ import asyncio
 import click
 import json
 import os
+import warnings
 
 from yaspin import yaspin
 from colorama import Fore, Style
@@ -87,7 +88,10 @@ def _execute_pipeline(pipeline_definition):
             # parse pipeline
             pipeline_object = PipelineParser().parse(pipeline_definition)
             # process pipeline
-            asyncio.get_event_loop().run_until_complete(PipelineProcessorManager.instance().process(pipeline_object))
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                asyncio.get_event_loop().run_until_complete(
+                    PipelineProcessorManager.instance().process(pipeline_object))
     except ValueError as ve:
         raise click.ClickException(f'Error parsing pipeline: \n {ve}')
     except RuntimeError as re:
