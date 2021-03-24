@@ -118,17 +118,20 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             else:
                 raise lve
 
+        # Verify that user-entered namespace is valid
         try:
             client.list_experiments(namespace=user_namespace,
-                                    page_size=1)
+                                    page_size=0)
         except ApiException as ae:
-            self.log.error(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status})')
+            error_msg = f"{ae.reason} ({ae.status})"
             if ae.body:
-                error_msg = json.loads(ae.body)
-                raise RuntimeError(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status}): ' +
-                                   f'{error_msg["error"]}') from ae
-            else:
-                raise RuntimeError(f'Could not create experiment {experiment_name}: {ae.reason} ({ae.status})') from ae
+                error_body = json.loads(ae.body)
+                error_msg += f": {error_body['error']}"
+
+            namespace = "namespace" if not user_namespace else f"namespace {user_namespace}"
+
+            self.log.error(f"Error validating {namespace}: {error_msg}")
+            raise RuntimeError(f"Error validating {namespace}: {error_msg}") from ae
 
         self.log_pipeline_info(pipeline_name, "submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
