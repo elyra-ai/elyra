@@ -127,11 +127,14 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             if ae.body:
                 error_body = json.loads(ae.body)
                 error_msg += f": {error_body['error']}"
+            if error_msg[-1] not in ['.', '?', '!']:
+                error_msg += '.'
 
             namespace = "namespace" if not user_namespace else f"namespace {user_namespace}"
 
             self.log.error(f"Error validating {namespace}: {error_msg}")
-            raise RuntimeError(f"Error validating {namespace}: {error_msg}") from ae
+            raise RuntimeError(f"Error validating {namespace}: {error_msg} " +
+                               "Please validate your runtime configuration details and retry.") from ae
 
         self.log_pipeline_info(pipeline_name, "submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
