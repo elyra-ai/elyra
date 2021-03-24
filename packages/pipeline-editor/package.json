@@ -30,13 +30,14 @@
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build ",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "watch": "tsc -w"
   },
   "dependencies": {
     "@elyra/metadata-common": "^2.2.0-dev",
-    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/a3d60636/@elyra/pipeline-editor",
-    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/a3d60636/@elyra/pipeline-services",
+    "@elyra/canvas": "~10.2.0",
+    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/ab6d178b/@elyra/pipeline-editor",
+    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/ab6d178b/@elyra/pipeline-services",
     "@elyra/services": "^2.2.0-dev",
     "@elyra/ui-components": "^2.2.0-dev",
     "@jupyterlab/application": "^3.0.0",
