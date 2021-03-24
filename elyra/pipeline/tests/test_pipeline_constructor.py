@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 import pytest
 import sys
 from elyra.pipeline import Operation, Pipeline
@@ -132,6 +133,20 @@ def test_create_operation_with_parent_operations():
                                runtime_image='tensorflow/tensorflow:latest')
 
     assert test_operation.parent_operations == parent_operation_ids
+
+
+def test_create_operation_correct_naming():
+    label = 'test.ipynb'
+    filename = 'elyra/pipeline/tests/resources/archive/' + label
+
+    test_operation = Operation(id='test-id',
+                               type='test',
+                               classifier='execution-node',
+                               name=label,
+                               filename=filename,
+                               runtime_image='tensorflow/tensorflow:latest')
+
+    assert test_operation.name == label.split('.')[0]
 
 
 def test_fail_create_operation_missing_id():
