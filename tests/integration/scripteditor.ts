@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-describe('Python Editor tests', () => {
+describe('Script Editor tests', () => {
   before(() => {
     cy.openJupyterLab();
   });
@@ -30,7 +30,7 @@ describe('Python Editor tests', () => {
   });
 
   it('opens blank python from launcher', () => {
-    cy.get('[title="Create a new python file"][tabindex="100"]').click();
+    cy.get('[title="Create a new Python file"][tabindex="100"]').click();
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 
@@ -45,35 +45,16 @@ describe('Python Editor tests', () => {
       ':nth-child(2) > .lm-Menu-itemSubmenuIcon > svg > .jp-icon3 > path'
     ).click();
     cy.get(
-      '[data-command="python-editor:create-new-file"] > .lm-Menu-itemLabel'
+      '[data-command="script-editor:create-new-python-file"] > .lm-Menu-itemLabel'
     ).click();
   });
 
-  it('check toolbar exists', () => {
-    cy.get('.elyra-PythonEditor .jp-Toolbar');
+  it('check toolbar and its content', () => {
+    checkToolbarContent();
   });
 
-  it('check save button exists and icon', () => {
-    cy.get('button[title="Save file contents"]');
-    cy.get('svg[data-icon="ui-components:save"]');
-  });
-
-  it('check run button exists and icon', () => {
-    cy.get('button[title="Run"]');
-    cy.get('svg[data-icon="ui-components:run"]');
-  });
-
-  it('check stop button exists and icon', () => {
-    cy.get('button[title="Stop"]');
-    cy.get('svg[data-icon="ui-components:stop"]');
-  });
-
-  it('check select kernel dropdown exists and has python', () => {
-    cy.get('.elyra-PythonEditor .jp-Toolbar select > option[value*=python]');
-  });
-
-  it('check Submit Script button exists', () => {
-    cy.contains('Submit Script');
+  it('check kernel dropdown has python option', () => {
+    cy.get('.elyra-ScriptEditor .jp-Toolbar select > option[value*=python]');
   });
 
   it('click the Submit Script button should display dialog', () => {
@@ -93,3 +74,29 @@ describe('Python Editor tests', () => {
     cy.get('button.jp-mod-reject').click();
   });
 });
+
+// ------------------------------
+// ----- Utility Functions
+// ------------------------------
+
+const checkToolbarContent = (): void => {
+  cy.get('.elyra-ScriptEditor .jp-Toolbar');
+
+  // check save button exists and icon
+  cy.get('button[title="Save file contents"]');
+  cy.get('svg[data-icon="ui-components:save"]');
+
+  // check run button exists and icon
+  cy.get('button[title="Run"]');
+  cy.get('svg[data-icon="ui-components:run"]');
+
+  // check stop button exists and icon
+  cy.get('button[title="Stop"]');
+  cy.get('svg[data-icon="ui-components:stop"]');
+
+  // check select kernel dropdown exists
+  cy.get('.elyra-ScriptEditor .jp-Toolbar select');
+
+  // check Submit Script button exists
+  cy.contains('Submit Script');
+};
