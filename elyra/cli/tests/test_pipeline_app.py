@@ -15,9 +15,9 @@
 #
 """Tests for elyra-pipeline application"""
 import os
+import elyra.cli.pipeline_app as pipeline_app
 from elyra.cli.pipeline_app import pipeline
 from click.testing import CliRunner
-
 
 SUB_COMMANDS = ['run', 'submit']
 
@@ -26,6 +26,10 @@ PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD = \
 
 PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD = \
     '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","schemas":[]}'
+
+
+def mock_get_runtime_type(runtime_config: str) -> str:
+    return "kfp"
 
 
 def test_no_opts():
@@ -60,8 +64,10 @@ def test_run_with_invalid_pipeline():
     assert result.exit_code != 0
 
 
-def test_submit_with_invalid_pipeline():
+def test_submit_with_invalid_pipeline(monkeypatch):
     runner = CliRunner()
+
+    monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
 
     result = runner.invoke(pipeline, ['submit', 'foo.pipeline',
                                       '--runtime-config', 'foo'])
@@ -81,11 +87,13 @@ def test_run_with_unsupported_file_type():
         assert result.exit_code != 0
 
 
-def test_submit_with_unsupported_file_type():
+def test_submit_with_unsupported_file_type(monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.ipynb', 'w') as f:
             f.write('{ "nbformat": 4, "cells": [] }')
+
+        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
 
         result = runner.invoke(pipeline, ['submit', 'foo.ipynb',
                                           '--runtime-config', 'foo'])
@@ -105,12 +113,14 @@ def test_run_with_no_pipelines_field():
         assert result.exit_code != 0
 
 
-def test_submit_with_no_pipelines_field():
+def test_submit_with_no_pipelines_field(monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.pipeline', 'w') as pipeline_file:
             pipeline_file.write(PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD)
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
 
         result = runner.invoke(pipeline, ['submit', pipeline_file_path,
                                           '--runtime-config', 'foo'])
@@ -130,12 +140,14 @@ def test_run_with_zero_length_pipelines_field():
         assert result.exit_code != 0
 
 
-def test_submit_with_zero_length_pipelines_field():
+def test_submit_with_zero_length_pipelines_field(monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.pipeline', 'w') as pipeline_file:
             pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD)
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
 
         result = runner.invoke(pipeline, ['submit', pipeline_file_path,
                                           '--runtime-config', 'foo'])
