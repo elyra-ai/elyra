@@ -19,9 +19,9 @@ describe('Script Editor tests', () => {
   });
 
   after(() => {
-    // go back to file browser and delete file created for testing
-    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
+    // delete files created for testing
     cy.deleteFileByName('untitled.py');
+    cy.deleteFileByName('untitled.r');
 
     // Delete runtime configuration used for testing
     cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
@@ -29,17 +29,18 @@ describe('Script Editor tests', () => {
     });
   });
 
-  it('opens blank python from launcher', () => {
+  // Python Tests
+  it('opens blank Python file from launcher', () => {
     cy.get('[title="Create a new Python file"][tabindex="100"]').click();
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 
-  it('close python editor', () => {
+  it('close editor', () => {
     cy.get('.lm-TabBar-tabCloseIcon:visible').click();
     cy.deleteFileByName('untitled.py');
   });
 
-  it('opens blank python from new menu', () => {
+  it('opens blank Python file from menu', () => {
     cy.get(':nth-child(1) > .lm-MenuBar-itemLabel').click();
     cy.get(
       ':nth-child(2) > .lm-Menu-itemSubmenuIcon > svg > .jp-icon3 > path'
@@ -49,11 +50,11 @@ describe('Script Editor tests', () => {
     ).click();
   });
 
-  it('check toolbar and its content', () => {
+  it('check toolbar content', () => {
     checkToolbarContent();
   });
 
-  it('check kernel dropdown has python option', () => {
+  it('check kernel dropdown has Python option', () => {
     cy.get('.elyra-ScriptEditor .jp-Toolbar select > option[value*=python]');
   });
 
@@ -72,6 +73,38 @@ describe('Script Editor tests', () => {
     cy.get('.jp-Dialog-header').should('have.text', 'Submit script');
     // Dismiss  dialog
     cy.get('button.jp-mod-reject').click();
+
+    // Close editor tab
+    cy.get('.lm-TabBar-tabCloseIcon:visible')
+      .eq(1)
+      .click();
+
+    // go back to file browser
+    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
+  });
+
+  // R Tests
+  it('opens blank R file from launcher', () => {
+    cy.get('[title="Create a new R file"][tabindex="100"]').click();
+    cy.get('.lm-TabBar-tab[data-type="document-title"]');
+  });
+
+  it('close R editor', () => {
+    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+  });
+
+  it('opens blank R file from menu', () => {
+    cy.get(':nth-child(1) > .lm-MenuBar-itemLabel').click();
+    cy.get(
+      ':nth-child(2) > .lm-Menu-itemSubmenuIcon > svg > .jp-icon3 > path'
+    ).click();
+    cy.get(
+      '[data-command="script-editor:create-new-r-file"] > .lm-Menu-itemLabel'
+    ).click();
+  });
+
+  it('check toolbar and its content', () => {
+    checkToolbarContent();
   });
 });
 
