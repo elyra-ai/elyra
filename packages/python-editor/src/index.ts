@@ -78,24 +78,6 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - script-editor extension is activated!');
 
-    const pythonFactory = new ScriptEditorFactory({
-      editorServices,
-      factoryOptions: {
-        name: PYTHON_FACTORY,
-        fileTypes: [PYTHON],
-        defaultFor: [PYTHON]
-      }
-    });
-
-    const rFactory = new ScriptEditorFactory({
-      editorServices,
-      factoryOptions: {
-        name: R_FACTORY,
-        fileTypes: [R],
-        defaultFor: [R]
-      }
-    });
-
     app.docRegistry.addFileType({
       name: PYTHON,
       displayName: 'Python File',
@@ -112,6 +94,24 @@ const extension: JupyterFrontEndPlugin<void> = {
       pattern: '.*\\.r$',
       mimeTypes: ['text/x-rsrc'],
       icon: rIcon
+    });
+
+    const pythonFactory = new ScriptEditorFactory({
+      editorServices,
+      factoryOptions: {
+        name: PYTHON_FACTORY,
+        fileTypes: [PYTHON],
+        defaultFor: [PYTHON]
+      }
+    });
+
+    const rFactory = new ScriptEditorFactory({
+      editorServices,
+      factoryOptions: {
+        name: R_FACTORY,
+        fileTypes: [R],
+        defaultFor: [R]
+      }
     });
 
     const { restored } = app;
@@ -296,12 +296,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    palette.addItem({
-      command: commandIDs.createNewPythonFile,
-      args: { isPalette: true },
-      category: 'Elyra'
-    });
-
     // Add a command to create new R file
     app.commands.addCommand(commandIDs.createNewRFile, {
       label: args => (args['isPalette'] ? 'New R File' : 'R File'),
@@ -311,6 +305,12 @@ const extension: JupyterFrontEndPlugin<void> = {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string, '.r', R_FACTORY);
       }
+    });
+
+    palette.addItem({
+      command: commandIDs.createNewPythonFile,
+      args: { isPalette: true },
+      category: 'Elyra'
     });
 
     palette.addItem({

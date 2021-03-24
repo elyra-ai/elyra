@@ -24,7 +24,7 @@ import React, {
   RefObject
 } from 'react';
 
-const KERNEL_SELECT_CLASS = 'elyra-ScriptEditor-KernelSelect';
+const KERNEL_SELECT_CLASS = 'elyra-ScriptEditor-KernelSelector';
 
 export interface ISelect {
   getSelection: () => string;
@@ -39,7 +39,12 @@ class Props {
  */
 // eslint-disable-next-line react/display-name
 const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
-  const [selection, setSelection] = useState(specs.default);
+  let initVal = specs.default;
+  if (!initVal && Object.keys(specs).length !== 0) {
+    initVal = Object.values(specs.kernelspecs)[0].name;
+  }
+
+  const [selection, setSelection] = useState(initVal);
 
   // Note: It's normally best to avoid using an imperative handle if possible.
   // The better option would be to track state in the parent component and handle
@@ -48,6 +53,7 @@ const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
   useImperativeHandle(select, () => ({
     getSelection: (): string => selection
   }));
+
   const kernelOptions = !Object.keys(specs.kernelspecs).length ? (
     <option key="no-kernel" value="no-kernel">
       No Kernel

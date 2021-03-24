@@ -74,10 +74,10 @@ button.elyra-ScriptEditor-scrollBottom:hover {
   justify-content: flex-start;
 }
 
-select.elyra-ScriptEditor-KernelSelect {
+select.elyra-ScriptEditor-KernelSelector {
   border: none;
   background: none;
   color: var(--jp-ui-font-color1);
   display: inline-block;
-  vertical-align: initial;
+  vertical-align: text-bottom;
 }

@@ -46,7 +46,7 @@ import {
   TabBarSvg
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
-import React from 'react';
+import React, { RefObject } from 'react';
 
 import { KernelDropdown, ISelect } from './KernelDropdown';
 import { ScriptEditorController } from './ScriptEditorController';
@@ -81,7 +81,7 @@ export class ScriptEditor extends DocumentWidget<
   private model: any;
   private emptyOutput: boolean;
   private runDisabled: boolean;
-  private kernelDropDown: KernelDropdown;
+  private kernelSelectorRef: RefObject<ISelect>;
   private controller: ScriptEditorController;
   private editorLanguage: string;
 
@@ -95,7 +95,7 @@ export class ScriptEditor extends DocumentWidget<
     this.addClass(SCRIPT_EDITOR_CLASS);
     this.model = this.content.model;
     this.runner = new ScriptRunner(this.disableRun);
-    this.kernelDropDown = null;
+    this.kernelSelectorRef = null;
     this.kernelName = options.context.sessionContext.kernelPreference.language;
     this.emptyOutput = true;
     this.runDisabled = false;
@@ -145,15 +145,23 @@ export class ScriptEditor extends DocumentWidget<
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
       this.editorLanguage
     );
-    const ref = React.createRef<ISelect>();
 
-    this.kernelName =
-      this.editorLanguage === PYTHON
-        ? kernelSpecs.default
-        : Object.keys(kernelSpecs).length !== 0 &&
-          Object.values(kernelSpecs.kernelspecs)[0].name;
-    this.kernelDropDown = new KernelDropdown(kernelSpecs, ref);
-    this.toolbar.insertItem(3, 'select', this.kernelDropDown);
+    if (this.editorLanguage === PYTHON) {
+      this.kernelName = kernelSpecs.default;
+    } else {
+      kernelSpecs.default = null;
+      this.kernelName =
+        Object.keys(kernelSpecs).length !== 0 &&
+        Object.values(kernelSpecs.kernelspecs)[0].name;
+    }
+
+    this.kernelSelectorRef = React.createRef<ISelect>();
+
+    const kernelDropDown = new KernelDropdown(
+      kernelSpecs,
+      this.kernelSelectorRef
+    );
+    this.toolbar.insertItem(3, 'select', kernelDropDown);
   };
 
   /**
@@ -182,19 +190,13 @@ export class ScriptEditor extends DocumentWidget<
     layout.addWidget(this.dockPanel);
   };
 
-  // /**
-  //  * Function: Updates kernel settings as per drop down selection.
-  //  */
-  // private updateSelectedKernel = (selection: string): void => {
-  //   this.kernelName = selection;
-  // };
-
   /**
    * Function: Clears existing output area and runs script
    * code from file editor in the selected kernel context.
    */
   private runScript = async (): Promise<void> => {
     if (!this.runDisabled) {
+      this.kernelName = this.kernelSelectorRef.current.getSelection();
       this.resetOutputArea();
       this.kernelName && this.displayOutputArea();
       await this.runner.runScript(
