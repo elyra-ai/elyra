@@ -16,7 +16,7 @@
 
 import '../style/index.css';
 
-import { pyIcon, rIcon } from '@elyra/ui-components';
+import { pyIcon } from '@elyra/ui-components';
 
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
@@ -105,7 +105,7 @@ export class ScriptEditor extends DocumentWidget<
       : R;
 
     // Add icon to main tab
-    this.title.icon = this.editorLanguage === PYTHON ? pyIcon : rIcon;
+    this.title.icon = this.editorLanguage === PYTHON ? pyIcon : 'rIcon';
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({

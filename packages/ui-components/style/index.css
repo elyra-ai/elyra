@@ -183,3 +183,9 @@
 .elyra-expandableContainer-draggable:hover {
   cursor: grab;
 }
+
+.rIcon {
+  content: url('./icons/r-logo.svg');
+  height: 24px;
+  width: 14px;
+}
