@@ -90,8 +90,9 @@ def _execute_pipeline(pipeline_definition):
             # process pipeline
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                asyncio.get_event_loop().run_until_complete(
+                response = asyncio.get_event_loop().run_until_complete(
                     PipelineProcessorManager.instance().process(pipeline_object))
+                return response
     except ValueError as ve:
         raise click.ClickException(f'Error parsing pipeline: \n {ve}')
     except RuntimeError as re:
@@ -100,7 +101,7 @@ def _execute_pipeline(pipeline_definition):
 
 def print_banner(title):
     click.echo(Fore.CYAN + "────────────────────────────────────────────────────────────────" + Style.RESET_ALL)
-    click.echo(Fore.CYAN + "  {}".format(title) + Style.RESET_ALL)
+    click.echo(Fore.CYAN + " {}".format(title) + Style.RESET_ALL)
     click.echo(Fore.CYAN + "────────────────────────────────────────────────────────────────" + Style.RESET_ALL)
     click.echo()
 
@@ -152,7 +153,15 @@ def submit(pipeline_path, runtime_config):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
-    _execute_pipeline(pipeline_definition)
+    response = _execute_pipeline(pipeline_definition)
+
+    if response:
+        print_info("Job submission succeeded",
+                   [
+                       f"Check the status of your job at: {response._run_url}",
+                       f"The results and outputs are in the {response._object_storage_path} ",
+                       f"working directory in {response._object_storage_url}"
+                   ])
 
     click.echo()
 
