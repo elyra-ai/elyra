@@ -101,7 +101,7 @@ class Operation(object):
     @property
     def name(self):
         if self._name == os.path.basename(self._filename):
-            return os.path.basename(self._name).split(".")[0]
+            self._name = os.path.basename(self._name).split(".")[0]
         return self._name
 
     @property
