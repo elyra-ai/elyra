@@ -193,6 +193,7 @@ class Operation(object):
                 self.cpu == other.cpu and \
                 self.gpu == other.gpu and \
                 self.memory == other.memory
+        return False
 
     def __str__(self) -> str:
         return "componentID : {id} \n " \
