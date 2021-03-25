@@ -102,7 +102,10 @@ export class ScriptRunner {
             type: msg.content.ename,
             output: msg.content.evalue
           };
-        } else if (msg.msg_type === 'execute_result') {
+        } else if (
+          msg.msg_type === 'execute_result' ||
+          msg.msg_type === 'display_data'
+        ) {
           if ('text/plain' in msg.content.data) {
             msgOutput.output = msg.content.data['text/plain'];
           } else {
