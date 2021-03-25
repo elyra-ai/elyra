@@ -20,7 +20,7 @@ import time
 from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
-from notebook.gateway.managers import GatewayClient
+from jupyter_server.gateway.managers import GatewayClient
 from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
 from typing import Dict

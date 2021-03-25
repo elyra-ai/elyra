@@ -98,7 +98,8 @@ elyra-metadata install runtimes \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.0']"
+       --tags="['kfp', 'v1.0']" \
+       --schema_name=kfp
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters.
@@ -120,7 +121,8 @@ elyra-metadata install runtimes \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.1']"
+       --tags="['kfp', 'v1.1']" \
+       --schema_name=kfp
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 
