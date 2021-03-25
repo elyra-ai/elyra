@@ -42,7 +42,7 @@ class LocalPipelineProcessor(PipelineProcessor):
     _type = 'local'
 
     def __init__(self, root_dir, **kwargs):
-        super(LocalPipelineProcessor, self).__init__(root_dir, **kwargs)
+        super().__init__(root_dir, **kwargs)
         notebook_op_processor = NotebookOperationProcessor(self.root_dir)
         python_op_processor = PythonScriptOperationProcessor(self.root_dir)
         r_op_processor = RScriptOperationProcessor(self.root_dir)
@@ -121,7 +121,7 @@ class FileOperationProcessor(OperationProcessor):
     MAX_ERROR_LEN: int = 80
 
     def __init__(self, root_dir: str):
-        super(FileOperationProcessor, self).__init__()
+        super().__init__()
         self._root_dir = root_dir
 
     @property
@@ -171,9 +171,6 @@ class FileOperationProcessor(OperationProcessor):
 
 class NotebookOperationProcessor(FileOperationProcessor):
     _operation_name = 'execute-notebook-node'
-
-    def __init__(self, root_dir: str):
-        super(NotebookOperationProcessor, self).__init__(root_dir)
 
     def process(self, operation: Operation):
         filepath = self.get_valid_filepath(operation.filename)
@@ -263,9 +260,6 @@ class PythonScriptOperationProcessor(ScriptOperationProcessor):
     _operation_name = 'execute-python-node'
     _script_type = 'Python'
 
-    def __init__(self, root_dir):
-        super(PythonScriptOperationProcessor, self).__init__(root_dir)
-
     def get_argv(self, file_path) -> List[str]:
         return ['python3', file_path, '--PYTHONHOME', os.path.dirname(file_path)]
 
@@ -273,9 +267,6 @@ class PythonScriptOperationProcessor(ScriptOperationProcessor):
 class RScriptOperationProcessor(ScriptOperationProcessor):
     _operation_name = 'execute-r-node'
     _script_type = 'R'
-
-    def __init__(self, root_dir):
-        super(RScriptOperationProcessor, self).__init__(root_dir)
 
     def get_argv(self, file_path) -> List[str]:
         return ['Rscript', file_path]
