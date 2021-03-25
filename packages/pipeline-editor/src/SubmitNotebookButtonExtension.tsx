@@ -105,6 +105,9 @@ export class SubmitNotebookButtonExtension
       runtime_platform,
       runtime_config,
       framework,
+      cpu,
+      gpu,
+      memory,
       dependency_include,
       dependencies,
       ...envObject
@@ -117,7 +120,10 @@ export class SubmitNotebookButtonExtension
       runtime_config,
       framework,
       dependency_include ? dependencies : undefined,
-      envObject
+      envObject,
+      cpu,
+      gpu,
+      memory
     );
 
     const displayName = PipelineService.getDisplayName(
