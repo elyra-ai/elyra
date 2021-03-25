@@ -17,6 +17,7 @@ import autopep8
 import kfp
 import kfp_tekton
 import os
+import re
 import tempfile
 import time
 import requests
@@ -371,8 +372,10 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                     if len(result) == 2 and result[0] != '':
                         pipeline_envs[result[0]] = result[1]
 
+            sanitized_operation_name = self._sanitize_operation_name(operation.name)
+
             # create pipeline operation
-            notebook_ops[operation.id] = NotebookOp(name=operation.name,
+            notebook_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
                                                     pipeline_name=pipeline_name,
                                                     experiment_name=experiment_name,
                                                     notebook=operation.filename,
@@ -424,7 +427,16 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         return notebook_ops
 
-    def _get_user_auth_session_cookie(self, url, username, password):
+    @staticmethod
+    def _sanitize_operation_name(name: str) -> str:
+        """
+        In KFP, only letters, numbers, spaces, "_", and "-" are allowed in name.
+        :param name: name of the operation
+        """
+        return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-', name)).lstrip('-').rstrip('-')
+
+    @staticmethod
+    def _get_user_auth_session_cookie(url, username, password):
         get_response = requests.get(url)
 
         # auth request to kfp server with istio dex look like '/dex/auth/local?req=REQ_VALUE'
