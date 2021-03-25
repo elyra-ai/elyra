@@ -32,11 +32,7 @@
 }
 
 .elyra-PipelineEditor .properties-right-flyout > .properties-custom-container {
-  height: 100%;
-}
-
-.elyra-PipelineEditor .properties-right-flyout {
-  overflow-y: scroll;
+  height: calc(100% - 41px);
 }
 
 .elyra-tooltipError {
