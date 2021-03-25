@@ -165,6 +165,15 @@ td {
   overflow: scroll;
 }
 
+.elyra-resourcesWrapper {
+  display: flex;
+  flex-direction: row;
+}
+
+.elyra-resourceInput {
+  width: 33%;
+}
+
 .elyra-experiments {
   padding-right: 5px;
 }
