@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import nbformat
 import os
 import pytest
 
@@ -91,6 +92,29 @@ def test_pipeline_execution(pipeline_dir):
     for node in nodes:
         for output in node.outputs:
             assert os.path.exists(os.path.join(pipeline_dir, output))
+
+
+def test_pipeline_execution_missing_kernelspec(pipeline_dir):
+    # Construct 4-node pipeline consisting of 3 notebooks and 1 python script.
+    # This pipeline is "diamond shaped" with node1 feeding nodes 2 and 3, each then
+    # feeding node4.
+    node1 = NotebookNode("node1", num_outputs=2)
+    node2 = PythonNode("node2", num_outputs=2, input_nodes=[node1])
+    node3 = NotebookNode("node3", num_outputs=2, input_nodes=[node1])
+    node4 = NotebookNode("node4", num_outputs=2, input_nodes=[node2, node3])
+    nodes = [node1, node2, node3, node4]
+
+    pipeline = construct_pipeline("p1", nodes=nodes, location=pipeline_dir)
+
+    node1nb_file = os.path.join(pipeline_dir, pipeline.operations[node1.id].filename)
+    nb = nbformat.read(node1nb_file, 4)
+    nb['metadata'].pop('kernelspec')
+    nbformat.write(nb, node1nb_file)
+
+    with pytest.raises(RuntimeError) as e:
+        LocalPipelineProcessor(pipeline_dir).process(pipeline)
+    assert 'Error processing operation node1 (node1.ipynb): No kernel ' \
+           'name found in notebook and no override provided.' in str(e.value)
 
 
 def test_pipeline_execution_bad_notebook(pipeline_dir):
