@@ -16,21 +16,24 @@
 #
 set -euo pipefail
 
-export YARN_VERSION=1.22.4
+node --version
+npm --version
 
-# Download and install Yarn Package Manager
-mkdir -p dist
-cd dist && wget https://github.com/yarnpkg/yarn/releases/download/v${YARN_VERSION}/yarn-v${YARN_VERSION}.tar.gz
-tar -zvxf yarn-v${YARN_VERSION}.tar.gz && rm -rf yarn-v${YARN_VERSION}.tar.gz
+mkdir -p ~/.npm-global
+npm config set scripts-prepend-node-path auto
+npm config set prefix ~/.npm-global
 
-# Add to PATH
-export PATH=$(pwd)/yarn-v${YARN_VERSION}/bin/:$PATH && cd ..
+export PATH=$(pwd)/.npm-global/bin/:$PATH
+
+# Download and install Yarn Package Manager using npm
+npm install -g yarn
 
 # Build Elyra Distribution
 make release
 
-# Install Elyra Wheel
-pip install dist/*.whl
+# Updage dependencies and install Elyra wheel
+pip install --upgrade pip
+pip install --upgrade --use-deprecated=legacy-resolver tornado jupyter-core jupyter-server jupyterlab dist/*.whl
 
 # Rebuild Jupyter Lab to enable extensions
 jupyter labextension link --no-build packages/services/
