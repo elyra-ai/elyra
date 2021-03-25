@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig-base",
+  "compilerOptions": {
+    "outDir": "../script-editor/lib",
+    "rootDir": "../script-editor/src"
+  },
+  "include": ["../script-editor/src/*"]
+}

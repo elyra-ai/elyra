@@ -207,7 +207,7 @@ Other labextensions (built into JupyterLab)
         @elyra/code-snippet-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
-        @elyra/python-editor-extension [version] enabled OK
+        @elyra/script-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
         nbdime-jupyterlab [version] enabled OK        
         

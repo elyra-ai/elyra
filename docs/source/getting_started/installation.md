@@ -57,10 +57,10 @@ If desired, you can install these Elyra extensions independently:
    pip install --upgrade elyra-code-snippet-extension && jupyter lab build
    ```
 
-- [Python script editor](https://pypi.org/project/elyra-python-editor-extension/)
+- [Script script editor](https://pypi.org/project/elyra-script-editor-extension/)
 
    ```bash
-   pip install --upgrade elyra-python-editor-extension && jupyter lab build
+   pip install --upgrade elyra-script-editor-extension && jupyter lab build
    ```
 
 **NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
@@ -74,7 +74,7 @@ If you use `conda`, install Elyra with:
 conda install -c conda-forge elyra && jupyter lab build
 ```
 
-or install the Pipeline editor, Code Snippet, or Python editor extensions individually:
+or install the Pipeline editor, Code Snippet, or Script editor extensions individually:
 
 ```bash
 conda install -c conda-forge elyra-pipeline-editor-extension && jupyter lab build
@@ -85,7 +85,7 @@ conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
 ```
 
 ```bash
-conda install -c conda-forge elyra-python-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-script-editor-extension && jupyter lab build
 ```
 
 ### Build from source
@@ -178,7 +178,7 @@ Other labextensions (built into JupyterLab)
         @elyra/code-snippet-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
-        @elyra/python-editor-extension [version] enabled OK
+        @elyra/script-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
         nbdime-jupyterlab [version] enabled OK 
 ```
