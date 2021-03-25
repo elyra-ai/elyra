@@ -116,9 +116,17 @@ The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/k
 
 By default, Elyra installs the [Python Language Server package](https://pypi.org/project/python-language-server/), enabling the productivity features in the notebook editor and the Python editor. Support for other languages can be added by manually installing additional Language Server packages and their prerequisites.
 
-THIS IS WHERE TH
-HELLO
+##### R-Editor Language Server Protocol
+You can enable R language server features for the R Editor in a conda environment with the following command:
 
+ `conda install -c conda-forge r-languageserver`
+
+
+You can find more documentation about conda-forge [here](https://github.com/conda-forge/r-languageserver-feedstock).
+
+Another option is to install the R language server through the [CRAN](https://cran.r-project.org/). Once R is installed, use the following [command](https://github.com/REditorSupport/languageserver):
+
+`R -e install.packages("languageserver")` 
 
 Refer to the [`jupyterlab-lsp` extension documentation](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) for a full list of supported Language Servers and installation instructions.
 
