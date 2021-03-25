@@ -92,10 +92,6 @@ export class KernelDropdown extends ReactWidget {
   }
 
   render(): React.ReactElement {
-    return (
-      <div>
-        <DropDown ref={this.ref} specs={this.specs} />
-      </div>
-    );
+    return <DropDown ref={this.ref} specs={this.specs} />;
   }
 }
