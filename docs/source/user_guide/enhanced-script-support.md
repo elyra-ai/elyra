@@ -44,7 +44,7 @@ In the Jupyter Lab Launcher, click the `R File` icon to create a new R Script.
 
 ![Create new R file](../images/launcher-r-file.png)
 
-To run your R script you will need to install an R kernel.
+To run your R script locally you will need to install an R kernel.
 1. If you are using a [conda](https://docs.conda.io/en/latest/miniconda.html) environment:
 ```
 conda install -y r-irkernel
@@ -61,6 +61,7 @@ IRkernel::installspec()
 
 To run the script, from the Script editor toolbar, select the `R` option in the dropdown menu, and click the `Run` icon.
 
+Similar to the extended support for Python kernels when using the `Jupyter Enterprise Gateway`, the Script editor dropdown in the toolbar will display all available remote kernel options for R scripts.
 
 ## Ability to run a Python and R scripts as a batch job
 
