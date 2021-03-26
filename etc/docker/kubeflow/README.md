@@ -18,4 +18,4 @@ limitations under the License.
 
 ### Elyra notebook container image for use with Kubeflow's Notebook Server
 
-This `Dockerfile` is used to build an Elyra notebook image that can be launched by Kubeflow's Notebook Server. The container image is published on [Docker Hub](https://hub.docker.com/r/elyra/kf-notebook) and [quay.io](https://quay.io/repository/elyra/kf-notebook).
+This `Dockerfile` is used to build an Elyra notebook image that can be launched by [Kubeflow's Notebook Server](https://www.kubeflow.org/docs/components/notebooks/). Ready-to-use  container images are published on [Docker Hub](https://hub.docker.com/r/elyra/kf-notebook) and [quay.io](https://quay.io/repository/elyra/kf-notebook). Refer to [the documentation](https://elyra.readthedocs.io/en/latest/recipes/using-elyra-with-kubeflow-notebook-server.html) for details.

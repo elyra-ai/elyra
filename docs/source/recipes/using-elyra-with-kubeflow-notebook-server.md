@@ -24,36 +24,37 @@ In this example we will show how to launch Elyra using [Kubeflow's Notebook Serv
 - A Kubeflow Cluster
     - A standard installation of Kubeflow will include the Notebook Server as part of the application stack
     - [Installation Documentation](https://www.kubeflow.org/docs/started/getting-started/)
-- Select an official Elyra container image version from [Docker Hub](https://hub.docker.com/r/elyra/kf-notebook) or [quay.io](https://quay.io/repository/elyra/kf-notebook).
-  - NOTE: Please be careful when selecting an Elyra container image to run on Kubeflow. Only the Elyra container images under [Docker Hub](https://hub.docker.com/r/elyra/kf-notebook) or [quay.io](https://quay.io/repository/elyra/kf-notebook) are supported.
-  
-OR
 
-- Create a custom Elyra container image  
-  - Users can create their own custom Elyra image to be used with the Kubeflow Notebook Server using our [Dockerfile](https://github.com/elyra-ai/elyra/blob/master/etc/docker/kubeflow/Dockerfile) as a base to build on.  
+- Select the desired Elyra container image version from the `elyra/kf-notebook` repositories on [Docker Hub](https://hub.docker.com/r/elyra/kf-notebook) or [quay.io](https://quay.io/repository/elyra/kf-notebook). Do NOT use other images, such as the ones in `elyra/elyra`.
+  
+    OR
+
+  - Create a custom Elyra container image using [this `Dockerfile`](https://github.com/elyra-ai/elyra/blob/master/etc/docker/kubeflow/Dockerfile) as a base and customize it as desired.
     
 ## Launching Elyra in the Kubeflow Notebook Server
-- In the default Kubeflow welcome page, in the left side menu, click on `Notebook Servers`   
+1. In the default Kubeflow welcome page, in the left side menu, click on `Notebook Servers`   
   
-![Elyra](../images/elyra-with-kf-notebook-splash-screen.png)  
+   ![Elyra](../images/elyra-with-kf-notebook-splash-screen.png)  
   
-- Click on `NEW SERVER`   
+1. Click on `NEW SERVER`   
   
-![Elyra](../images/elyra-with-kf-notebook-notebook-server.png)  
+   ![Elyra](../images/elyra-with-kf-notebook-notebook-server.png)  
   
-- Choose a `name` for your notebook server, and under `Image` check the box labeled `Custom Image`   
+1. Choose a `name` for your notebook server, and under `Image` check the box labeled `Custom Image`.   
   
-![Elyra](../images/elyra-with-kf-notebook-config-1.png)  
+   ![Elyra](../images/elyra-with-kf-notebook-config-1.png)  
   
-- Under `Custom Image`, add `elyra/kf-notebook:<ELYRA_VERSION>`, in this example we are using Elyra 2.1.0   
+1. As `Custom Image` enter `elyra/kf-notebook:<ELYRA_VERSION>`, replacing `<ELYRA_VERSION>` with the desired image tag, e.g. `2.1.0`.   
   
-![Elyra](../images/elyra-with-kf-notebook-image-config.png)  
+   ![Elyra](../images/elyra-with-kf-notebook-image-config.png)
+
+   > To pull an image from quay.io prefix the image name with `quay.io`, e.g. `quay.io/kf-notebook:2.1.0`.  
   
-- Increase or decrease any memory resources as required. We recommend at least 1 CPU and 1Gi of memory.
+1. Customize the resources as required. We recommend at least 1 CPU and 1Gi of memory.
      
-- Your notebook server with Elyra should begin the provisioning process now. When complete, you'll notice a green light and arrow to the left of your notebook. Click on `Connect` to launch Elyra.   
+1. Your notebook server with Elyra should begin the provisioning process now. When complete, you'll notice a green light and arrow to the left of your notebook. Click on `Connect` to launch Elyra.   
   
-![Elyra](../images/elyra-with-kf-notebook-start-notebook.png)  
+   ![Elyra](../images/elyra-with-kf-notebook-start-notebook.png)  
    
 ### Next step:
 [Creating a runtime metadata configuration](https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html)
