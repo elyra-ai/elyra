@@ -57,7 +57,7 @@ If desired, you can install these Elyra extensions independently:
    pip install --upgrade elyra-code-snippet-extension && jupyter lab build
    ```
 
-- [Script script editor](https://pypi.org/project/elyra-script-editor-extension/)
+- [Script editor](https://pypi.org/project/elyra-script-editor-extension/)
 
    ```bash
    pip install --upgrade elyra-script-editor-extension && jupyter lab build
@@ -87,6 +87,8 @@ conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
 ```bash
 conda install -c conda-forge elyra-script-editor-extension && jupyter lab build
 ```
+
+**NOTE:** The Script editor extension is not yet available on `conda-forge` or `pip` package manager.
 
 ### Build from source
 

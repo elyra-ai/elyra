@@ -50,13 +50,13 @@ To run your R script you will need to install an R kernel.
 conda install -y r-irkernel
 ```
 
-2. Alternatively, you can install it via [CRAN](https://cran.r-project.org/):
+2. Alternatively, you can install it via [CRAN](https://cran.r-project.org/) on an R console:
 ```
-R -e install.packages('IRkernel')
+install.packages('IRkernel')
 ```
 then enable it on Jupyter:
 ```
-R IRkernel::installspec()
+IRkernel::installspec()
 ```
 
 To run the script, from the Script editor toolbar, select the `R` option in the dropdown menu, and click the `Run` icon.
