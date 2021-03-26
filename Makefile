@@ -16,7 +16,7 @@
 
 .PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
 .PHONY: install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
-.PHONY: docker-image, validate-runtime-images kf-notebook-image
+.PHONY: docker-image validate-runtime-images kf-notebook-image
 
 
 SHELL:=/bin/bash
@@ -167,8 +167,8 @@ airflow-image: ## Build airflow image for use with Elyra
 	--build-arg AIRFLOW_NOTEBOOK_VERSION=$(AIRFLOW_NOTEBOOK_VERSION) etc/docker/airflow/ --progress plain
 
 kf-notebook-image: ## Build elyra image for use with Kubeflow Notebook Server
-    DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE) -t quay.io/$(KF_NOTEBOOK_IMAGE) \
-    etc/docker/kubeflow/ --progress plain
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE) -t quay.io/$(KF_NOTEBOOK_IMAGE) \
+	etc/docker/kubeflow/ --progress plain
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
