@@ -37,15 +37,16 @@ In this example we will show how to launch Elyra using Kubeflow's Notebook Serve
 3. Choose a `name` for your notebook server, and under `Image` check the box labeled `Custom Image`
 
 ![Elyra](../images/elyra-with-kf-notebook-config-1.png)  
-   
+
 4. Under `Custom Image`, add `elyra/kf-notebook:<ELYRA_VERSION>`, in this example we are using Elyra 2.1.0
-![Elyra](../images/elyra-with-kf-notebook-image-config.png)
-   
+
+![Elyra](../images/elyra-with-kf-notebook-image-config.png)  
+
 5. Increase or decrease any memory resources as required. We recommend at least 1 CPU and 1Gi of memory.
    
 6. Your notebook server with Elyra should begin the provisioning process now. When complete, you'll notice a green light and arrow to the left of your notebook. Click on `Connect` to launch Elyra.
-![Elyra](../images/elyra-with-kf-notebook-start-notebook.png)
-   
+
+![Elyra](../images/elyra-with-kf-notebook-start-notebook.png)  
    
 ### Next step:
 [Creating a runtime metadata configuration](https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html)
