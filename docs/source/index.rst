@@ -53,6 +53,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    recipes/deploying-elyra-in-a-jupyterhub-environment.md
    recipes/deploying-kubeflow-locally-for-dev.md
    recipes/deploying-elyra-with-opendatahub.md
+   recipes/using-elyra-with-kubeflow-notebook-server.md
    recipes/creating-a-custom-runtime-image.md
    recipes/visualizing-output-in-the-kfp-ui.md
    recipes/configure-airflow-as-a-runtime.md
