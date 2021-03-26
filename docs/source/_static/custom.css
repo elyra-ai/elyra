@@ -21,7 +21,9 @@ div.wy-side-nav-search {
   background: #f37626;
 }
 
-img[alt='Python Editor Components'] {
+img[alt='Script Editor Components'],
+img[alt='Create new Python file'],
+img[alt='Create new R file'] {
   width: 50%;
   height: 50%;
 }
