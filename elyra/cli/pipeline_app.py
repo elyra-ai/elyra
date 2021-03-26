@@ -84,15 +84,14 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
 
 def _execute_pipeline(pipeline_definition):
     try:
-        with yaspin(text="Processing pipeline ..."):
-            # parse pipeline
-            pipeline_object = PipelineParser().parse(pipeline_definition)
-            # process pipeline
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                response = asyncio.get_event_loop().run_until_complete(
-                    PipelineProcessorManager.instance().process(pipeline_object))
-                return response
+        # parse pipeline
+        pipeline_object = PipelineParser().parse(pipeline_definition)
+        # process pipeline
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            response = asyncio.get_event_loop().run_until_complete(
+                PipelineProcessorManager.instance().process(pipeline_object))
+            return response
     except ValueError as ve:
         raise click.ClickException(f'Error parsing pipeline: \n {ve}')
     except RuntimeError as re:
@@ -153,7 +152,8 @@ def submit(pipeline_path, runtime_config):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
-    response = _execute_pipeline(pipeline_definition)
+    with yaspin(text="Submitting pipeline..."):
+        response = _execute_pipeline(pipeline_definition)
 
     if response:
         print_info("Job submission succeeded",
