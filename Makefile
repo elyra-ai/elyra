@@ -16,7 +16,7 @@
 
 .PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
 .PHONY: install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
-.PHONY: docker-image, validate-runtime-images
+.PHONY: container-image, validate-runtime-images
 
 SHELL:=/bin/bash
 
