@@ -16,7 +16,8 @@
 
 .PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
 .PHONY: install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
-.PHONY: container-image, validate-runtime-images
+.PHONY: docker-image validate-runtime-images kf-notebook-image
+
 
 SHELL:=/bin/bash
 
@@ -25,6 +26,7 @@ AIRFLOW_NOTEBOOK_VERSION:=0.0.4
 TAG:=dev
 IMAGE=elyra/elyra:$(TAG)
 ELYRA_AIRFLOW_IMAGE=elyra/airflow:$(TAG)
+KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
@@ -163,6 +165,10 @@ publish-container-image: container-image ## Publish container image
 airflow-image: ## Build airflow image for use with Elyra
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_AIRFLOW_IMAGE) -t quay.io/$(ELYRA_AIRFLOW_IMAGE) \
 	--build-arg AIRFLOW_NOTEBOOK_VERSION=$(AIRFLOW_NOTEBOOK_VERSION) etc/docker/airflow/ --progress plain
+
+kf-notebook-image: ## Build elyra image for use with Kubeflow Notebook Server
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE) -t quay.io/$(KF_NOTEBOOK_IMAGE) \
+	etc/docker/kubeflow/ --progress plain
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
