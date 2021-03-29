@@ -258,10 +258,9 @@ body[data-jp-theme-light='false'] .bx--modal.is-visible {
 }
 .bx--text-input__field-outer-wrapper
   > .bx--text-input__field-wrapper
-  > input.bx--text-input.bx--text__input {
+  > input.bx--text-input {
   color: var(--text-01);
-  background-color: var(--ui-01);
-  height: auto;
+  background-color: var(--ui-background);
 }
 .properties-field-type {
   color: var(--text-01);
@@ -346,8 +345,8 @@ div.properties-modal-buttons,
 }
 .properties-title-editor {
   padding: 0;
-  height: 40px;
-  background-color: var(--ui-01);
+  height: auto;
+  background-color: var(--ui-background);
   border-bottom: 1px solid var(--ui-03);
 }
 .properties-control-panel[data-id='properties-nodeFileControl']

@@ -21,6 +21,7 @@
 }
 
 .elyra-noContentMessage {
+  color: var(--text-01);
   margin-top: 14px;
   width: 320px;
   padding: 0 22px;
