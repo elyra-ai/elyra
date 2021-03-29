@@ -36,12 +36,14 @@ import { JSONObject } from '@lumino/coreutils';
 
 import { ScriptEditorFactory, ScriptEditor } from './ScriptEditor';
 
-const PYTHON_FACTORY = 'Python Editor';
-const R_FACTORY = 'R Editor';
-const PYTHON = 'python';
-const R = 'r';
 const SCRIPT_EDITOR_NAMESPACE = 'elyra-script-editor-extension';
+
+const PYTHON_FACTORY = 'Python Editor';
+const PYTHON = 'python';
 const PYTHON_EDITOR_NAMESPACE = 'elyra-python-script-editor-extension';
+
+const R_FACTORY = 'R Editor';
+const R = 'r';
 const R_EDITOR_NAMESPACE = 'elyra-r-script-editor-extension';
 
 const commandIDs = {
