@@ -39,11 +39,9 @@ class Props {
  */
 // eslint-disable-next-line react/display-name
 const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
-  let initVal = specs.default;
-  if (!initVal && Object.keys(specs.kernelspecs).length !== 0) {
-    initVal = Object.values(specs.kernelspecs)[0].name;
-  }
-
+  const initVal =
+    Object.keys(specs.kernelspecs).length !== 0 &&
+    Object.values(specs.kernelspecs)[0].name;
   const [selection, setSelection] = useState(initVal);
 
   // Note: It's normally best to avoid using an imperative handle if possible.

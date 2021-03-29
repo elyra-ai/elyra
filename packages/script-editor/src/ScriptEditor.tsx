@@ -146,15 +146,10 @@ export class ScriptEditor extends DocumentWidget<
       this.editorLanguage
     );
 
-    if (this.editorLanguage === PYTHON) {
-      this.kernelName = kernelSpecs.default;
-    } else {
-      this.kernelName =
-        Object.keys(kernelSpecs.kernelspecs).length === 0
-          ? null
-          : Object.values(kernelSpecs.kernelspecs)[0].name;
-      kernelSpecs.default = this.kernelName;
-    }
+    this.kernelName =
+      Object.keys(kernelSpecs.kernelspecs).length === 0
+        ? null
+        : Object.values(kernelSpecs.kernelspecs)[0].name;
 
     this.kernelSelectorRef = React.createRef<ISelect>();
 
