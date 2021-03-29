@@ -1,10 +1,11 @@
 {
-  "name": "@elyra/script-editor",
+  "name": "@elyra/python-editor-extension",
   "version": "2.2.0-dev",
-  "description": "JupyterLab - Run python and R scripts using a kernel runtime",
+  "description": "JupyterLab extension - Run python scripts using a kernel runtime",
   "keywords": [
     "jupyter",
-    "jupyterlab"
+    "jupyterlab",
+    "jupyterlab-extension"
   ],
   "homepage": "https://github.com/elyra-ai/elyra",
   "bugs": {
@@ -17,7 +18,6 @@
   "license": "Apache-2.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "style": "style/index.css",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "src/**/*.{ts,tsx}",
@@ -31,6 +31,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
+    "@elyra/script-editor": "^2.2.0-dev",
     "@elyra/ui-components": "^2.2.0-dev",
     "@jupyterlab/application": "^3.0.0",
     "@jupyterlab/apputils": "^3.0.0",
@@ -61,6 +62,6 @@
     "access": "public"
   },
   "jupyterlab": {
-    "extension": false
+    "extension": true
   }
 }
