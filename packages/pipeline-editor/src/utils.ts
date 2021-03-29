@@ -39,7 +39,10 @@ export default class Utils {
     runtime_config: string,
     runtimeImage: string,
     dependencies: string[],
-    envObject: { [key: string]: string }
+    envObject: { [key: string]: string },
+    cpu?: number,
+    gpu?: number,
+    memory?: number
   ): any {
     const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid: string = Utils.getUUID();
@@ -59,6 +62,9 @@ export default class Utils {
     template.pipelines[0].nodes[0].app_data.runtime_image = runtimeImage;
     template.pipelines[0].nodes[0].app_data.env_vars = envVars;
     template.pipelines[0].nodes[0].app_data.dependencies = dependencies;
+    template.pipelines[0].nodes[0].app_data.cpu = cpu;
+    template.pipelines[0].nodes[0].app_data.gpu = gpu;
+    template.pipelines[0].nodes[0].app_data.memory = memory;
 
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = runtime_platform;

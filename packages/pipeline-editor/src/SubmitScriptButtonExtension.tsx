@@ -114,6 +114,9 @@ export class SubmitScriptButtonExtension
       runtime_platform,
       runtime_config,
       framework,
+      cpu,
+      gpu,
+      memory,
       dependency_include,
       dependencies,
       ...envObject
@@ -126,7 +129,10 @@ export class SubmitScriptButtonExtension
       runtime_config,
       framework,
       dependency_include ? dependencies : undefined,
-      envObject
+      envObject,
+      cpu,
+      gpu,
+      memory
     );
 
     const displayName = PipelineService.getDisplayName(
