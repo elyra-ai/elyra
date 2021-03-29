@@ -242,6 +242,47 @@ describe('Pipeline Editor tests', () => {
 
     cy.readFile('build/cypress-tests/helloworld.yaml');
   });
+
+  it('should not leak properties when switching between nodes', () => {
+    cy.readFile('tests/assets/helloworld.pipeline').then((file: any) => {
+      cy.writeFile('build/cypress-tests/helloworld.pipeline', file);
+    });
+    cy.wait(300);
+
+    getFileByName('helloworld.pipeline').rightclick();
+    cy.get('[data-command="filebrowser:open"]').click();
+
+    cy.get(
+      '.d3-node-group[data-id="node_grp_0_66b715e0-f898-425d-8a41-52f39390570c"]'
+    ).rightclick();
+    cy.get('.react-contextmenu-item:nth-child(11)')
+      .contains('Properties')
+      .click();
+
+    cy.get('#env_vars > :nth-child(1) input').should(
+      'have.value',
+      'TEST_ENV_1=1'
+    );
+
+    cy.get(
+      '.d3-node-group[data-id="node_grp_0_812e153b-d128-4979-bacb-c5919780a538"]'
+    ).click();
+
+    cy.get(
+      '[data-id="properties-ctrl-env_vars"] > .properties-control-item > .properties-custom-ctrl > :nth-child(1) > [style="display: flex;"] > .bp3-button'
+    ).click();
+
+    cy.get('#env_vars > :nth-child(1) input').type('two');
+
+    cy.get(
+      '.d3-node-group[data-id="node_grp_0_66b715e0-f898-425d-8a41-52f39390570c"]'
+    ).click();
+
+    cy.get('#env_vars > :nth-child(1) input').should(
+      'have.value',
+      'TEST_ENV_1=1'
+    );
+  });
 });
 
 // ------------------------------
