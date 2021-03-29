@@ -565,7 +565,6 @@ export class PipelineEditor extends React.Component<
   }
 
   propertyListener(data: any): void {
-    console.log(data);
     if (data.action === 'UPDATE_PROPERTY' && this.CommonProperties) {
       const pipelineId = this.canvasController.getPrimaryPipelineId();
       // Use the currently selected node. If more than one node is selected,
