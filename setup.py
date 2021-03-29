@@ -62,6 +62,8 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         'autopep8',
+        'click',
+        'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11,<3.0',
         'jsonschema>=3.2.0',
@@ -86,6 +88,7 @@ setup_args = dict(
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
         'websocket-client',
+        'yaspin',
         # KFP runtime dependencies
         'kfp-notebook>=0.21.0',
         'kfp==1.3.0',
@@ -113,6 +116,7 @@ setup_args = dict(
     entry_points={
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
+            'elyra-pipeline = elyra.cli.pipeline_app:pipeline',
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',

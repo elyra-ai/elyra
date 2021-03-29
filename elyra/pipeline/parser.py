@@ -35,8 +35,12 @@ class PipelineParser(LoggingConfigurable):
         # nodes within the primary pipeline (checked below).
         if 'primary_pipeline' not in pipeline_definitions:
             raise ValueError("Invalid pipeline: Could not determine the primary pipeline.")
+        if not isinstance(pipeline_definitions["primary_pipeline"], str):
+            raise ValueError("Invalid pipeline: Field 'primary_pipeline' should be a string.")
         if 'pipelines' not in pipeline_definitions:
             raise ValueError("Invalid pipeline: Pipeline definition not found.")
+        if not isinstance(pipeline_definitions["pipelines"], list):
+            raise ValueError("Invalid pipeline: Field 'pipelines' should be a list.")
 
         primary_pipeline_id = pipeline_definitions['primary_pipeline']
         primary_pipeline = PipelineParser._get_pipeline_definition(pipeline_definitions, primary_pipeline_id)
