@@ -278,7 +278,6 @@ export class PipelineEditor extends React.Component<
       selectedNodes: []
     };
 
-    this.applyPropertyChanges = this.applyPropertyChanges.bind(this);
     this.propertiesActionHandler = this.propertiesActionHandler.bind(this);
     this.propertyListener = this.propertyListener.bind(this);
     this.propertiesControllerHandler = this.propertiesControllerHandler.bind(
@@ -410,8 +409,7 @@ export class PipelineEditor extends React.Component<
     const propertiesCallbacks = {
       actionHandler: this.propertiesActionHandler,
       controllerHandler: this.propertiesControllerHandler,
-      propertyListener: this.propertyListener,
-      applyPropertyChanges: this.applyPropertyChanges
+      propertyListener: this.propertyListener
     };
 
     let commProps = null;
@@ -456,8 +454,7 @@ export class PipelineEditor extends React.Component<
             propertiesInfo={this.state.propertiesInfo}
             propertiesConfig={{
               containerType: 'Custom',
-              rightFlyout: true,
-              applyOnBlur: true
+              rightFlyout: true
             }}
             callbacks={propertiesCallbacks}
             customControls={[StringArrayInput]}
@@ -568,67 +565,49 @@ export class PipelineEditor extends React.Component<
   }
 
   propertyListener(data: any): void {
+    console.log(data);
     if (data.action === 'UPDATE_PROPERTY' && this.CommonProperties) {
-      this.CommonProperties.applyPropertiesEditing(false);
-    }
-  }
-
-  applyPropertyChanges(
-    propertySet: any,
-    appData: any,
-    additionalData: any
-  ): void {
-    console.log('Applying changes to properties');
-    const pipelineId = this.canvasController.getPrimaryPipelineId();
-    let node = this.canvasController.getNode(appData.id, pipelineId);
-    // If the node is in a supernode, search supernodes for it
-    if (!node) {
-      const superNodes = this.canvasController.getSupernodes(pipelineId);
-      for (const superNode of superNodes) {
-        node = this.canvasController.getNode(
-          appData.id,
-          superNode.subflow_ref.pipeline_id_ref
-        );
-        if (node) {
-          break;
-        }
-      }
-      // If still couldn't find the node, cancel this function
-      if (!node) {
+      const pipelineId = this.canvasController.getPrimaryPipelineId();
+      // Use the currently selected node. If more than one node is selected,
+      // or no nodes are selected, cancel action.
+      if (this.state.selectedNodes.length !== 1) {
         return;
       }
-    }
-    const app_data = node.app_data;
+      let node = this.state.selectedNodes[0];
 
-    if (additionalData.title) {
-      this.canvasController.setNodeLabel(appData.id, additionalData.title);
-    }
-    if (app_data.filename !== propertySet.filename) {
-      app_data.filename = propertySet.filename;
-      this.canvasController.setNodeLabel(
-        appData.id,
-        PathExt.basename(propertySet.filename)
+      const app_data = node.app_data;
+      const propertySet = this.propertiesController.getPropertyValues();
+
+      if (node.title) {
+        this.canvasController.setNodeLabel(node.id, node.title);
+      }
+      if (app_data.filename !== propertySet.filename) {
+        app_data.filename = propertySet.filename;
+        this.canvasController.setNodeLabel(
+          node.id,
+          PathExt.basename(propertySet.filename)
+        );
+      }
+
+      app_data.runtime_image = propertySet.runtime_image;
+      app_data.outputs =
+        propertySet.outputs && propertySet.outputs.filter(Boolean);
+      app_data.env_vars =
+        propertySet.env_vars && propertySet.env_vars.filter(Boolean);
+      app_data.dependencies =
+        propertySet.dependencies && propertySet.dependencies.filter(Boolean);
+      app_data.include_subdirectories = propertySet.include_subdirectories;
+      app_data.cpu = propertySet.cpu;
+      app_data.memory = propertySet.memory;
+      app_data.gpu = propertySet.gpu;
+      this.canvasController.setNodeProperties(
+        node.id,
+        { app_data },
+        pipelineId
       );
+      this.validateAllNodes();
+      this.updateModel();
     }
-
-    app_data.runtime_image = propertySet.runtime_image;
-    app_data.outputs =
-      propertySet.outputs && propertySet.outputs.filter(Boolean);
-    app_data.env_vars =
-      propertySet.env_vars && propertySet.env_vars.filter(Boolean);
-    app_data.dependencies =
-      propertySet.dependencies && propertySet.dependencies.filter(Boolean);
-    app_data.include_subdirectories = propertySet.include_subdirectories;
-    app_data.cpu = propertySet.cpu;
-    app_data.memory = propertySet.memory;
-    app_data.gpu = propertySet.gpu;
-    this.canvasController.setNodeProperties(
-      appData.id,
-      { app_data },
-      pipelineId
-    );
-    this.validateAllNodes();
-    this.updateModel();
   }
 
   propertiesControllerHandler(propertiesController: any): void {
@@ -641,9 +620,6 @@ export class PipelineEditor extends React.Component<
       this.widgetContext.path,
       this.propertiesController.getPropertyValue('filename')
     );
-    if (this.CommonProperties) {
-      this.CommonProperties.applyPropertiesEditing(false);
-    }
 
     if (id === 'browse_file') {
       const currentExt = PathExt.extname(filename);
