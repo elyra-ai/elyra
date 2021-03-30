@@ -37,7 +37,7 @@ describe('Pipeline Editor tests', () => {
     });
     cy.openJupyterLab();
     // wait for the file browser to load
-    cy.get('.jp-DirListing-content', { timeout: 10000 }).should('be.visible');
+    cy.get('.jp-DirListing-content', { timeout: 15000 }).should('be.visible');
   });
 
   afterEach(() => {
@@ -164,7 +164,7 @@ describe('Pipeline Editor tests', () => {
     closePipelineEditorWithoutSaving();
   });
 
-  it.only('should save runtime configuration', () => {
+  it('should save runtime configuration', () => {
     openPipelineEditor();
     // Open runtimes sidebar
     cy.get('.openRuntimes-action button').click();
