@@ -16,7 +16,6 @@
 
 // import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
-import { LabShell } from '@jupyterlab/application';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
@@ -40,11 +39,10 @@ export class SubmitScriptButtonExtension
       DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
       DocumentRegistry.ICodeModel
     > {
-  private editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>;
-  private shell: LabShell;
-
-  showWidget = async (): Promise<void> => {
-    if (this.editor.context.model.dirty) {
+  showWidget = async (
+    editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>
+  ): Promise<void> => {
+    if (editor.context.model.dirty) {
       const dialogResult = await showDialog({
         title:
           'This script contains unsaved changes. To submit the script the changes need to be saved.',
@@ -54,7 +52,7 @@ export class SubmitScriptButtonExtension
         ]
       });
       if (dialogResult.button && dialogResult.button.accept === true) {
-        await this.editor.context.save();
+        await editor.context.save();
       } else {
         // Don't proceed if cancel button pressed
         return;
@@ -66,7 +64,7 @@ export class SubmitScriptButtonExtension
     // get environment variables from the editor
     // Rename NotebookParser to ContentParser in from '@elyra/services and adjust getEnvVars according to widget type
     */
-    // const env = this.getEnvVars(this.editor.context.model.toString());
+    // const env = this.getEnvVars(editor.context.model.toString());
     const env: string[] = [];
     const action = 'submit Python script';
     const runtimes = await PipelineService.getRuntimes(
@@ -77,8 +75,9 @@ export class SubmitScriptButtonExtension
     if (Utils.isDialogResult(runtimes)) {
       if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
         // Open the runtimes widget
-        this.shell = Utils.getLabShell(this.editor);
-        this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+        Utils.getLabShell(editor).activateById(
+          `elyra-metadata:${RUNTIMES_NAMESPACE}`
+        );
       }
       return;
     }
@@ -124,7 +123,7 @@ export class SubmitScriptButtonExtension
 
     // prepare submission details
     const pipeline = Utils.generateSingleFilePipeline(
-      this.editor.context.path,
+      editor.context.path,
       runtime_platform,
       runtime_config,
       framework,
@@ -149,12 +148,10 @@ export class SubmitScriptButtonExtension
     editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
     context: DocumentRegistry.IContext<DocumentRegistry.ICodeModel>
   ): IDisposable {
-    this.editor = editor;
-
     // Create the toolbar button
     const submitScriptButton = new ToolbarButton({
       label: 'Submit Script ...',
-      onClick: this.showWidget,
+      onClick: () => this.showWidget(editor),
       tooltip: 'Run script as batch'
     });
 

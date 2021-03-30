@@ -16,7 +16,6 @@
 
 import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
-import { LabShell } from '@jupyterlab/application';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
@@ -37,11 +36,8 @@ import Utils from './utils';
  */
 export class SubmitNotebookButtonExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
-  private panel: NotebookPanel;
-  private shell: LabShell;
-
-  showWidget = async (): Promise<void> => {
-    if (this.panel.model.dirty) {
+  showWidget = async (panel: NotebookPanel): Promise<void> => {
+    if (panel.model.dirty) {
       const dialogResult = await showDialog({
         title:
           'This notebook contains unsaved changes. To submit the notebook the changes need to be saved.',
@@ -51,14 +47,14 @@ export class SubmitNotebookButtonExtension
         ]
       });
       if (dialogResult.button && dialogResult.button.accept === true) {
-        await this.panel.context.save();
+        await panel.context.save();
       } else {
         // Don't proceed if cancel button pressed
         return;
       }
     }
 
-    const env = NotebookParser.getEnvVars(this.panel.content.model.toString());
+    const env = NotebookParser.getEnvVars(panel.content.model.toString());
     const action = 'submit notebook';
     const runtimes = await PipelineService.getRuntimes(
       true,
@@ -68,8 +64,9 @@ export class SubmitNotebookButtonExtension
     if (Utils.isDialogResult(runtimes)) {
       if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
         // Open the runtimes widget
-        this.shell = Utils.getLabShell(this.panel);
-        this.shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+        Utils.getLabShell(panel).activateById(
+          `elyra-metadata:${RUNTIMES_NAMESPACE}`
+        );
       }
       return;
     }
@@ -115,7 +112,7 @@ export class SubmitNotebookButtonExtension
 
     // prepare notebook submission details
     const pipeline = Utils.generateSingleFilePipeline(
-      this.panel.context.path,
+      panel.context.path,
       runtime_platform,
       runtime_config,
       framework,
@@ -140,12 +137,10 @@ export class SubmitNotebookButtonExtension
     panel: NotebookPanel,
     context: DocumentRegistry.IContext<INotebookModel>
   ): IDisposable {
-    this.panel = panel;
-
     // Create the toolbar button
     const submitNotebookButton = new ToolbarButton({
       label: 'Submit Notebook ...',
-      onClick: this.showWidget,
+      onClick: () => this.showWidget(panel),
       tooltip: 'Run notebook as batch'
     });
 
