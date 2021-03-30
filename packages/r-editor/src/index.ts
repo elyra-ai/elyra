@@ -68,16 +68,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     menu: IMainMenu | null,
     launcher: ILauncher | null
   ) => {
-    console.log('Elyra - python-editor extension is activated!');
-
-    // app.docRegistry.addFileType({
-    //   name: R,
-    //   displayName: 'Python File',
-    //   extensions: ['.py'],
-    //   pattern: '.*\\.py$',
-    //   mimeTypes: ['text/x-python'],
-    //   icon: pyIcon
-    // });
+    console.log('Elyra - r-editor extension is activated!');
 
     app.docRegistry.addFileType({
       name: R,
