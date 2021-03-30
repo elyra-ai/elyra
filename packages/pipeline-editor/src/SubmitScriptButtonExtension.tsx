@@ -18,6 +18,7 @@
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { LabShell } from '@jupyterlab/application';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { IDisposable } from '@lumino/disposable';
@@ -89,14 +90,16 @@ export class SubmitScriptButtonExtension
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
+    const fileExtension = PathExt.extname(this.editor.context.path);
 
     const dialogOptions = {
       title: 'Submit script',
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
-          runtimes={runtimes}
+          fileExtension={fileExtension}
           images={images}
+          runtimes={runtimes}
           schema={schema}
         />
       ),
