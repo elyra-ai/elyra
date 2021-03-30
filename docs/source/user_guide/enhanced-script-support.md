@@ -29,7 +29,7 @@ Elyra also allows submitting a Python and R scripts as a single node pipeline fo
 
 ## Python script execution support
 
-In the Jupyter Lab Launcher, click the `Python File` icon to create a new Python Script.
+In the Jupyter Lab Launcher, click the `Python File` icon to create a new Python script.
 
 ![Create new Python file](../images/launcher-python-file.png)
 
@@ -40,28 +40,45 @@ To run your script locally, select the `Python 3` option in the dropdown menu, a
 
 ## R script execution support
 
-In the Jupyter Lab Launcher, click the `R File` icon to create a new R Script.
+In the Jupyter Lab Launcher, click the `R File` icon to create a new R script.
 
 ![Create new R file](../images/launcher-r-file.png)
 
 To run your R script locally you will need to install an R kernel.
-1. If you are using a [conda](https://docs.conda.io/en/latest/miniconda.html) environment:
-```
-conda install -y r-irkernel
+
+If you are using a [conda](https://docs.conda.io/en/latest/miniconda.html) environment:
+```bash
+$ conda install -y r-irkernel
 ```
 
-2. Alternatively, you can install it via [CRAN](https://cran.r-project.org/) on an R console:
+Alternatively, you can install it via [CRAN](https://cran.r-project.org/) on an R console:  
+NOTE: You will need to have R installed and available prior to using this method of installing the R kernel.
+
+In an R interactive console,
 ```
-install.packages('IRkernel')
+> install.packages('IRkernel')
 ```
 then enable it on Jupyter:
 ```
-IRkernel::installspec()
+> IRkernel::installspec()
 ```
 
-To run the script, from the Script editor toolbar, select the `R` option in the dropdown menu, and click the `Run` icon.
+To run the script, from the Script editor toolbar, select the `R` option in the kernel selection drop-down, and click the `Run` icon.
 
 Similar to the extended support for Python kernels when using the `Jupyter Enterprise Gateway`, the Script editor dropdown in the toolbar will display all available remote kernel options for R scripts.
+
+### R-Editor Language Server Protocol
+You can enable R language server features for the R Editor in a conda environment with the following command:
+```bash
+$ conda install -c conda-forge r-languageserver
+```
+
+You can find more documentation about conda-forge [here](https://github.com/conda-forge/r-languageserver-feedstock).
+
+Another option is to install the R language server through the [CRAN](https://cran.r-project.org/). Once R is installed, use the following [command](https://github.com/REditorSupport/languageserver):
+```bash
+$ R -e install.packages("languageserver")
+```
 
 ## Ability to run a Python and R scripts as a batch job
 
