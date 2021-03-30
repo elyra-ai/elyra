@@ -24,13 +24,13 @@ JupyterLab is designed to follow a modular architecture, where every component i
 Since Elyra is a collection of JupyterLab extensions, every extension in Elyra requires core extension tokens in order to interact with them and implement its own usage. Elyra also exposes their own trackers to the application, which are currently being used for restoring state upon page reload, but could also be used by further extensions to add their own widgets.
 
 ### Script Editor Trackers
-The Script Editor extension in Elyra extends [JupyterLab File Editor](https://jupyterlab.readthedocs.io/en/stable/api/classes/fileeditor.fileeditor-2.html).
+The Python Editor and R Editor extensions in Elyra extends [JupyterLab File Editor](https://jupyterlab.readthedocs.io/en/stable/api/classes/fileeditor.fileeditor-2.html).
+They are implemented by a common `ScriptEditor` class.
 
-When the Script Editor extension is activated, it requests a File Editor Tracker. This is how the extension is able to track the editor widget it extends.
-In order to File Editors to recognize Script Editor widgets as File Editors, which they are, the Script widget is then added to the File Editor Tracker, therefore it can properly inherit all default components and behaviors of a File Editor.
+When the Python and R Editor extensions are activated, they request a File Editor Tracker. This is how the extensions are able to track the editor widget it extends.
+In order to File Editors to recognize Python and R script editor widgets as File Editors, which they are, the script editor widgets are added to the File Editor Tracker, therefore both can properly inherit all default components and behaviors of a File Editor.
 
-The Script Editor widget has its own trackers, which is used by the ILayoutRestorer to track the widget state and allow activity restoration on page refresh.
-Since the Sript Editor supports Python files and R files, the application has a designated tracker for each.
+Both Python Editor and R Editor widgets have their own trackers, which are used by the ILayoutRestorer to track their state and allow activity restoration on page refresh.
 ```
     const pythonEditorTracker = new WidgetTracker<ScriptEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
@@ -42,8 +42,8 @@ Since the Sript Editor supports Python files and R files, the application has a 
 ```
 where
 ```
-PYTHON_EDITOR_NAMESPACE = 'elyra-python-script-editor-extension'
-R_EDITOR_NAMESPACE = 'elyra-r-script-editor-extension'
+PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension'
+R_EDITOR_NAMESPACE = 'elyra-r-editor-extension'
 ```
 
 

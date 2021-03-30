@@ -29,9 +29,9 @@ Elyra also allows submitting a Python and R scripts as a single node pipeline fo
 
 ## Python script execution support
 
-In the Jupyter Lab Launcher, click the `Python File` icon to create a new Python script.
+In the JupyterLab Launcher, click the `Python Editor` icon to create a new Python script and open the Python Editor.
 
-![Create new Python file](../images/launcher-python-file.png)
+![Open Python Editor](../images/launcher-python-editor.png)
 
 When used in conjunction with `Jupyter Enterprise Gateway`, the dropdown will be populated with more kernel options,
 allowing users to run their scripts with remote kernels with more specialized resources.
@@ -40,9 +40,9 @@ To run your script locally, select the `Python 3` option in the dropdown menu, a
 
 ## R script execution support
 
-In the Jupyter Lab Launcher, click the `R File` icon to create a new R script.
+In the JupyterLab Launcher, click the `R Editor` icon to create a new R script and open the R Editor.
 
-![Create new R file](../images/launcher-r-file.png)
+![Open R Editor](../images/launcher-r-editor.png)
 
 To run your R script locally you will need to install an R kernel.
 
@@ -82,7 +82,7 @@ $ R -e install.packages("languageserver")
 
 ## Ability to run a Python and R scripts as a batch job
 
-Elyra allows the execution of a Python and R scripts as a batch job in remote cloud environments. This feature leverages the AI pipelines feature and requires access to either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
+Elyra allows the execution of Python and R scripts as a batch job in remote cloud environments. This feature leverages the AI pipelines feature and requires access to either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
 
 To submit a Python or R script as a batch job, open the script file and select `Submit Script...` button from the editor toolbar.
 
@@ -90,8 +90,8 @@ To submit a Python or R script as a batch job, open the script file and select `
 
 To learn more about [runtime configurations](../user_guide/runtime-conf) and [runtime images](../user_guide/runtime-image-conf), follow those sections provided in the Elyra user guide documentation.
 
-## Script Editor related components
+## Script Editors components
 
-The Elyra Script editor is based on the JupyterLab editor which is currently based on CodeMirror.
+The Elyra Python Editor and R Editor are based on the JupyterLab editor which is currently based on CodeMirror.
 
-![Script Editor Components](../images/script-editor-components.png)
+![Python Editor and R Editor Components](../images/script-editor-components.png)

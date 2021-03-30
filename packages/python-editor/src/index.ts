@@ -227,7 +227,8 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Add a command to create new Python file
     app.commands.addCommand(commandIDs.createNewPythonFile, {
-      label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
+      label: args =>
+        args['isPalette'] ? 'New Python Editor' : 'Python Editor',
       caption: 'Create a new Python file',
       icon: args => (args['isPalette'] ? undefined : pyIcon),
       execute: args => {

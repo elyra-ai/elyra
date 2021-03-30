@@ -45,22 +45,28 @@ Note: Ubuntu and CentOS users may need to use `pip3 install elyra`
 
 If desired, you can install these Elyra extensions independently:
 
-- [Pipeline editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
+- [Pipeline Editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
 
    ```bash
    pip install --upgrade elyra-pipeline-editor-extension && jupyter lab build
    ```
 
-- [Code snippets](https://pypi.org/project/elyra-code-snippet-extension/)
+- [Code Snippets](https://pypi.org/project/elyra-code-snippet-extension/)
 
    ```bash
    pip install --upgrade elyra-code-snippet-extension && jupyter lab build
    ```
 
-- [Script editor](https://pypi.org/project/elyra-script-editor-extension/)
+- [Python Editor](https://pypi.org/project/elyra-python-editor-extension/)
 
    ```bash
-   pip install --upgrade elyra-script-editor-extension && jupyter lab build
+   pip install --upgrade elyra-python-editor-extension && jupyter lab build
+   ```
+
+- [R Editor](https://pypi.org/project/elyra-r-editor-extension/)
+
+   ```bash
+   pip install --upgrade elyra-r-editor-extension && jupyter lab build
    ```
 
 **NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
@@ -85,10 +91,14 @@ conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
 ```
 
 ```bash
-conda install -c conda-forge elyra-script-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-python-editor-extension && jupyter lab build
 ```
 
-**NOTE:** The Script editor extension is not yet available on `conda-forge` or `pip` package manager.
+```bash
+conda install -c conda-forge elyra-r-editor-extension && jupyter lab build
+```
+
+**NOTE:** The R Editor extension is not yet available on `conda-forge` or `pip` package manager.
 
 ### Build from source
 
@@ -180,7 +190,8 @@ Other labextensions (built into JupyterLab)
         @elyra/code-snippet-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
-        @elyra/script-editor-extension [version] enabled OK
+        @elyra/python-editor-extension [version] enabled OK
+        @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
         nbdime-jupyterlab [version] enabled OK 
 ```

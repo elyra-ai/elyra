@@ -227,7 +227,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Add a command to create new R file
     app.commands.addCommand(commandIDs.createNewRFile, {
-      label: args => (args['isPalette'] ? 'New R File' : 'R File'),
+      label: args => (args['isPalette'] ? 'New R Editor' : 'R Editor'),
       caption: 'Create a new R file',
       icon: args => (args['isPalette'] ? undefined : rIcon),
       execute: args => {
