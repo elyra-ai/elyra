@@ -59,6 +59,7 @@ uninstall:
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-editor-extension)
+	$(call UNINSTALL_LAB_EXTENSION,@elyra/r-editor-extension)
 	pip uninstall -y jupyterlab-git
 	pip uninstall -y jupyter-lsp
 	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
@@ -108,6 +109,7 @@ install-ui: build-ui
 	$(call INSTALL_LAB_EXTENSION,metadata)
 	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
 	$(call INSTALL_LAB_EXTENSION,python-editor)
+	$(call INSTALL_LAB_EXTENSION,r-editor)
 
 install: install-server install-ui ## Build and install
 	jupyter lab build
@@ -147,6 +149,7 @@ dist-ui: build-ui
 	$(call PACKAGE_LAB_EXTENSION,metadata)
 	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
 	$(call PACKAGE_LAB_EXTENSION,python-editor)
+	$(call PACKAGE_LAB_EXTENSION,r-editor)
 
 release: dist-ui build-server ## Build wheel file for release
 
