@@ -316,9 +316,10 @@ def copy_extension_archive(extension: str, work_dir: str) -> None:
 def prepare_extensions_release() -> None:
     global config
 
-    extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-theme-extension', 'elyra-metadata-extension'],
-                  'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-theme-extension', 'elyra-metadata-extension'],
-                  'elyra-script-editor-extension':['elyra-script-editor-extension', 'elyra-theme-extension']}
+    extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
+                  'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
+                  'elyra-python-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension'],
+                  'elyra-r-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension']}
 
     for extension in extensions:
         extension_source_dir = os.path.join(config.work_dir, extension)
