@@ -54,10 +54,14 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         :param operation_filepath: absolute path to a File to be parsed
         :return: a model dict
         """
-        # operation = FileParser.get_instance(filepath=path)
-        # model = operation.model
 
-        model = FileParser.get_instance(filepath=path).model
+        operation = FileParser.get_instance(filepath=path)
+        # model = operation.build_model(filepath=path)
+
+        model = dict()
+        model['env_list'] = operation.get_environment_variables(filepath=path)
+        # model['inputs'] = operation.get_file_dependencies(filepath=path)
+        # model['outputs'] = operation.get_output_files(filepath=path)
 
         return model
 
