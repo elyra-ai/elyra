@@ -61,7 +61,7 @@ setup_args = dict(
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path))],
     packages=find_packages(),
     install_requires=[
-        'autopep8',
+        'autopep8>=1.5.0,<1.5.6',
         'click',
         'colorama',
         'entrypoints>=0.3',
@@ -84,7 +84,7 @@ setup_args = dict(
         'pyyaml>=5.3.1,<6.0',
         'requests>=2.9.1,<3.0',
         'rfc3986-validator>=0.1.1',
-        'tornado >=6.1.0',
+        'tornado>=6.1.0',
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
         'websocket-client',
