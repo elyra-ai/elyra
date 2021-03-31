@@ -572,7 +572,7 @@ export class PipelineEditor extends React.Component<
       if (this.state.selectedNodes.length !== 1) {
         return;
       }
-      let node = this.state.selectedNodes[0];
+      const node = this.state.selectedNodes[0];
 
       const app_data = node.app_data;
       const propertySet = this.propertiesController.getPropertyValues();
