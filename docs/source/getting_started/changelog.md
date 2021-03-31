@@ -1,5 +1,53 @@
 # Changelog
 
+## 2.2.0 (3/31/2021)
+
+High level enhancements
+- R Editor with the ability to run R scripts from JupyterLab UI
+- Add CLI tool for running and submitting pipelines
+- Add Elyra image compatible with Kubeflow notebook launcher
+- Brought up JupyterHub and Binder support after issues with their latest releases 
+
+Other enhancements and bug fixes
+- Add R Editor - [1435](https://github.com/elyra-ai/elyra/pull/1435)
+- Pin version range of autopep8 due to version conflict - [1504](https://github.com/elyra-ai/elyra/pull/1504)
+- Remove obsolete parameter on build-server make task - [1503](https://github.com/elyra-ai/elyra/pull/1503)
+- Update Release Notes formatting (changelog.md)
+- Update lint auto-fix suggestions
+- Update build tools version on GitHub Actions CI script
+- Fix submit button submitting most recent file - [1501](https://github.com/elyra-ai/elyra/pull/1501)
+- Fix pipeline node properties dark mode - [1487](https://github.com/elyra-ai/elyra/pull/1487)
+- Add elyra-pipeline cli tool - [1246](https://github.com/elyra-ai/elyra/pull/1246)
+- Fix pipeline node properties overriding wrong node property - [1492](https://github.com/elyra-ai/elyra/pull/1492)
+- Update KFP Notebook to 0.21.0 - [1494](https://github.com/elyra-ai/elyra/pull/1494)
+- Add Elyra image compatible with Kubeflow notebook launcher - [1466](https://github.com/elyra-ai/elyra/pull/1466)
+- Fixed css scrollbar bug in pipeline node properties - [1484](https://github.com/elyra-ai/elyra/pull/1484)
+- Add inputs for resource usage in submit notebook/script - [1483](https://github.com/elyra-ai/elyra/pull/1483)
+- Refactor script processors, include brief detail on generic errors - [1485](https://github.com/elyra-ai/elyra/pull/1485)
+- Fix container image build command - [1488](https://github.com/elyra-ai/elyra/pull/1488)
+- Replace outdated reference to docker-image target - [1489](https://github.com/elyra-ai/elyra/pull/1489)
+- Provides better error messages for KFP namespace errors - [1469](https://github.com/elyra-ai/elyra/pull/1469)
+- Use node labels instead of filename as operation names - [1468](https://github.com/elyra-ai/elyra/pull/1468)
+- Enable extensions as both Notebook/Jupyter Server extensions - [1476](https://github.com/elyra-ai/elyra/pull/1476)
+- Use pip legacy resolver to fix binder build - [1456](https://github.com/elyra-ai/elyra/pull/1456)
+- Update remaining notebook imports to jupyter_server - [1471](https://github.com/elyra-ai/elyra/pull/1471)
+- Remove close button from pipeline node properties editor - [1465](https://github.com/elyra-ai/elyra/pull/1465)
+- Add offical logos for Python and R - [1452](https://github.com/elyra-ai/elyra/pull/1452)
+- Created RuntimeImagesWidget for customized UI - [1461](https://github.com/elyra-ai/elyra/pull/1461)
+- Add schema_name parameter to CLI runtime config examples - [1462](https://github.com/elyra-ai/elyra/pull/1462)
+- Fix pipeline properties css bug in Safari - [1449](https://github.com/elyra-ai/elyra/pull/1449)
+- Fix properties editor node deletion bug - [1459](https://github.com/elyra-ai/elyra/pull/1459)
+- Remove empty values from pipeline node properties - [1463](https://github.com/elyra-ai/elyra/pull/1463)
+- Update Binder release information to 2.1.0 - [1454](https://github.com/elyra-ai/elyra/pull/1454)
+- Fix code quality Issues reported by analysis tool - [1432](https://github.com/elyra-ai/elyra/pull/1432)
+- Add default / placeholder to dropdown field in metadata editor - [1443](https://github.com/elyra-ai/elyra/pull/1443)
+- Expose error details on Python node local execution - [1411](https://github.com/elyra-ai/elyra/pull/1411)
+- Fix css issues after upgrading to Canvas 10.2.0 - [1451](https://github.com/elyra-ai/elyra/pull/1451)
+- Enable support for adding R Script to Pipeline - [1418](https://github.com/elyra-ai/elyra/pull/1418)
+- Fix Material UI style specificity issues in Metadata Editor - [1434](https://github.com/elyra-ai/elyra/pull/1434)
+- Properly remove string array from pipeline node properties - [1447](https://github.com/elyra-ai/elyra/pull/1447)
+- Update release docs with steps to update docker images
+
 ## 2.1.0 (3/15/2021)
 
 High level enhancements
@@ -60,7 +108,7 @@ Other enhancements and bug fixes
 - Fix issues causing false circular dependency during validation [1309](https://github.com/elyra-ai/elyra/pull/1309)
 - Properly propagate runtime info when submitting notebook [1306](https://github.com/elyra-ai/elyra/pull/1306)
 - Update runtime image metadata configuration documentation [1283](https://github.com/elyra-ai/elyra/pull/1283)
-- Add ability to include image pull policy with runtime image  - [1279](https://github.com/elyra-ai/elyra/pull/1279)
+- Add ability to include image pull policy with runtime image - [1279](https://github.com/elyra-ai/elyra/pull/1279)
 - Add tags to Apache Airflow metadata schema [1294](https://github.com/elyra-ai/elyra/pull/1294)
 - Update developer workflow documentation [1288](https://github.com/elyra-ai/elyra/pull/1288)
 - Experimental support of Airflow as a pipeline runtime [490](https://github.com/elyra-ai/elyra/pull/490)
