@@ -23,7 +23,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Type, TypeVar, List
 from traitlets import log
 
-
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
 F = TypeVar('F', bound='FileParser')
@@ -35,14 +34,12 @@ class FileParser(ABC):
     def get_instance(cls: Type[F], **kwargs: Any) -> F:
         """Creates an appropriate subclass instance based on the extension of the filepath"""
         filepath = kwargs['filepath']
-
         if '.ipynb' in filepath:
             return NotebookFileParser()
         elif '.py' in filepath:
             return PythonFileParser()
         elif '.r' in filepath:
-            pass
-            # return ROperatorParser(filepath)
+            return RFileParser()
         else:
             raise ValueError('Unsupported file type: {}'.format(filepath))
 
@@ -52,6 +49,7 @@ class FileParser(ABC):
         # self._operation_filepath = operation_filepath
         # self._model = None
 
+        self.parser = None
         self.log = log.get_logger()
 
     @property
@@ -60,11 +58,11 @@ class FileParser(ABC):
         pass
 
     '''
-    Removing below due to stateless implementation of FileParser class
+    Removing below to keep FileParser stateless
     @property
     def model(self):
         if not self._model:
-            self._model = self.build_model()
+            self._model = self.get_resources()
         return self._model
 
     @property
@@ -81,7 +79,7 @@ class FileParser(ABC):
     '''
 
     @abstractmethod
-    def file_as_code_chunks(self) -> List[str]:
+    def file_as_list_of_code_chunks(self) -> List[str]:
         # A list of code `chunks` to look through. The size and length of the `chunks` is determined
         # usually by the language. For now the concrete implementations below is by line-by-line in file
         pass
@@ -91,35 +89,10 @@ class FileParser(ABC):
         # Implements a generator for lines of code for the specified operation type
         pass
 
-    def get_environment_variables(self, filepath):
+    @abstractmethod
+    def get_resources(self, filepath):
+        # Returns a model dictionary of all the regex matches for each key in the regex dictionary
         pass
-        '''
-        model = dict()
-        model['env_list'] = []
-        for chunk in self.get_next_code_chunk():
-            if chunk and type(chunk) is list:
-                for line in chunk:
-                    match_found = self.parser.parse_environment_variables(line)
-                    if match_found:
-                        model["env_list"].append(match_found)
-            elif chunk:
-                match_found = self.parser.parse_environment_variables(chunk)
-                if match_found:
-                    model["env_list"].append(match_found)
-        return model
-        '''
-
-    def build_model(self, filepath):
-        """
-        Builds a model dictionary of all the regex matches it for each key in the regex dictionary
-        :return:
-        """
-        model = dict()
-        model['env_list'] = self.get_environment_variables(filepath)
-        # model['inputs'] = get_file_dependencies()
-        # model['outputs'] = get_file_outputs()
-
-        return model
 
 
 class NotebookFileParser(FileParser):
@@ -134,15 +107,23 @@ class NotebookFileParser(FileParser):
     def type(self):
         return self._type
 
-    def file_as_code_chunks(self) -> List[str]:
+    def file_as_list_of_code_chunks(self, filepath) -> List[str]:
         code_chunks = []
-        for cell in self.notebook.cells:
-            if cell.source and cell.cell_type == "code":
-                code_chunks.append(cell.source.split('\n'))
+        with open(filepath) as f:
+            self.notebook = nbformat.read(f, as_version=4)
+            language = self.notebook['metadata']['kernelspec']['language']
+
+            if language == 'python':
+                self.parser = PythonScriptParser()
+            elif language == 'r':
+                self.parser = RScriptParser()
+
+            for cell in self.notebook.cells:
+                if cell.source and cell.cell_type == "code":
+                    code_chunks.append(cell.source.split('\n'))
         return [item for subchunk in code_chunks for item in subchunk]
 
     def get_next_code_chunk(self, filepath):
-        # with open(self.operation_filepath) as f:
         with open(filepath) as f:
             self.notebook = nbformat.read(f, as_version=4)
             language = self.notebook['metadata']['kernelspec']['language']
@@ -156,76 +137,143 @@ class NotebookFileParser(FileParser):
                 if cell.source and cell.cell_type == "code":
                     yield cell.source.split('\n')
 
-    def get_environment_variables(self, filepath):
-        key = "env_list"
-        env_list = []
+    def get_resources(self, filepath):
+        model = dict()
+        model["env_list"] = dict()
+        model["inputs"] = dict()
+        model["outputs"] = dict()
+
         for chunk in self.get_next_code_chunk(filepath):
             if chunk:
+                # Notebook cells must be further split into individual lines
                 for line in chunk:
-                    match_found = self.parser.parse_environment_variables(key, line)
-                    if match_found and match_found not in env_list:
-                        env_list.append(match_found)
-        return env_list
+                    matches = self.parser.parse_environment_variables(line)
+                    for key, match in matches:
+                        model[key][match.group(1)] = match.group(2)
+
+        return model
 
 
 class PythonFileParser(FileParser):
 
     _type = "python"
 
+    '''
     def __init__(self):
         # super().__init__(operation_filepath)
-        self.parser = PythonScriptParser()
+    '''
 
     def type(self):
         return self._type
 
-    def file_as_code_chunks(self) -> List[str]:
-        with open(self.operation_filepath) as f:
+    def file_as_list_of_code_chunks(self, filepath) -> List[str]:
+        with open(filepath) as f:
             code_chunks = f.readlines()
         return [c.strip() for c in code_chunks]
 
     def get_next_code_chunk(self, filepath):
-        # with open(self.operation_filepath) as f:
         with open(filepath) as f:
             for line in f:
                 yield line.strip()
 
-    def get_environment_variables(self, filepath):
-        key = "env_list"
-        env_list = []
+    def get_resources(self, filepath):
+        model = dict()
+        model["env_list"] = dict()
+        model["inputs"] = dict()
+        model["outputs"] = dict()
+
         for line in self.get_next_code_chunk(filepath):
             if line:
-                match_found = self.parser.parse_environment_variables(key, line)
-                if match_found and match_found not in env_list:
-                    env_list.append(match_found)
-        return env_list
+                matches = PythonScriptParser().parse_environment_variables(line)
+                for key, match in matches:
+                    model[key][match.group(1)] = match.group(2)
+
+        return model
+
+
+class RFileParser(FileParser):
+
+    _type = "r"
+
+    '''
+    def __init__(self):
+        # super().__init__(operation_filepath)
+    '''
+
+    def type(self):
+        return self._type
+
+    def file_as_list_of_code_chunks(self, filepath) -> List[str]:
+        with open(filepath) as f:
+            code_chunks = f.readlines()
+        return [c.strip() for c in code_chunks]
+
+    def get_next_code_chunk(self, filepath):
+        with open(filepath) as f:
+            for line in f:
+                yield line.strip()
+
+    def get_resources(self, filepath):
+        model = dict()
+        model["env_list"] = dict()
+        model["inputs"] = dict()
+        model["outputs"] = dict()
+
+        for line in self.get_next_code_chunk(filepath):
+            if line:
+                matches = RScriptParser().parse_environment_variables(line)
+                for key, match in matches:
+                    model[key][match.group(1)] = match.group(2)
+
+        return model
 
 
 class PythonScriptParser:
-    def search_expressions(self, key) -> List:
+    def search_expressions(self) -> List:
+        # TODO: add more key:list-of-regex pairs to parse for additional resources
         regex_dict = dict()
-        # regex_dict[envs][0] matches envvar assignments of form os.environ["name"] = value
-        # regex_dict[envs][1] matches envvar assignments that use os.getenv("name",) with default provided
-        # regex_dict[envs][2] matches envvar assignments that use os.environ.get("name",) with default provided
-        # Captures only the environment variable, not the value
-        regex_dict["env_list"] = [r"os\.environ\[[\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\]\s*=",
-                                  r"os\.getenv\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\s*\,",
-                                  r"os\.environ\.get\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\s*\,"]
-        return regex_dict[key]
 
-    def parse_environment_variables(self, key, code_chunk):
-        for pattern in self.search_expressions(key):
-            # for pattern in value:
-            # for chunk in code_chunks:
-            match_found = re.search(pattern, code_chunk)
-            if match_found:
-                return match_found.group(1)
-        return None
+        # First regex matches envvar assignments of form os.environ["name"] = value
+        # Second regex matches envvar assignments that use os.getenv("name", "value") with default provided
+        # Third regex matches envvar assignments that use os.environ.get("name", "value") with default provided
+        # Both name and value are captured if possible
+        envs = [r"os\.environ\[[\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\]\s*=(?:\s*[\"'](.[^\"']*)?[\"'])?",
+                r"os\.getenv\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\s*\,(?:\s*[\"'](.[^\"']*)?[\"'])?",
+                r"os\.environ\.get\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\s*\,(?:\s*[\"'](.[^\"']*)?[\"'])?"]
+        regex_dict["env_list"] = envs
+        return regex_dict
+
+    def parse_environment_variables(self, line):
+        # Currently the same implementation as for R files, but keeping separate in case change of approach needed
+
+        # Parse a line fed from Python file and match each regex in regex dictionary
+        matches = []
+        for key, value in self.search_expressions().items():
+            for pattern in value:
+                regex = re.compile(pattern)
+                for match in regex.finditer(line):
+                    matches.append((key, match))
+        return matches
 
 
 class RScriptParser:
-    def search_expressions(self, key) -> List:
-        pass
+    def search_expressions(self) -> List:
+        # TODO: add more key:list-of-regex pairs to parse for additional resources
+        regex_dict = dict()
 
-    def parse_environment_variables(self, code_chunk):
-        pass
+        # Tests for matches of the form Sys.setenv("key" = "value")
+        envs = [r"Sys.setenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)\s*=\s*[\"'](.[^\"']*)?[\"']"]
+        regex_dict["env_list"] = envs
+        return regex_dict
+
+    def parse_environment_variables(self, line):
+        # Currently the same implementation as for Python files, but keeping separate in case change of approach needed
+
+        # Parse a line fed from R file and match each regex in regex dictionary
+        matches = []
+        for key, value in self.search_expressions().items():
+            for pattern in value:
+                regex = re.compile(pattern)
+                for match in regex.finditer(line):
+                    matches.append((key, match))
+        return matches
