@@ -1,7 +1,7 @@
 {
-  "name": "@elyra/python-editor-extension",
+  "name": "@elyra/r-editor-extension",
   "version": "2.2.0-dev",
-  "description": "JupyterLab extension - Run python scripts using a kernel runtime",
+  "description": "JupyterLab extension - Run R scripts using a kernel runtime",
   "keywords": [
     "jupyter",
     "jupyterlab",

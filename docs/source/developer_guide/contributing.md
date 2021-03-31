@@ -17,7 +17,7 @@ limitations under the License.
 -->
 # Conventions for contributing to Elyra Extensions
 ## File Naming and File Creation
- Elyra extensions use a separate file for each widget, and keep helper functions and classes in the file with that widget. A file containing a widget is named after the widget (i.e. `PythonFileEditor.tsx` contains the class `PythonFileEditor`).
+ Elyra extensions use a separate file for each widget, and keep helper functions and classes in the file with that widget. A file containing a widget is named after the widget (i.e. `PipelineEditorWidget.tsx` contains the class `PipelineEditorWidget`).
 
 Files containing util functions are named generically after the utils functionality (i.e. if a util function returned a custom dialog, the file that contained that function would be called `dialog.tsx`).
 

@@ -43,7 +43,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    user_guide/runtime-conf
    user_guide/runtime-image-conf
    user_guide/pipelines
-   user_guide/enhanced-python-support
+   user_guide/enhanced-script-support
    user_guide/code-snippets
 
 .. toctree::

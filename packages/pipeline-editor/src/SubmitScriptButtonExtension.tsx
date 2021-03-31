@@ -17,6 +17,7 @@
 // import { NotebookParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { IDisposable } from '@lumino/disposable';
@@ -66,7 +67,7 @@ export class SubmitScriptButtonExtension
     */
     // const env = this.getEnvVars(editor.context.model.toString());
     const env: string[] = [];
-    const action = 'submit Python script';
+    const action = 'submit script';
     const runtimes = await PipelineService.getRuntimes(
       true,
       action
@@ -88,14 +89,16 @@ export class SubmitScriptButtonExtension
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
+    const fileExtension = PathExt.extname(editor.context.path);
 
     const dialogOptions = {
       title: 'Submit script',
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
-          runtimes={runtimes}
+          fileExtension={fileExtension}
           images={images}
+          runtimes={runtimes}
           schema={schema}
         />
       ),
@@ -151,7 +154,7 @@ export class SubmitScriptButtonExtension
     // Create the toolbar button
     const submitScriptButton = new ToolbarButton({
       label: 'Submit Script ...',
-      onClick: () => this.showWidget(editor),
+      onClick: (): any => this.showWidget(editor),
       tooltip: 'Run script as batch'
     });
 

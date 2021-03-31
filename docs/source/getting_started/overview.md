@@ -79,17 +79,17 @@ to share resources across distributed clusters such as Apache Spark, Kubernetes,
 It simplifies the task of running notebooks interactively on cloud machines,
 seamlessly leveraging the power of cloud-based resources such as GPUs and TPUs.
 
-#### Python script execution support
+#### Python and R scripts execution support
 
-Elyra contributes a Python script editor, which can take advantage of the
+Elyra contributes a Script editor with support for Python and R files, which can take advantage of the
 **Hybrid Runtime Support** enabling users to locally edit scripts and execute
 them against local or cloud-based resources seamlessly.
 
 ![Enhanced Python Support](../images/python-editor.png)
 
-For information on how to use the Python editor refer to the [_Enhanced Python Support_ topic](../user_guide/enhanced-python-support) in the User Guide.
+For information on how to use the Script editor refer to the [_Enhanced Script Support_ topic](../user_guide/enhanced-script-support) in the User Guide.
 
-The Python editor feature can optionally be [installed as a stand-alone extension](installation).
+The Script editor feature can optionally be [installed as a stand-alone extension](installation).
 
 #### Version control using git integration
 

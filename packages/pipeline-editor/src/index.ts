@@ -193,7 +193,14 @@ const extension: JupyterFrontEndPlugin<void> = {
     const scriptButtonExtension = new SubmitScriptButtonExtension();
     app.docRegistry.addWidgetExtension('Python Editor', scriptButtonExtension);
     app.contextMenu.addItem({
-      selector: '.elyra-PythonEditor',
+      selector: '.elyra-ScriptEditor',
+      command: commandIDs.submitScript,
+      rank: -0.5
+    });
+
+    app.docRegistry.addWidgetExtension('R Editor', scriptButtonExtension);
+    app.contextMenu.addItem({
+      selector: '.elyra-ScriptEditor',
       command: commandIDs.submitScript,
       rank: -0.5
     });

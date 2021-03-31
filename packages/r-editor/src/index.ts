@@ -15,7 +15,7 @@
  */
 
 import { ScriptEditorFactory, ScriptEditor } from '@elyra/script-editor';
-import { pyIcon } from '@elyra/ui-components';
+import { rIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -33,21 +33,21 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
 
-const PYTHON_FACTORY = 'Python Editor';
-const PYTHON = 'python';
-const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
+const R_FACTORY = 'R Editor';
+const R = 'r';
+const R_EDITOR_NAMESPACE = 'elyra-r-script-editor-extension';
 
 const commandIDs = {
-  createNewPythonFile: 'script-editor:create-new-python-file',
+  createNewRFile: 'script-editor:create-new-r-file',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
 
 /**
- * Initialization data for the python-editor-extension extension.
+ * Initialization data for the r-editor-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: PYTHON_EDITOR_NAMESPACE,
+  id: R_EDITOR_NAMESPACE,
   autoStart: true,
   requires: [
     IEditorServices,
@@ -68,24 +68,24 @@ const extension: JupyterFrontEndPlugin<void> = {
     menu: IMainMenu | null,
     launcher: ILauncher | null
   ) => {
-    console.log('Elyra - python-editor extension is activated!');
+    console.log('Elyra - r-editor extension is activated!');
 
     const factory = new ScriptEditorFactory({
       editorServices,
       factoryOptions: {
-        name: PYTHON_FACTORY,
-        fileTypes: [PYTHON],
-        defaultFor: [PYTHON]
+        name: R_FACTORY,
+        fileTypes: [R],
+        defaultFor: [R]
       }
     });
 
     app.docRegistry.addFileType({
-      name: PYTHON,
-      displayName: 'Python File',
-      extensions: ['.py'],
-      pattern: '.*\\.py$',
-      mimeTypes: ['text/x-python'],
-      icon: pyIcon
+      name: R,
+      displayName: 'R File',
+      extensions: ['.r'],
+      pattern: '.*\\.r$',
+      mimeTypes: ['text/x-rsrc'],
+      icon: rIcon
     });
 
     const { restored } = app;
@@ -94,7 +94,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Track ScriptEditor widget on page refresh
      */
     const tracker = new WidgetTracker<ScriptEditor>({
-      namespace: PYTHON_EDITOR_NAMESPACE
+      namespace: R_EDITOR_NAMESPACE
     });
 
     let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
@@ -105,7 +105,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         command: commandIDs.openDocManager,
         args: widget => ({
           path: widget.context.path,
-          factory: PYTHON_FACTORY
+          factory: R_FACTORY
         }),
         name: widget => widget.context.path
       });
@@ -186,48 +186,47 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     /**
-     * Create new python file from launcher and file menu
+     * Create new r file from launcher and file menu
      */
 
-    // Add a python launcher
+    // Add a r launcher
     if (launcher) {
       launcher.add({
-        command: commandIDs.createNewPythonFile,
+        command: commandIDs.createNewRFile,
         category: 'Elyra',
-        rank: 2
+        rank: 3
       });
     }
 
     if (menu) {
-      // Add new python file creation to the file menu
+      // Add new r file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
-        [{ command: commandIDs.createNewPythonFile }],
-        30
+        [{ command: commandIDs.createNewRFile }],
+        31
       );
     }
 
-    // Function to create a new untitled python file, given the current working directory
+    // Function to create a new untitled r file, given the current working directory
     const createNew = (cwd: string): Promise<any> => {
       return app.commands
         .execute(commandIDs.newDocManager, {
           path: cwd,
           type: 'file',
-          ext: '.py'
+          ext: '.r'
         })
         .then(model => {
           return app.commands.execute(commandIDs.openDocManager, {
             path: model.path,
-            factory: PYTHON_FACTORY
+            factory: R_FACTORY
           });
         });
     };
 
-    // Add a command to create new Python file
-    app.commands.addCommand(commandIDs.createNewPythonFile, {
-      label: args =>
-        args['isPalette'] ? 'New Python Editor' : 'Python Editor',
-      caption: 'Create a new Python file',
-      icon: args => (args['isPalette'] ? undefined : pyIcon),
+    // Add a command to create new R file
+    app.commands.addCommand(commandIDs.createNewRFile, {
+      label: args => (args['isPalette'] ? 'New R Editor' : 'R Editor'),
+      caption: 'Create a new R file',
+      icon: args => (args['isPalette'] ? undefined : rIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string);
@@ -235,7 +234,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     palette.addItem({
-      command: commandIDs.createNewPythonFile,
+      command: commandIDs.createNewRFile,
       args: { isPalette: true },
       category: 'Elyra'
     });

@@ -316,9 +316,10 @@ def copy_extension_archive(extension: str, work_dir: str) -> None:
 def prepare_extensions_release() -> None:
     global config
 
-    extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-theme-extension', 'elyra-metadata-extension'],
-                  'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-theme-extension', 'elyra-metadata-extension'],
-                  'elyra-python-editor-extension':['elyra-python-editor-extension', 'elyra-theme-extension']}
+    extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
+                  'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
+                  'elyra-python-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension'],
+                  'elyra-r-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension']}
 
     for extension in extensions:
         extension_source_dir = os.path.join(config.work_dir, extension)
@@ -383,8 +384,8 @@ def publish_release(working_dir) -> None:
         f'{config.work_dir}/elyra-code-snippet-extension/dist/elyra-code-snippet-extension-{config.new_version}.tar.gz',
         f'{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra_pipeline_editor_extension-{config.new_version}-py3-none-any.whl',
         f'{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra-pipeline-editor-extension-{config.new_version}.tar.gz',
-        f'{config.work_dir}/elyra-python-editor-extension/dist/elyra_python_editor_extension-{config.new_version}-py3-none-any.whl',
-        f'{config.work_dir}/elyra-python-editor-extension/dist/elyra-python-editor-extension-{config.new_version}.tar.gz',
+        f'{config.work_dir}/elyra-script-editor-extension/dist/elyra_script_editor_extension-{config.new_version}-py3-none-any.whl',
+        f'{config.work_dir}/elyra-script-editor-extension/dist/elyra-script-editor-extension-{config.new_version}.tar.gz',
     ];
 
 
