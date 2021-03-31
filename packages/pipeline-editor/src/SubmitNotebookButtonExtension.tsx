@@ -140,7 +140,7 @@ export class SubmitNotebookButtonExtension
     // Create the toolbar button
     const submitNotebookButton = new ToolbarButton({
       label: 'Submit Notebook ...',
-      onClick: () => this.showWidget(panel),
+      onClick: (): any => this.showWidget(panel),
       tooltip: 'Run notebook as batch'
     });
 

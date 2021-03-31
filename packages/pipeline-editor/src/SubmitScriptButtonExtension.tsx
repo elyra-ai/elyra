@@ -154,7 +154,7 @@ export class SubmitScriptButtonExtension
     // Create the toolbar button
     const submitScriptButton = new ToolbarButton({
       label: 'Submit Script ...',
-      onClick: () => this.showWidget(editor),
+      onClick: (): any => this.showWidget(editor),
       tooltip: 'Run script as batch'
     });
 
