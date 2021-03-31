@@ -31,24 +31,29 @@ When the Python and R Editor extensions are activated, they request a File Edito
 In order to File Editors to recognize Python and R script editor widgets as File Editors, which they are, the script editor widgets are added to the File Editor Tracker, therefore both can properly inherit all default components and behaviors of a File Editor.
 
 Both Python Editor and R Editor widgets have their own trackers, which are used by the ILayoutRestorer to track their state and allow activity restoration on page refresh.
+The Python Editor [WidgetTracker](https://jupyterlab.readthedocs.io/en/stable/api/classes/apputils.widgettracker-1.html) is defined as:
 ```
-    const pythonEditorTracker = new WidgetTracker<ScriptEditor>({
-      namespace: PYTHON_EDITOR_NAMESPACE
-    });
-
-    const rEditorTracker = new WidgetTracker<ScriptEditor>({
-      namespace: R_EDITOR_NAMESPACE
-    });
+const tracker = new WidgetTracker<ScriptEditor>({
+  namespace: PYTHON_EDITOR_NAMESPACE
+});
 ```
 where
 ```
 PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension'
+```
+Similarly, the R Editor tracker is defined as:
+```
+const tracker = new WidgetTracker<ScriptEditor>({
+  namespace: R_EDITOR_NAMESPACE
+});
+```
+where
+```
 R_EDITOR_NAMESPACE = 'elyra-r-editor-extension'
 ```
 
-
 ### Pipeline Editor Trackers
-The Pipeline Editor extension in Elyra extends [JupyterLab Document Widget](https://jupyterlab.readthedocs.io/en/latest/extension/documents.html). Similar to the Script Editor widget tracker, the Pipeline Editor tracker is used by a restorer, and it is defined as below
+The Pipeline Editor extension in Elyra extends [JupyterLab Document Widget](https://jupyterlab.readthedocs.io/en/latest/extension/documents.html). Similar to the Script Editor widget trackers, the Pipeline Editor tracker is used by a restorer, and it is defined as below
 ```
 const tracker = new WidgetTracker<DocumentWidget>({
   namespace: PIPELINE_EDITOR_NAMESPACE
