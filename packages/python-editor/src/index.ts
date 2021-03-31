@@ -44,7 +44,7 @@ const commandIDs = {
 };
 
 /**
- * Initialization data for the script editor extension.
+ * Initialization data for the python-editor-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
   id: PYTHON_EDITOR_NAMESPACE,
@@ -70,6 +70,15 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - python-editor extension is activated!');
 
+    const factory = new ScriptEditorFactory({
+      editorServices,
+      factoryOptions: {
+        name: PYTHON_FACTORY,
+        fileTypes: [PYTHON],
+        defaultFor: [PYTHON]
+      }
+    });
+
     app.docRegistry.addFileType({
       name: PYTHON,
       displayName: 'Python File',
@@ -79,21 +88,12 @@ const extension: JupyterFrontEndPlugin<void> = {
       icon: pyIcon
     });
 
-    const pythonFactory = new ScriptEditorFactory({
-      editorServices,
-      factoryOptions: {
-        name: PYTHON_FACTORY,
-        fileTypes: [PYTHON],
-        defaultFor: [PYTHON]
-      }
-    });
-
     const { restored } = app;
 
     /**
-     * Track Editor widget on page refresh
+     * Track ScriptEditor widget on page refresh
      */
-    const pythonEditorTracker = new WidgetTracker<ScriptEditor>({
+    const tracker = new WidgetTracker<ScriptEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
 
@@ -101,11 +101,11 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     if (restorer) {
       // Handle state restoration
-      void restorer.restore(pythonEditorTracker, {
+      void restorer.restore(tracker, {
         command: commandIDs.openDocManager,
         args: widget => ({
           path: widget.context.path,
-          pythonFactory: PYTHON_FACTORY
+          factory: PYTHON_FACTORY
         }),
         name: widget => widget.context.path
       });
@@ -128,7 +128,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
      */
     const updateTracker = (): void => {
-      pythonEditorTracker.forEach(widget => {
+      tracker.forEach(widget => {
         updateWidget(widget);
       });
     };
@@ -136,7 +136,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    const updateWidget = (widget: any): void => {
+    const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
           widget
@@ -148,16 +148,6 @@ const extension: JupyterFrontEndPlugin<void> = {
         const key = keyStr as keyof CodeEditor.IConfig;
         editor.setOption(key, config[key]);
       });
-    };
-
-    // Notify the widget tracker if restore data needs to update
-    const handleWidgetRestore = (widget: any, tracker: any): void => {
-      void tracker.add(widget);
-
-      widget.context.pathChanged.connect(() => {
-        void tracker.save(widget);
-      });
-      updateWidget(widget);
     };
 
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
@@ -178,21 +168,28 @@ const extension: JupyterFrontEndPlugin<void> = {
         updateTracker();
       });
 
-    app.docRegistry.addWidgetFactory(pythonFactory);
+    app.docRegistry.addWidgetFactory(factory);
 
-    pythonFactory.widgetCreated.connect((sender, widget) => {
-      handleWidgetRestore(widget, pythonEditorTracker);
+    factory.widgetCreated.connect((sender, widget) => {
+      void tracker.add(widget);
+
+      // Notify the widget tracker if restore data needs to update
+      widget.context.pathChanged.connect(() => {
+        void tracker.save(widget);
+      });
+      updateWidget(widget);
     });
 
     // Handle the settings of new widgets. Adapted from fileeditor-extension.
-    pythonEditorTracker.widgetAdded.connect((sender, widget) => {
+    tracker.widgetAdded.connect((sender, widget) => {
       updateWidget(widget);
     });
 
     /**
-     * Create new script file from launcher and file menu
+     * Create new python file from launcher and file menu
      */
 
+    // Add a python launcher
     if (launcher) {
       launcher.add({
         command: commandIDs.createNewPythonFile,
@@ -202,27 +199,27 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     if (menu) {
+      // Add new python file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewPythonFile }],
         30
       );
     }
 
-    // Function to create a new untitled script file, given the current working directory
-    const createNew = async (
-      cwd: string,
-      ext: string,
-      factory: any
-    ): Promise<any> => {
-      const model = await app.commands.execute(commandIDs.newDocManager, {
-        path: cwd,
-        type: 'file',
-        ext: ext
-      });
-      return app.commands.execute(commandIDs.openDocManager, {
-        path: model.path,
-        factory: factory
-      });
+    // Function to create a new untitled python file, given the current working directory
+    const createNew = (cwd: string): Promise<any> => {
+      return app.commands
+        .execute(commandIDs.newDocManager, {
+          path: cwd,
+          type: 'file',
+          ext: '.py'
+        })
+        .then(model => {
+          return app.commands.execute(commandIDs.openDocManager, {
+            path: model.path,
+            factory: PYTHON_FACTORY
+          });
+        });
     };
 
     // Add a command to create new Python file
@@ -233,7 +230,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       icon: args => (args['isPalette'] ? undefined : pyIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
-        return createNew(cwd as string, '.py', PYTHON_FACTORY);
+        return createNew(cwd as string);
       }
     });
 

@@ -44,7 +44,7 @@ const commandIDs = {
 };
 
 /**
- * Initialization data for the script editor extension.
+ * Initialization data for the r-editor-extension extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
   id: R_EDITOR_NAMESPACE,
@@ -70,6 +70,15 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - r-editor extension is activated!');
 
+    const factory = new ScriptEditorFactory({
+      editorServices,
+      factoryOptions: {
+        name: R_FACTORY,
+        fileTypes: [R],
+        defaultFor: [R]
+      }
+    });
+
     app.docRegistry.addFileType({
       name: R,
       displayName: 'R File',
@@ -79,21 +88,12 @@ const extension: JupyterFrontEndPlugin<void> = {
       icon: rIcon
     });
 
-    const rFactory = new ScriptEditorFactory({
-      editorServices,
-      factoryOptions: {
-        name: R_FACTORY,
-        fileTypes: [R],
-        defaultFor: [R]
-      }
-    });
-
     const { restored } = app;
 
     /**
-     * Track Editor widget on page refresh
+     * Track ScriptEditor widget on page refresh
      */
-    const rEditorTracker = new WidgetTracker<ScriptEditor>({
+    const tracker = new WidgetTracker<ScriptEditor>({
       namespace: R_EDITOR_NAMESPACE
     });
 
@@ -101,11 +101,11 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     if (restorer) {
       // Handle state restoration
-      void restorer.restore(rEditorTracker, {
+      void restorer.restore(tracker, {
         command: commandIDs.openDocManager,
         args: widget => ({
           path: widget.context.path,
-          rFactory: R_FACTORY
+          factory: R_FACTORY
         }),
         name: widget => widget.context.path
       });
@@ -128,7 +128,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
      */
     const updateTracker = (): void => {
-      rEditorTracker.forEach(widget => {
+      tracker.forEach(widget => {
         updateWidget(widget);
       });
     };
@@ -136,7 +136,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    const updateWidget = (widget: any): void => {
+    const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
           widget
@@ -148,16 +148,6 @@ const extension: JupyterFrontEndPlugin<void> = {
         const key = keyStr as keyof CodeEditor.IConfig;
         editor.setOption(key, config[key]);
       });
-    };
-
-    // Notify the widget tracker if restore data needs to update
-    const handleWidgetRestore = (widget: any, tracker: any): void => {
-      void tracker.add(widget);
-
-      widget.context.pathChanged.connect(() => {
-        void tracker.save(widget);
-      });
-      updateWidget(widget);
     };
 
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
@@ -178,21 +168,28 @@ const extension: JupyterFrontEndPlugin<void> = {
         updateTracker();
       });
 
-    app.docRegistry.addWidgetFactory(rFactory);
+    app.docRegistry.addWidgetFactory(factory);
 
-    rFactory.widgetCreated.connect((sender, widget) => {
-      handleWidgetRestore(widget, rEditorTracker);
+    factory.widgetCreated.connect((sender, widget) => {
+      void tracker.add(widget);
+
+      // Notify the widget tracker if restore data needs to update
+      widget.context.pathChanged.connect(() => {
+        void tracker.save(widget);
+      });
+      updateWidget(widget);
     });
 
     // Handle the settings of new widgets. Adapted from fileeditor-extension.
-    rEditorTracker.widgetAdded.connect((sender, widget) => {
+    tracker.widgetAdded.connect((sender, widget) => {
       updateWidget(widget);
     });
 
     /**
-     * Create new script file from launcher and file menu
+     * Create new r file from launcher and file menu
      */
 
+    // Add a r launcher
     if (launcher) {
       launcher.add({
         command: commandIDs.createNewRFile,
@@ -202,27 +199,27 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     if (menu) {
+      // Add new r file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewRFile }],
         31
       );
     }
 
-    // Function to create a new untitled script file, given the current working directory
-    const createNew = async (
-      cwd: string,
-      ext: string,
-      factory: any
-    ): Promise<any> => {
-      const model = await app.commands.execute(commandIDs.newDocManager, {
-        path: cwd,
-        type: 'file',
-        ext: ext
-      });
-      return app.commands.execute(commandIDs.openDocManager, {
-        path: model.path,
-        factory: factory
-      });
+    // Function to create a new untitled r file, given the current working directory
+    const createNew = (cwd: string): Promise<any> => {
+      return app.commands
+        .execute(commandIDs.newDocManager, {
+          path: cwd,
+          type: 'file',
+          ext: '.r'
+        })
+        .then(model => {
+          return app.commands.execute(commandIDs.openDocManager, {
+            path: model.path,
+            factory: R_FACTORY
+          });
+        });
     };
 
     // Add a command to create new R file
@@ -232,7 +229,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       icon: args => (args['isPalette'] ? undefined : rIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
-        return createNew(cwd as string, '.r', R_FACTORY);
+        return createNew(cwd as string);
       }
     });
 

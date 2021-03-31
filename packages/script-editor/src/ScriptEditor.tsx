@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
 import { pyIcon } from '@elyra/ui-components';
 
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
