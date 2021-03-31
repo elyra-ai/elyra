@@ -89,7 +89,7 @@ export class SubmitScriptButtonExtension
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
-    const fileExtension = PathExt.extname(this.editor.context.path);
+    const fileExtension = PathExt.extname(editor.context.path);
 
     const dialogOptions = {
       title: 'Submit script',
