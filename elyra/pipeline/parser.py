@@ -35,8 +35,12 @@ class PipelineParser(LoggingConfigurable):
         # nodes within the primary pipeline (checked below).
         if 'primary_pipeline' not in pipeline_definitions:
             raise ValueError("Invalid pipeline: Could not determine the primary pipeline.")
+        if not isinstance(pipeline_definitions["primary_pipeline"], str):
+            raise ValueError("Invalid pipeline: Field 'primary_pipeline' should be a string.")
         if 'pipelines' not in pipeline_definitions:
             raise ValueError("Invalid pipeline: Pipeline definition not found.")
+        if not isinstance(pipeline_definitions["pipelines"], list):
+            raise ValueError("Invalid pipeline: Field 'pipelines' should be a list.")
 
         primary_pipeline_id = pipeline_definitions['primary_pipeline']
         primary_pipeline = PipelineParser._get_pipeline_definition(pipeline_definitions, primary_pipeline_id)
@@ -139,6 +143,7 @@ class PipelineParser(LoggingConfigurable):
             id=node_id,
             type=node.get('type'),
             classifier=node.get('op'),
+            name=PipelineParser._get_ui_data_field(node, 'label'),
             cpu=PipelineParser._get_app_data_field(node, 'cpu'),
             gpu=PipelineParser._get_app_data_field(node, 'gpu'),
             memory=PipelineParser._get_app_data_field(node, 'memory'),
@@ -165,6 +170,11 @@ class PipelineParser(LoggingConfigurable):
     def _get_app_data_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:
         """Helper method to pull the field's value from the app_data child of object obj."""
         return PipelineParser._get_child_field(obj, 'app_data', field_name, default_value=default_value)
+
+    @staticmethod
+    def _get_ui_data_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:
+        ui_data = PipelineParser._get_child_field(obj, 'app_data', 'ui_data')
+        return ui_data.get(field_name, default_value)
 
     @staticmethod
     def _get_port_node_id(link: Dict) -> [None, str]:

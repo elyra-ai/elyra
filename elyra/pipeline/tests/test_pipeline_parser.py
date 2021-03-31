@@ -24,6 +24,7 @@ def valid_operation():
     return Operation(id='{{uuid}}',
                      type='execution_node',
                      classifier='execute-notebook-node',
+                     name='{{label}}',
                      filename='{{filename}}',
                      runtime_image='{{runtime_image}}',
                      env_vars=["var1=var1", "var2=var2"],

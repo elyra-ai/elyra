@@ -31,7 +31,8 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 npm_packages_path = "./dist/*.tgz"
-auto_extension_path = "./etc/config/jupyter_server_config.d/*.json"
+auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
+auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
 settings_path = './etc/config/settings/*.json'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 
@@ -54,12 +55,15 @@ setup_args = dict(
     long_description=long_desc,
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
-    data_files=[('etc/jupyter/jupyter_server_config.d', glob(auto_extension_path)),
+    data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
+                ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
                 ('share/jupyter/lab/settings', glob(settings_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path))],
     packages=find_packages(),
     install_requires=[
         'autopep8',
+        'click',
+        'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11,<3.0',
         'jsonschema>=3.2.0',
@@ -67,7 +71,7 @@ setup_args = dict(
         'jupyter_client>=6.1.7',
         'jupyter_server>=1.2.0',
         'jupyterlab>=3.0.0',
-        'jupyterlab-git==0.30.0b1',
+        'jupyterlab-git==0.30.0b2',
         'jupyterlab-lsp>=3.0.0',
         'jupyter-resource-usage>=0.5.1',
         'minio>=5.0.7,<7.0.0',
@@ -84,6 +88,7 @@ setup_args = dict(
         'traitlets>=4.3.2',
         'urllib3>=1.24.2',
         'websocket-client',
+        'yaspin',
         # KFP runtime dependencies
         'kfp-notebook>=0.21.0',
         'kfp==1.3.0',
@@ -111,6 +116,7 @@ setup_args = dict(
     entry_points={
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
+            'elyra-pipeline = elyra.cli.pipeline_app:pipeline',
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',

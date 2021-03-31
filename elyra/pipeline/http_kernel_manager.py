@@ -25,8 +25,8 @@ from jupyter_client.clientabc import KernelClientABC
 from jupyter_client.manager import AsyncKernelManager
 from jupyter_client.managerabc import KernelManagerABC
 from logging import Logger
-from notebook.gateway.managers import GatewayClient, gateway_request
-from notebook.utils import url_path_join, maybe_future
+from jupyter_server.gateway.managers import GatewayClient, gateway_request
+from jupyter_server.utils import url_path_join, ensure_async
 from queue import Queue
 from threading import Thread
 from tornado import web
@@ -308,7 +308,7 @@ class HTTPKernelClient(AsyncKernelClient):
         self.response_router = Thread(target=self._route_responses)
         self.response_router.start()
 
-        await maybe_future(super().start_channels(shell=shell, iopub=iopub, stdin=stdin, hb=hb, control=control))
+        await ensure_async(super().start_channels(shell=shell, iopub=iopub, stdin=stdin, hb=hb, control=control))
 
     def stop_channels(self):
         """Stops all the running channels for this kernel.

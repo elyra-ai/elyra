@@ -14,7 +14,13 @@
           "op": "execute-notebook-node",
           "app_data": {
             "filename": "demo-pipelines/generate-contributions.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            "runtime_image": "elyra/tensorflow:1.15.2-py3",
+            "ui_data": {
+              "label": "{{label}}",
+              "x_pos": 112,
+              "y_pos": 97,
+              "description": "Notebook file"
+            }
           },
           "inputs": [
             {
@@ -51,7 +57,13 @@
           "op": "execute-notebook-node",
           "app_data": {
             "filename": "demo-pipelines/generate-stats.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            "runtime_image": "elyra/tensorflow:1.15.2-py3",
+            "ui_data": {
+              "label": "{{label}}",
+              "x_pos": 130,
+              "y_pos": 80,
+              "description": "Notebook file"
+            }
           },
           "inputs": [
             {
@@ -80,7 +92,13 @@
           "op": "execute-notebook-node",
           "app_data": {
             "filename": "demo-pipelines/overview.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            "runtime_image": "elyra/tensorflow:1.15.2-py3",
+            "ui_data": {
+              "label": "{{label}}",
+              "x_pos": 148,
+              "y_pos": 62,
+              "description": "Notebook file"
+            }
           },
           "inputs": [
             {

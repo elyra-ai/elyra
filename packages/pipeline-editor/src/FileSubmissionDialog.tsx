@@ -179,6 +179,21 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
           ))}
         </select>
         <br />
+        <div className="elyra-resourcesWrapper">
+          <div className="elyra-resourceInput">
+            <label htmlFor="cpu"> CPU:</label>
+            <input id="cpu" type="number" name="cpu" />
+          </div>
+          <div className="elyra-resourceInput">
+            <label htmlFor="gpu"> GPU:</label>
+            <input id="gpu" type="number" name="gpu" />
+          </div>
+          <div className="elyra-resourceInput">
+            <label htmlFor="memory"> RAM (GB):</label>
+            <input id="memory" type="number" name="memory" />
+          </div>
+        </div>
+        <br />
         <input
           type="checkbox"
           className="elyra-Dialog-checkbox"
