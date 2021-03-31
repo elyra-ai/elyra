@@ -50,6 +50,8 @@ jobs:
         python --version
         node --version
         npm --version
+        yarn --version
+        lerna --version
         pip --version
     - name: Create npm configuration for authentication
       run: |
