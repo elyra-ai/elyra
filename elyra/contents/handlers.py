@@ -55,10 +55,8 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         :return: a model dict
         """
 
-        # TODO: figure out how the filepath will be communicated to backend and
-        # get absolute path if needed
         operation = FileParser.get_instance(filepath=operation_filepath)
-        model = operation.get_resources(filepath=operation_filepath)
+        model = operation.get_resources()
 
         return model
 
