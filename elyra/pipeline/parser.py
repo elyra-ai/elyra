@@ -143,7 +143,8 @@ class PipelineParser(LoggingConfigurable):
             id=node_id,
             type=node.get('type'),
             classifier=node.get('op'),
-            name=PipelineParser._get_ui_data_field(node, 'label'),
+            name=PipelineParser._get_ui_data_field(node, 'label',
+                                                   default_value=PipelineParser._get_app_data_field(node, 'filename')),
             cpu=PipelineParser._get_app_data_field(node, 'cpu'),
             gpu=PipelineParser._get_app_data_field(node, 'gpu'),
             memory=PipelineParser._get_app_data_field(node, 'memory'),
@@ -173,7 +174,7 @@ class PipelineParser(LoggingConfigurable):
 
     @staticmethod
     def _get_ui_data_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:
-        ui_data = PipelineParser._get_child_field(obj, 'app_data', 'ui_data')
+        ui_data = PipelineParser._get_child_field(obj, 'app_data', 'ui_data', {})
         return ui_data.get(field_name, default_value)
 
     @staticmethod
