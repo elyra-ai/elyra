@@ -36,7 +36,7 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
-import { PipelineEditorFactory, commandIDs } from './PipelineEditorFactory';
+import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { RUNTIMES_NAMESPACE } from './PipelineService';
 import {
   RUNTIME_IMAGES_NAMESPACE,

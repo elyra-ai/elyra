@@ -34,10 +34,10 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/metadata-common": "^2.2.0-dev",
     "@elyra/canvas": "~10.2.0",
-    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/ab6d178b/@elyra/pipeline-editor",
-    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/ab6d178b/@elyra/pipeline-services",
+    "@elyra/metadata-common": "^2.2.0-dev",
+    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/6a7bd1ed/@elyra/pipeline-editor",
+    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/6a7bd1ed/@elyra/pipeline-services",
     "@elyra/services": "^2.2.0-dev",
     "@elyra/ui-components": "^2.2.0-dev",
     "@jupyterlab/application": "^3.0.0",

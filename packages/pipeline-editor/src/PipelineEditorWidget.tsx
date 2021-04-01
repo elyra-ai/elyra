@@ -144,20 +144,21 @@ const PipelineWrapper = ({
     });
   };
 
-  /*
-   * TODO: Add this as a callback to double clicking nodes when
-   * feature is available
-   * Open node associated notebook
-   */
-  // const handleOpenFile = (selectedNodes: any): void => {
-  //   for (let i = 0; i < selectedNodes.length; i++) {
-  //     const path = PipelineService.getWorkspaceRelativeNodePath(
-  //       context.path,
-  //       selectedNodes[i].app_data.filename
-  //     );
-  //     commands.execute(commandIDs.openDocManager, { path });
-  //   }
-  // }
+  const handleOpenFile = (data: any): void => {
+    for (let i = 0; i < data.selectedObjectIds.length; i++) {
+      const node = pipeline.pipelines[0].nodes.find(
+        node => node.id === data.selectedObjectIds[i]
+      );
+      if (!node || !node.app_data || !node.app_data.filename) {
+        continue;
+      }
+      const path = PipelineService.getWorkspaceRelativeNodePath(
+        context.path,
+        node.app_data.filename
+      );
+      commands.execute(commandIDs.openDocManager, { path });
+    }
+  };
 
   const cleanNullProperties = React.useCallback((): void => {
     // Delete optional fields that have null value
@@ -269,12 +270,10 @@ const PipelineWrapper = ({
 
     cleanNullProperties();
 
-    pipeline.pipelines[0]['app_data']['name'] = pipeline_name;
-    pipeline.pipelines[0]['app_data']['runtime'] = runtime;
-    pipeline.pipelines[0]['app_data']['runtime-config'] = runtime_config;
-    pipeline.pipelines[0]['app_data']['source'] = PathExt.basename(
-      context.path
-    );
+    pipeline.pipelines[0].app_data.name = pipeline_name;
+    pipeline.pipelines[0].app_data.runtime = runtime;
+    pipeline.pipelines[0].app_data['runtime-config'] = runtime_config;
+    pipeline.pipelines[0].app_data.source = PathExt.basename(context.path);
 
     PipelineService.exportPipeline(
       pipeline,
@@ -589,6 +588,7 @@ const PipelineWrapper = ({
           pipeline={pipeline}
           onAction={onAction}
           onChange={onChange}
+          onDoubleClickNode={handleOpenFile}
           onError={onError}
           onFileRequested={onFileRequested}
         />
