@@ -1,6 +1,6 @@
 pytest>=5.4.1
 pytest-tornasync
 pytest-console-scripts
-flake8
+flake8>=3.5.0,<3.9.0
 hacking
 requests-unixsocket
