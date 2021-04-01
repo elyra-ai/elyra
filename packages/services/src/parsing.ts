@@ -16,7 +16,7 @@
 
 import { RequestHandler } from './requests';
 
-const ELYRA_FILE_PARSER_API_ENDPOINT = 'elyra/pipeline/operationparser/';
+const ELYRA_FILE_PARSER_API_ENDPOINT = 'elyra/contents/properties/';
 
 /**
  * An interface for typing json dictionaries in typescript
@@ -31,20 +31,16 @@ export interface IDictionary<T> {
 export class FileParser {
   /**
    * Takes in a file_path and finds all env vars accessed in that file.
-   * @param file_path - absolute filepath to file
+   * @param file_path - relative path to file
    * @returns A string array of the env vars accessed in the given file
    */
   static async getEnvVars(file_path: string): Promise<any> {
-    const body = {
-      file_path: file_path
-    };
     try {
       const response = await RequestHandler.makeGetRequest(
-        ELYRA_FILE_PARSER_API_ENDPOINT,
-        JSON.stringify(body)
+        ELYRA_FILE_PARSER_API_ENDPOINT + file_path
       );
-      const response_json = JSON.parse(response);
-      return response_json['env_list'];
+      // temporary workaround to only return environment var names (not values)
+      return Object.keys(response.env_list);
     } catch (error) {
       return Promise.reject(error);
     }

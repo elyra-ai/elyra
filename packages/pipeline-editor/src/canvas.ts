@@ -85,7 +85,7 @@ export class CanvasManager {
 
       let env_vars: any;
       if (CanvasManager.getNodeType(file.path) == ContentType.notebook) {
-        env_vars = FileParser.getEnvVars(file.path).map(str => str + '=');
+        env_vars = FileParser.getEnvVars(file.path);
       }
 
       data.nodeTemplate.label = PathExt.basename(file.path);

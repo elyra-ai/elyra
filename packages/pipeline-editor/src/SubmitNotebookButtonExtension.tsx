@@ -54,7 +54,9 @@ export class SubmitNotebookButtonExtension
       }
     }
 
-    const env = FileParser.getEnvVars(panel.content.model.toString());
+    const env = await FileParser.getEnvVars(
+      panel.context.path.toString()
+    ).catch(error => RequestErrors.serverError(error));
     const action = 'submit notebook';
     const runtimes = await PipelineService.getRuntimes(
       true,
