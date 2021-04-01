@@ -96,7 +96,7 @@ export class SubmitScriptButtonExtension
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
-          fileExtension={fileExtension}
+          dependencyFileExtension={fileExtension}
           images={images}
           runtimes={runtimes}
           schema={schema}

@@ -22,7 +22,7 @@ import Utils from './utils';
 
 interface IProps {
   env: string[];
-  fileExtension?: string;
+  dependencyFileExtension: string;
   images: IDictionary<string>;
   runtimes: IRuntime[];
   schema: ISchema[];
@@ -114,7 +114,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
   }
 
   render(): React.ReactNode {
-    const { env, images, fileExtension } = this.props;
+    const { env, images, dependencyFileExtension } = this.props;
     const {
       displayedRuntimeOptions,
       includeDependency,
@@ -129,8 +129,8 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
           id="dependencies"
           className="jp-mod-styled"
           name="dependencies"
-          placeholder={`*${fileExtension}`}
-          defaultValue={`*${fileExtension}`}
+          placeholder={`*${dependencyFileExtension}`}
+          defaultValue={`*${dependencyFileExtension}`}
           size={30}
         />
       </div>
