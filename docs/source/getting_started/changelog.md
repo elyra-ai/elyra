@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.1 (3/31/2021)
+
+- Update KFP Notebook to 0.22.0
+- Pin flake8 dependency to avoid trans-dependency conflict
+- Fix default node properties when using submit button [1508](https://github.com/elyra-ai/elyra/pull/1508)
+- Update build scripts to publish new R editor
+
 ## 2.2.0 (3/31/2021)
 
 High level enhancements
