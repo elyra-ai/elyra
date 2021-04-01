@@ -83,6 +83,7 @@ export class SubmitNotebookButtonExtension
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
+          dependencyFileExtension=".py"
           runtimes={runtimes}
           images={images}
           schema={schema}
