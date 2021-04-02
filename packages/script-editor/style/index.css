@@ -1,0 +1,83 @@
+/*
+ * Copyright 2018-2021 Elyra Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.elyra-ScriptEditor-OutputArea-error {
+  background-color: var(--jp-rendermime-error-background);
+}
+
+.elyra-ScriptEditor-OutputArea-child {
+  border-top: 1px solid var(--jp-border-color2);
+  border-bottom: 1px solid var(--jp-border-color2);
+}
+
+.elyra-ScriptEditor-OutputArea-prompt {
+  flex: 0 0 37px;
+  border-right: 1px solid var(--jp-border-color2);
+  padding: unset;
+  text-align: center;
+}
+
+.elyra-ScriptEditor-OutputArea-output {
+  padding: var(--jp-code-padding);
+  border: var(--jp-border-width) solid transparent;
+  margin-right: 64px;
+}
+
+.elyra-ScriptEditor-scrollTop {
+  top: 33px;
+}
+
+.elyra-ScriptEditor-scrollBottom {
+  top: 62px;
+}
+
+.elyra-ScriptEditor-scrollBottom,
+.elyra-ScriptEditor-scrollTop {
+  position: absolute;
+  right: 21px;
+  z-index: 1;
+  background-color: transparent;
+  width: 30px;
+  height: 30px;
+  border-width: 0px;
+  border-style: solid;
+  border-radius: 5px;
+}
+
+button.elyra-ScriptEditor-scrollTop:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+button.elyra-ScriptEditor-scrollBottom:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+.elyra-ScriptEditor-scrollBottom g[fill],
+.elyra-ScriptEditor-scrollTop g[fill] {
+  fill: var(--jp-inverse-layout-color3);
+}
+
+.jp-Document .jp-Toolbar.elyra-ScriptEditor-Toolbar {
+  justify-content: flex-start;
+}
+
+select.elyra-ScriptEditor-KernelSelector {
+  border: none;
+  background: none;
+  color: var(--jp-ui-font-color1);
+  display: inline-block;
+  vertical-align: text-bottom;
+}

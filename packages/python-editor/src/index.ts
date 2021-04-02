@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
-import { pyIcon, rIcon } from '@elyra/ui-components';
+import { ScriptEditorFactory, ScriptEditor } from '@elyra/script-editor';
+import { pyIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -34,16 +33,12 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
 
-import { PythonFileEditorFactory, PythonFileEditor } from './PythonFileEditor';
-
 const PYTHON_FACTORY = 'Python Editor';
 const PYTHON = 'python';
-const R = 'r';
 const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
 
 const commandIDs = {
-  createNewFile: 'python-editor:create-new-file',
-  openPythonFile: 'python-editor:open',
+  createNewPythonFile: 'script-editor:create-new-python-file',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
@@ -75,7 +70,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - python-editor extension is activated!');
 
-    const factory = new PythonFileEditorFactory({
+    const factory = new ScriptEditorFactory({
       editorServices,
       factoryOptions: {
         name: PYTHON_FACTORY,
@@ -93,21 +88,12 @@ const extension: JupyterFrontEndPlugin<void> = {
       icon: pyIcon
     });
 
-    app.docRegistry.addFileType({
-      name: R,
-      displayName: 'R File',
-      extensions: ['.r'],
-      pattern: '.*\\.r$',
-      mimeTypes: ['text/x-rsrc'],
-      icon: rIcon
-    });
-
     const { restored } = app;
 
     /**
-     * Track PythonFileEditor widget on page refresh
+     * Track ScriptEditor widget on page refresh
      */
-    const tracker = new WidgetTracker<PythonFileEditor>({
+    const tracker = new WidgetTracker<ScriptEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
 
@@ -150,7 +136,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    const updateWidget = (widget: PythonFileEditor): void => {
+    const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
           widget
@@ -206,7 +192,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Add a python launcher
     if (launcher) {
       launcher.add({
-        command: commandIDs.createNewFile,
+        command: commandIDs.createNewPythonFile,
         category: 'Elyra',
         rank: 2
       });
@@ -215,7 +201,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (menu) {
       // Add new python file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
-        [{ command: commandIDs.createNewFile }],
+        [{ command: commandIDs.createNewPythonFile }],
         30
       );
     }
@@ -237,9 +223,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     };
 
     // Add a command to create new Python file
-    app.commands.addCommand(commandIDs.createNewFile, {
-      label: args => (args['isPalette'] ? 'New Python File' : 'Python File'),
-      caption: 'Create a new python file',
+    app.commands.addCommand(commandIDs.createNewPythonFile, {
+      label: args =>
+        args['isPalette'] ? 'New Python Editor' : 'Python Editor',
+      caption: 'Create a new Python file',
       icon: args => (args['isPalette'] ? undefined : pyIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
@@ -248,7 +235,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     palette.addItem({
-      command: commandIDs.createNewFile,
+      command: commandIDs.createNewPythonFile,
       args: { isPalette: true },
       category: 'Elyra'
     });

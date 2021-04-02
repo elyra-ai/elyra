@@ -17,9 +17,11 @@ import autopep8
 import kfp
 import kfp_tekton
 import os
+import re
 import tempfile
 import time
 import requests
+import json
 
 from datetime import datetime
 from elyra._version import __version__
@@ -28,6 +30,7 @@ from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelinePr
 from elyra.util.path import get_absolute_path
 from jinja2 import Environment, PackageLoader
 from kfp_notebook.pipeline import NotebookOp
+from kfp_server_api.exceptions import ApiException
 from urllib3.exceptions import LocationValueError, MaxRetryError
 
 
@@ -115,6 +118,24 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 raise ValueError("Failure occurred uploading pipeline, check your credentials") from lve
             else:
                 raise lve
+
+        # Verify that user-entered namespace is valid
+        try:
+            client.list_experiments(namespace=user_namespace,
+                                    page_size=0)
+        except ApiException as ae:
+            error_msg = f"{ae.reason} ({ae.status})"
+            if ae.body:
+                error_body = json.loads(ae.body)
+                error_msg += f": {error_body['error']}"
+            if error_msg[-1] not in ['.', '?', '!']:
+                error_msg += '.'
+
+            namespace = "namespace" if not user_namespace else f"namespace {user_namespace}"
+
+            self.log.error(f"Error validating {namespace}: {error_msg}")
+            raise RuntimeError(f"Error validating {namespace}: {error_msg} " +
+                               "Please validate your runtime configuration details and retry.") from ae
 
         self.log_pipeline_info(pipeline_name, "submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -371,8 +392,10 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                     if len(result) == 2 and result[0] != '':
                         pipeline_envs[result[0]] = result[1]
 
+            sanitized_operation_name = self._sanitize_operation_name(operation.name)
+
             # create pipeline operation
-            notebook_ops[operation.id] = NotebookOp(name=operation.name,
+            notebook_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
                                                     pipeline_name=pipeline_name,
                                                     experiment_name=experiment_name,
                                                     notebook=operation.filename,
@@ -424,7 +447,16 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         return notebook_ops
 
-    def _get_user_auth_session_cookie(self, url, username, password):
+    @staticmethod
+    def _sanitize_operation_name(name: str) -> str:
+        """
+        In KFP, only letters, numbers, spaces, "_", and "-" are allowed in name.
+        :param name: name of the operation
+        """
+        return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-', name)).lstrip('-').rstrip('-')
+
+    @staticmethod
+    def _get_user_auth_session_cookie(url, username, password):
         get_response = requests.get(url)
 
         # auth request to kfp server with istio dex look like '/dex/auth/local?req=REQ_VALUE'

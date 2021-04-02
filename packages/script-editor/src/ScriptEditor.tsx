@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
 import { pyIcon } from '@elyra/ui-components';
 
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
@@ -46,30 +44,34 @@ import {
   TabBarSvg
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
+import React, { RefObject } from 'react';
 
-import { KernelDropdown } from './KernelDropdown';
-import { PythonRunner } from './PythonRunner';
+import { KernelDropdown, ISelect } from './KernelDropdown';
+import { ScriptEditorController } from './ScriptEditorController';
+import { ScriptRunner } from './ScriptRunner';
 
 /**
  * The CSS class added to widgets.
  */
-const PYTHON_FILE_EDITOR_CLASS = 'elyra-PythonEditor';
-const OUTPUT_AREA_CLASS = 'elyra-PythonEditor-OutputArea';
-const OUTPUT_AREA_ERROR_CLASS = 'elyra-PythonEditor-OutputArea-error';
-const OUTPUT_AREA_CHILD_CLASS = 'elyra-PythonEditor-OutputArea-child';
-const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-PythonEditor-OutputArea-output';
-const OUTPUT_AREA_PROMPT_CLASS = 'elyra-PythonEditor-OutputArea-prompt';
-const RUN_BUTTON_CLASS = 'elyra-PythonEditor-Run';
-const TOOLBAR_CLASS = 'elyra-PythonEditor-Toolbar';
+const SCRIPT_EDITOR_CLASS = 'elyra-ScriptEditor';
+const OUTPUT_AREA_CLASS = 'elyra-ScriptEditor-OutputArea';
+const OUTPUT_AREA_ERROR_CLASS = 'elyra-ScriptEditor-OutputArea-error';
+const OUTPUT_AREA_CHILD_CLASS = 'elyra-ScriptEditor-OutputArea-child';
+const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-ScriptEditor-OutputArea-output';
+const OUTPUT_AREA_PROMPT_CLASS = 'elyra-ScriptEditor-OutputArea-prompt';
+const RUN_BUTTON_CLASS = 'elyra-ScriptEditor-Run';
+const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
+const PYTHON = 'python';
+const R = 'R';
 
 /**
- * A widget for python editors.
+ * A widget for script editors.
  */
-export class PythonFileEditor extends DocumentWidget<
+export class ScriptEditor extends DocumentWidget<
   FileEditor,
   DocumentRegistry.ICodeModel
 > {
-  private runner: PythonRunner;
+  private runner: ScriptRunner;
   private kernelName: string;
   private dockPanel: DockPanelSvg;
   private outputAreaWidget: OutputArea;
@@ -77,6 +79,9 @@ export class PythonFileEditor extends DocumentWidget<
   private model: any;
   private emptyOutput: boolean;
   private runDisabled: boolean;
+  private kernelSelectorRef: RefObject<ISelect>;
+  private controller: ScriptEditorController;
+  private editorLanguage: string;
 
   /**
    * Construct a new editor widget.
@@ -85,15 +90,20 @@ export class PythonFileEditor extends DocumentWidget<
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
-    this.addClass(PYTHON_FILE_EDITOR_CLASS);
+    this.addClass(SCRIPT_EDITOR_CLASS);
     this.model = this.content.model;
-    this.runner = new PythonRunner(this.model, this.context, this.disableRun);
-    this.kernelName = null;
+    this.runner = new ScriptRunner(this.disableRun);
+    this.kernelSelectorRef = null;
+    this.kernelName = options.context.sessionContext.kernelPreference.language;
     this.emptyOutput = true;
     this.runDisabled = false;
+    this.controller = new ScriptEditorController();
+    this.editorLanguage = this.kernelName.toLowerCase().includes(PYTHON)
+      ? PYTHON
+      : R;
 
-    // Add python icon to main tab
-    this.title.icon = pyIcon;
+    // Add icon to main tab
+    this.title.icon = this.editorLanguage === PYTHON ? pyIcon : 'rIcon';
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -102,12 +112,10 @@ export class PythonFileEditor extends DocumentWidget<
       tooltip: 'Save file contents'
     });
 
-    const dropDown = new KernelDropdown(this.runner, this.updateSelectedKernel);
-
     const runButton = new ToolbarButton({
       className: RUN_BUTTON_CLASS,
       icon: runIcon,
-      onClick: this.runPython,
+      onClick: this.runScript,
       tooltip: 'Run'
     });
 
@@ -122,13 +130,33 @@ export class PythonFileEditor extends DocumentWidget<
     toolbar.addItem('save', saveButton);
     toolbar.addItem('run', runButton);
     toolbar.addItem('stop', stopButton);
-    toolbar.addItem('select', dropDown);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
 
     // Create output area widget
     this.createOutputAreaWidget();
+
+    this.initializeKernelSpecs();
   }
+
+  initializeKernelSpecs = async (): Promise<void> => {
+    const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
+      this.editorLanguage
+    );
+
+    this.kernelName =
+      Object.keys(kernelSpecs.kernelspecs).length === 0
+        ? null
+        : Object.values(kernelSpecs.kernelspecs)[0].name;
+
+    this.kernelSelectorRef = React.createRef<ISelect>();
+
+    const kernelDropDown = new KernelDropdown(
+      kernelSpecs,
+      this.kernelSelectorRef
+    );
+    this.toolbar.insertItem(3, 'select', kernelDropDown);
+  };
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.
@@ -157,25 +185,25 @@ export class PythonFileEditor extends DocumentWidget<
   };
 
   /**
-   * Function: Updates kernel settings as per drop down selection.
+   * Function: Clears existing output area and runs script
+   * code from file editor in the selected kernel context.
    */
-  private updateSelectedKernel = (selection: string): void => {
-    this.kernelName = selection;
-  };
-
-  /**
-   * Function: Clears existing output area and runs python code from file editor.
-   */
-  private runPython = async (): Promise<void> => {
+  private runScript = async (): Promise<void> => {
     if (!this.runDisabled) {
+      this.kernelName = this.kernelSelectorRef.current.getSelection();
       this.resetOutputArea();
-      this.displayOutputArea();
-      this.runner.runPython(this.kernelName, this.handleKernelMsg);
+      this.kernelName && this.displayOutputArea();
+      await this.runner.runScript(
+        this.kernelName,
+        this.context.path,
+        this.model.value.text,
+        this.handleKernelMsg
+      );
     }
   };
 
   private stopRun = async (): Promise<void> => {
-    this.runner.shutdownSession();
+    await this.runner.shutdownSession();
     if (!this.dockPanel.isEmpty) {
       this.updatePromptText(' ');
     }
@@ -221,8 +249,8 @@ export class PythonFileEditor extends DocumentWidget<
   ): void => {
     const scrollUpButton = document.createElement('button');
     const scrollDownButton = document.createElement('button');
-    scrollUpButton.className = 'elyra-PythonEditor-scrollTop';
-    scrollDownButton.className = 'elyra-PythonEditor-scrollBottom';
+    scrollUpButton.className = 'elyra-ScriptEditor-scrollTop';
+    scrollDownButton.className = 'elyra-ScriptEditor-scrollBottom';
     scrollUpButton.onclick = function(): void {
       scrollingWidget.node.scrollTop = 0;
     };
@@ -259,8 +287,8 @@ export class PythonFileEditor extends DocumentWidget<
       this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
       const outputTab: TabBarSvg<Widget> = this.dockPanel.tabBars().next();
-      outputTab.id = 'tab-python-editor-output';
-      outputTab.currentTitle.label = 'Python Console Output';
+      outputTab.id = 'tab-ScriptEditor-output';
+      outputTab.currentTitle.label = 'Console Output';
       outputTab.currentTitle.closable = true;
       outputTab.disposed.connect((sender, args) => {
         this.stopRun();
@@ -369,28 +397,25 @@ export class PythonFileEditor extends DocumentWidget<
         buttons: [Dialog.okButton()]
       });
     }
-    void this.context.save();
-    // Future reference for creating a checkpoint
-
-    // .then(() => {
-    //     if (!this.isDisposed) {
-    //         return this.context.createCheckpoint();
-    //     }
-    // });
+    void this.context.save().then(() => {
+      if (!this.isDisposed) {
+        return this.context.createCheckpoint();
+      }
+    });
   };
 }
 
 /**
- * A widget factory for python editors.
+ * A widget factory for script editors.
  */
-export class PythonFileEditorFactory extends ABCWidgetFactory<
-  PythonFileEditor,
+export class ScriptEditorFactory extends ABCWidgetFactory<
+  ScriptEditor,
   DocumentRegistry.ICodeModel
 > {
   /**
    * Construct a new editor widget factory.
    */
-  constructor(options: PythonFileEditorFactory.IOptions) {
+  constructor(options: ScriptEditorFactory.IOptions) {
     super(options.factoryOptions);
     this._services = options.editorServices;
   }
@@ -400,26 +425,26 @@ export class PythonFileEditorFactory extends ABCWidgetFactory<
    */
   protected createNewWidget(
     context: DocumentRegistry.CodeContext
-  ): PythonFileEditor {
-    const func = this._services.factoryService.newDocumentEditor;
+  ): ScriptEditor {
+    const newDocumentEditor = this._services.factoryService.newDocumentEditor;
     const factory: CodeEditor.Factory = options => {
-      return func(options);
+      return newDocumentEditor(options);
     };
     const content = new FileEditor({
       factory,
       context,
       mimeTypeService: this._services.mimeTypeService
     });
-    return new PythonFileEditor({ content, context });
+    return new ScriptEditor({ content, context });
   }
 
   private _services: IEditorServices;
 }
 
 /**
- * The namespace for `PythonFileEditorFactory` class statics.
+ * The namespace for `ScriptEditorFactory` class statics.
  */
-export namespace PythonFileEditorFactory {
+export namespace ScriptEditorFactory {
   /**
    * The options used to create an editor widget factory.
    */
@@ -432,6 +457,6 @@ export namespace PythonFileEditorFactory {
     /**
      * The factory options associated with the factory.
      */
-    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<PythonFileEditor>;
+    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<ScriptEditor>;
   }
 }

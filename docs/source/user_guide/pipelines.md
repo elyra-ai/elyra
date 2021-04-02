@@ -19,15 +19,15 @@ limitations under the License.
 # AI Pipelines
 
 Elyra utilizes its [canvas component](https://github.com/elyra-ai/canvas) to enable assembling
-multiple notebooks or Python scripts as a workflow.
+multiple notebooks, Python or R scripts as a workflow.
 Elyra provides a visual editor for building AI pipelines, simplifying the conversion
-of multiple notebooks or Python scripts into batch jobs or workflows.  By leveraging cloud-based resources to run their
+of multiple notebooks, Python or R scripts into batch jobs or workflows.  By leveraging cloud-based resources to run their
 experiments faster, data scientists, machine learning engineers and AI developers are then more productive,
 allowing them to spend time utilizing their technical skills.
 
 ![Pipeline Editor with pipeline](../images/pipeline-in-editor.png)
 
-Nodes in a pipeline represent notebooks or Python scripts and are connected with each other to define execution dependencies. Each node is configured using properties that define the runtime environment, input dependencies, and outputs.
+Nodes in a pipeline represent notebooks, Python or R scripts and are connected with each other to define execution dependencies. Each node is configured using properties that define the runtime environment, input dependencies, and outputs.
 
 The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-step instructions for creating and running pipelines.
 
@@ -39,7 +39,7 @@ To create a pipeline using the editor:
 * Click the `Pipeline Editor` icon to create an empty pipeline.
   ![Main Page](../images/elyra-main-page.png)
 * From the sidebar open the JupyterLab File Browser.
-* Drag notebooks or Python scripts from the File Browser onto the canvas.
+* Drag notebooks, Python or R scripts from the File Browser onto the canvas.
 * Define the dependencies between nodes by connecting them, essentially creating a graph.
 * Associate each node with a comment to document its purpose. 
 
@@ -71,7 +71,7 @@ To run a pipeline in a sub-process in JupyterLab:
   ![Open pipeline run wizard](../images/pipeline-editor-run.png)
 * Assign a name to the run and choose the local runtime configuration.
 * Monitor the run progress in the JupyterLab console. The pipeline editor displays a message when processing is finished. 
-* Access any outputs that notebooks or Python scripts produce in the JupyterLab file browser.
+* Access any outputs that notebooks, Python or R scripts produce in the JupyterLab file browser.
 
 Refer to the [local pipeline execution tutorial](/getting_started/tutorials.md) for details.
 
@@ -83,9 +83,27 @@ To run a pipeline on Kubeflow Pipelines:
 * Click the `Run Pipeline` icon in the pipeline editor.
 * Assign a name to the run and choose the Kubeflow Pipelines runtime configuration.
 * After the pipeline run was started open the Kubeflow Pipelines link to monitor the execution progress in the Kubeflow Pipelines UI.
-* After the pipeline was executed use the cloud storage link to access the outputs that notebooks or Python scripts have produced.
+* After the pipeline was executed use the cloud storage link to access the outputs that notebooks, Python or R scripts have produced.
 
 Refer to the [Kubeflow Pipelines tutorial](/getting_started/tutorials.md) for details.
+
+#### Running a pipeline using the command line
+
+To run a pipeline on your local environment:
+
+```bash
+elyra-pipeline run elyra-pipelines/demo-heterogeneous.pipeline
+```
+
+To submit a pipeline to be executed in a external runtime such as Apache Airflow or Kubeflow Pipeline:
+
+```bash
+elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
+      --runtime-config kfp-shared-tekton
+```
+
+The `runtime-config`  should be a valid [runtime configuration](/user_guide/runtime-conf.md).
+
 
 ### Distributing Your Pipeline
 Oftentimes you'll want to share or distribute your pipeline (including its notebooks and their dependencies) with colleagues.  This section covers some of the best practices for accomplishing that, but first, it's good to understand the relationships between components of a pipeline.

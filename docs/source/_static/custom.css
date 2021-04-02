@@ -21,7 +21,9 @@ div.wy-side-nav-search {
   background: #f37626;
 }
 
-img[alt='Python Editor Components'] {
+img[alt='Python Editor and R Editor Components'],
+img[alt='Open Python Editor'],
+img[alt='Open R Editor'] {
   width: 50%;
   height: 50%;
 }

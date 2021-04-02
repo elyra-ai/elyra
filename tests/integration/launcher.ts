@@ -31,9 +31,12 @@ describe('Elyra launcher is in use', () => {
     cy.get(
       '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]:visible'
     );
-    // Python editor extension is available
+    // Script editor extension is available
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new python file"]:visible'
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"]:visible'
+    );
+    cy.get(
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R file"]:visible'
     );
     // Documentation link is available
     cy.get(

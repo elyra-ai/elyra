@@ -15,38 +15,36 @@
  */
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
-import { CodeEditor } from '@jupyterlab/codeeditor';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 import {
   KernelManager,
-  KernelSpec,
   KernelSpecManager,
   Session,
   SessionManager
 } from '@jupyterlab/services';
 
+const KERNEL_ERROR_MSG =
+  'Could not run script because no supporting kernel is defined.';
+const SESSION_ERROR_MSG = 'Could not start session to execute script.';
+
+export interface IScriptOutput {
+  readonly type: string;
+  readonly output: string;
+}
+
 /**
- * Class: An enhanced Python Script Editor that enables developing and running the script
+ * Utility class to enable running scripts files in the context of a Kernel environment
  */
-export class PythonRunner {
+export class ScriptRunner {
   sessionManager: SessionManager;
   sessionConnection: Session.ISessionConnection;
   kernelSpecManager: KernelSpecManager;
   kernelManager: KernelManager;
-  model: CodeEditor.IModel;
-  context: DocumentRegistry.Context;
-  disableRun: (x: boolean) => any;
+  disableRun: (disabled: boolean) => void;
 
   /**
    * Construct a new runner.
    */
-  constructor(
-    model: CodeEditor.IModel,
-    context: DocumentRegistry.Context,
-    disableRun: (x: boolean) => any
-  ) {
-    this.model = model;
-    this.context = context;
+  constructor(disableRun: (disabled: boolean) => void) {
     this.disableRun = disableRun;
 
     this.kernelSpecManager = new KernelSpecManager();
@@ -67,26 +65,31 @@ export class PythonRunner {
   };
 
   /**
-   * Function: Starts a session with a python kernel and executes code from file editor.
+   * Function: Starts a session with a proper kernel and executes code from file editor.
    */
-  runPython = async (
+  runScript = async (
     kernelName: string,
-    handleKernelMsg: (x: any) => any
+    contextPath: string,
+    code: string,
+    handleKernelMsg: (msgOutput: any) => void
   ): Promise<any> => {
+    if (!kernelName) {
+      this.disableRun(true);
+      return this.errorDialog(KERNEL_ERROR_MSG);
+    }
+
     if (!this.sessionConnection) {
       this.disableRun(true);
-      const model = this.model;
-      const code: string = model.value.text;
 
       try {
-        await this.startSession(kernelName);
+        await this.startSession(kernelName, contextPath);
       } catch (e) {
-        return this.errorDialog('Could not start session to execute script.');
+        return this.errorDialog(SESSION_ERROR_MSG);
       }
 
       if (!this.sessionConnection) {
         // session didn't get started
-        return this.errorDialog('Failed to start session to execute script.');
+        return this.errorDialog(SESSION_ERROR_MSG);
       }
 
       const future = this.sessionConnection.kernel.requestExecute({ code });
@@ -99,7 +102,10 @@ export class PythonRunner {
             type: msg.content.ename,
             output: msg.content.evalue
           };
-        } else if (msg.msg_type === 'execute_result') {
+        } else if (
+          msg.msg_type === 'execute_result' ||
+          msg.msg_type === 'display_data'
+        ) {
           if ('text/plain' in msg.content.data) {
             msgOutput.output = msg.content.data['text/plain'];
           } else {
@@ -128,31 +134,23 @@ export class PythonRunner {
   };
 
   /**
-   * Function: Gets available kernel specs.
-   */
-  getKernelSpecs = async (): Promise<KernelSpec.ISpecModels> => {
-    await this.kernelSpecManager.ready;
-    const kernelSpecs = await this.kernelSpecManager.specs;
-    return kernelSpecs;
-  };
-
-  /**
    * Function: Starts new kernel.
    */
   startSession = async (
-    kernelName: string
+    kernelName: string,
+    contextPath: string
   ): Promise<Session.ISessionConnection> => {
     const options: Session.ISessionOptions = {
       kernel: {
         name: kernelName
       },
-      path: this.context.path,
+      path: contextPath,
       type: 'file',
-      name: this.context.path
+      name: contextPath
     };
 
     this.sessionConnection = await this.sessionManager.startNew(options);
-    this.sessionConnection.setPath(this.context.path);
+    this.sessionConnection.setPath(contextPath);
 
     return this.sessionConnection;
   };

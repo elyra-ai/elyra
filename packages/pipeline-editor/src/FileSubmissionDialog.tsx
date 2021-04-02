@@ -22,6 +22,7 @@ import Utils from './utils';
 
 interface IProps {
   env: string[];
+  dependencyFileExtension: string;
   images: IDictionary<string>;
   runtimes: IRuntime[];
   schema: ISchema[];
@@ -113,7 +114,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
   }
 
   render(): React.ReactNode {
-    const { env, images } = this.props;
+    const { env, images, dependencyFileExtension } = this.props;
     const {
       displayedRuntimeOptions,
       includeDependency,
@@ -128,8 +129,8 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
           id="dependencies"
           className="jp-mod-styled"
           name="dependencies"
-          placeholder="*.py"
-          defaultValue="*.py"
+          placeholder={`*${dependencyFileExtension}`}
+          defaultValue={`*${dependencyFileExtension}`}
           size={30}
         />
       </div>
@@ -177,6 +178,21 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
             </option>
           ))}
         </select>
+        <br />
+        <div className="elyra-resourcesWrapper">
+          <div className="elyra-resourceInput">
+            <label htmlFor="cpu"> CPU:</label>
+            <input id="cpu" type="number" name="cpu" />
+          </div>
+          <div className="elyra-resourceInput">
+            <label htmlFor="gpu"> GPU:</label>
+            <input id="gpu" type="number" name="gpu" />
+          </div>
+          <div className="elyra-resourceInput">
+            <label htmlFor="memory"> RAM (GB):</label>
+            <input id="memory" type="number" name="memory" />
+          </div>
+        </div>
         <br />
         <input
           type="checkbox"

@@ -34,6 +34,7 @@ elyra
 elyra-code-snippet-extension
 elyra-pipeline-editor-extension
 elyra-python-editor-extension
+elyra-r-editor-extension
 ```
 - Test the release
   - Run multiple scenarios, to make sure each extension is working ok
@@ -62,5 +63,8 @@ docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:latest && docker push q
   - https://github.com/conda-forge/elyra-feedstock/pulls
   - https://github.com/conda-forge/elyra-server-feedstock/pulls
   - https://github.com/conda-forge/elyra-code-snippet-extension-feedstock/pulls
-  - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-pipeline-editor-extension-feedstock/pulls
+  - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
+  - https://github.com/conda-forge/elyra-r-editor-extension-feedstock/pulls
+
+

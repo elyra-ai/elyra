@@ -1,5 +1,60 @@
 # Changelog
 
+## 2.2.1 (3/31/2021)
+
+- Update KFP Notebook to 0.22.0
+- Pin flake8 dependency to avoid trans-dependency conflict
+- Fix default node properties when using submit button [1508](https://github.com/elyra-ai/elyra/pull/1508)
+- Update build scripts to publish new R editor
+
+## 2.2.0 (3/31/2021)
+
+High level enhancements
+- R Editor with the ability to run R scripts from JupyterLab UI
+- Add CLI tool for running and submitting pipelines
+- Add Elyra image compatible with Kubeflow notebook launcher
+- Brought up JupyterHub and Binder support after issues with their latest releases 
+
+Other enhancements and bug fixes
+- Add R Editor - [1435](https://github.com/elyra-ai/elyra/pull/1435)
+- Pin version range of autopep8 due to version conflict - [1504](https://github.com/elyra-ai/elyra/pull/1504)
+- Remove obsolete parameter on build-server make task - [1503](https://github.com/elyra-ai/elyra/pull/1503)
+- Update Release Notes formatting (changelog.md)
+- Update lint auto-fix suggestions
+- Update build tools version on GitHub Actions CI script
+- Fix submit button submitting most recent file - [1501](https://github.com/elyra-ai/elyra/pull/1501)
+- Fix pipeline node properties dark mode - [1487](https://github.com/elyra-ai/elyra/pull/1487)
+- Add elyra-pipeline cli tool - [1246](https://github.com/elyra-ai/elyra/pull/1246)
+- Fix pipeline node properties overriding wrong node property - [1492](https://github.com/elyra-ai/elyra/pull/1492)
+- Update KFP Notebook to 0.21.0 - [1494](https://github.com/elyra-ai/elyra/pull/1494)
+- Add Elyra image compatible with Kubeflow notebook launcher - [1466](https://github.com/elyra-ai/elyra/pull/1466)
+- Fixed css scrollbar bug in pipeline node properties - [1484](https://github.com/elyra-ai/elyra/pull/1484)
+- Add inputs for resource usage in submit notebook/script - [1483](https://github.com/elyra-ai/elyra/pull/1483)
+- Refactor script processors, include brief detail on generic errors - [1485](https://github.com/elyra-ai/elyra/pull/1485)
+- Fix container image build command - [1488](https://github.com/elyra-ai/elyra/pull/1488)
+- Replace outdated reference to docker-image target - [1489](https://github.com/elyra-ai/elyra/pull/1489)
+- Provides better error messages for KFP namespace errors - [1469](https://github.com/elyra-ai/elyra/pull/1469)
+- Use node labels instead of filename as operation names - [1468](https://github.com/elyra-ai/elyra/pull/1468)
+- Enable extensions as both Notebook/Jupyter Server extensions - [1476](https://github.com/elyra-ai/elyra/pull/1476)
+- Use pip legacy resolver to fix binder build - [1456](https://github.com/elyra-ai/elyra/pull/1456)
+- Update remaining notebook imports to jupyter_server - [1471](https://github.com/elyra-ai/elyra/pull/1471)
+- Remove close button from pipeline node properties editor - [1465](https://github.com/elyra-ai/elyra/pull/1465)
+- Add offical logos for Python and R - [1452](https://github.com/elyra-ai/elyra/pull/1452)
+- Created RuntimeImagesWidget for customized UI - [1461](https://github.com/elyra-ai/elyra/pull/1461)
+- Add schema_name parameter to CLI runtime config examples - [1462](https://github.com/elyra-ai/elyra/pull/1462)
+- Fix pipeline properties css bug in Safari - [1449](https://github.com/elyra-ai/elyra/pull/1449)
+- Fix properties editor node deletion bug - [1459](https://github.com/elyra-ai/elyra/pull/1459)
+- Remove empty values from pipeline node properties - [1463](https://github.com/elyra-ai/elyra/pull/1463)
+- Update Binder release information to 2.1.0 - [1454](https://github.com/elyra-ai/elyra/pull/1454)
+- Fix code quality Issues reported by analysis tool - [1432](https://github.com/elyra-ai/elyra/pull/1432)
+- Add default / placeholder to dropdown field in metadata editor - [1443](https://github.com/elyra-ai/elyra/pull/1443)
+- Expose error details on Python node local execution - [1411](https://github.com/elyra-ai/elyra/pull/1411)
+- Fix css issues after upgrading to Canvas 10.2.0 - [1451](https://github.com/elyra-ai/elyra/pull/1451)
+- Enable support for adding R Script to Pipeline - [1418](https://github.com/elyra-ai/elyra/pull/1418)
+- Fix Material UI style specificity issues in Metadata Editor - [1434](https://github.com/elyra-ai/elyra/pull/1434)
+- Properly remove string array from pipeline node properties - [1447](https://github.com/elyra-ai/elyra/pull/1447)
+- Update release docs with steps to update docker images
+
 ## 2.1.0 (3/15/2021)
 
 High level enhancements
@@ -12,66 +67,66 @@ High level enhancements
 
 Other enhancements and bug fixes
 
-- Propagate operation input/output in sorted way (#1427) - [1427](https://github.com/elyra-ai/elyra/pull/1427)
-- Update error dialog message when no runtimes configured (#1423) - [1423](https://github.com/elyra-ai/elyra/pull/1423)
-- Remove error label when user fixes invalid metadata field (#1402) - [1402](https://github.com/elyra-ai/elyra/pull/1402)
-- Fix css alignment in add runtimes dropdown (#1425) - [1425](https://github.com/elyra-ai/elyra/pull/1425)
-- Add pytest suite for airflow processor (#1317) - [1317](https://github.com/elyra-ai/elyra/pull/1317)
-- Handle no runtimes configured on run/export/submit  (#1404) - [1404](https://github.com/elyra-ai/elyra/pull/1404)
-- Update resource validation to check for null values (#1413) - [1413](https://github.com/elyra-ai/elyra/pull/1413)
-- Add GitHub link to Runtimes UI (#1410) - [1410](https://github.com/elyra-ai/elyra/pull/1410)
-- Use absolute path when exporting Airflow DAG to local file (#1415) - [1415](https://github.com/elyra-ai/elyra/pull/1415)
-- Validate node resource requests for zero or negative values (#1394) - [1394](https://github.com/elyra-ai/elyra/pull/1394)
-- Add warning before submitting modified notebook/script (#1385) - [1385](https://github.com/elyra-ai/elyra/pull/1385)
-- Add reference documentation link to MetadataEditor (#1386) - [1386](https://github.com/elyra-ai/elyra/pull/1386)
-- Fix pipeline error message not updating (#1406) - [1406](https://github.com/elyra-ai/elyra/pull/1406)
-- Add reference to Apache Airflow tutorial to documentation (#1310) - [1310](https://github.com/elyra-ai/elyra/pull/1310)
-- Update to canvas version 10.1.0 (#1378) - [1378](https://github.com/elyra-ai/elyra/pull/1378)
-- Improve error handling when pipeline export pushes artifacts to COS (#1377) - [1377](https://github.com/elyra-ai/elyra/pull/1377)
-- Update runtime configuration documentation topic (#1393) - [1393](https://github.com/elyra-ai/elyra/pull/1393)
-- Add PyYAML version range based on kfp-tekton requirements (#1392) - [1392](https://github.com/elyra-ai/elyra/pull/1392)
-- Fix dark mode for metadata editor UI (#1369) - [1369](https://github.com/elyra-ai/elyra/pull/1369)
-- Add additional property for pipeline submission response (#1364) - [1364](https://github.com/elyra-ai/elyra/pull/1364)
+- Propagate operation input/output in sorted way [1427](https://github.com/elyra-ai/elyra/pull/1427)
+- Update error dialog message when no runtimes configured [1423](https://github.com/elyra-ai/elyra/pull/1423)
+- Remove error label when user fixes invalid metadata field [1402](https://github.com/elyra-ai/elyra/pull/1402)
+- Fix css alignment in add runtimes dropdown [1425](https://github.com/elyra-ai/elyra/pull/1425)
+- Add pytest suite for airflow processor [1317](https://github.com/elyra-ai/elyra/pull/1317)
+- Handle no runtimes configured on run/export/submit  [1404](https://github.com/elyra-ai/elyra/pull/1404)
+- Update resource validation to check for null values [1413](https://github.com/elyra-ai/elyra/pull/1413)
+- Add GitHub link to Runtimes UI [1410](https://github.com/elyra-ai/elyra/pull/1410)
+- Use absolute path when exporting Airflow DAG to local file [1415](https://github.com/elyra-ai/elyra/pull/1415)
+- Validate node resource requests for zero or negative values [1394](https://github.com/elyra-ai/elyra/pull/1394)
+- Add warning before submitting modified notebook/script [1385](https://github.com/elyra-ai/elyra/pull/1385)
+- Add reference documentation link to MetadataEditor [1386](https://github.com/elyra-ai/elyra/pull/1386)
+- Fix pipeline error message not updating [1406](https://github.com/elyra-ai/elyra/pull/1406)
+- Add reference to Apache Airflow tutorial to documentation [1310](https://github.com/elyra-ai/elyra/pull/1310)
+- Update to canvas version 10.1.0 [1378](https://github.com/elyra-ai/elyra/pull/1378)
+- Improve error handling when pipeline export pushes artifacts to COS [1377](https://github.com/elyra-ai/elyra/pull/1377)
+- Update runtime configuration documentation topic [1393](https://github.com/elyra-ai/elyra/pull/1393)
+- Add PyYAML version range based on kfp-tekton requirements [1392](https://github.com/elyra-ai/elyra/pull/1392)
+- Fix dark mode for metadata editor UI [1369](https://github.com/elyra-ai/elyra/pull/1369)
+- Add additional property for pipeline submission response [1364](https://github.com/elyra-ai/elyra/pull/1364)
 - Include object storage requirement in Apache Airflow configuration guide
-- Update Apache Airflow deployment documentation (#1367) - [1367](https://github.com/elyra-ai/elyra/pull/1367)
-- Update release script to support release candidate (#1365) - [1365](https://github.com/elyra-ai/elyra/pull/1365)
-- Update Tornado to release 6.1.0 (#1272) - [1272](https://github.com/elyra-ai/elyra/pull/1272)
-- Add support for multiple schemas in Metadata Editor (#1327) - [1327](https://github.com/elyra-ai/elyra/pull/1327)
-- Expose Github exceptions in a more user-friendly way (#1366) - [1366](https://github.com/elyra-ai/elyra/pull/1366)
-- Update documentation with new Submit script feature (#1357) - [1357](https://github.com/elyra-ai/elyra/pull/1357)
-- Formalize titles and descriptions in runtime schemas (#1352) - [1352](https://github.com/elyra-ai/elyra/pull/1352)
-- Switch to using Material UI in metadata editor (#1293) - [1293](https://github.com/elyra-ai/elyra/pull/1293)
-- Update Runtime configuration topic in the docs (#1353) - [1353](https://github.com/elyra-ai/elyra/pull/1353)
-- Add support for submitting scripts as pipeline (#1330) - [1330](https://github.com/elyra-ai/elyra/pull/1330)
-- Add pipeline source annotations to container ops (#1331) - [1331](https://github.com/elyra-ai/elyra/pull/1331)
-- Refresh Apache Airflow configuration documentation (#1311) - [1311](https://github.com/elyra-ai/elyra/pull/1311)
-- Add placeholder values to runtime configuration metadata (#1345) - [1345](https://github.com/elyra-ai/elyra/pull/1345)
-- Group metadata tags with name and description (#1347) - [1347](https://github.com/elyra-ai/elyra/pull/1347)
-- Update links in extension tracker documentation (#1348) - [1348](https://github.com/elyra-ai/elyra/pull/1348)
-- Refactor Apache Airflow github functions to the utility module (#1316) - [1316](https://github.com/elyra-ai/elyra/pull/1316)
+- Update Apache Airflow deployment documentation [1367](https://github.com/elyra-ai/elyra/pull/1367)
+- Update release script to support release candidate [1365](https://github.com/elyra-ai/elyra/pull/1365)
+- Update Tornado to release 6.1.0 [1272](https://github.com/elyra-ai/elyra/pull/1272)
+- Add support for multiple schemas in Metadata Editor [1327](https://github.com/elyra-ai/elyra/pull/1327)
+- Expose Github exceptions in a more user-friendly way [1366](https://github.com/elyra-ai/elyra/pull/1366)
+- Update documentation with new Submit script feature [1357](https://github.com/elyra-ai/elyra/pull/1357)
+- Formalize titles and descriptions in runtime schemas [1352](https://github.com/elyra-ai/elyra/pull/1352)
+- Switch to using Material UI in metadata editor [1293](https://github.com/elyra-ai/elyra/pull/1293)
+- Update Runtime configuration topic in the docs [1353](https://github.com/elyra-ai/elyra/pull/1353)
+- Add support for submitting scripts as pipeline [1330](https://github.com/elyra-ai/elyra/pull/1330)
+- Add pipeline source annotations to container ops [1331](https://github.com/elyra-ai/elyra/pull/1331)
+- Refresh Apache Airflow configuration documentation [1311](https://github.com/elyra-ai/elyra/pull/1311)
+- Add placeholder values to runtime configuration metadata [1345](https://github.com/elyra-ai/elyra/pull/1345)
+- Group metadata tags with name and description [1347](https://github.com/elyra-ai/elyra/pull/1347)
+- Update links in extension tracker documentation [1348](https://github.com/elyra-ai/elyra/pull/1348)
+- Refactor Apache Airflow github functions to the utility module [1316](https://github.com/elyra-ai/elyra/pull/1316)
 - Handle default field on metadata editor
 - Add default url for github api endpoint
-- Update KFP Notebook to 0.20.0 (#1344) - [1344](https://github.com/elyra-ai/elyra/pull/1344)
-- Fix invalid documentation references (#1342) - [1342](https://github.com/elyra-ai/elyra/pull/1342)
-- Honor default values for missing metadata properties (#1336) - [1336](https://github.com/elyra-ai/elyra/pull/1336)
-- Tweak runtime metadata definitions for Airflow and Kubeflow (#1296) - [1296](https://github.com/elyra-ai/elyra/pull/1296)
-- Improve pipeline node properties dark theme (#1328) - [1328](https://github.com/elyra-ai/elyra/pull/1328)
-- Add support for K8s pod labels and annotations for KFP (#1284) - [1284](https://github.com/elyra-ai/elyra/pull/1284)
-- Fix issues causing false circular dependency during validation (#1309) - [1309](https://github.com/elyra-ai/elyra/pull/1309)
-- Properly propagate runtime info when submitting notebook (#1306) - [1306](https://github.com/elyra-ai/elyra/pull/1306)
-- Update runtime image metadata configuration documentation (#1283) - [1283](https://github.com/elyra-ai/elyra/pull/1283)
-- Add ability to include image pull policy with runtime image (#1279) - [1279](https://github.com/elyra-ai/elyra/pull/1279)
-- Add tags to Apache Airflow metadata schema (#1294) - [1294](https://github.com/elyra-ai/elyra/pull/1294)
-- Update developer workflow documentation (#1288) - [1288](https://github.com/elyra-ai/elyra/pull/1288)
-- Experimental support of Airflow as a pipeline runtime (#490) - [490](https://github.com/elyra-ai/elyra/pull/490)
-- Fix watch mode by including source files in the package (#1269) - [1269](https://github.com/elyra-ai/elyra/pull/1269)
-- Properly propagate namespace on exported Python DSL (#1275) - [1275](https://github.com/elyra-ai/elyra/pull/1275)
-- Update  KFP to 1.3.0 and KFP-Tekton to 0.6.0 (#1276) - [1276](https://github.com/elyra-ai/elyra/pull/1276)
-- Fix dark theme for properties panel (#1262) - [1262](https://github.com/elyra-ai/elyra/pull/1262)
+- Update KFP Notebook to 0.20.0 [1344](https://github.com/elyra-ai/elyra/pull/1344)
+- Fix invalid documentation references [1342](https://github.com/elyra-ai/elyra/pull/1342)
+- Honor default values for missing metadata properties [1336](https://github.com/elyra-ai/elyra/pull/1336)
+- Tweak runtime metadata definitions for Airflow and Kubeflow [1296](https://github.com/elyra-ai/elyra/pull/1296)
+- Improve pipeline node properties dark theme [1328](https://github.com/elyra-ai/elyra/pull/1328)
+- Add support for K8s pod labels and annotations for KFP [1284](https://github.com/elyra-ai/elyra/pull/1284)
+- Fix issues causing false circular dependency during validation [1309](https://github.com/elyra-ai/elyra/pull/1309)
+- Properly propagate runtime info when submitting notebook [1306](https://github.com/elyra-ai/elyra/pull/1306)
+- Update runtime image metadata configuration documentation [1283](https://github.com/elyra-ai/elyra/pull/1283)
+- Add ability to include image pull policy with runtime image - [1279](https://github.com/elyra-ai/elyra/pull/1279)
+- Add tags to Apache Airflow metadata schema [1294](https://github.com/elyra-ai/elyra/pull/1294)
+- Update developer workflow documentation [1288](https://github.com/elyra-ai/elyra/pull/1288)
+- Experimental support of Airflow as a pipeline runtime [490](https://github.com/elyra-ai/elyra/pull/490)
+- Fix watch mode by including source files in the package [1269](https://github.com/elyra-ai/elyra/pull/1269)
+- Properly propagate namespace on exported Python DSL [1275](https://github.com/elyra-ai/elyra/pull/1275)
+- Update  KFP to 1.3.0 and KFP-Tekton to 0.6.0 [1276](https://github.com/elyra-ai/elyra/pull/1276)
+- Fix dark theme for properties panel [1262](https://github.com/elyra-ai/elyra/pull/1262)
 - Add details on how to determine workflow engine type
-- Update docs to clarify definition of public registry (#1258) - [1258](https://github.com/elyra-ai/elyra/pull/1258)
-- Refresh Elyra 2.x installation instructions (#1255) - [1255](https://github.com/elyra-ai/elyra/pull/1255)
-- Document how to create/publish Elyra release (#1247) - [1247](https://github.com/elyra-ai/elyra/pull/1247)
+- Update docs to clarify definition of public registry [1258](https://github.com/elyra-ai/elyra/pull/1258)
+- Refresh Elyra 2.x installation instructions [1255](https://github.com/elyra-ai/elyra/pull/1255)
+- Document how to create/publish Elyra release [1247](https://github.com/elyra-ai/elyra/pull/1247)
 
 ## 2.0.1 (1/27/2021)
 
@@ -90,7 +145,7 @@ High level enhancements
 
 Other enhancements and bug fixes
 
-- Add support for running pipelines on Argo and Tekton (#1239) [#1239](https://github.com/elyra-ai/elyra/pull/1239)
+- Add support for running pipelines on Argo and Tekton [#1239](https://github.com/elyra-ai/elyra/pull/1239)
 - Add support for pipeline node level resource configuration [#1203](https://github.com/elyra-ai/elyra/pull/1203)
 - Update KFP Notebook to 0.18.0
 - Rename application package to services [#1231](https://github.com/elyra-ai/elyra/pull/1231)
@@ -104,8 +159,8 @@ Other enhancements and bug fixes
 - Update KFP Notebook to 0.17.0 and KFP 1.1.2 [#1162](https://github.com/elyra-ai/elyra/pull/1162)
 - Update release script with publish option [#1151](https://github.com/elyra-ai/elyra/pull/1151)
 - Update KFP Notebook to 0.16.0
-- Enables removal of optiona metadata fields (#1155) [#1155](https://github.com/elyra-ai/elyra/pull/1155)
-- Set minio python package dependency to version <7 (#1143) [#1143](https://github.com/elyra-ai/elyra/pull/1143) 
+- Enables removal of optiona metadata fields [#1155](https://github.com/elyra-ai/elyra/pull/1155)
+- Set minio python package dependency to version <7 [#1143](https://github.com/elyra-ai/elyra/pull/1143) 
 - Enable display of metrics and metadata in KFP UI [#1054](https://github.com/elyra-ai/elyra/pull/1054)
 - Enable Elyra image to auto-start JupyterLab
 - Update to JupyterHub SingleUser 0.10.6 docker image

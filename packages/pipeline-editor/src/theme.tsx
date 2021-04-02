@@ -74,7 +74,7 @@ const theme: any = {
     },
     background: {
       default: 'var(--jp-layout-color1)',
-      secondary: 'var(--jp-border-color3)',
+      secondary: 'var(--jp-cell-editor-border-color)',
       input: 'var(--jp-editor-selected-background)'
     },
     highlight: {

@@ -20,10 +20,10 @@ import time
 from abc import ABC, abstractmethod
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
-from notebook.gateway.managers import GatewayClient
+from jupyter_server.gateway.managers import GatewayClient
 from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
-from typing import Dict
+from typing import Dict, List
 
 
 class LocalPipelineProcessor(PipelineProcessor):
@@ -42,7 +42,7 @@ class LocalPipelineProcessor(PipelineProcessor):
     _type = 'local'
 
     def __init__(self, root_dir, **kwargs):
-        super(LocalPipelineProcessor, self).__init__(root_dir, **kwargs)
+        super().__init__(root_dir, **kwargs)
         notebook_op_processor = NotebookOperationProcessor(self.root_dir)
         python_op_processor = PythonScriptOperationProcessor(self.root_dir)
         r_op_processor = RScriptOperationProcessor(self.root_dir)
@@ -118,8 +118,10 @@ class OperationProcessor(ABC):
 
 class FileOperationProcessor(OperationProcessor):
 
+    MAX_ERROR_LEN: int = 80
+
     def __init__(self, root_dir: str):
-        super(FileOperationProcessor, self).__init__()
+        super().__init__()
         self._root_dir = root_dir
 
     @property
@@ -130,7 +132,7 @@ class FileOperationProcessor(OperationProcessor):
     def process(self, operation: Operation):
         raise NotImplementedError
 
-    def get_valid_filepath(self, op_filename):
+    def get_valid_filepath(self, op_filename: str) -> str:
         filepath = get_absolute_path(self._root_dir, op_filename)
         if not os.path.exists(filepath):
             raise FileNotFoundError(f'Could not find {filepath}')
@@ -138,12 +140,37 @@ class FileOperationProcessor(OperationProcessor):
             raise ValueError(f'Not a file: {filepath}')
         return filepath
 
+    def log_and_raise(self, file_name: str, ex: Exception) -> None:
+        """Log and raise the exception that occurs when processing file_name.
+
+        If the exception's message is longer than MAX_ERROR_LEN, it will be
+        truncated with an ellipses (...) when raised.  The complete message
+        will be logged.
+        """
+        self.log.error(f'Error executing {file_name}: {str(ex)}')
+        truncated_msg = FileOperationProcessor._truncate_msg(str(ex))
+        raise RuntimeError(f'({file_name}): {truncated_msg}') from ex
+
+    @staticmethod
+    def _truncate_msg(msg: str) -> str:
+        """Truncates the msg string to be less that MAX_ERROR_LEN.
+
+        If msg is longer than MAX_ERROR_LEN, the first space is found from the right,
+        then ellipses (...) are appended to that location so that they don't appear
+        in the middle of a word.  As a result, the truncation could result in lengths
+        less than the max+2.
+        """
+        if len(msg) < FileOperationProcessor.MAX_ERROR_LEN:
+            return msg
+        # locate the first whitespace from the 80th character and truncate from there
+        last_space = msg.rfind(' ', 0, FileOperationProcessor.MAX_ERROR_LEN)
+        if last_space >= 0:
+            return msg[:last_space] + "..."
+        return msg[:FileOperationProcessor.MAX_ERROR_LEN]
+
 
 class NotebookOperationProcessor(FileOperationProcessor):
     _operation_name = 'execute-notebook-node'
-
-    def __init__(self, root_dir: str):
-        super(NotebookOperationProcessor, self).__init__(root_dir)
 
     def process(self, operation: Operation):
         filepath = self.get_valid_filepath(operation.filename)
@@ -183,19 +210,19 @@ class NotebookOperationProcessor(FileOperationProcessor):
             raise RuntimeError(f'({file_name}) in cell {pmee.exec_count}: ' +
                                f'{str(pmee.ename)} {str(pmee.evalue)}') from pmee
         except Exception as ex:
-            self.log.error(f'Error executing {file_name}: {str(ex)}')
-            raise RuntimeError(f'({file_name})') from ex
+            self.log_and_raise(file_name, ex)
 
         t1 = time.time()
         duration = (t1 - t0)
         self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
 
 
-class PythonScriptOperationProcessor(FileOperationProcessor):
-    _operation_name = 'execute-python-node'
+class ScriptOperationProcessor(FileOperationProcessor):
 
-    def __init__(self, root_dir):
-        super(PythonScriptOperationProcessor, self).__init__(root_dir)
+    _script_type: str = None
+
+    def get_argv(self, filepath) -> List[str]:
+        raise NotImplementedError
 
     def process(self, operation: Operation):
         filepath = self.get_valid_filepath(operation.filename)
@@ -203,9 +230,9 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
         file_dir = os.path.dirname(filepath)
         file_name = os.path.basename(filepath)
 
-        self.log.debug(f'Processing python script: {filepath}')
+        self.log.debug(f'Processing {self._script_type} script: {filepath}')
 
-        argv = ['python3', filepath, '--PYTHONHOME', file_dir]
+        argv = self.get_argv(filepath)
 
         envs = os.environ.copy()  # Make sure this process's env is "available" in subprocess
         envs.update(operation.env_vars_as_dict())
@@ -222,38 +249,24 @@ class PythonScriptOperationProcessor(FileOperationProcessor):
             else:
                 raise RuntimeError(f'({file_name})') from cpe
         except Exception as ex:
-            self.log.error(f'Error executing {file_name}: {str(ex)}')
-            raise RuntimeError(f'({file_name})') from ex
+            self.log_and_raise(file_name, ex)
 
         t1 = time.time()
         duration = (t1 - t0)
         self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
 
 
-class RScriptOperationProcessor(FileOperationProcessor):
+class PythonScriptOperationProcessor(ScriptOperationProcessor):
+    _operation_name = 'execute-python-node'
+    _script_type = 'Python'
+
+    def get_argv(self, file_path) -> List[str]:
+        return ['python3', file_path, '--PYTHONHOME', os.path.dirname(file_path)]
+
+
+class RScriptOperationProcessor(ScriptOperationProcessor):
     _operation_name = 'execute-r-node'
+    _script_type = 'R'
 
-    def __init__(self, root_dir):
-        super(RScriptOperationProcessor, self).__init__(root_dir)
-
-    def process(self, operation: Operation):
-        filepath = self.get_valid_filepath(operation.filename)
-
-        file_dir = os.path.dirname(filepath)
-        file_name = os.path.basename(filepath)
-
-        self.log.debug(f'Processing R script: {filepath}')
-
-        argv = ['Rscript', filepath]
-
-        envs = os.environ.copy()  # Make sure this process's env is "available" in subprocess
-        envs.update(operation.env_vars_as_dict())
-        t0 = time.time()
-        try:
-            run(argv, cwd=file_dir, env=envs, check=True)
-        except Exception as ex:
-            raise RuntimeError(f'Internal error executing {filepath}: {ex}') from ex
-
-        t1 = time.time()
-        duration = (t1 - t0)
-        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
+    def get_argv(self, file_path) -> List[str]:
+        return ['Rscript', file_path]
