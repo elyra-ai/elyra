@@ -49,15 +49,21 @@ class FileParser(ABC):
 
     def __init__(self, operation_filepath):
         self._operation_filepath = operation_filepath
-        self.parser = None
+        self._parser = None
 
-        # Consider removing or add log messages
+        # Consider adding log messages
         self.log = log.get_logger()
 
     @property
     @abstractmethod
     def type(self):
         pass
+
+    @property
+    def parser(self):
+        if not self._parser:
+            raise ValueError(f'Could not find appropriate language parser for {self.operation_filepath}')
+        return self._parser
 
     @property
     def operation_filepath(self):
@@ -90,8 +96,6 @@ class FileParser(ABC):
         for chunk in self.get_next_code_chunk():
             if chunk:
                 for line in chunk:
-                    if not self.parser:
-                        raise RuntimeError(f'Could not find appropriate language parser for {self.operation_filepath}')
                     matches = self.parser.parse_environment_variables(line)
                     for key, match in matches:
                         model[key][match.group(1)] = match.group(2)
@@ -111,9 +115,9 @@ class NotebookFileParser(FileParser):
             language = self.notebook['metadata']['kernelspec']['language']
 
             if language == 'python':
-                self.parser = PythonScriptParser()
+                self._parser = PythonScriptParser()
             elif language == 'r':
-                self.parser = RScriptParser()
+                self._parser = RScriptParser()
 
     def type(self):
         return self._type
@@ -130,7 +134,7 @@ class PythonFileParser(FileParser):
 
     def __init__(self, operation_filepath):
         super().__init__(operation_filepath)
-        self.parser = PythonScriptParser()
+        self._parser = PythonScriptParser()
 
     def type(self):
         return self._type
@@ -145,7 +149,7 @@ class RFileParser(FileParser):
 
     def __init__(self, operation_filepath):
         super().__init__(operation_filepath)
-        self.parser = RScriptParser()
+        self._parser = RScriptParser()
 
     def type(self):
         return self._type
