@@ -29,18 +29,15 @@ import {
   showFormDialog
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
-import {
-  Dialog,
-  ReactWidget,
-  showDialog,
-  showErrorMessage
-} from '@jupyterlab/apputils';
+import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
 import {
   DocumentRegistry,
   ABCWidgetFactory,
   DocumentWidget
 } from '@jupyterlab/docregistry';
+import { Snackbar } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
 
 import 'carbon-components/css/carbon-components.min.css';
 
@@ -89,6 +86,7 @@ const PipelineWrapper = ({
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
+  const [alert, setAlert] = React.useState(null);
 
   useEffect(() => {
     context.ready.then(() => {
@@ -179,7 +177,7 @@ const PipelineWrapper = ({
     // prepare pipeline submission details
     // Warn user if the pipeline has invalid nodes
     if (!pipeline) {
-      showErrorMessage('Failed export', 'Cannot export empty pipelines.');
+      setAlert('Failed export: Cannot export empty pipelines.');
       return;
     }
     const errorMessages = validate(JSON.stringify(pipeline), nodes);
@@ -188,7 +186,7 @@ const PipelineWrapper = ({
       for (const error of errorMessages) {
         errorMessage += error.message;
       }
-      showErrorMessage('Failed export.', errorMessage);
+      setAlert(`Failed export: ${errorMessage}`);
       return;
     }
 
@@ -291,7 +289,7 @@ const PipelineWrapper = ({
       for (const error of errorMessages) {
         errorMessage += error.message;
       }
-      showErrorMessage('Failed export.', errorMessage);
+      setAlert(`Failed run: ${errorMessage}`);
       return;
     }
 
@@ -574,12 +572,29 @@ const PipelineWrapper = ({
     handleAddFileToPipeline();
   });
 
+  const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setAlert(null);
+  };
+
   if (loading) {
     return <div>loading</div>;
   }
 
   return (
     <ThemeProvider theme={theme}>
+      <Snackbar
+        open={alert !== null}
+        autoHideDuration={6000}
+        onClose={handleClose}
+      >
+        <Alert severity={'error'} onClose={handleClose}>
+          {alert}
+        </Alert>
+      </Snackbar>
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}

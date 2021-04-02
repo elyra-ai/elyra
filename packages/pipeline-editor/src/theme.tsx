@@ -65,7 +65,7 @@ const theme: any = {
     },
     text: {
       primary: 'var(--jp-content-font-color0)',
-      secondary: 'var(--jp-ui-font-color1)',
+      secondary: 'var(--jp-layout-color4)',
       bold: 'var(--jp-inverse-layout-color2)',
       inactive: 'var(--jp-inverse-layout-color4)',
       disabled: 'var(--jp-inverse-layout-color3)',
