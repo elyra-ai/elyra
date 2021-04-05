@@ -15,7 +15,6 @@
  */
 
 import '../style/index.css';
-
 import {
   IMetadata,
   IMetadataActionButton,
@@ -26,6 +25,7 @@ import {
   MetadataWidget,
   METADATA_ITEM
 } from '@elyra/metadata-common';
+import { ScriptEditor } from '@elyra/script-editor';
 import {
   ExpandableComponent,
   importIcon,
@@ -124,8 +124,13 @@ class CodeSnippetDisplay extends MetadataDisplay<
         fileEditor.replaceSelection(
           '```' + snippet.metadata.language + '\n' + snippetStr + '\n```'
         );
-      } else if (widget.constructor.name == 'PythonFileEditor') {
-        this.verifyLanguageAndInsert(snippet, 'python', fileEditor);
+      } else if (widget.constructor.name == 'ScriptEditor') {
+        const scriptEditorWidget = widget as ScriptEditor;
+        this.verifyLanguageAndInsert(
+          snippet,
+          scriptEditorWidget.editorLanguage,
+          fileEditor
+        );
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
