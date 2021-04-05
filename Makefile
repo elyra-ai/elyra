@@ -175,6 +175,11 @@ kf-notebook-image: ## Build elyra image for use with Kubeflow Notebook Server
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE) -t quay.io/$(KF_NOTEBOOK_IMAGE) \
 	etc/docker/kubeflow/ --progress plain
 
+publish-kf-notebook-image: kf-notebook-image ## Publish KF Notebook Server container image
+    # this is a privileged operation; a `docker login` might be required
+	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
+	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
+
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
 	pip install jq ; \
