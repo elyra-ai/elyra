@@ -104,25 +104,22 @@ class CodeSnippetDisplay extends MetadataDisplay<
     this._evtMouseUp = this._evtMouseUp.bind(this);
   }
 
-  // Handle code snippet insert into an editor
+  // Handle code snippet insertion into an editor
   private insertCodeSnippet = async (snippet: IMetadata): Promise<void> => {
-    const widget: Widget = this.props.getCurrentWidget();
+    const widget = this.props.getCurrentWidget();
     const snippetStr: string = snippet.metadata.code.join('\n');
 
-    if (
-      widget instanceof DocumentWidget &&
-      (widget as DocumentWidget).content instanceof FileEditor
-    ) {
-      const documentWidget = widget as DocumentWidget;
-      const fileEditor = (documentWidget.content as FileEditor).editor;
+    if (this.isFileEditor(widget)) {
+      const fileEditor = this.getFileEditor(widget);
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
       if (
-        PathExt.extname(widget.context.path).match(markdownRegex) !== null &&
+        PathExt.extname((widget as DocumentWidget).context.path).match(
+          markdownRegex
+        ) !== null &&
         snippet.metadata.language.toLowerCase() !== 'markdown'
       ) {
-        // Wrap snippet into a code block when inserting it into a markdown file
         fileEditor.replaceSelection(
-          '```' + snippet.metadata.language + '\n' + snippetStr + '\n```'
+          this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
         );
       } else if (widget.constructor.name == 'ScriptEditor') {
         const scriptEditorWidget = widget as ScriptEditor;
@@ -154,9 +151,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
         notebookCell instanceof MarkdownCell &&
         snippet.metadata.language.toLowerCase() !== 'markdown'
       ) {
-        // Wrap snippet into a code block when inserting it into a markdown cell
         notebookCellEditor.replaceSelection(
-          '```' + snippet.metadata.language + '\n' + snippetStr + '\n```'
+          this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
         );
       } else {
         notebookCellEditor.replaceSelection(snippetStr);
@@ -166,6 +162,25 @@ class CodeSnippetDisplay extends MetadataDisplay<
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
+  };
+
+  // Verify if a given widget is a FileEditor
+  private isFileEditor = (widget: Widget): boolean => {
+    return (
+      widget instanceof DocumentWidget &&
+      (widget as DocumentWidget).content instanceof FileEditor
+    );
+  };
+
+  // Return the code editor from a given widget
+  private getFileEditor = (widget: Widget): CodeEditor.IEditor => {
+    const documentWidget = widget as DocumentWidget;
+    return (documentWidget.content as FileEditor).editor;
+  };
+
+  // Return the given code wrapped in a markdown code block
+  private addMarkdownCodeBlock = (language: string, code: string) => {
+    return '```' + language + '\n' + code + '\n```';
   };
 
   // Handle language compatibility between code snippet and editor
