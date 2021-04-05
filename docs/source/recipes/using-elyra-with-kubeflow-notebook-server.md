@@ -27,9 +27,9 @@ In this example we will show how to launch Elyra using [Kubeflow's Notebook Serv
 
 - Select the desired Elyra container image version from the `elyra/kf-notebook` repositories on [Docker Hub](https://hub.docker.com/r/elyra/kf-notebook) or [quay.io](https://quay.io/repository/elyra/kf-notebook). Do NOT use other images, such as the ones in `elyra/elyra`.
   
-    OR
+  OR
 
-  - Create a custom Elyra container image using [this `Dockerfile`](https://github.com/elyra-ai/elyra/blob/master/etc/docker/kubeflow/Dockerfile) as a base and customize it as desired.
+  Create a custom Elyra container image following the [instructions in this directory](https://github.com/elyra-ai/elyra/tree/master/etc/docker/kubeflow). 
     
 ## Launching Elyra in the Kubeflow Notebook Server
 1. In the default Kubeflow welcome page, in the left side menu, click on `Notebook Servers`   
