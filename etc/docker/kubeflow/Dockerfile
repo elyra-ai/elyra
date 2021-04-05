@@ -27,6 +27,10 @@ COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir --use-deprecated=legacy-resolver && \
     rm -f /tmp/requirements.txt
 
+# install elyra
+RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra==2.2.1
+
+
 RUN jupyter lab build
 
 USER jovyan
