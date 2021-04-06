@@ -32,14 +32,13 @@ To list, create, edit, delete, or insert code snippets using the UI select the `
 #### Creating a code snippet
 
 To create a code snippet:
-1. Select the `Code Snippets` tab from the JupyterLab sidebar.
-1. Click `+` to add a new code snippet.
-1. Provide a code snippet display name, an optional description, and tag the code snippet to make it more easily discoverable.
+1. Select the `Code Snippets` tab from the JupyterLab sidebar and click `+`. You can also highlight the desired text in the editor, right click, and choose `Save As Code Snippet` from the context menu.
+   ![Add code snippet from text](../images/add-code-snippet-from-text.png)
+
+1. Enter a code snippet display name, an optional description, and tag the code snippet to make it more easily discoverable.
 1. Define the code snippet. Refer to the [Code snippet properties](#code-snippet-properties) for details.
+   ![Add Code Snippets](../images/add-code-snippet.png)
 1. Save the code snippet. The new code snippet entry is displayed in the list. 
-
-![Add Code Snippets](../images/add-code-snippets.png)
-
 1. Expand the entry to preview the snippet content
 
 #### Modifying a code snippet
@@ -56,15 +55,16 @@ To delete a code snippet:
 
 #### Using code snippets
 
-To search for a code snippet, type a keyword in the search bar. Code snippets can also be filtered by selecting tags when clicking on the tag icon.
+To search for a code snippet, type a keyword in the search bar or select one or more tags.
 
-![Search Code Snippets](../images/search-code-snippets.png)
+  ![Search Code Snippets](../images/search-code-snippets.png)
 
-The **insert** button inserts the code snippet content into the editor tab in focus. If the widget in focus is not an editor, an error is displayed.
+To insert the code snippet content into an open editor, click the insert button or use drag and drop. 
+
+  ![Insert Code Snippet](../images/insert-code-snippet.png)
+
 Code snippets are automatically added as code blocks in markdown files and notebook markdown cells.
-When inserting snippets into executable editors (ie. a notebook code cell or a Python file editor), the extension will verify kernel language compatibility, warning the user when a mismatch is detected.
-
-Code snippets can also be dragged and dropped from the list into notebooks and file editors.
+When inserting snippets into executable editors (e.g. a notebook code cell or a Python/R file editor), the extension will verify kernel language compatibility, warning the user when a mismatch is detected.
 
 ### Managing code snippets using the Elyra CLI
 
@@ -83,9 +83,9 @@ The output lists for each code snippet the name and the name of the associated J
 ```
 Available metadata instances for code-snippets (includes invalid):
 
-Schema   	Instance	Resource  
----------   	--------	--------
-code-snippet   	preview_df	/Users/jdoe/Library/Jupyter/metadata/preview_df.json 
+Schema   	Instance		Resource  
+---------   	--------		--------
+code-snippet   	preview_dataframe	/.../metadata/preview_dataframe.json 
 ```
 
 To format the output as JSON run `elyra-metadata list code-snippets --json`. Note that the JSON export includes the content of the metadata files, not just their names.
@@ -112,7 +112,7 @@ To modify a code snippet:
 ```bash
 elyra-metadata install code-snippets \
 	--replace \
-	--name="preview_df" \
+	--name="preview_dataframe" \
 	--display_name="Preview DataFrame" \
 	--description="Preview Pandas DataFrame" \
 	--tags="['Python', 'Pandas']" \
@@ -124,10 +124,10 @@ Refer to the [Code snippet properties](#code-snippet-properties) section for an 
 
 #### Deleting a code snippet
 
-To delete a code snippet run the following command, replacing the configuration name as appropriate.
+To delete a code snippet run the following command, replacing the code snippet name as appropriate.
 
 ```bash
-elyra-metadata remove code-snippet --name="preview_df"
+elyra-metadata remove code-snippet --name="preview_dataframe"
 ```
 
 ### Code snippet properties
@@ -136,15 +136,15 @@ The string in the headings below, which is enclosed in parentheses, denotes the 
 
 ##### Name (display_name)
 
-A user-friendly name for runtime configuration. This property is required.
+A user-friendly name for the code snippet. This property is required.
 
 Example: `Preview DataFrame`
 
 ##### N/A (name)
 
-A unique identifier for this code snippet. A value is automatically generated from `display_name` when the code snippet is created.
+A unique identifier for this code snippet. If not specified when the code snippet is created, a value is automatically generated from `display_name`.
 
-Example: `preview_df`
+Example: `preview_dataframe`
 
 ##### description (description)
 
@@ -160,7 +160,7 @@ Example: `['Python', 'Pandas']`
 
 ##### Language (language)
 
-Code snippet language name. Choose from the pre-defined  `Python`, `Java`, `R`, `Scala`, and `Markdown` or any suitable string. This property is required.
+Code snippet language name. Use one of the pre-defined values  (`Python`, `Java`, `R`, `Scala`, and `Markdown`) or provide a custom string. This property is required.
 
 Example: `Python`
 
@@ -168,4 +168,4 @@ Example: `Python`
 
 The code snippet, formatted as an array of strings. Each item in the array represents a line in the code. This property is required.
 
-Example: `['# A Python command', 'print(variable)']`
+Example: `['# A Python comment', 'print(variable)']`
