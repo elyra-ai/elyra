@@ -44,11 +44,11 @@ elyra-r-editor-extension
 ```bash
 create-release.py publish --version 2.0.0 [--rc 0]
 ```
-- Build and publish docker images based on release tag
+- Build and publish container images based on release tag
 ```bash
 git pull --rebase
 git checkout tags/v2.0.0
-make container-image publish-container-image
+make container-images publish-container-images
 ```  
 
 - Update dev and latest image tags based on release tag
