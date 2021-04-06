@@ -64,12 +64,12 @@ export class CanvasManager {
     }
   }
 
-  addNode(
+  async addNode(
     file: Contents.IModel,
     fileContent: string,
     x: number,
     y: number
-  ): boolean {
+  ): Promise<boolean> {
     console.log('Adding ==> ' + file.path);
 
     const nodeTemplate = this.canvasController.getPaletteNode(
@@ -84,7 +84,7 @@ export class CanvasManager {
         nodeTemplate: this.canvasController.convertNodeTemplate(nodeTemplate)
       };
 
-      const env_vars = FileParser.getEnvVars(file.path);
+      const env_vars = await FileParser.getEnvVars(file.path);
 
       data.nodeTemplate.label = PathExt.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(
