@@ -20,6 +20,7 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
+//import { stride } from '@lumino/algorithm';
 
 import { PipelineService } from './PipelineService';
 
@@ -83,10 +84,7 @@ export class CanvasManager {
         nodeTemplate: this.canvasController.convertNodeTemplate(nodeTemplate)
       };
 
-      let env_vars: any;
-      if (CanvasManager.getNodeType(file.path) == ContentType.notebook) {
-        env_vars = FileParser.getEnvVars(file.path);
-      }
+      const env_vars = FileParser.getEnvVars(file.path);
 
       data.nodeTemplate.label = PathExt.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(

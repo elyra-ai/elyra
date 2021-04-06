@@ -18,10 +18,9 @@ import os
 import nbformat
 import re
 
-from abc import ABC, abstractmethod
+from traitlets.config import LoggingConfigurable
 
 from typing import Any, Type, TypeVar, List, Dict
-from traitlets import log
 from ..util import get_expanded_path, get_absolute_path
 
 # Setup forward reference for type hint on return from class factory method.  See
@@ -29,7 +28,11 @@ from ..util import get_expanded_path, get_absolute_path
 F = TypeVar('F', bound='FileParser')
 
 
-class FileParser(ABC):
+class FileParser(LoggingConfigurable):
+    """
+    Base class for parsing a file for resources according to operation type. Subclasses set
+    their own parser member variable according to their implementation language.
+    """
 
     @classmethod
     def get_instance(cls: Type[F], **kwargs: Any) -> F:
@@ -45,19 +48,9 @@ class FileParser(ABC):
         else:
             raise ValueError('Unsupported file type: {}'.format(filepath))
 
-    _type = None
-
     def __init__(self, operation_filepath):
         self._operation_filepath = operation_filepath
         self._parser = None
-
-        # Consider adding log messages
-        self.log = log.get_logger()
-
-    @property
-    @abstractmethod
-    def type(self):
-        pass
 
     @property
     def parser(self):
@@ -67,7 +60,7 @@ class FileParser(ABC):
 
     @property
     def operation_filepath(self):
-        # Retrieve the absolute path
+        """Converts the given filepath into an absolute path and checks that file exists"""
         root_dir = get_expanded_path()
         abs_path = get_absolute_path(root_dir, self._operation_filepath)
 
@@ -79,15 +72,17 @@ class FileParser(ABC):
         self._operation_filepath = abs_path
         return self._operation_filepath
 
-    @abstractmethod
     def get_next_code_chunk(self) -> List[str]:
-        # Implements a generator for lines of code for the specified operation type
+        """
+        Implements a generator for lines of code in the specified filepath. Subclasses
+        may override if explicit line-by-line parsing is not feasible, e.g. with Notebooks.
+        """
         with open(self.operation_filepath) as f:
             for line in f:
                 yield [line.strip()]
 
     def get_resources(self):
-        # Returns a model dictionary of all the regex matches for each key in the regex dictionary
+        """Returns a model dictionary of all the regex matches for each key in the regex dictionary"""
         model = dict()
         model["env_list"] = dict()
         model["inputs"] = dict()
@@ -105,8 +100,6 @@ class FileParser(ABC):
 
 class NotebookFileParser(FileParser):
 
-    _type = "notebook"
-
     def __init__(self, operation_filepath):
         super().__init__(operation_filepath)
 
@@ -119,9 +112,6 @@ class NotebookFileParser(FileParser):
             elif language == 'r':
                 self._parser = RScriptParser()
 
-    def type(self):
-        return self._type
-
     def get_next_code_chunk(self) -> List[str]:
         for cell in self.notebook.cells:
             if cell.source and cell.cell_type == "code":
@@ -130,35 +120,24 @@ class NotebookFileParser(FileParser):
 
 class PythonFileParser(FileParser):
 
-    _type = "python"
-
     def __init__(self, operation_filepath):
         super().__init__(operation_filepath)
         self._parser = PythonScriptParser()
 
-    def type(self):
-        return self._type
-
-    def get_next_code_chunk(self) -> List[str]:
-        return super().get_next_code_chunk()
-
 
 class RFileParser(FileParser):
-
-    _type = "r"
 
     def __init__(self, operation_filepath):
         super().__init__(operation_filepath)
         self._parser = RScriptParser()
 
-    def type(self):
-        return self._type
-
-    def get_next_code_chunk(self) -> List[str]:
-        return super().get_next_code_chunk()
-
 
 class ScriptParser():
+    """
+    Base class for parsing individual lines of code. Subclasses implement a search_expressions()
+    function that returns language-specific regexes to match against code lines.
+    """
+
     def parse_environment_variables(self, line):
         # Parse a line fed from file and match each regex in regex dictionary
         matches = []

@@ -60,11 +60,6 @@ export class SubmitScriptButtonExtension
       }
     }
 
-    /*
-    // TODO: 
-    // get environment variables from the editor
-    // Rename FileParser to ContentParser in from '@elyra/services and adjust getEnvVars according to widget type
-    */
     const env = await FileParser.getEnvVars(
       editor.context.path.toString()
     ).catch(error => RequestErrors.serverError(error));

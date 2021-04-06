@@ -17,6 +17,7 @@
 import json
 
 from jupyter_server.base.handlers import APIHandler
+from jupyter_server.utils import url_unescape
 from tornado import web
 # from typing import Any, Type, TypeVar, List, Dict
 from ..util.http import HttpErrorMixin
@@ -35,6 +36,7 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def get(self, path=''):
         path = path or ''
+        path = url_unescape(path)
 
         type = self.get_query_argument('type', default=None)
         if type not in {None, 'file', 'notebook'}:

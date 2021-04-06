@@ -39,7 +39,7 @@ export class FileParser {
       const response = await RequestHandler.makeGetRequest(
         ELYRA_FILE_PARSER_API_ENDPOINT + file_path
       );
-      // temporary workaround to only return environment var names (not values)
+      // Only return environment var names (not values)
       return Object.keys(response.env_list);
     } catch (error) {
       return Promise.reject(error);

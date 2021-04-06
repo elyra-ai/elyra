@@ -25,7 +25,7 @@ from .contents.handlers import FileParserHandler
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
-path_regex = r"(?P<path>[\w\.\/\-]+)"
+path_regex = r"(?P<path>[\w\.\/\-\%]+)"
 
 
 def _jupyter_server_extension_points():
@@ -49,7 +49,7 @@ def _load_jupyter_server_extension(nb_server_app):
         (url_path_join(web_app.settings['base_url'], r'/elyra/namespace'), NamespaceHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/schedule'), PipelineSchedulerHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/export'), PipelineExportHandler),
-        (url_path_join(web_app.settings['base_url'], r'/elyra/contents/properties/%s' % path_regex),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/contents/properties/%s' % (path_regex)),
          FileParserHandler),
     ])
     # Create PipelineProcessorManager instance passing root directory
