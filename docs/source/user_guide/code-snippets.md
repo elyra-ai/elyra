@@ -127,7 +127,7 @@ Refer to the [Code snippet properties](#code-snippet-properties) section for an 
 To delete a code snippet run the following command, replacing the code snippet name as appropriate.
 
 ```bash
-elyra-metadata remove code-snippet --name="preview_dataframe"
+elyra-metadata remove code-snippets --name="preview_dataframe"
 ```
 
 ### Code snippet properties
