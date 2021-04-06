@@ -146,7 +146,7 @@ A unique identifier for this code snippet. If not specified when the code snippe
 
 Example: `preview_dataframe`
 
-##### description (description)
+##### Description (description)
 
 Description for this code snippet. This property is optional.
 
