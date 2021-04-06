@@ -85,7 +85,7 @@ Available metadata instances for code-snippets (includes invalid):
 
 Schema   	Instance		Resource  
 ---------   	--------		--------
-code-snippet   	preview_dataframe	/.../metadata/preview_dataframe.json 
+code-snippet   	preview_dataframe	/.../metadata/code-snippets/preview_dataframe.json 
 ```
 
 To format the output as JSON run `elyra-metadata list code-snippets --json`. Note that the JSON export includes the content of the metadata files, not just their names.
@@ -146,7 +146,7 @@ A unique identifier for this code snippet. If not specified when the code snippe
 
 Example: `preview_dataframe`
 
-##### description (description)
+##### Description (description)
 
 Description for this code snippet. This property is optional.
 
