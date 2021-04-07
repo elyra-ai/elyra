@@ -132,6 +132,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata['cos_username']
         cos_password = runtime_configuration.metadata['cos_password']
+        cos_secret = runtime_configuration.metadata.get('cos_secret')
         cos_directory = pipeline_name
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
@@ -162,8 +163,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
 
             # Collect env variables
             pipeline_envs = dict()
-            pipeline_envs['AWS_ACCESS_KEY_ID'] = cos_username
-            pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
+            if not cos_secret:
+                pipeline_envs['AWS_ACCESS_KEY_ID'] = cos_username
+                pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
             # Convey pipeline logging enablement to operation
             pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
 
@@ -250,12 +252,14 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                      name=pipeline.runtime_config)
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
+            cos_secret = runtime_configuration.metadata.get('cos_secret')
 
             description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
             python_output = template.render(operations_list=notebook_ops,
                                             pipeline_name=pipeline_name,
                                             namespace=user_namespace,
+                                            cos_secret=cos_secret,
                                             kube_config_path=None,
                                             is_paused_upon_creation='False',
                                             in_cluster='True',
