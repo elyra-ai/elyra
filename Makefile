@@ -14,10 +14,11 @@
 # limitations under the License.
 #
 
-.PHONY: help purge uninstall clean test-dependencies lint-server lint-ui lint yarn-install build-ui build-server install-server
-.PHONY: install watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
-.PHONY: elyra-image validate-runtime-images kf-notebook-image publish-kf-notebook-image airflow-image publish-airflow-image
-.PHONY: container-images publish-container-images
+.PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install
+.PHONY: build-ui build-server install-server
+.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
+.PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
+.PHONY: publish-kf-notebook-image airflow-image publish-airflow-image container-images publish-container-images
 
 SHELL:=/bin/bash
 
