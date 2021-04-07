@@ -72,7 +72,7 @@ $ elyra-metadata list runtime-images --json | jq ".[].display_name"
 #### List, create, update, and delete metadata
 
 Refer to the topics below for detailed information on how to use `elyra-metadata` to
- - [Manage code snippets](code-snippets.md)
+ - [Manage code snippets](code-snippets.html#managing-code-snippets-using-the-elyra-cli)
  - [Manage runtime configurations](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli)
  - [Manage runtime images](runtime-image-conf.html#managing-runtime-images-with-the-command-line-interface)
 
