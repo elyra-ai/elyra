@@ -91,12 +91,12 @@
           }
         },
         "cos_secret": {
-          "title": "Cloud Object Storage Secret",
-          "description": "Name of the secret stored on the kubernetes host containing the Username and Password",
+          "title": "Cloud Object Storage Credentials Secret",
+          "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.",
           "type": "string",
           "uihints": {
             "secure": true,
-            "category": "Cloud Object Storage"
+            "category": "Kubernetes"
           }
         },
         "cos_username": {

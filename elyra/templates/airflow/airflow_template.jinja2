@@ -20,6 +20,7 @@ dag = DAG(
 )
 
 {% if cos_secret %}
+## Ensure that the secret named '{{ cos_secret }}' is defined in the Kubernetes namespace where this pipeline will be run
 env_var_secret_id = Secret(deploy_type='env',
                            deploy_target='AWS_ACCESS_KEY_ID',
                            secret='{{ cos_secret }}',
