@@ -38,15 +38,16 @@ class FileParser(LoggingConfigurable):
     def get_instance(cls: Type[F], **kwargs: Any) -> F:
         """Creates an appropriate subclass instance based on the extension of the filepath"""
         filepath = kwargs['filepath']
+        _, file_extension = os.path.splitext(filepath)
 
-        if '.ipynb' in filepath:
+        if file_extension == '.ipynb':
             return NotebookFileParser(filepath)
-        elif '.py' in filepath:
+        elif file_extension == '.py':
             return PythonFileParser(filepath)
-        elif '.r' in filepath:
+        elif file_extension == '.r':
             return RFileParser(filepath)
         else:
-            raise ValueError('Unsupported file type: {}'.format(filepath))
+            raise ValueError(f'Files with extension {file_extension} are not supported.')
 
     def __init__(self, operation_filepath):
         self._operation_filepath = operation_filepath
@@ -55,7 +56,7 @@ class FileParser(LoggingConfigurable):
     @property
     def parser(self):
         if not self._parser:
-            raise ValueError(f'Could not find appropriate language parser for {self.operation_filepath}')
+            raise ValueError(f'Could not find appropriate language parser for {self._operation_filepath}.')
         return self._parser
 
     @property
@@ -65,9 +66,9 @@ class FileParser(LoggingConfigurable):
         abs_path = get_absolute_path(root_dir, self._operation_filepath)
 
         if not os.path.exists(abs_path):
-            raise FileNotFoundError(f'Could not find {abs_path}')
+            raise FileNotFoundError(f'{abs_path} not found.')
         if not os.path.isfile(abs_path):
-            raise ValueError(f'Not a file: {abs_path}')
+            raise ValueError(f'{abs_path} is not a file.')
 
         self._operation_filepath = abs_path
         return self._operation_filepath
@@ -105,7 +106,11 @@ class NotebookFileParser(FileParser):
 
         with open(self.operation_filepath) as f:
             self.notebook = nbformat.read(f, as_version=4)
-            language = self.notebook['metadata']['kernelspec']['language']
+
+            try:
+                language = self.notebook['metadata']['kernelspec']['language']
+            except KeyError:
+                raise KeyError(f'No language metadata found in {self._operation_filepath}.')
 
             if language == 'python':
                 self._parser = PythonScriptParser()
@@ -154,9 +159,9 @@ class PythonScriptParser(ScriptParser):
         # TODO: add more key:list-of-regex pairs to parse for additional resources
         regex_dict = dict()
 
-        # First regex matches envvar assignments of form os.environ["name"] = value
-        # Second regex matches envvar assignments that use os.getenv("name", "value") with default provided
-        # Third regex matches envvar assignments that use os.environ.get("name", "value") with default provided
+        # First regex matches envvar assignments of form os.environ["name"] = value w or w/o value provided
+        # Second regex matches envvar assignments that use os.getenv("name", "value") with ow w/o default provided
+        # Third regex matches envvar assignments that use os.environ.get("name", "value") with or w/o default provided
         # Both name and value are captured if possible
         envs = [r"os\.environ\[[\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\](?:\s*=(?:\s*[\"'](.[^\"']*)?[\"'])?)*",
                 r"os\.getenv\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"'](?:\s*\,\s*[\"'](.[^\"']*)?[\"'])?",
@@ -171,6 +176,7 @@ class RScriptParser(ScriptParser):
         regex_dict = dict()
 
         # Tests for matches of the form Sys.setenv("key" = "value")
-        envs = [r"Sys.setenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)\s*=\s*[\"'](.[^\"']*)?[\"']"]
+        envs = [r"Sys\.setenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\s*=\s*[\"'](.[^\"']*)?[\"']",
+                r"Sys\.getenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\)(.)*"]
         regex_dict["env_list"] = envs
         return regex_dict

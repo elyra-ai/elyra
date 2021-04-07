@@ -57,8 +57,11 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         :return: a model dict
         """
 
-        operation = FileParser.get_instance(filepath=operation_filepath)
-        model = operation.get_resources()
+        try:
+            operation = FileParser.get_instance(filepath=operation_filepath)
+            model = operation.get_resources()
+        except Exception as e:
+            raise RuntimeError(f'Could not parse file: {e}')
 
         return model
 

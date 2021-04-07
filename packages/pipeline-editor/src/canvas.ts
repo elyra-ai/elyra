@@ -84,7 +84,9 @@ export class CanvasManager {
         nodeTemplate: this.canvasController.convertNodeTemplate(nodeTemplate)
       };
 
-      const env_vars = await FileParser.getEnvVars(file.path);
+      const env_vars = await FileParser.getEnvVars(file.path).then(response =>
+        response.map((str: string) => (str = str + '='))
+      );
 
       data.nodeTemplate.label = PathExt.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(
