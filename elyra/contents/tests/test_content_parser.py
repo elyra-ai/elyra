@@ -101,7 +101,7 @@ def test_file_not_found():
 
 
 def test_file_is_not_directory():
-    directory = "fakedir.py"
+    directory = "dir.py"
     dir_path = os.path.join(os.path.dirname(__file__), directory)
     os.mkdir(dir_path)
 

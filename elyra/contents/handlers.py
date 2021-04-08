@@ -73,7 +73,7 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         :return: a model dict
         """
 
-        operation = FileParser.get_instance(filepath=operation_filepath)
+        operation = FileParser.get_instance(filepath=operation_filepath, parent=self)
         model = operation.get_resources()
 
         return model

@@ -41,31 +41,33 @@ class FileParser(LoggingConfigurable):
         _, file_extension = os.path.splitext(filepath)
 
         if file_extension == '.ipynb':
-            return NotebookFileParser(filepath)
+            return NotebookFileParser(filepath, **kwargs)
         elif file_extension == '.py':
-            return PythonFileParser(filepath)
+            return PythonFileParser(filepath, **kwargs)
         elif file_extension == '.r':
-            return RFileParser(filepath)
+            return RFileParser(filepath, **kwargs)
         else:
             raise ValueError(f'Files with extension {file_extension} are not supported')
 
-    def __init__(self, operation_filepath):
-        self._operation_filepath = operation_filepath
+    def __init__(self, operation_filepath, **kwargs: Any):
         self._parser = None
 
-    @property
-    def operation_filepath(self):
-        """Converts the given filepath into an absolute path and checks that file exists"""
-        root_dir = get_expanded_path()  # need to pass a root dir which defaults to cwd
-        abs_path = get_absolute_path(root_dir, self._operation_filepath)
+        # Get absolute path of file
+        try:
+            parent = kwargs['parent']
+        except KeyError:
+            self.log.debug("Looking for file in current working directory")
+            root_dir = get_expanded_path()
+        else:
+            root_dir = get_expanded_path(parent.settings['server_root_dir'])
 
+        abs_path = get_absolute_path(root_dir, operation_filepath)
         if not os.path.exists(abs_path):
-            raise FileNotFoundError
+            raise FileNotFoundError(f'No such file or directory: {abs_path}')
         if not os.path.isfile(abs_path):
-            raise IsADirectoryError
+            raise IsADirectoryError(f'Is a directory: {abs_path}')
 
         self._operation_filepath = abs_path
-        return self._operation_filepath
 
     def get_next_code_chunk(self) -> List[str]:
         """
@@ -99,9 +101,8 @@ class FileParser(LoggingConfigurable):
 
 
 class NotebookFileParser(FileParser):
-
-    def __init__(self, operation_filepath):
-        super().__init__(operation_filepath)
+    def __init__(self, operation_filepath, **kwargs: Any):
+        super().__init__(operation_filepath, **kwargs)
 
         with open(self._operation_filepath) as f:
             self.notebook = nbformat.read(f, as_version=4)
@@ -124,16 +125,14 @@ class NotebookFileParser(FileParser):
 
 
 class PythonFileParser(FileParser):
-
-    def __init__(self, operation_filepath):
-        super().__init__(operation_filepath)
+    def __init__(self, operation_filepath, **kwargs: Any):
+        super().__init__(operation_filepath, **kwargs)
         self._parser = PythonScriptParser()
 
 
 class RFileParser(FileParser):
-
-    def __init__(self, operation_filepath):
-        super().__init__(operation_filepath)
+    def __init__(self, operation_filepath, **kwargs: Any):
+        super().__init__(operation_filepath, **kwargs)
         self._parser = RScriptParser()
 
 
