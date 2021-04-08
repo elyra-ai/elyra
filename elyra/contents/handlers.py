@@ -38,27 +38,23 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         path = path or ''
         path = url_unescape(path)
 
-        self.log.debug("Parsing file: %s", path)
+        self.log.debug(f"Parsing file: {path}")
 
         try:
             model = await self.operation_parser(path)
         except FileNotFoundError as fnfe:
-            model = dict(title=str(fnfe))
-            self.set_status(404)
             raise web.HTTPError(404, str(fnfe)) from fnfe
         except IsADirectoryError as iade:
-            model = dict(title=str(iade))
-            self.set_status(400)
             raise web.HTTPError(400, str(iade)) from iade
-        except Exception:
+        except Exception as e:
+            # Parser could not parse the given file, but this does not necessarily indicate an error with the file.
+            # Log the issue and return an empty model so that other user processes are not disrupted.
+            self.log.debug(f"Could not parse {path}: {str(e)}")
             model = {"env_list": {}, "inputs": {}, "outputs": {}}
-            self.set_status(200)
-        else:
-            self.set_status(200)
-            # TODO: Validation of model
 
-        finally:
-            self._finish_request(model)
+        self.set_status(200)
+        # TODO: Validation of model
+        self._finish_request(model)
 
     async def operation_parser(self, operation_filepath):
         """
