@@ -20,9 +20,10 @@
 # functionality.
 
 Sys.setenv(VAR1 = "value1")
-
 Sys.getenv(VAR2)
 
 Sys.getenv("VAR3")
-
 Sys.setenv("VAR4" = "value4")
+
+Sys.getenv('VAR5')
+Sys.setenv('VAR6' = 6)

@@ -175,7 +175,7 @@ class RScriptParser(ScriptParser):
         regex_dict = dict()
 
         # Tests for matches of the form Sys.setenv("key" = "value")
-        envs = [r"Sys\.setenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\s*=\s*[\"'](.[^\"']*)?[\"']",
+        envs = [r"Sys\.setenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\s*=\s*[\"']*(.[^\"']*)?[\"']*\)",
                 r"Sys\.getenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\)(.)*"]
         regex_dict["env_list"] = envs
         return regex_dict
