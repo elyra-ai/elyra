@@ -21,6 +21,7 @@ import time
 import requests
 import json
 
+from black import format_str, FileMode
 from datetime import datetime
 from elyra._version import __version__
 from elyra.metadata import MetadataManager
@@ -247,6 +248,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         api_endpoint = runtime_configuration.metadata['api_endpoint']
         namespace = runtime_configuration.metadata.get('user_namespace')
         engine = runtime_configuration.metadata.get('engine')
+        cos_secret = runtime_configuration.metadata.get('cos_secret')
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
@@ -285,7 +287,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                  pipeline_name,
                                                  pipeline_version=pipeline_version_name,
                                                  experiment_name=experiment_name,
-                                                 cos_directory=cos_directory)
+                                                 cos_directory=cos_directory,
+                                                 export=True)
 
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
@@ -309,6 +312,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                             experiment_name=experiment_name,
                                             run_name=job_name,
                                             engine=engine,
+                                            cos_secret=cos_secret,
                                             namespace=namespace,
                                             api_endpoint=api_endpoint,
                                             pipeline_description=description,
@@ -316,7 +320,9 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
             # Write to Python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
-                fh.write(autopep8.fix_code(python_output))
+                autopep_output = autopep8.fix_code(python_output)
+                output_to_file = format_str(autopep_output, mode=FileMode())
+                fh.write(output_to_file)
 
             self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0_all))
 
@@ -331,7 +337,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                      pipeline_name,
                      pipeline_version='',
                      experiment_name='',
-                     cos_directory=None):
+                     cos_directory=None,
+                     export=False):
 
         runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
@@ -427,7 +434,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                             .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])
                                                     })
 
-            if cos_secret:
+            if cos_secret and not export:
                 notebook_ops[operation.id].apply(use_aws_secret(cos_secret))
 
             image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
