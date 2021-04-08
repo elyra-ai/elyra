@@ -80,10 +80,14 @@ class FileParser(LoggingConfigurable):
 
     def get_resources(self):
         """Returns a model dictionary of all the regex matches for each key in the regex dictionary"""
+        '''
         model = dict()
         model["env_list"] = dict()
         model["inputs"] = dict()
         model["outputs"] = dict()
+        '''
+
+        model = {"env_list": {}, "inputs": {}, "outputs": {}}
 
         language_parser = self._parser
         if not language_parser:

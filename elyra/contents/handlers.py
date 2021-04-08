@@ -38,10 +38,6 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         path = path or ''
         path = url_unescape(path)
 
-        type = self.get_query_argument('type', default=None)
-        if type not in {None, 'file', 'notebook'}:
-            raise web.HTTPError(400, u'Type %r is invalid' % type)
-
         self.log.debug("Parsing file: %s", path)
 
         try:
@@ -52,14 +48,10 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         except IsADirectoryError as iade:
             model = dict(title=str(iade))
             self.set_status(400)
-        except ValueError as ve:
-            model = dict(title=str(ve))
-            self.set_status(400)
-        except Exception as e:
-            model = dict(title=f'Could not parse {path}: {str(e)}')
+        except Exception:
+            model = {"env_list": {}, "inputs": {}, "outputs": {}}
             self.set_status(200)
         else:
-            model = await self.operation_parser(path)
             self.set_status(200)
             # TODO: Validation of model
 
