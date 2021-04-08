@@ -266,6 +266,31 @@ Example: `test-bucket`
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
 Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
 
+#### Kubernetes settings
+This section defines configurations that exist on the Kubernetes cluster that you want to associate with this runtime configuration.
+
+##### Cloud Object Storage Credentials Secret (cos_secret)
+Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
+If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
+execute pipelines.
+
+Example: `my-cos-secret`
+
+The following is an example of how your secret on the Kubernetes cluster hosting your runtime should be defined. The variable
+names defined under `data`, must be `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` followed by each respective value 
+encoded in base64. Learn how to create, deploy, or configure [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: <cos_secret>
+type: Opaque
+data:
+  AWS_ACCESS_KEY_ID: <BASE64_ENCODED_YOUR_AWS_ACCESS_KEY_ID>
+  AWS_SECRET_ACCESS_KEY: <BASE64_ENCODED_YOUR_AWS_SECRET_ACCESS_KEY>
+```
+
 ### Troubleshooting 
 
 I am seeing this error when using Elyra with Kubeflow Pipelines that is Dex enabled: 
