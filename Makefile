@@ -165,7 +165,7 @@ elyra-image:
 
 publish-elyra-image: elyra-image
 	## Publish Elyra stand-alone container image
-    # this is a privileged operation; a `docker login` might be required
+      # this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
 
