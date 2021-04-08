@@ -18,29 +18,31 @@
 # Ubuntu 18.04 LTS - Bionic
 FROM jupyterhub/k8s-singleuser-sample:0.10.6
 
+ARG TAG="dev"
+
 USER root
 
 ADD start-elyra.sh /usr/local/bin/start-elyra.sh
 
-RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
-    apt-get update && apt-get install -y build-essential curl && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
-    apt-get update && apt-get install -y yarn && \
-    rm -rf /var/lib/apt/lists/*
+RUN chmod ugo+x /usr/local/bin/start-elyra.sh
 
 USER $NB_USER
 
 RUN conda remove --force -y terminado && \
     python -m pip install --upgrade pip && \
     python -m pip install --ignore-installed --upgrade setuptools pandas && \
-    echo "scripts-prepend-node-path=true" >> /home/jovyan/.npmrc && \
-    echo "prefix=/home/jovyan/.npm-global" >> /home/jovyan/.npmrc && \
+    npm config set scripts-prepend-node-path auto && \
+    npm config get prefix /home/jovyan/.npm-global && \
     mkdir -p /home/jovyan/.npm-global && \
-    npm install -g yarn && \
-    npm install -g npm && \
-    cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra
+    if [ "$TAG" == "dev" ] ; then \
+       npm install -g yarn && \
+       npm install -g npm && \
+       cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
+       cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra; \
+    else \
+        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra=="$TAG" && \
+        jupyter lab build; \
+    fi
 
 CMD ["/usr/local/bin/start-elyra.sh"]
 
