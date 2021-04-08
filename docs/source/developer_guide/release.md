@@ -57,6 +57,16 @@ docker tag elyra/elyra:2.0.0 elyra/elyra:dev && docker push elyra/elyra:dev
 docker tag elyra/elyra:2.0.0 elyra/elyra:latest && docker push elyra/elyra:latest
 docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:dev && docker push quay.io/elyra/elyra:dev
 docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:latest && docker push quay.io/elyra/elyra:latest
+
+docker tag elyra/airflow:2.0.0 elyra/airflow:dev && docker push elyra/airflow:dev
+docker tag elyra/airflow:2.0.0 elyra/airflow:latest && docker push elyra/airflow:latest
+docker tag quay.io/elyra/airflow:2.0.0 quay.io/elyra/airflow:dev && docker push quay.io/elyra/airflow:dev
+docker tag quay.io/elyra/airflow:2.0.0 quay.io/elyra/airflow:latest && docker push quay.io/elyra/airflow:latest
+
+docker tag elyra/kf-notebook:2.0.0 elyra/kf-notebook:dev && docker push elyra/kf-notebook:dev
+docker tag elyra/kf-notebook:2.0.0 elyra/kf-notebook:latest && docker push elyra/kf-notebook:latest
+docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:dev && docker push quay.io/elyra/kf-notebook:dev
+docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && docker push quay.io/elyra/kf-notebook:latest
 ```
 
 - Merge changes for conda-forge
