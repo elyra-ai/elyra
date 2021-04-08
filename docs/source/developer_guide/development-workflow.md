@@ -153,7 +153,7 @@ not just refresh your browser.
 Elyra's container image can be built using:
 
 ```bash
-make container-image
+make elyra-image
 ```
 
 Official container images are published on [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) and [quay.io](https://quay.io/repository/elyra/elyra?tab=tags).
