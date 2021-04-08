@@ -191,7 +191,7 @@ publish-kf-notebook-image: kf-notebook-image
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
 
-container-images: elyra-image kf-notebook-image airflow-image ## build all container images
+container-images: elyra-image kf-notebook-image airflow-image ## Build all container images
 	docker images $(ELYRA_IMAGE)
 	docker images quay.io/$(ELYRA_IMAGE)
 	docker images $(KF_NOTEBOOK_IMAGE)
