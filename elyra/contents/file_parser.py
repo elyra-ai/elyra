@@ -108,7 +108,7 @@ class NotebookFileParser(FileParser):
             self.notebook = nbformat.read(f, as_version=4)
 
             try:
-                language = self.notebook['metadata']['kernelspec']['language']
+                language = self.notebook['metadata']['kernelspec']['language'].lower()
             except KeyError:
                 raise KeyError(f'No language metadata found in {self._operation_filepath}.')
 
