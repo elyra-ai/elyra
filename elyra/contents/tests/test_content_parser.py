@@ -97,7 +97,7 @@ def test_empty_r_script():
 def test_file_not_found():
     with pytest.raises(FileNotFoundError) as e:
         parse("resources/none.py")
-    assert "not found" in str(e.value)
+    assert "No such file or directory" in str(e.value)
 
 
 def test_file_is_not_directory():
@@ -105,23 +105,27 @@ def test_file_is_not_directory():
     dir_path = os.path.join(os.path.dirname(__file__), directory)
     os.mkdir(dir_path)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(IsADirectoryError) as e:
         parse(dir_path)
-    assert "is not a file" in str(e.value)
+    assert "Is a directory" in str(e.value)
 
     os.rmdir(dir_path)
 
 
 def test_no_kernel():
-    with pytest.raises(KeyError) as e:
-        parse("resources/parse_no_kernel.ipynb")
-    assert "No language metadata found in" in str(e.value)
+    expected_variable_names = []
+    model = parse("resources/parse_no_kernel.ipynb")
+
+    variable_names = _get_variable_names(model)
+    assert variable_names == expected_variable_names
 
 
 def test_parser_not_set():
-    with pytest.raises(ValueError) as e:
-        parse("resources/parse_no_language.ipynb")
-    assert "Could not find appropriate language parser" in str(e.value)
+    expected_variable_names = []
+    model = parse("resources/parse_no_language.ipynb")
+
+    variable_names = _get_variable_names(model)
+    assert variable_names == expected_variable_names
 
 
 def test_unsupported_file_type():

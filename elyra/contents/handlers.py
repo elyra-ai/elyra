@@ -19,7 +19,7 @@ import json
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_unescape
 from tornado import web
-# from typing import Any, Type, TypeVar, List, Dict
+
 from ..util.http import HttpErrorMixin
 from .file_parser import FileParser
 
@@ -44,11 +44,27 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
 
         self.log.debug("Parsing file: %s", path)
 
-        model = await self.operation_parser(path)
+        try:
+            model = await self.operation_parser(path)
+        except FileNotFoundError as fnfe:
+            model = dict(title=str(fnfe))
+            self.set_status(404)
+        except IsADirectoryError as iade:
+            model = dict(title=str(iade))
+            self.set_status(400)
+        except ValueError as ve:
+            model = dict(title=str(ve))
+            self.set_status(400)
+        except Exception as e:
+            model = dict(title=f'Could not parse {path}: {str(e)}')
+            self.set_status(200)
+        else:
+            model = await self.operation_parser(path)
+            self.set_status(200)
+            # TODO: Validation of model
 
-        self.set_status(200)
-        # TODO: Validation of model
-        self._finish_model(model)
+        finally:
+            self._finish_request(model)
 
     async def operation_parser(self, operation_filepath):
         """
@@ -57,15 +73,12 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         :return: a model dict
         """
 
-        try:
-            operation = FileParser.get_instance(filepath=operation_filepath)
-            model = operation.get_resources()
-        except Exception as e:
-            raise RuntimeError(f'Could not parse file: {e}')
+        operation = FileParser.get_instance(filepath=operation_filepath)
+        model = operation.get_resources()
 
         return model
 
-    def _finish_model(self, model):
+    def _finish_request(self, body):
         """Finish a JSON request with a model."""
         self.set_header('Content-Type', 'application/json')
-        self.finish(json.dumps(model))
+        self.finish(json.dumps(body))

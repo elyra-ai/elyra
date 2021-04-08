@@ -47,28 +47,22 @@ class FileParser(LoggingConfigurable):
         elif file_extension == '.r':
             return RFileParser(filepath)
         else:
-            raise ValueError(f'Files with extension {file_extension} are not supported.')
+            raise ValueError(f'Files with extension {file_extension} are not supported')
 
     def __init__(self, operation_filepath):
         self._operation_filepath = operation_filepath
         self._parser = None
 
     @property
-    def parser(self):
-        if not self._parser:
-            raise ValueError(f'Could not find appropriate language parser for {self._operation_filepath}.')
-        return self._parser
-
-    @property
     def operation_filepath(self):
         """Converts the given filepath into an absolute path and checks that file exists"""
-        root_dir = get_expanded_path()
+        root_dir = get_expanded_path()  # need to pass a root dir which defaults to cwd
         abs_path = get_absolute_path(root_dir, self._operation_filepath)
 
         if not os.path.exists(abs_path):
-            raise FileNotFoundError(f'{abs_path} not found.')
+            raise FileNotFoundError
         if not os.path.isfile(abs_path):
-            raise ValueError(f'{abs_path} is not a file.')
+            raise IsADirectoryError
 
         self._operation_filepath = abs_path
         return self._operation_filepath
@@ -78,7 +72,7 @@ class FileParser(LoggingConfigurable):
         Implements a generator for lines of code in the specified filepath. Subclasses
         may override if explicit line-by-line parsing is not feasible, e.g. with Notebooks.
         """
-        with open(self.operation_filepath) as f:
+        with open(self._operation_filepath) as f:
             for line in f:
                 yield [line.strip()]
 
@@ -89,10 +83,15 @@ class FileParser(LoggingConfigurable):
         model["inputs"] = dict()
         model["outputs"] = dict()
 
+        language_parser = self._parser
+        if not language_parser:
+            self.log.warning(f'Could not find appropriate language parser for {self._operation_filepath}.')
+            return model
+
         for chunk in self.get_next_code_chunk():
             if chunk:
                 for line in chunk:
-                    matches = self.parser.parse_environment_variables(line)
+                    matches = language_parser.parse_environment_variables(line)
                     for key, match in matches:
                         model[key][match.group(1)] = match.group(2)
 
@@ -104,18 +103,19 @@ class NotebookFileParser(FileParser):
     def __init__(self, operation_filepath):
         super().__init__(operation_filepath)
 
-        with open(self.operation_filepath) as f:
+        with open(self._operation_filepath) as f:
             self.notebook = nbformat.read(f, as_version=4)
 
             try:
                 language = self.notebook['metadata']['kernelspec']['language'].lower()
-            except KeyError:
-                raise KeyError(f'No language metadata found in {self._operation_filepath}.')
+                if language == 'python':
+                    self._parser = PythonScriptParser()
+                elif language == 'r':
+                    self._parser = RScriptParser()
 
-            if language == 'python':
-                self._parser = PythonScriptParser()
-            elif language == 'r':
-                self._parser = RScriptParser()
+            except KeyError:
+                self.log.warning(f'No language metadata found in {self._operation_filepath}.')
+                pass
 
     def get_next_code_chunk(self) -> List[str]:
         for cell in self.notebook.cells:
