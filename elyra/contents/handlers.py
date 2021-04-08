@@ -45,9 +45,11 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         except FileNotFoundError as fnfe:
             model = dict(title=str(fnfe))
             self.set_status(404)
+            raise web.HTTPError(404, str(fnfe)) from fnfe
         except IsADirectoryError as iade:
             model = dict(title=str(iade))
             self.set_status(400)
+            raise web.HTTPError(400, str(iade)) from iade
         except Exception:
             model = {"env_list": {}, "inputs": {}, "outputs": {}}
             self.set_status(200)
