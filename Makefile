@@ -199,7 +199,7 @@ container-images: elyra-image kf-notebook-image airflow-image ## Build all conta
 	docker images $(ELYRA_AIRFLOW_IMAGE)
 	docker images quay.io/$(ELYRA_AIRFLOW_IMAGE)
 
-publish-container-images: publish-elyra-image publish-airflow-image publish-kf-notebook-image
+publish-container-images: publish-elyra-image publish-airflow-image publish-kf-notebook-image ## Publish all container images
 
 
 validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
