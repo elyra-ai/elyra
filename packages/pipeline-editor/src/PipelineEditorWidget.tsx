@@ -36,8 +36,6 @@ import {
   ABCWidgetFactory,
   DocumentWidget
 } from '@jupyterlab/docregistry';
-import { Snackbar } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
 
 import 'carbon-components/css/carbon-components.min.css';
 
@@ -46,6 +44,8 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 import { Signal } from '@lumino/signaling';
+import { Snackbar } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -393,7 +393,7 @@ const PipelineWrapper = ({
     }).then(result => {
       if (result.button.accept) {
         // select all canvas elements
-        setPipeline(null);
+        context.model.fromString('');
       }
     });
   }, []);
@@ -465,7 +465,6 @@ const PipelineWrapper = ({
         iconEnabled: IconUtil.encode(runtimesIcon),
         iconDisabled: IconUtil.encode(runtimesIcon)
       },
-      { divider: true },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },
       { action: 'cut', label: 'Cut' },

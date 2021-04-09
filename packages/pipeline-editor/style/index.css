@@ -590,3 +590,7 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 .properties-control-panel button {
   margin: 0;
 }
+
+.toolbar-item-content .toolbar-icon svg {
+  background: var(--jp-border-color2);
+}

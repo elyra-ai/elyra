@@ -68,9 +68,10 @@ const theme: any = {
       secondary: 'var(--jp-layout-color4)',
       bold: 'var(--jp-inverse-layout-color2)',
       inactive: 'var(--jp-inverse-layout-color4)',
-      disabled: 'var(--jp-inverse-layout-color3)',
+      disabled: 'var(--jp-input-border-color)',
       link: 'var(--jp-content-link-color)',
-      error: 'var(--jp-error-color0)'
+      error: 'var(--jp-error-color0)',
+      icon: 'var(--jp-inverse-layout-color2)'
     },
     background: {
       default: 'var(--jp-layout-color1)',
