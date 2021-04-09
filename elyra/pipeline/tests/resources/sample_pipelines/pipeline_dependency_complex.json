@@ -548,7 +548,8 @@
         },
         "version": 1,
         "runtime": "kfp",
-        "runtime-config": "kfp-yukked1"
+        "runtime-config": "kfp-yukked1",
+        "source": "pipeline_dependency_complex.json"
       },
       "runtime_ref": ""
     }
