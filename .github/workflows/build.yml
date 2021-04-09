@@ -84,7 +84,7 @@ jobs:
         yarn lerna clean --yes
         rm -rf node_modules
 
-        jupyter labextension link --no-build \
+        jupyter labextension install --no-build \
           packages/metadata-common/dist.tgz \
           packages/script-editor/dist.tgz \
           packages/services/dist.tgz \
