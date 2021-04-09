@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@elyra/metadata-common": "^2.3.0-dev",
-    "@elyra/script-editor": "^2.3.0-dev",
     "@elyra/services": "^2.3.0-dev",
     "@elyra/ui-components": "^2.3.0-dev",
     "@jupyterlab/application": "^3.0.0",

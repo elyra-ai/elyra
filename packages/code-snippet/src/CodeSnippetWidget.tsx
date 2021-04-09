@@ -15,6 +15,7 @@
  */
 
 import '../style/index.css';
+
 import {
   IMetadata,
   IMetadataActionButton,
@@ -25,7 +26,6 @@ import {
   MetadataWidget,
   METADATA_ITEM
 } from '@elyra/metadata-common';
-import { ScriptEditor } from '@elyra/script-editor';
 import {
   ExpandableComponent,
   importIcon,
@@ -107,7 +107,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
   // Handle code snippet insertion into an editor
   private insertCodeSnippet = async (snippet: IMetadata): Promise<void> => {
     const widget = this.props.getCurrentWidget();
-    const snippetStr: string = snippet.metadata.code.join('\n');
+    const snippetStr = snippet.metadata.code.join('\n');
 
     if (this.isFileEditor(widget)) {
       const fileEditor = this.getFileEditor(widget);
@@ -121,13 +121,10 @@ class CodeSnippetDisplay extends MetadataDisplay<
         fileEditor.replaceSelection(
           this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
         );
-      } else if (widget.constructor.name == 'ScriptEditor') {
-        const scriptEditorWidget = widget as ScriptEditor;
-        this.verifyLanguageAndInsert(
-          snippet,
-          scriptEditorWidget.editorLanguage,
-          fileEditor
-        );
+      } else if (widget.constructor.name === 'ScriptEditor') {
+        const editorLanguage = (widget as FileEditor).context.sessionContext
+          .kernelPreference.language;
+        this.verifyLanguageAndInsert(snippet, editorLanguage, fileEditor);
       } else {
         fileEditor.replaceSelection(snippetStr);
       }
@@ -179,7 +176,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
   };
 
   // Return the given code wrapped in a markdown code block
-  private addMarkdownCodeBlock = (language: string, code: string) => {
+  private addMarkdownCodeBlock = (language: string, code: string): string => {
     return '```' + language + '\n' + code + '\n```';
   };
 

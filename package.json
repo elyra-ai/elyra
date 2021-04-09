@@ -28,6 +28,7 @@
   "resolutions": {
     "@blueprintjs/core": "^3.36.0",
     "@blueprintjs/select": "^3.15.0",
+    "@lumino/widgets": "~1.17.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "~17.0.0",
     "@types/react-intl": "^3.0.0",
