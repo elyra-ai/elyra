@@ -39,7 +39,6 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-yarn.lock
 tsconfig.tsbuildinfo
 package-lock.json
 
