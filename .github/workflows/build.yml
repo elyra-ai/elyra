@@ -72,7 +72,7 @@ jobs:
     - name: Lint
       run: |
         yarn eslint:check
-	      yarn prettier:check
+        yarn prettier:check
         flake8 elyra
     - name: Unit tests
       run: |
