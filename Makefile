@@ -50,6 +50,7 @@ purge:
 	rm -rf $$(find . -name .pytest_cache)
 
 purge-yarn:
+	rm -rf node_modules
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
 	rm -rf $$(find . -name *.lock)
 	rm -rf $(yarn cache dir)

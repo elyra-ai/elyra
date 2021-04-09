@@ -80,23 +80,22 @@ jobs:
         yarn test:unit
     - name: Integration tests
       run: |
-        yarn lerna exec "yarn pack --filename dist.tgz"
         yarn lerna clean --yes
         rm -rf node_modules
 
-        jupyter labextension install --no-build \
-          packages/metadata-common/dist.tgz \
-          packages/script-editor/dist.tgz \
-          packages/services/dist.tgz \
-          packages/ui-components/dist.tgz
+        jupyter labextension link --no-build \
+          packages/metadata-common \
+          packages/script-editor \
+          packages/services \
+          packages/ui-components \
+          packages/theme
 
         jupyter labextension install \
-          packages/code-snippet/dist.tgz \
-          packages/metadata/dist.tgz \
-          packages/pipeline-editor/dist.tgz \
-          packages/python-editor/dist.tgz \
-          packages/r-editor/dist.tgz \
-          packages/theme/dist.tgz
+          packages/code-snippet \
+          packages/metadata \
+          packages/pipeline-editor \
+          packages/python-editor \
+          packages/r-editor
 
         yarn test:integration
 
