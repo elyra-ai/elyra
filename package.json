@@ -31,6 +31,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "~17.0.0",
     "@types/react-intl": "^3.0.0",
+    "@lumino/widgets": "1.17.0",
     "cypress": "^6.2.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
