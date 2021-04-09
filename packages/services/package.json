@@ -41,7 +41,7 @@
     "react-intl": "^3.0.0"
   },
   "devDependencies": {
-    "@jupyterlab/testutils": "^3.0.0",
+    "@jupyterlab/testutils": "~3.0.0",
     "@types/jest": "^23.3.11",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
