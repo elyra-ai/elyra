@@ -270,9 +270,10 @@ Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_passw
 This section defines configurations that exist on the Kubernetes cluster that you want to associate with this runtime configuration.
 
 ##### Cloud Object Storage Credentials Secret (cos_secret)
-Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
+(Optional) Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
 If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
-execute pipelines.
+execute pipelines. This setting is optional but is recommended for use in shared environments to avoid exposing a user's 
+Cloud Object Storage credentials. 
 
 Example: `my-cos-secret`
 
