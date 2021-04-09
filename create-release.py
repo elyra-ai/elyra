@@ -127,19 +127,28 @@ def update_version_to_release() -> None:
         sed(_source('README.md'),
             r"/v[0-9].[0-9].[0-9]?",
             f"/v{new_version}?")
+        sed(_source('etc/docker/kubeflow/README.md'),
+            r"kf-notebook:dev",
+            f"kf-notebook:{new_version}")
         sed(_source('docs/source/getting_started/installation.md'),
             r"elyra:dev ",
             f"elyra:{new_version} ")
         sed(_source('docs/source/getting_started/installation.md'),
             r"/v[0-9].[0-9].[0-9]?",
             f"/v{new_version}?")
-        sed(_source('docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md'),
-            r"dev",
-            f"{new_version}")
         sed(_source('docs/source/recipes/configure-airflow-as-a-runtime.md'),
             r"master",
             f"{config.tag}")
+        sed(_source('docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md'),
+            r"dev",
+            f"{new_version}")
+        sed(_source('docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md'),
+            r"master",
+            f"{new_version}")
 
+        sed(_source('etc/docker/kubeflow/Dockerfile'),
+            r"elyra==[0-9].[0-9].[0-9]",
+            f"elyra=={new_version}")
         sed(_source('etc/docker/elyra/Dockerfile'),
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
             f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra")
@@ -193,6 +202,9 @@ def update_version_to_dev() -> None:
         sed(_source('README.md'),
             rf"elyra:{new_version} ",
             "elyra:dev ")
+        sed(_source('etc/docker/kubeflow/README.md'),
+            rf"kf-notebook:{new_version}",
+            "kf-notebook:dev")
         # this does not goes back to dev
         # sed(source('README.md'), r"/v[0-9].[0-9].[0-9]", "/v{}".format(dev_version))
         sed(_source('docs/source/getting_started/installation.md'),
@@ -200,12 +212,18 @@ def update_version_to_dev() -> None:
             "elyra:dev ")
         # this does not goes back to dev
         # sed(source('docs/source/getting_started/installation.md'), r"/v[0-9].[0-9].[0-9]", "/v{}".format(dev_version))
-        sed(_source('docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md'),
-            rf"{new_version}",
-            "dev")
         sed(_source('docs/source/recipes/configure-airflow-as-a-runtime.md'),
             rf"{config.tag}",
             "master")
+        sed(_source('docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md'),
+            rf"{new_version}",
+            "dev")
+        sed(_source('docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md'),
+            rf"{new_version}",
+            "master")
+
+        # for now, this stays with the latest release
+        # sed(_source('etc/docker/kubeflow/Dockerfile'), r"elyra==[0-9].[0-9].[0-9]", f"elyra=={new_version}")
 
         sed(_source('etc/docker/elyra/Dockerfile'),
             rf"\&\& git checkout tags/v{new_version} -b v{new_version} ",
