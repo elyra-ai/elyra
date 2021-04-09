@@ -81,7 +81,7 @@ export class ScriptEditor extends DocumentWidget<
   private runDisabled: boolean;
   private kernelSelectorRef: RefObject<ISelect>;
   private controller: ScriptEditorController;
-  editorLanguage: string;
+  private editorLanguage: string;
 
   /**
    * Construct a new editor widget.
