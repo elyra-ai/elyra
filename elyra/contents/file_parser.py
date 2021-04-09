@@ -38,36 +38,33 @@ class FileParser(LoggingConfigurable):
     def get_instance(cls: Type[F], **kwargs: Any) -> F:
         """Creates an appropriate subclass instance based on the extension of the filepath"""
         filepath = kwargs['filepath']
-        _, file_extension = os.path.splitext(filepath)
 
-        if file_extension == '.ipynb':
-            return NotebookFileParser(filepath, **kwargs)
-        elif file_extension == '.py':
-            return PythonFileParser(filepath, **kwargs)
-        elif file_extension == '.r':
-            return RFileParser(filepath, **kwargs)
-        else:
-            raise ValueError(f'Files with extension {file_extension} are not supported')
-
-    def __init__(self, operation_filepath, **kwargs: Any):
-        self._parser = None
-
-        # Get absolute path of file
         try:
             parent = kwargs['parent']
         except KeyError:
-            self.log.debug("Looking for file in current working directory")
             root_dir = get_expanded_path()
         else:
             root_dir = get_expanded_path(parent.settings['server_root_dir'])
 
-        abs_path = get_absolute_path(root_dir, operation_filepath)
+        abs_path = get_absolute_path(root_dir, filepath)
         if not os.path.exists(abs_path):
             raise FileNotFoundError(f'No such file or directory: {abs_path}')
         if not os.path.isfile(abs_path):
             raise IsADirectoryError(f'Is a directory: {abs_path}')
 
-        self._operation_filepath = abs_path
+        _, file_extension = os.path.splitext(abs_path)
+        if file_extension == '.ipynb':
+            return NotebookFileParser(abs_path, **kwargs)
+        elif file_extension == '.py':
+            return PythonFileParser(abs_path, **kwargs)
+        elif file_extension == '.r':
+            return RFileParser(abs_path, **kwargs)
+        else:
+            raise ValueError(f'File type {file_extension} is not supported')
+
+    def __init__(self, operation_filepath, **kwargs: Any):
+        self._parser = None
+        self._operation_filepath = operation_filepath
 
     def get_next_code_chunk(self) -> List[str]:
         """
@@ -85,7 +82,7 @@ class FileParser(LoggingConfigurable):
 
         language_parser = self._parser
         if not language_parser:
-            self.log.warning(f'Could not find appropriate language parser for {self._operation_filepath}.')
+            self.log.warning(f'Could not find appropriate language parser for {self._operation_filepath}')
             return model
 
         for chunk in self.get_next_code_chunk():
@@ -113,7 +110,7 @@ class NotebookFileParser(FileParser):
                     self._parser = RScriptParser()
 
             except KeyError:
-                self.log.warning(f'No language metadata found in {self._operation_filepath}.')
+                self.log.warning(f'No language metadata found in {self._operation_filepath}')
                 pass
 
     def get_next_code_chunk(self) -> List[str]:

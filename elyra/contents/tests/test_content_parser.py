@@ -131,4 +131,4 @@ def test_parser_not_set():
 def test_unsupported_file_type():
     with pytest.raises(ValueError) as e:
         parse("resources/parse.txt")
-    assert "Files with extension" and "are not supported" in str(e.value)
+    assert "File type" and "is not supported" in str(e.value)
