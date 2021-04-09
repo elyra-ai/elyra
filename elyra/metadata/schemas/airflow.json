@@ -118,6 +118,16 @@
             "category": "Cloud Object Storage"
           }
         },
+        "user_namespace": {
+          "title": "Apache Airflow User Namespace",
+          "description": "The Apache Airflow user namespace used to run DAG workflows",
+          "type": "string",
+          "pattern": "^[a-z0-9][-a-z0-9]*[a-z0-9]$",
+          "maxLength": 63,
+          "uihints": {
+            "category": "Kubernetes"
+          }
+        },
         "tags": {
           "title": "Tags",
           "description": "Tags for categorizing Apache Airflow",
