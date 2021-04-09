@@ -65,6 +65,7 @@ jobs:
         pip install -q -r test_requirements.txt
         python setup.py bdist_wheel sdist
         pip install --upgrade --upgrade-strategy only-if-needed --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
+        yarn lerna run build
     - name: Documentation
       run: |
         make docs
