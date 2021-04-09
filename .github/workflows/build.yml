@@ -81,7 +81,7 @@ jobs:
     - name: Integration tests
       run: |
         yarn lerna exec "yarn pack --filename dist.tgz"
-        yarn lerna clean
+        yarn lerna clean --yes
         rm -rf node_modules
         jupyter labextension install \
           packages/code-snippet/dist.tgz \
