@@ -47,7 +47,8 @@ jobs:
          node-version: '12.x'
     - name: Install Python dependencies
       run: |
-        pip install -U wheel
+        python -m pip install --upgrade pip wheel jupyter_server
+        python -m pip install --upgrade jupyterlab
     - name: Setup
       run: |
         yarn install --frozen-lockfile
