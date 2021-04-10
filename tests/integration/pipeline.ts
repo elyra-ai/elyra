@@ -37,7 +37,7 @@ describe('Pipeline Editor tests', () => {
     });
     cy.openJupyterLab();
     // wait for the file browser to load
-    cy.get('.jp-DirListing-content', { timeout: 10000 }).should('be.visible');
+    cy.get('.jp-DirListing-content', { timeout: 25000 }).should('be.visible');
   });
 
   afterEach(() => {

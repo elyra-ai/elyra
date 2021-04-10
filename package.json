@@ -27,9 +27,9 @@
     "lint:ui": "eslint . --ignore-path .gitignore --ext .ts,.tsx,.js",
     "format": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "format:check": "prettier --ignore-path .gitignore --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
-    "test": "run-s test:*",
-    "test:server": "pytest -v elyra",
-    "test:ui": "lerna run test --concurrency 1 --stream",
+    "test": "run-s test:unit:*",
+    "test:unit:server": "pytest -v elyra",
+    "test:unit:ui": "lerna run test --concurrency 1 --stream",
     "test:integration": "start-server-and-test lab:ci http-get://localhost:58888?token=test cy:run",
     "test:integration:debug": "start-server-and-test lab:ci http-get://localhost:58888?token=test cy:open"
   },

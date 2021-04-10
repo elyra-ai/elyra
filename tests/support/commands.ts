@@ -77,5 +77,5 @@ Cypress.Commands.add(
 
 Cypress.Commands.add('openJupyterLab', (): void => {
   // open jupyterlab with a clean workspace
-  cy.visit('?token=test&reset').wait(15000);
+  cy.visit('?token=test&reset');
 });
