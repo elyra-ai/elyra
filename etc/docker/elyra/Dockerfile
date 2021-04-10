@@ -24,7 +24,11 @@ USER root
 
 ADD start-elyra.sh /usr/local/bin/start-elyra.sh
 
-RUN chmod ugo+x /usr/local/bin/start-elyra.sh
+RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
+    if [ "$TAG" == "dev" ] ; then \
+       apt-get update && apt-get install -y build-essential && \
+       rm -rf /var/lib/apt/lists/*; \
+    fi
 
 USER $NB_USER
 
