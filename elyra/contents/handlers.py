@@ -20,7 +20,9 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_unescape
 from tornado import web
 
-from ..util.http import HttpErrorMixin
+from elyra.util import get_expanded_path, get_absolute_path
+from elyra.util.http import HttpErrorMixin
+
 from .file_parser import FileParser
 
 
@@ -41,7 +43,9 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         self.log.debug(f"Parsing file: {path}")
 
         try:
-            model = await self.operation_parser(path)
+            root_dir = self.settings['server_root_dir']
+            absolute_path = get_absolute_path(get_expanded_path(root_dir), path)
+            model = await self.parse_file(absolute_path)
         except FileNotFoundError as fnfe:
             raise web.HTTPError(404, str(fnfe)) from fnfe
         except IsADirectoryError as iade:
@@ -56,15 +60,15 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         # TODO: Validation of model
         self._finish_request(model)
 
-    async def operation_parser(self, operation_filepath):
+    async def parse_file(self, filepath):
         """
         Given the path to a File, will return a dictionary model
-        :param operation_filepath: absolute path to a File to be parsed
+        :param filepath: absolute path to a File to be parsed
         :return: a model dict
         """
 
-        operation = FileParser.get_instance(filepath=operation_filepath, parent=self)
-        model = operation.get_resources()
+        parser = FileParser.get_instance(filepath=filepath)
+        model = parser.get_resources()
 
         return model
 

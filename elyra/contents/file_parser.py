@@ -21,7 +21,6 @@ import re
 from traitlets.config import LoggingConfigurable
 
 from typing import Any, Type, TypeVar, List, Dict
-from ..util import get_expanded_path, get_absolute_path
 
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
@@ -35,30 +34,22 @@ class FileParser(LoggingConfigurable):
     """
 
     @classmethod
-    def get_instance(cls: Type[F], **kwargs: Any) -> F:
+    def get_instance(cls: Type[F], filepath: str, **kwargs: Any) -> F:
         """Creates an appropriate subclass instance based on the extension of the filepath"""
-        filepath = kwargs['filepath']
+        filepath = filepath
 
-        try:
-            parent = kwargs['parent']
-        except KeyError:
-            root_dir = get_expanded_path()
-        else:
-            root_dir = get_expanded_path(parent.settings['server_root_dir'])
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f'No such file or directory: {filepath}')
+        if not os.path.isfile(filepath):
+            raise IsADirectoryError(f'Is a directory: {filepath}')
 
-        abs_path = get_absolute_path(root_dir, filepath)
-        if not os.path.exists(abs_path):
-            raise FileNotFoundError(f'No such file or directory: {abs_path}')
-        if not os.path.isfile(abs_path):
-            raise IsADirectoryError(f'Is a directory: {abs_path}')
-
-        _, file_extension = os.path.splitext(abs_path)
+        _, file_extension = os.path.splitext(filepath)
         if file_extension == '.ipynb':
-            return NotebookFileParser(abs_path, **kwargs)
+            return NotebookFileParser(filepath, **kwargs)
         elif file_extension == '.py':
-            return PythonFileParser(abs_path, **kwargs)
+            return PythonFileParser(filepath, **kwargs)
         elif file_extension == '.r':
-            return RFileParser(abs_path, **kwargs)
+            return RFileParser(filepath, **kwargs)
         else:
             raise ValueError(f'File type {file_extension} is not supported')
 
