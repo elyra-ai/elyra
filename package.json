@@ -19,7 +19,7 @@
     "cy:run": "cypress run",
     "lab": "jupyter lab",
     "lab:watch": "jupyter lab --watch",
-    "lab:ci": "mkdirp build/cypress-tests && jupyter lab --config=./tests/test-config.py",
+    "lab:ci": "mkdirp build/cypress-tests && jupyter lab --config=./tests/test-config.py > /dev/null 2> build/cypress-tests/jupyter.log",
     "lab:install": "lerna run lab:install --stream",
     "lab:build": "jupyter lab build",
     "lint": "run-s lint:*",

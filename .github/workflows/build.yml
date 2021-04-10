@@ -74,6 +74,7 @@ jobs:
         path: |
           ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
           ${{ github.workspace }}/build/cypress-tests/videos//**/*
+          ${{ github.workspace }}/build/cypress-tests/jupyter.log
           /home/runner/.npm/_logs/*.log
   image_validation:
     runs-on: ubuntu-latest
