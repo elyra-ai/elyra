@@ -36,7 +36,7 @@ describe('LSP', () => {
     cy.getFileByType('python').dblclick();
 
     //check for lsp item on status bar
-    cy.get('.lsp-statusbar-item', { timeout: 5000 }).find(
+    cy.get('.lsp-statusbar-item', { timeout: 10000 }).find(
       '[title="Fully connected & initialized (1 virtual document)"]'
     );
 

@@ -294,7 +294,7 @@ const openCodeSnippetExtension = (): void => {
 };
 
 const getSnippetByName = (snippetName: string): any => {
-  return cy.get(`[data-item-id="${snippetName}"]`, { timeout: 4500 });
+  return cy.get(`[data-item-id="${snippetName}"]`, { timeout: 1000 });
 };
 
 const createInvalidCodeSnippet = (snippetName: string): any => {

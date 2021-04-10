@@ -151,7 +151,7 @@ describe('Pipeline Editor tests', () => {
     cy.get('.d3-node-label').dblclick();
     cy.get(
       '#jp-main-dock-panel > .lm-TabBar > .lm-TabBar-content > .lm-TabBar-tab > .lm-TabBar-tabLabel',
-      { timeout: 4500 }
+      { timeout: 1000 }
     )
       .contains('helloworld.ipynb')
       .click();
