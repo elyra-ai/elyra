@@ -20,106 +20,79 @@ import re
 
 from traitlets.config import LoggingConfigurable
 
-from typing import Any, Type, TypeVar, List, Dict
+from typing import TypeVar, List, Dict
 
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
-F = TypeVar('F', bound='FileParser')
+F = TypeVar('F', bound='FileReader')
 
 
-class FileParser(LoggingConfigurable):
+class FileReader(LoggingConfigurable):
     """
     Base class for parsing a file for resources according to operation type. Subclasses set
     their own parser member variable according to their implementation language.
     """
 
-    @classmethod
-    def get_instance(cls: Type[F], filepath: str, **kwargs: Any) -> F:
-        """Creates an appropriate subclass instance based on the extension of the filepath"""
-        filepath = filepath
+    def __init__(self, filepath: str):
+        self._validate_file(filepath)
+        self._filepath = filepath
 
+    @property
+    def filepath(self):
+        return self._filepath
+
+    @property
+    def language(self) -> str:
+        file_extension = os.path.splitext(self._filepath)[-1]
+        if file_extension == '.py':
+            return 'python'
+        elif file_extension == '.r':
+            return 'r'
+        else:
+            return None
+
+    def read_next_code_chunk(self) -> List[str]:
+        """
+        Implements a generator for lines of code in the specified filepath. Subclasses
+        may override if explicit line-by-line parsing is not feasible, e.g. with Notebooks.
+        """
+        with open(self._filepath) as f:
+            for line in f:
+                yield [line.strip()]
+
+    def _validate_file(self, filepath):
+        """
+        Validate file exists and is file (e.g. not a directory)
+        """
         if not os.path.exists(filepath):
             raise FileNotFoundError(f'No such file or directory: {filepath}')
         if not os.path.isfile(filepath):
             raise IsADirectoryError(f'Is a directory: {filepath}')
 
-        _, file_extension = os.path.splitext(filepath)
-        if file_extension == '.ipynb':
-            return NotebookFileParser(filepath, **kwargs)
-        elif file_extension == '.py':
-            return PythonFileParser(filepath, **kwargs)
-        elif file_extension == '.r':
-            return RFileParser(filepath, **kwargs)
-        else:
-            raise ValueError(f'File type {file_extension} is not supported')
 
-    def __init__(self, operation_filepath, **kwargs: Any):
-        self._parser = None
-        self._operation_filepath = operation_filepath
+class NotebookReader(FileReader):
+    def __init__(self, filepath: str):
+        super().__init__(filepath)
 
-    def get_next_code_chunk(self) -> List[str]:
-        """
-        Implements a generator for lines of code in the specified filepath. Subclasses
-        may override if explicit line-by-line parsing is not feasible, e.g. with Notebooks.
-        """
-        with open(self._operation_filepath) as f:
-            for line in f:
-                yield [line.strip()]
-
-    def get_resources(self):
-        """Returns a model dictionary of all the regex matches for each key in the regex dictionary"""
-
-        model = {"env_list": {}, "inputs": {}, "outputs": {}}
-
-        language_parser = self._parser
-        if not language_parser:
-            self.log.warning(f'Could not find appropriate language parser for {self._operation_filepath}')
-            return model
-
-        for chunk in self.get_next_code_chunk():
-            if chunk:
-                for line in chunk:
-                    matches = language_parser.parse_environment_variables(line)
-                    for key, match in matches:
-                        model[key][match.group(1)] = match.group(2)
-
-        return model
-
-
-class NotebookFileParser(FileParser):
-    def __init__(self, operation_filepath, **kwargs: Any):
-        super().__init__(operation_filepath, **kwargs)
-
-        with open(self._operation_filepath) as f:
-            self.notebook = nbformat.read(f, as_version=4)
+        with open(self._filepath) as f:
+            self._notebook = nbformat.read(f, as_version=4)
+            self._language = None
 
             try:
-                language = self.notebook['metadata']['kernelspec']['language'].lower()
-                if language == 'python':
-                    self._parser = PythonScriptParser()
-                elif language == 'r':
-                    self._parser = RScriptParser()
+                self._language = self._notebook['metadata']['kernelspec']['language'].lower()
 
             except KeyError:
-                self.log.warning(f'No language metadata found in {self._operation_filepath}')
+                self.log.warning(f'No language metadata found in {self._filepath}')
                 pass
 
-    def get_next_code_chunk(self) -> List[str]:
-        for cell in self.notebook.cells:
+    @property
+    def language(self) -> str:
+        return self._language
+
+    def read_next_code_chunk(self) -> List[str]:
+        for cell in self._notebook.cells:
             if cell.source and cell.cell_type == "code":
                 yield cell.source.split('\n')
-
-
-class PythonFileParser(FileParser):
-    def __init__(self, operation_filepath, **kwargs: Any):
-        super().__init__(operation_filepath, **kwargs)
-        self._parser = PythonScriptParser()
-
-
-class RFileParser(FileParser):
-    def __init__(self, operation_filepath, **kwargs: Any):
-        super().__init__(operation_filepath, **kwargs)
-        self._parser = RScriptParser()
 
 
 class ScriptParser():
@@ -165,3 +138,56 @@ class RScriptParser(ScriptParser):
                 r"Sys\.getenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\)(.)*"]
         regex_dict["env_list"] = envs
         return regex_dict
+
+
+class ContentParser(LoggingConfigurable):
+    parsers = {
+        'python': PythonScriptParser(),
+        'r': RScriptParser()
+    }
+
+    def parse(self, filepath: str) -> dict:
+        """Returns a model dictionary of all the regex matches for each key in the regex dictionary"""
+
+        properties = {"env_list": {}, "inputs": {}, "outputs": {}}
+        reader = self.get_reader(filepath)
+        parser = self.get_parser(reader.language)
+
+        if not parser:
+            return properties
+
+        for chunk in reader.read_next_code_chunk():
+            if chunk:
+                for line in chunk:
+                    matches = parser.parse_environment_variables(line)
+                    for key, match in matches:
+                        properties[key][match.group(1)] = match.group(2)
+
+        return properties
+
+    def get_reader(self, filepath: str):
+        """
+        Find the proper reader based on the file extension
+        """
+        file_extension = os.path.splitext(filepath)[-1]
+
+        if file_extension == '.ipynb':
+            return NotebookReader(filepath)
+        elif file_extension in ['.py', '.r']:
+            return FileReader(filepath)
+        else:
+            raise ValueError(f'File type {file_extension} is not supported.')
+
+    def get_parser(self, language: str):
+        """
+        Find the proper parser based on content language
+        """
+        parser = None
+        if language:
+            parser = self.parsers.get(language)
+
+            if not parser:
+                self.log.warning(f'Content parser for {language} is not available.')
+                pass
+
+        return parser

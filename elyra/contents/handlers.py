@@ -20,14 +20,14 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_unescape
 from tornado import web
 
+from elyra.contents import ContentParser
 from elyra.util import get_expanded_path, get_absolute_path
 from elyra.util.http import HttpErrorMixin
-
-from .file_parser import FileParser
 
 
 class FileParserHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to parse envs from a File"""
+    contentParser: ContentParser = ContentParser()
 
     @web.authenticated
     async def post(self, path):
@@ -45,7 +45,10 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         try:
             root_dir = self.settings['server_root_dir']
             absolute_path = get_absolute_path(get_expanded_path(root_dir), path)
-            model = await self.parse_file(absolute_path)
+
+            properties = self.contentParser.parse(absolute_path)
+
+            self.finish(json.dumps(properties))
         except FileNotFoundError as fnfe:
             raise web.HTTPError(404, str(fnfe)) from fnfe
         except IsADirectoryError as iade:
@@ -59,20 +62,3 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         # TODO: Validation of model
         self._finish_request(model)
-
-    async def parse_file(self, filepath):
-        """
-        Given the path to a File, will return a dictionary model
-        :param filepath: absolute path to a File to be parsed
-        :return: a model dict
-        """
-
-        parser = FileParser.get_instance(filepath=filepath)
-        model = parser.get_resources()
-
-        return model
-
-    def _finish_request(self, body):
-        """Finish a JSON request with a model."""
-        self.set_header('Content-Type', 'application/json')
-        self.finish(json.dumps(body))

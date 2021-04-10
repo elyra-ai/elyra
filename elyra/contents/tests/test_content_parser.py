@@ -16,81 +16,81 @@
 import os
 import pytest
 
-from ..file_parser import FileParser
+from elyra.contents.parser import ContentParser
 
 
 def parse(filepath):
-    operation_filepath = os.path.join(os.path.dirname(__file__), filepath)
+    absolute_filepath = os.path.join(os.path.dirname(__file__), filepath)
 
-    operation = FileParser.get_instance(filepath=operation_filepath)
-    return operation.get_resources()
+    parser = ContentParser()
+    return parser.parse(absolute_filepath)
 
 
-def _get_variable_names(model):
-    return list(model['env_list'].keys())
+def _get_variable_names(properties):
+    return list(properties['env_list'].keys())
 
 
 def test_python_notebook():
     expected_variable_names = ['VAR1', 'VAR2', 'VAR3', 'VAR4', 'VAR5', 'VAR6', 'VAR7', 'VAR8']
-    model = parse("resources/parse_python.ipynb")
+    properties = parse("resources/parse_python.ipynb")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
 def test_r_notebook():
     expected_variable_names = ['VAR1', 'VAR2', 'VAR3', 'VAR4', 'VAR5', 'VAR6']
-    model = parse("resources/parse_r.ipynb")
+    properties = parse("resources/parse_r.ipynb")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
 def test_python_script():
     expected_variable_names = ['VAR1', 'VAR2', 'VAR3', 'VAR4', 'VAR5', 'VAR6', 'VAR7', 'VAR8']
-    model = parse("resources/parse.py")
+    properties = parse("resources/parse.py")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
 def test_r_script():
     expected_variable_names = ['VAR1', 'VAR2', 'VAR3', 'VAR4', 'VAR5', 'VAR6']
-    model = parse("resources/parse.r")
+    properties = parse("resources/parse.r")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
 def test_empty_python_notebook():
     expected_variable_names = []
-    model = parse("resources/parse_python_empty.ipynb")
+    properties = parse("resources/parse_python_empty.ipynb")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
 def test_empty_r_notebook():
     expected_variable_names = []
-    model = parse("resources/parse_r_empty.ipynb")
+    properties = parse("resources/parse_r_empty.ipynb")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
 def test_empty_python_script():
     expected_variable_names = []
-    model = parse("resources/parse_empty.py")
+    properties = parse("resources/parse_empty.py")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
 def test_empty_r_script():
     expected_variable_names = []
-    model = parse("resources/parse_empty.r")
+    properties = parse("resources/parse_empty.r")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
@@ -114,17 +114,17 @@ def test_file_is_not_directory():
 
 def test_no_kernel():
     expected_variable_names = []
-    model = parse("resources/parse_no_kernel.ipynb")
+    properties = parse("resources/parse_no_kernel.ipynb")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 
 def test_parser_not_set():
     expected_variable_names = []
-    model = parse("resources/parse_no_language.ipynb")
+    properties = parse("resources/parse_no_language.ipynb")
 
-    variable_names = _get_variable_names(model)
+    variable_names = _get_variable_names(properties)
     assert variable_names == expected_variable_names
 
 

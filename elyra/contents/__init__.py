@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .file_parser import FileParser, NotebookFileParser, PythonFileParser
+from .parser import FileReader, NotebookReader, PythonScriptParser, RScriptParser, ContentParser
 from .handlers import FileParserHandler
