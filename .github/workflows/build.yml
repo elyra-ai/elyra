@@ -45,59 +45,23 @@ jobs:
       uses: actions/setup-node@v2
       with:
          node-version: '12.x'
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip wheel jupyter_server
-        python -m pip install --upgrade jupyterlab
-    - name: Log current build tools version
-      run: |
-        python --version
-        node --version
-        npm --version
-        yarn --version
-        pip --version
-    - name: Log current Python dependencies version
-      run: |
-        pip freeze
-    - name: Install dependencies
+    - name: Setup
       run: |
         yarn install --frozen-lockfile
-        pip install -q -r test_requirements.txt
-        python setup.py bdist_wheel sdist
-        pip install --upgrade --upgrade-strategy only-if-needed --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
-        yarn lerna run build
+        yarn setup
     - name: Documentation
       run: |
         make docs
     - name: Lint
       run: |
-        yarn eslint:check
-        yarn prettier:check
-        flake8 elyra
+        yarn lint
+        yarn format:check
     - name: Unit tests
       run: |
-        pytest -v elyra
-        yarn test:unit
+        yarn test
     - name: Integration tests
       run: |
-        yarn lerna clean --yes
-        rm -rf node_modules
-        rm -rf yarn.lock
-
-        jupyter labextension link --no-build \
-          packages/metadata-common \
-          packages/script-editor \
-          packages/services \
-          packages/ui-components \
-          packages/theme
-
-        jupyter labextension install \
-          packages/code-snippet \
-          packages/metadata \
-          packages/pipeline-editor \
-          packages/python-editor \
-          packages/r-editor
-
+        yarn lab:build
         yarn test:integration
 
     - name: Collect logs

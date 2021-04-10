@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help purge purge-yarn install uninstall full-clean clean test-dependencies lint-server lint-ui lint yarn-install
+.PHONY: help purge purge-yarn install uninstall clean test-dependencies lint-server lint-ui lint yarn-install
 .PHONY: build-ui build-server install-server
 .PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
@@ -77,8 +77,6 @@ uninstall:
 	- jupyter lab clean
 
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
-
-full-clean: purge purge-yarn uninstall ## Should be unnecessary to run this
 
 test-dependencies:
 	@pip install -q -r test_requirements.txt

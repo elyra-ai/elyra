@@ -29,7 +29,8 @@
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "lab:install": "jupyter labextension install --no-build"
   },
   "dependencies": {
     "@elyra/metadata-common": "^2.3.0-dev",
