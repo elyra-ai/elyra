@@ -88,8 +88,6 @@ describe('Code Snippet tests', () => {
   it('should delete existing Code Snippet', () => {
     createValidCodeSnippet(snippetName);
 
-    cy.wait(500);
-
     getSnippetByName(snippetName);
 
     deleteSnippet(snippetName);
@@ -153,8 +151,6 @@ describe('Code Snippet tests', () => {
       .clear()
       .type(newSnippetName);
     saveAndCloseMetadataEditor();
-
-    cy.wait(500);
 
     // Check new snippet name is displayed
     const updatedSnippetItem = getSnippetByName(newSnippetName);
@@ -298,7 +294,7 @@ const openCodeSnippetExtension = (): void => {
 };
 
 const getSnippetByName = (snippetName: string): any => {
-  return cy.get(`[data-item-id="${snippetName}"]`);
+  return cy.get(`[data-item-id="${snippetName}"]`, { timeout: 4500 });
 };
 
 const createInvalidCodeSnippet = (snippetName: string): any => {

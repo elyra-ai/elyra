@@ -66,8 +66,7 @@ jobs:
     - name: Integration tests
       run: |
         yarn lab:build
-        yarn test:integration
-
+        yarn test:integration --silent
     - name: Collect logs
       uses: actions/upload-artifact@v2
       if: failure()
