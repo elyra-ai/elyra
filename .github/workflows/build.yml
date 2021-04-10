@@ -82,6 +82,7 @@ jobs:
       run: |
         yarn lerna clean --yes
         rm -rf node_modules
+        rm -rf yarn.lock
 
         jupyter labextension link --no-build \
           packages/metadata-common \
