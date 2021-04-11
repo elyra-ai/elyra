@@ -35,9 +35,9 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "clean": "git clean -Xdf",
-    "quick-start": "run-s quick-start:server quick-start:ui lab:build",
-    "quick-start:server": "python setup.py bdist_wheel && pip install dist/elyra-*-py3-none-any.whl",
-    "quick-start:ui": "run-s build:ui lab:install:ui"
+    "quick-start": "run-s quick-start:p lab:install:ui lab:build lab:start",
+    "quick-start:p": "run-p install:server build:ui",
+    "install:server": "python setup.py bdist_wheel && pip install dist/elyra-*-py3-none-any.whl"
   },
   "husky": {
     "hooks": {
