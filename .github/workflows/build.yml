@@ -48,6 +48,14 @@ jobs:
     - name: Install
       run: |
         yarn install --frozen-lockfile
+    - name: Log versions
+      run: |
+        python --version
+        node --version
+        npm --version
+        yarn --version
+        lerna --version
+        pip freeze
     - name: Documentation
       run: |
         make docs
