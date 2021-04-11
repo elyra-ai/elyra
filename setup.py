@@ -98,7 +98,14 @@ setup_args = dict(
         'black'
     ],
     extras_require={
-        'test': ['pytest', 'pytest-tornasync'],
+        'test': [
+            'pytest>=5.4.1',
+            'pytest-tornasync',
+            'pytest-console-scripts',
+            'flake8>=3.5.0,<3.9.0',
+            'hacking',
+            'requests-unixsocket'
+        ],
     },
     include_package_data=True,
     classifiers=(

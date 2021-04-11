@@ -9,10 +9,8 @@
   },
   "scripts": {
     "// NOTE": "I don't know how I feel about also installing python things here",
-    "install": "pip install -U . -r test_requirements.txt",
-    "clean": "git clean -Xdf",
+    "install": "pip install .[test]",
     "build": "run-p build:*",
-    "build:server": "python setup.py bdist_wheel sdist",
     "build:ui": "lerna run build --stream",
     "watch": "run-p watch:*",
     "watch:ui": "lerna run watch --parallel",
@@ -20,7 +18,6 @@
     "lab:watch": "jupyter lab --watch",
     "lab:ci": "mkdirp build/cypress-tests && jupyter lab --config=./tests/test-config.py > /dev/null 2> build/cypress-tests/jupyter.log",
     "lab:install": "run-p lab:install:*",
-    "lab:install:server": "pip install -U dist/elyra-*-py3-none-any.whl",
     "lab:install:ui": "lerna run lab:install --stream",
     "lab:build": "jupyter lab build",
     "lab:uninstall": "run-s lab:uninstall:*",
@@ -33,12 +30,13 @@
     "format": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "format:check": "prettier --ignore-path .gitignore --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "test": "run-s test:server test:ui",
-    "test:server": "pytest -v elyra",
+    "test:server": "pytest elyra",
     "test:ui": "lerna run test --concurrency 1 --stream",
     "test:integration": "start-server-and-test lab:ci http-get://localhost:58888?token=test cy:run",
     "test:integration:debug": "start-server-and-test lab:ci http-get://localhost:58888?token=test cy:open",
     "cy:open": "cypress open",
-    "cy:run": "cypress run"
+    "cy:run": "cypress run",
+    "clean": "git clean -Xdf"
   },
   "husky": {
     "hooks": {
