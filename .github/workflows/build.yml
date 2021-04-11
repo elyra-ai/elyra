@@ -49,10 +49,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip wheel jupyter_server
         python -m pip install --upgrade jupyterlab
-    - name: Setup
+    - name: Install
       run: |
         yarn install --frozen-lockfile
-        yarn setup
     - name: Documentation
       run: |
         make docs
@@ -62,10 +61,11 @@ jobs:
         yarn format:check
     - name: Unit tests
       run: |
+        yarn build
         yarn test
     - name: Integration tests
       run: |
-        yarn lab:build
+        yarn lab:install
         yarn test:integration
     - name: Collect logs
       uses: actions/upload-artifact@v2

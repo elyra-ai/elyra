@@ -32,7 +32,8 @@
     "prepare": "npm run build ",
     "test": "jest",
     "watch": "tsc -w",
-    "lab:install": "jupyter labextension install --no-build"
+    "lab:install": "jupyter labextension install --no-build",
+    "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
     "@elyra/canvas": "~10.2.0",

@@ -29,7 +29,8 @@
     "dist": "npm pack .",
     "prepare": "npm run build",
     "watch": "tsc -w",
-    "lab:install": "jupyter labextension link --no-build"
+    "lab:install": "jupyter labextension link --no-build",
+    "lab:uninstall": "jupyter labextension unlink --no-build"
   },
   "dependencies": {
     "@elyra/services": "^2.3.0-dev",
