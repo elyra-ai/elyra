@@ -70,6 +70,12 @@ jobs:
         yarn test
     - name: Integration tests
       run: |
+        # Ensure there is no trace of our locked dependencies when installing
+        # extension for integration tests.
+        yarn lerna clean --yes
+        rm -rf node_modules yarn.lock
+
+        yarn install # Re-install cypress and friends
         yarn lab:install
         yarn lab:build
         yarn test:integration
