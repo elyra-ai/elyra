@@ -8,13 +8,10 @@
     ]
   },
   "scripts": {
-    "build": "run-p build:*",
-    "build:ui": "lerna run build --stream",
-    "setup": "run-p install:server build:ui",
-    "install:server": "python setup.py bdist_wheel && pip install dist/elyra-*-py3-none-any.whl --force-reinstall",
-    "start": "run-s setup lab:install:ui lab:build lab:start",
+    "build": "lerna run build --stream",
+    "start": "run-s build:ui lab:install:ui lab:build lab:start",
     "watch": "run-p watch:*",
-    "watch:lab": "run-s setup lab:install:ui lab:watch",
+    "watch:lab": "run-s build:ui lab:install:ui lab:watch",
     "watch:ui": "lerna run watch --parallel",
     "lab:start": "jupyter lab",
     "lab:watch": "jupyter lab --watch",
