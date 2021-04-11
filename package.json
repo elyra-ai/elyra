@@ -10,7 +10,11 @@
   "scripts": {
     "build": "run-p build:*",
     "build:ui": "lerna run build --stream",
+    "setup": "run-p install:server build:ui",
+    "install:server": "python setup.py bdist_wheel && pip install dist/elyra-*-py3-none-any.whl --force-reinstall",
+    "start": "run-s setup lab:install:ui lab:build lab:start",
     "watch": "run-p watch:*",
+    "watch:lab": "run-s setup lab:install:ui lab:watch",
     "watch:ui": "lerna run watch --parallel",
     "lab:start": "jupyter lab",
     "lab:watch": "jupyter lab --watch",
@@ -34,10 +38,7 @@
     "test:integration:debug": "start-server-and-test lab:ci http-get://localhost:58888?token=test cy:open",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "clean": "git clean -Xdf",
-    "quick-start": "run-s quick-start:p lab:install:ui lab:build lab:start",
-    "quick-start:p": "run-p install:server build:ui",
-    "install:server": "python setup.py bdist_wheel && pip install dist/elyra-*-py3-none-any.whl --force-reinstall"
+    "clean": "git clean -Xdf"
   },
   "husky": {
     "hooks": {
