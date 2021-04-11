@@ -77,8 +77,5 @@ Cypress.Commands.add(
 
 Cypress.Commands.add('openJupyterLab', (): void => {
   // open jupyterlab with a clean workspace
-  cy.visit('?token=test&reset');
-
-  // wait for the file browser to load
-  cy.get('.jp-DirListing-content', { timeout: 25000 }).should('be.visible');
+  cy.visit('?token=test&reset').wait(15000);
 });
