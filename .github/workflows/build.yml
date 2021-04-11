@@ -51,11 +51,12 @@ jobs:
     - name: Log versions
       run: |
         python --version
+        pip --version
+        pip freeze
         node --version
         npm --version
         yarn --version
         lerna --version
-        pip freeze
     - name: Documentation
       run: |
         make docs
