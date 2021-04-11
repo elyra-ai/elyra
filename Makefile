@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help purge purge-yarn install uninstall clean test-dependencies lint-server lint-ui lint yarn-install
+.PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install
 .PHONY: build-ui build-server install-server
 .PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
@@ -40,19 +40,16 @@ help:
 
 purge:
 	rm -rf build *.egg-info yarn-error.log
-	rm -rf lib dist
+	rm -rf node_modules lib dist
+	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
 	rm -rf $$(find packages -name dist -type d)
 	rm -rf $$(find packages -name lib -type d)
 	rm -rf $$(find . -name __pycache__ -type d)
 	rm -rf $$(find . -name *.tgz)
 	rm -rf $$(find . -name tsconfig.tsbuildinfo)
+	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
-
-purge-yarn:
-	rm -rf node_modules
-	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
-	rm -rf $$(find . -name *.lock)
 	rm -rf $(yarn cache dir)
 
 uninstall:
