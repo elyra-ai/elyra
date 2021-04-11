@@ -10,9 +10,7 @@
   "scripts": {
     "build": "lerna run build --stream",
     "start": "run-s build:ui lab:install:ui lab:build lab:start",
-    "watch": "run-p watch:*",
-    "watch:lab": "run-s build:ui lab:install:ui lab:watch",
-    "watch:ui": "lerna run watch --parallel",
+    "watch": "lerna run watch --parallel",
     "lab:start": "jupyter lab",
     "lab:watch": "jupyter lab --watch",
     "lab:ci": "mkdirp build/cypress-tests && jupyter lab --config=./tests/test-config.py > /dev/null 2> build/cypress-tests/jupyter.log",
