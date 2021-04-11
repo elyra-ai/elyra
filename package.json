@@ -20,7 +20,6 @@
     "lab:install": "run-p lab:install:*",
     "lab:install:server": "pip install -U dist/elyra-*-py3-none-any.whl",
     "lab:install:ui": "lerna run lab:install --stream",
-    "postlab:install": "yarn lab:build",
     "lab:build": "jupyter lab build",
     "lab:uninstall": "run-s lab:uninstall:*",
     "lab:uninstall:server": "pip uninstall -y elyra jupyterlab-git jupyter-lsp jupyterlab-lsp python-language-server jupyter-resource-usage",
