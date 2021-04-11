@@ -82,8 +82,8 @@ lint-server: test-dependencies
 	flake8 elyra
 
 lint-ui:
-	yarn run prettier
-	yarn run eslint
+	yarn run format
+	yarn run lint:ui
 
 lint: lint-ui lint-server ## Run linters
 

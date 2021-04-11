@@ -48,6 +48,7 @@ jobs:
     - name: Install
       run: |
         yarn install --frozen-lockfile
+        pip install .[test]
     - name: Log versions
       run: |
         python --version

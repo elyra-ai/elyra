@@ -8,8 +8,6 @@
     ]
   },
   "scripts": {
-    "// NOTE": "I don't know how I feel about also installing python things here",
-    "install": "pip install .[test]",
     "build": "run-p build:*",
     "build:ui": "lerna run build --stream",
     "watch": "run-p watch:*",
@@ -36,7 +34,10 @@
     "test:integration:debug": "start-server-and-test lab:ci http-get://localhost:58888?token=test cy:open",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "clean": "git clean -Xdf"
+    "clean": "git clean -Xdf",
+    "quick-start": "run-s quick-start:server quick-start:ui lab:build",
+    "quick-start:server": "python setup.py bdist_wheel && pip install dist/elyra-*-py3-none-any.whl",
+    "quick-start:ui": "run-s build:ui lab:install:ui"
   },
   "husky": {
     "hooks": {
