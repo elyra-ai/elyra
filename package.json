@@ -37,7 +37,7 @@
     "clean": "git clean -Xdf",
     "quick-start": "run-s quick-start:p lab:install:ui lab:build lab:start",
     "quick-start:p": "run-p install:server build:ui",
-    "install:server": "python setup.py bdist_wheel && pip install dist/elyra-*-py3-none-any.whl"
+    "install:server": "python setup.py bdist_wheel && pip install dist/elyra-*-py3-none-any.whl --force-reinstall"
   },
   "husky": {
     "hooks": {
