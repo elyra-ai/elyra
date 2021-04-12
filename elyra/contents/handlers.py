@@ -48,6 +48,7 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
 
             properties = self.contentParser.parse(absolute_path)
 
+            # TODO: Validation of model
             self.finish(json.dumps(properties))
         except FileNotFoundError as fnfe:
             raise web.HTTPError(404, str(fnfe)) from fnfe
@@ -57,8 +58,5 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
             # Parser could not parse the given file, but this does not necessarily indicate an error with the file.
             # Log the issue and return an empty model so that other user processes are not disrupted.
             self.log.debug(f"Could not parse {path}: {str(e)}")
-            model = {"env_list": {}, "inputs": {}, "outputs": {}}
-
-        self.set_status(200)
-        # TODO: Validation of model
-        self._finish_request(model)
+            empty_properties = {"env_list": {}, "inputs": {}, "outputs": {}}
+            self.finish(json.dumps(empty_properties))
