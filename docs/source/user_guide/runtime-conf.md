@@ -218,6 +218,8 @@ Example: `https://your-airflow-webserver:port`
 ##### Apache Airflow user namespace (user_namespace)
 The namespace used to run your DAG in Apache Airflow. The Kubernetes namespace must be configured with the correct permissions prior to use in Apache Airflow. This setting is Optional. 
 
+The default namespace is `default`.
+
 Example: `anonymous`
 
 ##### GitHub API Endpoint (github_api_endpoint)

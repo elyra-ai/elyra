@@ -48,6 +48,7 @@
           "type": "string",
           "pattern": "^[a-z0-9][-a-z0-9]*[a-z0-9]$",
           "maxLength": 63,
+          "default": "default",
           "uihints": {
             "category": "Apache Airflow"
           }
