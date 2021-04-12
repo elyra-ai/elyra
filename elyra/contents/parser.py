@@ -34,7 +34,6 @@ class FileReader(LoggingConfigurable):
     """
 
     def __init__(self, filepath: str):
-        self._validate_file(filepath)
         self._filepath = filepath
 
     @property
@@ -59,15 +58,6 @@ class FileReader(LoggingConfigurable):
         with open(self._filepath) as f:
             for line in f:
                 yield [line.strip()]
-
-    def _validate_file(self, filepath):
-        """
-        Validate file exists and is file (e.g. not a directory)
-        """
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f'No such file or directory: {filepath}')
-        if not os.path.isfile(filepath):
-            raise IsADirectoryError(f'Is a directory: {filepath}')
 
 
 class NotebookReader(FileReader):
@@ -150,8 +140,8 @@ class ContentParser(LoggingConfigurable):
         """Returns a model dictionary of all the regex matches for each key in the regex dictionary"""
 
         properties = {"env_list": {}, "inputs": {}, "outputs": {}}
-        reader = self.get_reader(filepath)
-        parser = self.get_parser(reader.language)
+        reader = self._get_reader(filepath)
+        parser = self._get_parser(reader.language)
 
         if not parser:
             return properties
@@ -165,11 +155,22 @@ class ContentParser(LoggingConfigurable):
 
         return properties
 
-    def get_reader(self, filepath: str):
+    def _validate_file(self, filepath: str):
+        """
+        Validate file exists and is file (e.g. not a directory)
+        """
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f'No such file or directory: {filepath}')
+        if not os.path.isfile(filepath):
+            raise IsADirectoryError(f'Is a directory: {filepath}')
+
+    def _get_reader(self, filepath: str):
         """
         Find the proper reader based on the file extension
         """
         file_extension = os.path.splitext(filepath)[-1]
+
+        self._validate_file(filepath)
 
         if file_extension == '.ipynb':
             return NotebookReader(filepath)
@@ -178,7 +179,7 @@ class ContentParser(LoggingConfigurable):
         else:
             raise ValueError(f'File type {file_extension} is not supported.')
 
-    def get_parser(self, language: str):
+    def _get_parser(self, language: str):
         """
         Find the proper parser based on content language
         """

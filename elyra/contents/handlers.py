@@ -27,7 +27,7 @@ from elyra.util.http import HttpErrorMixin
 
 class FileParserHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to parse envs from a File"""
-    contentParser: ContentParser = ContentParser()
+    content_parser: ContentParser = ContentParser()
 
     @web.authenticated
     async def post(self, path):
@@ -46,7 +46,7 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
             root_dir = self.settings['server_root_dir']
             absolute_path = get_absolute_path(get_expanded_path(root_dir), path)
 
-            properties = self.contentParser.parse(absolute_path)
+            properties = self.content_parser.parse(absolute_path)
 
             # TODO: Validation of model
             self.finish(json.dumps(properties))
@@ -57,6 +57,6 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
         except Exception as e:
             # Parser could not parse the given file, but this does not necessarily indicate an error with the file.
             # Log the issue and return an empty model so that other user processes are not disrupted.
-            self.log.debug(f"Could not parse {path}: {str(e)}")
+            self.log.debug(f"Could not parse '{path}': {str(e)}")
             empty_properties = {"env_list": {}, "inputs": {}, "outputs": {}}
             self.finish(json.dumps(empty_properties))
