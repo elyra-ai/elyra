@@ -20,7 +20,6 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
-//import { stride } from '@lumino/algorithm';
 
 import { PipelineService } from './PipelineService';
 
