@@ -31,8 +31,8 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def get(self):
         msg_json = dict(title="Operation not supported.")
-        self.write(msg_json)
-        self.flush()
+        self.set_header("Content-Type", 'application/json')
+        self.finish(msg_json)
 
     @web.authenticated
     async def post(self, *args, **kwargs):
@@ -66,8 +66,8 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
             pipeline_exported_path
         )
         self.set_header('Location', location)
-        self.write(json_msg)
-        self.flush()
+        self.set_header("Content-Type", 'application/json')
+        self.finish(json_msg)
 
 
 class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
@@ -94,7 +94,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
-        self.flush()
+
 
 
 class PipelineConfigHandler(HttpErrorMixin, APIHandler):
@@ -108,9 +108,11 @@ class PipelineConfigHandler(HttpErrorMixin, APIHandler):
             msg_json = self._read_config(resource)
         else:
             # invalid resource, throw an error
-            raise ValueError("Invalid configuration name {}".format(resource))
-        self.write(msg_json)
-        self.flush()
+            raise web.HTTPError(400, f"Invalid configuration name {resource}")
+
+        self.set_header("Content-Type", 'application/json')
+        self.finish(msg_json)
+
 
     def _read_config(self, config_name):
         config_dir = os.path.join(os.path.dirname(__file__), 'resources')
