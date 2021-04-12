@@ -96,7 +96,6 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         self.finish(json_msg)
 
 
-
 class PipelineConfigHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipelines editor configuration"""
 
@@ -112,7 +111,6 @@ class PipelineConfigHandler(HttpErrorMixin, APIHandler):
 
         self.set_header("Content-Type", 'application/json')
         self.finish(msg_json)
-
 
     def _read_config(self, config_name):
         config_dir = os.path.join(os.path.dirname(__file__), 'resources')
