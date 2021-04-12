@@ -39,6 +39,9 @@ const r = {
     parameters: [
       { id: 'filename', type: 'string' },
       { id: 'runtime_image' },
+      { id: 'cpu', type: 'double' },
+      { id: 'gpu', type: 'double' },
+      { id: 'memory', type: 'double' },
       { id: 'dependencies', type: 'array[string]' },
       { id: 'include_subdirectories', type: 'cboolean' },
       { id: 'env_vars', type: 'array[string]' },
@@ -73,6 +76,56 @@ const r = {
           data: {
             items: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3'],
             required: true
+          }
+        },
+        {
+          parameter_ref: 'cpu',
+          label: {
+            default: 'CPU'
+          },
+          control: 'custom',
+          custom_control_id: 'NumberControl',
+          data: {
+            minimum: 0,
+            maximum: 99
+          },
+          description: {
+            default:
+              'For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).',
+            placement: 'on_panel'
+          }
+        },
+        {
+          parameter_ref: 'gpu',
+          label: {
+            default: 'GPU'
+          },
+          control: 'custom',
+          custom_control_id: 'NumberControl',
+          data: {
+            minimum: 0,
+            maximum: 99
+          },
+          description: {
+            default:
+              'For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.',
+            placement: 'on_panel'
+          }
+        },
+        {
+          parameter_ref: 'memory',
+          label: {
+            default: 'RAM(GB)'
+          },
+          control: 'custom',
+          custom_control_id: 'NumberControl',
+          data: {
+            minimum: 0,
+            maximum: 99
+          },
+          description: {
+            default: 'The total amount of RAM specified.',
+            placement: 'on_panel'
           }
         },
         {
@@ -133,6 +186,11 @@ const r = {
               id: 'runtime_image',
               type: 'controls',
               parameter_refs: ['runtime_image']
+            },
+            {
+              id: 'resources',
+              type: 'controls',
+              parameter_refs: ['cpu', 'gpu', 'memory']
             },
             {
               id: 'dependencies',

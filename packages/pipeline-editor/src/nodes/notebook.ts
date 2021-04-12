@@ -39,6 +39,9 @@ const notebook = {
     parameters: [
       { id: 'filename', type: 'string' },
       { id: 'runtime_image', type: 'string' },
+      { id: 'cpu', type: 'double' },
+      { id: 'gpu', type: 'double' },
+      { id: 'memory', type: 'double' },
       { id: 'dependencies', type: 'array[string]' },
       { id: 'include_subdirectories', type: 'cboolean' },
       { id: 'env_vars', type: 'array[string]' },
@@ -80,9 +83,16 @@ const notebook = {
           label: {
             default: 'CPU'
           },
+          control: 'custom',
+          custom_control_id: 'NumberControl',
+          data: {
+            minimum: 0,
+            maximum: 99
+          },
           description: {
             default:
-              'For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).'
+              'For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).',
+            placement: 'on_panel'
           }
         },
         {
@@ -90,9 +100,16 @@ const notebook = {
           label: {
             default: 'GPU'
           },
+          control: 'custom',
+          custom_control_id: 'NumberControl',
+          data: {
+            minimum: 0,
+            maximum: 99
+          },
           description: {
             default:
-              'For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.'
+              'For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.',
+            placement: 'on_panel'
           }
         },
         {
@@ -100,11 +117,16 @@ const notebook = {
           label: {
             default: 'RAM(GB)'
           },
-          description: {
-            default: 'The total amount of RAM specified.'
+          control: 'custom',
+          custom_control_id: 'NumberControl',
+          data: {
+            minimum: 0,
+            maximum: 99
           },
-          orientation: 'horizontal',
-          separator: 'after'
+          description: {
+            default: 'The total amount of RAM specified.',
+            placement: 'on_panel'
+          }
         },
         {
           control: 'custom',
@@ -163,6 +185,11 @@ const notebook = {
               id: 'runtime_image',
               type: 'controls',
               parameter_refs: ['runtime_image']
+            },
+            {
+              id: 'resources',
+              type: 'controls',
+              parameter_refs: ['cpu', 'gpu', 'memory']
             },
             {
               id: 'dependencies',

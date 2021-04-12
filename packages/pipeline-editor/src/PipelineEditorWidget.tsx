@@ -61,6 +61,7 @@ import {
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
 import Utils from './utils';
+import { IDictionary } from '@elyra/services';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -114,6 +115,24 @@ const PipelineWrapper = ({
       }
     });
   };
+
+  PipelineService.getRuntimeImages().then(
+    (runtimeImages: any) => {
+      for (const node of nodes) {
+        const imageEnum = [];
+        for (const runtimeImage in runtimeImages) {
+          imageEnum.push(runtimeImage);
+          (node.properties.resources as IDictionary<string>)[
+            'runtime_image.' + runtimeImage + '.label'
+          ] = runtimeImages[runtimeImage];
+        }
+        node.properties.uihints.parameter_info[1].data.items = imageEnum;
+      }
+    }
+    // TODO: add this back in when the readonly error is resolved
+    // ).catch(
+    //   error => RequestErrors.serverError(error)
+  );
 
   const onFileRequested = (
     startPathInfo?: any,
