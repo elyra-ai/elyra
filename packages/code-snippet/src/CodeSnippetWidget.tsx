@@ -113,9 +113,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       const fileEditor = widget.content.editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
       if (
-        PathExt.extname((widget as DocumentWidget).context.path).match(
-          markdownRegex
-        ) !== null &&
+        PathExt.extname(widget.context.path).match(markdownRegex) !== null &&
         snippet.metadata.language.toLowerCase() !== 'markdown'
       ) {
         fileEditor.replaceSelection(
