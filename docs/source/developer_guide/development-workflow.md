@@ -157,3 +157,27 @@ make container-image
 ```
 
 Official container images are published on [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) and [quay.io](https://quay.io/repository/elyra/elyra?tab=tags).
+
+### Contributing back to Elyra
+
+Whenever you are ready to contribute your changes back to Elyra, you may need to incorporate 
+upstream changes into your branch. First, fetch the upstream repo's latest commits:
+```
+git fetch upstream
+```
+
+Now you can merge the upstream repo's master branch into your master branch:
+```
+git checkout master
+git merge upstream/master
+```
+
+If there were any changes, you will need to rebase your feature branch:
+```
+git checkout <feature-branch>
+git rebase master
+```
+
+> **Note:** If there are any merge conflicts with the `yarn.lock` file, there is 
+> no need to manually resolve them. Simply run `yarn install` and yarn will do its
+> best to automatically resolve any conflicts.
