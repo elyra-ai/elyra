@@ -92,9 +92,7 @@ install                        Build and install
 lint                           Run linters
 publish-container-images       Publish all container images
 release                        Build wheel file for release
-test-ui-debug                  Open cypress integration test debugger
 test                           Run all tests (backend, frontend and cypress integration tests)
-validate-runtime-images        Validates delivered runtime-images meet minimum criteria
 watch                          Watch packages. For use alongside jupyter lab --watch
 ```
 
