@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FileParser } from '@elyra/services';
+import { ContentParser } from '@elyra/services';
 import { IconUtil, pyIcon, rIcon } from '@elyra/ui-components';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -84,9 +84,9 @@ export class CanvasManager {
         nodeTemplate: this.canvasController.convertNodeTemplate(nodeTemplate)
       };
 
-      const env_vars = await FileParser.getEnvVars(file.path).then(response =>
-        response.map((str: string) => (str = str + '='))
-      );
+      const env_vars = await ContentParser.getEnvVars(
+        file.path
+      ).then(response => response.map((str: string) => (str = str + '=')));
 
       data.nodeTemplate.label = PathExt.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(

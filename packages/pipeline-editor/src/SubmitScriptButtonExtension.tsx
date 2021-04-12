@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FileParser } from '@elyra/services';
+import { ContentParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -60,7 +60,7 @@ export class SubmitScriptButtonExtension
       }
     }
 
-    const env = await FileParser.getEnvVars(
+    const env = await ContentParser.getEnvVars(
       editor.context.path.toString()
     ).catch(error => RequestErrors.serverError(error));
     const action = 'submit script';

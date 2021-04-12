@@ -28,7 +28,7 @@ export interface IDictionary<T> {
 /**
  * A utilities class for parsing notebook files.
  */
-export class FileParser {
+export class ContentParser {
   /**
    * Takes in a file_path and finds all env vars accessed in that file.
    * @param file_path - relative path to file
@@ -40,7 +40,7 @@ export class FileParser {
         ELYRA_FILE_PARSER_API_ENDPOINT + file_path
       );
       // Only return environment var names (not values)
-      return Object.keys(response.env_list);
+      return Object.keys(response.env_vars);
     } catch (error) {
       return Promise.reject(error);
     }

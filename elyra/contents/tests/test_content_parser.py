@@ -27,7 +27,7 @@ def parse(filepath):
 
 
 def _get_variable_names(properties):
-    return list(properties['env_list'].keys())
+    return list(properties['env_vars'].keys())
 
 
 def test_python_notebook():

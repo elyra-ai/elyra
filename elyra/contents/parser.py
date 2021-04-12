@@ -114,7 +114,7 @@ class PythonScriptParser(ScriptParser):
         envs = [r"os\.environ\[[\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\](?:\s*=(?:\s*[\"'](.[^\"']*)?[\"'])?)*",
                 r"os\.getenv\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"'](?:\s*\,\s*[\"'](.[^\"']*)?[\"'])?",
                 r"os\.environ\.get\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"'](?:\s*\,(?:\s*[\"'](.[^\"']*)?[\"'])?)*"]
-        regex_dict["env_list"] = envs
+        regex_dict["env_vars"] = envs
         return regex_dict
 
 
@@ -126,7 +126,7 @@ class RScriptParser(ScriptParser):
         # Tests for matches of the form Sys.setenv("key" = "value")
         envs = [r"Sys\.setenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\s*=\s*[\"']*(.[^\"']*)?[\"']*\)",
                 r"Sys\.getenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\)(.)*"]
-        regex_dict["env_list"] = envs
+        regex_dict["env_vars"] = envs
         return regex_dict
 
 
@@ -139,7 +139,7 @@ class ContentParser(LoggingConfigurable):
     def parse(self, filepath: str) -> dict:
         """Returns a model dictionary of all the regex matches for each key in the regex dictionary"""
 
-        properties = {"env_list": {}, "inputs": {}, "outputs": {}}
+        properties = {"env_vars": {}, "inputs": {}, "outputs": {}}
         reader = self._get_reader(filepath)
         parser = self._get_parser(reader.language)
 
