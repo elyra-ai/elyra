@@ -195,7 +195,7 @@ container-images: elyra-image kf-notebook-image airflow-image ## Build all conta
 
 publish-container-images: publish-elyra-image publish-airflow-image publish-kf-notebook-image ## Publish all container images
 
-validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
+validate-runtime-images: # Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
 	pip install jq ; \
 	for file in `find etc/config/metadata/runtime-images -name "*.json"` ; do \
