@@ -110,7 +110,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     const snippetStr = snippet.metadata.code.join('\n');
 
     if (this.isFileEditor(widget)) {
-      const fileEditor = this.getFileEditor(widget);
+      const fileEditor = widget.content.editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
       if (
         PathExt.extname((widget as DocumentWidget).context.path).match(
@@ -122,8 +122,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
           this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
         );
       } else if (widget.constructor.name === 'ScriptEditor') {
-        const editorLanguage = (widget as FileEditor).context.sessionContext
-          .kernelPreference.language;
+        const editorLanguage =
+          widget.context.sessionContext.kernelPreference.language;
         this.verifyLanguageAndInsert(snippet, editorLanguage, fileEditor);
       } else {
         fileEditor.replaceSelection(snippetStr);
@@ -162,17 +162,10 @@ class CodeSnippetDisplay extends MetadataDisplay<
   };
 
   // Verify if a given widget is a FileEditor
-  private isFileEditor = (widget: Widget): boolean => {
-    return (
-      widget instanceof DocumentWidget &&
-      (widget as DocumentWidget).content instanceof FileEditor
-    );
-  };
-
-  // Return the code editor from a given widget
-  private getFileEditor = (widget: Widget): CodeEditor.IEditor => {
-    const documentWidget = widget as DocumentWidget;
-    return (documentWidget.content as FileEditor).editor;
+  private isFileEditor = (
+    widget: Widget
+  ): widget is DocumentWidget<FileEditor> => {
+    return (widget as DocumentWidget).content instanceof FileEditor;
   };
 
   // Return the given code wrapped in a markdown code block
