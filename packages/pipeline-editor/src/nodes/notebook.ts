@@ -45,7 +45,7 @@ const notebook = {
       { id: 'filename', type: 'string', required: true },
       {
         id: 'runtime_image',
-        enum: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3'],
+        // enum: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3'],
         required: true
       },
       { id: 'dependencies', type: 'array[string]', required: false },
@@ -58,26 +58,31 @@ const notebook = {
       parameter_info: [
         {
           control: 'custom',
-          custom_control_id: 'pipeline-editor-file-control',
+          custom_control_id: 'StringControl',
           parameter_ref: 'filename',
           label: { default: 'File' },
           description: {
             default: 'The path to the notebook file.',
-            placement: 'on_panel'
+            placement: 'on_panel',
+            canBrowseFiles: true
           }
         },
         {
           parameter_ref: 'runtime_image',
           label: { default: 'Runtime Image' },
-          control: 'oneofselect',
+          control: 'custom',
+          custom_control_id: 'EnumControl',
           description: {
             default: 'Docker image used as execution environment.',
             placement: 'on_panel'
+          },
+          data: {
+            items: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3']
           }
         },
         {
           control: 'custom',
-          custom_control_id: 'pipeline-editor-string-array-control',
+          custom_control_id: 'StringArrayControl',
           parameter_ref: 'dependencies',
           label: { default: 'File Dependencies' },
           description: {
@@ -89,7 +94,7 @@ const notebook = {
         },
         {
           control: 'custom',
-          custom_control_id: 'pipeline-editor-boolean-control',
+          custom_control_id: 'BooleanControl',
           parameter_ref: 'include_subdirectories',
           label: { default: 'Include Subdirectories' },
           data: {
@@ -99,7 +104,7 @@ const notebook = {
         },
         {
           control: 'custom',
-          custom_control_id: 'pipeline-editor-string-array-control',
+          custom_control_id: 'StringArrayControl',
           parameter_ref: 'env_vars',
           label: { default: 'Environment Variables' },
           description: {
@@ -111,7 +116,7 @@ const notebook = {
         },
         {
           control: 'custom',
-          custom_control_id: 'pipeline-editor-string-array-control',
+          custom_control_id: 'StringArrayControl',
           parameter_ref: 'outputs',
           label: { default: 'Output Files' },
           description: {
