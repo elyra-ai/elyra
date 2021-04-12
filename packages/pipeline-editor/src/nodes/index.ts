@@ -16,8 +16,8 @@
 
 import notebook from './notebook';
 import python from './python';
-import wmlDeploy from './wml-deploy';
+import r from './r';
 
-const nodes = [notebook, python, wmlDeploy];
+const nodes = [notebook, python, r];
 
 export default nodes;

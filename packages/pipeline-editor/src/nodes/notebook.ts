@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-const jupyterSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
-  <g transform="translate(-1638,-1844)">
-    <path d="m1788 1886a108.02 108.02 0 0 0 -104.92 82.828 114.07 64.249 0 0 1 104.92 -39.053 114.07 64.249 0 0 1 104.96 39.261 108.02 108.02 0 0 0 -104.96 -83.037zm-104.96 133.01a108.02 108.02 0 0 0 104.96 83.037 108.02 108.02 0 0 0 104.92 -82.828 114.07 64.249 0 0 1 -104.92 39.053 114.07 64.249 0 0 1 -104.96 -39.261z" style="fill:#f57c00;paint-order:fill markers stroke"/>
-    <circle cx="1699.5" cy="2110.8" r="22.627" style="fill:#9e9e9e;paint-order:fill markers stroke"/><circle cx="1684.3" cy="1892.6" r="16.617" style="fill:#616161;mix-blend-mode:normal;paint-order:fill markers stroke"/><circle cx="1879.8" cy="1877.4" r="21.213" style="fill:#757575;mix-blend-mode:normal;paint-order:fill markers stroke"/>
-  </g>
-</svg>
-`;
+import { notebookIcon } from '@jupyterlab/ui-components';
+
+const jupyterSVG = notebookIcon.svgstr;
 
 const notebook = {
   op: 'execute-notebook-node',
@@ -79,6 +74,37 @@ const notebook = {
             items: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3'],
             required: true
           }
+        },
+        {
+          parameter_ref: 'cpu',
+          label: {
+            default: 'CPU'
+          },
+          description: {
+            default:
+              'For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).'
+          }
+        },
+        {
+          parameter_ref: 'gpu',
+          label: {
+            default: 'GPU'
+          },
+          description: {
+            default:
+              'For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.'
+          }
+        },
+        {
+          parameter_ref: 'memory',
+          label: {
+            default: 'RAM(GB)'
+          },
+          description: {
+            default: 'The total amount of RAM specified.'
+          },
+          orientation: 'horizontal',
+          separator: 'after'
         },
         {
           control: 'custom',

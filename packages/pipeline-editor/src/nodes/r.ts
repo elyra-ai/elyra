@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { pyIcon } from '@elyra/ui-components';
+import { rIcon } from '@elyra/ui-components';
 
-const pythonSVG = pyIcon.svgstr;
+const rSVG = rIcon.svgstr;
 
-const python = {
-  op: 'execute-python-node',
-  description: 'Python file',
-  label: 'Python',
+const r = {
+  op: 'execute-r-node',
+  description: 'R file',
+  label: 'R Script',
   labelField: 'filename',
   fileField: 'filename',
   fileBased: true,
-  extension: '.py',
-  image: 'data:image/svg+xml;utf8,' + encodeURIComponent(pythonSVG),
+  extension: '.r',
+  image: 'data:image/svg+xml;utf8,' + encodeURIComponent(rSVG),
   properties: {
     current_parameters: {
       filename: '',
@@ -154,4 +154,4 @@ const python = {
   }
 };
 
-export default python;
+export default r;
