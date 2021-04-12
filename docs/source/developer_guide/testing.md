@@ -1,7 +1,7 @@
 # Contributing to frontend tests
 Elyra uses two types of frontend tests: integration tests (which use [cypress](https://docs.cypress.io/)) and unit tests (which use [jest](https://jestjs.io/docs/en/getting-started)). 
 ## Integration tests
-There are two ways to run the integration tests: to only see the output logs from all of the integration tests, run `make test-ui-integration` from the root directory. To debug tests that are going wrong or develop new tests, run `make test-ui-integration-debug` - this will open an interactive tool for writing and debugging tests. 
+There are two ways to run the integration tests: to only see the output logs from all of the integration tests, run `make test-integration` from the root directory. To debug tests that are going wrong or develop new tests, run `make test-integration-debug` - this will open an interactive tool for writing and debugging tests.
 
 Elyra's integration tests automatically start JupyterLab and visit / interact with pages through cypress API calls. The tests use the cypress API to check for the existence of various buttons and visual elements. Refer to the [cypress API](https://docs.cypress.io/api/api/table-of-contents.html) for more details.
 

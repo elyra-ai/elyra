@@ -15,8 +15,8 @@
 #
 
 .PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install
-.PHONY: build-ui build-server install-server
-.PHONY: watch test-server test-ui test-ui-integration-debug test docs-dependencies docs dist-ui release
+.PHONY: build-ui build-server install-server watch
+.PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image airflow-image publish-airflow-image container-images publish-container-images
 
@@ -126,15 +126,15 @@ watch: ## Watch packages. For use alongside jupyter lab --watch
 test-server: install-server # Run unit tests
 	pytest -v elyra
 
-test-ui: lint-ui test-ui-unit test-ui-integration # Run frontend tests
+test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
 
 test-ui-unit: # Run frontend jest unit tests
 	npm run test:unit
 
-test-ui-integration: # Run frontend cypress integration tests
+test-integration: # Run frontend cypress integration tests
 	npm run test:integration
 
-test-ui-integration-debug: # Open cypress integration test debugger
+test-integration-debug: # Open cypress integration test debugger
 	npm run test:integration:debug
 
 test: test-server test-ui ## Run all tests (backend, frontend and cypress integration tests)
