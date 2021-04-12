@@ -42,16 +42,12 @@ const notebook = {
       outputs: []
     },
     parameters: [
-      { id: 'filename', type: 'string', required: true },
-      {
-        id: 'runtime_image',
-        // enum: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3'],
-        required: true
-      },
-      { id: 'dependencies', type: 'array[string]', required: false },
-      { id: 'include_subdirectories', type: 'cboolean', required: false },
-      { id: 'env_vars', type: 'array[string]', required: false },
-      { id: 'outputs', type: 'array[string]', required: false }
+      { id: 'filename', type: 'string' },
+      { id: 'runtime_image', type: 'string' },
+      { id: 'dependencies', type: 'array[string]' },
+      { id: 'include_subdirectories', type: 'cboolean' },
+      { id: 'env_vars', type: 'array[string]' },
+      { id: 'outputs', type: 'array[string]' }
     ],
     uihints: {
       id: 'nodeProperties',
@@ -63,8 +59,11 @@ const notebook = {
           label: { default: 'File' },
           description: {
             default: 'The path to the notebook file.',
-            placement: 'on_panel',
-            canBrowseFiles: true
+            placement: 'on_panel'
+          },
+          data: {
+            format: 'file',
+            required: true
           }
         },
         {
@@ -77,7 +76,8 @@ const notebook = {
             placement: 'on_panel'
           },
           data: {
-            items: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3']
+            items: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3'],
+            required: true
           }
         },
         {
@@ -90,7 +90,7 @@ const notebook = {
               'Local file dependencies that need to be copied to remote execution environment.',
             placement: 'on_panel'
           },
-          data: { placeholder: '*.py', canBrowseFiles: true }
+          data: { placeholder: '*.py', format: 'file' }
         },
         {
           control: 'custom',
@@ -98,7 +98,7 @@ const notebook = {
           parameter_ref: 'include_subdirectories',
           label: { default: 'Include Subdirectories' },
           data: {
-            helperText:
+            description:
               'Whether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
           }
         },
