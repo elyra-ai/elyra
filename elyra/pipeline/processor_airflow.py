@@ -251,7 +251,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                                                      name=pipeline.runtime_config)
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
 
-            description = f"Created with Elyra {__version__} pipeline editor using {pipeline.name}.pipeline."
+            description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
             python_output = template.render(operations_list=notebook_ops,
                                             pipeline_name=pipeline_name,
