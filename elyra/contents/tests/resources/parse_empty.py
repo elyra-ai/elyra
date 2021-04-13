@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Python Script with Environment Variables
 
-from .archive import create_temp_archive
-from .path import get_absolute_path, get_expanded_path
+This python script contains no environment variables to test the parser
+functionality.
+"""
+
+import os
+
+print(os.cwd())

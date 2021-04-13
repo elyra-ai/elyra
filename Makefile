@@ -15,14 +15,14 @@
 #
 
 .PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install
-.PHONY: build-ui build-server install-server
-.PHONY: watch test-server test-ui test-ui-debug test docs-dependencies docs dist-ui release
+.PHONY: build-ui build-server install-server watch
+.PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image airflow-image publish-airflow-image container-images publish-container-images
 
 SHELL:=/bin/bash
 
-AIRFLOW_NOTEBOOK_VERSION:=0.0.4
+AIRFLOW_NOTEBOOK_VERSION:=0.0.5
 
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
@@ -47,7 +47,6 @@ purge:
 	rm -rf $$(find . -name __pycache__ -type d)
 	rm -rf $$(find . -name *.tgz)
 	rm -rf $$(find . -name tsconfig.tsbuildinfo)
-	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
 	rm -rf $(yarn cache dir)
@@ -90,19 +89,15 @@ lint: lint-ui lint-server ## Run linters
 yarn-install:
 	yarn
 
-build-ui: yarn-install lint-ui ## Build packages
+build-ui: yarn-install lint-ui # Build packages
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
-build-server: lint-server ## Build backend
+build-server: lint-server # Build backend
 	python setup.py bdist_wheel sdist
 
 build: build-server build-ui
 
-install-server: build-server ## Install backend
-	pip install --upgrade pip
-	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
-
-install-ui: build-ui
+install-ui: build-ui # Install packages
 	$(call LINK_LAB_EXTENSION,services)
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call LINK_LAB_EXTENSION,metadata-common)
@@ -114,6 +109,10 @@ install-ui: build-ui
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 	$(call INSTALL_LAB_EXTENSION,r-editor)
 
+install-server: build-server # Install backend
+	pip install --upgrade pip
+	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
+
 install: install-server install-ui ## Build and install
 	jupyter lab build
 	jupyter serverextension list
@@ -123,21 +122,21 @@ install: install-server install-ui ## Build and install
 watch: ## Watch packages. For use alongside jupyter lab --watch
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run watch --parallel
 
-test-server: install-server ## Run unit tests
+test-server: install-server # Run unit tests
 	pytest -v elyra
 
-test-ui: lint-ui test-ui-unit test-ui-integration ## Run frontend tests
+test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
 
-test-ui-integration: ## Run frontend cypress integration tests
-	npm run test:integration
-
-test-ui-unit: ## Run frontend jest unit tests
+test-ui-unit: # Run frontend jest unit tests
 	npm run test:unit
 
-test-ui-debug: ## Open cypress integration test debugger
+test-integration: # Run frontend cypress integration tests
+	npm run test:integration
+
+test-integration-debug: # Open cypress integration test debugger
 	npm run test:integration:debug
 
-test: test-server test-ui ## Run all tests
+test: test-server test-ui ## Run all tests (backend, frontend and cypress integration tests)
 
 docs-dependencies:
 	@pip install -q -r docs/requirements.txt
@@ -156,37 +155,31 @@ dist-ui: build-ui
 
 release: dist-ui build-server ## Build wheel file for release
 
-elyra-image:
-	## Build Elyra stand-alone container image
+elyra-image: # Build Elyra stand-alone container image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE) -t quay.io/$(ELYRA_IMAGE) build/docker/ --progress plain --build-arg TAG=$(TAG)
 
-publish-elyra-image: elyra-image
-	## Publish Elyra stand-alone container image
-      # this is a privileged operation; a `docker login` might be required
+publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
+    # this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
 
-airflow-image:
-	## Build airflow image for use with Elyra
+airflow-image: # Build airflow image for use with Elyra
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_AIRFLOW_IMAGE) -t quay.io/$(ELYRA_AIRFLOW_IMAGE) \
 	--build-arg AIRFLOW_NOTEBOOK_VERSION=$(AIRFLOW_NOTEBOOK_VERSION) etc/docker/airflow/ --progress plain
 
-publish-airflow-image: airflow-image
-	## Publish airflow image for use with Elyra
+publish-airflow-image: airflow-image # Publish airflow image for use with Elyra
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_AIRFLOW_IMAGE)
 	docker push quay.io/$(ELYRA_AIRFLOW_IMAGE)
 
-kf-notebook-image:
-	## Build elyra image for use with Kubeflow Notebook Server
+kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE) -t quay.io/$(KF_NOTEBOOK_IMAGE) \
 	etc/docker/kubeflow/ --progress plain
 
-publish-kf-notebook-image: kf-notebook-image
-	## Publish elyra image for use with Kubeflow Notebook Server
+publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
@@ -201,8 +194,7 @@ container-images: elyra-image kf-notebook-image airflow-image ## Build all conta
 
 publish-container-images: publish-elyra-image publish-airflow-image publish-kf-notebook-image ## Publish all container images
 
-
-validate-runtime-images: ## Validates delivered runtime-images meet minimum criteria
+validate-runtime-images: # Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
 	pip install jq ; \
 	for file in `find etc/config/metadata/runtime-images -name "*.json"` ; do \
