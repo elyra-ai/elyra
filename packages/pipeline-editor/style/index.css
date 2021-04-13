@@ -592,5 +592,5 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 }
 
 .toolbar-item-content .toolbar-icon svg {
-  background: var(--jp-border-color2);
+  background: var(--jp-cell-editor-border-color);
 }
