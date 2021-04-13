@@ -257,6 +257,10 @@ Open the displayed URL in your browser to start using JupyterLab and Elyra.
      or http://127.0.0.1:8888/?token=d690bde267ec75d6f88c64a39825f8b05b919dd084451f82
 ```
 
+### Kubeflow Notebook Server
+
+The instructions in 
+[this topic](/recipes/using-elyra-with-kubeflow-notebook-server.md) outline how to configure a [Kubeflow Notebook Server](https://www.kubeflow.org/docs/components/notebooks) for Elyra.
 
 ### Red Hat OpenShift
 
