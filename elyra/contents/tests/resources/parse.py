@@ -13,6 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Python Script with Environment Variables
 
-from .archive import create_temp_archive
-from .path import get_absolute_path, get_expanded_path
+This python script contains various environment variables to test the parser
+functionality.
+"""
+
+import os
+
+os.getenv("VAR1")
+os.environ["VAR2"]
+os.environ.get("VAR3")
+
+print(os.environ['VAR4'])
+print(os.getenv("VAR5", 'localhost'))
+
+os.environ['VAR6'] = "value6"
+print(os.environ.get('VAR7', 'value7'))
+os.getenv('VAR8')
+
+os.environ["VAR1"] = "newvalue"

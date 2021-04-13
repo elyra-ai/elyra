@@ -14,5 +14,16 @@
 # limitations under the License.
 #
 
-from .archive import create_temp_archive
-from .path import get_absolute_path, get_expanded_path
+# R Script with Environment Variables
+
+# This R script contains various environment variables to test the parser
+# functionality.
+
+Sys.setenv(VAR1 = "value1")
+Sys.getenv(VAR2)
+
+Sys.getenv("VAR3")
+Sys.setenv("VAR4" = "value4")
+
+Sys.getenv('VAR5')
+Sys.setenv('VAR6' = 6)
