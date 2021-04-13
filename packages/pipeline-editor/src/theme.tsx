@@ -42,8 +42,8 @@ const SvgIcon = ({ children }) => {
 const theme: any = {
   palette: {
     focus: 'var(--jp-border-color1)',
-    border: 'black',
-    divider: 'black',
+    border: 'var(--jp-border-color0)',
+    divider: 'var(--jp-border-color0)',
     hover: 'rgba(255, 255, 255, 0.05)',
     active: 'rgba(255, 255, 255, 0.18)',
     primary: {
@@ -65,7 +65,7 @@ const theme: any = {
     },
     text: {
       primary: 'var(--jp-content-font-color0)',
-      secondary: 'var(--jp-layout-color4)',
+      secondary: 'var(--jp-content-font-color1)',
       bold: 'var(--jp-inverse-layout-color2)',
       inactive: 'var(--jp-inverse-layout-color4)',
       disabled: 'var(--jp-content-font-color3)',
