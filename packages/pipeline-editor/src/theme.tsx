@@ -17,6 +17,7 @@
 import { trashIcon } from '@elyra/ui-components';
 import {
   closeIcon,
+  caretDownEmptyIcon,
   editIcon,
   folderIcon,
   LabIcon,
@@ -104,11 +105,7 @@ const theme: any = {
         <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
       </SvgIcon>
     ),
-    chevronIcon: (
-      <SvgIcon>
-        <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
-      </SvgIcon>
-    )
+    chevronDownIcon: LabIcon.resolveReact({ icon: caretDownEmptyIcon })
   }
 };
 
