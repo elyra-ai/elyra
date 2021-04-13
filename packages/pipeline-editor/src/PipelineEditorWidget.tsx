@@ -136,7 +136,7 @@ const PipelineWrapper = ({
 
   const onFileRequested = (args: any): Promise<string> => {
     let currentExt = '';
-    if (args.filters.File) {
+    if (args && args.filters && args.filters.File) {
       currentExt = args.filters.File[0];
     }
     const filename = PipelineService.getWorkspaceRelativeNodePath(
