@@ -134,12 +134,11 @@ const PipelineWrapper = ({
     //   error => RequestErrors.serverError(error)
   );
 
-  const onFileRequested = (
-    startPathInfo?: any,
-    multiselect?: boolean
-  ): Promise<string> => {
-    const startPath = startPathInfo.defaultUri;
-    const currentExt = PathExt.extname(startPath || '');
+  const onFileRequested = (args: any): Promise<string> => {
+    let currentExt = '';
+    if (args.filters.File) {
+      currentExt = args.filters.File[0];
+    }
     const filename = PipelineService.getWorkspaceRelativeNodePath(
       context.path,
       //TODO: need to work out the logic to match current behavior
@@ -147,7 +146,7 @@ const PipelineWrapper = ({
     );
     return showBrowseFileDialog(browserFactory.defaultBrowser.model.manager, {
       startPath: PathExt.dirname(filename),
-      multiselect: multiselect,
+      multiselect: args.canSelectMany,
       filter: (model: any): boolean => {
         const ext = PathExt.extname(model.path);
         return currentExt === '' || currentExt === ext;

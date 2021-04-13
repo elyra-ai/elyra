@@ -61,7 +61,8 @@ const notebook = {
           },
           data: {
             format: 'file',
-            required: true
+            required: true,
+            extensions: ['.ipynb']
           }
         },
         {

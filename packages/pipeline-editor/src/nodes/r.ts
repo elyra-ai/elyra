@@ -61,7 +61,8 @@ const r = {
           },
           data: {
             format: 'file',
-            required: true
+            required: true,
+            extensions: ['.r']
           }
         },
         {

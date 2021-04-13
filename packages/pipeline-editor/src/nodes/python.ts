@@ -61,7 +61,8 @@ const python = {
           },
           data: {
             format: 'file',
-            required: true
+            required: true,
+            extensions: ['.py']
           }
         },
         {
