@@ -53,7 +53,7 @@ const theme: any = {
     },
     secondary: {
       main: 'var(--jp-border-color1)',
-      contrastText: 'black'
+      contrastText: 'var(--jp-content-font-color2)'
     },
     error: {
       main: 'var(--jp-error-color0)',
