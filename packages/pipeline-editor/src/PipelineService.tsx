@@ -41,12 +41,14 @@ export interface ISchema {
 enum ContentType {
   notebook = 'execute-notebook-node',
   python = 'execute-python-node',
+  r = 'execute-r-node',
   other = 'other'
 }
 
 const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
   ['.py', ContentType.python],
-  ['.ipynb', ContentType.notebook]
+  ['.ipynb', ContentType.notebook],
+  ['.r', ContentType.r]
 ]);
 
 export class PipelineService {

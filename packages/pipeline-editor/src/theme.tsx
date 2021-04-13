@@ -67,7 +67,7 @@ const theme: any = {
       secondary: 'var(--jp-layout-color4)',
       bold: 'var(--jp-inverse-layout-color2)',
       inactive: 'var(--jp-inverse-layout-color4)',
-      disabled: 'var(--jp-content-font-color2)',
+      disabled: 'var(--jp-content-font-color3)',
       link: 'var(--jp-content-link-color)',
       error: 'var(--jp-error-color0)',
       icon: 'var(--jp-inverse-layout-color2)'

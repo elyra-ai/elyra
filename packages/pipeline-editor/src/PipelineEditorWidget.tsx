@@ -585,9 +585,11 @@ const PipelineWrapper = ({
     handleAddFileToPipeline({ x: e.offsetX, y: e.offsetY });
   };
 
-  addFileToPipelineSignal.connect(() => {
-    handleAddFileToPipeline();
-  });
+  useEffect(() => {
+    addFileToPipelineSignal.connect(() => {
+      handleAddFileToPipeline();
+    });
+  }, [addFileToPipelineSignal, handleAddFileToPipeline]);
 
   const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
     if (reason === 'clickaway') {
