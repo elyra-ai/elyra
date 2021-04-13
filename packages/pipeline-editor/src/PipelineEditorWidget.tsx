@@ -16,6 +16,7 @@
 
 import { PipelineEditor, ThemeProvider } from '@elyra/pipeline-editor';
 import { validate } from '@elyra/pipeline-services';
+import { IDictionary } from '@elyra/services';
 import {
   IconUtil,
   clearPipelineIcon,
@@ -61,7 +62,6 @@ import {
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
 import Utils from './utils';
-import { IDictionary } from '@elyra/services';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
