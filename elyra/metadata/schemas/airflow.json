@@ -100,6 +100,15 @@
             "placeholder": "https://your-cos-service:port"
           }
         },
+        "cos_secret": {
+          "title": "Cloud Object Storage Credentials Secret",
+          "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.",
+          "type": "string",
+          "uihints": {
+            "secure": true,
+            "category": "Kubernetes"
+          }
+        },
         "cos_username": {
           "title": "Cloud Object Storage Username",
           "description": "The Cloud Object Storage username",

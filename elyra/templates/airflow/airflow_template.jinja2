@@ -1,4 +1,7 @@
 from airflow import DAG
+{% if cos_secret %}
+from airflow.kubernetes.secret import Secret
+{% endif %}
 from airflow_notebook.pipeline import NotebookOp
 from airflow.utils.dates import days_ago
 
@@ -15,6 +18,20 @@ dag = DAG(
     description='{{ pipeline_description }}',
     is_paused_upon_creation={{ is_paused_upon_creation }},
 )
+
+{% if cos_secret %}
+## Ensure that the secret named '{{ cos_secret }}' is defined in the Kubernetes namespace where this pipeline will be run
+env_var_secret_id = Secret(deploy_type='env',
+                           deploy_target='AWS_ACCESS_KEY_ID',
+                           secret='{{ cos_secret }}',
+                           key='AWS_ACCESS_KEY_ID',
+)
+env_var_secret_key = Secret(deploy_type='env',
+                            deploy_target='AWS_SECRET_ACCESS_KEY',
+                            secret='{{ cos_secret }}',
+                            key='AWS_SECRET_ACCESS_KEY',
+)
+{% endif %}
 
 {% for key, operation in operations_list.items() %}
 notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|regex_replace }}',
@@ -40,6 +57,9 @@ notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.not
                                                                        'limit_gpu': '{{ operation.cpu_request }}',
         {% endif %}
         },
+    {% endif %}
+    {% if cos_secret %}
+                                                          secrets=[env_var_secret_id, env_var_secret_key],
     {% endif %}
                                                           in_cluster={{ in_cluster }},
                                                           env_vars={{ operation.pipeline_envs }},
