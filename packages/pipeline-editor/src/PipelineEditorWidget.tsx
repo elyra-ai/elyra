@@ -87,7 +87,6 @@ const PipelineWrapper = ({
   const [pipeline, setPipeline] = useState(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState(null);
-  const updatedNodes = JSON.parse(JSON.stringify(nodes));
 
   useEffect(() => {
     context.ready.then(() => {
@@ -116,23 +115,26 @@ const PipelineWrapper = ({
     });
   };
 
-  PipelineService.getRuntimeImages().then(
-    (runtimeImages: any) => {
-      for (const node of updatedNodes) {
-        const imageEnum = [];
-        for (const runtimeImage in runtimeImages) {
-          imageEnum.push(runtimeImage);
-          node.properties.resources[
-            'runtime_image.' + runtimeImage + '.label'
-          ] = runtimeImages[runtimeImage];
+  const updatedNodes = JSON.parse(JSON.stringify(nodes));
+  useEffect(() => {
+    PipelineService.getRuntimeImages().then(
+      (runtimeImages: any) => {
+        for (const node of updatedNodes) {
+          const imageEnum = [];
+          for (const runtimeImage in runtimeImages) {
+            imageEnum.push(runtimeImages[runtimeImage]);
+            node.properties.resources[
+              'runtime_image.' + runtimeImage + '.label'
+            ] = runtimeImages[runtimeImage];
+          }
+          node.properties.uihints.parameter_info[1].data.items = imageEnum;
         }
-        node.properties.uihints.parameter_info[1].data.items = imageEnum;
       }
-    }
-    // TODO: add this back in when the readonly error is resolved
-    // ).catch(
-    //   error => RequestErrors.serverError(error)
-  );
+      // TODO: add this back in when the readonly error is resolved
+      // ).catch(
+      //   error => RequestErrors.serverError(error)
+    );
+  }, [updatedNodes]);
 
   const onFileRequested = (args: any): Promise<string> => {
     let currentExt = '';
@@ -441,11 +443,22 @@ const PipelineWrapper = ({
         case 'openRuntimes':
           shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
           break;
+        case 'openFile':
+          commands.execute(commandIDs.openDocManager, { path: args.payload });
+          break;
         default:
-          context;
+          break;
       }
     },
-    [context, panelOpen, handleExportPipeline, handleRunPipeline]
+    [
+      context,
+      handleRunPipeline,
+      handleClearPipeline,
+      handleExportPipeline,
+      panelOpen,
+      shell,
+      commands
+    ]
   );
 
   const toolbar = {

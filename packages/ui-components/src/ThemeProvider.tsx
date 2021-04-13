@@ -25,7 +25,7 @@ import {
 import React, { useEffect, useState } from 'react';
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
   interface Window {
     ELYRA_generateClassName: any;
     ELYRA_lightTheme: any;

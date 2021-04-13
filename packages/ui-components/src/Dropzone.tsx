@@ -17,7 +17,7 @@ import { IDragEvent } from '@lumino/dragdrop';
 import React, { useCallback, useEffect, useRef } from 'react';
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
   interface HTMLElementEventMap {
     'lm-dragenter': IDragEvent;
     'lm-dragleave': IDragEvent;
