@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { NotebookParser } from '@elyra/services';
+import { ContentParser } from '@elyra/services';
 import { IconUtil, pyIcon, rIcon } from '@elyra/ui-components';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -63,12 +63,12 @@ export class CanvasManager {
     }
   }
 
-  addNode(
+  async addNode(
     file: Contents.IModel,
     fileContent: string,
     x: number,
     y: number
-  ): boolean {
+  ): Promise<boolean> {
     console.log('Adding ==> ' + file.path);
 
     const nodeTemplate = this.canvasController.getPaletteNode(
@@ -83,10 +83,9 @@ export class CanvasManager {
         nodeTemplate: this.canvasController.convertNodeTemplate(nodeTemplate)
       };
 
-      let env_vars: any;
-      if (CanvasManager.getNodeType(file.path) == ContentType.notebook) {
-        env_vars = NotebookParser.getEnvVars(fileContent).map(str => str + '=');
-      }
+      const env_vars = await ContentParser.getEnvVars(
+        file.path
+      ).then(response => response.map((str: string) => (str = str + '=')));
 
       data.nodeTemplate.label = PathExt.basename(file.path);
       data.nodeTemplate.image = IconUtil.encode(
