@@ -148,7 +148,7 @@ const r = {
           label: { default: 'Include Subdirectories' },
           data: {
             description:
-              'Whether or not to include recursively include subdirectories when submitting a pipeline (This may increase submission time).'
+              'Recursively include subdirectories when submitting a pipeline (This may increase submission time).'
           }
         },
         {

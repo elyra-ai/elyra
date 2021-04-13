@@ -16,7 +16,6 @@
 
 import { PipelineEditor, ThemeProvider } from '@elyra/pipeline-editor';
 import { validate } from '@elyra/pipeline-services';
-import { IDictionary } from '@elyra/services';
 import {
   IconUtil,
   clearPipelineIcon,
@@ -88,6 +87,7 @@ const PipelineWrapper = ({
   const [pipeline, setPipeline] = useState(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState(null);
+  const updatedNodes = JSON.parse(JSON.stringify(nodes));
 
   useEffect(() => {
     context.ready.then(() => {
@@ -118,11 +118,11 @@ const PipelineWrapper = ({
 
   PipelineService.getRuntimeImages().then(
     (runtimeImages: any) => {
-      for (const node of nodes) {
+      for (const node of updatedNodes) {
         const imageEnum = [];
         for (const runtimeImage in runtimeImages) {
           imageEnum.push(runtimeImage);
-          (node.properties.resources as IDictionary<string>)[
+          node.properties.resources[
             'runtime_image.' + runtimeImage + '.label'
           ] = runtimeImages[runtimeImage];
         }
@@ -617,7 +617,7 @@ const PipelineWrapper = ({
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
-          nodes={nodes}
+          nodes={updatedNodes}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}
