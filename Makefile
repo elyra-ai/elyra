@@ -47,7 +47,6 @@ purge:
 	rm -rf $$(find . -name __pycache__ -type d)
 	rm -rf $$(find . -name *.tgz)
 	rm -rf $$(find . -name tsconfig.tsbuildinfo)
-	rm -rf $$(find . -name *.lock)
 	rm -rf $$(find . -name package-lock.json)
 	rm -rf $$(find . -name .pytest_cache)
 	rm -rf $(yarn cache dir)
