@@ -42,6 +42,17 @@
             "placeholder": "https://your-airflow-webserver:port"
           }
         },
+        "user_namespace": {
+          "title": "Apache Airflow User Namespace",
+          "description": "The Apache Airflow user namespace used to run DAG workflows",
+          "type": "string",
+          "pattern": "^[a-z0-9][-a-z0-9]*[a-z0-9]$",
+          "maxLength": 63,
+          "default": "default",
+          "uihints": {
+            "category": "Apache Airflow"
+          }
+        },
         "github_api_endpoint": {
           "title": "GitHub API Endpoint",
           "description": "The GitHub Server URL / API endpoint - Public or Enterprise",
