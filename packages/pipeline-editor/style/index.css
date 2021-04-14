@@ -595,6 +595,19 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   background: var(--jp-border-color2);
 }
 
+.elyra-PipelineEditor .toolbar-item.default button:disabled:hover svg,
+.toolbar-item.ghost button:disabled:hover svg,
+.toolbar-overflow-menu-item button:disabled:hover svg {
+  background-color: var(--jp-border-color2);
+}
+
+.elyra-PipelineEditor .toolbar-item.default button:hover svg,
+.toolbar-item.ghost button:hover svg,
+.toolbar-overflow-item button:hover svg,
+.toolbar-overflow-menu-item button:hover svg {
+  background: var(--jp-border-color1);
+}
+
 .properties-control-panel[data-id='properties-resources'] {
   display: flex;
 }
@@ -602,4 +615,11 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 .properties-control-panel[data-id='properties-resources']
   .properties-ctrl-wrapper {
   width: 33%;
+}
+
+.elyra-PipelineEditor .toolbar-item.default button:hover,
+.toolbar-item.ghost button:hover,
+.toolbar-overflow-item button:hover,
+.toolbar-overflow-menu-item button:hover {
+  background-color: var(--jp-border-color1);
 }
