@@ -40,7 +40,7 @@ import {
 import 'carbon-components/css/carbon-components.min.css';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
-// import { NotebookPanel } from '@jupyterlab/notebook';
+
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 import { Signal } from '@lumino/signaling';
@@ -74,14 +74,21 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
-const PipelineWrapper = ({
+interface IProps {
+  context: DocumentRegistry.Context;
+  browserFactory: IFileBrowserFactory;
+  shell: ILabShell;
+  commands: any;
+  addFileToPipelineSignal: Signal<PipelineEditorFactory, any>;
+}
+
+const PipelineWrapper: React.FC<IProps> = ({
   context,
   browserFactory,
   shell,
-  widget,
   commands,
   addFileToPipelineSignal
-}: any): JSX.Element => {
+}) => {
   const ref = useRef(null);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState(null);
@@ -89,20 +96,32 @@ const PipelineWrapper = ({
   const [alert, setAlert] = React.useState(null);
   const [updatedNodes, setUpdatedNodes] = React.useState(nodes);
 
+  const contextRef = useRef(context);
   useEffect(() => {
-    context.ready.then(() => {
-      const pipeline = context.model.toJSON();
+    const currentContext = contextRef.current;
+
+    const changeHandler = (): void => {
+      const pipeline = currentContext.model.toJSON();
       setPipeline(pipeline);
       setLoading(false);
-    });
-  }, [context]);
+    };
 
-  const onChange = (pipelineJson: any): void => {
-    setPipeline(pipelineJson);
-    if (context.ready) {
-      context.model.fromString(JSON.stringify(pipelineJson, null, 2));
+    currentContext.model.contentChanged.connect(changeHandler);
+
+    currentContext.ready.then(changeHandler);
+
+    return (): void => {
+      currentContext.model.contentChanged.disconnect(changeHandler);
+    };
+  }, []);
+
+  const onChange = useCallback((pipelineJson: any): void => {
+    if (contextRef.current.isReady) {
+      contextRef.current.model.fromString(
+        JSON.stringify(pipelineJson, null, 2)
+      );
     }
-  };
+  }, []);
 
   const onError = (error?: Error): void => {
     showDialog({
@@ -119,7 +138,7 @@ const PipelineWrapper = ({
   useEffect(() => {
     PipelineService.getRuntimeImages()
       .then((runtimeImages: any) => {
-        let nodesCopy = JSON.parse(JSON.stringify(nodes));
+        const nodesCopy = JSON.parse(JSON.stringify(nodes));
         for (const node of nodesCopy) {
           const imageEnum = [];
           for (const runtimeImage in runtimeImages) {
@@ -301,7 +320,7 @@ const PipelineWrapper = ({
       pipeline_export_path,
       overwrite
     ).catch(error => RequestErrors.serverError(error));
-  }, [pipeline, context, shell, cleanNullProperties]);
+  }, [pipeline, context, cleanNullProperties, shell]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     // Check that all nodes are valid
@@ -407,21 +426,18 @@ const PipelineWrapper = ({
     ).catch(error => RequestErrors.serverError(error));
   }, [pipeline, context, cleanNullProperties]);
 
-  const handleClearPipeline = useCallback(
-    async (data: any): Promise<any> => {
-      return showDialog({
-        title: 'Clear Pipeline',
-        body: 'Are you sure you want to clear the pipeline?',
-        buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
-      }).then(result => {
-        if (result.button.accept) {
-          // select all canvas elements
-          context.model.fromString('');
-        }
-      });
-    },
-    [context.model]
-  );
+  const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
+    return showDialog({
+      title: 'Clear Pipeline',
+      body: 'Are you sure you want to clear the pipeline?',
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
+    }).then(result => {
+      if (result.button.accept) {
+        // select all canvas elements
+        contextRef.current.model.fromString('');
+      }
+    });
+  }, []);
 
   const onAction = useCallback(
     (args: { type: string; payload?: any }) => {
@@ -604,9 +620,13 @@ const PipelineWrapper = ({
   };
 
   useEffect(() => {
-    addFileToPipelineSignal.connect(() => {
+    const handleSignal = (): void => {
       handleAddFileToPipeline();
-    });
+    };
+    addFileToPipelineSignal.connect(handleSignal);
+    return (): void => {
+      addFileToPipelineSignal.disconnect(handleSignal);
+    };
   }, [addFileToPipelineSignal, handleAddFileToPipeline]);
 
   const handleClose = (event?: React.SyntheticEvent, reason?: string): void => {

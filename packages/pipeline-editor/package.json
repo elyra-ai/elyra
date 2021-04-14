@@ -34,7 +34,6 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/canvas": "~10.2.0",
     "@elyra/metadata-common": "^2.3.0-dev",
     "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/09b868a3/@elyra/pipeline-editor",
     "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/09b868a3/@elyra/pipeline-services",
@@ -65,7 +64,7 @@
     "json-loader": "^0.5.7",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-intl": "^3.0.0",
+    "react-intl": "^5.10.15",
     "react-redux": "^7.2.0",
     "react-scripts": "3.0.1",
     "uuid": "^3.4.0"

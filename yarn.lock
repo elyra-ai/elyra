@@ -1380,36 +1380,6 @@
     seedrandom "3.0.5"
     uuid "8.3.0"
 
-"@elyra/canvas@~10.2.0":
-  version "10.2.0"
-  resolved "https://registry.yarnpkg.com/@elyra/canvas/-/canvas-10.2.0.tgz#f7067059278306728da1b546e76a1ed34314de2e"
-  integrity sha512-pHnVvuBJF+a6JIJiNgOlrXZ88w0eB/aockTpqe5pyvtjNMV9s3+UJMPLlQDkJBzYRo9CXUWKI8IartHdz17F7g==
-  dependencies:
-    "@carbon/icons-react" "10.26.0"
-    "@carbon/themes" "10.28.0"
-    "@elyra/pipeline-schemas" "^3.0.38"
-    carbon-components "10.29.0"
-    carbon-components-react "7.29.0"
-    carbon-icons "7.0.7"
-    codemirror "5.58.2"
-    d3 "6.2.0"
-    dagre "0.8.5"
-    immutable "4.0.0-rc.12"
-    immutable-undo "2.0.0"
-    jsonschema "1.4.0"
-    lodash "4.17.21"
-    moment "2.29.0"
-    prop-types "15.7.2"
-    react-codemirror2 "7.2.1"
-    react-contextmenu "2.14.0"
-    react-inlinesvg "2.1.0"
-    react-portal "4.2.1"
-    react-resize-detector "5.2.0"
-    react-virtualized "9.22.2"
-    redux "4.0.5"
-    seedrandom "3.0.5"
-    uuid "8.3.0"
-
 "@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/09b868a3/@elyra/pipeline-editor":
   version "0.2.0-dev"
   resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/09b868a3/@elyra/pipeline-editor#8b6b4481c5006df2697afd14ca00828fc9ff3937"
@@ -1426,7 +1396,7 @@
     redux "^4.0.5"
     styled-components "^5.2.1"
 
-"@elyra/pipeline-schemas@^3.0.38", "@elyra/pipeline-schemas@^3.0.40":
+"@elyra/pipeline-schemas@^3.0.40":
   version "3.0.40"
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.40.tgz#7bab0d5091852831040772116062e846590dfb41"
   integrity sha512-cnzeb3p3ufLFaaCV9Um5X7jXCwcNF9LptVSu0oIS8JEUq8/GOWsS4nFkyFqQY6FF7RYHr7V5sl94Z503SsvPVA==
@@ -14839,7 +14809,7 @@ react-inlinesvg@2.1.0:
     exenv "^1.2.2"
     react-from-dom "^0.4.2"
 
-react-intl@*, react-intl@^3.0.0, react-intl@^5.0.0:
+react-intl@*, react-intl@^3.0.0, react-intl@^5.0.0, react-intl@^5.10.15:
   version "3.12.1"
   resolved "https://registry.yarnpkg.com/react-intl/-/react-intl-3.12.1.tgz#e9a783ea20302e9da25e4eda59e5593a43d2ec80"
   integrity sha512-cgumW29mwROIqyp8NXStYsoIm27+8FqnxykiLSawWjOxGIBeLuN/+p2srei5SRIumcJefOkOIHP+NDck05RgHg==
