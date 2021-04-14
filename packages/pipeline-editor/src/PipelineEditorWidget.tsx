@@ -87,6 +87,7 @@ const PipelineWrapper = ({
   const [pipeline, setPipeline] = useState(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState(null);
+  const [updatedNodes, setUpdatedNodes] = React.useState(nodes);
 
   useEffect(() => {
     context.ready.then(() => {
@@ -115,26 +116,27 @@ const PipelineWrapper = ({
     });
   };
 
-  const updatedNodes = JSON.parse(JSON.stringify(nodes));
   useEffect(() => {
-    PipelineService.getRuntimeImages().then(
-      (runtimeImages: any) => {
-        for (const node of updatedNodes) {
+    PipelineService.getRuntimeImages()
+      .then((runtimeImages: any) => {
+        let nodesCopy = JSON.parse(JSON.stringify(nodes));
+        for (const node of nodesCopy) {
           const imageEnum = [];
           for (const runtimeImage in runtimeImages) {
             imageEnum.push(runtimeImages[runtimeImage]);
-            node.properties.resources[
-              'runtime_image.' + runtimeImage + '.label'
-            ] = runtimeImages[runtimeImage];
+            node.properties.resources = {
+              ...node.properties.resources,
+              [`runtime_image.${runtimeImage}.label`]: runtimeImages[
+                runtimeImage
+              ]
+            };
           }
           node.properties.uihints.parameter_info[1].data.items = imageEnum;
         }
-      }
-      // TODO: add this back in when the readonly error is resolved
-      // ).catch(
-      //   error => RequestErrors.serverError(error)
-    );
-  }, [updatedNodes]);
+        setUpdatedNodes(nodesCopy);
+      })
+      .catch(error => RequestErrors.serverError(error));
+  }, []);
 
   const onFileRequested = (args: any): Promise<string> => {
     let currentExt = '';

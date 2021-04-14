@@ -75,7 +75,7 @@ const r = {
             placement: 'on_panel'
           },
           data: {
-            items: ['continuumio/anaconda3:2020.07', 'amancevice/pandas:1.0.3'],
+            items: [],
             required: true
           }
         },
