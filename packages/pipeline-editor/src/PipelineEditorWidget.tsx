@@ -81,7 +81,7 @@ const PipelineWrapper = ({
   widget,
   commands,
   addFileToPipelineSignal
-}: any) => {
+}: any): JSX.Element => {
   const ref = useRef(null);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState(null);
@@ -96,14 +96,14 @@ const PipelineWrapper = ({
     });
   }, [context]);
 
-  const onChange = (pipelineJson: any) => {
+  const onChange = (pipelineJson: any): void => {
     setPipeline(pipelineJson);
     if (context.ready) {
       context.model.fromString(JSON.stringify(pipelineJson, null, 2));
     }
   };
 
-  const onError = (error?: Error) => {
+  const onError = (error?: Error): void => {
     showDialog({
       title: 'Load pipeline failed!',
       body: <p> {error || ''} </p>,
@@ -299,7 +299,7 @@ const PipelineWrapper = ({
       pipeline_export_path,
       overwrite
     ).catch(error => RequestErrors.serverError(error));
-  }, [pipeline, context.path, cleanNullProperties]);
+  }, [pipeline, context, shell, cleanNullProperties]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     // Check that all nodes are valid
@@ -405,18 +405,21 @@ const PipelineWrapper = ({
     ).catch(error => RequestErrors.serverError(error));
   }, [pipeline, context, cleanNullProperties]);
 
-  const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
-    return showDialog({
-      title: 'Clear Pipeline',
-      body: 'Are you sure you want to clear the pipeline?',
-      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
-    }).then(result => {
-      if (result.button.accept) {
-        // select all canvas elements
-        context.model.fromString('');
-      }
-    });
-  }, []);
+  const handleClearPipeline = useCallback(
+    async (data: any): Promise<any> => {
+      return showDialog({
+        title: 'Clear Pipeline',
+        body: 'Are you sure you want to clear the pipeline?',
+        buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
+      }).then(result => {
+        if (result.button.accept) {
+          // select all canvas elements
+          context.model.fromString('');
+        }
+      });
+    },
+    [context.model]
+  );
 
   const onAction = useCallback(
     (args: { type: string; payload?: any }) => {
@@ -591,7 +594,7 @@ const PipelineWrapper = ({
         });
       }
     },
-    [browserFactory.defaultBrowser, context.path]
+    [browserFactory.defaultBrowser, context.path, defaultPosition]
   );
 
   const handleDrop = async (e: IDragEvent): Promise<void> => {
@@ -604,7 +607,7 @@ const PipelineWrapper = ({
     });
   }, [addFileToPipelineSignal, handleAddFileToPipeline]);
 
-  const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+  const handleClose = (event?: React.SyntheticEvent, reason?: string): void => {
     if (reason === 'clickaway') {
       return;
     }
