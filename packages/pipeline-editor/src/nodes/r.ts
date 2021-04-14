@@ -40,15 +40,15 @@ const r = {
       outputs: []
     },
     parameters: [
-      { id: 'filename', type: 'string' },
+      { id: 'filename' },
       { id: 'runtime_image' },
-      { id: 'cpu', type: 'double' },
-      { id: 'gpu', type: 'double' },
-      { id: 'memory', type: 'double' },
-      { id: 'dependencies', type: 'array[string]' },
-      { id: 'include_subdirectories', type: 'cboolean' },
-      { id: 'env_vars', type: 'array[string]' },
-      { id: 'outputs', type: 'array[string]' }
+      { id: 'cpu' },
+      { id: 'gpu' },
+      { id: 'memory' },
+      { id: 'dependencies' },
+      { id: 'include_subdirectories' },
+      { id: 'env_vars' },
+      { id: 'outputs' }
     ],
     uihints: {
       id: 'nodeProperties',
