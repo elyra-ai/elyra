@@ -34,7 +34,8 @@ import { PathExt } from '@jupyterlab/coreutils';
 import {
   DocumentRegistry,
   ABCWidgetFactory,
-  DocumentWidget
+  DocumentWidget,
+  Context
 } from '@jupyterlab/docregistry';
 
 import 'carbon-components/css/carbon-components.min.css';
@@ -74,11 +75,41 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
+class PipelineEditorWidget extends ReactWidget {
+  browserFactory: IFileBrowserFactory;
+  shell: ILabShell;
+  commands: any;
+  addFileToPipelineSignal: Signal<this, any>;
+  context: Context;
+
+  constructor(options: any) {
+    super(options);
+    this.browserFactory = options.browserFactory;
+    this.shell = options.shell;
+    this.commands = options.commands;
+    this.addFileToPipelineSignal = options.addFileToPipelineSignal;
+    this.context = options.context;
+  }
+
+  render(): any {
+    return (
+      <PipelineWrapper
+        context={this.context}
+        browserFactory={this.browserFactory}
+        shell={this.shell}
+        commands={this.commands}
+        addFileToPipelineSignal={this.addFileToPipelineSignal}
+        widgetId={this.parent.id}
+      />
+    );
+  }
+}
+
 const PipelineWrapper = ({
   context,
   browserFactory,
   shell,
-  widget,
+  widgetId,
   commands,
   addFileToPipelineSignal
 }: any): JSX.Element => {
@@ -145,7 +176,6 @@ const PipelineWrapper = ({
     }
     const filename = PipelineService.getWorkspaceRelativeNodePath(
       context.path,
-      //TODO: need to work out the logic to match current behavior
       ''
     );
     return showBrowseFileDialog(browserFactory.defaultBrowser.model.manager, {
@@ -535,10 +565,9 @@ const PipelineWrapper = ({
     (location?: { x: number; y: number }) => {
       const fileBrowser = browserFactory.defaultBrowser;
       // Only add file to pipeline if it is currently in focus
-      // TODO: add check for this. Need to be able to find widgetId first
-      // if (shell.currentWidget.id !== widget.widgetId) {
-      //   return;
-      // }
+      if (shell.currentWidget.id !== widgetId) {
+        return;
+      }
 
       let failedAdd = 0;
       let position = 0;
@@ -664,15 +693,15 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
-    const content = ReactWidget.create(
-      <PipelineWrapper
-        context={context}
-        browserFactory={this.browserFactory}
-        shell={this.shell}
-        commands={this.commands}
-        addFileToPipelineSignal={this.addFileToPipelineSignal}
-      />
-    );
+    // Creates a blank widget with a DocumentWidget wrapper
+    const props = {
+      shell: this.shell,
+      commands: this.commands,
+      browserFactory: this.browserFactory,
+      context: context,
+      addFileToPipelineSignal: this.addFileToPipelineSignal
+    };
+    const content = new PipelineEditorWidget(props);
 
     const widget = new DocumentWidget({ content, context });
     widget.addClass(PIPELINE_CLASS);
