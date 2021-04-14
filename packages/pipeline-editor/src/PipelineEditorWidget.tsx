@@ -354,6 +354,11 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipeline_export_path,
       overwrite
     ).catch(error => RequestErrors.serverError(error));
+
+    PipelineService.setNodePathsRelativeToPipeline(
+      pipeline.pipelines[0],
+      contextRef.current.path
+    );
   }, [pipeline, cleanNullProperties, shell]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
@@ -458,6 +463,11 @@ const PipelineWrapper: React.FC<IProps> = ({
         runtimes
       )
     ).catch(error => RequestErrors.serverError(error));
+
+    PipelineService.setNodePathsRelativeToPipeline(
+      pipeline.pipelines[0],
+      contextRef.current.path
+    );
   }, [pipeline, cleanNullProperties]);
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
