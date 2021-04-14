@@ -592,7 +592,7 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 }
 
 .toolbar-item-content .toolbar-icon svg {
-  background: var(--jp-cell-editor-border-color);
+  background: var(--jp-border-color2);
 }
 
 .properties-control-panel[data-id='properties-resources'] {
