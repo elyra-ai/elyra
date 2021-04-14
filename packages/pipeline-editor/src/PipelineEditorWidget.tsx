@@ -34,7 +34,8 @@ import { PathExt } from '@jupyterlab/coreutils';
 import {
   DocumentRegistry,
   ABCWidgetFactory,
-  DocumentWidget
+  DocumentWidget,
+  Context
 } from '@jupyterlab/docregistry';
 
 import 'carbon-components/css/carbon-components.min.css';
@@ -74,12 +75,43 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
+class PipelineEditorWidget extends ReactWidget {
+  browserFactory: IFileBrowserFactory;
+  shell: ILabShell;
+  commands: any;
+  addFileToPipelineSignal: Signal<this, any>;
+  context: Context;
+
+  constructor(options: any) {
+    super(options);
+    this.browserFactory = options.browserFactory;
+    this.shell = options.shell;
+    this.commands = options.commands;
+    this.addFileToPipelineSignal = options.addFileToPipelineSignal;
+    this.context = options.context;
+  }
+
+  render(): any {
+    return (
+      <PipelineWrapper
+        context={this.context}
+        browserFactory={this.browserFactory}
+        shell={this.shell}
+        commands={this.commands}
+        addFileToPipelineSignal={this.addFileToPipelineSignal}
+        widgetId={this.parent.id}
+      />
+    );
+  }
+}
+
 interface IProps {
   context: DocumentRegistry.Context;
   browserFactory: IFileBrowserFactory;
   shell: ILabShell;
   commands: any;
-  addFileToPipelineSignal: Signal<PipelineEditorFactory, any>;
+  addFileToPipelineSignal: Signal<PipelineEditorWidget, any>;
+  widgetId: string;
 }
 
 const PipelineWrapper: React.FC<IProps> = ({
@@ -87,7 +119,8 @@ const PipelineWrapper: React.FC<IProps> = ({
   browserFactory,
   shell,
   commands,
-  addFileToPipelineSignal
+  addFileToPipelineSignal,
+  widgetId
 }) => {
   const ref = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -163,8 +196,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       currentExt = args.filters.File[0];
     }
     const filename = PipelineService.getWorkspaceRelativeNodePath(
-      context.path,
-      //TODO: need to work out the logic to match current behavior
+      contextRef.current.path,
       ''
     );
     return showBrowseFileDialog(browserFactory.defaultBrowser.model.manager, {
@@ -192,7 +224,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         continue;
       }
       const path = PipelineService.getWorkspaceRelativeNodePath(
-        context.path,
+        contextRef.current.path,
         node.app_data.filename
       );
       commands.execute(commandIDs.openDocManager, { path });
@@ -231,7 +263,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       return;
     }
 
-    if (context.model.dirty) {
+    if (contextRef.current.model.dirty) {
       const dialogResult = await showDialog({
         title:
           'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
@@ -241,7 +273,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         ]
       });
       if (dialogResult.button && dialogResult.button.accept === true) {
-        await context.save();
+        await contextRef.current.save();
       } else {
         // Don't proceed if cancel button pressed
         return;
@@ -282,7 +314,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
 
     // prepare pipeline submission details
-    const pipeline_path = context.path;
+    const pipeline_path = contextRef.current.path;
 
     const pipeline_dir = PathExt.dirname(pipeline_path);
     const pipeline_name = PathExt.basename(
@@ -304,7 +336,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipeline.pipelines[0],
-      context.path
+      contextRef.current.path
     );
 
     cleanNullProperties();
@@ -312,7 +344,9 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipeline.pipelines[0].app_data.name = pipeline_name;
     pipeline.pipelines[0].app_data.runtime = runtime;
     pipeline.pipelines[0].app_data['runtime-config'] = runtime_config;
-    pipeline.pipelines[0].app_data.source = PathExt.basename(context.path);
+    pipeline.pipelines[0].app_data.source = PathExt.basename(
+      contextRef.current.path
+    );
 
     PipelineService.exportPipeline(
       pipeline,
@@ -320,7 +354,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipeline_export_path,
       overwrite
     ).catch(error => RequestErrors.serverError(error));
-  }, [pipeline, context, cleanNullProperties, shell]);
+  }, [pipeline, cleanNullProperties, shell]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     // Check that all nodes are valid
@@ -334,7 +368,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       return;
     }
 
-    if (context.model.dirty) {
+    if (contextRef.current.model.dirty) {
       const dialogResult = await showDialog({
         title:
           'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
@@ -344,7 +378,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         ]
       });
       if (dialogResult.button && dialogResult.button.accept === true) {
-        await context.save();
+        await contextRef.current.save();
       } else {
         // Don't proceed if cancel button pressed
         return;
@@ -352,8 +386,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
 
     const pipelineName = PathExt.basename(
-      context.path,
-      PathExt.extname(context.path)
+      contextRef.current.path,
+      PathExt.extname(contextRef.current.path)
     );
 
     const action = 'run pipeline';
@@ -404,7 +438,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipeline.pipelines[0],
-      context.path
+      contextRef.current.path
     );
 
     cleanNullProperties();
@@ -414,7 +448,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipeline.pipelines[0]['app_data']['runtime'] = runtime;
     pipeline.pipelines[0]['app_data']['runtime-config'] = runtime_config;
     pipeline.pipelines[0]['app_data']['source'] = PathExt.basename(
-      context.path
+      contextRef.current.path
     );
 
     PipelineService.submitPipeline(
@@ -424,7 +458,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         runtimes
       )
     ).catch(error => RequestErrors.serverError(error));
-  }, [pipeline, context, cleanNullProperties]);
+  }, [pipeline, cleanNullProperties]);
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
     return showDialog({
@@ -444,7 +478,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       console.log(args.type);
       switch (args.type) {
         case 'save':
-          context.save();
+          contextRef.current.save();
           break;
         case 'run':
           handleRunPipeline();
@@ -472,7 +506,6 @@ const PipelineWrapper: React.FC<IProps> = ({
       }
     },
     [
-      context,
       handleRunPipeline,
       handleClearPipeline,
       handleExportPipeline,
@@ -551,10 +584,9 @@ const PipelineWrapper: React.FC<IProps> = ({
     (location?: { x: number; y: number }) => {
       const fileBrowser = browserFactory.defaultBrowser;
       // Only add file to pipeline if it is currently in focus
-      // TODO: add check for this. Need to be able to find widgetId first
-      // if (shell.currentWidget.id !== widget.widgetId) {
-      //   return;
-      // }
+      if (shell.currentWidget.id !== widgetId) {
+        return;
+      }
 
       let failedAdd = 0;
       let position = 0;
@@ -581,7 +613,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           }
           item.op = PipelineService.getNodeType(item.path);
           item.path = PipelineService.getPipelineRelativeNodePath(
-            context.path,
+            contextRef.current.path,
             item.path
           );
           item.x = location.x + position;
@@ -612,7 +644,12 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [browserFactory.defaultBrowser, context.path, defaultPosition]
+    [
+      browserFactory.defaultBrowser,
+      defaultPosition,
+      shell.currentWidget.id,
+      widgetId
+    ]
   );
 
   const handleDrop = async (e: IDragEvent): Promise<void> => {
@@ -684,15 +721,15 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
-    const content = ReactWidget.create(
-      <PipelineWrapper
-        context={context}
-        browserFactory={this.browserFactory}
-        shell={this.shell}
-        commands={this.commands}
-        addFileToPipelineSignal={this.addFileToPipelineSignal}
-      />
-    );
+    // Creates a blank widget with a DocumentWidget wrapper
+    const props = {
+      shell: this.shell,
+      commands: this.commands,
+      browserFactory: this.browserFactory,
+      context: context,
+      addFileToPipelineSignal: this.addFileToPipelineSignal
+    };
+    const content = new PipelineEditorWidget(props);
 
     const widget = new DocumentWidget({ content, context });
     widget.addClass(PIPELINE_CLASS);
