@@ -644,12 +644,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [
-      browserFactory.defaultBrowser,
-      defaultPosition,
-      shell.currentWidget.id,
-      widgetId
-    ]
+    [browserFactory.defaultBrowser, defaultPosition, shell, widgetId]
   );
 
   const handleDrop = async (e: IDragEvent): Promise<void> => {
