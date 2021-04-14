@@ -31,6 +31,9 @@ const notebook = {
     current_parameters: {
       filename: '',
       runtime_image: '',
+      cpu: '',
+      gpu: '',
+      memory: '',
       dependencies: [],
       include_subdirectories: false,
       env_vars: [],
