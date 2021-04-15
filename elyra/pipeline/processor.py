@@ -24,8 +24,8 @@ from elyra.pipeline.parser import Pipeline, Operation
 from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
-from typing import List
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
+from typing import List
 from urllib3.exceptions import MaxRetryError
 
 

@@ -37,14 +37,14 @@ To create, edit, or delete runtime configurations using the UI select the `Runti
 
 To create a runtime configuration:
 1. Select the `Runtimes` tab from the JupyterLab sidebar.
-1. Click `+` to add a new runtime configuration and choose the desired runtime configuration type, e.g. Kubeflow Pipelies or Apache Airflow. 
+1. Click `+` to add a new runtime configuration and choose the desired runtime configuration type, e.g. Kubeflow Pipelines or Apache Airflow. 
    ![Create runtime configuration](../images/runtime-create-config.png)
 1. Provide a runtime configuration display name, an optional description, and tag the configuration to make it more easily discoverable. 
 1. Enter the Kubeflow Pipelines or Apache Airflow deployment information. Refer to section [Kubeflow Pipelines configuration settings](#kubeflow-pipelines-configuration-settings) or [Apache Airflow configuration settings](#apache-airflow-configuration-settings) for details.
 1. Enter the Cloud Storage connectivity information. Refer to section [Cloud Storage settings](#cloud-storage-settings) for details.
+1. Enter the optional Kubernetes information. Refer to section [Kubernetes settings](#kubernetes-settings) for details.   
 1. Save the runtime configuration. The new entry is displayed in the list.
 1. Expand the entry and verify that you can access the Kubeflow Pipelines or Apache Airflow GUI and the Cloud Storage GUI using the displayed links.
-
    ![Access runtime configuration](../images/runtime-access-config.png) 
 
 #### Modifying a runtime configuration
@@ -153,13 +153,13 @@ A unique identifier for this configuration. A value is automatically generated f
 
 Example: `kubeflow_pipelines_dev_environment`
 
-##### description (description)
+##### Description (description)
 
 Description for this runtime image configuration. This property is optional.
 
 Example: `Kubeflow Pipelines deployment in QA`
 
-##### tags (tags)
+##### Tags (tags)
 
 Zero or more tags for this runtime configuration.
 
@@ -215,6 +215,13 @@ The Apache Airflow API endpoint you want to utilize. This setting is required.
 
 Example: `https://your-airflow-webserver:port`
 
+##### Apache Airflow user namespace (user_namespace)
+The namespace used to run your DAG in Apache Airflow. The Kubernetes namespace must be configured with the correct permissions prior to use in Apache Airflow. This setting is Optional. 
+
+The default namespace is `default`.
+
+Example: `anonymous`
+
 ##### GitHub API Endpoint (github_api_endpoint)
 
 The GitHub (or GitHub Enterprise) API endpoint where the git client will attempt to connect. This setting is required. Keep the default  `https://api.github.com` for github.com
@@ -265,6 +272,32 @@ Example: `test-bucket`
 > If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
 Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
+
+#### Kubernetes settings
+This section defines configurations that exist on the Kubernetes cluster that you want to associate with this runtime configuration.
+
+##### Cloud Object Storage Credentials Secret (cos_secret)
+(Optional) Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
+If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
+execute pipelines. This setting is optional but is recommended for use in shared environments to avoid exposing a user's 
+Cloud Object Storage credentials. 
+
+Example: `my-cos-secret`
+
+The following is an example of how your secret on the Kubernetes cluster hosting your runtime should be defined. The variable
+names defined under `data`, must be `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` followed by each respective value 
+encoded in base64. Learn how to create, deploy, or configure [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/).
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: <cos_secret>
+type: Opaque
+data:
+  AWS_ACCESS_KEY_ID: <BASE64_ENCODED_YOUR_AWS_ACCESS_KEY_ID>
+  AWS_SECRET_ACCESS_KEY: <BASE64_ENCODED_YOUR_AWS_SECRET_ACCESS_KEY>
+```
 
 ### Troubleshooting 
 

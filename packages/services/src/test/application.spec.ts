@@ -14,56 +14,13 @@
  * limitations under the License.
  */
 
-import * as nbformat from '@jupyterlab/nbformat';
-import { NotebookModel } from '@jupyterlab/notebook';
-import { JupyterServer, NBTestUtils } from '@jupyterlab/testutils';
+import { JupyterServer } from '@jupyterlab/testutils';
 
 import { MetadataService } from '../metadata';
-import { NotebookParser } from '../parsing';
 import { RequestHandler } from '../requests';
 jest.setTimeout(3 * 60 * 1000);
 
 const server = new JupyterServer();
-const notebookWithEnvVars: any = {
-  cells: [
-    {
-      cell_type: 'code',
-      execution_count: null,
-      metadata: {},
-      outputs: [],
-      source: [
-        'import os\n',
-        "print(os.environ['HOME'])\n",
-        'print(os.getenv("HOME2"))\n',
-        "print(os.getenvb('HOME3'))\n",
-        'print(os.getenvb("HOME4"))\n',
-        "print(os.environb['HOME5'))\n",
-        'print(os.environb["HOME6"])\n'
-      ]
-    }
-  ],
-  metadata: {
-    kernelspec: {
-      display_name: 'Python 3',
-      language: 'python',
-      name: 'python3'
-    },
-    language_info: {
-      codemirror_mode: {
-        name: 'ipython',
-        version: 3
-      },
-      file_extension: '.py',
-      mimetype: 'text/x-python',
-      name: 'python',
-      nbconvert_exporter: 'python',
-      pygments_lexer: 'ipython3',
-      version: '3.7.6'
-    }
-  },
-  nbformat: 4,
-  nbformat_minor: 4
-};
 
 const codeSnippetMetadata = {
   schema_name: 'code-snippet',
@@ -205,34 +162,6 @@ describe('@elyra/services', () => {
         expect(
           await RequestHandler.makeGetRequest('elyra/metadata/code-snippets')
         ).toMatchObject({ 'code-snippets': [] });
-      });
-    });
-  });
-
-  describe('NotebookParser', () => {
-    describe('getEnvVars', () => {
-      it('should find no env vars where there are none', () => {
-        const notebook = NBTestUtils.createNotebook();
-        NBTestUtils.populateNotebook(notebook);
-        expect(
-          NotebookParser.getEnvVars(notebook.model.toString())
-        ).toMatchObject([]);
-      });
-
-      it('should find env vars', () => {
-        const notebook = NBTestUtils.createNotebook();
-        const model = new NotebookModel();
-        model.fromJSON(notebookWithEnvVars as nbformat.INotebookContent);
-        notebook.model = model;
-        const foundEnvVars = NotebookParser.getEnvVars(
-          notebook.model.toString()
-        );
-        expect(foundEnvVars).toContain('HOME');
-        expect(foundEnvVars).toContain('HOME2');
-        expect(foundEnvVars).toContain('HOME3');
-        expect(foundEnvVars).toContain('HOME4');
-        expect(foundEnvVars).toContain('HOME5');
-        expect(foundEnvVars).toContain('HOME6');
       });
     });
   });

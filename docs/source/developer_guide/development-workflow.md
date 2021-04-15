@@ -85,19 +85,14 @@ Issuing a `make` command with no task specified will provide a list of the curre
 ```bash
 $ make
 
-build-server                   Build backend
-build-ui                       Build packages
 clean                          Make a clean source tree and uninstall extensions
-docker-image                   Build docker image
+container-images               Build all container images
 docs                           Build docs
-install-server                 Install backend
 install                        Build and install
 lint                           Run linters
+publish-container-images       Publish all container images
 release                        Build wheel file for release
-test-server                    Run unit tests
-test-ui                        Run frontend tests
-test                           Run all tests
-validate-runtime-images        Validates delivered runtime-images meet minimum criteria
+test                           Run all tests (backend, frontend and cypress integration tests)
 watch                          Watch packages. For use alongside jupyter lab --watch
 ```
 
@@ -153,7 +148,7 @@ not just refresh your browser.
 Elyra's container image can be built using:
 
 ```bash
-make container-image
+make elyra-image
 ```
 
 Official container images are published on [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) and [quay.io](https://quay.io/repository/elyra/elyra?tab=tags).

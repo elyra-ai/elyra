@@ -2,6 +2,9 @@ import kfp
 {% if engine == "Tekton" %}
 import kfp_tekton
 {% endif %}
+{% if cos_secret %}
+from kfp.aws import use_aws_secret
+{% endif %}
 from datetime import datetime
 from kfp_notebook.pipeline import NotebookOp
 
@@ -49,6 +52,10 @@ def create_pipeline():
             notebook_op_{{ loop.index }}.dependent_names = {{ operation.dependent_names }}
         {% if operation.container.image_pull_policy %}
             notebook_op_{{ loop.index }}.container.image_pull_policy = '{{ operation.container.image_pull_policy }}'
+        {% endif %}
+        {% if cos_secret %}
+            ## Ensure that the secret named '{{ cos_secret }}' below is defined in the Kubernetes namespace '{{ namespace }}' where this pipeline will be run
+            notebook_op_{{ loop.index }}.apply(use_aws_secret('{{ cos_secret }}'))
         {% endif %}
 
     {% endfor %}

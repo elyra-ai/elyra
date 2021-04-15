@@ -38,4 +38,5 @@ recursive-include elyra/pipeline/resources *
 recursive-include elyra/templates *
 recursive-include etc/config/metadata/runtime-images *.json
 recursive-include etc/config/jupyter_notebook_config.d *.json
-
+recursive-include etc/config/jupyter_server_config.d *.json
+recursive-include etc/config/settings/ *.json
