@@ -15,7 +15,7 @@
 #
 import os
 from minio import Minio
-from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists
+from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists, SignatureDoesNotMatch
 from urllib.parse import urlparse
 from traitlets.config import LoggingConfigurable
 
@@ -60,6 +60,9 @@ class CosClient(LoggingConfigurable):
             raise ex from ex
         except ResponseError as ex:
             self.log.error("Object Storage error", exc_info=True)
+            raise ex from ex
+        except SignatureDoesNotMatch as ex:
+            self.log.error("Incorrect Object Storage credentials supplied")
             raise ex from ex
 
         return self.client
