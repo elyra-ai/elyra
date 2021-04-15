@@ -160,7 +160,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             except Exception as ex:
                 if ex.__cause__:
                     raise RuntimeError(str(ex)) from ex
-                raise RuntimeError('Error compiling pipeline {} for engine {} at {}'.
+                raise RuntimeError('Error pre-processing pipeline {} for engine {} at {}'.
                                    format(pipeline_name, engine, pipeline_path), str(ex)) from ex
 
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
@@ -274,7 +274,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             except Exception as ex:
                 if ex.__cause__:
                     raise RuntimeError(str(ex)) from ex
-                raise RuntimeError('Error compiling pipeline {} for export at {}'.
+                raise RuntimeError('Error pre-processing pipeline {} for export at {}'.
                                    format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
         else:
             # Export pipeline as Python DSL
