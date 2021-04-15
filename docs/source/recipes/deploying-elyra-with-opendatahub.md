@@ -49,12 +49,12 @@ OpenShift Cluster.
 - Click on `Create Project` and create give it a name e.g. elyra or odh  
 ![Elyra](../images/odh-deploy-create-project.png)  
 - After creating the Project navigate to the `OperatorHub` page and search for `opendatahub`
-- Open the Open Data Hub tile and click on `Install`, leave all options as is at their default settings.
+- Open the Open Data Hub tile and click `Install`, keeping all default settings.
 - Once the Operator has finished installing, navigate to the `Installed Operators` page under  the `Operators` dropdown
  and click on 'Open Data Hub'
 ![Elyra](../images/odh-deploy-create-kfdef.png) 
-- Click on `Create KfDef`, then select 'YAML View'. You should now see a default configuration. Replace it with the following:  
-NOTE: Make sure to fill in the namespace field with the `Project` name you created earlier
+- Click on `Create KfDef`, then select `YAML View`. You should now see a default configuration. Replace the default with the following, replacing `INSERT_YOUR_PROJECT_NAME_HERE` with your OpenShift project name. 
+
 ```yaml
 apiVersion: kfdef.apps.kubeflow.org/v1
 kind: KfDef
@@ -62,24 +62,16 @@ metadata:
   annotations:
     kfctl.kubeflow.io/force-delete: 'false'
   name: opendatahub
-  namespace: INSERT YOUR PROJECT NAME HERE
+  namespace: INSERT_YOUR_PROJECT_NAME_HERE
 spec:
   applications:
+    # REQUIRED: This contains all of the common options used by all ODH components
     - kustomizeConfig:
         repoRef:
           name: manifests
           path: odh-common
       name: odh-common
-    - kustomizeConfig:
-        repoRef:
-          name: manifests
-          path: radanalyticsio/spark/cluster
-      name: radanalyticsio-cluster
-    - kustomizeConfig:
-        repoRef:
-          name: manifests
-          path: radanalyticsio/spark/operator
-      name: radanalyticsio-spark-operator
+    # Deploy Jupyter Hub 
     - kustomizeConfig:
         parameters:
           - name: s3_endpoint_url
@@ -88,6 +80,7 @@ spec:
           name: manifests
           path: jupyterhub/jupyterhub
       name: jupyterhub
+    # Deploy Jupyter notebook container images
     - kustomizeConfig:
         overlays:
           - additional
@@ -96,23 +89,16 @@ spec:
           path: jupyterhub/notebook-images
       name: notebook-images
   repos:
-    - name: kf-manifests
-      uri: >-
-        https://github.com/opendatahub-io/manifests/tarball/v1.0-branch-openshift
     - name: manifests
-      uri: 'https://github.com/opendatahub-io/odh-manifests/tarball/v0.8.0'
-  version: v0.8.0
+      uri: 'https://github.com/opendatahub-io/odh-manifests/tarball/v1.0.9'
+  version: v1.0.9
 status: {} 
 ```
-- This kfdef configuration will install a minimal deployment of Open Data Hub.  
-NOTE: The Argo Workflow controller is explicitly not included in the kfdef due a conflict with the Argo controller 
-that comes with a standard installation of Kubeflow. The removal is only required when both Open Data Hub and 
-Kubeflow are installed in the same namespace.
-
+This minimal kfdef configuration installs common ODH options, JupyterHub, and container images that serve Jupyter notebooks. The notebook images include an image named `s2i-lab-elyra:vX.Y.Z`, which has JupyterLab with Elyra pre-installed.
 
 ![Elyra](../images/odh-deploy-create-kfdef2.png)
-- Click on 'Create'
-- The `Open Data Hub Operator` should now be installing a basic deployment of JupyterHub on ODH.
+
+- Click `Create` and wait until the Open Data Hub operator completd the installation.
 
 Accessing the ODH JupyterHub Landing/Spawner Page
 - There are many ways to access the Landing Page, in this example we assume the user is using the default installation
@@ -126,15 +112,6 @@ your workstation.
 - Navigate to the `Landing Page` in your browser. NOTE: Replace the`Project` name in the URL with your own 
 http://localhost:8001/api/v1/namespaces/INSERT_PROJECT_NAME/services/http:jupyterhub:8080/proxy
 
-
-## Using Elyra with Open Data Hub
-- In the JupyterHub landing/spawner page, ensure you set the following two environmental variables before starting a notebook
-
-| NAME | VALUES | REQUIRED | DESCRIPTION |
-|---|---|---|---|
-|COS_BUCKET| A-Z, a-z, 0-9, -, . |  | This will be the bucket that your artifacts will be sent to post notebook execution. This can be modified in the Elyra Metadata Editor at runtime. Default value: 'default' |
-
-
 ## Accessing Default Object Storage 
 - When using the default metadata runtime created, pipeline artifacts will be sent to the `Minio` S3 object storage instance
 installed when Kubeflow Pipelines is installed
@@ -143,7 +120,7 @@ installed when Kubeflow Pipelines is installed
 ```bash
 oc port-forward svc/minio-service -n kubeflow 9000:9000 &
 ```
-- You should be able to reach the `Minio` Dashboard in your web browser by navigating to`localhost:9000`
+- You should be able to reach the `Minio` dashboard in your web browser by navigating to`localhost:9000`
 
 ## Additional Resources and Documentation
 [ODH Installation Docs](https://opendatahub.io/docs/getting-started/quick-installation.html)  
