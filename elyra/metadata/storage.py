@@ -55,7 +55,7 @@ class MetadataStore(ABC):
 class FileMetadataStore(MetadataStore):
 
     def __init__(self, namespace: str, **kwargs):
-        super(FileMetadataStore, self).__init__(namespace, **kwargs)
+        super().__init__(namespace, **kwargs)
         self.metadata_paths = FileMetadataStore.metadata_path(self.namespace)
         self.preferred_metadata_dir = self.metadata_paths[0]
         self.log.debug("Namespace '{}' is using metadata directory: {} from list: {}".

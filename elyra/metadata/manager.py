@@ -50,7 +50,7 @@ class MetadataManager(LoggingConfigurable):
         Keyword Args:
             metadata_store_class (str): the name of the MetadataStore subclass to use for storing managed instances
         """
-        super(MetadataManager, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.schema_mgr = SchemaManager.instance()
         self.schema_mgr.validate_namespace(namespace)

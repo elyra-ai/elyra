@@ -275,7 +275,7 @@ class HTTPKernelClient(AsyncKernelClient):
     _channel_queues = {}
 
     def __init__(self, **kwargs):
-        super(HTTPKernelClient, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.kernel_id = kwargs['kernel_id']
         self.channel_socket = None
         self.response_router = None

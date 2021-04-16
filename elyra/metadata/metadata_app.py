@@ -34,7 +34,7 @@ class NamespaceBase(AppBase):
     options = []
 
     def print_help(self):
-        super(NamespaceBase, self).print_help()
+        super().print_help()
         print()
         print("Options")
         print("-------")
@@ -61,7 +61,7 @@ class NamespaceList(NamespaceBase):
     options = [json_flag, valid_only_flag]
 
     def __init__(self, **kwargs):
-        super(NamespaceList, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.metadata_manager = MetadataManager(namespace=self.namespace)
 
     def start(self):
@@ -122,11 +122,11 @@ class NamespaceRemove(NamespaceBase):
     options = [name_option]
 
     def __init__(self, **kwargs):
-        super(NamespaceRemove, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.metadata_manager = MetadataManager(namespace=self.namespace)
 
     def start(self):
-        super(NamespaceRemove, self).start()  # process options
+        super().start()  # process options
 
         name = self.name_option.value
         try:
@@ -154,7 +154,7 @@ class NamespaceInstall(NamespaceBase):
     options = [replace_flag]  # defer name_option until after schema_option
 
     def __init__(self, **kwargs):
-        super(NamespaceInstall, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.metadata_manager = MetadataManager(namespace=self.namespace)
         # First, process the schema_name option so we can then load the appropriate schema
         # file to build the schema-based options.  If help is requested, give it to them.
@@ -190,7 +190,7 @@ class NamespaceInstall(NamespaceBase):
         self.options.extend(self.schema_options)
 
     def start(self):
-        super(NamespaceInstall, self).start()  # process options
+        super().start()  # process options
 
         # Get known options, then gather display_name and build metadata dict.
         name = self.name_option.value
@@ -246,7 +246,7 @@ class SubcommandBase(AppBase):
     namespace_base_class = None  # Overridden in subclass
 
     def __init__(self, **kwargs):
-        super(SubcommandBase, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.namespace_schemas = kwargs['namespace_schemas']
 
         # For each namespace in current schemas, add a corresponding subcommand
@@ -271,7 +271,7 @@ class SubcommandBase(AppBase):
         return subinstance.start()
 
     def print_help(self):
-        super(SubcommandBase, self).print_help()
+        super().print_help()
         self.print_subcommands()
 
 
@@ -283,7 +283,7 @@ class List(SubcommandBase):
     namespace_base_class = NamespaceList
 
     def __init__(self, **kwargs):
-        super(List, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Remove(SubcommandBase):
@@ -294,7 +294,7 @@ class Remove(SubcommandBase):
     namespace_base_class = NamespaceRemove
 
     def __init__(self, **kwargs):
-        super(Remove, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Install(SubcommandBase):
@@ -305,7 +305,7 @@ class Install(SubcommandBase):
     namespace_base_class = NamespaceInstall
 
     def __init__(self, **kwargs):
-        super(Install, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class MetadataApp(AppBase):
@@ -326,7 +326,7 @@ class MetadataApp(AppBase):
         elyra_metadata.start()
 
     def __init__(self, **kwargs):
-        super(MetadataApp, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.namespace_schemas = SchemaManager.load_namespace_schemas()
 
     def start(self):
@@ -338,7 +338,7 @@ class MetadataApp(AppBase):
         return subinstance.start()
 
     def print_help(self):
-        super(MetadataApp, self).print_help()
+        super().print_help()
         self.print_subcommands()
 
 
