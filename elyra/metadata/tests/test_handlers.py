@@ -21,10 +21,11 @@ import shutil
 
 from elyra.metadata import METADATA_TEST_NAMESPACE
 from jupyter_server.utils import url_path_join
+from jupyter_server.tests.utils import expected_http_error
 from tornado.httpclient import HTTPClientError
 
 from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, \
-    create_json_file, get_instance, expected_http_error
+    create_json_file, get_instance
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
 
