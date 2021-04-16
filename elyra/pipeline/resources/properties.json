@@ -161,7 +161,7 @@
           "default": "Files generated during execution that will become available to all subsequent pipeline steps.\n One filename or expression (e.g. *.csv) per line. Supported patterns: ? and *."
         },
         "data": {
-          "placeholder": "foo.csv",
+          "placeholder": "output.csv",
           "single_item_label": "Output File"
         }
       }
