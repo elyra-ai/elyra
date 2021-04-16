@@ -86,13 +86,13 @@ class Option(object):
 class CliOption(Option):
     """Represents a command-line option."""
     def __init__(self, cli_option, **kwargs):
-        super(CliOption, self).__init__(cli_option, **kwargs)
+        super().__init__(cli_option, **kwargs)
 
 
 class Flag(Option):
     """Represents a command-line flag.  When present, the value used is `not default_value`."""
     def __init__(self, flag, **kwargs):
-        super(Flag, self).__init__(flag, type="boolean", **kwargs)
+        super().__init__(flag, type="boolean", **kwargs)
 
 
 class SchemaProperty(CliOption):
@@ -116,10 +116,11 @@ class SchemaProperty(CliOption):
         cli_option = '--' + name
         type = schema_property.get('type')
 
-        super(SchemaProperty, self).__init__(cli_option=cli_option, name=name,
-                                             description=schema_property.get('description'),
-                                             default_value=schema_property.get('default'),
-                                             type=type)
+        super().__init__(cli_option=cli_option,
+                         name=name,
+                         description=schema_property.get('description'),
+                         default_value=schema_property.get('default'),
+                         type=type)
 
     def print_description(self):
 
@@ -145,7 +146,7 @@ class MetadataSchemaProperty(SchemaProperty):
     """Represents the property from the schema that resides in the Metadata stanza.
     """
     def __init__(self, name, schema_property):
-        super(MetadataSchemaProperty, self).__init__(name, schema_property)
+        super().__init__(name, schema_property)
 
 
 class AppBase(object):
