@@ -151,4 +151,13 @@ Elyra's container image can be built using:
 make elyra-image
 ```
 
-Official container images are published on [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) and [quay.io](https://quay.io/repository/elyra/elyra?tab=tags).
+By default, the command above will build a container image from the tip of the repository master branch.
+
+In order to build from a particular release, you can pass a `TAG` parameter to the make command as below:
+
+```bash
+make elyra-image TAG=2.2.1
+```
+
+Official container images are published on [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags)
+and [quay.io](https://quay.io/repository/elyra/elyra?tab=tags).

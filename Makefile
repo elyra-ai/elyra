@@ -159,7 +159,7 @@ elyra-image: # Build Elyra stand-alone container image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
-	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE) -t quay.io/$(ELYRA_IMAGE) build/docker/ --progress plain
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE) -t quay.io/$(ELYRA_IMAGE) build/docker/ --progress plain --build-arg TAG=$(TAG)
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
     # this is a privileged operation; a `docker login` might be required
