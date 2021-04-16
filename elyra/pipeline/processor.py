@@ -27,6 +27,7 @@ from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
 from typing import List
 from urllib3.exceptions import MaxRetryError
+from minio.error import SignatureDoesNotMatch
 
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -300,6 +301,9 @@ class RuntimePipelineProcess(PipelineProcessor):
                            format(cos_endpoint), exc_info=True)
             raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
                                "check your object storage settings. ".format(cos_endpoint)) from ex
+        except SignatureDoesNotMatch as ex:
+            raise RuntimeError("Connection was refused due to incorrect Object Storage credentials. " +
+                               "Please validate your runtime configuration details and retry.") from ex
         except BaseException as ex:
             self.log.error("Error uploading artifacts to object storage for operation: {}".
                            format(operation.name), exc_info=True)

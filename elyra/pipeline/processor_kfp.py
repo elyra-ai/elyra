@@ -158,7 +158,9 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 else:
                     kfp_argo_compiler.Compiler().compile(pipeline_function, pipeline_path)
             except Exception as ex:
-                raise RuntimeError('Error compiling pipeline {} for engine {} at {}'.
+                if ex.__cause__:
+                    raise RuntimeError(str(ex)) from ex
+                raise RuntimeError('Error pre-processing pipeline {} for engine {} at {}'.
                                    format(pipeline_name, engine, pipeline_path), str(ex)) from ex
 
             self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
@@ -270,7 +272,9 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                     self.log.info("Compiling pipeline for Argo engine")
                     kfp_argo_compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
             except Exception as ex:
-                raise RuntimeError('Error compiling pipeline {} for export at {}'.
+                if ex.__cause__:
+                    raise RuntimeError(str(ex)) from ex
+                raise RuntimeError('Error pre-processing pipeline {} for export at {}'.
                                    format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
         else:
             # Export pipeline as Python DSL
