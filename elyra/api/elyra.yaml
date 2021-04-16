@@ -342,6 +342,35 @@ paths:
                     type: string
                     description: The pipeline export path.
 
+  /elyra/contents/properties/{path}:
+    get:
+        tags:
+        - properties
+        summary: Get a dictionary of properties for a file.
+        parameters:
+        - name: path
+          in: path
+          description: The path to the file to be parsed, relative to the JupyterLab server root directory.
+          required: true
+          schema:
+            type: string
+        responses:
+          200:
+            description: The dictionary of properties found while parsing the file.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  description: A dictionary of property dictionaries. Each property dictionary consists of a key for each instance found and its value (if applicable), or, if parsing fails, is empty.
+                  oneOf:
+                    - $ref: '#/components/schemas/ResourceBody'
+                    - $ref: '#/components/schemas/ResourceBodyEmpty'
+          400:
+            description: File is a directory.
+          404:
+            description: File not found.
+
+  
 components:
   schemas:
     MetadataResourceBody:
@@ -490,6 +519,41 @@ components:
         overwrite:
           type: boolean
           description: Determines if the existing export should be overwritten.
+          
+    ResourceBody:
+      description: The set of resources comprising the request body.
+      required:
+        - env_vars
+        - inputs
+        - outputs
+      type: object
+      properties:
+        env_vars:
+          type: object
+          properties: 
+            ENV_VAR_NAME1:
+              type: string
+            ENV_VAR_NAME2:
+              type: string
+        inputs:
+          type: object
+        outputs:
+          type: object
+          
+    ResourceBodyEmpty:
+      description: The set of resources comprising the request body for files where no resources could be found.
+      required:
+        - env_vars
+        - inputs
+        - outputs
+      type: object
+      properties:
+        env_vars:
+          type: object
+        inputs:
+          type: object
+        outputs:
+          type: object
 
   parameters:
     namespace:
@@ -503,6 +567,13 @@ components:
       name: resource
       in: path
       description: The name of the resource in a given namespace.
+      required: true
+      schema:
+        type: string
+    path:
+      name: path
+      in: path
+      description: The path to the file to be parsed, relative to the JupyterLab server root directory.
       required: true
       schema:
         type: string
