@@ -103,8 +103,7 @@ class PipelineConfigHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     def get(self, resource):
-        print(f'>>> retrieving {resource}')
-        if(resource in self.valid_resources):
+        if resource in self.valid_resources:
             msg_json = self._read_config(resource)
         else:
             # invalid resource, throw an error
