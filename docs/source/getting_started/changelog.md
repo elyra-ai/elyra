@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.2 (4/19/2021)
+
+- Adds material ui dependency to ui-components package [1567](https://github.com/elyra-ai/elyra/pull/1567)
+- Fix Elyra version when creating kf-notebook docker image [1523](https://github.com/elyra-ai/elyra/pull/1523)
+- Fix dependency suggestion in submit notebook dialog [1510](https://github.com/elyra-ai/elyra/pull/1510)
+- Pin the testutils and filebrowser version [1541](https://github.com/elyra-ai/elyra/pull/1541)
+
 ## 2.2.1 (3/31/2021)
 
 - Update KFP Notebook to 0.22.0
