@@ -24,6 +24,12 @@ This section describes the steps necessary to build Elyra in a development envir
 * [NodeJS 12+](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/lang/en/docs/install)
 
+> NOTE: For Windows Users, install Yarn via npm
+
+```
+npm install -g yarn
+```
+
 ### Setting up your development environment
 
 * Install Miniconda
