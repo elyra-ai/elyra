@@ -262,8 +262,9 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 # Exported pipeline is not associated with an experiment
                 # or a version. The association is established when the
                 # pipeline is imported into KFP by the user.
-                pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8
-                                                              '')
+                pipeline_function = lambda: self._cc_pipeline(pipeline,
+                                                              pipeline_name,
+                                                              cos_directory=cos_directory)  # nopep8
 
                 if 'Tekton' == engine:
                     self.log.info("Compiling pipeline for Tekton engine")
