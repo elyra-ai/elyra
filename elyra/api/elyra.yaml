@@ -342,13 +342,13 @@ paths:
                     type: string
                     description: The pipeline export path.
 
-  /elyra/contents/properties/{path}:
+  /elyra/contents/properties/{filepath}:
     get:
         tags:
         - properties
         summary: Get a dictionary of properties for a file.
         parameters:
-        - name: path
+        - name: filepath
           in: path
           description: The path to the file to be parsed, relative to the JupyterLab server root directory.
           required: true
@@ -362,9 +362,7 @@ paths:
                 schema:
                   type: object
                   description: A dictionary of property dictionaries. Each property dictionary consists of a key for each instance found and its value (if applicable), or, if parsing fails, is empty.
-                  oneOf:
-                    - $ref: '#/components/schemas/ResourceBody'
-                    - $ref: '#/components/schemas/ResourceBodyEmpty'
+                  $ref: '#/components/schemas/ContentsPropertiesResource'
           400:
             description: File is a directory.
           404:
@@ -520,7 +518,7 @@ components:
           type: boolean
           description: Determines if the existing export should be overwritten.
           
-    ResourceBody:
+    ContentsPropertiesResource:
       description: The set of resources comprising the request body.
       required:
         - env_vars
@@ -530,50 +528,13 @@ components:
       properties:
         env_vars:
           type: object
-          properties: 
-            ENV_VAR_NAME1:
-              type: string
-            ENV_VAR_NAME2:
-              type: string
+          additionalProperties:
+            type: string
         inputs:
-          type: object
+          type: array
+          items:
+            type: string
         outputs:
-          type: object
-          
-    ResourceBodyEmpty:
-      description: The set of resources comprising the request body for files where no resources could be found.
-      required:
-        - env_vars
-        - inputs
-        - outputs
-      type: object
-      properties:
-        env_vars:
-          type: object
-        inputs:
-          type: object
-        outputs:
-          type: object
-
-  parameters:
-    namespace:
-      name: namespace
-      in: path
-      description: The name of the namespace.
-      required: true
-      schema:
-        type: string
-    resource:
-      name: resource
-      in: path
-      description: The name of the resource in a given namespace.
-      required: true
-      schema:
-        type: string
-    path:
-      name: path
-      in: path
-      description: The path to the file to be parsed, relative to the JupyterLab server root directory.
-      required: true
-      schema:
-        type: string
+          type: array
+          items:
+            type: string
