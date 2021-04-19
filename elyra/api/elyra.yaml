@@ -361,7 +361,7 @@ paths:
               application/json:
                 schema:
                   type: object
-                  description: A dictionary of property dictionaries. Each property dictionary consists of a key for each instance found and its value (if applicable), or, if parsing fails, is empty.
+                  description: A dictionary of properties.
                   $ref: '#/components/schemas/ContentsPropertiesResource'
           400:
             description: File is a directory.
@@ -528,13 +528,16 @@ components:
       properties:
         env_vars:
           type: object
+          description: A dictionary with a key for each environment variable name found and a value corresponding to the variable value or null.
           additionalProperties:
             type: string
         inputs:
           type: array
+          description: A list of input file names.
           items:
             type: string
         outputs:
           type: array
+          description: A list of output file names.
           items:
             type: string
