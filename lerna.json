@@ -1,17 +1,12 @@
 {
-  "version": "2.2.2",
+  "version": "2.2.3-dev",
   "npmClient": "yarn",
   "useWorkspaces": true,
   "command": {
     "publish": {
-      "ignoreChanges": [
-        "ignored-file",
-        "*.md"
-      ],
+      "ignoreChanges": ["ignored-file", "*.md"],
       "message": "chore(release): publish"
     }
   },
-  "packages": [
-    "packages/*"
-  ]
+  "packages": ["packages/*"]
 }
