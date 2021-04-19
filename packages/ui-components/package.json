@@ -1,6 +1,6 @@
 {
   "name": "@elyra/ui-components",
-  "version": "2.3.0-dev",
+  "version": "2.2.2",
   "description": "JupyterLab - UI components for use in elyra",
   "keywords": [
     "jupyter",
@@ -33,9 +33,9 @@
   "dependencies": {
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/ui-components": "^3.0.0",
-    "@material-ui/lab": "^4.0.0-alpha.18",
     "@material-ui/core": "^4.1.2",
     "@material-ui/icons": "^4.2.1",
+    "@material-ui/lab": "^4.0.0-alpha.18",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-json-tree": "^0.11.2"
