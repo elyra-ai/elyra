@@ -58,5 +58,5 @@ class FileParserHandler(HttpErrorMixin, APIHandler):
             # Parser could not parse the given file, but this does not necessarily indicate an error with the file.
             # Log the issue and return an empty model so that other user processes are not disrupted.
             self.log.debug(f"Could not parse '{path}': {str(e)}")
-            empty_properties = {"env_vars": {}, "inputs": {}, "outputs": {}}
+            empty_properties = {"env_vars": {}, "inputs": [], "outputs": []}
             self.finish(json.dumps(empty_properties))
