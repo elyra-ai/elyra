@@ -171,7 +171,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           return pipelineIcon;
         }
       },
-      execute: () => {
+      execute: (args: any) => {
         // Creates blank file, then opens it in a new window
         app.commands
           .execute(commandIDs.newDocManager, {
@@ -182,7 +182,10 @@ const extension: JupyterFrontEndPlugin<void> = {
           .then(model => {
             return app.commands.execute(commandIDs.openDocManager, {
               path: model.path,
-              factory: PIPELINE_FACTORY
+              factory: PIPELINE_FACTORY,
+              args: {
+                runtime: args['runtime']
+              }
             });
           });
       }
