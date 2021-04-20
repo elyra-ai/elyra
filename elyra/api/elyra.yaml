@@ -342,6 +342,33 @@ paths:
                     type: string
                     description: The pipeline export path.
 
+  /elyra/contents/properties/{filepath}:
+    get:
+        tags:
+        - properties
+        summary: Get a dictionary of properties for a file.
+        parameters:
+        - name: filepath
+          in: path
+          description: The path to the file to be parsed, relative to the JupyterLab server root directory.
+          required: true
+          schema:
+            type: string
+        responses:
+          200:
+            description: The dictionary of properties found while parsing the file.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  description: A dictionary of properties.
+                  $ref: '#/components/schemas/ContentsPropertiesResource'
+          400:
+            description: File is a directory.
+          404:
+            description: File not found.
+
+  
 components:
   schemas:
     MetadataResourceBody:
@@ -490,19 +517,27 @@ components:
         overwrite:
           type: boolean
           description: Determines if the existing export should be overwritten.
-
-  parameters:
-    namespace:
-      name: namespace
-      in: path
-      description: The name of the namespace.
-      required: true
-      schema:
-        type: string
-    resource:
-      name: resource
-      in: path
-      description: The name of the resource in a given namespace.
-      required: true
-      schema:
-        type: string
+          
+    ContentsPropertiesResource:
+      description: The set of resources comprising the request body.
+      required:
+        - env_vars
+        - inputs
+        - outputs
+      type: object
+      properties:
+        env_vars:
+          type: object
+          description: A dictionary with a key for each environment variable name found and a value corresponding to the variable value or null.
+          additionalProperties:
+            type: string
+        inputs:
+          type: array
+          description: A list of input file names.
+          items:
+            type: string
+        outputs:
+          type: array
+          description: A list of output file names.
+          items:
+            type: string

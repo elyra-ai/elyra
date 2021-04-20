@@ -139,7 +139,7 @@ class ContentParser(LoggingConfigurable):
     def parse(self, filepath: str) -> dict:
         """Returns a model dictionary of all the regex matches for each key in the regex dictionary"""
 
-        properties = {"env_vars": {}, "inputs": {}, "outputs": {}}
+        properties = {"env_vars": {}, "inputs": [], "outputs": []}
         reader = self._get_reader(filepath)
         parser = self._get_parser(reader.language)
 
@@ -151,7 +151,10 @@ class ContentParser(LoggingConfigurable):
                 for line in chunk:
                     matches = parser.parse_environment_variables(line)
                     for key, match in matches:
-                        properties[key][match.group(1)] = match.group(2)
+                        if key == "env_vars":
+                            properties[key][match.group(1)] = match.group(2)
+                        else:
+                            properties[key].append(match.group(1))
 
         return properties
 
