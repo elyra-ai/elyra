@@ -53,16 +53,13 @@ expected_response = {
     "outputs": []
 }
 
-
 expected_response_empty = {
     "env_vars": {},
     "inputs": [],
     "outputs": []
 }
 
-
 text_content = "This is a text file."
-
 
 notebook_content = {
     "cells": [
@@ -158,3 +155,44 @@ r_content = '''
      Sys.setenv(VAR7 = "value7")
     Sys.getenv('VAR8')
 '''
+
+empty_notebook_content = {
+    "cells": [
+        {
+            "cell_type": "markdown",
+            "id": "literary-parts",
+            "metadata": {},
+            "source": [
+                "# Python Notebook with No Environment Variables\n",
+                "\n",
+                "This python Notebook contains no environment variables to test the parser functionality.",
+            ],
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 0,
+            "id": "dental-manchester",
+            "metadata": {},
+            "outputs": [],
+            "source": ["import os\n", "\n", "print(os.cwd())"],
+        },
+    ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3",
+        },
+        "language_info": {
+            "codemirror_mode": {"name": "ipython", "version": 3},
+            "file_extension": ".py",
+            "mimetype": "text/x-python",
+            "name": "python",
+            "nbconvert_exporter": "python",
+            "pygments_lexer": "ipython3",
+            "version": "3.9.1",
+        },
+    },
+    "nbformat": 4,
+    "nbformat_minor": 5,
+}

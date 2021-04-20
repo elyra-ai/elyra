@@ -16,7 +16,8 @@
 import pytest
 import json
 
-from .test_utils import create_dir, create_file, text_content, notebook_content, python_content, r_content
+from .test_utils import create_dir, create_file, text_content, notebook_content, python_content, r_content, \
+    empty_notebook_content
 
 
 @pytest.fixture
@@ -67,6 +68,11 @@ def create_python_file(jp_root_dir, python_filename):
 @pytest.fixture
 def create_r_file(jp_root_dir, r_filename):
     create_file(jp_root_dir, r_filename, r_content)
+
+
+@pytest.fixture
+def create_empty_notebook_file(jp_root_dir, notebook_filename):
+    create_file(jp_root_dir, notebook_filename, json.dumps(empty_notebook_content))
 
 
 # Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)

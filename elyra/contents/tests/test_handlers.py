@@ -68,3 +68,10 @@ async def test_valid_r_file(jp_fetch, create_r_file, r_filename):
 
     assert response.code == 200
     assert json.loads(response.body) == expected_response
+
+
+async def test_empty_notebook(jp_fetch, create_empty_notebook_file, notebook_filename):
+    response = await jp_fetch('elyra', 'contents/properties', notebook_filename)
+
+    assert response.code == 200
+    assert json.loads(response.body) == expected_response_empty
