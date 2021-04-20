@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import io
+import os
 import json
 
 from jupyter_server.base.handlers import APIHandler
@@ -29,8 +31,8 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def get(self):
         msg_json = dict(title="Operation not supported.")
-        self.write(msg_json)
-        self.flush()
+        self.set_header("Content-Type", 'application/json')
+        self.finish(msg_json)
 
     @web.authenticated
     async def post(self, *args, **kwargs):
@@ -64,8 +66,8 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
             pipeline_exported_path
         )
         self.set_header('Location', location)
-        self.write(json_msg)
-        self.flush()
+        self.set_header("Content-Type", 'application/json')
+        self.finish(json_msg)
 
 
 class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
@@ -92,4 +94,27 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
-        self.flush()
+
+
+class PipelineConfigHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose method calls to retrieve pipelines editor configuration"""
+
+    valid_resources = ["palette", "properties"]
+
+    @web.authenticated
+    def get(self, resource):
+        if resource in self.valid_resources:
+            msg_json = self._read_config(resource)
+        else:
+            # invalid resource, throw an error
+            raise web.HTTPError(400, f"Invalid configuration name '{resource}'")
+
+        self.set_header("Content-Type", 'application/json')
+        self.finish(msg_json)
+
+    def _read_config(self, config_name):
+        config_dir = os.path.join(os.path.dirname(__file__), 'resources')
+        config_file = os.path.join(config_dir, config_name + ".json")
+        with io.open(config_file, 'r', encoding='utf-8') as f:
+            config_json = json.load(f)
+        return config_json
