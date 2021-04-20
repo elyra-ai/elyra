@@ -239,7 +239,7 @@ def update_version_to_dev() -> None:
 
         sed(_source('packages/theme/src/index.ts'),
             r"https://elyra.readthedocs.io/en/stable/",
-            f"https://elyra.readthedocs.io/en/latest/")
+            f"https://elyra.readthedocs.io/en/v{new_version}/")
 
         check_run(["lerna", "version", dev_npm_version, "--no-git-tag-version", "--no-push", "--yes"], cwd=config.source_dir)
         check_run(["yarn", "version", "--new-version", dev_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
