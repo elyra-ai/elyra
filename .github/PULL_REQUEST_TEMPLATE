@@ -7,7 +7,7 @@ Thanks for sending a pull request!  Here are some tips for you:
   4. Please write your PR title to summarize what this PR proposes.
   5. If this PR involves UI changes, please provide a screen capture (before/after) for a faster review.
   6. Remember to add 'Fixes #ISSUE_NUMBER' to get the issue properly closed when the PR is merged
-  7. Set the proper milestone based on the target release for the issue
+  7. Set the proper milestone based on the target release for the issue.
 -->
 
 ### What changes were proposed in this pull request?
@@ -54,4 +54,3 @@ Developer's Certificate of Origin 1.1
            personal information I submit with it, including my sign-off) is
            maintained indefinitely and may be redistributed consistent with
            this project or the open source license(s) involved.
-
