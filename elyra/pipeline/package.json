@@ -1,0 +1,17 @@
+{
+  "name": "pipeline",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "language-server": "/Users/niko/Documents/code/elyra/vscode-pipeline-editor/packages/language-server"
+  }
+}

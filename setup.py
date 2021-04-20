@@ -117,6 +117,7 @@ setup_args = dict(
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
             'elyra-pipeline = elyra.cli.pipeline_app:pipeline',
+            'elyra-pipeline-lsp = elyra.pipeline.lsp:main',
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
@@ -125,6 +126,9 @@ setup_args = dict(
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',
+        ],
+        'jupyter_lsp_spec_v1': [
+            'pipeline-language-server = elyra.pipeline.lsp:load'
         ]
     },
 )
