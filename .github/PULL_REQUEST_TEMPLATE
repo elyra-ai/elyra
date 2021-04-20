@@ -14,7 +14,7 @@ Thanks for sending a pull request!  Here are some tips for you:
 <!--
 Please clarify what changes you are proposing. The purpose of this section is to outline the changes and how this PR fixes the issue.
 If possible, please consider writing useful notes for better and faster reviews in your PR. See the examples below.
-  1. If you refactor some codes with changing classes, showing the class hierarchy will help reviewers.
+  1. If you refactor code that leads to class changes, showing the updated class hierarchy will help reviewers.
   2. If there is design documentation, please add the link.
 -->
 
