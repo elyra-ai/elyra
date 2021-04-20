@@ -14,4 +14,10 @@
  * limitations under the License.
  */
 
-declare module '@elyra/canvas';
+import notebook from './notebook';
+import python from './python';
+import r from './r';
+
+const nodes = [notebook, python, r];
+
+export default nodes;

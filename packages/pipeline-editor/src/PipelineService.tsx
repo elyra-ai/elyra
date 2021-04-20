@@ -38,6 +38,19 @@ export interface ISchema {
   display_name: string;
 }
 
+enum ContentType {
+  notebook = 'execute-notebook-node',
+  python = 'execute-python-node',
+  r = 'execute-r-node',
+  other = 'other'
+}
+
+const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
+  ['.py', ContentType.python],
+  ['.ipynb', ContentType.notebook],
+  ['.r', ContentType.r]
+]);
+
 export class PipelineService {
   /**
    * Returns a list of external runtime configurations available as
@@ -264,6 +277,26 @@ export class PipelineService {
         buttons: [Dialog.okButton()]
       });
     });
+  }
+
+  static getNodeType(filepath: string): string {
+    const extension: string = PathExt.extname(filepath);
+    const type: string = CONTENT_TYPE_MAPPER.get(extension)!;
+
+    // TODO: throw error when file extension is not supported?
+    return type;
+  }
+
+  /**
+   * Check if a given file is allowed to be added to the pipeline
+   * @param item
+   */
+  static isSupportedNode(file: any): boolean {
+    if (PipelineService.getNodeType(file.path)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**

@@ -136,6 +136,10 @@ const extension: JupyterFrontEndPlugin<void> = {
       selector: '[data-file-type="python"]',
       command: addFileToPipelineCommand
     });
+    app.contextMenu.addItem({
+      selector: '[data-file-type="r"]',
+      command: addFileToPipelineCommand
+    });
 
     // Add an application command
     const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;

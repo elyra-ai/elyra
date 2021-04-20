@@ -39,12 +39,12 @@ export class ScriptRunner {
   sessionConnection: Session.ISessionConnection;
   kernelSpecManager: KernelSpecManager;
   kernelManager: KernelManager;
-  disableRun: Function;
+  disableRun: (disabled: boolean) => void;
 
   /**
    * Construct a new runner.
    */
-  constructor(disableRun: Function) {
+  constructor(disableRun: (disabled: boolean) => void) {
     this.disableRun = disableRun;
 
     this.kernelSpecManager = new KernelSpecManager();
@@ -71,7 +71,7 @@ export class ScriptRunner {
     kernelName: string,
     contextPath: string,
     code: string,
-    handleKernelMsg: Function
+    handleKernelMsg: (msgOutput: any) => void
   ): Promise<any> => {
     if (!kernelName) {
       this.disableRun(true);

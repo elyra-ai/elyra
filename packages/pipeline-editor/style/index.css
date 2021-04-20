@@ -14,359 +14,565 @@
  * limitations under the License.
  */
 
-.empty-canvas h1 {
-  color: #8897a2;
-  size: 20pt;
-  text-align: center;
+body {
+  --elyra-border-radius: 0;
+  --elyra-color-icon: var(--jp-icon-contrast-color3);
+  --elyra-color-panel-bg: var(--jp-layout-color1);
+  --elyra-color-panel-border: var(--jp-border-color0);
+
+  --elyra-color-focus: var(--jp-border-color1);
+
+  --elyra-color-text-primary: var(--jp-ui-font-color0);
+
+  --elyra-color-button-text: var(--jp-ui-font-color0);
+  --elyra-color-button-bg: var(--jp-input-active-background);
+  --elyra-color-button-hover-bg: var(--jp-input-hover-background);
+
+  /* ======================================================================== */
+  /* PIPELINE */
+  /* ======================================================================== */
+
+  /* comment */
+  --elyra-color-comment-text: var(--jp-ui-font-color0);
+  --elyra-color-comment-link: var(--jp-border-color1);
+  --elyra-color-comment-bg: var(--jp-editor-selected-background);
+  --elyra-color-comment-border: var(--jp-border-color1);
+
+  /* node */
+  --elyra-color-node-text: var(--jp-ui-font-color0);
+  --elyra-color-node-link: var(--jp-content-link-color);
+  --elyra-color-node-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-node-border: transparent;
+  --elyra-color-node-hover-bg: var(--jp-input-hover-background);
+  --elyra-color-node-hover-border: transparent;
+
+  /* errors */
+  --elyra-color-text-error: var(--jp-rendermime-error-background);
+  --elyra-color-error-border: var(--jp-error-color0);
+
+  /* tooltip */
+  --elyra-color-tooltip-text: var(--jp-content-font-color0);
+  --elyra-color-tooltip-text-bold: var(--jp-editor-selected-background);
+  --elyra-color-tooltip-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-tooltip-border: var(--jp-border-color1);
+
+  /* ======================================================================== */
+  /* FORM */
+  /* ======================================================================== */
+
+  --elyra-color-formLabel-text: var(--jp-content-font-color0);
+  --elyra-color-formDescription-text: var(--jp-content-font-color0);
+
+  /* text input */
+  --elyra-color-textInput-text: var(--jp-content-font-color0);
+  --elyra-color-textInput-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-textInput-border: var(--jp-border-color1);
+  --elyra-color-textInput-disabled-text: var(--jp-inverse-layout-color4);
+
+  /* array input */
+  --elyra-color-arrayInput-text: var(--jp-content-font-color0);
+  --elyra-color-arrayInput-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-arrayInput-border: var(--jp-border-color1);
+
+  /* dropdown */
+  --elyra-color-dropdown-text: var(--jp-content-font-color0);
+  --elyra-color-dropdown-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-dropdown-border: var(--jp-border-color1);
+  --elyra-color-dropdownItem-hover-bg: var(--jp-input-hover-background);
+
+  /* checkbox */
+  --elyra-color-checkbox-text: var(--jp-content-font-color0);
+  --elyra-color-checkbox-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-checkbox-border: var(--jp-border-color1);
+
+  /* primary button */
+  --elyra-color-formButton-text: var(--jp-ui-font-color0);
+  --elyra-color-formButton-bg: var(--jp-layout-color3);
+  --elyra-color-formButton-border: transparent;
+  --elyra-color-formButton-hover-bg: var(--jp-content-font-color3);
+  --elyra-color-formButton-hover-border: transparent;
+
+  /* ======================================================================== */
+  /* PALETTE */
+  /* ======================================================================== */
+  --elyra-color-palette-text: var(--jp-ui-font-color0);
+  --elyra-color-palette-bg: var(--jp-cell-editor-active-background);
+  --elyra-color-palette-border: transparent;
+
+  /* ======================================================================== */
+  /* FONTS */
+  /* ======================================================================== */
+
+  /* sans */
+  --elyra-font-family-sans: var(--jp-ui-font-family);
+  --elyra-font-weight-sans: normal;
+  --elyra-font-size-sans: var(--jp-code-font-size);
+
+  /* mono */
+  --elyra-font-family-mono: var(--jp-ui-font-family);
+  --elyra-font-weight-mono: normal;
+  --elyra-font-size-mono: var(--jp-code-font-size);
 }
 
-.elyra-noContentMessage {
-  color: var(--text-01);
-  margin-top: 14px;
-  width: 320px;
-  padding: 0 22px;
-  opacity: 0.5;
+body {
+  background-color: var(--jp-editor-selected-background);
 }
 
-.elyra-PipelineEditor div.properties-modal-buttons {
-  display: none;
+.elyra-empty-text {
+  color: rgba(0, 0, 0, 0.68);
+  cursor: default;
+  font-family: -apple-system, system-ui, sans-serif;
+  font-size: 13px;
+  height: 19px;
+  letter-spacing: 0.52px;
+  line-height: 18.2px;
+  user-select: none;
 }
 
-.elyra-PipelineEditor .properties-right-flyout > .properties-custom-container {
-  height: calc(100% - 41px);
+.elyra-empty-image {
+  opacity: 0.05;
+  margin-bottom: 50px;
 }
 
-.elyra-tooltipError {
-  color: var(--jp-error-color1);
-}
-
-.elyra-PipelineEditor .properties-modal {
-  position: absolute;
-}
-
-.elyra-PipelineEditor .bx--modal-content {
-  padding: 0;
-}
-
-.elyra-PipelineEditor .properties-modal button.bx--btn {
-  -webkit-box-flex: 0;
-  -ms-flex: 0;
-  flex: 0;
-  min-height: 2.5rem;
-  height: 2.5rem;
-  padding: 0 1rem;
-  margin: 0 1rem 0 0;
-  text-align: center;
-}
-
-.properties-vt .properties-vt-row-class {
-  display: flex;
-}
-
-.properties-add-fields-button {
-  display: none;
-}
-.properties-control-item {
-  padding: 5px 0 5px 0;
-}
-
-.properties-right-flyout,
-.properties.title-editor {
-  color: var(--text-01);
-  background-color: var(--ui-background);
-}
-
-.bx--text-input__field-outer-wrapper {
-  width: 100%;
-}
-.properties-dropdown .bx--dropdown:hover {
-  background-color: #e5e5e5;
-}
-.properties-dropdown .bx--dropdown {
-  background-color: #f5f8fa;
-  border-radius: 3px;
-  border-bottom: 0px;
-  background-image: -webkit-gradient(
-    linear,
-    left top,
-    left bottom,
-    from(rgba(255, 255, 255, 0.8)),
-    to(rgba(255, 255, 255, 0))
-  );
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.8),
-    rgba(255, 255, 255, 0)
-  );
-  -webkit-box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
-    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
-  box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2),
-    inset 0 -1px 0 rgba(16, 22, 26, 0.1);
-  color: #182026;
-  display: -webkit-inline-box;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -ms-flex-direction: row;
-  -ms-flex-align: center;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 14px;
-  -ms-flex-pack: center;
-  text-align: left;
-  vertical-align: middle;
-  min-height: 30px;
-  min-width: 30px;
-  width: -webkit-fill-available;
-}
-
-.common-canvas-tooltip[data-id^='node_tip'] {
-  max-width: initial;
-}
-.elyra-PipelineNodeTooltip {
-  text-align: left;
-}
-.elyra-PipelineNodeTooltip dd {
-  font-weight: 600;
-}
-.elyra-PipelineNodeTooltip dt {
-  margin-left: 10px;
-  white-space: pre-wrap;
-}
-
-/* notebook-scheduler css */
-
-.jp-Dialog-content {
-  max-width: 100vw;
-  max-height: 100vh;
-}
-
-.lm-Widget a {
-  color: #1970b7;
-}
-
-.elyra-table {
-  margin: 1px;
-  padding: 1px;
-}
-
-.elyra-table th,
-tr,
-td {
-  padding: 2px;
-}
-
-.elyra-notebookExperimentWidget {
-  overflow: scroll;
-}
-
-.elyra-resourcesWrapper {
-  display: flex;
-  flex-direction: row;
-}
-
-.elyra-resourceInput {
-  width: 12%;
-  display: flex;
-  flex-direction: column;
-  padding-right: 9px;
-}
-
-.elyra-experiments {
-  padding-right: 5px;
-}
-
-.properties-editor-form {
-  color: var(--text-01);
-  background-color: var(--ui-01);
-}
-.properties-control-panel[data-id='properties-nodeGroupInfo'],
-.properties-control-panel[data-id='properties-nodeDependenciesControls'] {
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item {
   position: relative;
 }
-.properties-control-panel[data-id='properties-nodeDependenciesControls']
-  .bp3-form-group {
-  margin-bottom: 8px;
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item
+  .error::before {
+  display: block;
+  content: ' ';
+  position: absolute;
+  width: 6px;
+  border-left-width: 2px;
+  border-left-style: solid;
+  left: 5px;
+  top: 15px;
+  bottom: 18px;
+  border-color: var(--elyra-color-error-border);
 }
-.properties-control-panel[data-id='properties-nodeDependenciesControls']
-  .properties-control-panel {
-  padding: 0;
+
+.elyra-stringArrayControl-inputWrapper {
+  height: 35px;
 }
-.properties-editor-form
-  .properties-control-panel
-  .properties-control-panel[data-id='properties-nodeListDependenciesControl'] {
-  border-bottom: none;
-  padding-left: 0;
-  padding-bottom: 0;
+
+.elyra-PipelineEditor .elyra-stringArrayControl-input {
+  width: 100%;
+  height: 100%;
+  margin-bottom: 5px;
 }
-.properties-editor-form
-  .properties-control-panel
-  .properties-control-panel[data-id='properties-nodeListDependenciesControl']
-  .bx--list-box__selection {
+
+.properties-input-control.error input:not([disabled]) {
+  box-shadow: none;
+}
+
+span.bx--list-box__label {
+  color: var(--elyra-color-formLabel-text);
+}
+
+.properties-dropdown.error .bx--list-box__field:not([disabled]) {
+  box-shadow: none;
+}
+
+.elyra-PipelineEditor .properties-wrapper .bx--list-box__field {
+  height: 100%;
+}
+
+.elyra-PipelineEditor .properties-wrapper input[type='text']:disabled {
+  height: 39px;
+  padding-left: 8px;
+}
+
+.properties-dropdown .bx--list-box--expanded .bx--list-box__menu {
+  top: auto;
+}
+
+.properties-wrapper .bx--list-box__menu-item {
+  display: contents;
+}
+
+.properties-required-indicator {
   display: none;
 }
-.properties-control-item[data-id='properties-ci-dependencies'] {
-  padding: 0;
+
+.elyra-stringArrayControl-listItem {
+  padding: 5px;
 }
-.properties-control-panel[data-id='properties-nodePropertiesControls']
-  .properties-control-item {
-  margin-top: 10px;
-  padding: 0;
+
+.elyra-stringArrayControl-listRow:hover {
+  position: relative;
+  background-color: var(--jp-border-color2);
 }
-.properties-action-panel[data-id='properties-nodeBrowseFileAction']
-  .properties-action-button {
-  padding: 0;
+
+/* ======================================================== */
+/* ======================================================== */
+/* ======================================================== */
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item {
+  position: relative;
 }
-.properties-action-panel[data-id='properties-nodeBrowseFileAction']
-  .properties-action-button
-  button {
-  border-radius: 0px 3px 3px 0px;
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item:hover {
+  background-color: var(--jp-cell-editor-background);
 }
-.properties-action-panel[data-id='properties-nodeBrowseFileAction'] {
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item.selected {
+  background-color: var(--jp-editor-selected-focused-background);
+}
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item.selected::before {
+  content: '';
   position: absolute;
-  right: 0px;
-  top: 34px;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--jp-border-color2);
 }
-.properties-control-panel[data-id='properties-nodeFileControl'] {
+
+.elyra-stringArrayControl-listRow {
+  background-color: var(--jp-border-color3);
+  margin-bottom: 5px;
+}
+
+.properties-control-panel[data-id='properties-nodeGroupInfo']
+  > .properties-control-panel
+  > .properties-control-item.selected::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--jp-border-color2);
+}
+/* ======================================================== */
+/* ======================================================== */
+/* ======================================================== */
+
+.d3-node-port-input,
+.d3-node-port-output,
+.d3-node-port-input[connected='yes'],
+.d3-node-port-output[connected='yes'] {
+  stroke: var(--elyra-color-comment-text);
+  fill: var(--elyra-color-comment-text);
+  stroke-width: 4;
+}
+
+.d3-node-port-input:hover,
+.d3-node-port-output:hover,
+.d3-node-port-input[connected='yes']:hover,
+.d3-node-port-output[connected='yes']:hover {
+  stroke: var(--elyra-color-node-text);
+  fill: var(--elyra-color-node-text);
+  stroke-width: 4;
+}
+
+.d3-node-port-input-arrow {
+  display: none;
+}
+
+/* tabs */
+.elyra-tabPanel > .elyra-actionBar {
+  padding: 0 8px;
+}
+
+.elyra-tab {
+  cursor: pointer;
+  user-select: none;
+  text-transform: uppercase;
+  padding: 4px 10px 3px;
+}
+
+.elyra-tabText {
+  line-height: 27px;
+  font-family: var(--elyra-font-family-sans);
+  font-size: 11px;
+  font-weight: var(--elyra-font-weight-sans);
+  color: var(--jp-border-color1);
+}
+
+.elyra-tabText:hover {
+  color: var(--jp-ui-font-color0);
+}
+
+.elyra-tabText.activeTab {
+  color: var(--jp-ui-font-color0);
+  border-bottom: 1px solid var(--jp-border-color2);
+}
+
+.elyra-icon {
+  font: normal normal normal 16px/1 codicon;
+  font-size: 16px;
+  text-decoration: none;
+  text-rendering: auto;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+.elyra-actionItem {
+  cursor: pointer;
+  user-select: none;
+  display: inline-block;
+  transition: transform 50ms ease;
+  position: relative;
+  padding: 3px;
+}
+
+.elyra-actionItem:active {
+  transform: scale(1.272019649);
+}
+
+.elyra-verticalTabGroup .elyra-tabItem {
+  margin: 3px 0;
+}
+
+.elyra-verticalTabGroup .elyra-tabItem:hover {
+  background-color: var(--jp-cell-editor-background);
+}
+
+.elyra-verticalTabGroup .elyra-tabItem:active {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.elyra-actionBar .elyra-actionItemIcon {
+  color: var(--elyra-color-arrayInput-text);
+  display: block;
+  height: 35px;
+  line-height: 35px;
+  min-width: 28px;
+  margin-right: 4px;
+}
+
+.elyra-stringArrayControl-listRow:hover .elyra-stringArrayControl-listActions {
+  height: 100%;
+  align-items: center;
+  margin-right: 3px;
+}
+
+.elyra-actionItem:hover {
+  background-color: var(--jp-border-color1);
+}
+
+.elyra-stringArrayControl-listActions .elyra-actionItemIcon {
+  color: var(--elyra-color-arrayInput-text);
+  width: 16px;
+  height: 20px;
+  padding: 2px;
+  margin-right: 2px;
   display: flex;
   align-items: center;
-  width: 100%;
-}
-.properties-control-panel[data-id='properties-nodeUsageControls'] {
-  display: flex;
-  flex-wrap: wrap;
-}
-.properties-editor-form
-  .properties-control-panel[data-id='properties-nodeUsageControls']
-  .properties-ctrl-wrapper {
-  margin: 0;
-  padding: 0px 3px 14px 3px;
-  max-width: 32%;
-  border-bottom: none;
-}
-.properties-editor-form
-  .properties-control-panel[data-id='properties-nodePropertiesControls']
-  .properties-ctrl-wrapper {
-  padding: 0;
-}
-.properties-editor-form
-  .properties-control-panel[data-id='properties-nodeUsageControls']
-  .properties-control-item {
-  padding: 0 0 3px 0;
-}
-.properties-control-panel[data-id='properties-nodeFileControl']
-  .properties-ctrl-wrapper {
-  width: calc(100% - 67px);
-  padding-bottom: 30px;
-}
-.properties-control-panel > .properties-control-panel {
-  padding: 0;
-}
-.properties-numberfield .bx--number input[type='number'] {
-  border-radius: 3px;
-  border-bottom: 0;
-  box-shadow: inset 0 0 0 var(--jp-border-width) var(--jp-input-border-color);
-  min-width: auto;
-}
-.properties-numberfield .bx--number input[type='number']:focus {
-  box-shadow: inset 0 0 0 var(--jp-border-width)
-      var(--jp-input-active-box-shadow-color),
-    inset 0 0 0 3px var(--jp-input-active-box-shadow-color);
-  outline: none;
+  justify-content: center;
+  background-position: center;
 }
 
-.properties-numberfield .bx--number__controls .bx--number__control-btn:focus {
-  box-shadow: inset 0 0 0 var(--jp-border-width)
-      var(--jp-input-active-box-shadow-color),
-    inset 0 0 0 3px var(--jp-input-active-box-shadow-color);
-  outline: none;
+.elyra-tabItemIcon {
+  cursor: pointer;
+  user-select: none;
+  color: var(--elyra-color-arrayInput-text);
+  display: inline-block;
+  height: 35px;
+  line-height: 35px;
+  min-width: 28px;
+  margin-right: 4px;
 }
 
-.bx--number__control-btn > svg.up-icon {
-  fill: var(--md-grey-700);
+.elyra-icon {
+  background-repeat: no-repeat;
 }
 
-.bx--number__control-btn > svg.down-icon {
-  fill: var(--md-grey-700);
+.elyra-icon.elyra-item-delete {
+  background-image: url('data:image/svg+xml;utf8,<svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="15" height="32" viewBox="0 0 32 32"> <title>Delete item</title> <g class="jp-icon3"> <path d="M12 12H14V24H12zM18 12H20V24H18z"></path> <path d="M4 6V8H6V28a2 2 0 002 2H24a2 2 0 002-2V8h2V6zM8 28V8H24V28zM12 2H20V4H12z"></path> </g> </svg>');
 }
 
-.elyra-Tooltip {
-  top: 90px;
-  visibility: hidden;
-  opacity: 100%;
+.elyra-icon.elyra-item-edit {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"> <g class="jp-icon3"> <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/> </g> </svg>');
 }
 
-.properties-readonly:hover .elyra-Tooltip-arrow {
-  visibility: visible;
+.elyra-icon.elyra-panel-close::before {
+  content: '';
 }
 
-.elyra-Tooltip-arrow {
-  height: 0;
-  position: absolute;
-  visibility: hidden;
-  width: 0;
-  top: 56px;
-  left: 94px;
-  z-index: 1000000;
-  border: 8px solid transparent;
-  border-right-color: var(--ui-02);
-  opacity: 100%;
-  transform: rotate(90deg);
-}
-.elyra-Tooltip-arrow-outline {
-  top: 55px;
-  z-index: 999999;
-  border-right-color: var(--ui-03);
+.elyra-icon.properties::before {
+  content: '';
 }
 
-.properties-readonly:hover .elyra-Tooltip {
-  visibility: visible;
-  white-space: initial;
-  opacity: 100%;
+.elyra-icon.palette::before {
+  content: '\eb5c';
 }
 
-.properties-action-panel[data-id='properties-nodeAddDependenciesAction'] {
-  margin: 0 0 14px 0;
-  padding: 0;
-}
-.properties-action-panel[data-id='properties-nodeAddDependenciesAction']
-  .properties-action-button {
-  padding-left: 0;
-}
-.properties-action-panel[data-id='properties-nodeAddDependenciesAction']
-  .bx--btn--tertiary {
-  border: 0 none;
-  font-size: 0.8rem;
-  min-height: 1.75rem;
-  margin: 0;
+.elyra-icon.properties-checkbox {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"> <g class="jp-icon-none jp-icon-selectable-inverse jp-icon3-hover" fill="none"> <circle cx="12" cy="12" r="11"/></g><g class="jp-icon3 jp-icon-selectable jp-icon-accent2-hover" fill="#616161"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></g><g class="jp-icon-none jp-icon-busy" fill="none"><circle cx="12" cy="12" r="7"/></g></svg>');
 }
 
-body.elyra-browseFileDialog-open .properties-modal {
+.elyra-icon.elyra-item-folder {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" viewBox="0 0 24 24"> <path class="jp-icon3 jp-icon-selectable" d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/> </svg>');
+}
+
+/* context menu */
+
+.d3-node-ellipsis-group {
   display: none;
 }
 
-span.elyra-BreadCrumbs-disabled {
-  color: var(--md-grey-500);
-  cursor: not-allowed;
-  font-size: 0.8rem;
-  font-style: italic;
-  pointer-events: none;
+.context-menu-popover {
+  margin-top: -6px;
+  margin-left: 2px;
+  padding: 6px 0;
+  backdrop-filter: saturate(180%) blur(20px);
+  border-radius: 6px;
+  /* box-shadow: 0px 4px 17.64px 3.36px rgba(0, 0, 0, 0.2); */
+  user-select: none;
+  cursor: default;
+  /* box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.05),
+    0px 8px 15px 2px rgba(0, 0, 0, 0.18); */
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05),
+    0px 4px 15px 2px rgba(0, 0, 0, 0.18);
 }
-span.elyra-BreadCrumbs-disabled:hover {
-  background-color: transparent;
-  pointer-events: none;
+
+.context-menu-popover::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  border-radius: 13px;
+  content: '';
+  transform: scale(0.5);
+  -webkit-transform: scale(0.5);
+  transform-origin: 0 0;
+  -webkit-transform-origin: 0 0;
 }
-span.elyra-BreadCrumbs-disabled svg {
-  cursor: not-allowed;
-  pointer-events: none;
+
+.react-contextmenu-item {
+  position: relative;
+  margin: 0 6px;
+  width: auto;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 13px;
+  padding: 3px 9px;
+  box-sizing: border-box;
+  cursor: default;
+  z-index: 0;
 }
-span.elyra-BreadCrumbs-disabled svg path.jp-icon3[fill] {
-  fill: var(--md-grey-500);
+
+.react-contextmenu-item:hover::before {
+  content: '';
+
+  /* rgba(10, 130, 255, 0.75); */
+  background-color: rgba(54, 131, 247, 0.75);
+  backdrop-filter: saturate(0%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px;
+  z-index: -1;
 }
-span.elyra-BreadCrumbs-disabled + span {
-  color: var(--md-grey-500);
+
+.react-contextmenu-item:hover::after {
+  content: '';
+  background: var(--elyra-color-panel-bg);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px;
+  z-index: -2;
+}
+
+.react-contextmenu-item.contextmenu-divider {
+  margin: 5px 15px;
+}
+
+.react-contextmenu-item.react-contextmenu-item--disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.react-contextmenu-item:active,
+.react-contextmenu-item:focus,
+.react-contextmenu-item.react-contextmenu-item--disabled {
+  background: transparent !important;
+}
+
+.react-contextmenu-item.react-contextmenu-item--disabled::before,
+.react-contextmenu-item.react-contextmenu-item--disabled::after {
+  display: none !important;
+}
+
+/* ========================================================================== */
+/* LIGHT THEME */
+/* ========================================================================== */
+.context-menu-popover {
+  background: rgba(231, 231, 231, 0.76);
+}
+
+.context-menu-popover::before {
+  /* box-shadow: inset 0px 0px 0px 1px rgba(0, 0, 0, 0.22),
+    inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1); */
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.22),
+    inset 0px 0px 0px 1px rgba(255, 255, 255, 0.1);
+}
+
+.react-contextmenu-item {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.react-contextmenu-item:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.react-contextmenu-item.react-contextmenu-item--disabled {
+  color: rgba(0, 0, 0, 0.315); /* 0.27, 0.36 */
+}
+
+.react-contextmenu-item.contextmenu-divider {
+  background-color: #000000;
+  opacity: 0.13; /* 0.11, 0.15 */
+}
+
+/* ========================================================================== */
+/* DARK THEME */
+/* ========================================================================== */
+
+body.elyra-dark .context-menu-popover {
+  background: rgba(46, 46, 46, 0.72);
+}
+
+body.elyra-dark .context-menu-popover::before {
+  box-shadow: inset 0px 0px 0px 1px rgba(0, 0, 0, 0.86),
+    inset 0px 0px 0px 3px rgba(255, 255, 255, 0.2);
+}
+
+body.elyra-dark .react-contextmenu-item {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+body.elyra-dark .react-contextmenu-item:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+body.elyra-dark .react-contextmenu-item.react-contextmenu-item--disabled {
+  color: rgba(255, 255, 255, 0.355); /* 0.29, 0.42 */
+}
+
+body.elyra-dark .react-contextmenu-item.contextmenu-divider {
+  background-color: #ffffff;
+  opacity: 0.205; /* 0.17, 0.24 */
 }
 
 input.elyra-Dialog-checkbox.jp-mod-styled {
@@ -383,4 +589,37 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 /* fix a Safari bug where button margins default to 2px */
 .properties-control-panel button {
   margin: 0;
+}
+
+.toolbar-item-content .toolbar-icon svg {
+  background: var(--jp-border-color2);
+}
+
+.elyra-PipelineEditor .toolbar-item.default button:disabled:hover svg,
+.toolbar-item.ghost button:disabled:hover svg,
+.toolbar-overflow-menu-item button:disabled:hover svg {
+  background-color: var(--jp-border-color2);
+}
+
+.elyra-PipelineEditor .toolbar-item.default button:hover svg,
+.toolbar-item.ghost button:hover svg,
+.toolbar-overflow-item button:hover svg,
+.toolbar-overflow-menu-item button:hover svg {
+  background: var(--jp-border-color1);
+}
+
+.properties-control-panel[data-id='properties-resources'] {
+  display: flex;
+}
+
+.properties-control-panel[data-id='properties-resources']
+  .properties-ctrl-wrapper {
+  width: 33%;
+}
+
+.elyra-PipelineEditor .toolbar-item.default button:hover,
+.toolbar-item.ghost button:hover,
+.toolbar-overflow-item button:hover,
+.toolbar-overflow-menu-item button:hover {
+  background-color: var(--jp-border-color1);
 }
