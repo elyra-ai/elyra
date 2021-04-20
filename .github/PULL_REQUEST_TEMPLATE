@@ -18,7 +18,7 @@ If possible, please consider writing useful notes for better and faster reviews 
   2. If there is design documentation, please add the link.
 -->
 
-### How was this patch tested?
+### How was this pull request tested?
 <!--
 If tests were added, say they were added here. Please make sure to add some test cases that check the changes thoroughly
 including negative and positive cases if possible.
