@@ -72,7 +72,7 @@ expected_response = {
         "VAR6": "6",
         "VAR7": "value7",
         "VAR8": None
-        },
+    },
     "inputs": [],
     "outputs": []
 }

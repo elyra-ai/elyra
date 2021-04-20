@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import pytest
-import os
 import json
 
 from tornado.httpclient import HTTPClientError
