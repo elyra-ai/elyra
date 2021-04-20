@@ -17,7 +17,10 @@
 import {
   containerIcon,
   pipelineIcon,
-  runtimesIcon
+  RequestErrors,
+  runtimesIcon,
+  kubeflowIcon,
+  airflowIcon
 } from '@elyra/ui-components';
 
 import {
@@ -37,7 +40,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
-import { RUNTIMES_NAMESPACE } from './PipelineService';
+import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import {
   RUNTIME_IMAGES_NAMESPACE,
   RuntimeImagesWidget
@@ -51,6 +54,8 @@ import '../style/index.css';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
+
+const runtimeIcons = [kubeflowIcon, airflowIcon];
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -66,7 +71,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     IMainMenu
   ],
   optional: [IThemeManager],
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     launcher: ILauncher,
@@ -144,9 +149,28 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Add an application command
     const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
     app.commands.addCommand(openPipelineEditorCommand, {
-      label: args =>
-        args['isPalette'] ? 'New Pipeline Editor' : 'Pipeline Editor',
-      icon: args => (args['isPalette'] ? undefined : pipelineIcon),
+      label: (args: any) => {
+        console.log(args);
+        return args['isPalette']
+          ? 'New Pipeline Editor'
+          : args['runtime'] && args['runtime']['display_name']
+          ? args['runtime']['display_name']
+          : 'Pipeline Editor';
+      },
+      icon: (args: any) => {
+        if (args['isPalette']) {
+          return undefined;
+        } else {
+          if (args['runtime'] && args['runtime']['display_name']) {
+            for (const runtimeIcon of runtimeIcons) {
+              if (`elyra:${args['runtime']['name']}` === runtimeIcon.name) {
+                return runtimeIcon;
+              }
+            }
+          }
+          return pipelineIcon;
+        }
+      },
       execute: () => {
         // Creates blank file, then opens it in a new window
         app.commands
@@ -170,6 +194,10 @@ const extension: JupyterFrontEndPlugin<void> = {
       category: 'Elyra'
     });
 
+    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+      RequestErrors.serverError(error)
+    );
+
     // Add the command to the launcher
     if (launcher) {
       launcher.add({
@@ -177,6 +205,14 @@ const extension: JupyterFrontEndPlugin<void> = {
         category: 'Elyra',
         rank: 1
       });
+      for (const runtime of schema) {
+        launcher.add({
+          command: openPipelineEditorCommand,
+          category: 'Elyra',
+          args: { runtime },
+          rank: 1
+        });
+      }
     }
     // Add new pipeline to the file menu
     menu.fileMenu.newMenu.addGroup(
