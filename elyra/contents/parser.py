@@ -91,8 +91,18 @@ class ScriptParser():
     function that returns language-specific regexes to match against code lines.
     """
 
+    def _get_line_without_comments(self, line):
+        if self._comment_char in line:
+            index = line.find(self._comment_char)
+            line = line[:index]
+        return line.strip()
+
     def parse_environment_variables(self, line):
         # Parse a line fed from file and match each regex in regex dictionary
+        line = self._get_line_without_comments(line)
+        if not line:
+            return []
+
         matches = []
         for key, value in self.search_expressions().items():
             for pattern in value:
@@ -103,6 +113,8 @@ class ScriptParser():
 
 
 class PythonScriptParser(ScriptParser):
+    _comment_char = "#"
+
     def search_expressions(self) -> Dict[str, List]:
         # TODO: add more key:list-of-regex pairs to parse for additional resources
         regex_dict = dict()
@@ -119,6 +131,8 @@ class PythonScriptParser(ScriptParser):
 
 
 class RScriptParser(ScriptParser):
+    _comment_char = "#"
+
     def search_expressions(self) -> Dict[str, List]:
         # TODO: add more key:list-of-regex pairs to parse for additional resources
         regex_dict = dict()

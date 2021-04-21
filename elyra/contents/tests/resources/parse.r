@@ -26,4 +26,6 @@ Sys.getenv("VAR3")
 Sys.setenv("VAR4" = "value4")
 
 Sys.getenv('VAR5')
-Sys.setenv('VAR6' = 6)
+Sys.setenv('VAR6' = 6)  # Sys.getenv('VAR7')
+
+# Sys.getenv('VAR8')

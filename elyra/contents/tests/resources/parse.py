@@ -33,4 +33,6 @@ os.environ['VAR6'] = "value6"
 print(os.environ.get('VAR7', 'value7'))
 os.getenv('VAR8')
 
-os.environ["VAR1"] = "newvalue"
+os.environ["VAR1"] = "newvalue"  # os.environ["VAR9"] = "value"
+
+# os.getenv('VAR10')
