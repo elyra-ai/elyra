@@ -58,7 +58,7 @@ describe('Script Editor tests', () => {
     cy.get('.elyra-ScriptEditor .jp-Toolbar select > option[value*=python]');
   });
 
-  it('click the Submit Script button should display dialog', () => {
+  it('click the Run as Pipeline button should display dialog', () => {
     // Open runtimes sidebar
     cy.get('.jp-SideBar [title="Runtimes"]').click();
     // Create runtime configuration
@@ -67,10 +67,10 @@ describe('Script Editor tests', () => {
     cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
       'Test Runtime'
     );
-    // Click Submit Script button
-    cy.contains('Submit Script').click();
+    // Click Run as Pipeline button
+    cy.contains('Run as Pipeline').click();
     // Check for expected dialog title
-    cy.get('.jp-Dialog-header').should('have.text', 'Submit script');
+    cy.get('.jp-Dialog-header').should('have.text', 'Run script as pipeline');
     // Dismiss  dialog
     cy.get('button.jp-mod-reject').click();
 
@@ -130,6 +130,6 @@ const checkToolbarContent = (): void => {
   // check select kernel dropdown exists
   cy.get('.elyra-ScriptEditor .jp-Toolbar select');
 
-  // check Submit Script button exists
-  cy.contains('Submit Script');
+  // check Run as Pipeline button exists
+  cy.contains('Run as Pipeline');
 };

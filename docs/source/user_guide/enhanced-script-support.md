@@ -80,13 +80,13 @@ Another option is to install the R language server through the [CRAN](https://cr
 $ R -e install.packages("languageserver")
 ```
 
-## Ability to run a Python and R scripts as a batch job
+## Ability to execute a Python and R script as a pipeline
 
-Elyra allows the execution of Python and R scripts as a batch job in remote cloud environments. This feature leverages the AI pipelines feature and requires access to either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
+Elyra allows the execution of Python and R scripts as a pipeline or batch job in remote cloud environments. This feature leverages the AI pipelines feature and requires access to either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
 
-To submit a Python or R script as a batch job, open the script file and select `Submit Script...` button from the editor toolbar.
+To run a Python or R script as a pipeline, open the script file and select `Run as Pipeline` button from the editor toolbar.
 
-![Submit Python Script as a batch job](../images/submit-script.gif)
+![Run Python Script as pipeline](../images/submit-script.gif)
 
 To learn more about [runtime configurations](../user_guide/runtime-conf) and [runtime images](../user_guide/runtime-image-conf), follow those sections provided in the Elyra user guide documentation.
 
