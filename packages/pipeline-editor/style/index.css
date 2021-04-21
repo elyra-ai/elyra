@@ -257,8 +257,16 @@ span.bx--list-box__label {
   border-top: 1px solid var(--jp-border-color2);
 }
 
-.elyra-resourceInput > input[type='number'] {
-  width: 100%;
+.elyra-resourcesWrapper {
+  display: flex;
+  flex-direction: row;
+}
+
+.elyra-resourceInput {
+  width: 12%;
+  display: flex;
+  flex-direction: column;
+  padding-right: 9px;
 }
 /* ======================================================== */
 /* ======================================================== */
