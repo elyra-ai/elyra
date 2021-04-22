@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import github
-import mock
 import os
 import pytest
 import tempfile
@@ -25,6 +24,7 @@ from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 from elyra.metadata.metadata import Metadata
 from elyra.util import git
 from pathlib import Path
+from unittest import mock
 
 PIPELINE_FILE = 'resources/sample_pipelines/pipeline_dependency_complex.json'
 
