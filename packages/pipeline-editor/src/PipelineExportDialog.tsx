@@ -109,7 +109,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
         <br />
         {this.props.runtime ? (
           <div>
-            <p> {this.props.runtime?.name} </p>
+            <p id="runtime_platform">{this.props.runtime?.display_name}</p>
             <br />
           </div>
         ) : (
