@@ -19,8 +19,10 @@ jsonc-parser@^3.0.0:
   resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.0.0.tgz#abdd785701c7e7eaca8a9ec8cf070ca51a745a22"
   integrity sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==
 
-language-server@/Users/niko/Documents/code/elyra/vscode-pipeline-editor/packages/language-server:
+pipeline-language-server@^0.0.1:
   version "0.0.1"
+  resolved "https://registry.yarnpkg.com/pipeline-language-server/-/pipeline-language-server-0.0.1.tgz#319cc77694d30c7846a95147a8ef9875425c51de"
+  integrity sha512-rWI/edaV8IjJXxT/ewf2k1grP0L8D8ZjClxGuLNIG0q1vo+HClJ6BI79uruNxyufj5aTjvqExQPjuLsS0pWrgw==
   dependencies:
     "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/4491f7c4/@elyra/pipeline-services"
     vscode-codicons "^0.0.13"

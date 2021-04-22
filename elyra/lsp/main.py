@@ -28,7 +28,7 @@ NODE = str(pathlib.Path(NODE_LOCATION).resolve())
 PATH_TO_BIN_JS = str(
     (
         pathlib.Path(__file__).parent /
-        'node_modules' / 'language-server' / 'dist' /
+        'node_modules' / 'pipeline-language-server' / 'dist' /
         'index.js'
     ).resolve()
 )

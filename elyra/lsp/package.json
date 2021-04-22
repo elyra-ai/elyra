@@ -12,6 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "language-server": "/Users/niko/Documents/code/elyra/vscode-pipeline-editor/packages/language-server"
+    "pipeline-language-server": "^0.0.1"
   }
 }
