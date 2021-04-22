@@ -1,3 +1,4 @@
+git-python
 pytest>=5.4.1
 pytest-tornasync
 pytest-console-scripts
