@@ -35,6 +35,7 @@ const AIRFLOW_FILE_TYPES = [
 interface IProps {
   runtimes: IRuntime[];
   schema: ISchema[];
+  runtime?: IRuntime;
 }
 
 interface IState {
@@ -48,7 +49,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
     fileTypes: new Array<Record<string, string>>(),
-    selectedRuntimePlatform: '',
+    selectedRuntimePlatform: this.props.runtime?.name || '',
     validSchemas: new Array<ISchema>()
   };
 
@@ -106,19 +107,23 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
       <form className="elyra-dialog-form">
         <label htmlFor="runtime_platform">Runtime Platform:</label>
         <br />
-        <select
-          id="runtime_platform"
-          name="runtime_platform"
-          className="elyra-form-runtime-platform"
-          data-form-required
-          onChange={this.handleUpdate}
-        >
-          {validSchemas.map(schema => (
-            <option key={schema.name} value={schema.name}>
-              {schema.display_name}
-            </option>
-          ))}
-        </select>
+        {this.props.runtime ? (
+          <p> {this.props.runtime?.name} </p>
+        ) : (
+          <select
+            id="runtime_platform"
+            name="runtime_platform"
+            className="elyra-form-runtime-platform"
+            data-form-required
+            onChange={this.handleUpdate}
+          >
+            {validSchemas.map(schema => (
+              <option key={schema.name} value={schema.name}>
+                {schema.display_name}
+              </option>
+            ))}
+          </select>
+        )}
         <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select

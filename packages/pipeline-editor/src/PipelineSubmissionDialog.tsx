@@ -22,6 +22,7 @@ interface IProps {
   name: string;
   runtimes: IRuntime[];
   schema: ISchema[];
+  runtime?: IRuntime;
 }
 
 interface IState {
@@ -33,7 +34,9 @@ interface IState {
 export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
-    selectedRuntimePlatform: this.props.schema[0] && this.props.schema[0].name,
+    selectedRuntimePlatform:
+      this.props.runtime?.name ||
+      (this.props.schema[0] && this.props.schema[0].name),
     validSchemas: new Array<ISchema>()
   };
 
@@ -90,20 +93,24 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
         <br />
         <label htmlFor="runtime_platform">Runtime Platform:</label>
         <br />
-        <select
-          id="runtime_platform"
-          name="runtime_platform"
-          className="elyra-form-runtime-platform"
-          data-form-required
-          defaultValue={selectedRuntimePlatform}
-          onChange={this.handleUpdate}
-        >
-          {validSchemas.map(schema => (
-            <option key={schema.name} value={schema.name}>
-              {schema.display_name}
-            </option>
-          ))}
-        </select>
+        {this.props.runtime ? (
+          <p> {this.props.runtime.display_name} </p>
+        ) : (
+          <select
+            id="runtime_platform"
+            name="runtime_platform"
+            className="elyra-form-runtime-platform"
+            data-form-required
+            defaultValue={selectedRuntimePlatform}
+            onChange={this.handleUpdate}
+          >
+            {validSchemas.map(schema => (
+              <option key={schema.name} value={schema.name}>
+                {schema.display_name}
+              </option>
+            ))}
+          </select>
+        )}
         <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select

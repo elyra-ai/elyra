@@ -302,7 +302,11 @@ const PipelineWrapper: React.FC<IProps> = ({
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title: 'Export pipeline',
       body: formDialogWidget(
-        <PipelineExportDialog runtimes={runtimes} schema={schema} />
+        <PipelineExportDialog
+          runtimes={runtimes}
+          runtime={pipeline?.pipelines[0]?.app_data?.ui_data?.runtime}
+          schema={schema}
+        />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
@@ -425,6 +429,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineSubmissionDialog
           name={pipelineName}
           runtimes={runtimes}
+          runtime={pipeline?.pipelines[0]?.app_data?.ui_data?.runtime}
           schema={schema}
         />
       ),
