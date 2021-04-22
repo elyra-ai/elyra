@@ -136,7 +136,6 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const changeHandler = (): void => {
       const pipeline = currentContext.model.toJSON();
-      console.log(pipeline);
       setPipeline(pipeline);
       setLoading(false);
     };
