@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 
+# https://github.com/krassowski/jupyterlab-lsp/issues/572#issuecomment-811515582
 
 NODE_LOCATION = (
     shutil.which("node") or
