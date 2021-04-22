@@ -18,8 +18,9 @@ import json
 from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
 
-from .lsp_client import LSPClient
 from .pipeline import Pipeline, Operation
+
+from elyra.lsp import LSPClient
 
 DEFAULT_FILETYPE = "tar.gz"
 

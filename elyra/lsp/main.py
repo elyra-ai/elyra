@@ -42,18 +42,5 @@ def main():
     sys.exit(p.wait())
 
 
-def load(app):
-    return {
-        "pipeline-language-server": {
-            "version": 2,
-            "argv": ['elyra-pipeline-lsp'],
-            "languages": ["plain"],
-            "mime_types": [
-                "text/plain"
-            ]
-        }
-    }
-
-
 if __name__ == "__main__":
     main()

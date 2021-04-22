@@ -50,7 +50,7 @@ class ReadPipe(threading.Thread):
 
 class LSPClient:
     def __init__(self):
-        self.lsp = subprocess.Popen("elyra-pipeline-lsp", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.lsp = subprocess.Popen("pipeline-language-server", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
         read_pipe = ReadPipe(self.lsp.stdout)
         read_pipe.start()
