@@ -70,6 +70,7 @@ export const commandIDs = {
   openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
+  saveDocManager: 'docmanager:save',
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
@@ -135,6 +136,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const changeHandler = (): void => {
       const pipeline = currentContext.model.toJSON();
+      console.log(pipeline);
       setPipeline(pipeline);
       setLoading(false);
     };
@@ -576,6 +578,12 @@ const PipelineWrapper: React.FC<IProps> = ({
         action: 'arrangeVertically',
         label: 'Arrange Vertically',
         enable: true
+      },
+      {
+        action: 'showRuntime',
+        label:
+          pipeline?.pipelines[0]?.app_data?.ui_data?.runtime?.display_name ||
+          'generic'
       }
     ],
     rightBar: [

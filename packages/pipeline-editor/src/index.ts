@@ -50,6 +50,7 @@ import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
 
 import '../style/index.css';
+import { PIPELINE_CURRENT_VERSION } from './constants';
 
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
@@ -150,7 +151,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
     app.commands.addCommand(openPipelineEditorCommand, {
       label: (args: any) => {
-        console.log(args);
         return args['isPalette']
           ? 'New Pipeline Editor'
           : args['runtime'] && args['runtime']['display_name']
@@ -179,13 +179,39 @@ const extension: JupyterFrontEndPlugin<void> = {
             path: browserFactory.defaultBrowser.model.path,
             ext: '.pipeline'
           })
-          .then(model => {
-            return app.commands.execute(commandIDs.openDocManager, {
-              path: model.path,
-              factory: PIPELINE_FACTORY,
-              args: {
-                runtime: args['runtime']
+          .then(async model => {
+            const pipelineJson = {
+              doc_type: 'pipeline',
+              version: '3.0',
+              json_schema:
+                'http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json',
+              id: 'elyra-auto-generated-pipeline',
+              primary_pipeline: 'primary',
+              pipelines: [
+                {
+                  id: 'primary',
+                  nodes: [],
+                  app_data: {
+                    ui_data: { comments: [], runtime: args.runtime },
+                    version: PIPELINE_CURRENT_VERSION
+                  },
+                  runtime_ref: ''
+                }
+              ],
+              schemas: []
+            };
+            const newWidget = await app.commands.execute(
+              commandIDs.openDocManager,
+              {
+                path: model.path,
+                factory: PIPELINE_FACTORY
               }
+            );
+            newWidget.context.ready.then(() => {
+              newWidget.context.model.fromJSON(pipelineJson);
+              app.commands.execute(commandIDs.saveDocManager, {
+                path: model.path
+              });
             });
           });
       }
