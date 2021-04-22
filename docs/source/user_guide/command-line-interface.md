@@ -96,7 +96,7 @@ $ elyra-pipeline run --help
 #### Running pipelines
 
 Refer to the topics below for detailed information on how to use `elyra-pipeline` to
- - [Run a pipeline locally](pipelines.md#running-a-pipeline-using-the-command-line)
- - [Submit a pipeline for remote execution](pipelines.md#running-a-pipeline-using-the-command-line)
+ - [Run a pipeline locally](pipelines.html#running-a-pipeline-using-the-command-line)
+ - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-using-the-command-line)
 
 
