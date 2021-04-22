@@ -17,6 +17,7 @@ import json
 import subprocess
 import threading
 
+
 class ReadPipe(threading.Thread):
     def __init__(self, pipe):
         threading.Thread.__init__(self)
@@ -28,30 +29,25 @@ class ReadPipe(threading.Thread):
         message_size = None
         while True:
             line = self.pipe.readline()
-            # if not line:
-            #     return
             line = line.decode("utf-8")
-            
             line = line[:-len("\r\n")]
             if line == "":
                 break
 
-            
             if line.startswith("Content-Length: "):
                 line = line[len("Content-Length: "):]
                 message_size = int(line)
-  
+
         jsonrpc_res = self.pipe.read(message_size).decode("utf-8")
         self.done = True
         self.res = json.loads(jsonrpc_res)
-
 
 
 def doThings(content):
     with subprocess.Popen("elyra-pipeline-lsp", stdin=subprocess.PIPE, stdout=subprocess.PIPE) as lsp:
         read_pipe = ReadPipe(lsp.stdout)
         read_pipe.start()
-        
+
         msg = json.dumps({
             "jsonrpc": "2.0",
             "id": 0,
