@@ -464,7 +464,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     );
   };
 
-  componentDidUpdate(): void {
+  createPreviewEditors = (): void => {
     const editorFactory = this.props.editorServices.factoryService
       .newInlineEditor;
     const getMimeTypeByLanguage = this.props.editorServices.mimeTypeService
@@ -490,6 +490,14 @@ class CodeSnippetDisplay extends MetadataDisplay<
         });
       }
     });
+  };
+
+  componentDidMount(): void {
+    this.createPreviewEditors();
+  }
+
+  componentDidUpdate(): void {
+    this.createPreviewEditors();
   }
 
   private _drag: Drag;

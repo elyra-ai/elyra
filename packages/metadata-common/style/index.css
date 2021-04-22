@@ -237,6 +237,10 @@ button.elyra-filter-tag {
   font-size: var(--jp-ui-font-size1);
 }
 
+.elyra-filter-empty {
+  font-size: var(--jp-ui-font-size1);
+}
+
 .elyra-tools {
   border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
 }
