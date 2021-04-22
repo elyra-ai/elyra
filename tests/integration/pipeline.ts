@@ -366,7 +366,7 @@ describe('Pipeline Editor tests', () => {
 
 const openPipelineEditor = (): void => {
   cy.get(
-    '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]'
+    '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
   ).click();
   cy.get('.common-canvas-drop-div');
 };
