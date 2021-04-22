@@ -2,9 +2,10 @@
 # yarn lockfile v1
 
 
-"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/4491f7c4/@elyra/pipeline-services":
-  version "0.0.0"
-  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/4491f7c4/@elyra/pipeline-services#3f491bc9e7f3af61267badeb0959e3fa65d9dc96"
+"@elyra/pipeline-services@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-0.2.1.tgz#702dfa65c7e83beaa09a5bf1d312b27d3646a8b4"
+  integrity sha512-DJBIPgqF/ZAyk7SxYjxe7JuICOffYUAC6jCoZXpoAAXggc9tjdtN0zTHwEj3hT1/znlljrUKJzq5wb0lPl3vtw==
   dependencies:
     immer "^8.0.1"
     jsonc-parser "^3.0.0"
@@ -19,20 +20,14 @@ jsonc-parser@^3.0.0:
   resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.0.0.tgz#abdd785701c7e7eaca8a9ec8cf070ca51a745a22"
   integrity sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==
 
-pipeline-language-server@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/pipeline-language-server/-/pipeline-language-server-0.0.1.tgz#319cc77694d30c7846a95147a8ef9875425c51de"
-  integrity sha512-rWI/edaV8IjJXxT/ewf2k1grP0L8D8ZjClxGuLNIG0q1vo+HClJ6BI79uruNxyufj5aTjvqExQPjuLsS0pWrgw==
+pipeline-language-server@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/pipeline-language-server/-/pipeline-language-server-0.0.2.tgz#d1a45868a2c974124a6df27b0a88c13b351cb3d9"
+  integrity sha512-rt3F+H2dmRyMEeUAMZn3DwUccvhH0g4TN/vT7PtxN4LHsXGEDG+hAhBtUu0YBDCwEvVDBYgt6le6kI0+3WLrqA==
   dependencies:
-    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/4491f7c4/@elyra/pipeline-services"
-    vscode-codicons "^0.0.13"
+    "@elyra/pipeline-services" "^0.2.1"
     vscode-languageserver "^7.0.0"
     vscode-languageserver-textdocument "^1.0.1"
-
-vscode-codicons@^0.0.13:
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/vscode-codicons/-/vscode-codicons-0.0.13.tgz#5c330b7d63b73eb1a83bcfede34474ccd1b11e32"
-  integrity sha512-gtElmabGBptGeFD0/Xdr0qfV+5ONbnlD9USxjefetQzAeI0F//hHCHdb1vWhv2WVr/pstRZjQXhojrsq1/dl2w==
 
 vscode-jsonrpc@6.0.0:
   version "6.0.0"
