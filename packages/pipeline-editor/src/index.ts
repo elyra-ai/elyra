@@ -39,6 +39,7 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
+import { PIPELINE_CURRENT_VERSION } from './constants';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import {
@@ -50,7 +51,6 @@ import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
 
 import '../style/index.css';
-import { PIPELINE_CURRENT_VERSION } from './constants';
 
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
