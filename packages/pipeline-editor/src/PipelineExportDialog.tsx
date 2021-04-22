@@ -108,7 +108,10 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
         <label htmlFor="runtime_platform">Runtime Platform:</label>
         <br />
         {this.props.runtime ? (
-          <p> {this.props.runtime?.name} </p>
+          <div>
+            <p> {this.props.runtime?.name} </p>
+            <br />
+          </div>
         ) : (
           <select
             id="runtime_platform"

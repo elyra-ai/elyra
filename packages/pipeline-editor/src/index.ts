@@ -155,7 +155,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           ? 'New Pipeline Editor'
           : args['runtime'] && args['runtime']['display_name']
           ? args['runtime']['display_name']
-          : 'Pipeline Editor';
+          : 'Generic Pipeline Editor';
       },
       icon: (args: any) => {
         if (args['isPalette']) {
@@ -239,7 +239,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           command: openPipelineEditorCommand,
           category: 'Elyra',
           args: { runtime },
-          rank: 1
+          rank: 2
         });
       }
     }

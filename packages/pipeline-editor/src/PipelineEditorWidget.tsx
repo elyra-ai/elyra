@@ -583,12 +583,6 @@ const PipelineWrapper: React.FC<IProps> = ({
         action: 'arrangeVertically',
         label: 'Arrange Vertically',
         enable: true
-      },
-      {
-        action: 'showRuntime',
-        label:
-          pipeline?.pipelines[0]?.app_data?.ui_data?.runtime?.display_name ||
-          'generic'
       }
     ],
     rightBar: [
