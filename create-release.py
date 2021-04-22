@@ -18,12 +18,15 @@
 
 import argparse
 import elyra
+import git
+import io
 import os
 import re
 import shutil
 import subprocess
 import sys
 
+from datetime import datetime
 from types import SimpleNamespace
 
 config: SimpleNamespace
@@ -331,6 +334,61 @@ def copy_extension_archive(extension: str, work_dir: str) -> None:
     shutil.copy(extension_package_source_file, extension_package_dest_file)
 
 
+def generate_changelog() -> None:
+    global config
+
+    changelog_path = os.path.join(config.source_dir, 'docs/source/getting_started/changelog.md')
+    changelog_backup_path = os.path.join(config.source_dir, 'docs/source/getting_started/changelog.bak')
+    if os.path.exists(changelog_backup_path):
+        os.remove(changelog_backup_path)
+    shutil.copy(changelog_path, changelog_backup_path)
+
+    repo = git.Repo(config.source_dir)
+
+    # Start generating the release header on top of the changelog
+    with io.open(changelog_path, 'r+') as changelog:
+        changelog.write('# Changelog\n')
+        changelog.write('\n')
+        changelog.write(f'## Release {config.new_version} - {datetime.now().strftime("%m/%d/%Y")}\n')
+        changelog.write('\n')
+
+
+        start = 0
+        page_size = 10
+        continue_paginating = True
+        while continue_paginating:
+            # paginate the list of commits until it finds the begining of release changes
+            # which is denominated by a commit titled 'Prepare for next development iteration'
+            commits = list(repo.iter_commits(max_count=page_size, skip=start))
+            start += page_size
+            for commit in commits:
+                # for each commit, get it's title and prepare a changelog
+                # entry linking to the related pull request
+                commit_title = commit.message.splitlines()[0]
+                if commit_title != 'Prepare for next development iteration':
+                    pr_string = ''
+                    pr = re.findall('\(#(.*?)\)', commit_title)
+                    if pr:
+                        commit_title = re.sub('\(#(.*?)\)', '', commit_title).strip()
+                        pr_string = f' - [{pr[0]}](https://github.com/elyra-ai/elyra/pull/{pr[0]})'
+                    changelog_entry = f'- {commit_title}{pr_string}\n'
+                    changelog.write(changelog_entry)
+                else:
+                    # here it found the first commit of the release
+                    # changelog for the release is done
+                    # exit the loop
+                    continue_paginating = False
+                    break
+
+        # copy the remaining changelog at the bottom of the new content
+        with io.open(changelog_backup_path) as old_changelog:
+            line = old_changelog.readline() # ignore first line as title
+            line = old_changelog.readline()
+            while line:
+                changelog.write(line)
+                line = old_changelog.readline()
+
+
 def prepare_extensions_release() -> None:
     global config
 
@@ -360,6 +418,21 @@ def prepare_extensions_release() -> None:
         check_run(['python', 'setup.py', 'bdist_wheel', 'sdist'], cwd=extension_source_dir)
         print('')
 
+def prepare_changelog() -> None:
+    """
+    Prepare a release changelog
+    """
+    global config
+    print(f'Generating changelog for release {config.new_version}')
+    print('')
+
+    # clone repository
+    checkout_code()
+    # generate changelog with new release list of commits
+    generate_changelog()
+    # commit
+    check_run(['git', 'commit', '-a', '-m', f'Update changelog for release {config.new_version}'], cwd=config.source_dir)
+
 
 def prepare_release() -> None:
     """
@@ -371,6 +444,8 @@ def prepare_release() -> None:
 
     # clone repository
     checkout_code()
+    # generate changelog with new release list of commits
+    prepare_changelog()
     # Update to new release version
     update_version_to_release()
     # commit and tag
@@ -489,7 +564,7 @@ def print_config() -> None:
     print("-----------------------------------------------------------------")
     print("--------------------- Release configuration ---------------------")
     print("-----------------------------------------------------------------")
-    print(f'Goal \t\t -> {config.goal}')
+    print(f'Goal \t\t\t -> {config.goal}')
     print(f'Git URL \t\t -> {config.git_url}')
     print(f'Git Extension URL \t -> {config.git_extension_package_url}')
     print(f'Git reference \t\t -> {config.git_hash}')
@@ -540,7 +615,7 @@ def print_help() -> str:
 def main(args=None):
     """Perform necessary tasks to create and/or publish a new release"""
     parser = argparse.ArgumentParser(usage=print_help())
-    parser.add_argument('goal', help='Supported goals: {prepare | publish}', type=str, choices={'prepare', 'publish'})
+    parser.add_argument('goal', help='Supported goals: {prepare-changelog | prepare | publish}', type=str, choices={'prepare-changelog', 'prepare', 'publish'})
     parser.add_argument('--version', help='the new release version', type=str, required=True)
     parser.add_argument('--dev-version', help='the new development version', type=str, required=False, )
     parser.add_argument('--rc', help='the release candidate number', type=str, required=False, )
@@ -556,18 +631,34 @@ def main(args=None):
         initialize_config(args)
         print_config()
 
-        if config.goal == 'prepare':
+        if config.goal == 'prepare-changelog':
+            prepare_changelog()
+
+            print("")
+            print("")
+            print(f"Changelog for release version: {config.new_version} is ready for review at {config.source_dir}")
+            print("After you are done, push the reviewed changelog to github.")
+            print("")
+            print("")
+        elif config.goal == 'prepare':
             if not args.dev_version:
                 print_help()
                 sys.exit()
 
             prepare_release()
 
+            print("")
+            print("")
             print(f"Release version: {config.new_version} is ready for review")
             print("After you are done, run the script again to [publish] the release.")
+            print("")
+            print("")
 
         elif args.goal == "publish":
             publish_release(working_dir=os.getcwd())
+        else:
+            print_help()
+            sys.exit()
 
     except Exception as ex:
         raise RuntimeError(f'Error performing release {args.version}') from ex
