@@ -154,7 +154,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         return args['isPalette']
           ? 'New Pipeline Editor'
           : args['runtime'] && args['runtime']['display_name']
-          ? args['runtime']['display_name']
+          ? 'Pipeline Editor'
           : 'Generic Pipeline Editor';
       },
       icon: (args: any) => {
@@ -239,7 +239,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           command: openPipelineEditorCommand,
           category: 'Elyra',
           args: { runtime },
-          rank: 2
+          rank: runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
         });
       }
     }
@@ -248,6 +248,17 @@ const extension: JupyterFrontEndPlugin<void> = {
       [{ command: openPipelineEditorCommand }],
       30
     );
+    for (const runtime of schema) {
+      menu.fileMenu.newMenu.addGroup(
+        [
+          {
+            command: openPipelineEditorCommand,
+            args: { runtime }
+          }
+        ],
+        runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
+      );
+    }
 
     // SubmitNotebookButtonExtension initialization code
     const notebookButtonExtension = new SubmitNotebookButtonExtension();

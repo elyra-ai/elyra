@@ -194,7 +194,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       launcher.add({
         command: commandIDs.createNewPythonFile,
         category: 'Elyra',
-        rank: 2
+        rank: 4
       });
     }
 

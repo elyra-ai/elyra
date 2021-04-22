@@ -194,7 +194,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       launcher.add({
         command: commandIDs.createNewRFile,
         category: 'Elyra',
-        rank: 3
+        rank: 5
       });
     }
 
