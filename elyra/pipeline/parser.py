@@ -13,15 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
+
 from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
 
+from .lsp_client import LSPClient
 from .pipeline import Pipeline, Operation
 
 DEFAULT_FILETYPE = "tar.gz"
 
 
 class PipelineParser(LoggingConfigurable):
+    def __init__(self):
+        self.lsp = LSPClient()
 
     def parse(self, pipeline_definitions: Dict) -> Pipeline:
         """
@@ -30,6 +35,10 @@ class PipelineParser(LoggingConfigurable):
         set of pipeline definitions - which is "flattened" into the overall pipeline object's
         list of operations.
         """
+
+        res = self.lsp.validate(json.dumps(pipeline_definitions))
+        if len(res["params"]["diagnostics"]) > 0:
+            raise ValueError(res["params"]["diagnostics"][0]["message"])
 
         # Check for required values.  We require a primary_pipeline, a set of pipelines, and
         # nodes within the primary pipeline (checked below).

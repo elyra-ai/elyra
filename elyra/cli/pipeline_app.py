@@ -25,7 +25,6 @@ from colorama import Fore, Style
 
 from elyra import __version__
 from elyra.pipeline import PipelineParser, PipelineProcessorManager
-from elyra.pipeline.lsp_client import doThings
 from elyra.metadata import MetadataManager
 
 
@@ -194,16 +193,3 @@ def run(pipeline_path):
 
 pipeline.add_command(submit)
 pipeline.add_command(run)
-
-
-@click.command()
-def validate():
-    click.echo("validating...")
-    with open("/Users/niko/Desktop/sample-notebooks/circle.pipeline") as f:
-        content = f.read()
-    res = doThings(content)
-    for problem in res["params"]["diagnostics"]:
-        print(problem["message"])
-
-
-pipeline.add_command(validate)

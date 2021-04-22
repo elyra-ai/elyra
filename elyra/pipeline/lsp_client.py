@@ -25,6 +25,11 @@ class ReadPipe(threading.Thread):
         self.done = False
         self.res = None
 
+    def wait(self):
+        while not self.done:
+            pass
+        return self.res
+
     def run(self):
         message_size = None
         while True:
@@ -39,39 +44,45 @@ class ReadPipe(threading.Thread):
                 message_size = int(line)
 
         jsonrpc_res = self.pipe.read(message_size).decode("utf-8")
-        self.done = True
         self.res = json.loads(jsonrpc_res)
+        self.done = True
 
 
-def doThings(content):
-    with subprocess.Popen("elyra-pipeline-lsp", stdin=subprocess.PIPE, stdout=subprocess.PIPE) as lsp:
-        read_pipe = ReadPipe(lsp.stdout)
+class LSPClient:
+    def __init__(self):
+        self.lsp = subprocess.Popen("elyra-pipeline-lsp", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        read_pipe = ReadPipe(self.lsp.stdout)
         read_pipe.start()
 
-        msg = json.dumps({
+        self._sendMessage({
             "jsonrpc": "2.0",
             "id": 0,
             "method": "initialize",
             "params": {}
         })
-        lsp.stdin.write(f"Content-Length: {len(msg)}\r\n\r\n{msg}".encode())
-        lsp.stdin.flush()
 
-        while not read_pipe.done:
-            pass
+        read_pipe.wait()
 
-        msg = json.dumps({
+        self._sendMessage({
             "jsonrpc": "2.0",
             "method": "initialized",
             "params": {}
         })
-        lsp.stdin.write(f"Content-Length: {len(msg)}\r\n\r\n{msg}".encode())
-        lsp.stdin.flush()
 
-        read_pipe = ReadPipe(lsp.stdout)
+    def close(self):
+        self.lsp.terminate()
+
+    def _sendMessage(self, msg):
+        msg = json.dumps(msg)
+        self.lsp.stdin.write(f"Content-Length: {len(msg)}\r\n\r\n{msg}".encode())
+        self.lsp.stdin.flush()
+
+    def validate(self, content):
+        read_pipe = ReadPipe(self.lsp.stdout)
         read_pipe.start()
 
-        msg = json.dumps({
+        self._sendMessage({
             "jsonrpc": "2.0",
             "method": "textDocument/didOpen",
             "params": {
@@ -80,10 +91,5 @@ def doThings(content):
                 }
             }
         })
-        lsp.stdin.write(f"Content-Length: {len(msg)}\r\n\r\n{msg}".encode())
-        lsp.stdin.flush()
 
-        while not read_pipe.done:
-            pass
-
-        return read_pipe.res
+        return read_pipe.wait()
