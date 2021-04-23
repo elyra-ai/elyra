@@ -96,7 +96,7 @@
           "type": "string",
           "uihints": {
             "secure": true,
-            "category": "Kubernetes"
+            "category": "Cloud Object Storage"
           }
         },
         "cos_username": {
