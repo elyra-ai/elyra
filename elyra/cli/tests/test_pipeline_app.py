@@ -27,8 +27,84 @@ PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD = \
 PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD = \
     '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","schemas":[]}'
 
-PIPELINE_SOURCE_WITH_CIRCULAR_REFERENCE = \
-    '{"doc_type":"pipeline","version":"3.0","json_schema":"http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json","id":"8f80e2e5-cc20-4e4a-902f-43da7b89bfc1","primary_pipeline":"1a623718-7d8e-49da-b593-d57c0ed66665","pipelines":[{"id":"1a623718-7d8e-49da-b593-d57c0ed66665","nodes":[{"id":"b1dc8229-7184-4b03-9fec-8fdf65b35af0","type":"execution_node","op":"execute-notebook-node","app_data":{"filename":"hello.ipynb","runtime_image":"","dependencies":[],"include_subdirectories":false,"env_vars":[],"outputs":[],"ui_data":{"label":"hello.ipynb","image":"data:image/svg+xml;utf8,%3Csvg%20opacity%3D%220.8%22%20version%3D%222.0%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Afigma%3D%22http%3A%2F%2Fwww.figma.com%2Ffigma%2Fns%22%3E%3Ctitle%3Elogo.svg%3C%2Ftitle%3E%3Cdesc%3ECreated%20using%20Figma%200.90%3C%2Fdesc%3E%3Cg%20id%3D%22Canvas%22%20transform%3D%22translate(-1638%2C-1844)%22%20figma%3Atype%3D%22canvas%22%3E%3Cg%20id%3D%22logo%22%20style%3D%22mix-blend-mode%3Anormal%22%20figma%3Atype%3D%22group%22%3E%3Cpath%20d%3D%22m1788%201886a108.02%20108.02%200%200%200%20-104.92%2082.828%20114.07%2064.249%200%200%201%20104.92%20-39.053%20114.07%2064.249%200%200%201%20104.96%2039.261%20108.02%20108.02%200%200%200%20-104.96%20-83.037zm-104.96%20133.01a108.02%20108.02%200%200%200%20104.96%2083.037%20108.02%20108.02%200%200%200%20104.92%20-82.828%20114.07%2064.249%200%200%201%20-104.92%2039.053%20114.07%2064.249%200%200%201%20-104.96%20-39.261z%22%20style%3D%22fill%3A%23f57c00%3Bpaint-order%3Afill%20markers%20stroke%22%2F%3E%3Ccircle%20cx%3D%221699.5%22%20cy%3D%222110.8%22%20r%3D%2222.627%22%20style%3D%22fill%3A%239e9e9e%3Bpaint-order%3Afill%20markers%20stroke%22%2F%3E%3Ccircle%20cx%3D%221684.3%22%20cy%3D%221892.6%22%20r%3D%2216.617%22%20style%3D%22fill%3A%23616161%3Bmix-blend-mode%3Anormal%3Bpaint-order%3Afill%20markers%20stroke%22%2F%3E%3Ccircle%20cx%3D%221879.8%22%20cy%3D%221877.4%22%20r%3D%2221.213%22%20style%3D%22fill%3A%23757575%3Bmix-blend-mode%3Anormal%3Bpaint-order%3Afill%20markers%20stroke%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E%0D%0A","x_pos":367,"y_pos":272,"description":"Notebook file"}},"inputs":[{"id":"inPort","app_data":{"ui_data":{"cardinality":{"min":0,"max":-1},"label":"Input Port"}},"links":[{"id":"Bbj3VUvQ3IF6pFE3PMH49","node_id_ref":"b2fe7008-4434-4d94-8983-1e0dd5bbc293","port_id_ref":"outPort","app_data":{"ui_data":{"class_name":"d3-data-link-error"}}}]}],"outputs":[{"id":"outPort","app_data":{"ui_data":{"cardinality":{"min":0,"max":-1},"label":"Output Port"}}}]},{"id":"b2fe7008-4434-4d94-8983-1e0dd5bbc293","type":"execution_node","op":"execute-notebook-node","app_data":{"filename":"hello.ipynb","runtime_image":null,"dependencies":[],"include_subdirectories":false,"env_vars":[],"outputs":[],"ui_data":{"label":"hello.ipynb","image":"data:image/svg+xml;utf8,%3Csvg%20opacity%3D%220.8%22%20version%3D%222.0%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Afigma%3D%22http%3A%2F%2Fwww.figma.com%2Ffigma%2Fns%22%3E%3Ctitle%3Elogo.svg%3C%2Ftitle%3E%3Cdesc%3ECreated%20using%20Figma%200.90%3C%2Fdesc%3E%3Cg%20id%3D%22Canvas%22%20transform%3D%22translate(-1638%2C-1844)%22%20figma%3Atype%3D%22canvas%22%3E%3Cg%20id%3D%22logo%22%20style%3D%22mix-blend-mode%3Anormal%22%20figma%3Atype%3D%22group%22%3E%3Cpath%20d%3D%22m1788%201886a108.02%20108.02%200%200%200%20-104.92%2082.828%20114.07%2064.249%200%200%201%20104.92%20-39.053%20114.07%2064.249%200%200%201%20104.96%2039.261%20108.02%20108.02%200%200%200%20-104.96%20-83.037zm-104.96%20133.01a108.02%20108.02%200%200%200%20104.96%2083.037%20108.02%20108.02%200%200%200%20104.92%20-82.828%20114.07%2064.249%200%200%201%20-104.92%2039.053%20114.07%2064.249%200%200%201%20-104.96%20-39.261z%22%20style%3D%22fill%3A%23f57c00%3Bpaint-order%3Afill%20markers%20stroke%22%2F%3E%3Ccircle%20cx%3D%221699.5%22%20cy%3D%222110.8%22%20r%3D%2222.627%22%20style%3D%22fill%3A%239e9e9e%3Bpaint-order%3Afill%20markers%20stroke%22%2F%3E%3Ccircle%20cx%3D%221684.3%22%20cy%3D%221892.6%22%20r%3D%2216.617%22%20style%3D%22fill%3A%23616161%3Bmix-blend-mode%3Anormal%3Bpaint-order%3Afill%20markers%20stroke%22%2F%3E%3Ccircle%20cx%3D%221879.8%22%20cy%3D%221877.4%22%20r%3D%2221.213%22%20style%3D%22fill%3A%23757575%3Bmix-blend-mode%3Anormal%3Bpaint-order%3Afill%20markers%20stroke%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E%0D%0A","x_pos":596,"y_pos":144,"description":"Notebook file"}},"inputs":[{"id":"inPort","app_data":{"ui_data":{"cardinality":{"min":0,"max":-1},"label":"Input Port"}},"links":[{"id":"86d43ab5-a1f2-4a2e-aa8c-bfa035d46ac8","node_id_ref":"b1dc8229-7184-4b03-9fec-8fdf65b35af0","port_id_ref":"outPort"}]}],"outputs":[{"id":"outPort","app_data":{"ui_data":{"cardinality":{"min":0,"max":-1},"label":"Output Port"}}}]}],"app_data":{"ui_data":{"comments":[]},"version":3},"runtime_ref":""}],"schemas":[]}'
+PIPELINE_SOURCE_WITH_CIRCULAR_REFERENCE = """
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "id": "0",
+  "primary_pipeline": "1",
+  "pipelines": [
+    {
+      "id": "1",
+      "nodes": [
+        {
+          "id": "a",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "filename": "x.ipynb",
+            "runtime_image": "x",
+            "ui_data": {
+              "label": "x.ipynb"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "links": [
+                {
+                  "id": "ba",
+                  "node_id_ref": "b",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort"
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "filename": "x.ipynb",
+            "runtime_image": "x",
+            "ui_data": {
+              "label": "x.ipynb"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "links": [
+                {
+                  "id": "ab",
+                  "node_id_ref": "a",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort"
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "version": 3
+      }
+    }
+  ],
+  "schemas": []
+}
+"""
+
 
 def mock_get_runtime_type(runtime_config: str) -> str:
     return "kfp"
@@ -66,7 +142,9 @@ def test_run_with_circular_reference():
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
 
         result = runner.invoke(pipeline, ['run', pipeline_file_path])
-        assert "The connection between nodes 'hello.ipynb' and 'hello.ipynb' is part of a circular reference." in result.output
+        err = \
+            "The connection between nodes 'x.ipynb' and 'x.ipynb' is part of a circular reference."
+        assert err in result.output
         assert result.exit_code != 0
 
 

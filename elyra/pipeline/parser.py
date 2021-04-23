@@ -37,10 +37,6 @@ class PipelineParser(LoggingConfigurable):
         list of operations.
         """
 
-        res = self.lsp.validate(json.dumps(pipeline_definitions))
-        if len(res["params"]["diagnostics"]) > 0:
-            raise ValueError(res["params"]["diagnostics"][0]["message"])
-
         # Check for required values.  We require a primary_pipeline, a set of pipelines, and
         # nodes within the primary pipeline (checked below).
         if 'primary_pipeline' not in pipeline_definitions:
@@ -67,6 +63,10 @@ class PipelineParser(LoggingConfigurable):
 
         if 'nodes' not in primary_pipeline or len(primary_pipeline['nodes']) == 0:
             raise ValueError("Invalid pipeline: At least one node must exist in the primary pipeline.")
+
+        res = self.lsp.validate(json.dumps(pipeline_definitions))
+        if len(res["params"]["diagnostics"]) > 0:
+            raise ValueError(res["params"]["diagnostics"][0]["message"])
 
         source = PipelineParser._get_app_data_field(primary_pipeline, 'source')
 
