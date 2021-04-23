@@ -40,7 +40,7 @@ export class SubmitNotebookButtonExtension
     if (panel.model.dirty) {
       const dialogResult = await showDialog({
         title:
-          'This notebook contains unsaved changes. To submit the notebook the changes need to be saved.',
+          'This notebook contains unsaved changes. To run the notebook as pipeline the changes need to be saved.',
         buttons: [
           Dialog.cancelButton(),
           Dialog.okButton({ label: 'Save and Submit' })
@@ -57,7 +57,7 @@ export class SubmitNotebookButtonExtension
     const env = await ContentParser.getEnvVars(
       panel.context.path.toString()
     ).catch(error => RequestErrors.serverError(error));
-    const action = 'submit notebook';
+    const action = 'run notebook as pipeline';
     const runtimes = await PipelineService.getRuntimes(
       true,
       action
@@ -81,7 +81,7 @@ export class SubmitNotebookButtonExtension
     );
 
     const dialogOptions = {
-      title: 'Submit notebook',
+      title: 'Run notebook as pipeline',
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
@@ -142,7 +142,7 @@ export class SubmitNotebookButtonExtension
   ): IDisposable {
     // Create the toolbar button
     const submitNotebookButton = new ToolbarButton({
-      label: 'Submit Notebook ...',
+      label: 'Run as Pipeline',
       onClick: (): any => this.showWidget(panel),
       tooltip: 'Run notebook as batch'
     });
