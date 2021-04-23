@@ -86,7 +86,8 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     const { schema, runtimes } = this.props;
 
     const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
-    const selectedRuntimePlatform = validSchemas[0] && validSchemas[0].name;
+    const selectedRuntimePlatform =
+      this.props.runtime?.name || (validSchemas[0] && validSchemas[0].name);
     const displayedRuntimeOptions = this.updateRuntimeOptions(
       selectedRuntimePlatform
     );
@@ -105,27 +106,24 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
 
     return (
       <form className="elyra-dialog-form">
-        <label htmlFor="runtime_platform">Runtime Platform:</label>
-        <br />
-        {this.props.runtime ? (
+        {!this.props.runtime && (
           <div>
-            <p id="runtime_platform">{this.props.runtime?.display_name}</p>
+            <label htmlFor="runtime_platform">Runtime Platform:</label>
             <br />
+            <select
+              id="runtime_platform"
+              name="runtime_platform"
+              className="elyra-form-runtime-platform"
+              data-form-required
+              onChange={this.handleUpdate}
+            >
+              {validSchemas.map(schema => (
+                <option key={schema.name} value={schema.name}>
+                  {schema.display_name}
+                </option>
+              ))}
+            </select>
           </div>
-        ) : (
-          <select
-            id="runtime_platform"
-            name="runtime_platform"
-            className="elyra-form-runtime-platform"
-            data-form-required
-            onChange={this.handleUpdate}
-          >
-            {validSchemas.map(schema => (
-              <option key={schema.name} value={schema.name}>
-                {schema.display_name}
-              </option>
-            ))}
-          </select>
         )}
         <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />

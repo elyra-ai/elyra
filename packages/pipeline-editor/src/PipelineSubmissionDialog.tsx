@@ -91,28 +91,25 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
         />
         <br />
         <br />
-        <label htmlFor="runtime_platform">Runtime Platform:</label>
-        <br />
-        {this.props.runtime ? (
+        {!this.props.runtime && (
           <div>
-            <p> {this.props.runtime.display_name} </p>
+            <label htmlFor="runtime_platform">Runtime Platform:</label>
             <br />
+            <select
+              id="runtime_platform"
+              name="runtime_platform"
+              className="elyra-form-runtime-platform"
+              data-form-required
+              defaultValue={selectedRuntimePlatform}
+              onChange={this.handleUpdate}
+            >
+              {validSchemas.map(schema => (
+                <option key={schema.name} value={schema.name}>
+                  {schema.display_name}
+                </option>
+              ))}
+            </select>
           </div>
-        ) : (
-          <select
-            id="runtime_platform"
-            name="runtime_platform"
-            className="elyra-form-runtime-platform"
-            data-form-required
-            defaultValue={selectedRuntimePlatform}
-            onChange={this.handleUpdate}
-          >
-            {validSchemas.map(schema => (
-              <option key={schema.name} value={schema.name}>
-                {schema.display_name}
-              </option>
-            ))}
-          </select>
         )}
         <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />

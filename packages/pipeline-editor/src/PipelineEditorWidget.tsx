@@ -298,12 +298,18 @@ const PipelineWrapper: React.FC<IProps> = ({
       RequestErrors.serverError(error)
     );
 
+    const pipelineRuntime = pipeline?.pipelines[0]?.app_data?.ui_data?.runtime;
+    let title = 'Export pipeline';
+    if (pipelineRuntime) {
+      title = `Export pipeline in ${pipelineRuntime.display_name}`;
+    }
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
-      title: 'Export pipeline',
+      title,
       body: formDialogWidget(
         <PipelineExportDialog
           runtimes={runtimes}
-          runtime={pipeline?.pipelines[0]?.app_data?.ui_data?.runtime}
+          runtime={pipelineRuntime}
           schema={schema}
         />
       ),
@@ -422,13 +428,19 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
     schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 
+    let title = 'Run pipeline';
+    const pipelineRuntime = pipeline?.pipelines[0]?.app_data?.ui_data?.runtime;
+    if (pipelineRuntime) {
+      title = `Run pipeline in ${pipelineRuntime.display_name}`;
+    }
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
-      title: 'Run pipeline',
+      title,
       body: formDialogWidget(
         <PipelineSubmissionDialog
           name={pipelineName}
           runtimes={runtimes}
-          runtime={pipeline?.pipelines[0]?.app_data?.ui_data?.runtime}
+          runtime={pipelineRuntime}
           schema={schema}
         />
       ),
