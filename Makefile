@@ -93,6 +93,7 @@ build-ui: yarn-install lint-ui # Build packages
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
 
 build-server: lint-server # Build backend
+	yarn install --cwd elyra/lsp
 	python setup.py bdist_wheel sdist
 
 build: build-server build-ui
