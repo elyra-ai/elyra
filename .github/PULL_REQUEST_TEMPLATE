@@ -6,7 +6,7 @@ Thanks for sending a pull request!  Here are some tips for you:
   3. Be sure to keep the PR description is updated to reflect all changes.
   4. Please write your PR title to summarize what this PR proposes.
   5. If this PR involves UI changes, please provide a screen capture (before/after) for a faster review.
-  6. Remember to add 'Fixes #ISSUE_NUMBER' to get the issue properly closed when the PR is merged.
+  6. Remember to add 'Fixes #ISSUE_NUMBER' to the end of your message body to get the issue properly closed when the PR is merged.
   7. Set the proper milestone based on the target release for the issue.
 -->
 
