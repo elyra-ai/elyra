@@ -87,7 +87,7 @@ export class RequestErrors {
    *
    * @param action (optional) - the pipeline action that required the metadata when
    * the error occurred
-   * eg. run pipeline, export pipeline, submit notebook
+   * eg. run pipeline, export pipeline, run notebook as pipeline
    *
    * @returns A promise that resolves with whether the dialog was accepted.
    */
