@@ -46,7 +46,7 @@ export class SubmitScriptButtonExtension
     if (editor.context.model.dirty) {
       const dialogResult = await showDialog({
         title:
-          'This script contains unsaved changes. To submit the script the changes need to be saved.',
+          'This script contains unsaved changes. To run the script as a pipeline the changes need to be saved.',
         buttons: [
           Dialog.cancelButton(),
           Dialog.okButton({ label: 'Save and Submit' })
@@ -61,13 +61,13 @@ export class SubmitScriptButtonExtension
     }
 
     /*
-    // TODO: 
+    // TODO:
     // get environment variables from the editor
     // Rename NotebookParser to ContentParser in from '@elyra/services and adjust getEnvVars according to widget type
     */
     // const env = this.getEnvVars(editor.context.model.toString());
     const env: string[] = [];
-    const action = 'submit script';
+    const action = 'run script as pipeline';
     const runtimes = await PipelineService.getRuntimes(
       true,
       action
@@ -92,7 +92,7 @@ export class SubmitScriptButtonExtension
     const fileExtension = PathExt.extname(editor.context.path);
 
     const dialogOptions = {
-      title: 'Submit script',
+      title: 'Run script as pipeline',
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
@@ -153,7 +153,7 @@ export class SubmitScriptButtonExtension
   ): IDisposable {
     // Create the toolbar button
     const submitScriptButton = new ToolbarButton({
-      label: 'Submit Script ...',
+      label: 'Run as Pipeline',
       onClick: (): any => this.showWidget(editor),
       tooltip: 'Run script as batch'
     });

@@ -55,11 +55,11 @@ The pipeline editor feature can optionally be [installed as a stand-alone extens
 
 Elyra extends the Jupyter Notebook UI to to allow for execution of a notebook as a batch job in local or remote cloud environments. This feature leverages the AI pipelines feature and requires either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
 
-To run a notebook as a batch job open the notebook and select `Submit Notebook...` button from the menu bar.
+To run a notebook as a batch job open the notebook and select `Run as Pipeline` button from the menu bar.
 
-![Submit Notebook as batch jobs](../images/submit-notebook-batch-job.gif)
+![Run notebook as pipeline](../images/run-notebook-as-pipeline.gif)
 
-Similarly, to submit a Python script as a batch job, open a Python script file and select `Submit Script...` button from the editor toolbar.
+Similarly, to submit a Python  or R script as a batch job, open a the script file and select `Run as Pipeline` button from the editor toolbar.
 
 #### Reusable Code Snippets
 

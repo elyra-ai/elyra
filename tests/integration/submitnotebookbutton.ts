@@ -29,12 +29,12 @@ describe('Submit Notebook Button tests', () => {
     });
   });
 
-  it('check Submit Notebook button exists', () => {
+  it('check "Run as Pipeline" button exists', () => {
     openNewNotebookFile();
-    cy.contains('Submit Notebook');
+    cy.contains('Run as Pipeline');
   });
 
-  it('click the Submit Script button should display dialog', () => {
+  it('click the "Run as Pipeline" button should display dialog', () => {
     // Open runtimes sidebar
     cy.get('.jp-SideBar [title="Runtimes"]').click();
     // Create runtime configuration
@@ -43,8 +43,8 @@ describe('Submit Notebook Button tests', () => {
     cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
       'Test Runtime'
     );
-    // Click submit notebook button
-    cy.contains('Submit Notebook').click();
+    // Click Run as Pipeline button
+    cy.contains('Run as Pipeline').click();
     // Should have warning for unsaved changes
     cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
       .contains('Save and Submit')
@@ -52,7 +52,7 @@ describe('Submit Notebook Button tests', () => {
     // Check for expected dialog title
     cy.get('.jp-Dialog')
       .find('div.jp-Dialog-header')
-      .should('have.text', 'Submit notebook');
+      .should('have.text', 'Run notebook as pipeline');
     // Dismiss  dialog
     cy.get('button.jp-mod-reject').click();
   });
