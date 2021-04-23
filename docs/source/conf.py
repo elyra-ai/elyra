@@ -59,7 +59,8 @@ release = version_ns['__version__']
 extensions = [
     "sphinx_rtd_theme",
     "recommonmark",
-    "sphinx_markdown_tables"
+    "sphinx_markdown_tables",
+    "versionwarning.extension",
 ]
 
 source_suffix = {
@@ -99,3 +100,16 @@ html_static_path = ['_static']
 html_css_files = [
     "custom.css"
 ]
+
+# -- Options for version warning
+
+# sphinx-version-warning config
+versionwarning_messages = {
+    "latest": (
+        "This document is for the development version. "
+        'For the stable version documentation, see <a href="/en/stable/">here</a>.'
+    )}
+
+# Show warning at top of page
+versionwarning_body_selector = "div.document"
+versionwarning_banner_title = ""
