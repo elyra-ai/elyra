@@ -21,7 +21,7 @@
 
 SHELL:=/bin/bash
 
-AIRFLOW_NOTEBOOK_VERSION:=0.0.4
+AIRFLOW_NOTEBOOK_VERSION:=0.0.6
 
 TAG:=dev
 IMAGE=elyra/elyra:$(TAG)
