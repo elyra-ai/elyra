@@ -301,7 +301,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     const pipelineRuntime = pipeline?.pipelines[0]?.app_data?.ui_data?.runtime;
     let title = 'Export pipeline';
     if (pipelineRuntime) {
-      title = `Export pipeline in ${pipelineRuntime.display_name}`;
+      title = `Export pipeline for ${pipelineRuntime.display_name}`;
     }
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
@@ -431,7 +431,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     let title = 'Run pipeline';
     const pipelineRuntime = pipeline?.pipelines[0]?.app_data?.ui_data?.runtime;
     if (pipelineRuntime) {
-      title = `Run pipeline in ${pipelineRuntime.display_name}`;
+      title = `Run pipeline on ${pipelineRuntime.display_name}`;
     }
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
