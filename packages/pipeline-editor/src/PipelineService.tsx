@@ -137,6 +137,10 @@ export class PipelineService {
     }
   }
 
+  static async getNodes(): Promise<any> {
+    return await RequestHandler.makeGetRequest('elyra/pipeline/nodes');
+  }
+
   static getDisplayName(name: string, metadataArr: IDictionary<any>[]): string {
     return metadataArr.find(r => r['name'] === name)['display_name'];
   }

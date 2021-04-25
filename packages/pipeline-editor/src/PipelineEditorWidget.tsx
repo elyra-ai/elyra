@@ -15,7 +15,7 @@
  */
 
 import { PipelineEditor, ThemeProvider } from '@elyra/pipeline-editor';
-import { validate } from '@elyra/pipeline-services';
+import { resolveNodes } from '@elyra/pipeline-services';
 import {
   IconUtil,
   clearPipelineIcon,
@@ -51,7 +51,7 @@ import Alert from '@material-ui/lab/Alert';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
-import nodes from './nodes';
+
 import { PipelineExportDialog } from './PipelineExportDialog';
 import {
   IRuntime,
@@ -127,7 +127,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [pipeline, setPipeline] = useState(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState(null);
-  const [updatedNodes, setUpdatedNodes] = React.useState(nodes);
+  const [nodes, setNodes] = React.useState(undefined);
 
   const contextRef = useRef(context);
   useEffect(() => {
@@ -169,25 +169,35 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   useEffect(() => {
-    PipelineService.getRuntimeImages()
-      .then((runtimeImages: any) => {
-        const nodesCopy = JSON.parse(JSON.stringify(nodes));
-        for (const node of nodesCopy) {
-          const imageEnum = [];
-          for (const runtimeImage in runtimeImages) {
-            imageEnum.push(runtimeImages[runtimeImage]);
-            node.properties.resources = {
-              ...node.properties.resources,
-              [`runtime_image.${runtimeImage}.label`]: runtimeImages[
-                runtimeImage
-              ]
-            };
-          }
-          node.properties.uihints.parameter_info[1].data.items = imageEnum;
-        }
-        setUpdatedNodes(nodesCopy);
-      })
-      .catch(error => RequestErrors.serverError(error));
+    const main = async (): Promise<void> => {
+      try {
+        const nodes = await PipelineService.getNodes();
+        const runtimeImages = await PipelineService.getRuntimeImages();
+
+        const finalizedNodes = nodes.results.map(n => {
+          return {
+            ...n,
+            properties: n.properties.map(p => {
+              if (p.id === 'runtime_image') {
+                return {
+                  ...p,
+                  enum: Object.keys(runtimeImages)
+                };
+              }
+              return p;
+            })
+          };
+        });
+
+        console.log(finalizedNodes);
+
+        setNodes(finalizedNodes);
+      } catch (error) {
+        RequestErrors.serverError(error);
+      }
+    };
+
+    main();
   }, []);
 
   const onFileRequested = (args: any): Promise<string> => {
@@ -251,15 +261,6 @@ const PipelineWrapper: React.FC<IProps> = ({
     // Warn user if the pipeline has invalid nodes
     if (!pipeline) {
       setAlert('Failed export: Cannot export empty pipelines.');
-      return;
-    }
-    const errorMessages = validate(JSON.stringify(pipeline), nodes);
-    if (errorMessages && errorMessages.length > 0) {
-      let errorMessage = '';
-      for (const error of errorMessages) {
-        errorMessage += error.message;
-      }
-      setAlert(`Failed export: ${errorMessage}`);
       return;
     }
 
@@ -362,17 +363,6 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [pipeline, cleanNullProperties, shell]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
-    // Check that all nodes are valid
-    const errorMessages = validate(JSON.stringify(pipeline), nodes);
-    if (errorMessages && errorMessages.length > 0) {
-      let errorMessage = '';
-      for (const error of errorMessages) {
-        errorMessage += error.message;
-      }
-      setAlert(`Failed run: ${errorMessage}`);
-      return;
-    }
-
     if (contextRef.current.model.dirty) {
       const dialogResult = await showDialog({
         title:
@@ -679,7 +669,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     setAlert(null);
   };
 
-  if (loading) {
+  if (loading || nodes === undefined) {
     return <div>loading</div>;
   }
 
@@ -697,7 +687,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
-          nodes={updatedNodes}
+          nodes={resolveNodes(nodes)}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}

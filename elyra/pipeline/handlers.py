@@ -17,6 +17,7 @@ import io
 import os
 import json
 
+from generic_pipeline_core import nodes
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from .parser import PipelineParser
@@ -118,3 +119,12 @@ class PipelineConfigHandler(HttpErrorMixin, APIHandler):
         with io.open(config_file, 'r', encoding='utf-8') as f:
             config_json = json.load(f)
         return config_json
+
+
+class PipelineNodesHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose method calls to retrieve node list"""
+
+    @web.authenticated
+    def get(self):
+        self.set_header("Content-Type", 'application/json')
+        self.finish({"results": nodes})
