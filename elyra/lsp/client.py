@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import time
 import json
 import subprocess
 import threading
@@ -26,7 +27,11 @@ class ReadPipe(threading.Thread):
         self.res = None
 
     def wait(self):
+        start = time.time()
         while not self.done:
+            end = time.time()
+            if end > start + 3:
+                raise TimeoutError()
             pass
         return self.res
 

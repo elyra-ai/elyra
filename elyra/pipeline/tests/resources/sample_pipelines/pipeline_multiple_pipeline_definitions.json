@@ -195,6 +195,7 @@
         }
       ],
       "app_data": {
+        "version": 3,
         "name": "test-definition",
         "ui_data": {
           "comments": []

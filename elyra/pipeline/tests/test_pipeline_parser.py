@@ -239,7 +239,7 @@ def test_missing_operation_filename():
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_definitions)
 
-    assert "Missing field 'operation filename" in str(e.value)
+    assert "The property 'File' on node '{{label}}' is required." in str(e.value)
 
 
 def test_missing_operation_image():

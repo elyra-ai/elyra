@@ -2,13 +2,17 @@
 # yarn lockfile v1
 
 
-"@elyra/pipeline-services@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-0.2.1.tgz#702dfa65c7e83beaa09a5bf1d312b27d3646a8b4"
-  integrity sha512-DJBIPgqF/ZAyk7SxYjxe7JuICOffYUAC6jCoZXpoAAXggc9tjdtN0zTHwEj3hT1/znlljrUKJzq5wb0lPl3vtw==
+"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/bc6fc520/@elyra/pipeline-services":
+  version "0.3.0-dev"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/bc6fc520/@elyra/pipeline-services#70d0e9f7dacee51d5efd86898555f92e7e679be3"
   dependencies:
     immer "^8.0.1"
     jsonc-parser "^3.0.0"
+
+generic-pipeline-core@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/generic-pipeline-core/-/generic-pipeline-core-0.0.5.tgz#0903bb7601e9c9c419d4031b89ea909446f04b37"
+  integrity sha512-WwC//awNA8R0XEll8lNDIJWANJ06TBvIOVm/aerTOnCRl79W0q2P8UjQh2LCp7MdcT0fRItsBDikKy7CxfNl2A==
 
 immer@^8.0.1:
   version "8.0.4"
@@ -20,12 +24,13 @@ jsonc-parser@^3.0.0:
   resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.0.0.tgz#abdd785701c7e7eaca8a9ec8cf070ca51a745a22"
   integrity sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==
 
-pipeline-language-server@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/pipeline-language-server/-/pipeline-language-server-0.0.2.tgz#d1a45868a2c974124a6df27b0a88c13b351cb3d9"
-  integrity sha512-rt3F+H2dmRyMEeUAMZn3DwUccvhH0g4TN/vT7PtxN4LHsXGEDG+hAhBtUu0YBDCwEvVDBYgt6le6kI0+3WLrqA==
+pipeline-language-server@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/pipeline-language-server/-/pipeline-language-server-0.0.4.tgz#7d0d30a9a3414fa133015ca81c30895ad31956fe"
+  integrity sha512-Xw/INhbUavpgtqvuUrbygCqLxLvqSomQtR11eqwAa0g8EtppEnWZLvGsufH8NqbJNy9BzKnx4RepWEjN7BadqA==
   dependencies:
-    "@elyra/pipeline-services" "^0.2.1"
+    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/bc6fc520/@elyra/pipeline-services"
+    generic-pipeline-core "^0.0.5"
     vscode-languageserver "^7.0.0"
     vscode-languageserver-textdocument "^1.0.1"
 

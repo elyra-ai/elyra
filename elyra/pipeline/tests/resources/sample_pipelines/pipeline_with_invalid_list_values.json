@@ -28,6 +28,7 @@
         }
       ],
       "app_data": {
+        "version": 3,
         "name": "{{name}}",
         "runtime": "{{runtime}}",
         "runtime-config": "{{runtime-config}}",

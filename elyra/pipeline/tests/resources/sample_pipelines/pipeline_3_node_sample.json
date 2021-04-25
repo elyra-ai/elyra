@@ -55,6 +55,7 @@
         }
       ],
       "app_data": {
+        "version": 3,
         "name": "pipeline-title",
         "runtime": "kfp",
         "runtime-config": "kfp-yukked1",

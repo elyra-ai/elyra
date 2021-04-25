@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "pipeline-language-server": "^0.0.2"
+    "pipeline-language-server": "^0.0.4"
   }
 }
