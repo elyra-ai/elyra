@@ -298,7 +298,8 @@ const PipelineWrapper: React.FC<IProps> = ({
       RequestErrors.serverError(error)
     );
 
-    const pipelineRuntime = pipeline?.pipelines[0]?.app_data?.ui_data?.runtime;
+    const pipelineRuntime =
+      pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
     let title = 'Export pipeline';
     if (pipelineRuntime) {
       title = `Export pipeline for ${pipelineRuntime.display_name}`;
@@ -429,7 +430,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 
     let title = 'Run pipeline';
-    const pipelineRuntime = pipeline?.pipelines[0]?.app_data?.ui_data?.runtime;
+    const pipelineRuntime =
+      pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
     if (pipelineRuntime) {
       title = `Run pipeline on ${pipelineRuntime.display_name}`;
     }

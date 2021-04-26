@@ -153,7 +153,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       label: (args: any) => {
         return args['isPalette']
           ? 'New Pipeline Editor'
-          : args['runtime'] && args['runtime']['display_name']
+          : args.runtime?.display_name
           ? 'Pipeline Editor'
           : 'Generic Pipeline Editor';
       },
@@ -161,7 +161,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         if (args['isPalette']) {
           return undefined;
         } else {
-          if (args['runtime'] && args['runtime']['display_name']) {
+          if (args.runtime?.display_name) {
             for (const runtimeIcon of runtimeIcons) {
               if (`elyra:${args['runtime']['name']}` === runtimeIcon.name) {
                 return runtimeIcon;

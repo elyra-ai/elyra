@@ -41,7 +41,6 @@ interface IProps {
 interface IState {
   displayedRuntimeOptions: IRuntime[];
   fileTypes: Record<string, string>[];
-  selectedRuntimePlatform: string;
   validSchemas: ISchema[];
 }
 
@@ -49,7 +48,6 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
     fileTypes: new Array<Record<string, string>>(),
-    selectedRuntimePlatform: this.props.runtime?.name || '',
     validSchemas: new Array<ISchema>()
   };
 
@@ -57,8 +55,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     const selectedPlatform = event.target.value;
     this.setState({
       displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
-      fileTypes: this.updateFileTypeOptions(selectedPlatform),
-      selectedRuntimePlatform: selectedPlatform
+      fileTypes: this.updateFileTypeOptions(selectedPlatform)
     });
   };
 
@@ -87,7 +84,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
 
     const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
     const selectedRuntimePlatform =
-      this.props.runtime?.name || (validSchemas[0] && validSchemas[0].name);
+      this.props.runtime?.name ?? (validSchemas[0] && validSchemas[0].name);
     const displayedRuntimeOptions = this.updateRuntimeOptions(
       selectedRuntimePlatform
     );
@@ -96,7 +93,6 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     this.setState({
       displayedRuntimeOptions: displayedRuntimeOptions,
       fileTypes: fileTypes,
-      selectedRuntimePlatform: selectedRuntimePlatform,
       validSchemas: validSchemas
     });
   }

@@ -35,7 +35,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
     selectedRuntimePlatform:
-      this.props.runtime?.name ||
+      this.props.runtime?.name ??
       (this.props.schema[0] && this.props.schema[0].name),
     validSchemas: new Array<ISchema>()
   };
@@ -100,7 +100,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
               name="runtime_platform"
               className="elyra-form-runtime-platform"
               data-form-required
-              defaultValue={selectedRuntimePlatform}
+              value={selectedRuntimePlatform}
               onChange={this.handleUpdate}
             >
               {validSchemas.map(schema => (
