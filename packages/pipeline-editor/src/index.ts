@@ -72,7 +72,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     IMainMenu
   ],
   optional: [IThemeManager],
-  activate: async (
+  activate: (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     launcher: ILauncher,
@@ -223,42 +223,44 @@ const extension: JupyterFrontEndPlugin<void> = {
       category: 'Elyra'
     });
 
-    const schema = await PipelineService.getRuntimesSchema().catch(error =>
-      RequestErrors.serverError(error)
-    );
-
-    // Add the command to the launcher
-    if (launcher) {
-      launcher.add({
-        command: openPipelineEditorCommand,
-        category: 'Elyra',
-        rank: 1
-      });
-      for (const runtime of schema) {
-        launcher.add({
-          command: openPipelineEditorCommand,
-          category: 'Elyra',
-          args: { runtime },
-          rank: runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
-        });
-      }
-    }
-    // Add new pipeline to the file menu
-    menu.fileMenu.newMenu.addGroup(
-      [{ command: openPipelineEditorCommand }],
-      30
-    );
-    for (const runtime of schema) {
-      menu.fileMenu.newMenu.addGroup(
-        [
-          {
+    PipelineService.getRuntimesSchema().then(
+      (schema: any) => {
+        // Add the command to the launcher
+        if (launcher) {
+          launcher.add({
             command: openPipelineEditorCommand,
-            args: { runtime }
+            category: 'Elyra',
+            rank: 1
+          });
+          for (const runtime of schema) {
+            launcher.add({
+              command: openPipelineEditorCommand,
+              category: 'Elyra',
+              args: { runtime },
+              rank:
+                runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
+            });
           }
-        ],
-        runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
-      );
-    }
+        }
+        // Add new pipeline to the file menu
+        menu.fileMenu.newMenu.addGroup(
+          [{ command: openPipelineEditorCommand }],
+          30
+        );
+        for (const runtime of schema) {
+          menu.fileMenu.newMenu.addGroup(
+            [
+              {
+                command: openPipelineEditorCommand,
+                args: { runtime }
+              }
+            ],
+            runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
+          );
+        }
+      },
+      (error: any) => RequestErrors.serverError(error)
+    );
 
     // SubmitNotebookButtonExtension initialization code
     const notebookButtonExtension = new SubmitNotebookButtonExtension();
