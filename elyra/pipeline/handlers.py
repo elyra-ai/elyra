@@ -23,6 +23,7 @@ from .parser import PipelineParser
 from .processor import PipelineProcessorManager
 from tornado import web
 from ..util.http import HttpErrorMixin
+from .registry import ComponentRegistry
 
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
@@ -99,22 +100,28 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
 class PipelineConfigHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipelines editor configuration"""
 
+    valid_processors = [None, "kfp", "airflow"]
     valid_resources = ["palette", "properties"]
 
+    component_registry: ComponentRegistry = ComponentRegistry()
+
     @web.authenticated
-    def get(self, resource):
-        if resource in self.valid_resources:
-            msg_json = self._read_config(resource)
-        else:
-            # invalid resource, throw an error
+    def get(self, processor, resource):
+        if resource not in self.valid_resources:
             raise web.HTTPError(400, f"Invalid configuration name '{resource}'")
+        if processor not in self.valid_processors:
+            raise web.HTTPError(400, f"Invalid processor name '{processor}'")
+
+        msg_json = self.component_registry.get_all_components(processor)
 
         self.set_header("Content-Type", 'application/json')
         self.finish(msg_json)
 
-    def _read_config(self, config_name):
-        config_dir = os.path.join(os.path.dirname(__file__), 'resources')
-        config_file = os.path.join(config_dir, config_name + ".json")
-        with io.open(config_file, 'r', encoding='utf-8') as f:
-            config_json = json.load(f)
-        return config_json
+    @web.authenticated
+    def post(self, processor, resource):
+        """ Method by which users add components. """
+
+        msg_json = {}
+
+        self.set_header("Content-Type", 'application/json')
+        self.finish(msg_json)
