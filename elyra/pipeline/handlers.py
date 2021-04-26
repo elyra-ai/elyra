@@ -23,7 +23,7 @@ from .parser import PipelineParser
 from .processor import PipelineProcessorManager
 from tornado import web
 from ..util.http import HttpErrorMixin
-from .registry import ComponentRegistry
+from .registry import ComponentRegistry, ComponentParser
 
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
@@ -97,18 +97,15 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         self.finish(json_msg)
 
 
-class PipelineConfigHandler(HttpErrorMixin, APIHandler):
+class PipelineComponentConfigHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipelines editor configuration"""
 
-    valid_processors = [None, "kfp", "airflow"]
-    valid_resources = ["palette", "properties"]
+    valid_processors = ["local", "kfp", "airflow"]
 
     component_registry: ComponentRegistry = ComponentRegistry()
 
     @web.authenticated
-    def get(self, processor, resource):
-        if resource not in self.valid_resources:
-            raise web.HTTPError(400, f"Invalid configuration name '{resource}'")
+    def get(self, processor):
         if processor not in self.valid_processors:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
@@ -118,10 +115,27 @@ class PipelineConfigHandler(HttpErrorMixin, APIHandler):
         self.finish(msg_json)
 
     @web.authenticated
-    def post(self, processor, resource):
+    def post(self, processor):
         """ Method by which users add components. """
 
         msg_json = {}
+
+        self.set_header("Content-Type", 'application/json')
+        self.finish(msg_json)
+
+
+class PipelinePropertiesConfigHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose method calls to retrieve pipelines editor configuration"""
+
+    valid_processors = ["local", "kfp", "airflow"]
+
+    @web.authenticated
+    def get(self, processor, component):
+        if processor not in self.valid_processors:
+            raise web.HTTPError(400, f"Invalid processor name '{processor}'")
+
+        parser = ComponentParser.get_instance(processor=processor)
+        msg_json = parser.parse_component(component)
 
         self.set_header("Content-Type", 'application/json')
         self.finish(msg_json)

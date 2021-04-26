@@ -21,15 +21,35 @@ import glob
 from abc import abstractmethod
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
+from typing import Any, Type, TypeVar
+
+
+F = TypeVar('F', bound='ComponentParser')
 
 
 class ComponentParser(SingletonConfigurable):
     _properties: dict() = {}
 
+    @classmethod
+    def get_instance(cls: Type[F], **kwargs: Any) -> F:
+        """Creates an appropriate subclass instance based on the processor type"""
+        
+        processor = kwargs['processor']
+
+        if processor == 'kfp':
+            return KfpComponentParser()
+        elif processor == 'airflow':
+            return AirflowComponentParser()
+        elif processor == 'local':
+            return ComponentParser()
+        else:
+            raise ValueError(f"Unsupported processor type: {processor}")
+
     def __init__(self):
         super().__init__()
+        self._parser = None
 
-    def parse_component(self, processor_type):
+    def parse_component(self, component):
         raise NotImplementedError
 
 
@@ -46,12 +66,6 @@ class AirflowComponentParser(ComponentParser):
 class ComponentRegistry(SingletonConfigurable):
     _components: dict = {}
 
-    component_parsers = {
-        'kfp': KfpComponentParser(),
-        'airflow': AirflowComponentParser(),
-        None: ComponentParser()
-    }
-
     def __init__(self):
         super().__init__()
         self.parser = None
@@ -61,7 +75,7 @@ class ComponentRegistry(SingletonConfigurable):
         """ Builds a palette.json in the form of a dictionary of components. """
         # raise NotImplementedError()
 
-        self.parser = self.component_parsers.get(processor_type)
+        self.parser = ComponentParser.get_instance(processor=processor_type)
         for component in list_of_components:
             self._components[component] = self.get_component(component)
 
