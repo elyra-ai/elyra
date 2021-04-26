@@ -254,25 +254,6 @@ This should be the URL address of your S3-compatible Object Storage. If running 
 
 Example: `https://minio-service.kubeflow:9000`
 
-##### Cloud Object Storage username (cos_username)
-Username used to access the Object Storage. This setting is required.
-
-Example: `minio`
-
-##### Cloud Object Storage password (cos_password)
-Password for cos_username. This setting is required.
-
-Example: `minio123`
-
-##### Cloud Object Storage bucket name (cos_bucket)
-Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
-
-Example: `test-bucket`
-
-> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
-and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
-Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
-
 ##### Cloud Object Storage Credentials Secret (cos_secret)
 (Optional) Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
 If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
@@ -295,6 +276,25 @@ data:
   AWS_ACCESS_KEY_ID: <BASE64_ENCODED_YOUR_AWS_ACCESS_KEY_ID>
   AWS_SECRET_ACCESS_KEY: <BASE64_ENCODED_YOUR_AWS_SECRET_ACCESS_KEY>
 ```
+
+##### Cloud Object Storage username (cos_username)
+Username used to access the Object Storage. This setting is required.
+
+Example: `minio`
+
+##### Cloud Object Storage password (cos_password)
+Password for cos_username. This setting is required.
+
+Example: `minio123`
+
+##### Cloud Object Storage bucket name (cos_bucket)
+Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
+
+Example: `test-bucket`
+
+> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
+and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
+Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
 
 
 ### Troubleshooting 
