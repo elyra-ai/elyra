@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-module.exports = (_on, _config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
-};
+declare namespace Cypress {
+  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+  interface Chainable {
+    closeCurrentTab(): Chainable<void>;
+    createRuntimeConfig(): Chainable<void>;
+    deleteFileByName(fileName: string): Chainable<void>;
+    execDeleteFile(fileName: string): Chainable<void>;
+    addFileToPipeline(fileName: string): Chainable<void>;
+    openFile(fileName: string): Chainable<void>;
+    getFileByType(type: string): Chainable<JQuery<HTMLElement>>;
+    resetJupyterLab(): Chainable<void>;
+  }
+}

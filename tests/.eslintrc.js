@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-module.exports = (_on, _config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
+module.exports = {
+  plugins: ['cypress'],
+  env: {
+    'cypress/globals': true,
+    node: true
+  }
 };
