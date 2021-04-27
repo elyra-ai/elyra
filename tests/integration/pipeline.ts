@@ -161,7 +161,7 @@ describe('Pipeline Editor tests', () => {
     cy.get(
       '.lm-TabBar-tab.lm-mod-current > .lm-TabBar-tabCloseIcon:visible'
     ).click();
-    closePipelineEditorWithoutSaving();
+    closePipelineEditor();
   });
 
   it.only('should save runtime configuration', () => {
