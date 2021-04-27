@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.4 (4/26/2021)
+
+- Move cos_secret parameter into original cos category [1624](https://github.com/elyra-ai/elyra/pull/1624)
+- Add cos_secret option to runtime metadata configuration [1529](https://github.com/elyra-ai/elyra/pull/1529)
+- Update Makefile to simplify publishing container [1623](https://github.com/elyra-ai/elyra/pull/1623)
+
 ## 2.2.3 (4/26/2021)
 
 - Update airflow-notebook version to v0.0.7 [1619](https://github.com/elyra-ai/elyra/pull/1619)
