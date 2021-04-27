@@ -546,12 +546,12 @@ def initialize_config(args=None) -> SimpleNamespace:
         'source_dir': os.path.join(os.getcwd(), DEFAULT_BUILD_DIR, 'elyra'),
         'old_version': elyra.__version__,
         'old_npm_version': f"{v['major']}.{v['minor']}.{v['patch']}-dev",
-        'new_version': args.version if not args.rc or not str.isdigit(args.rc) else f'{args.version}rc{args.rc}',
-        'new_npm_version': args.version if not args.rc or not str.isdigit(args.rc) else f'{args.version}-rc.{args.rc}',
+        'new_version': args.version if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta)) else f'{args.version}rc{args.rc}' if args.rc else f'{args.version}b{args.beta}',
+        'new_npm_version': args.version if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta)) else f'{args.version}-rc.{args.rc}' if args.rc else f'{args.version}-beta.{args.beta}',
         'rc': args.rc,
         'dev_version': f'{args.dev_version}.dev0',
         'dev_npm_version': f'{args.dev_version}-dev',
-        'tag': f'v{args.version}' if not args.rc or not str.isdigit(args.rc) else f'v{args.version}rc{args.rc}'
+        'tag': f'v{args.version}' if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta)) else f'v{args.version}rc{args.rc}' if args.rc else f'v{args.version}b{args.beta}'
     }
 
     global config
@@ -592,10 +592,12 @@ def print_help() -> str:
     DESCRIPTION
     Creates Elyra release based on git commit hash or from HEAD.
     
-    create-release.py prepare --version 1.3.0 --dev-version 1.4.0 [--rc 0]
-    This form will prepare a release candidate, build it locally and push the changes to a branch for review.  
+    create-release.py prepare --version 1.3.0 --dev-version 1.4.0 [--beta 0] [--rc 0]
+    This form will prepare a release candidate, build it locally and push the changes to a branch for review.
     
-    create-release.py publish --version 1.3.0
+    Note: that one can either use a beta or rc modifier for the release, but not both.
+
+    create-release.py publish --version 1.3.0 [--beta 0] [--rc 0]
     This form will build a previously prepared release, and publish the artifacts to public repositories.
     
     Required software dependencies for building and publishing a release:
@@ -617,9 +619,16 @@ def main(args=None):
     parser = argparse.ArgumentParser(usage=print_help())
     parser.add_argument('goal', help='Supported goals: {prepare-changelog | prepare | publish}', type=str, choices={'prepare-changelog', 'prepare', 'publish'})
     parser.add_argument('--version', help='the new release version', type=str, required=True)
-    parser.add_argument('--dev-version', help='the new development version', type=str, required=False, )
-    parser.add_argument('--rc', help='the release candidate number', type=str, required=False, )
+    parser.add_argument('--dev-version', help='the new development version', type=str, required=False)
+    parser.add_argument('--beta', help='the release beta number', type=str, required=False)
+    parser.add_argument('--rc', help='the release candidate number', type=str, required=False)
     args = parser.parse_args()
+
+    # can't use both rc and beta parameters
+    if args.beta and args.rc:
+        print_help()
+        sys.exit(1)
+
 
     global config
     try:
