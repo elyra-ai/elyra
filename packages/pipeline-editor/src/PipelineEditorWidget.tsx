@@ -303,6 +303,25 @@ const PipelineWrapper: React.FC<IProps> = ({
     let title = 'Export pipeline';
     if (pipelineRuntime) {
       title = `Export pipeline for ${pipelineRuntime.display_name}`;
+      const filteredRuntimeOptions = PipelineService.filterRuntimes(
+        runtimes,
+        pipelineRuntime.name
+      );
+      if (filteredRuntimeOptions.length === 0) {
+        const runtimes = await RequestErrors.noMetadataError(
+          'runtime',
+          'export pipeline.',
+          pipelineRuntime.display_name
+        );
+        if (Utils.isDialogResult(runtimes)) {
+          if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+            // Open the runtimes widget
+            shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+          }
+          return;
+        }
+        return;
+      }
     }
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
@@ -434,6 +453,25 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
     if (pipelineRuntime) {
       title = `Run pipeline on ${pipelineRuntime.display_name}`;
+      const filteredRuntimeOptions = PipelineService.filterRuntimes(
+        runtimes,
+        pipelineRuntime.name
+      );
+      if (filteredRuntimeOptions.length === 0) {
+        const runtimes = await RequestErrors.noMetadataError(
+          'runtime',
+          'run pipeline.',
+          pipelineRuntime.display_name
+        );
+        if (Utils.isDialogResult(runtimes)) {
+          if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+            // Open the runtimes widget
+            shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+          }
+          return;
+        }
+        return;
+      }
     }
 
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
