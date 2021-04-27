@@ -27,15 +27,13 @@ interface IProps {
 
 interface IState {
   displayedRuntimeOptions: IRuntime[];
-  selectedRuntimePlatform: string;
   validSchemas: ISchema[];
+  selectedRuntimePlatform?: string;
 }
 
 export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
-  state = {
+  state: IState = {
     displayedRuntimeOptions: new Array<IRuntime>(),
-    selectedRuntimePlatform:
-      this.props.runtime ?? (this.props.schema[0] && this.props.schema[0].name),
     validSchemas: new Array<ISchema>()
   };
 
@@ -63,7 +61,9 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
 
     this.setState({
       displayedRuntimeOptions: this.updateRuntimeOptions(
-        this.state.selectedRuntimePlatform
+        this.state.selectedRuntimePlatform ??
+          this.props.runtime ??
+          (this.props.schema[0] && this.props.schema[0].name)
       ),
       validSchemas: PipelineService.filterValidSchema(runtimes, schema)
     });
@@ -99,7 +99,11 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
               name="runtime_platform"
               className="elyra-form-runtime-platform"
               data-form-required
-              value={selectedRuntimePlatform}
+              value={
+                selectedRuntimePlatform ??
+                this.props.runtime ??
+                (this.props.schema[0] && this.props.schema[0].name)
+              }
               onChange={this.handleUpdate}
             >
               {validSchemas.map(schema => (
