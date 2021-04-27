@@ -635,3 +635,8 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 .toolbar-overflow-menu-item button:hover {
   background-color: var(--jp-border-color1);
 }
+
+/* fix font ligatures */
+.lsp-completer-theme-vscode {
+  letter-spacing: normal;
+}
