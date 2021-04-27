@@ -263,7 +263,7 @@ const extension: JupyterFrontEndPlugin<void> = {
                 args: { runtime }
               }
             ],
-            runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
+            runtime.name === 'kfp' ? 31 : runtime.name === 'airflow' ? 32 : 33
           );
         }
       },
