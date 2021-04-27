@@ -292,7 +292,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       themeManager,
       display_name: 'Runtimes',
       namespace: RUNTIMES_NAMESPACE,
-      icon: runtimesIcon
+      icon: runtimesIcon,
+      schemaType: 'runtime'
     });
     const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}`;
     runtimesWidget.id = runtimesWidgetID;
