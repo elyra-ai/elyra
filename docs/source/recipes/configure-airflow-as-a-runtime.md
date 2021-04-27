@@ -37,7 +37,7 @@ AND
 - A Kubernetes Cluster without Apache Airflow installed
     - Ensure Kubernetes is at least v1.18. Earlier versions might work  but have not been tested.
     - Helm v3.0 or later
-    - Use the [Helm chart](https://github.com/airflow-helm/charts/tree/main/charts/airflow) available in the Airflow source distribution with the [Elyra sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml).
+    - Use the [Helm chart](https://github.com/airflow-helm/charts/tree/main/charts/airflow) available in the Airflow source distribution with the [Elyra sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/v2.2.4/etc/kubernetes/airflow/helm/values.yaml).
     
 OR  
   
@@ -75,7 +75,7 @@ To deploy Apache Airflow on a new Kubernetes cluster:
    kubectl create secret generic airflow-secret --from-file=id_rsa=.ssh/id_rsa --from-file=known_hosts=.ssh/known_hosts --from-file=id_rsa.pub=.ssh/id_rsa.pub -n airflow
    ```
   
-2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration):
+2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/v2.2.4/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration):
    - Set `git.url` to the URL of the private repository you created earlier, e.g. `ssh://git@github.com/your-git-org/your-dag-repo`
    - Set `git.ref` to the DAG branch, e.g. `main`.
    - Set `git.secret` to the name of the secret you created, e.g. `airflow-secret`.
@@ -125,7 +125,7 @@ To deploy Apache Airflow on a new Kubernetes cluster:
      repository: elyra/airflow
    ```    
   
-   The container image is created using [this `Dockerfile`](https://github.com/elyra-ai/elyra/tree/master/etc/docker/airflow) and published on [Docker Hub](https://hub.docker.com/r/elyra/airflow) and [quay.io](https://quay.io/repository/elyra/airflow).
+   The container image is created using [this `Dockerfile`](https://github.com/elyra-ai/elyra/tree/v2.2.4/etc/docker/airflow) and published on [Docker Hub](https://hub.docker.com/r/elyra/airflow) and [quay.io](https://quay.io/repository/elyra/airflow).
 
 3. Install Apache Airflow using the customized configuration.
   

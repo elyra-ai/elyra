@@ -1,6 +1,6 @@
 {
   "name": "@elyra/script-editor",
-  "version": "2.2.4-dev",
+  "version": "2.2.4",
   "description": "JupyterLab - Run python and R scripts using a kernel runtime",
   "keywords": [
     "jupyter",
@@ -31,7 +31,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@elyra/ui-components": "^2.2.4-dev",
+    "@elyra/ui-components": "^2.2.4",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/codeeditor": "^3.0.0",
     "@jupyterlab/docregistry": "^3.0.0",
