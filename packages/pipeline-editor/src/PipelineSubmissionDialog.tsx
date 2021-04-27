@@ -47,10 +47,12 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
     });
   };
 
-  updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
+  updateRuntimeOptions = (platformSelection?: string): IRuntime[] => {
     const filteredRuntimeOptions = PipelineService.filterRuntimes(
       this.props.runtimes,
-      platformSelection
+      platformSelection ??
+        this.props.runtime ??
+        (this.props.schema[0] && this.props.schema[0].name)
     );
     PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
     return filteredRuntimeOptions;
@@ -61,9 +63,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
 
     this.setState({
       displayedRuntimeOptions: this.updateRuntimeOptions(
-        this.state.selectedRuntimePlatform ??
-          this.props.runtime ??
-          (this.props.schema[0] && this.props.schema[0].name)
+        this.state.selectedRuntimePlatform
       ),
       validSchemas: PipelineService.filterValidSchema(runtimes, schema)
     });
