@@ -35,7 +35,7 @@ const AIRFLOW_FILE_TYPES = [
 interface IProps {
   runtimes: IRuntime[];
   schema: ISchema[];
-  runtime?: IRuntime;
+  runtime?: string;
 }
 
 interface IState {
@@ -84,7 +84,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
 
     const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
     const selectedRuntimePlatform =
-      this.props.runtime?.name ?? (validSchemas[0] && validSchemas[0].name);
+      this.props.runtime ?? (validSchemas[0] && validSchemas[0].name);
     const displayedRuntimeOptions = this.updateRuntimeOptions(
       selectedRuntimePlatform
     );

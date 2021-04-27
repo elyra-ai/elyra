@@ -22,7 +22,7 @@ interface IProps {
   name: string;
   runtimes: IRuntime[];
   schema: ISchema[];
-  runtime?: IRuntime;
+  runtime?: string;
 }
 
 interface IState {
@@ -35,8 +35,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
     selectedRuntimePlatform:
-      this.props.runtime?.name ??
-      (this.props.schema[0] && this.props.schema[0].name),
+      this.props.runtime ?? (this.props.schema[0] && this.props.schema[0].name),
     validSchemas: new Array<ISchema>()
   };
 

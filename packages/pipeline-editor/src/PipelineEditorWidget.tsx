@@ -310,7 +310,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       body: formDialogWidget(
         <PipelineExportDialog
           runtimes={runtimes}
-          runtime={pipelineRuntime}
+          runtime={pipelineRuntime?.name}
           schema={schema}
         />
       ),
@@ -442,7 +442,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineSubmissionDialog
           name={pipelineName}
           runtimes={runtimes}
-          runtime={pipelineRuntime}
+          runtime={pipelineRuntime?.name}
           schema={schema}
         />
       ),

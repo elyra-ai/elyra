@@ -192,7 +192,15 @@ const extension: JupyterFrontEndPlugin<void> = {
                   id: 'primary',
                   nodes: [],
                   app_data: {
-                    ui_data: { comments: [], runtime: args.runtime },
+                    ui_data: {
+                      comments: [],
+                      runtime: args.runtime
+                        ? {
+                            name: args.runtime?.name,
+                            display_name: args.runtime?.display_name
+                          }
+                        : null
+                    },
                     version: PIPELINE_CURRENT_VERSION
                   },
                   runtime_ref: ''
