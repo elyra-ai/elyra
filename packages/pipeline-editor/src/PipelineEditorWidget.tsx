@@ -155,6 +155,20 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     currentContext.ready.then(changeHandler);
 
+    PipelineService.getRuntimeImages()
+      .then((images: any) => {
+        runtimeImages.current = images;
+        const nodesCopy = JSON.parse(JSON.stringify(nodes));
+        for (const node of nodesCopy) {
+          node.properties.uihints.parameter_info[1].data.items = Object.values(
+            runtimeImages.current
+          );
+        }
+        setUpdatedNodes(nodesCopy);
+        changeHandler();
+      })
+      .catch(error => RequestErrors.serverError(error));
+
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
@@ -194,20 +208,6 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   const runtimeImages = React.useRef({});
-  useEffect(() => {
-    PipelineService.getRuntimeImages()
-      .then((images: any) => {
-        runtimeImages.current = images;
-        const nodesCopy = JSON.parse(JSON.stringify(nodes));
-        for (const node of nodesCopy) {
-          node.properties.uihints.parameter_info[1].data.items = Object.values(
-            runtimeImages.current
-          );
-        }
-        setUpdatedNodes(nodesCopy);
-      })
-      .catch(error => RequestErrors.serverError(error));
-  }, []);
 
   const onFileRequested = (args: any): Promise<string> => {
     let currentExt = '';
