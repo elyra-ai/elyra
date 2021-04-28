@@ -79,6 +79,8 @@ Cypress.Commands.add('createPipelineEditor', (): void => {
     '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]'
   ).click();
   cy.get('.common-canvas-drop-div');
+  // wait an additional 300ms for the list of items to settle
+  cy.wait(300);
 });
 
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {

@@ -14,10 +14,10 @@
 # limitations under the License.
 #
 c.Session.debug = True
-c.LabApp.token = 'test'
+c.ServerApp.token = 'test'
+c.ServerApp.port = 58888
+c.ServerApp.port_retries = 0
+c.ServerApp.quit_button = False
 c.LabApp.open_browser = False
-c.NotebookApp.port = 58888
-c.NotebookApp.port_retries = 0
 c.LabApp.workspaces_dir = './build/cypress-tests'
 c.FileContentsManager.root_dir = './build/cypress-tests'
-c.LabApp.quit_button = False

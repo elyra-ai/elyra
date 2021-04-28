@@ -160,7 +160,7 @@ describe('Pipeline Editor tests', () => {
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
     // dismiss 'Making request' dialog
-    cy.findByRole('button', { name: /ok/i }).click();
+    // cy.findByRole('button', { name: /ok/i }).click();
     // validate job was executed successfully
     cy.findByText(/job execution succeeded/i).should('be.visible');
     // dismiss 'Job Succeeded' dialog
@@ -180,7 +180,7 @@ describe('Pipeline Editor tests', () => {
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
     // dismiss 'Making request' dialog
-    cy.findByRole('button', { name: /ok/i }).click();
+    // cy.findByRole('button', { name: /ok/i }).click();
     // validate job was executed successfully
     cy.findByText(/job execution succeeded/i).should('be.visible');
     // dismiss 'Job Succeeded' dialog
@@ -231,8 +231,6 @@ describe('Pipeline Editor tests', () => {
       .should('have.value', 'yaml');
 
     // actual export requires minio
-    cy.findByRole('button', { name: /ok/i }).click();
-    // dismiss 'Making request' dialog
     cy.findByRole('button', { name: /ok/i }).click();
     // validate job was executed successfully
     cy.findByText(/pipeline export succeeded/i).should('be.visible');

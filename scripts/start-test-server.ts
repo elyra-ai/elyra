@@ -37,14 +37,10 @@ const docker = spawn('docker', [
 
 const logDir = path.join(__dirname, '..', 'build', 'cypress-tests');
 
-const jupyterLog = fs.createWriteStream(path.join(logDir, 'jupyter.log'), {
-  flags: 'a'
-});
+const jupyterLog = fs.createWriteStream(path.join(logDir, 'jupyter.log'));
 jupyter.stderr.pipe(jupyterLog);
 
-const dockerLog = fs.createWriteStream(path.join(logDir, 'docker.log'), {
-  flags: 'a'
-});
+const dockerLog = fs.createWriteStream(path.join(logDir, 'docker.log'));
 docker.stderr.pipe(dockerLog);
 
 const handleTeardown = (): void => {
