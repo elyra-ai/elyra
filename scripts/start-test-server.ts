@@ -15,14 +15,15 @@
  */
 
 import { spawn } from 'child_process';
+import fs from 'fs';
 import path from 'path';
 
 const config = path.join(__dirname, '..', 'tests', 'test-config.py');
-spawn('jupyter', ['lab', '--config', config]);
+const jupyter = spawn('jupyter', ['lab', '--config', config]);
 
 const CONTAINER_NAME = 'minio_test';
 
-spawn('docker', [
+const docker = spawn('docker', [
   'run',
   '--rm',
   '--name',
@@ -33,6 +34,18 @@ spawn('docker', [
   'server',
   '/data'
 ]);
+
+const logDir = path.join(__dirname, '..', 'build', 'cypress-tests');
+
+const jupyterLog = fs.createWriteStream(path.join(logDir, 'jupyter.log'), {
+  flags: 'a'
+});
+jupyter.stderr.pipe(jupyterLog);
+
+const dockerLog = fs.createWriteStream(path.join(logDir, 'docker.log'), {
+  flags: 'a'
+});
+docker.stderr.pipe(dockerLog);
 
 const handleTeardown = (): void => {
   spawn('docker', ['kill', CONTAINER_NAME]);

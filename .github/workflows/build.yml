@@ -89,6 +89,7 @@ jobs:
       if: failure()
       with:
         path: |
+          ${{ github.workspace }}/build/cypress-tests/*.log
           ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
           ${{ github.workspace }}/build/cypress-tests/videos//**/*
           /home/runner/.npm/_logs/*.log
