@@ -176,7 +176,7 @@ describe('Pipeline Editor tests', () => {
     );
     // go back to file browser
     cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
-    closePipelineEditorWithoutSaving();
+    closePipelineEditor();
   });
 
   it('should fail to run invalid pipeline', () => {
