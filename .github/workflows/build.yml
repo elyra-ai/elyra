@@ -42,9 +42,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
         architecture: 'x64'
     - name: Set up Node
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
-         node-version: '12.18'
+         node-version: '*'
     - name: Create npm configuration for authentication
       run: |
         echo "scripts-prepend-node-path=true" >> ~/.npmrc

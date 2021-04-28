@@ -16,8 +16,8 @@
     "prettier:check": "prettier --ignore-path .gitignore --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "test": "npm run test:unit && npm run test:integration",
     "start": "ts-node scripts/start-test-server.ts",
-    "test:integration": "server-test ':9000/minio/health/live|http-get://localhost:58888?token=test' cy:run",
-    "test:integration:debug": "server-test ':9000/minio/health/live|http-get://localhost:58888?token=test' cy:open",
+    "test:integration": "server-test 'yarn start' ':9000/minio/health/live|http-get://localhost:58888?token=test' 'yarn cy:run'",
+    "test:integration:debug": "server-test 'yarn start' ':9000/minio/health/live|http-get://localhost:58888?token=test' 'yarn cy:open'",
     "test:unit": "lerna run test --scope \"@elyra/*\" --concurrency 1 --stream"
   },
   "husky": {
