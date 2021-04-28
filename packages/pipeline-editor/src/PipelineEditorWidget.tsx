@@ -135,12 +135,16 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const changeHandler = (): void => {
       const pipelineJson: any = currentContext.model.toJSON();
-      // Update to display actual value of runtime image
-      for (const node of pipelineJson?.pipelines?.[0]?.nodes) {
-        const app_data = node?.app_data;
-        if (app_data?.runtime_image) {
-          app_data.runtime_image =
-            runtimeImages.current?.[app_data.runtime_image];
+      if (pipelineJson?.pipelines?.[0]?.nodes) {
+        // Update to display actual value of runtime image
+        for (const node of pipelineJson?.pipelines?.[0]?.nodes) {
+          const app_data = node?.app_data;
+          if (app_data?.runtime_image) {
+            if (runtimeImages.current?.[app_data.runtime_image]) {
+              app_data.runtime_image =
+                runtimeImages.current?.[app_data.runtime_image];
+            }
+          }
         }
       }
       setPipeline(pipelineJson);
@@ -158,13 +162,15 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const onChange = useCallback((pipelineJson: any): void => {
     if (contextRef.current.isReady) {
-      // Update to store tag of runtime image
-      for (const node of pipelineJson?.pipelines?.[0]?.nodes) {
-        const app_data = node?.app_data;
-        if (app_data?.runtime_image) {
-          for (const tag in runtimeImages.current) {
-            if (runtimeImages.current?.[tag] === app_data?.runtime_image) {
-              app_data.runtime_image = tag;
+      if (pipelineJson?.pipelines?.[0]?.nodes) {
+        // Update to store tag of runtime image
+        for (const node of pipelineJson?.pipelines?.[0]?.nodes) {
+          const app_data = node?.app_data;
+          if (app_data?.runtime_image) {
+            for (const tag in runtimeImages.current) {
+              if (runtimeImages.current?.[tag] === app_data?.runtime_image) {
+                app_data.runtime_image = tag;
+              }
             }
           }
         }
