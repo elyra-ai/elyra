@@ -22,29 +22,39 @@ Cypress.Commands.add('closeCurrentTab', (): void => {
 
 // TODO: we shouldn't have to fill out the form for any test that isn't specifically
 // testing filling out forms.
-Cypress.Commands.add('createRuntimeConfig', (): void => {
+Cypress.Commands.add('createRuntimeConfig', ({ type }): void => {
   cy.findByRole('button', { name: /create new runtime/i }).click();
 
-  cy.findByRole('menuitem', { name: /apache airflow/i }).click();
+  if (type === 'kfp') {
+    cy.findByRole('menuitem', { name: /kubeflow pipelines/i }).click();
+  } else {
+    cy.findByRole('menuitem', { name: /apache airflow/i }).click();
+  }
 
   cy.findByLabelText(/^name/i).type('Test Runtime');
-  cy.findByLabelText(/airflow .* endpoint/i).type(
-    'https://kubernetes-service.ibm.com/pipeline'
-  );
-  cy.findByLabelText(/github .* repository \*/i).type('akchinstc/test-repo');
-  cy.findByLabelText(/github .* branch/i).type('main');
-  cy.findByLabelText(/github .* token/i).type('xxxxxxxx');
+
+  if (type === 'kfp') {
+    cy.findByLabelText(/kubeflow .* endpoint \*/i).type(
+      'https://kubernetes-service.ibm.com/pipeline'
+    );
+  } else {
+    cy.findByLabelText(/airflow .* endpoint/i).type(
+      'https://kubernetes-service.ibm.com/pipeline'
+    );
+    cy.findByLabelText(/github .* repository \*/i).type('akchinstc/test-repo');
+    cy.findByLabelText(/github .* branch/i).type('main');
+    cy.findByLabelText(/github .* token/i).type('xxxxxxxx');
+    // Check the default value is displayed on github api endpoint field
+    cy.findByLabelText(/github .* endpoint/i).should(
+      'have.value',
+      'https://api.github.com'
+    );
+  }
 
   cy.findByLabelText(/object storage endpoint/i).type('http://0.0.0.0:9000');
   cy.findByLabelText(/object storage username/i).type('minioadmin');
   cy.findByLabelText(/object storage password/i).type('minioadmin');
   cy.findByLabelText(/object storage bucket/i).type('test-bucket');
-
-  // Check the default value is displayed on github api endpoint field
-  cy.findByLabelText(/github .* endpoint/i).should(
-    'have.value',
-    'https://api.github.com'
-  );
 
   // save it
   cy.findByRole('button', { name: /save/i }).click();
@@ -66,7 +76,7 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add('execDeleteFile', (name: string): void => {
-  cy.exec(`find build/cypress-tests/ -name ${name} -delete`, {
+  cy.exec(`find build/cypress-tests/ -name "${name}" -delete`, {
     failOnNonZeroExit: false
   });
 });
@@ -82,6 +92,12 @@ Cypress.Commands.add('openFile', (name: string): void => {
   cy.findByRole('listitem', {
     name: (n, _el) => n.includes(name)
   }).dblclick();
+});
+
+Cypress.Commands.add('bootstrapFile', (name: string): void => {
+  cy.readFile(`tests/assets/${name}`).then((file: any) => {
+    cy.writeFile(`build/cypress-tests/${name}`, file);
+  });
 });
 
 Cypress.Commands.add('resetJupyterLab', (): void => {

@@ -26,16 +26,12 @@ describe('Pipeline Editor tests', () => {
   });
 
   beforeEach(() => {
-    cy.readFile('tests/assets/helloworld.ipynb').then((file: any) => {
-      cy.writeFile('build/cypress-tests/helloworld.ipynb', file);
-      cy.exec('jupyter trust build/cypress-tests/helloworld.ipynb');
-    });
-    cy.readFile('tests/assets/helloworld.py').then((file: any) => {
-      cy.writeFile('build/cypress-tests/helloworld.py', file);
-    });
-    cy.readFile('tests/assets/helloworld.r').then((file: any) => {
-      cy.writeFile('build/cypress-tests/helloworld.r', file);
-    });
+    cy.execDeleteFile('*.pipeline'); // delete pipeline files used for testing
+
+    cy.bootstrapFile('helloworld.ipynb');
+    cy.exec('jupyter trust build/cypress-tests/helloworld.ipynb');
+    cy.bootstrapFile('helloworld.py');
+    cy.bootstrapFile('helloworld.r');
 
     cy.resetJupyterLab();
   });
@@ -140,105 +136,72 @@ describe('Pipeline Editor tests', () => {
     });
   });
 
-  it.only('should fail to run invalid pipeline', () => {
+  it('should fail to run invalid pipeline', () => {
     // Copy invalid pipeline
-    cy.readFile('tests/assets/invalid.pipeline').then((file: any) => {
-      cy.writeFile('build/cypress-tests/invalid.pipeline', file);
-    });
+    cy.bootstrapFile('invalid.pipeline');
 
     // opens pipeline from the file browser
     cy.openFile('invalid.pipeline');
 
-    // TODO:
     // try to run invalid pipeline
-    cy.get('.run-action button').click();
-    cy.get('.MuiAlert-message').should('be.visible');
-    cy.get('.d3-node-dec-image').should('exist');
+    cy.findByRole('button', { name: /run pipeline/i }).click();
+
+    cy.findByText(/failed run:/i).should('be.visible');
   });
 
   it('should run pipeline after adding runtime image', () => {
     openPipelineEditor();
-    // add Notebook
-    getFileByName('helloworld.ipynb').click();
-    getFileByName('helloworld.ipynb').rightclick();
-    cy.get('[data-command="pipeline-editor:add-node"]').click();
-    // Adds runtime image to new node
-    cy.get('.d3-node-label').rightclick();
-    cy.get('.react-contextmenu-item:nth-child(9)')
-      .contains('Properties')
-      .click();
-    cy.get(
-      'div.properties-dropdown[data-id="properties-runtime_image"]'
-    ).click();
 
-    // selects the first item of the runtimes dropdown
-    cy.get('#downshift-0-item-0').click();
-    cy.get('.bx--btn--primary')
-      .contains('Close')
-      .click();
-    // Checks that validation passed
-    cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
-    // try to run pipeline
-    cy.get('.run-action button').click();
+    cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
-    // Input name should match pipeline name
-    cy.get('input#pipeline_name[data-form-required="true"]')
-      .should('exist')
-      .should('have.value', 'untitled');
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb').rightclick();
 
-    // Runtime option should be pre-populated with local config
-    cy.get('select#runtime_config[data-form-required="true"]')
-      .should('exist')
-      .select('Run in-place locally')
-      .should('have.value', 'local');
+      cy.findByRole('menuitem', { name: /properties/i }).click();
+
+      // Adds runtime image to new node
+      // TODO we should use the `for` attribute for the label
+      cy.get('#downshift-0-toggle-button').click();
+
+      cy.findByRole('option', { name: /anaconda/i }).click();
+    });
+
+    cy.findByRole('button', { name: /save pipeline/i }).click();
+    cy.findByRole('button', { name: /run pipeline/i }).click();
+
+    cy.findByLabelText(/pipeline name/i).should('have.value', 'untitled');
+    cy.findByLabelText(/runtime platform/i).should('have.value', 'local');
+    cy.findByLabelText(/runtime configuration/i).should('have.value', 'local');
 
     // execute
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+    cy.findByRole('button', { name: /ok/i }).click();
     // dismiss 'Making request' dialog
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+    cy.findByRole('button', { name: /ok/i }).click();
     // validate job was executed successfully
-    cy.get('.jp-Dialog-header').contains('Job execution succeeded');
+    cy.findByText(/job execution succeeded/i).should('be.visible');
     // dismiss 'Job Succeeded' dialog
-    cy.get('button.jp-mod-accept').click();
+    cy.findByRole('button', { name: /ok/i }).click();
   });
 
   it('should run pipeline with env vars and output files', () => {
-    cy.readFile('tests/assets/helloworld.pipeline').then((file: any) => {
-      cy.writeFile('build/cypress-tests/helloworld.pipeline', file);
-    });
-    cy.wait(300);
+    cy.bootstrapFile('helloworld.pipeline');
 
-    getFileByName('helloworld.pipeline').rightclick();
-    cy.get('[data-command="filebrowser:open"]').click();
+    cy.openFile('helloworld.pipeline');
 
-    // Checks that validation passed
-    cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
-    // try to run pipeline
-    cy.get('.run-action button').click();
+    cy.findByRole('button', { name: /run pipeline/i }).click();
 
-    // Input name should match pipeline name
-    cy.get('input#pipeline_name[data-form-required="true"]')
-      .should('exist')
-      .should('have.value', 'helloworld');
-
-    // Runtime option should be pre-populated with local config
-    cy.get('select#runtime_config[data-form-required="true"]')
-      .should('exist')
-      .select('Run in-place locally')
-      .should('have.value', 'local');
+    cy.findByLabelText(/pipeline name/i).should('have.value', 'helloworld');
+    cy.findByLabelText(/runtime configuration/i).should('have.value', 'local');
 
     // execute
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+    cy.findByRole('button', { name: /ok/i }).click();
     // dismiss 'Making request' dialog
-    cy.get('button.jp-mod-accept').click();
-    cy.wait(100);
+    cy.findByRole('button', { name: /ok/i }).click();
     // validate job was executed successfully
-    cy.get('.jp-Dialog-header').contains('Job execution succeeded');
+    cy.findByText(/job execution succeeded/i).should('be.visible');
     // dismiss 'Job Succeeded' dialog
-    cy.get('button.jp-mod-accept').click();
+    cy.findByRole('button', { name: /ok/i }).click();
+
     cy.readFile('build/cypress-tests/output.txt').should(
       'be.equal',
       'TEST_ENV_1=1\nTEST_ENV_2=2\n'
@@ -247,76 +210,55 @@ describe('Pipeline Editor tests', () => {
 
   it('should fail to export invalid pipeline', () => {
     // Copy invalid pipeline
-    cy.readFile('tests/assets/invalid.pipeline').then((file: any) => {
-      cy.writeFile('build/cypress-tests/invalid.pipeline', file);
-    });
-    cy.wait(300);
+    cy.bootstrapFile('invalid.pipeline');
 
-    // opens pileine from the file browser
-    cy.get('.jp-DirListing-content > [data-file-type="pipeline"]').dblclick();
-    // try to export invalid pipeline
-    cy.get('.export-action button').click();
-    cy.get('.MuiAlert-message').should('be.visible');
-    cy.get('.d3-node-dec-image').should('exist');
+    cy.openFile('invalid.pipeline');
 
-    // closes alert message
-    // cy.get('.MuiAlert-action > button[aria-label="close"]').click();
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    cy.findByText(/failed export:/i).should('be.visible');
   });
 
-  it('should export pipeline', () => {
-    cy.readFile('tests/assets/helloworld.pipeline').then((file: any) => {
-      cy.writeFile('build/cypress-tests/helloworld.pipeline', file);
-    });
-    cy.wait(300);
+  // TODO: having difficulties with minio
+  //   it('should export pipeline', () => {
+  //     cy.bootstrapFile('helloworld.pipeline');
 
-    getFileByName('helloworld.pipeline').rightclick();
-    cy.get('[data-command="filebrowser:open"]').click();
+  //     cy.findByRole('tab', { name: /runtimes/i }).click();
 
-    // Checks that validation passed
-    cy.get('image[data-id="node_dec_image_2_error"]').should('not.exist');
+  //     // Create runtime configuration
+  //     cy.createRuntimeConfig({ type: 'kfp' });
 
-    // Open runtimes sidebar
-    cy.get('.openRuntimes-action button').click();
-    // Create runtime configuration
-    cy.createRuntimeConfig();
-    // go back to file browser
-    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
+  //     // go back to file browser
+  //     cy.findByRole('tab', { name: /file browser/i }).click();
 
-    // try to export valid pipeline
-    cy.get('.export-action button').click();
+  //     cy.openFile('helloworld.pipeline');
 
-    // Runtime option should be pre-populated with local config
-    cy.get('select#runtime_config[data-form-required="true"]')
-      .should('exist')
-      .select('Test Runtime')
-      .should('have.value', 'test_runtime');
+  //     // try to export valid pipeline
+  //     cy.findByRole('button', { name: /export pipeline/i }).click();
 
-    // Validate all export options are available
-    cy.get('select#pipeline_filetype[data-form-required="true"]')
-      .should('exist')
-      .select('KFP domain-specific language Python code')
-      .should('have.value', 'py');
+  //     cy.findByLabelText(/runtime configuration/i)
+  //       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
+  //       .should('have.value', 'test_runtime');
 
-    cy.get('select#pipeline_filetype[data-form-required="true"]')
-      .should('exist')
-      .select('KFP static configuration file (YAML formatted)')
-      .should('have.value', 'yaml');
+  //     // Validate all export options are available
+  //     cy.findByLabelText(/export pipeline as/i)
+  //       .select('KFP domain-specific language Python code')
+  //       .should('have.value', 'py')
+  //       .select('KFP static configuration file (YAML formatted)')
+  //       .should('have.value', 'yaml');
 
-    // actual export requires minio
-    cy.get('button.jp-mod-accept', { timeout: 10000 }).should('be.visible');
-    cy.get('button.jp-mod-accept').click({
-      force: true
-    });
-    // dismiss 'Making request' dialog
-    cy.get('button.jp-mod-accept', { timeout: 10000 }).should('be.visible');
-    cy.get('button.jp-mod-accept').click({
-      force: true
-    });
-    cy.readFile('build/cypress-tests/helloworld.yaml');
-    cy.exec('find build/cypress-tests/ -name helloworld.yaml -delete', {
-      failOnNonZeroExit: false
-    });
-  });
+  //     // actual export requires minio
+  //     cy.findByRole('button', { name: /ok/i }).click();
+  //     // dismiss 'Making request' dialog
+  //     cy.findByRole('button', { name: /ok/i }).click();
+  //     // validate job was executed successfully
+  //     cy.findByText(/job execution succeeded/i, { timeout: 30000 }).should(
+  //       'be.visible'
+  //     );
+
+  //     cy.readFile('build/cypress-tests/helloworld.yaml');
+  //     cy.execDeleteFile('helloworld.yaml');
+  //   });
 });
 
 // ------------------------------
@@ -328,10 +270,6 @@ const openPipelineEditor = (): void => {
     '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]'
   ).click();
   cy.get('.common-canvas-drop-div');
-};
-
-const getFileByName = (name: string): any => {
-  return cy.get(`.jp-DirListing-itemText:contains(${name})`);
 };
 
 const checkEnabledToolbarButtons = (buttons: RegExp[]): void => {

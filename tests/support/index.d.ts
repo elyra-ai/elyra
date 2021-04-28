@@ -17,11 +17,12 @@ declare namespace Cypress {
   // eslint-disable-next-line @typescript-eslint/interface-name-prefix
   interface Chainable {
     closeCurrentTab(): Chainable<void>;
-    createRuntimeConfig(): Chainable<void>;
+    createRuntimeConfig(options?: { type?: 'kfp' }): Chainable<void>;
     deleteFileByName(fileName: string): Chainable<void>;
     execDeleteFile(fileName: string): Chainable<void>;
     addFileToPipeline(fileName: string): Chainable<void>;
     openFile(fileName: string): Chainable<void>;
+    bootstrapFile(fileName: string): Chainable<void>;
     getFileByType(type: string): Chainable<JQuery<HTMLElement>>;
     resetJupyterLab(): Chainable<void>;
   }
