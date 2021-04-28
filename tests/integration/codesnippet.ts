@@ -18,7 +18,7 @@ describe('Code Snippet tests', () => {
   const snippetName = 'test-code-snippet';
 
   beforeEach(() => {
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
     openCodeSnippetExtension();
   });
 

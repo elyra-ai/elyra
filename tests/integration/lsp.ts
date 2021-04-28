@@ -21,7 +21,7 @@ describe('LSP', () => {
       cy.writeFile('build/cypress-tests/helloworld.py', file);
     });
 
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
   });
 
   after(() => {

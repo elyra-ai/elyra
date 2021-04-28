@@ -15,8 +15,8 @@
  */
 
 describe('Git', () => {
-  it('opens jupyterlab', () => {
-    cy.visit('?token=test&reset');
+  beforeEach(() => {
+    cy.resetJupyterLab();
   });
 
   it('opens git extension', () => {

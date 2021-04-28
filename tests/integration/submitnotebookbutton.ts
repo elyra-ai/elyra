@@ -15,7 +15,7 @@
  */
 describe('Submit Notebook Button tests', () => {
   before(() => {
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
   });
 
   after(() => {

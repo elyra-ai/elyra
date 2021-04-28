@@ -15,7 +15,7 @@
  */
 describe('Script Editor tests', () => {
   before(() => {
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
   });
 
   after(() => {
