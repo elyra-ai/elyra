@@ -103,7 +103,7 @@ Cypress.Commands.add('bootstrapFile', (name: string): void => {
 Cypress.Commands.add('resetJupyterLab', (): void => {
   // open jupyterlab with a clean workspace
   cy.visit('?token=test&reset');
-  cy.findByRole('tab', { name: /file browser/i, timeout: 30000 }).should(
-    'be.visible'
+  cy.findByRole('tab', { name: /file browser/i, timeout: 25000 }).should(
+    'exist'
   );
 });
