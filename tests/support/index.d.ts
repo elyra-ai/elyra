@@ -18,9 +18,9 @@ declare namespace Cypress {
   interface Chainable {
     closeCurrentTab(): Chainable<void>;
     createRuntimeConfig(options?: { type?: 'kfp' }): Chainable<void>;
-    deleteFileByName(fileName: string): Chainable<void>;
-    execDeleteFile(fileName: string): Chainable<void>;
+    deleteFile(fileName: string): Chainable<void>;
     addFileToPipeline(fileName: string): Chainable<void>;
+    createPipelineEditor(): Chainable<void>;
     openFile(fileName: string): Chainable<void>;
     bootstrapFile(fileName: string): Chainable<void>;
     getFileByType(type: string): Chainable<JQuery<HTMLElement>>;

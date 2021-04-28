@@ -26,9 +26,7 @@ describe('LSP', () => {
 
   after(() => {
     // delete Python file used for testing
-    cy.exec('find build/cypress-tests/ -name helloworld.py -delete', {
-      failOnNonZeroExit: false
-    });
+    cy.deleteFile('helloworld.py');
   });
 
   it('LSP extension is initialized', () => {

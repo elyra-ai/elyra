@@ -60,14 +60,6 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByRole('button', { name: /save/i }).click();
 });
 
-Cypress.Commands.add('deleteFileByName', (fileName: string): void => {
-  cy.get(`.jp-DirListing-itemText:contains(${fileName})`).rightclick();
-  cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
-  cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
-    .should('be.visible')
-    .click();
-});
-
 Cypress.Commands.add(
   'getFileByType',
   (type: string): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -75,10 +67,18 @@ Cypress.Commands.add(
   }
 );
 
-Cypress.Commands.add('execDeleteFile', (name: string): void => {
+Cypress.Commands.add('deleteFile', (name: string): void => {
   cy.exec(`find build/cypress-tests/ -name "${name}" -delete`, {
     failOnNonZeroExit: false
   });
+});
+
+Cypress.Commands.add('createPipelineEditor', (): void => {
+  // TODO: find a better way to access this.
+  cy.get(
+    '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]'
+  ).click();
+  cy.get('.common-canvas-drop-div');
 });
 
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {

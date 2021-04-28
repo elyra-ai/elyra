@@ -21,7 +21,7 @@ describe('Submit Notebook Button tests', () => {
   after(() => {
     // go back to file browser and delete file created for testing
     cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
-    cy.deleteFileByName('Untitled.ipynb');
+    cy.deleteFile('Untitled.ipynb');
 
     // Delete runtime configuration used for testing
     cy.exec('elyra-metadata remove runtimes --name=test_runtime', {

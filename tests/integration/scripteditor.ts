@@ -20,8 +20,8 @@ describe('Script Editor tests', () => {
 
   after(() => {
     // delete files created for testing
-    cy.deleteFileByName('untitled.py');
-    cy.deleteFileByName('untitled.r');
+    cy.deleteFile('untitled.py');
+    cy.deleteFile('untitled.r');
 
     // Delete runtime configuration used for testing
     cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
@@ -37,7 +37,6 @@ describe('Script Editor tests', () => {
 
   it('close editor', () => {
     cy.get('.lm-TabBar-tabCloseIcon:visible').click();
-    cy.deleteFileByName('untitled.py');
   });
 
   it('opens blank Python file from menu', () => {

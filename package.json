@@ -14,11 +14,10 @@
     "eslint:check": "eslint . --ignore-path .gitignore --ext .ts,.tsx,.js",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "prettier:check": "prettier --ignore-path .gitignore --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
-    "start-jupyter": "mkdir -p build/cypress-tests && jupyter lab --config=./tests/test-config.py > /dev/null 2> build/cypress-tests/jupyter.log",
     "test": "npm run test:unit && npm run test:integration",
-    "test:integration": "start-server-and-test start-jupyter http-get://localhost:58888?token=test cy:run",
-    "kp": "process=$(lsof -i :\"58888\" -t); [ -z \"$process\" ] || echo killing port \"58888\"; echo $process | xargs kill",
-    "test:integration:debug": "start-server-and-test start-jupyter http-get://localhost:58888?token=test cy:open",
+    "start": "ts-node scripts/start-test-server.ts",
+    "test:integration": "server-test ':9000/minio/health/live|http-get://localhost:58888?token=test' cy:run",
+    "test:integration:debug": "server-test ':9000/minio/health/live|http-get://localhost:58888?token=test' cy:open",
     "test:unit": "lerna run test --scope \"@elyra/*\" --concurrency 1 --stream"
   },
   "husky": {
@@ -39,11 +38,12 @@
     "react-intl": "^3.0.0"
   },
   "devDependencies": {
-    "@testing-library/cypress": "^7.0.4",
     "@4tw/cypress-drag-drop": "^1.3.1",
     "@cypress/webpack-preprocessor": "^5.5.0",
     "@jupyterlab/testutils": "3.0.0",
+    "@testing-library/cypress": "^7.0.4",
     "@types/jest": "^26.0.20",
+    "@types/node": "^15.0.1",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-intl": "^3.0.0",
@@ -51,8 +51,8 @@
     "@typescript-eslint/parser": "~2.23.0",
     "cypress": "^6.2.0",
     "eslint": "^6.5.0",
-    "eslint-plugin-cypress": "^2.11.2",
     "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-cypress": "^2.11.2",
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-prettier": "^3.1.2",
@@ -66,9 +66,10 @@
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
     "rimraf": "~3.0.2",
-    "start-server-and-test": "1.7.9",
+    "start-server-and-test": "^1.12.1",
     "ts-jest": "^26.4.4",
     "ts-loader": "^6.2.2",
+    "ts-node": "^9.1.1",
     "typescript": "~4.1.3",
     "webpack": "^5.0.0"
   }
