@@ -219,46 +219,45 @@ describe('Pipeline Editor tests', () => {
     cy.findByText(/failed export:/i).should('be.visible');
   });
 
-  // TODO: having difficulties with minio
-  //   it('should export pipeline', () => {
-  //     cy.bootstrapFile('helloworld.pipeline');
+  it('should export pipeline', () => {
+    cy.bootstrapFile('helloworld.pipeline');
 
-  //     cy.findByRole('tab', { name: /runtimes/i }).click();
+    cy.findByRole('tab', { name: /runtimes/i }).click();
 
-  //     // Create runtime configuration
-  //     cy.createRuntimeConfig({ type: 'kfp' });
+    // Create runtime configuration
+    cy.createRuntimeConfig({ type: 'kfp' });
 
-  //     // go back to file browser
-  //     cy.findByRole('tab', { name: /file browser/i }).click();
+    // go back to file browser
+    cy.findByRole('tab', { name: /file browser/i }).click();
 
-  //     cy.openFile('helloworld.pipeline');
+    cy.openFile('helloworld.pipeline');
 
-  //     // try to export valid pipeline
-  //     cy.findByRole('button', { name: /export pipeline/i }).click();
+    // try to export valid pipeline
+    cy.findByRole('button', { name: /export pipeline/i }).click();
 
-  //     cy.findByLabelText(/runtime configuration/i)
-  //       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
-  //       .should('have.value', 'test_runtime');
+    cy.findByLabelText(/runtime configuration/i)
+      .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
+      .should('have.value', 'test_runtime');
 
-  //     // Validate all export options are available
-  //     cy.findByLabelText(/export pipeline as/i)
-  //       .select('KFP domain-specific language Python code')
-  //       .should('have.value', 'py')
-  //       .select('KFP static configuration file (YAML formatted)')
-  //       .should('have.value', 'yaml');
+    // Validate all export options are available
+    cy.findByLabelText(/export pipeline as/i)
+      .select('KFP domain-specific language Python code')
+      .should('have.value', 'py')
+      .select('KFP static configuration file (YAML formatted)')
+      .should('have.value', 'yaml');
 
-  //     // actual export requires minio
-  //     cy.findByRole('button', { name: /ok/i }).click();
-  //     // dismiss 'Making request' dialog
-  //     cy.findByRole('button', { name: /ok/i }).click();
-  //     // validate job was executed successfully
-  //     cy.findByText(/job execution succeeded/i, { timeout: 30000 }).should(
-  //       'be.visible'
-  //     );
+    // actual export requires minio
+    cy.findByRole('button', { name: /ok/i }).click();
+    // dismiss 'Making request' dialog
+    cy.findByRole('button', { name: /ok/i }).click();
+    // validate job was executed successfully
+    cy.findByText(/job execution succeeded/i, { timeout: 30000 }).should(
+      'be.visible'
+    );
 
-  //     cy.readFile('build/cypress-tests/helloworld.yaml');
-  //     cy.execDeleteFile('helloworld.yaml');
-  //   });
+    cy.readFile('build/cypress-tests/helloworld.yaml');
+    cy.execDeleteFile('helloworld.yaml');
+  });
 });
 
 // ------------------------------
