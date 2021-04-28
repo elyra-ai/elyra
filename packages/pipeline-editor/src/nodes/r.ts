@@ -59,7 +59,7 @@ const r = {
           custom_control_id: 'StringControl',
           label: { default: 'File' },
           description: {
-            default: 'The path to the notebook file.',
+            default: 'The path to the R file.',
             placement: 'on_panel'
           },
           data: {

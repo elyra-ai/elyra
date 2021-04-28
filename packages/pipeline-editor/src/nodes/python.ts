@@ -59,7 +59,7 @@ const python = {
           custom_control_id: 'StringControl',
           label: { default: 'File' },
           description: {
-            default: 'The path to the notebook file.',
+            default: 'The path to the python file.',
             placement: 'on_panel'
           },
           data: {
