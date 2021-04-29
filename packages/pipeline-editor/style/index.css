@@ -668,6 +668,7 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   height: 22px;
   display: flex;
   align-items: center;
+  margin-left: 5px;
 }
 
 /* fix font ligatures */
