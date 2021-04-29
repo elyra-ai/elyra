@@ -87,7 +87,7 @@ const theme: any = {
   typography: {
     fontFamily: 'var(--jp-ui-font-family)',
     fontWeight: 'normal',
-    fontSize: 'var(--jp-code-font-size)'
+    fontSize: 'var(--jp-content-font-size1)'
   },
   overrides: {
     deleteIcon: LabIcon.resolveReact({ icon: trashIcon }),
