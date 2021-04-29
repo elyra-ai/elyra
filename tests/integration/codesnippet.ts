@@ -18,7 +18,7 @@ describe('Code Snippet tests', () => {
   const snippetName = 'test-code-snippet';
 
   beforeEach(() => {
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
     openCodeSnippetExtension();
   });
 
@@ -36,8 +36,6 @@ describe('Code Snippet tests', () => {
     cy.get(
       '.elyra-metadata .elyra-metadataHeader-button[title="Create new Code Snippet"]'
     ).should('be.visible');
-    // Close metadata editor tab
-    cy.closeCurrentTab();
   });
 
   it('should provide warnings when required fields are not entered properly', () => {
@@ -53,9 +51,6 @@ describe('Code Snippet tests', () => {
       'required-warnings'
     );
     cy.get('@required-warnings').should('have.length', 2);
-
-    // Close metadata editor tab
-    cy.closeCurrentTab();
   });
 
   it('should create valid code-snippet', () => {
@@ -339,21 +334,6 @@ const saveAndCloseMetadataEditor = (): void => {
   cy.get('.elyra-metadataEditor-saveButton > button:visible').click();
 };
 
-// const fillMetadaEditorForm = (snippetName: string): void => {
-//   // Name code snippet
-//   cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
-
-//   // Select python language from dropdown list
-//   editSnippetLanguage(snippetName, 'Python');
-
-//   // Add snippet code
-//   cy.get('.elyra-metadataEditor-code > .bp3-form-content').type(
-//     'print("Code Snippet Test")'
-//   );
-
-//   saveAndCloseMetadataEditor();
-// };
-
 const deleteSnippet = (snippetName: string): void => {
   // Find element by name
   const item = getSnippetByName(snippetName);
@@ -374,19 +354,6 @@ const getActionButtonsElement = (snippetName: string): any => {
   return actionButtonsElement;
 };
 
-// const deleteFileByType = (type: string): void => {
-//   cy.getFileByType(type).rightclick();
-//   cy.get('.p-Menu-content > [data-command="filebrowser:delete"]').click();
-//   cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel:visible').click();
-//   cy.wait(100);
-// };
-
-// const checkCodeMirror = (): void => {
-//   cy.get('span.cm-string')
-//     .first()
-//     .contains('Code Snippet Test');
-// };
-
 const insert = (snippetName: string): void => {
   getActionButtonsElement(snippetName).within(() => {
     cy.get('button[title="Insert"]').click();
@@ -403,8 +370,3 @@ const editSnippetLanguage = (snippetName: string, lang: string): void => {
     .contains(`${lang}`)
     .click();
 };
-
-// const closeTabWithoutSaving = (): void => {
-//   cy.closeCurrentTab();
-//   cy.get('button.jp-mod-accept.jp-mod-warn').click();
-// };

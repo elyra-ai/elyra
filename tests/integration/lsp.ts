@@ -15,34 +15,25 @@
  */
 
 describe('LSP', () => {
-  before(() => {
+  beforeEach(() => {
     // read python file used for testing
-    cy.readFile('tests/assets/helloworld.py').then((file: any) => {
-      cy.writeFile('build/cypress-tests/helloworld.py', file);
-    });
+    cy.bootstrapFile('helloworld.py');
 
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
   });
 
-  after(() => {
+  afterEach(() => {
     // delete Python file used for testing
-    cy.exec('find build/cypress-tests/ -name helloworld.py -delete', {
-      failOnNonZeroExit: false
-    });
+    cy.deleteFile('helloworld.py');
   });
 
   it('LSP extension is initialized', () => {
     // open Python file
-    cy.getFileByType('python').dblclick();
-
-    cy.wait(1000);
+    cy.openFile('helloworld.py');
 
     //check for lsp item on status bar
     cy.get('.lsp-statusbar-item ').find(
       '[title="Fully connected & initialized (1 virtual document)"]'
     );
-
-    // close tab
-    cy.closeCurrentTab();
   });
 });

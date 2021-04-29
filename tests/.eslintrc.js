@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-describe('Git', () => {
-  beforeEach(() => {
-    cy.resetJupyterLab();
-  });
-
-  it('opens git extension', () => {
-    cy.get('[title="Git"]').click();
-  });
-});
+module.exports = {
+  plugins: ['cypress'],
+  env: {
+    'cypress/globals': true,
+    node: true
+  }
+};

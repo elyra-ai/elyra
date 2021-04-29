@@ -15,7 +15,7 @@
  */
 describe('Toc', () => {
   beforeEach(() => {
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
   });
 
   it('opens ToC extension', () => {
