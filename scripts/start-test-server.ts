@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { spawn } from 'child_process';
+import { exec, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
 const config = path.join(__dirname, '..', 'tests', 'test-config.py');
-const jupyter = spawn('jupyter', ['lab', '--config', config]);
+const jupyter = exec(`jupyter lab --config ${config}`);
 
 const CONTAINER_NAME = 'minio_test';
 
@@ -38,7 +38,7 @@ const docker = spawn('docker', [
 const logDir = path.join(__dirname, '..', 'build', 'cypress-tests');
 
 const jupyterLog = fs.createWriteStream(path.join(logDir, 'jupyter.log'));
-jupyter.stderr.pipe(jupyterLog);
+jupyter.stderr?.pipe(jupyterLog);
 
 const dockerLog = fs.createWriteStream(path.join(logDir, 'docker.log'));
 docker.stderr.pipe(dockerLog);
