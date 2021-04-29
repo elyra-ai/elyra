@@ -42,7 +42,7 @@ RUN conda remove --force -y terminado && \
        npm install -g yarn && \
        npm install -g npm && \
        cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-       cd /tmp/elyra && git checkout tags/v2.3.0b0 -b v2.3.0b0 && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra; \
+       cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra; \
     else \
         python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra=="$TAG" && \
         jupyter lab build; \
