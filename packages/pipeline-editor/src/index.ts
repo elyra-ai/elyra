@@ -154,7 +154,9 @@ const extension: JupyterFrontEndPlugin<void> = {
         return args['isPalette']
           ? 'New Pipeline Editor'
           : args.runtime?.display_name
-          ? 'Pipeline Editor'
+          ? args.isMenu
+            ? `${args.runtime?.display_name} Pipeline Editor`
+            : 'Pipeline Editor'
           : 'Generic Pipeline Editor';
       },
       icon: (args: any) => {
@@ -252,7 +254,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
         // Add new pipeline to the file menu
         menu.fileMenu.newMenu.addGroup(
-          [{ command: openPipelineEditorCommand }],
+          [{ command: openPipelineEditorCommand, args: { isMenu: true } }],
           30
         );
         for (const runtime of schema) {
@@ -260,7 +262,7 @@ const extension: JupyterFrontEndPlugin<void> = {
             [
               {
                 command: openPipelineEditorCommand,
-                args: { runtime }
+                args: { runtime, isMenu: true }
               }
             ],
             runtime.name === 'kfp' ? 31 : runtime.name === 'airflow' ? 32 : 33

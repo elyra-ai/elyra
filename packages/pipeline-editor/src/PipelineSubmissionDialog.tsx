@@ -43,7 +43,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
     });
   };
 
-  updateRuntimeOptions = (platformSelection?: string): IRuntime[] => {
+  getRuntimeOptions = (platformSelection?: string): IRuntime[] => {
     const filteredRuntimeOptions = PipelineService.filterRuntimes(
       this.props.runtimes,
       platformSelection ??
@@ -65,7 +65,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
   render(): React.ReactNode {
     const { name } = this.props;
     const { selectedRuntimePlatform, validSchemas } = this.state;
-    const displayedRuntimeOptions = this.updateRuntimeOptions(
+    const displayedRuntimeOptions = this.getRuntimeOptions(
       selectedRuntimePlatform
     );
 
