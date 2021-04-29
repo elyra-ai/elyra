@@ -151,6 +151,10 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.findByRole('button', { name: /save pipeline/i }).click();
+
+    // can take a moment to register as saved in ci
+    cy.wait(300);
+
     cy.findByRole('button', { name: /run pipeline/i }).click();
 
     cy.findByLabelText(/pipeline name/i).should('have.value', 'untitled');

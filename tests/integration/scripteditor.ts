@@ -59,13 +59,13 @@ describe('Script Editor tests', () => {
 
   it('click the Run as Pipeline button should display dialog', () => {
     // Open runtimes sidebar
-    cy.get('.jp-SideBar [title="Runtimes"]').click();
+    cy.findByRole('tab', { name: /runtimes/i }).click();
     // Create runtime configuration
     cy.createRuntimeConfig();
     // Validate it is now available
-    cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
-      'Test Runtime'
-    );
+    cy.get('#elyra-metadata\\:runtimes').within(() => {
+      cy.findByText(/test runtime/i).should('exist');
+    });
     // Click Run as Pipeline button
     cy.contains('Run as Pipeline').click();
     // Check for expected dialog title
