@@ -16,10 +16,6 @@
 
 import '@testing-library/cypress/add-commands';
 
-Cypress.Commands.add('closeCurrentTab', (): void => {
-  cy.get('.jp-mod-current > .lm-TabBar-tabCloseIcon:visible').click();
-});
-
 // TODO: we shouldn't have to fill out the form for any test that isn't specifically
 // testing filling out forms.
 Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
@@ -59,13 +55,6 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   // save it
   cy.findByRole('button', { name: /save/i }).click();
 });
-
-Cypress.Commands.add(
-  'getFileByType',
-  (type: string): Cypress.Chainable<JQuery<HTMLElement>> => {
-    return cy.get(`.jp-DirListing-content > [data-file-type="${type}"]`);
-  }
-);
 
 Cypress.Commands.add('deleteFile', (name: string): void => {
   cy.exec(`find build/cypress-tests/ -name "${name}" -delete`, {

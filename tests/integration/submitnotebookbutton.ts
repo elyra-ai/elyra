@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 describe('Submit Notebook Button tests', () => {
-  before(() => {
+  beforeEach(() => {
+    cy.deleteFile('*.ipynb');
+
+    cy.bootstrapFile('helloworld.ipynb');
+
     cy.resetJupyterLab();
   });
 
-  after(() => {
-    // go back to file browser and delete file created for testing
-    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
-    cy.deleteFile('Untitled.ipynb');
+  afterEach(() => {
+    cy.deleteFile('*.ipynb');
 
     // Delete runtime configuration used for testing
     cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
@@ -29,32 +31,36 @@ describe('Submit Notebook Button tests', () => {
     });
   });
 
-  it('check "Run as Pipeline" button exists', () => {
-    openNewNotebookFile();
-    cy.contains('Run as Pipeline');
+  it('check Submit Notebook button exists', () => {
+    cy.openFile('helloworld.ipynb');
+    cy.findByText(/run as pipeline/i).should('exist');
   });
 
   it('click the "Run as Pipeline" button should display dialog', () => {
     // Open runtimes sidebar
-    cy.get('.jp-SideBar [title="Runtimes"]').click();
+    cy.findByRole('tab', { name: /runtimes/i }).click();
     // Create runtime configuration
     cy.createRuntimeConfig();
+
     // Validate it is now available
-    cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
-      'Test Runtime'
-    );
-    // Click Run as Pipeline button
-    cy.contains('Run as Pipeline').click();
+    cy.get('#elyra-metadata\\:runtimes').within(() => {
+      cy.findByText(/test runtime/i).should('exist');
+    });
+
+    cy.findByRole('tab', { name: /file browser/i }).click();
+
+    openNewNotebookFile();
+
+    // Click submit notebook button
+    cy.findByText(/run as pipeline/i).click();
+
     // Should have warning for unsaved changes
-    cy.get('.jp-mod-accept > .jp-Dialog-buttonLabel')
-      .contains('Save and Submit')
-      .click();
-    // Check for expected dialog title
-    cy.get('.jp-Dialog')
-      .find('div.jp-Dialog-header')
-      .should('have.text', 'Run notebook as pipeline');
+    cy.findByRole('button', { name: /save and submit/i }).click();
+
+    cy.findByText(/run notebook as pipeline/i).should('exist');
+
     // Dismiss  dialog
-    cy.get('button.jp-mod-reject').click();
+    cy.findByRole('button', { name: /cancel/i }).click();
   });
 });
 

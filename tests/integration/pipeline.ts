@@ -159,10 +159,11 @@ describe('Pipeline Editor tests', () => {
 
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
-    // dismiss 'Making request' dialog
-    // cy.findByRole('button', { name: /ok/i }).click();
-    // validate job was executed successfully
-    cy.findByText(/job execution succeeded/i).should('be.visible');
+
+    // validate job was executed successfully, this can take a while in ci
+    cy.findByText(/job execution succeeded/i, { timeout: 30000 }).should(
+      'be.visible'
+    );
     // dismiss 'Job Succeeded' dialog
     cy.findByRole('button', { name: /ok/i }).click();
   });
@@ -179,10 +180,11 @@ describe('Pipeline Editor tests', () => {
 
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
-    // dismiss 'Making request' dialog
-    // cy.findByRole('button', { name: /ok/i }).click();
-    // validate job was executed successfully
-    cy.findByText(/job execution succeeded/i).should('be.visible');
+
+    // validate job was executed successfully, this can take a while in ci
+    cy.findByText(/job execution succeeded/i, { timeout: 30000 }).should(
+      'be.visible'
+    );
     // dismiss 'Job Succeeded' dialog
     cy.findByRole('button', { name: /ok/i }).click();
 
@@ -232,8 +234,11 @@ describe('Pipeline Editor tests', () => {
 
     // actual export requires minio
     cy.findByRole('button', { name: /ok/i }).click();
-    // validate job was executed successfully
-    cy.findByText(/pipeline export succeeded/i).should('be.visible');
+
+    // validate job was executed successfully, this can take a while in ci
+    cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
+      'be.visible'
+    );
 
     cy.readFile('build/cypress-tests/helloworld.yaml');
   });
