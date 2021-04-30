@@ -39,6 +39,7 @@ const FILTER_SEARCHBAR = 'elyra-searchbar';
 const FILTER_SEARCHWRAPPER = 'elyra-searchwrapper';
 const FILTER_CLASS = 'elyra-filter';
 const FILTER_BUTTON = 'elyra-filter-btn';
+const FILTER_EMPTY = 'elyra-filter-empty';
 
 export class FilterTools extends React.Component<
   IFilterMetadataProps,
@@ -85,6 +86,13 @@ export class FilterTools extends React.Component<
   }
 
   renderTags(): JSX.Element {
+    if (!this.props.tags.length) {
+      return (
+        <div className={FILTER_TAGS}>
+          <p className={FILTER_EMPTY}>No tags defined</p>
+        </div>
+      );
+    }
     return (
       <div className={FILTER_TAGS}>
         {this.props.tags.sort().map((tag: string, index: number) => {

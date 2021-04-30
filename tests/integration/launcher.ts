@@ -16,7 +16,7 @@
 
 describe('Elyra launcher is in use', () => {
   beforeEach(() => {
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
   });
 
   it('should have Elyra extensions', () => {

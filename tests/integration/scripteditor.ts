@@ -15,13 +15,13 @@
  */
 describe('Script Editor tests', () => {
   before(() => {
-    cy.openJupyterLab();
+    cy.resetJupyterLab();
   });
 
   after(() => {
     // delete files created for testing
-    cy.deleteFileByName('untitled.py');
-    cy.deleteFileByName('untitled.r');
+    cy.deleteFile('untitled.py');
+    cy.deleteFile('untitled.r');
 
     // Delete runtime configuration used for testing
     cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
@@ -37,7 +37,6 @@ describe('Script Editor tests', () => {
 
   it('close editor', () => {
     cy.get('.lm-TabBar-tabCloseIcon:visible').click();
-    cy.deleteFileByName('untitled.py');
   });
 
   it('opens blank Python file from menu', () => {
@@ -60,13 +59,13 @@ describe('Script Editor tests', () => {
 
   it('click the Run as Pipeline button should display dialog', () => {
     // Open runtimes sidebar
-    cy.get('.jp-SideBar [title="Runtimes"]').click();
+    cy.findByRole('tab', { name: /runtimes/i }).click();
     // Create runtime configuration
     cy.createRuntimeConfig();
     // Validate it is now available
-    cy.get('#elyra-metadata span.elyra-expandableContainer-name').contains(
-      'Test Runtime'
-    );
+    cy.get('#elyra-metadata\\:runtimes').within(() => {
+      cy.findByText(/test runtime/i).should('exist');
+    });
     // Click Run as Pipeline button
     cy.contains('Run as Pipeline').click();
     // Check for expected dialog title

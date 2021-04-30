@@ -22,4 +22,5 @@ functionality.
 
 import os
 
-print(os.cwd())
+print(os.cwd())  # os.environ.get("VAR1")
+# os.environ["VAR2"] = "value"

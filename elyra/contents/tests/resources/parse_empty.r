@@ -19,4 +19,5 @@
 # This R script contains no environment variables to test the parser
 # functionality.
 
-print("Hello")
+print("Hello")  # Sys.getenv("VAR1")
+# Sys.getenv("VAR2")

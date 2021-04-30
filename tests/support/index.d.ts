@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-describe('Git', () => {
-  beforeEach(() => {
-    cy.resetJupyterLab();
-  });
-
-  it('opens git extension', () => {
-    cy.get('[title="Git"]').click();
-  });
-});
+declare namespace Cypress {
+  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+  interface Chainable {
+    createRuntimeConfig(options?: { type?: 'kfp' }): Chainable<void>;
+    deleteFile(fileName: string): Chainable<void>;
+    addFileToPipeline(fileName: string): Chainable<void>;
+    createPipelineEditor(): Chainable<void>;
+    openFile(fileName: string): Chainable<void>;
+    bootstrapFile(fileName: string): Chainable<void>;
+    resetJupyterLab(): Chainable<void>;
+  }
+}

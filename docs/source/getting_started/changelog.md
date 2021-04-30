@@ -1,5 +1,132 @@
 # Changelog
 
+## Release 2.3.0b0 - 04/29/2021
+
+- Update changelog for release 2.3.0b0
+- Properly store runtime images name instead of display name - [1626](https://github.com/elyra-ai/elyra/pull/1626)
+- Update binder link to latest stable release - [1627](https://github.com/elyra-ai/elyra/pull/1627)
+- Update release documentation
+- Update release script to support beta releases
+- Update release script to generate changelog
+- Fix custom notebook/script code fonts with ligatures - [1618](https://github.com/elyra-ai/elyra/pull/1618)
+- Update changelog for release 2.2.4
+- Update changelog for release 2.2.3
+- Add python tests for contents handler - [1589](https://github.com/elyra-ai/elyra/pull/1589)
+- Move cos_secret parameter back into original cos category - [1617](https://github.com/elyra-ai/elyra/pull/1617)
+- Update airflow-notebook version to v0.0.7 - [1619](https://github.com/elyra-ai/elyra/pull/1619)
+- Allow secure connections to s3 object storage - [1616](https://github.com/elyra-ai/elyra/pull/1616)
+- Only allow for KFP Notebook patche releases
+- Update changelog for release 2.2.2
+- Exclude single-line comments from content parsing - [1601](https://github.com/elyra-ai/elyra/pull/1601)
+- Display message when no code snippet or tag is defined - [1603](https://github.com/elyra-ai/elyra/pull/1603)
+- Update README release doc links to specific Elyra version - [1588](https://github.com/elyra-ai/elyra/pull/1588)
+- Update submit button labels and dialog - [1598](https://github.com/elyra-ai/elyra/pull/1598)
+- Fix links to pipelines documentation topic - [1604](https://github.com/elyra-ai/elyra/pull/1604)
+- Use unittest mock module to avoid flake8 failure - [1607](https://github.com/elyra-ai/elyra/pull/1607)
+- Update OpenAPI spec to cover new contents/properties endpoint - [1579](https://github.com/elyra-ai/elyra/pull/1579)
+- Switch to using the new pipeline editor package - [1221](https://github.com/elyra-ai/elyra/pull/1221)
+- Serve pipeline configuration from server - [1551](https://github.com/elyra-ai/elyra/pull/1551)
+- Exported KFP pipeline yaml missing cos_directory parameter - [1563](https://github.com/elyra-ai/elyra/pull/1563)
+- Update jupyterlab-git extension to v0.30.0 - [1584](https://github.com/elyra-ai/elyra/pull/1584)
+- Build elyra-image from released artifacts for non dev tags - [1536](https://github.com/elyra-ai/elyra/pull/1536)
+- Improve messaging for COS credential exceptions - [1575](https://github.com/elyra-ai/elyra/pull/1575)
+- Adds material ui dependency to ui-components package - [1567](https://github.com/elyra-ai/elyra/pull/1567)
+- Refactor to use Python 3.x super invocation - [1577](https://github.com/elyra-ai/elyra/pull/1577)
+- Update docs with link to Kubeflow Notebook Server recipe - [1561](https://github.com/elyra-ai/elyra/pull/1561)
+- Add cos_secret option to runtime metadata configuration - [1529](https://github.com/elyra-ai/elyra/pull/1529)
+- Expose user_namespace parameter in Airflow runtime schema - [1545](https://github.com/elyra-ai/elyra/pull/1545)
+- Update Elyra container image makefile target on docs - [1533](https://github.com/elyra-ai/elyra/pull/1533)
+- Fix language check on inserting code snippets into Script Editor - [1527](https://github.com/elyra-ai/elyra/pull/1527)
+- Update list of documented Makefile targets - [1553](https://github.com/elyra-ai/elyra/pull/1553)
+- Refactor environmental variable discovery into backend service - [1460](https://github.com/elyra-ai/elyra/pull/1460)
+- Use yarn lock for Elyra builds - [1555](https://github.com/elyra-ai/elyra/pull/1555)
+- Update project MANIFEST.in with missing files - [1552](https://github.com/elyra-ai/elyra/pull/1552)
+- Update Airflow Notebook to  0.0.5 - [1548](https://github.com/elyra-ai/elyra/pull/1548)
+- Fix description of the exported Apache Airflow DAG file - [1539](https://github.com/elyra-ai/elyra/pull/1539)
+- Pin the testutils and filebrowser version - [1541](https://github.com/elyra-ai/elyra/pull/1541)
+- Refactor container related Makefile targets - [1531](https://github.com/elyra-ai/elyra/pull/1531)
+- Add Code Snippet CLI documentation and refactor existing content - [1528](https://github.com/elyra-ai/elyra/pull/1528)
+- Add new build/publish container images targets to Makefile - [1526](https://github.com/elyra-ai/elyra/pull/1526)
+- Update kf-notebook container image documentation - [1514](https://github.com/elyra-ai/elyra/pull/1514)
+- Update release script to update version
+- Update to latest version of Elyra
+- Fix dependency suggestion in submit notebook dialog - [1510](https://github.com/elyra-ai/elyra/pull/1510)
+
+## Release 2.3.0b0 - 04/29/2021
+
+High level enhancements
+- Introduce the new Pipeline Editor
+- New contents API to provide better properties for pipeline artifacts
+
+Other enhancements and bug fixes
+- Properly store runtime images name instead of display name - [1626](https://github.com/elyra-ai/elyra/pull/1626)
+- Update binder link to latest stable release - [1627](https://github.com/elyra-ai/elyra/pull/1627)
+- Update release documentation - [1625](https://github.com/elyra-ai/elyra/pull/1625)
+- Update release script to support beta releases - [1625](https://github.com/elyra-ai/elyra/pull/1625)
+- Update release script to generate changelog - [1625](https://github.com/elyra-ai/elyra/pull/1625)
+- Fix custom notebook/script code fonts with ligatures - [1618](https://github.com/elyra-ai/elyra/pull/1618)
+- Add python tests for contents handler - [1589](https://github.com/elyra-ai/elyra/pull/1589)
+- Move cos_secret parameter back into original cos category - [1617](https://github.com/elyra-ai/elyra/pull/1617)
+- Update airflow-notebook version to v0.0.7 - [1619](https://github.com/elyra-ai/elyra/pull/1619)
+- Allow secure connections to s3 object storage - [1616](https://github.com/elyra-ai/elyra/pull/1616)
+- Only allow for KFP Notebook patch releases
+- Exclude single-line comments from content parsing - [1601](https://github.com/elyra-ai/elyra/pull/1601)
+- Display message when no code snippet or tag is defined - [1603](https://github.com/elyra-ai/elyra/pull/1603)
+- Update README release doc links to specific Elyra version - [1588](https://github.com/elyra-ai/elyra/pull/1588)
+- Update submit button labels and dialog - [1598](https://github.com/elyra-ai/elyra/pull/1598)
+- Fix links to pipelines documentation topic - [1604](https://github.com/elyra-ai/elyra/pull/1604)
+- Use unittest mock module to avoid flake8 failure - [1607](https://github.com/elyra-ai/elyra/pull/1607)
+- Update OpenAPI spec to cover new contents/properties endpoint - [1579](https://github.com/elyra-ai/elyra/pull/1579)
+- Switch to using the new pipeline editor package - [1221](https://github.com/elyra-ai/elyra/pull/1221)
+- Serve pipeline configuration from server - [1551](https://github.com/elyra-ai/elyra/pull/1551)
+- Exported KFP pipeline yaml missing cos_directory parameter - [1563](https://github.com/elyra-ai/elyra/pull/1563)
+- Update jupyterlab-git extension to v0.30.0 - [1584](https://github.com/elyra-ai/elyra/pull/1584)
+- Build elyra-image from released artifacts for non dev tags - [1536](https://github.com/elyra-ai/elyra/pull/1536)
+- Improve messaging for COS credential exceptions - [1575](https://github.com/elyra-ai/elyra/pull/1575)
+- Adds material ui dependency to ui-components package - [1567](https://github.com/elyra-ai/elyra/pull/1567)
+- Refactor to use Python 3.x super invocation - [1577](https://github.com/elyra-ai/elyra/pull/1577)
+- Update docs with link to Kubeflow Notebook Server recipe - [1561](https://github.com/elyra-ai/elyra/pull/1561)
+- Add cos_secret option to runtime metadata configuration - [1529](https://github.com/elyra-ai/elyra/pull/1529)
+- Expose user_namespace parameter in Airflow runtime schema - [1545](https://github.com/elyra-ai/elyra/pull/1545)
+- Update Elyra container image makefile target on docs - [1533](https://github.com/elyra-ai/elyra/pull/1533)
+- Fix language check on inserting code snippets into Script Editor - [1527](https://github.com/elyra-ai/elyra/pull/1527)
+- Update list of documented Makefile targets - [1553](https://github.com/elyra-ai/elyra/pull/1553)
+- Refactor environmental variable discovery into backend service - [1460](https://github.com/elyra-ai/elyra/pull/1460)
+- Use yarn lock for Elyra builds - [1555](https://github.com/elyra-ai/elyra/pull/1555)
+- Update project MANIFEST.in with missing files - [1552](https://github.com/elyra-ai/elyra/pull/1552)
+- Update Airflow Notebook to  0.0.5 - [1548](https://github.com/elyra-ai/elyra/pull/1548)
+- Fix description of the exported Apache Airflow DAG file - [1539](https://github.com/elyra-ai/elyra/pull/1539)
+- Pin the testutils and filebrowser version - [1541](https://github.com/elyra-ai/elyra/pull/1541)
+- Refactor container related Makefile targets - [1531](https://github.com/elyra-ai/elyra/pull/1531)
+- Add Code Snippet CLI documentation and refactor existing content - [1528](https://github.com/elyra-ai/elyra/pull/1528)
+- Add new build/publish container images targets to Makefile - [1526](https://github.com/elyra-ai/elyra/pull/1526)
+- Update kf-notebook container image documentation - [1514](https://github.com/elyra-ai/elyra/pull/1514)
+- Fix dependency suggestion in submit notebook dialog - [1510](https://github.com/elyra-ai/elyra/pull/1510)
+
+## 2.2.4 (4/26/2021)
+
+- Move cos_secret parameter into original cos category [1624](https://github.com/elyra-ai/elyra/pull/1624)
+- Add cos_secret option to runtime metadata configuration [1529](https://github.com/elyra-ai/elyra/pull/1529)
+- Update Makefile to simplify publishing container [1623](https://github.com/elyra-ai/elyra/pull/1623)
+
+## 2.2.3 (4/26/2021)
+
+- Update airflow-notebook version to v0.0.7 [1619](https://github.com/elyra-ai/elyra/pull/1619)
+- Expose user_namespace parameter in Airflow runtime schema [1545](https://github.com/elyra-ai/elyra/pull/1545)
+- Allow secure connections to s3 object storage [1616](https://github.com/elyra-ai/elyra/pull/1616)
+- Only allow for KFP Notebook patche releases
+- Display message when no code snippet or tag is defined [1603](https://github.com/elyra-ai/elyra/pull/1603)
+- Update submit button labels and dialog [1598](https://github.com/elyra-ai/elyra/pull/1598)
+- Use unittest mock module to avoid flake8 failure [1607](https://github.com/elyra-ai/elyra/pull/1607)
+
+## 2.2.2 (4/19/2021)
+
+- Adds material ui dependency to ui-components package [1567](https://github.com/elyra-ai/elyra/pull/1567)
+- Fix Elyra version when creating kf-notebook docker image [1523](https://github.com/elyra-ai/elyra/pull/1523)
+- Fix dependency suggestion in submit notebook dialog [1510](https://github.com/elyra-ai/elyra/pull/1510)
+- Pin the testutils and filebrowser version [1541](https://github.com/elyra-ai/elyra/pull/1541)
+- Update Jupyterlab-git extension to v0.30.0 [1582](https://github.com/elyra-ai/elyra/pull/1582)
+
 ## 2.2.1 (3/31/2021)
 
 - Update KFP Notebook to 0.22.0

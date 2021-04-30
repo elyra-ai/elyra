@@ -464,7 +464,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     );
   };
 
-  componentDidUpdate(): void {
+  createPreviewEditors = (): void => {
     const editorFactory = this.props.editorServices.factoryService
       .newInlineEditor;
     const getMimeTypeByLanguage = this.props.editorServices.mimeTypeService
@@ -490,6 +490,14 @@ class CodeSnippetDisplay extends MetadataDisplay<
         });
       }
     });
+  };
+
+  componentDidMount(): void {
+    this.createPreviewEditors();
+  }
+
+  componentDidUpdate(): void {
+    this.createPreviewEditors();
   }
 
   private _drag: Drag;
@@ -527,6 +535,18 @@ export class CodeSnippetWidget extends MetadataWidget {
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
+    if (Array.isArray(metadata) && !metadata.length) {
+      // Empty metadata
+      return (
+        <div>
+          <br />
+          <h6 className="elyra-no-metadata-msg">
+            Click the + button to add a new Code Snippet
+          </h6>
+        </div>
+      );
+    }
+
     return (
       <CodeSnippetDisplay
         metadata={metadata}

@@ -1,11 +1,9 @@
 {
   "extends": "../tsconfig-base",
   "compilerOptions": {
-    "strict": true,
-    "baseUrl": "../node_modules",
     "target": "es2017",
     "lib": ["es2017", "dom"],
-    "types": ["cypress"]
+    "types": ["cypress", "@testing-library/cypress"]
   },
-  "include": ["**/*.ts", "*.ts", "support/commands.ts"]
+  "include": ["**/*.ts"]
 }
