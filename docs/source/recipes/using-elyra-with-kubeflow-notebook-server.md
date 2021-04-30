@@ -43,7 +43,9 @@ In this example we will show how to launch Elyra using [Kubeflow's Notebook Serv
 1. Choose a `name` for your notebook server, and under `Image` check the box labeled `Custom Image`.   
   
    ![Elyra](../images/elyra-with-kf-notebook-config-1.png)  
-  
+
+1. In _Kubeflow version 1.3 (and later)_ choose `jupyterlab` as image type.
+
 1. As `Custom Image` enter `elyra/kf-notebook:<ELYRA_VERSION>`, replacing `<ELYRA_VERSION>` with the desired image tag, e.g. `2.1.0`.   
   
    ![Elyra](../images/elyra-with-kf-notebook-image-config.png)
