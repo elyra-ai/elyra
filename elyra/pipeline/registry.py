@@ -18,32 +18,11 @@ import io
 import json
 import yaml
 
-from abc import abstractmethod
 from traitlets.config import SingletonConfigurable
-from typing import Any, Type, TypeVar
-
-
-F = TypeVar('F', bound='ComponentParser')
-R = TypeVar('R', bound='ComponentRegistry')
 
 
 class ComponentParser(SingletonConfigurable):
     _properties: dict() = {}
-
-    @classmethod
-    def get_instance(cls: Type[F], **kwargs: Any) -> F:
-        """Creates an appropriate subclass instance based on the processor type"""
-
-        processor = kwargs['processor']
-
-        if processor == 'kfp':
-            return KfpComponentParser()
-        elif processor == 'airflow':
-            return AirflowComponentParser()
-        elif processor == 'local':
-            return ComponentParser()
-        else:
-            raise ValueError(f"Unsupported processor type: {processor}")
 
     def __init__(self):
         super().__init__()
@@ -103,6 +82,8 @@ class KfpComponentParser(ComponentParser):
 
 
 class AirflowComponentParser(ComponentParser):
+    _type = "airflow"
+
     def __init__(self):
         super().__init__()
 
@@ -113,53 +94,14 @@ class AirflowComponentParser(ComponentParser):
         return None, {}
 
 
-class ComponentRegistry(SingletonConfigurable):
+class ComponentReader(SingletonConfigurable):
 
-    @classmethod
-    def get_instance(cls: Type[R], **kwargs: Any) -> F:
-        """Creates an appropriate subclass instance based on the registry type"""
-
-        registry_type = kwargs["registry_type"]
-        processor_type = kwargs["processor_type"]
-
-        if registry_type == 'file':
-            return FilesystemComponentRegistry(processor_type)
-        elif registry_type == 'url':
-            return UrlComponentRegistry(processor_type)
-        else:
-            raise ValueError(f"Unsupported registry type: {registry_type}")
-
-    def __init__(self, processor_type):
+    def __init__(self):
         super().__init__()
-        self._components: dict = {}
-        self.parser = ComponentParser.get_instance(processor=processor_type)
-
-    @abstractmethod
-    def get_all_components(self):
-        """Builds a palette.json in the form of a dictionary of components."""
-
-        # First get the components common to all runtimes
-        # TODO: decide on normalized format between these common components and the 'new' ones
-        self._components['common'] = self.parser.get_common_components()
-
-        # # Loop through all the component definitions for the given registry
-        # for component in self._list_all_components():
-        #     print(f'component registry -> found component {component}')
-        #     component_id, component_details = self.parser.parse_component_details(component)
-        #     if component_id is None:
-        #         continue
-        #     self._components[component_id] = component_details
-
-        return self._components
 
     def _list_all_components(self):
-        """
-        Returns a list of names of components. Implementation will depend on where the components
-        are accessed from. Local implementations should return none. Parser attribute can determine
-        things like the filepath/directory name of where to look for the files with the names or
-        the URL from where to grab names. May want to move to the parser class instead.
-        """
-        return []
+        # Relative to jupyter work_dir right now
+        pass
 
     def add_component(self, processor_type, component_json):
         pass
@@ -168,11 +110,12 @@ class ComponentRegistry(SingletonConfigurable):
         pass
 
 
-class FilesystemComponentRegistry(ComponentRegistry):
+class FilesystemComponentReader(ComponentReader):
+    reader_type = 'file'
     _dir_path: str
 
-    def __init__(self, processor_type):
-        super().__init__(processor_type)
+    def __init__(self):
+        super().__init__()
 
     def _list_all_components(self):
         # Relative to jupyter work_dir right now
@@ -185,8 +128,68 @@ class FilesystemComponentRegistry(ComponentRegistry):
         pass
 
 
-class UrlComponentRegistry(ComponentRegistry):
+class UrlComponentReader(ComponentReader):
+    reader_type = 'url'
     _url_path: str
 
-    def __init__(self, processor_type):
-        super().__init__(processor_type)
+    def __init__(self):
+        super().__init__()
+
+
+class ComponentRegistry(SingletonConfigurable):
+
+    parsers = {
+        'kfp': KfpComponentParser(),
+        'airflow': AirflowComponentParser(),
+        'local': ComponentParser()
+    }
+
+    readers = {
+        FilesystemComponentReader.reader_type: FilesystemComponentReader(),
+        UrlComponentReader.reader_type: UrlComponentReader(),
+    }
+
+    def get_all_components(self, processor_type, registry_type):
+        """Builds a palette.json in the form of a dictionary of components."""
+
+        # reader = self._get_reader(registry_type)
+        parser = self._get_parser(processor_type)
+
+        # print(reader._reader_type)
+
+        # First get the components common to all runtimes
+        # TODO: decide on normalized format between these common components and the 'new' ones
+        # components = {}
+        # components['common'] = parser.get_common_components()
+
+        # # Loop through all the component definitions for the given registry
+        # for component in reader._list_all_components():
+        #     print(f'component registry -> found component {component}')
+        #     component_id, component_details = self.parser.parse_component_details(component)
+        #     if component_id is None:
+        #         continue
+        #     self._components[component_id] = component_details
+
+        # return components
+
+        return parser.get_common_components()
+
+    def _get_reader(self, registry_type: str):
+        """
+        Find the proper reader based on the given registry type
+        """
+
+        try:
+            return self.readers.get(registry_type)
+        except Exception:
+            raise ValueError(f"Unsupported registry type: {registry_type}")
+
+    def _get_parser(self, processor_type: str):
+        """
+        Find the proper parser based on content language
+        """
+
+        try:
+            return self.parsers.get(processor_type)
+        except Exception:
+            raise ValueError(f"Unsupported processor type: {processor_type}")
