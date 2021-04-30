@@ -131,7 +131,7 @@ watch: ## Watch packages. For use alongside jupyter lab --watch
 	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run watch --parallel
 
 test-server: install-server # Run unit tests
-	pytest -v elyra
+	pytest -v elyra/pipeline/tests/test_handlers.py
 
 test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
 

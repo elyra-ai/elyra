@@ -13,19 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-'''
-import asyncio
-import entrypoints
-import glob
-'''
 import os
 import io
 import json
 import yaml
 
 from abc import abstractmethod
-# from elyra.util.path import get_expanded_path
-from traitlets.config import SingletonConfigurable  # , LoggingConfigurable, Unicode, Bool
+from traitlets.config import SingletonConfigurable
 from typing import Any, Type, TypeVar
 
 
@@ -148,12 +142,13 @@ class ComponentRegistry(SingletonConfigurable):
         # TODO: decide on normalized format between these common components and the 'new' ones
         self._components['common'] = self.parser.get_common_components()
 
-        # Loop through all the component definitions for the given registry
-        for component in self._list_all_components():
-            component_id, component_details = self.parser.parse_component_details(component)
-            if component_id is None:
-                continue
-            self._components[component_id] = component_details
+        # # Loop through all the component definitions for the given registry
+        # for component in self._list_all_components():
+        #     print(f'component registry -> found component {component}')
+        #     component_id, component_details = self.parser.parse_component_details(component)
+        #     if component_id is None:
+        #         continue
+        #     self._components[component_id] = component_details
 
         return self._components
 

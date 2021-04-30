@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# import io
-# import os
+import io
 import json
+import os
 
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
@@ -23,7 +23,6 @@ from .parser import PipelineParser
 from .processor import PipelineProcessorManager
 from tornado import web
 from ..util.http import HttpErrorMixin
-from .registry import ComponentRegistry, ComponentParser
 
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
@@ -97,51 +96,51 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         self.finish(json_msg)
 
 
-class PipelineComponentConfigHandler(HttpErrorMixin, APIHandler):
+class PipelineComponentHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipelines editor component configuration"""
 
     valid_processors = ["local", "kfp", "airflow"]
 
     @web.authenticated
-    def get(self, processor):
+    async def get(self, processor):
+        print(f'>>> Retrieving pipeline components for {processor}')
         if processor not in self.valid_processors:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
-        component_registry = ComponentRegistry.get_instance(registry_type='file', processor_type=processor)
-        msg_json = component_registry.get_all_components()
-
-        self.set_header("Content-Type", 'application/json')
-        self.finish(msg_json)
-
-    @web.authenticated
-    def post(self, processor):
-        """Method by which users add components"""
-
-        component = self.get_json_body()
-        component_registry = ComponentRegistry.get_instance(registry_type='file', processor_type=processor)
-        component_registry.add_component(processor, component)
+        components = await PipelineProcessorManager.instance().get_components(processor)
+        print('>>>')
+        print(components)
+        json_msg = json.dumps(components)
 
         self.set_status(200)
-        self.finish()
+        self.set_header("Content-Type", 'application/json')
+        self.finish(json_msg)
 
 
-class PipelinePropertiesConfigHandler(HttpErrorMixin, APIHandler):
+class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipeline component properties"""
 
     valid_processors = ["local", "kfp", "airflow"]
 
     @web.authenticated
-    def get(self, processor, component):
+    async def get(self, processor, component):
+        print('>>> Retrieving pipeline component properties')
         if processor not in self.valid_processors:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
-        component_registry = ComponentRegistry.get_instance(registry_type='file')
+        # components = await PipelineProcessorManager.instance().get_components(processor)
+        # properties = components[component].properties
+        # json_msg = json.dumps(properties)
 
-        if not component_registry.component_exists(processor, component):
-            raise web.HTTPError(400, f"Invalid component name '{component}'")
+        json_msg = self._read_config('properties')
 
-        parser = ComponentParser.get_instance(processor=processor)
-        msg_json = parser.parse_component_properties(component)
-
+        self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(msg_json)
+        self.finish(json_msg)
+
+    def _read_config(self, config_name):
+        config_dir = os.path.join(os.path.dirname(__file__), 'resources')
+        config_file = os.path.join(config_dir, config_name + ".json")
+        with io.open(config_file, 'r', encoding='utf-8') as f:
+            config_json = json.load(f)
+        return config_json

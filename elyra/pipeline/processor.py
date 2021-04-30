@@ -29,6 +29,7 @@ from typing import List, Dict
 from urllib3.exceptions import MaxRetryError
 from minio.error import SignatureDoesNotMatch
 
+from .registry import ComponentRegistry
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
@@ -69,22 +70,28 @@ class PipelineProcessorManager(SingletonConfigurable):
                 # log and ignore initialization errors
                 self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
-    async def process(self, pipeline):
-        processor_type = pipeline.runtime
+    def _get_processor_for_runtime(self, processor_type: str):
         processor = self._registry.get_processor(processor_type)
 
         if not processor:
-            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
+            raise RuntimeError('Could not find pipeline processor for [{}]'.format(processor_type))
+
+        return processor
+
+    async def get_components(self, processor_type):
+        processor = self._get_processor_for_runtime(processor_type)
+
+        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
+        return res
+
+    async def process(self, pipeline):
+        processor = self._get_processor_for_runtime(pipeline.runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.process, pipeline)
         return res
 
     async def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        processor_type = pipeline.runtime
-        processor = self._registry.get_processor(processor_type)
-
-        if not processor:
-            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
+        processor = self._get_processor_for_runtime(pipeline.runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(
             None, processor.export, pipeline, pipeline_export_format, pipeline_export_path, overwrite)
@@ -154,6 +161,10 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     @property
     @abstractmethod
     def type(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_components(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -243,6 +254,15 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
 
 class RuntimePipelineProcess(PipelineProcessor):
+
+    def get_components(self):
+        component_registry = ComponentRegistry.get_instance(registry_type='file', processor_type=self.type)
+        components = component_registry.get_all_components()
+
+        print('>>>')
+        print(components)
+
+        return components
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)

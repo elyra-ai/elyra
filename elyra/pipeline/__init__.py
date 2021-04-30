@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 
-from .handlers import PipelineExportHandler, PipelineSchedulerHandler, PipelineComponentConfigHandler, \
-    PipelinePropertiesConfigHandler
+from .handlers import PipelineExportHandler, PipelineSchedulerHandler, PipelineComponentHandler, \
+    PipelineComponentPropertiesHandler
 from .parser import PipelineParser
 from .pipeline import Operation, Pipeline
 from .processor import PipelineProcessorRegistry, PipelineProcessorManager, PipelineProcessor, \

@@ -17,8 +17,8 @@
 import json
 import pytest
 
-from jupyter_server.tests.utils import expected_http_error
-from tornado.httpclient import HTTPClientError
+# from jupyter_server.tests.utils import expected_http_error
+# from tornado.httpclient import HTTPClientError
 
 try:
     import importlib.resources as pkg_resources
@@ -41,25 +41,25 @@ def jp_server_config():
     }
 
 
-async def test_invalid_config_resource(jp_fetch):
-    with pytest.raises(HTTPClientError) as e:
-        await jp_fetch('elyra', 'pipeline', 'config', 'invalid', method='GET')
+# async def test_invalid_config_resource(jp_fetch):
+#     with pytest.raises(HTTPClientError) as e:
+#         await jp_fetch('elyra', 'pipeline', 'config', 'invalid', method='GET')
+#
+#     assert expected_http_error(e, 400)
 
-    assert expected_http_error(e, 400)
 
-
-async def test_get_palette_config(jp_fetch):
+async def test_get_components(jp_fetch):
     # Ensure all valid metadata can be found
-    response = await jp_fetch('elyra', 'pipeline', 'config', 'palette')
+    response = await jp_fetch('elyra', 'pipeline', 'components', 'kfp')
     assert response.code == 200
     payload = json.loads(response.body.decode())
     palette = json.loads(pkg_resources.read_text(resources, 'palette.json'))
     assert payload == palette
 
 
-async def test_get_properties_config(jp_fetch):
+async def test_get_component_properties_config(jp_fetch):
     # Ensure all valid metadata can be found
-    response = await jp_fetch('elyra', 'pipeline', 'config', 'properties')
+    response = await jp_fetch('elyra', 'pipeline', 'components', 'kfp', 'execute-notebook-node')
     assert response.code == 200
     payload = json.loads(response.body.decode())
     properties = json.loads(pkg_resources.read_text(resources, 'properties.json'))

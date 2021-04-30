@@ -21,8 +21,8 @@ from .api.handlers import YamlSpecHandler
 from .metadata.handlers import MetadataHandler, MetadataResourceHandler, SchemaHandler, SchemaResourceHandler, \
     NamespaceHandler
 from .pipeline import PipelineExportHandler, PipelineSchedulerHandler, PipelineProcessorManager, \
-    PipelineComponentConfigHandler, PipelinePropertiesConfigHandler
-from .contents.handlers import FileParserHandler
+    PipelineComponentHandler, PipelineComponentPropertiesHandler
+from .contents.handlers import ContentHandler
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
@@ -54,12 +54,12 @@ def _load_jupyter_server_extension(nb_server_app):
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/export'), PipelineExportHandler),
         # (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/config/%s' % (resource_regex)),
         # PipelineConfigHandler),
-        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/config/%s' % (processor_regex)),
-        PipelineComponentConfigHandler),
-        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/config/%s/%s/properties' % (processor_regex, \
-            component_regex)), PipelinePropertiesConfigHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/components/%s' % (processor_regex)),
+        PipelineComponentHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/components/%s/%s/properties' % (processor_regex, \
+            component_regex)), PipelineComponentPropertiesHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/contents/properties/%s' % (path_regex)),
-         FileParserHandler),
+         ContentHandler),
 
     ])
     # Create PipelineProcessorManager instance passing root directory
