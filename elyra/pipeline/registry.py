@@ -21,6 +21,52 @@ import yaml
 from traitlets.config import SingletonConfigurable
 
 
+cardinality = {
+    'min': 0,
+    'max': -1
+}
+
+inputs = {
+    "id": "inPort",
+    "app_data": {
+        "ui_data": {
+            "cardinality": cardinality,
+            "label": "Input Port"
+        }
+    }
+}
+
+outputs = {
+    "id": "outPort",
+    "app_data": {
+        "ui_data": {
+            "cardinality": cardinality,
+            "label": "Output Port"
+        }
+    }
+}
+
+
+def set_node_type_data(id, label, description):
+    node_type = {}
+    node_type['id'] = ""
+    node_type['op'] = f"execute-{id}-node"
+    node_type['type'] = "execution_node"
+    node_type['inputs'] = [inputs]
+    node_type['outputs'] = [outputs]
+    node_type['parameters'] = {}
+
+    node_type['app_data'] = {}
+    node_type['app_data']['ui_data'] = {}
+    node_type['app_data']['ui_data']['label'] = label
+    node_type['app_data']['ui_data']['description'] = description
+    node_type['app_data']['ui_data']['image'] = ""
+    node_type['app_data']['ui_data']['x_pos'] = 0
+    node_type['app_data']['ui_data']['y_pos'] = 0
+
+    return node_type
+
+
 class ComponentParser(SingletonConfigurable):
     _properties: dict() = {}
 
@@ -50,20 +96,28 @@ class KfpComponentParser(ComponentParser):
         super().__init__()
 
     def parse_component_details(self, component_filename):
-        component_id = ""
-        palette_json = {}
+        component_json = {}
 
         with open(component_filename, 'r') as f:
             try:
                 yaml_obj = yaml.safe_load(f)
-                component_id = ' '.join(yaml_obj['name'].lower().replace('-', '').split()).replace(' ', '-')
 
-                palette_json['name'] = yaml_obj['name']
-                palette_json['description'] = yaml_obj['description'].strip()
+                component_json['label'] = yaml_obj['name']
+                component_json['image'] = ""
+                component_json['id'] = ' '.join(yaml_obj['name'].lower().replace('-', '').split()).replace(' ', '-')
+                component_json['description'] = ' '.join(yaml_obj['description'].split())
+
+                component_json['node_types'] = []
+
+                node_type = set_node_type_data(component_json['id'],
+                                               component_json['label'],
+                                               component_json['description'])
+                component_json['node_types'].append(node_type)
+
             except yaml.YAMLError as e:
                 raise RuntimeError from e
 
-        return component_id, palette_json
+        return component_json
 
     def parse_component_properties(self, component):
         component_id = ""
@@ -152,27 +206,23 @@ class ComponentRegistry(SingletonConfigurable):
     def get_all_components(self, processor_type, registry_type):
         """Builds a palette.json in the form of a dictionary of components."""
 
-        # reader = self._get_reader(registry_type)
+        reader = self._get_reader(registry_type)
         parser = self._get_parser(processor_type)
-
-        # print(reader._reader_type)
 
         # First get the components common to all runtimes
         # TODO: decide on normalized format between these common components and the 'new' ones
-        # components = {}
-        # components['common'] = parser.get_common_components()
+        components = parser.get_common_components()
 
-        # # Loop through all the component definitions for the given registry
-        # for component in reader._list_all_components():
-        #     print(f'component registry -> found component {component}')
-        #     component_id, component_details = self.parser.parse_component_details(component)
-        #     if component_id is None:
-        #         continue
-        #     self._components[component_id] = component_details
+        # Loop through all the component definitions for the given registry
+        for component in reader._list_all_components():
+            print(f'component registry -> found component {component}')
 
-        # return components
+            component_json = parser.parse_component_details(component)
+            if component_json is None:
+                continue
+            components['categories'].append(component_json)
 
-        return parser.get_common_components()
+        return components
 
     def _get_reader(self, registry_type: str):
         """
@@ -186,7 +236,7 @@ class ComponentRegistry(SingletonConfigurable):
 
     def _get_parser(self, processor_type: str):
         """
-        Find the proper parser based on content language
+        Find the proper parser based on processor type
         """
 
         try:
