@@ -24,6 +24,8 @@ from .processor import PipelineProcessorManager
 from tornado import web
 from ..util.http import HttpErrorMixin
 
+from .registry import ComponentRegistry
+
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to export pipelines"""
@@ -130,9 +132,10 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
 
         # components = await PipelineProcessorManager.instance().get_components(processor)
         # properties = components[component].properties
-        # json_msg = json.dumps(properties)
+        properties = ComponentRegistry().get_properties(processor, component)
+        json_msg = json.dumps(properties)
 
-        json_msg = self._read_config('properties')
+        # json_msg = self._read_config('properties')
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')

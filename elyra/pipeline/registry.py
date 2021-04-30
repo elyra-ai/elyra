@@ -68,17 +68,24 @@ def set_node_type_data(id, label, description):
 
 
 class ComponentParser(SingletonConfigurable):
-    _properties: dict() = {}
+    properties: dict() = {}
 
     def __init__(self):
         super().__init__()
 
-    def get_common_components(self):
-        common_component_dir = os.path.join(os.path.dirname(__file__), 'resources')
-        common_component_file = os.path.join(common_component_dir, "palette.json")
-        with io.open(common_component_file, 'r', encoding='utf-8') as f:
-            common_component_json = json.load(f)
-        return common_component_json
+    def get_common_config(self):
+        common_dir = os.path.join(os.path.dirname(__file__), 'resources')
+        common_file = os.path.join(common_dir, "palette.json")
+        with io.open(common_file, 'r', encoding='utf-8') as f:
+            common_json = json.load(f)
+
+            properties_file = os.path.join(common_dir, "properties.json")
+            with io.open(properties_file, 'r', encoding='utf-8') as props:
+                properties = json.load(props)
+
+                for component in common_json['categories']:
+                    self.properties[component["id"]] = properties
+        return common_json
 
     def parse_component_details(self, component):
         """Get component name, id, description for palette JSON"""
@@ -114,25 +121,27 @@ class KfpComponentParser(ComponentParser):
                                                component_json['description'])
                 component_json['node_types'].append(node_type)
 
+                # self.properties = self.parse_component_properties(component)
+                self.properties[component_json['id']] = {"prop": "value"}
+
             except yaml.YAMLError as e:
                 raise RuntimeError from e
 
         return component_json
 
     def parse_component_properties(self, component):
-        component_id = ""
         properties_json = {}
 
         with open(component + ".yaml", 'r') as f:
             try:
                 yaml_obj = yaml.safe_load(f)
-                component_id = ' '.join(yaml_obj['name'].lower().replace('-', '').split()).replace(' ', '-')
+                properties_json = yaml_obj
 
                 # Add additional properties to properties_json
             except yaml.YAMLError as e:
                 raise RuntimeError from e
 
-        return component_id, properties_json
+        return properties_json
 
 
 class AirflowComponentParser(ComponentParser):
@@ -142,10 +151,10 @@ class AirflowComponentParser(ComponentParser):
         super().__init__()
 
     def parse_component_details(self, component_filename):
-        return None, {}
+        return None
 
     def parse_component_properties(self, component):
-        return None, {}
+        return None
 
 
 class ComponentReader(SingletonConfigurable):
@@ -173,7 +182,8 @@ class FilesystemComponentReader(ComponentReader):
 
     def _list_all_components(self):
         # Relative to jupyter work_dir right now
-        return ["examples/example1.yaml", "examples/example2.yaml"]
+        return []
+        # return ["examples/example1.yaml", "examples/example2.yaml"]
 
     def add_component(self, processor_type, component_json):
         pass
@@ -204,16 +214,17 @@ class ComponentRegistry(SingletonConfigurable):
     }
 
     def get_all_components(self, processor_type, registry_type):
-        """Builds a palette.json in the form of a dictionary of components."""
+        """
+        Builds a component palette in the form of a dictionary of components.
+        """
 
         reader = self._get_reader(registry_type)
         parser = self._get_parser(processor_type)
 
-        # First get the components common to all runtimes
-        # TODO: decide on normalized format between these common components and the 'new' ones
-        components = parser.get_common_components()
+        # First get components common to all runtimes
+        components = parser.get_common_config()
 
-        # Loop through all the component definitions for the given registry
+        # Loop through all the component definitions for the given registry type
         for component in reader._list_all_components():
             print(f'component registry -> found component {component}')
 
@@ -224,9 +235,17 @@ class ComponentRegistry(SingletonConfigurable):
 
         return components
 
+    def get_properties(self, processor_type, component):
+        parser = ComponentParser.instance()
+        print(parser.properties)
+        try:
+            return parser.properties[component]
+        except KeyError:
+            raise KeyError(f"Component {component} not found")
+
     def _get_reader(self, registry_type: str):
         """
-        Find the proper reader based on the given registry type
+        Find the proper reader based on the given registry type.
         """
 
         try:
@@ -236,7 +255,7 @@ class ComponentRegistry(SingletonConfigurable):
 
     def _get_parser(self, processor_type: str):
         """
-        Find the proper parser based on processor type
+        Find the proper parser based on processor type.
         """
 
         try:

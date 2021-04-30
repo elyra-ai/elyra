@@ -165,14 +165,9 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     @abstractmethod
     def get_components(self):
-        components = ComponentRegistry().get_all_components(registry_type='file', processor_type=self.type)
-
-        print('>>>')
-        print(components)
-
-        return components
-
-        # raise NotImplementedError()
+        raise NotImplementedError()
+        # components = ComponentRegistry().get_all_components(registry_type='file', processor_type=self.type)
+        # return components
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:
