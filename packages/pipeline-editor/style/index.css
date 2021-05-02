@@ -199,6 +199,18 @@ span.bx--list-box__label {
   display: none;
 }
 
+.properties-control-panel[data-id='properties-resources']
+  .properties-custom-ctrl {
+  position: absolute;
+  bottom: 18px;
+  padding-right: 14px;
+}
+
+.properties-control-panel[data-id='properties-resources']
+  .properties-control-description {
+  padding-bottom: 35px;
+}
+
 .elyra-stringArrayControl-listItem {
   padding: 5px;
 }
