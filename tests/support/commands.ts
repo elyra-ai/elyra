@@ -65,7 +65,7 @@ Cypress.Commands.add('deleteFile', (name: string): void => {
 Cypress.Commands.add('createPipelineEditor', (): void => {
   // TODO: find a better way to access this.
   cy.get(
-    '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]'
+    '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
   ).click();
   cy.get('.common-canvas-drop-div');
   // wait an additional 300ms for the list of items to settle
