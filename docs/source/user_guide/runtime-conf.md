@@ -25,7 +25,9 @@ You can manage runtime configurations using the [JupyterLab UI](#managing-runtim
 
 A runtime configuration requires connectivity details for 
 * A Kubeflow Pipelines deployment or an Apache Airflow deployment
-* S3-based Object Storage (e.g. minio or IBM Cloud Object Storage)
+* S3-based Object Storage (e.g. Minio or IBM Cloud Object Storage)
+
+Note: Elyra is only tested with Kubeflow v1.2.x and v1.3.x and Apache Airflow v1.10.x.
 
 ### Managing runtime configurations using the JupyterLab UI
 
