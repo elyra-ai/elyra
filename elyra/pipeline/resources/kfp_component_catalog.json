@@ -1,18 +1,6 @@
 {
   "components": [
     {
-      "name": "Notebook",
-      "id": "notebooks"
-    },
-    {
-      "name": "Python Script",
-      "id": "python-script"
-    },
-    {
-      "name": "R Script",
-      "id": "r-script"
-    },
-    {
       "name": "Train Spark Model - IBM Cloud",
       "id": "train-spark-model-ibm-cloud",
       "path": {

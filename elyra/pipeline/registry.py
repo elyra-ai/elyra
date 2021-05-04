@@ -60,6 +60,10 @@ default_current_parameters = {
 default_components = ["notebooks", "python-script", "r-script"]
 
 
+def get_id_from_name(name):
+    return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-')
+
+
 def set_node_type_data(id, label, description):
     node_type = {}
     node_type['id'] = ""
@@ -81,10 +85,13 @@ def set_node_type_data(id, label, description):
 
 
 class ComponentParser(SingletonConfigurable):
+    _type = "local"
     properties: dict() = {}
+    parameters: dict() = {}
 
     def __init__(self):
         super().__init__()
+        self.properties = self.get_common_config('properties')
 
     def get_common_config(self, config_name):
         common_dir = os.path.join(os.path.dirname(__file__), 'resources')
@@ -93,6 +100,43 @@ class ComponentParser(SingletonConfigurable):
             common_json = json.load(f)
 
         return common_json
+
+    def _get_component_catalog_json(self):
+        catalog_dir = os.path.join(os.path.dirname(__file__), "resources")
+        catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
+        with open(catalog_file, 'r') as f:
+            catalog_json = json.load(f)
+
+        return catalog_json['components']
+
+    def list_all_components(self):
+        components = []
+        if self._type != "local":
+            for component in self._get_component_catalog_json():
+                assert "path" in component
+                components.append(component)
+
+        return components
+
+    def return_component_if_exists(self, component_id):
+        for component in self._get_component_catalog_json():
+            if component['id'] == component_id:
+                return component
+        return None
+
+    def add_component(self, request_body):
+        component_json = {}
+        component_json['name'] = request_body["name"]
+        component_json['id'] = get_id_from_name(request_body["name"])
+        component_json['path'] = request_body['path']
+
+        catalog_json = self._get_component_catalog_json()
+        catalog_json['components'].append(component_json)
+
+        catalog_dir = os.path.join(os.path.dirname(__file__), "resources")
+        catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
+        with open(catalog_file, 'a') as f:
+            f.write(json.dumps(catalog_json))
 
     def parse_component_details(self, component):
         """Get component name, id, description for palette JSON"""
@@ -112,7 +156,7 @@ class KfpComponentParser(ComponentParser):
     def parse_component_details(self, component_body):
         component_json = {}
 
-        component_id = ' '.join(component_body['name'].lower().replace('-', '').split()).replace(' ', '-')
+        component_id = get_id_from_name(component_body['name'])
 
         component_json['label'] = component_body['name']
         component_json['image'] = ""
@@ -126,8 +170,8 @@ class KfpComponentParser(ComponentParser):
                                        component_json['description'])
         component_json['node_types'].append(node_type)
 
-        # Set properties info for this component for each of later access
-        # May want to move this if taking too long to return component info
+        # Set properties info for this component for later access
+        # May want to move this/refactor if taking too long to return component info
         self.parse_component_properties(component_body)
 
         return component_json
@@ -141,19 +185,26 @@ class KfpComponentParser(ComponentParser):
         uihints {}: lots of this will need to be dictated by frontend needs
         conditions []: based on logic given in YAML
         '''
-        component_id = ' '.join(component_body['name'].lower().replace('-', '').split()).replace(' ', '-')
+        component_id = get_id_from_name(component_body['name'])
+
+        print(component_body)
 
         current_parameters = {}
         if component_id in self.properties:
             current_parameters = self.properties[component_id]
+            # current_parameters = self.parameters[component_id]
         elif component_id in default_components:
             current_parameters = default_current_parameters
         else:
             current_parameters = {"param": "value"}
             self.properties[component_id] = current_parameters
+            self.parameters[component_id] = current_parameters
 
         print(current_parameters)
         return current_parameters
+
+    def parse_component_execution_instructions(self, component_body):
+        pass
 
 
 class AirflowComponentParser(ComponentParser):
@@ -170,50 +221,21 @@ class AirflowComponentParser(ComponentParser):
 
 
 class ComponentReader(SingletonConfigurable):
-    reader_type = 'local'
+    _type = 'local'
 
     def __init__(self):
         super().__init__()
 
-    def _get_component_catalog_json(self):
-        catalog_dir = os.path.join(os.path.dirname(__file__), "resources")
-        catalog_file = os.path.join(catalog_dir, "kfp_component_catalog.json")
-        with open(catalog_file, 'r') as f:
-            catalog_json = json.load(f)
-        return catalog_json['components']
-
-    def list_all_components(self):
-        return self._get_component_catalog_json()
-
-    def get_component(self, component_id):
-        for component in self.list_all_components():
-            print(component)
-            if component['id'] == component_id:
-                return component['path'][self.reader_type]
-
-    def add_component(self, processor_type, component_json):
-        pass
-
-    def component_exists(self, component_id):
-        for component in self._get_component_catalog_json():
-            if component['id'] == component_id:
-                return component
-        return False
+    def get_component_body(self, component_path):
+        raise NotImplementedError()
 
 
 class FilesystemComponentReader(ComponentReader):
-    reader_type = 'file'
+    _type = 'file'
     _dir_path: str = 'resources'
 
     def __init__(self):
         super().__init__()
-
-    def list_all_components(self):
-        components = []
-        for component in self._get_component_catalog_json():
-            if "path" in component and "file" in component['path']:
-                components.append(component)
-        return components
 
     def get_component_body(self, component_path):
         component_dir = os.path.join(os.path.dirname(__file__), self._dir_path)
@@ -229,18 +251,11 @@ class FilesystemComponentReader(ComponentReader):
 
 
 class UrlComponentReader(ComponentReader):
-    reader_type = 'url'
+    _type = 'url'
     _url_path: str
 
     def __init__(self):
         super().__init__()
-
-    def list_all_components(self):
-        components = []
-        for component in self._get_component_catalog_json():
-            if "path" in component and "url" in component['path']:
-                components.append(component)
-        return components
 
     def get_component_body(self, component_path):
         try:
@@ -259,12 +274,12 @@ class ComponentRegistry(SingletonConfigurable):
     parsers = {
         KfpComponentParser._type: KfpComponentParser(),
         AirflowComponentParser._type: AirflowComponentParser(),
-        'local': ComponentParser()
+        ComponentParser._type: ComponentParser()
     }
 
     readers = {
-        FilesystemComponentReader.reader_type: FilesystemComponentReader(),
-        UrlComponentReader.reader_type: UrlComponentReader(),
+        FilesystemComponentReader._type: FilesystemComponentReader(),
+        UrlComponentReader._type: UrlComponentReader(),
         'local': ComponentReader()
     }
 
@@ -274,24 +289,21 @@ class ComponentRegistry(SingletonConfigurable):
         """
 
         parser = self._get_parser(processor_type)
+        assert processor_type == parser._type
 
         # Get components common to all runtimes
         components = parser.get_common_config('palette')
 
-        # Set properties for default components
-        parser.properties = parser.get_common_config('properties')
-
         # Loop through all the component definitions for the given registry type
-        for component in ComponentReader().list_all_components():
+        reader = None
+        for component in parser.list_all_components():
             print(f"component registry -> found component {component['name']}")
 
-            # TODO: Figure out how to handle default components
-            if component['id'] in default_components:
-                continue
+            # Get appropriate reader in order to read component definition
+            if reader is None or reader._type != list(component['path'].keys())[0]:
+                reader = self._get_reader(component)
 
-            # Get appropriate reader in oder to read component definition
-            reader = self._get_reader(list(component['path'].keys())[0])
-            component_body = reader.get_component_body(component['path'][reader.reader_type])
+            component_body = reader.get_component_body(component['path'][reader._type])
 
             # Parse the component definition in order to add to palette
             component_json = parser.parse_component_details(component_body)
@@ -302,55 +314,68 @@ class ComponentRegistry(SingletonConfigurable):
         return components
 
     def get_properties(self, processor_type, component_id):
-        '''
-        if component_id in default_components:
-            return parser.properties
-        elif reader.component_exists(component_id):
-            current_params = parser.parse_component_properties(component_id)
-            parser.properties["current_parameters"] = current_params
-        '''
+        """
+        Return the properties JOSN for a given component.
+        """
+
         parser = self._get_parser(processor_type)
         parser.properties = parser.get_common_config('properties')
-        current_parameters = default_current_parameters
 
-        if ComponentReader().component_exists(component_id):
-            if component_id not in default_components:
-                reader = self._get_reader_from_catalog(component_id)
-                component_path = reader.get_component(component_id)
-                component_body = reader.get_component_body(component_path)
-                current_parameters = parser.parse_component_properties(component_body)
+        # if component_id in default_components:
+        if parser._type == "local":
+            current_parameters = default_current_parameters
         else:
-            raise ValueError(f"Component with ID {component_id} not found.")
+            component = parser.return_component_if_exists(component_id)
+            if component is None:
+                raise ValueError(f"Component with ID {component_id} not found.")
+
+            reader = self._get_reader(component)
+
+            component_path = component['path'][reader._type]
+            component_body = reader.get_component_body(component_path)
+            current_parameters = parser.parse_component_properties(component_body)
 
         parser.properties['current_parameters'] = current_parameters
         return parser.properties
 
-    def _get_reader(self, registry_type: str):
+    def add_component(self, processor_type, request_body):
         """
-        Find the proper reader based on the given registry type.
+        Add a component based on the provided definition. Definition will be provided in POST body
+        in the format {"name": "desired_name", path": {"file/url": "filepath/urlpath"}}.
+        """
+
+        parser = self._get_parser(processor_type)
+        parser.add_component(request_body)  # Maybe make this async to prevent reading issues during get_all_components()
+
+        components = self.get_all_components(None, parser._type)
+        return components
+
+    def get_component_execution_details(self, processor_type, component_id):
+        """
+        Returns the implementation details of a given component.
+        """
+        parser = self._get_parser(processor_type)
+        assert parser._type != "local"  # local components should not have execution details
+
+        component = parser.return_component_if_exists(component_id)
+
+        reader = self._get_reader(component)
+        component_path = component['path'][reader._type]
+        component_body = reader.get_component_body(component_path)
+
+        execution_instructions = parser.parse_component_execution_instructions(component_body)
+        return execution_instructions
+
+    def _get_reader(self, component):
+        """
+        Find the proper reader based on the given registry component.
         """
 
         try:
-            return self.readers.get(registry_type)
+            component_type = list(component['path'].keys())[0]
+            return self.readers.get(component_type)
         except Exception:
-            raise ValueError(f"Unsupported registry type: {registry_type}")
-
-    def _get_reader_from_catalog(self, component_id: str):
-        """
-        Find the proper reader based on the given component id.
-        """
-
-        for component in ComponentReader().list_all_components():
-            if 'path' not in component:
-                continue
-
-            path = component['path']
-            if component['id'] == component_id and 'file' in path:
-                return self.readers.get('file')
-            elif component['id'] == component_id and 'url' in path:
-                return self.readers.get('url')
-
-        raise ValueError("Could not determine registry type from component catalog.")
+            raise ValueError(f"Unsupported registry type.")
 
     def _get_parser(self, processor_type: str):
         """
