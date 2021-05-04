@@ -18,6 +18,7 @@
     "target": "es2017",
     "strict": true,
     "strictNullChecks": false,
-    "types": []
+    "types": [],
+    "skipLibCheck": true
   }
 }

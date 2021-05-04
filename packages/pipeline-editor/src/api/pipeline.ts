@@ -13,3 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// const SERVICE = 'pipeline';
+
+export const submitPipeline = (): void => {
+  // POST elyra/pipeline/schedule
+};
+
+export const exportPipeline = (): void => {
+  // POST elyra/pipeline/export
+};

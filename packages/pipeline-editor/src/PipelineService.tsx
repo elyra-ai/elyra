@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { MetadataService, IDictionary, RequestHandler } from '@elyra/services';
+import { IDictionary, MetadataService, RequestHandler } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 
-import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
 
-import * as React from 'react';
+import React from 'react';
 
 import Utils from './utils';
 
@@ -138,7 +138,7 @@ export class PipelineService {
   }
 
   static getDisplayName(name: string, metadataArr: IDictionary<any>[]): string {
-    return metadataArr.find(r => r['name'] === name)['display_name'];
+    return metadataArr.find(r => r['name'] === name)?.display_name;
   }
 
   /**
@@ -147,7 +147,7 @@ export class PipelineService {
    * @param metadataArr
    */
   static getRuntimeName(name: string, metadataArr: IDictionary<any>[]): string {
-    return metadataArr.find(r => r['name'] === name)['schema_name'];
+    return metadataArr.find(r => r['name'] === name)?.schema_name;
   }
 
   /**

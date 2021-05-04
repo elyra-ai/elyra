@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
 export * from './parsing';
 export * from './metadata';
 export * from './requests';
+export * from './Config';
