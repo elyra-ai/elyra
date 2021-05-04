@@ -123,21 +123,20 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipeline component properties"""
 
     valid_processors = ["local", "kfp", "airflow"]
+    component_registry: ComponentRegistry = ComponentRegistry()
 
     @web.authenticated
-    async def get(self, processor, component):
+    async def get(self, processor, component_id):
         print('>>> Retrieving pipeline component properties')
         if processor not in self.valid_processors:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
-        # components = await PipelineProcessorManager.instance().get_components(processor)
-        # properties = components[component].properties
-        properties = ComponentRegistry().get_properties(processor, component)
+        properties = ComponentRegistry().get_properties(processor, component_id)
         json_msg = json.dumps(properties)
 
         # json_msg = self._read_config('properties')
-
         self.set_status(200)
+
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
 

@@ -1,0 +1,44 @@
+{
+  "components": [
+    {
+      "name": "Notebook",
+      "id": "notebooks"
+    },
+    {
+      "name": "Python Script",
+      "id": "python-script"
+    },
+    {
+      "name": "R Script",
+      "id": "r-script"
+    },
+    {
+      "name": "Train Spark Model - IBM Cloud",
+      "id": "train-spark-model-ibm-cloud",
+      "path": {
+        "file": "example1.yaml"
+      }
+    },
+    {
+      "name": "Run Notebook Using Papermill",
+      "id": "run-notebook-using-papermill",
+      "path": {
+        "file": "example2.yaml"
+      }
+    },
+    {
+      "name": "Serve PyTorch Model - Seldon Core",
+      "id": "serve-pytorch-model-seldon-core",
+      "path": {
+        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/ibm-components/ffdl/serve/component.yaml"
+      }
+    },
+    {
+      "name": "Deploy Model - Watson Machine Learning",
+      "id": "deploy-model-watson-machine-learning",
+      "path": {
+        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/ibm-components/watson/deploy/component.yaml"
+      }
+    }
+  ]
+}

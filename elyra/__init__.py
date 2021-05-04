@@ -28,7 +28,7 @@ namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
 path_regex = r"(?P<path>[\w\.\/\-\%]+)"
 processor_regex = r"(?P<processor>[\w]+)"
-component_regex = r"(?P<component>[\w\.\-]+)"
+component_regex = r"(?P<component_id>[\w\.\-]+)"
 
 
 def _jupyter_server_extension_points():
