@@ -35,12 +35,12 @@ const AIRFLOW_FILE_TYPES = [
 interface IProps {
   runtimes: IRuntime[];
   schema: ISchema[];
+  runtime?: string;
 }
 
 interface IState {
   displayedRuntimeOptions: IRuntime[];
   fileTypes: Record<string, string>[];
-  selectedRuntimePlatform: string;
   validSchemas: ISchema[];
 }
 
@@ -48,7 +48,6 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
     fileTypes: new Array<Record<string, string>>(),
-    selectedRuntimePlatform: '',
     validSchemas: new Array<ISchema>()
   };
 
@@ -56,8 +55,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     const selectedPlatform = event.target.value;
     this.setState({
       displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
-      fileTypes: this.updateFileTypeOptions(selectedPlatform),
-      selectedRuntimePlatform: selectedPlatform
+      fileTypes: this.updateFileTypeOptions(selectedPlatform)
     });
   };
 
@@ -85,7 +83,8 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     const { schema, runtimes } = this.props;
 
     const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
-    const selectedRuntimePlatform = validSchemas[0] && validSchemas[0].name;
+    const selectedRuntimePlatform =
+      this.props.runtime ?? (validSchemas[0] && validSchemas[0].name);
     const displayedRuntimeOptions = this.updateRuntimeOptions(
       selectedRuntimePlatform
     );
@@ -94,7 +93,6 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     this.setState({
       displayedRuntimeOptions: displayedRuntimeOptions,
       fileTypes: fileTypes,
-      selectedRuntimePlatform: selectedRuntimePlatform,
       validSchemas: validSchemas
     });
   }
@@ -104,21 +102,25 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
 
     return (
       <form className="elyra-dialog-form">
-        <label htmlFor="runtime_platform">Runtime Platform:</label>
-        <br />
-        <select
-          id="runtime_platform"
-          name="runtime_platform"
-          className="elyra-form-runtime-platform"
-          data-form-required
-          onChange={this.handleUpdate}
-        >
-          {validSchemas.map(schema => (
-            <option key={schema.name} value={schema.name}>
-              {schema.display_name}
-            </option>
-          ))}
-        </select>
+        {!this.props.runtime && (
+          <div>
+            <label htmlFor="runtime_platform">Runtime Platform:</label>
+            <br />
+            <select
+              id="runtime_platform"
+              name="runtime_platform"
+              className="elyra-form-runtime-platform"
+              data-form-required
+              onChange={this.handleUpdate}
+            >
+              {validSchemas.map(schema => (
+                <option key={schema.name} value={schema.name}>
+                  {schema.display_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select
