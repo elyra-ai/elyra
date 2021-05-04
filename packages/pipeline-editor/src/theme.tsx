@@ -44,7 +44,7 @@ const theme: any = {
     focus: 'var(--jp-border-color1)',
     border: 'var(--jp-border-color0)',
     divider: 'var(--jp-border-color0)',
-    hover: 'rgba(255, 255, 255, 0.05)',
+    hover: 'var(--jp-border-color1)',
     active: 'rgba(255, 255, 255, 0.18)',
     primary: {
       main: 'var(--jp-inverse-layout-color4)',
@@ -52,8 +52,8 @@ const theme: any = {
       contrastText: 'var(--jp-layout-color1)'
     },
     secondary: {
-      main: 'var(--jp-border-color1)',
-      contrastText: 'var(--jp-content-font-color2)'
+      main: 'var(--jp-border-color2)',
+      contrastText: 'var(--jp-content-font-color1)'
     },
     error: {
       main: 'var(--jp-error-color0)',
@@ -87,7 +87,7 @@ const theme: any = {
   typography: {
     fontFamily: 'var(--jp-ui-font-family)',
     fontWeight: 'normal',
-    fontSize: 'var(--jp-code-font-size)'
+    fontSize: 'var(--jp-content-font-size1)'
   },
   overrides: {
     deleteIcon: LabIcon.resolveReact({ icon: trashIcon }),
