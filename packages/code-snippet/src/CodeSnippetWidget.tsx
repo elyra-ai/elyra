@@ -337,6 +337,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
         ? contentFactory.createCodeCell({})
         : contentFactory.createMarkdownCell({});
     const content = metadata.metadata.code.join('\n');
+    const sourceID = `elyra-codeSnippet-${language}`;
+
     model.value.text = content;
 
     this._drag = new Drag({
@@ -344,7 +346,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       dragImage: dragImage,
       supportedActions: 'copy-move',
       proposedAction: 'copy',
-      source: this
+      source: sourceID
     });
 
     const selected: nbformat.ICell[] = [model.toJSON()];

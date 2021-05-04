@@ -41,6 +41,9 @@
     "@jupyterlab/rendermime": "^3.0.0",
     "@jupyterlab/services": "^6.0.0",
     "@jupyterlab/ui-components": "^3.0.0",
+    "@lumino/coreutils": "^1.5.3",
+    "@lumino/dragdrop": "^1.7.1",
+    "@lumino/messaging": "^1.4.3",
     "@lumino/widgets": "^1.17.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1"

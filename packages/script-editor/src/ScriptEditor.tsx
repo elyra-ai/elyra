@@ -43,6 +43,9 @@ import {
   stopIcon,
   TabBarSvg
 } from '@jupyterlab/ui-components';
+import { MimeData } from '@lumino/coreutils';
+import { IDragEvent } from '@lumino/dragdrop';
+import { Message } from '@lumino/messaging';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
 
@@ -53,6 +56,7 @@ import { ScriptRunner } from './ScriptRunner';
 /**
  * The CSS class added to widgets.
  */
+const DROP_TARGET_CLASS = 'elyra-ScriptEditor-dropTarget';
 const SCRIPT_EDITOR_CLASS = 'elyra-ScriptEditor';
 const OUTPUT_AREA_CLASS = 'elyra-ScriptEditor-OutputArea';
 const OUTPUT_AREA_ERROR_CLASS = 'elyra-ScriptEditor-OutputArea-error';
@@ -403,6 +407,150 @@ export class ScriptEditor extends DocumentWidget<
       }
     });
   };
+
+  /**
+   * Handle the DOM events for the widget.
+   *
+   * @param event - The DOM event sent to the widget.
+   *
+   * #### Notes
+   * This method implements the DOM `EventListener` interface and is
+   * called in response to events on the Code Snippets widget.
+   */
+  handleEvent(event: Event): void {
+    switch (event.type) {
+      case 'lm-dragenter':
+        this._evtDragEnter(event as IDragEvent);
+        break;
+      case 'lm-dragleave':
+        this._evtDragLeave(event as IDragEvent);
+        break;
+      case 'lm-dragover':
+        this._evtDragOver(event as IDragEvent);
+        break;
+      case 'lm-drop':
+        this._evtDrop(event as IDragEvent);
+        break;
+      default:
+        break;
+    }
+  }
+
+  // A message handler invoked on an `'after-attach'` message.
+  protected onAfterAttach(msg: Message): void {
+    super.onAfterAttach(msg);
+    const node = this.content.editor.host;
+
+    node.addEventListener('lm-dragenter', this);
+    node.addEventListener('lm-dragleave', this);
+    node.addEventListener('lm-dragover', this);
+    node.addEventListener('lm-drop', this);
+  }
+
+  // Handle `before-detach` messages for the widget.
+  protected onBeforeDetach(msg: Message): void {
+    const node = this.node;
+    node.removeEventListener('lm-dragenter', this);
+    node.removeEventListener('lm-dragleave', this);
+    node.removeEventListener('lm-dragover', this);
+    node.removeEventListener('lm-drop', this);
+  }
+
+  // Handle the `'lm-dragenter'` event for the widget.
+  private _evtDragEnter(event: IDragEvent): void {
+    if (this.findTextData(event.mimeData) === undefined) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    event.dropAction = event.proposedAction;
+    this.content.editor.host.classList.add(DROP_TARGET_CLASS);
+  }
+
+  // Handle the `'lm-dragleave'` event for the widget.
+  private _evtDragLeave(event: IDragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const targetElements = this.content.editor.host.getElementsByClassName(
+      DROP_TARGET_CLASS
+    );
+    if (targetElements.length) {
+      (targetElements[0] as HTMLElement).classList.remove(DROP_TARGET_CLASS);
+    }
+  }
+
+  // Handle the `'lm-dragover'` event for the widget.
+  private _evtDragOver(event: IDragEvent): void {
+    if (this.findTextData(event.mimeData) === undefined) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    event.dropAction = event.proposedAction;
+    this.content.editor.host.classList.add(DROP_TARGET_CLASS);
+  }
+
+  // Handle the `'lm-drop'` event for the widget.
+  private _evtDrop(event: IDragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const targetElements = this.content.editor.host.getElementsByClassName(
+      DROP_TARGET_CLASS
+    );
+    if (targetElements.length) {
+      (targetElements[0] as HTMLElement).classList.remove(DROP_TARGET_CLASS);
+    }
+
+    const data = this.findTextData(event.mimeData);
+    if (data === undefined) {
+      return;
+    }
+
+    if (event.proposedAction === 'none') {
+      event.dropAction = 'none';
+      return;
+    }
+
+    // Check if drop item source is Elyra Code Snippets extension
+    const sourceTarget = 'elyra-codeSnippet';
+    const dataSource = event.source;
+    if (typeof dataSource === 'string' && dataSource.includes(sourceTarget)) {
+      const dataSourceLanguage = dataSource.substring(sourceTarget.length + 1);
+      this.handleCodeSnippetDropItem(dataSourceLanguage, data);
+    }
+  }
+
+  private handleCodeSnippetDropItem = async (
+    dataSourceLanguage: string,
+    data: string[]
+  ): Promise<void> => {
+    if (
+      dataSourceLanguage.toLowerCase() !==
+      this.editorLanguage.toLocaleLowerCase()
+    ) {
+      const result = await showDialog({
+        title: 'Warning',
+        body: `Code snippet is incompatible with ${this.editorLanguage}. Continue?`,
+        buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      });
+
+      result.button.accept &&
+        this.content.editor.replaceSelection(data.join('\n'));
+      return;
+    }
+    this.content.editor.replaceSelection(data.join('\n'));
+  };
+
+  // Given a MimeData instance, extract the first text data, if any.
+  private findTextData(mime: MimeData): string[] {
+    const textData = mime.getData('text/plain');
+    if (textData) {
+      return textData.split('\n');
+    }
+    return textData;
+  }
 }
 
 /**
