@@ -87,8 +87,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                                    api_username,
                                                                    api_password)
 
-            self.log.info(f"Kubeflow endpoint '{api_endpoint}' secured: "
-                          f"{auth_info['endpoint_secured']}")
+            self.log.debug(f"Kubeflow authentication info: {auth_info}")
 
             if auth_info['endpoint_secured'] and \
                auth_info['authservice_session_cookie'] is None:
