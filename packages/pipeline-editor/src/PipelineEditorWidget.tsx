@@ -70,6 +70,7 @@ export const commandIDs = {
   openMetadata: 'elyra-metadata:open',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
+  saveDocManager: 'docmanager:save',
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
@@ -317,10 +318,40 @@ const PipelineWrapper: React.FC<IProps> = ({
       RequestErrors.serverError(error)
     );
 
+    const pipelineRuntime =
+      pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
+    let title = 'Export pipeline';
+    if (pipelineRuntime) {
+      title = `Export pipeline for ${pipelineRuntime.display_name}`;
+      const filteredRuntimeOptions = PipelineService.filterRuntimes(
+        runtimes,
+        pipelineRuntime.name
+      );
+      if (filteredRuntimeOptions.length === 0) {
+        const runtimes = await RequestErrors.noMetadataError(
+          'runtime',
+          'export pipeline.',
+          pipelineRuntime.display_name
+        );
+        if (Utils.isDialogResult(runtimes)) {
+          if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+            // Open the runtimes widget
+            shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+          }
+          return;
+        }
+        return;
+      }
+    }
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
-      title: 'Export pipeline',
+      title,
       body: formDialogWidget(
-        <PipelineExportDialog runtimes={runtimes} schema={schema} />
+        <PipelineExportDialog
+          runtimes={runtimes}
+          runtime={pipelineRuntime?.name}
+          schema={schema}
+        />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
@@ -438,12 +469,39 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
     schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 
+    let title = 'Run pipeline';
+    const pipelineRuntime =
+      pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
+    if (pipelineRuntime) {
+      title = `Run pipeline on ${pipelineRuntime.display_name}`;
+      const filteredRuntimeOptions = PipelineService.filterRuntimes(
+        runtimes,
+        pipelineRuntime.name
+      );
+      if (filteredRuntimeOptions.length === 0) {
+        const runtimes = await RequestErrors.noMetadataError(
+          'runtime',
+          'run pipeline.',
+          pipelineRuntime.display_name
+        );
+        if (Utils.isDialogResult(runtimes)) {
+          if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+            // Open the runtimes widget
+            shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+          }
+          return;
+        }
+        return;
+      }
+    }
+
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
-      title: 'Run pipeline',
+      title,
       body: formDialogWidget(
         <PipelineSubmissionDialog
           name={pipelineName}
           runtimes={runtimes}
+          runtime={pipelineRuntime?.name}
           schema={schema}
         />
       ),

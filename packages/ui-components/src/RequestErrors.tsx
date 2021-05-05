@@ -93,13 +93,17 @@ export class RequestErrors {
    */
   static noMetadataError(
     namespace: string,
-    action?: string
+    action?: string,
+    schemaName?: string
   ): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: action ? `Cannot ${action}` : 'Error retrieving metadata',
       body: (
         <div>
-          <p>No {namespace} configuration is defined.</p>
+          <p>
+            No {namespace} configuration{schemaName && ` for ${schemaName}`} is
+            defined.
+          </p>
           <p>Please create one and try again.</p>
         </div>
       ),

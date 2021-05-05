@@ -19,6 +19,8 @@ describe('Pipeline Editor tests', () => {
     cy.deleteFile('helloworld.yaml');
     cy.deleteFile('*.pipeline'); // delete pipeline files used for testing
 
+    cy.bootstrapFile('invalid.pipeline');
+    cy.bootstrapFile('helloworld.pipeline');
     cy.bootstrapFile('helloworld.ipynb');
     cy.exec('jupyter trust build/cypress-tests/helloworld.ipynb');
     cy.bootstrapFile('helloworld.py');
@@ -121,9 +123,6 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should fail to run invalid pipeline', () => {
-    // Copy invalid pipeline
-    cy.bootstrapFile('invalid.pipeline');
-
     // opens pipeline from the file browser
     cy.openFile('invalid.pipeline');
 
@@ -173,8 +172,6 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should run pipeline with env vars and output files', () => {
-    cy.bootstrapFile('helloworld.pipeline');
-
     cy.openFile('helloworld.pipeline');
 
     cy.findByRole('button', { name: /run pipeline/i }).click();
@@ -200,7 +197,6 @@ describe('Pipeline Editor tests', () => {
 
   it('should fail to export invalid pipeline', () => {
     // Copy invalid pipeline
-    cy.bootstrapFile('invalid.pipeline');
 
     cy.openFile('invalid.pipeline');
 
@@ -210,8 +206,6 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should export pipeline', () => {
-    cy.bootstrapFile('helloworld.pipeline');
-
     cy.findByRole('tab', { name: /runtimes/i }).click();
 
     // Create runtime configuration
