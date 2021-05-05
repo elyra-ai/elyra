@@ -57,9 +57,6 @@ default_current_parameters = {
 }
 
 
-default_components = ["notebooks", "python-script", "r-script"]
-
-
 def get_id_from_name(name):
     return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-')
 
@@ -170,38 +167,91 @@ class KfpComponentParser(ComponentParser):
                                        component_json['description'])
         component_json['node_types'].append(node_type)
 
-        # Set properties info for this component for later access
-        # May want to move this/refactor if taking too long to return component info
-        self.parse_component_properties(component_body)
-
         return component_json
 
     def parse_component_properties(self, component_body):
         '''
-        Add new parameters to properties object according to the YAML.
         Build the current_parameters object according to the YAML, return this portion.
-
-        parameters []: {id, type, required (T/F)}
-        uihints {}: lots of this will need to be dictated by frontend needs
-        conditions []: based on logic given in YAML
         '''
-        component_id = get_id_from_name(component_body['name'])
 
-        print(component_body)
+        component_parameters = self.get_common_config('properties')
 
-        current_parameters = {}
-        if component_id in self.properties:
-            current_parameters = self.properties[component_id]
-            # current_parameters = self.parameters[component_id]
-        elif component_id in default_components:
-            current_parameters = default_current_parameters
+        # Do we need to/should we pop these?
+        component_parameters['current_parameters'].pop('runtime_image', None)
+        component_parameters['current_parameters'].pop('outputs', None)
+        component_parameters['current_parameters'].pop('env_vars', None)
+        component_parameters['current_parameters'].pop('dependencies', None)
+        component_parameters['current_parameters'].pop('include_subdirectories', None)
+
+        inputs = component_body['inputs']
+        for input_object in inputs:
+            new_parameter, parameter_info = self.build_parameter(input_object, "input")
+
+            # TODO: Adjust this to return an empty value for whatever type the parameter is?
+            default_value = ""
+            if "default" in input_object:
+                default_value = input_object['default']
+
+            # Add to existing parameter list
+            component_parameters['parameters'].append(new_parameter)
+            component_parameters['current_parameters'][new_parameter['id']] = default_value
+
+            # Add to existing parameter info list
+            component_parameters['uihints']['parameter_info'].append(parameter_info)
+
+        outputs = component_body['outputs']
+        for output_object in outputs:
+            new_parameter, parameter_info = self.build_parameter(output_object, "output")
+
+            # TODO Adjust this to return an empty value for whatever type the parameter is?
+            default_value = ""
+
+            # Add to existing parameter list
+            component_parameters['parameters'].append(new_parameter)
+            component_parameters['current_parameters'][new_parameter['id']] = default_value
+
+            # Add to existing parameter info list
+            component_parameters['uihints']['parameter_info'].append(parameter_info)
+
+        return component_parameters
+
+    def build_parameter(self, obj, obj_type):
+        new_parameter = {}
+
+        name_prefix = ""
+        if obj_type not in obj['name'].lower():
+            name_prefix = f"{obj_type}_"
+
+        new_parameter['id'] = f"{name_prefix}{obj['name'].lower().replace(' ', '_')}"
+
+        # Assign type, default to string??
+        if "type" in obj:
+            new_parameter['type'] = obj['type']
         else:
-            current_parameters = {"param": "value"}
-            self.properties[component_id] = current_parameters
-            self.parameters[component_id] = current_parameters
+            new_parameter['type'] = "string"
 
-        print(current_parameters)
-        return current_parameters
+        # Determine whether parameter is optional
+        if ("optional" in obj and obj['optional']) \
+                or ("description" in obj and "required" in obj['description'].lower()):
+            new_parameter['required'] = True
+        else:
+            new_parameter['required'] = False
+
+        # Build parameter_info
+        parameter_info = {}
+        parameter_info['parameter_ref'] = new_parameter['id']
+
+        name_prefix = ""
+        if obj_type not in obj['name'].lower():
+            name_prefix = f"{obj_type.capitalize()} "
+        parameter_info['label'] = {"default": f"{name_prefix}{obj['name']}"}
+        parameter_info['description'] = {"default": obj['description']}
+        # TODO Determine if any other param info should be added here, e.g. control, separator, orientation, etc.
+
+        # TODO Add group_info -- should inputs and outputs be grouped together in some way? if so, how?
+        # TODO Add conditions?
+
+        return new_parameter, parameter_info
 
     def parse_component_execution_instructions(self, component_body):
         pass
@@ -317,13 +367,12 @@ class ComponentRegistry(SingletonConfigurable):
         """
         Return the properties JOSN for a given component.
         """
+        default_components = ["notebooks", "python-script", "r-script"]
 
         parser = self._get_parser(processor_type)
-        parser.properties = parser.get_common_config('properties')
 
-        # if component_id in default_components:
-        if parser._type == "local":
-            current_parameters = default_current_parameters
+        if parser._type == "local" or component_id in default_components:
+            properties = parser.get_common_config('properties')
         else:
             component = parser.return_component_if_exists(component_id)
             if component is None:
@@ -333,10 +382,9 @@ class ComponentRegistry(SingletonConfigurable):
 
             component_path = component['path'][reader._type]
             component_body = reader.get_component_body(component_path)
-            current_parameters = parser.parse_component_properties(component_body)
+            properties = parser.parse_component_properties(component_body)
 
-        parser.properties['current_parameters'] = current_parameters
-        return parser.properties
+        return properties
 
     def add_component(self, processor_type, request_body):
         """
@@ -345,7 +393,7 @@ class ComponentRegistry(SingletonConfigurable):
         """
 
         parser = self._get_parser(processor_type)
-        parser.add_component(request_body)  # Maybe make this async to prevent reading issues during get_all_components()
+        parser.add_component(request_body)  # Maybe make this async to prevent reading issues in get_all_components()
 
         components = self.get_all_components(None, parser._type)
         return components
@@ -355,7 +403,7 @@ class ComponentRegistry(SingletonConfigurable):
         Returns the implementation details of a given component.
         """
         parser = self._get_parser(processor_type)
-        assert parser._type != "local"  # local components should not have execution details
+        assert parser._type != "local"  # Local components should not have execution details
 
         component = parser.return_component_if_exists(component_id)
 
@@ -375,7 +423,7 @@ class ComponentRegistry(SingletonConfigurable):
             component_type = list(component['path'].keys())[0]
             return self.readers.get(component_type)
         except Exception:
-            raise ValueError(f"Unsupported registry type.")
+            raise ValueError("Unsupported registry type.")
 
     def _get_parser(self, processor_type: str):
         """
