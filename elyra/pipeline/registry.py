@@ -176,12 +176,18 @@ class KfpComponentParser(ComponentParser):
 
         component_parameters = self.get_common_config('properties')
 
-        # Do we need to/should we pop these?
+        # TODO Do we need to/should we pop these?
         component_parameters['current_parameters'].pop('runtime_image', None)
         component_parameters['current_parameters'].pop('outputs', None)
         component_parameters['current_parameters'].pop('env_vars', None)
         component_parameters['current_parameters'].pop('dependencies', None)
         component_parameters['current_parameters'].pop('include_subdirectories', None)
+
+        # Define new input group object
+        input_group_info = {}
+        input_group_info['id'] = "nodeInputControls"
+        input_group_info['type'] = "controls"
+        input_group_info['parameter_refs'] = []
 
         inputs = component_body['inputs']
         for input_object in inputs:
@@ -199,6 +205,18 @@ class KfpComponentParser(ComponentParser):
             # Add to existing parameter info list
             component_parameters['uihints']['parameter_info'].append(parameter_info)
 
+            # Add parameter to input group info
+            input_group_info['parameter_refs'].append(new_parameter['id'])
+
+        # Append input group info to parameter details
+        component_parameters['uihints']['group_info'][0]['group_info'].append(input_group_info)
+
+        # Define new output group object
+        output_group_info = {}
+        output_group_info['id'] = "nodeOutputControls"
+        output_group_info['type'] = "controls"
+        output_group_info['parameter_refs'] = []
+
         outputs = component_body['outputs']
         for output_object in outputs:
             new_parameter, parameter_info = self.build_parameter(output_object, "output")
@@ -213,16 +231,18 @@ class KfpComponentParser(ComponentParser):
             # Add to existing parameter info list
             component_parameters['uihints']['parameter_info'].append(parameter_info)
 
+            # Add parameter to output group info
+            output_group_info['parameter_refs'].append(new_parameter['id'])
+
+        # Append output group info to parameter details
+        component_parameters['uihints']['group_info'][0]['group_info'].append(output_group_info)
+
         return component_parameters
 
     def build_parameter(self, obj, obj_type):
         new_parameter = {}
 
-        name_prefix = ""
-        if obj_type not in obj['name'].lower():
-            name_prefix = f"{obj_type}_"
-
-        new_parameter['id'] = f"{name_prefix}{obj['name'].lower().replace(' ', '_')}"
+        new_parameter['id'] = f"elyra{obj_type}_{obj['name'].replace(' ', '_')}"
 
         # Assign type, default to string??
         if "type" in obj:
@@ -240,15 +260,10 @@ class KfpComponentParser(ComponentParser):
         # Build parameter_info
         parameter_info = {}
         parameter_info['parameter_ref'] = new_parameter['id']
-
-        name_prefix = ""
-        if obj_type not in obj['name'].lower():
-            name_prefix = f"{obj_type.capitalize()} "
-        parameter_info['label'] = {"default": f"{name_prefix}{obj['name']}"}
+        parameter_info['label'] = {"default": obj['name']}
         parameter_info['description'] = {"default": obj['description']}
         # TODO Determine if any other param info should be added here, e.g. control, separator, orientation, etc.
 
-        # TODO Add group_info -- should inputs and outputs be grouped together in some way? if so, how?
         # TODO Add conditions?
 
         return new_parameter, parameter_info
