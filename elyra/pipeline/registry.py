@@ -62,21 +62,23 @@ def get_id_from_name(name):
 
 
 def set_node_type_data(id, label, description):
-    node_type = {}
-    node_type['id'] = ""
-    node_type['op'] = f"execute-{id}-node"
-    node_type['type'] = "execution_node"
-    node_type['inputs'] = [inputs]
-    node_type['outputs'] = [outputs]
-    node_type['parameters'] = {}
-
-    node_type['app_data'] = {}
-    node_type['app_data']['ui_data'] = {}
-    node_type['app_data']['ui_data']['label'] = label
-    node_type['app_data']['ui_data']['description'] = description
-    node_type['app_data']['ui_data']['image'] = ""
-    node_type['app_data']['ui_data']['x_pos'] = 0
-    node_type['app_data']['ui_data']['y_pos'] = 0
+    node_type = {
+        'id': "",
+        'op': f"execute-{id}-node",
+        'type': "execution_node",
+        'inputs': [inputs],
+        'outputs': [outputs],
+        'parameters': {},
+        'app_data': {
+            'ui-data': {
+                'label': label,
+                'description': description,
+                'image': "",
+                'x_pos': 0,
+                'y_pos': 0
+            }
+        }
+    }
 
     return node_type
 
@@ -122,10 +124,11 @@ class ComponentParser(SingletonConfigurable):
         return None
 
     def add_component(self, request_body):
-        component_json = {}
-        component_json['name'] = request_body["name"]
-        component_json['id'] = get_id_from_name(request_body["name"])
-        component_json['path'] = request_body['path']
+        component_json = {
+            'name': request_body['name'],
+            'id': get_id_from_name(request_body['name']),
+            'path': request_body['path']
+        }
 
         catalog_json = self._get_component_catalog_json()
         catalog_json['components'].append(component_json)
@@ -151,16 +154,13 @@ class KfpComponentParser(ComponentParser):
         super().__init__()
 
     def parse_component_details(self, component_body):
-        component_json = {}
-
-        component_id = get_id_from_name(component_body['name'])
-
-        component_json['label'] = component_body['name']
-        component_json['image'] = ""
-        component_json['id'] = component_id
-        component_json['description'] = ' '.join(component_body['description'].split())
-
-        component_json['node_types'] = []
+        component_json = {
+            'label': component_body['name'],
+            'image': "",
+            'id': get_id_from_name(component_body['name']),
+            'description': ' '.join(component_body['description'].split()),
+            'node_types': []
+        }
 
         node_type = set_node_type_data(component_json['id'],
                                        component_json['label'],
@@ -173,21 +173,19 @@ class KfpComponentParser(ComponentParser):
         '''
         Build the current_parameters object according to the YAML, return this portion.
         '''
-
+        # Start with generic properties
         component_parameters = self.get_common_config('properties')
 
         # TODO Do we need to/should we pop these?
-        component_parameters['current_parameters'].pop('runtime_image', None)
-        component_parameters['current_parameters'].pop('outputs', None)
-        component_parameters['current_parameters'].pop('env_vars', None)
-        component_parameters['current_parameters'].pop('dependencies', None)
-        component_parameters['current_parameters'].pop('include_subdirectories', None)
+        for element in ['runtime_image', 'env_vars', 'dependencies', 'outputs', 'include_subdirectories']:
+            component_parameters['current_parameters'].pop(element, None)
 
         # Define new input group object
-        input_group_info = {}
-        input_group_info['id'] = "nodeInputControls"
-        input_group_info['type'] = "controls"
-        input_group_info['parameter_refs'] = []
+        input_group_info = {
+            'id': "nodeInputControls",  # need to actually figure out the control id
+            'type': "controls",
+            'parameter_refs': []
+        }
 
         inputs = component_body['inputs']
         for input_object in inputs:
@@ -212,10 +210,11 @@ class KfpComponentParser(ComponentParser):
         component_parameters['uihints']['group_info'][0]['group_info'].append(input_group_info)
 
         # Define new output group object
-        output_group_info = {}
-        output_group_info['id'] = "nodeOutputControls"
-        output_group_info['type'] = "controls"
-        output_group_info['parameter_refs'] = []
+        output_group_info = {
+            'id': "nodeOutputControls",  # need to actually figure out the control id
+            'type': "controls",
+            'parameter_refs': []
+        }
 
         outputs = component_body['outputs']
         for output_object in outputs:
@@ -258,11 +257,16 @@ class KfpComponentParser(ComponentParser):
             new_parameter['required'] = False
 
         # Build parameter_info
-        parameter_info = {}
-        parameter_info['parameter_ref'] = new_parameter['id']
-        parameter_info['label'] = {"default": obj['name']}
-        parameter_info['description'] = {"default": obj['description']}
         # TODO Determine if any other param info should be added here, e.g. control, separator, orientation, etc.
+        parameter_info = {
+            'parameter_ref': new_parameter['id'],
+            'label': {
+                "default": obj['name']
+            },
+            'description': {
+                "default": obj['description']
+            }
+        }
 
         # TODO Add conditions?
 
