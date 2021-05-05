@@ -50,7 +50,7 @@ def jp_server_config():
 
 async def test_get_components(jp_fetch):
     # Ensure all valid metadata can be found
-    response = await jp_fetch('elyra', 'pipeline', 'components', 'kfp')
+    response = await jp_fetch('elyra', 'pipeline', 'components', 'local')
     assert response.code == 200
     payload = json.loads(response.body.decode())
     palette = json.loads(pkg_resources.read_text(resources, 'palette.json'))
