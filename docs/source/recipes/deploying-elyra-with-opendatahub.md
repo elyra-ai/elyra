@@ -18,99 +18,151 @@ limitations under the License.
 
 # Deploying Open Data Hub with Elyra
 
-In this example we will show how to deploy the Elyra Image to be used with Open Data Hub.  
-An installation will consist of the deploying both the ODH Operator and Kubeflow in the same cluster.
+This document outlines how to deploy JupyterHub, Elyra, and Kubeflow on Open Data Hub (ODH) using the Open Data Hub Operator.
 
 ## Requirements
+
 - An OpenShift Cluster 
     - Since we will be installing both ODH and Kubeflow our preferred resource requirements will be:
-    - 16 GB memory, 6 CPUs, and 45G of Disk Space 
-- oc (OpenShift Command Line Interface) 
-    - [Installation instructions](https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html) for  Windows and MacOS     
-- kfctl (Kubeflow Deployment Tool)
+    - 16 GB memory, 6 CPUs, and 45G of disk space 
+- OpenShift CLI (`oc`) is installed locally 
+    - [Installation instructions](https://docs.openshift.com/container-platform/4.7/cli_reference/openshift_cli/getting-started-cli.html) for  Windows and MacOS     
+- Kubernetes CLI (`kfctl`) is installed locally
     - Latest releases can be found in the [kfctl Github Repository](https://github.com/kubeflow/kfctl/releases)
-    - Extract the kfctl binary from the tar into a directory on your `PATH`
-    
-## Install KubeFlow on OpenShift
 
-- Installation Instructions for Kubeflow can be found in the [OpenDataHub Documentation](https://opendatahub.io/docs/kubeflow/installation.html) 
+## Prepare for deployment
 
-Accessing the Kubeflow Pipelines Main Dashboard
+1. Open the OpenShift web console in a browser and log in.
+1. Copy the login command.
 
-- After deploying Kubeflow to your OpenShift cluster, setup port forwarding to your `Kubeflow` installation
-- In your workstation, run `oc port-forward svc/istio-ingressgateway -n istio-system 8080:80 &`
-- You should be able to reach the Kubeflow Pipelines Dashboard by navigating to: `http://localhost:8080/pipeline/#/pipelines`
-    
-## Installing the Open Data Hub Operator on OpenShift
+   ![Get oc login command](../images/openshift-get-login-command.png)
+1. Open a terminal window and run the copied command.
+   ```
+   oc login --token=TOKEN_VAL --server=https://SERVER:PORT
+   ```
 
-After installing our requirements on our local workstation, we want to install the ODH Operator in our 
-OpenShift Cluster.
-- Open your web browser to the OpenShift Dashboard and navigate to the `Projects` page under the `Home` Dropdown on the left side menu
-- Click on `Create Project` and create give it a name e.g. elyra or odh  
-![Elyra](../images/odh-deploy-create-project.png)  
-- After creating the Project navigate to the `OperatorHub` page and search for `opendatahub`
-- Open the Open Data Hub tile and click `Install`, keeping all default settings.
-- Once the Operator has finished installing, navigate to the `Installed Operators` page under  the `Operators` dropdown
- and click on 'Open Data Hub'
-![Elyra](../images/odh-deploy-create-kfdef.png) 
-- Click on `Create KfDef`, then select `YAML View`. You should now see a default configuration. Replace the default with the following, replacing `INSERT_YOUR_PROJECT_NAME_HERE` with your OpenShift project name. 
+1. Keep the terminal window open.
 
-```yaml
-apiVersion: kfdef.apps.kubeflow.org/v1
-kind: KfDef
-metadata:
-  annotations:
-    kfctl.kubeflow.io/force-delete: 'false'
-  name: opendatahub
-  namespace: INSERT_YOUR_PROJECT_NAME_HERE
-spec:
-  applications:
-    # REQUIRED: This contains all of the common options used by all ODH components
-    - kustomizeConfig:
-        repoRef:
-          name: manifests
-          path: odh-common
-      name: odh-common
-    # Deploy Jupyter Hub 
-    - kustomizeConfig:
-        parameters:
-          - name: s3_endpoint_url
-            value: s3.odh.com
-        repoRef:
-          name: manifests
-          path: jupyterhub/jupyterhub
-      name: jupyterhub
-    # Deploy Jupyter notebook container images
-    - kustomizeConfig:
-        overlays:
-          - additional
-        repoRef:
-          name: manifests
-          path: jupyterhub/notebook-images
-      name: notebook-images
-  repos:
-    - name: manifests
-      uri: 'https://github.com/opendatahub-io/odh-manifests/tarball/v1.0.9'
-  version: v1.0.9
-status: {} 
-```
-This minimal kfdef configuration installs common ODH options, JupyterHub, and container images that serve Jupyter notebooks. The notebook images include an image named `s2i-lab-elyra:vX.Y.Z`, which has JupyterLab with Elyra pre-installed.
+## Install the Open Data Hub Project Operator on OpenShift
 
-![Elyra](../images/odh-deploy-create-kfdef2.png)
+The Open Data Hub Project Operator manages installation, configuration, and the lifecycle of Open Data Hub projects. The operator is available on OpenShift OperatorHub as a community operator.
 
-- Click `Create` and wait until the Open Data Hub operator completd the installation.
+To install the operator:
 
-Accessing the ODH JupyterHub Landing/Spawner Page
-- There are many ways to access the Landing Page, in this example we assume the user is using the default installation
-and not making any modifications to the network services for the application e.g. Using Istio or opening up NodePorts 
-- In your `OpenShift Dashboard`, in the upper right corner click on your username, and then `Copy Login Command`
-a new page should pop up and then click on `Display Token`. Copy the `oc login` command.
-![Elyra](../images/odh-deploy-oc-login.png)
-- On your local workstation, paste the `oc login` command, this will allow you to control your cluster 
-your workstation.
-- Open a proxy to your cluster `oc proxy &`, this will run in the background.
-- Navigate to the `Landing Page` in your browser. NOTE: Replace the`Project` name in the URL with your own 
-http://localhost:8001/api/v1/namespaces/INSERT_PROJECT_NAME/services/http:jupyterhub:8080/proxy
+1. Open the OpenShift web console and log in.
+1. Switch to the `Administrator` view.
+1. Open the projects list (`Home` > `Projects`).
+   ![Open project list in OpenShift](../images/openshift-open-projects.png)
+1. Create a new project named `kubeflow`.
+1. Switch to the new project.
+   ![Open kubeflow project](../images/openshift-view-project.png)  
+1. Open the Operator Hub page (`Operators` > `OperatorHub`).
+1. Search for the `Open Data Hub` operator.
+   ![Install ODH operator](../images/install-odh-operator.png)   
+1. Install the operator, keeping the default values.
+1. Navigate to `Operators` > `Installed Operators` and wait for the operator installation to complete. 
+
+Next, you'll install Kubeflow using the operator.
+
+## Deploy Kubeflow on OpenShift
+
+To deploy Kubeflow using the Open Data Hub operator:
+
+1. Select the `Open Data Hub` operator from the list of installed operators.
+1. On the operator details page select the `Details` tab, if it is not opened by default.
+   ![Deploy component using ODH operator](../images/odh-deploy-using-operator.png)
+1. Create a new deployment by clicking `Create instance`.
+1. Select `Configure via YAML view`.
+1. Remove the default deployment configuration in the editor.
+1. Open [this Kubeflow v1.2 deployment file for OpenShift](https://raw.githubusercontent.com/kubeflow/manifests/master/distributions/kfdef/kfctl_openshift.v1.2.0.yaml) in a new browser tab/window.
+1. Copy and paste the content of this file into the editor.
+   ![Deploy Kubeflow using ODH operator](../images/odh-deploy-kubeflow-kfdef.png)
+1. Click `Create` to deploy Kubeflow on the cluster.
+1. In the terminal window monitor the deployment progress by periodically listing pods in the `kubeflow` namespace. Wait until all pods are running. This might take a couple minutes.
+   ```
+   oc get pods --namespace kubeflow
+   ```
+
+   Upon successful deployment you can access the Kubeflow Central dashboard using a public route.
+1. In the terminal window and run the following command to retrieve the public Central dashboard URL:
+   ```
+   oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}/'
+   ```
+1. Open the displayed URL in a web browser to access the Kubeflow central dashboard.
+1. Select the namespace entry.
+
+   ![Select namespace in Kubeflow Central Dashboard](../images/odh-select-kf-namespace.png)
+
+Next, you'll install JupyterHub with Elyra support.
+
+## Deploy JupyterHub (with Elyra) on OpenShift
+
+In Open Data Hub, notebooks are served using [JupyterHub](https://jupyter.org/hub). The default deployment includes a notebook server image that has JupyterLab with the Elyra extensions pre-installed. 
+
+1. Open the OpenShift web console.
+1. Navigate to `Operators` > `Installed Operators`.
+1. Select the `Open Data Hub` operator from the list of installed operators.
+1. On the operator details page select the `Details` tab, if it is not opened by default.
+1. Create a new deployment by clicking `Create instance`.
+1. Select `Configure via YAML view`.
+1. Remove the default deployment configuration in the editor.
+1. Copy and paste the following deployment configuration into the editor. This minimal configuration installs common ODH options, JupyterHub, and container images that serve Jupyter notebooks. One of these images, which is named `s2i-lab-elyra:vX.Y.Z`, has JupyterLab with Elyra pre-installed.
+    ```yaml
+    apiVersion: kfdef.apps.kubeflow.org/v1
+    kind: KfDef
+    metadata:
+      annotations:
+        kfctl.kubeflow.io/force-delete: 'false'
+      name: opendatahub
+      namespace: kubeflow
+    spec:
+      applications:
+        # REQUIRED: This contains all of the common options used by all ODH components
+        - kustomizeConfig:
+            repoRef:
+              name: manifests
+              path: odh-common
+          name: odh-common
+        # Deploy Jupyter Hub 
+        - kustomizeConfig:
+            parameters:
+              - name: s3_endpoint_url
+                value: s3.odh.com
+            repoRef:
+              name: manifests
+              path: jupyterhub/jupyterhub
+          name: jupyterhub
+        # Deploy Jupyter notebook container images
+        - kustomizeConfig:
+            overlays:
+              - additional
+            repoRef:
+              name: manifests
+              path: jupyterhub/notebook-images
+          name: notebook-images
+      repos:
+        - name: manifests
+          uri: 'https://github.com/opendatahub-io/odh-manifests/tarball/v1.0.11'
+      version: v1.0.11
+    status: {} 
+    ```
+
+   Note: Above deployment configuration utilizes version 1.0.11 of the [Open Data Hub manifests](https://github.com/opendatahub-io/odh-manifests/tree/master), which includes Elyra v2.2.4.
+
+   ![Deploy JupyterHub with Elyra](../images/odh-copy-jh-kfdef.png)
+
+1. Click `Create` and wait for the deployment to complete.
+
+## Access Elyra using the JupyterHub Spawner page
+
+1. In the terminal window run this command to retrieve the exposed JupyterHub URL:
+   ```
+   oc get routes -n kubeflow jupyterhub -o jsonpath='http://{.spec.host}/'
+   ```
+
+1. Open the displayed URL in a browser.
+
+
 
 ## Accessing Default Object Storage 
 - When using the default metadata runtime created, pipeline artifacts will be sent to the `Minio` S3 object storage instance
