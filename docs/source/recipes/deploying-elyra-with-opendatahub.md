@@ -103,10 +103,44 @@ To deploy Kubeflow using the Open Data Hub operator:
    ```
    $ oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}/'
    ```
-1. Open the displayed URL in a web browser to access the Kubeflow central dashboard.
+1. Open the displayed URL in a web browser to access the Kubeflow Central dashboard.
 1. Select the `anonymousami` namespace entry. 
 
    ![Select namespace in Kubeflow Central Dashboard](../images/odh-select-kf-namespace.png)
+
+1. Take note of the following information. You'll need it later when you create a runtime configuration in Elyra, so that you can run pipelines in this Kubeflow deployment.
+   - The Kubeflow Central dashboard URL (`http://istio-ingressgateway-istio-system...`).
+   - The user namespace (`anonymousami`).
+
+The Kubeflow deployment is complete. As part of this deployment an instance of the MinIO object storage was provisioned. 
+
+Next, you'll create a public endpoint for this service that provides you access to the MinIO GUI.
+
+## Expose the MinIO object storage service
+
+1. In the terminal window create a public endpoint for the MinIO service that was deployed alongside Kubeflow.
+
+   ```
+   $ oc expose svc/minio-service --namespace kubeflow
+   ```
+
+1. Retrieve the public MinIO URL.
+
+   ```
+   $ oc get routes -n kubeflow minio-service -o jsonpath='http://{.spec.host}'
+   ```
+
+1. Open the displayed URL in a web browser to access the MinIO GUI. Log in using the default credentials (`minio`/`minio123`).
+
+   ![Open MinIO GUI](../images/odh-access-minio-gui.png)
+
+
+   Note the `mlpipeline` bucket. This bucket is used by Kubeflow and should not be deleted!
+
+1. Take note of the following information. You'll need it later when you create a runtime configuration in Elyra, so that you can run pipelines in this Kubeflow deployment.
+   - The MinIO GUI URL (`http://minio-service-kubeflow...`).
+   - The MinIO access key (`minio`).
+   - The MinIO secret key (`minio123`).
 
 Next, you'll install JupyterHub with Elyra support.
 
