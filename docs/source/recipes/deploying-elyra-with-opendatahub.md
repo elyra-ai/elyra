@@ -18,17 +18,24 @@ limitations under the License.
 
 # Deploying Open Data Hub with Elyra
 
-This document outlines how to deploy JupyterHub, Elyra, and Kubeflow on Open Data Hub (ODH) using the Open Data Hub Operator.
+This document outlines how to deploy [JupyterHub](https://jupyter.org/hub), [Elyra](https://github.com/elyra-ai/elyra), and [Kubeflow](https://www.kubeflow.org/) on [Open Data Hub (ODH)](https://opendatahub.io/) using the Open Data Hub Operator.
 
+Note the following:
+- The instructions in this document utilize default configurations, which are unlikely to meet the requirements of a production deployment.
+- By completing the steps in this document Kubeflow v1.2, JupyterHub v1.4, and Elyra v2.2.4 are deployed in the `kubeflow` project/namespace.
+- The JupyterHub GUI is secured by OpenShift.
+- Kubeflow is deployed using a single-user configuration and is not secured.
+- As part of the Kubeflow deployment an instance of the [MinIO object storage](https://docs.min.io/docs/deploy-minio-on-kubernetes.html) is provisioned. This instance is secured using the default user id and password. 
+ 
 ## Requirements
 
-- An OpenShift Cluster 
-    - Since we will be installing both ODH and Kubeflow our preferred resource requirements will be:
-    - 16 GB memory, 6 CPUs, and 45G of disk space 
-- OpenShift CLI (`oc`) is installed locally 
-    - [Installation instructions](https://docs.openshift.com/container-platform/4.7/cli_reference/openshift_cli/getting-started-cli.html) for  Windows and MacOS     
-- Kubernetes CLI (`kfctl`) is installed locally
-    - Latest releases can be found in the [kfctl Github Repository](https://github.com/kubeflow/kfctl/releases)
+Verify that the following requirements are met.
+
+- You have some hands-on experience with Red Hat OpenShift.
+- You have access to a red Hat OpenShift Cluster with internet connectivity. 
+    - Since we will be installing both ODH and Kubeflow the preferred resource requirements are 16 GB RAM, 6 CPUs, and 45G of disk space.
+- The OpenShift CLI (`oc`) is installed locally. 
+    - [Installation instructions](https://docs.openshift.com/container-platform/4.7/cli_reference/openshift_cli/getting-started-cli.html) for  Windows and MacOS    
 
 ## Prepare for deployment
 
@@ -38,9 +45,18 @@ This document outlines how to deploy JupyterHub, Elyra, and Kubeflow on Open Dat
    ![Get oc login command](../images/openshift-get-login-command.png)
 1. Open a terminal window and run the copied command.
    ```
-   oc login --token=TOKEN_VAL --server=https://SERVER:PORT
+   $ oc login --token=TOKEN_VAL --server=https://SERVER:PORT
    ```
 
+1. Create a new project named `kubeflow`.
+   ```
+   $ oc new-project kubeflow
+   ```
+
+1. Verify that the CLI is using the new `kubeflow` project.
+   ```
+   $ oc project
+   ```
 1. Keep the terminal window open.
 
 ## Install the Open Data Hub Project Operator on OpenShift
@@ -53,8 +69,7 @@ To install the operator:
 1. Switch to the `Administrator` view.
 1. Open the projects list (`Home` > `Projects`).
    ![Open project list in OpenShift](../images/openshift-open-projects.png)
-1. Create a new project named `kubeflow`.
-1. Switch to the new project.
+1. Switch to the `kubeflow` project.
    ![Open kubeflow project](../images/openshift-view-project.png)  
 1. Open the Operator Hub page (`Operators` > `OperatorHub`).
 1. Search for the `Open Data Hub` operator.
@@ -80,16 +95,16 @@ To deploy Kubeflow using the Open Data Hub operator:
 1. Click `Create` to deploy Kubeflow on the cluster.
 1. In the terminal window monitor the deployment progress by periodically listing pods in the `kubeflow` namespace. Wait until all pods are running. This might take a couple minutes.
    ```
-   oc get pods --namespace kubeflow
+   $ oc get pods --namespace kubeflow
    ```
 
    Upon successful deployment you can access the Kubeflow Central dashboard using a public route.
-1. In the terminal window and run the following command to retrieve the public Central dashboard URL:
+1. In the terminal window run the following command to retrieve the public Kubeflow Central dashboard URL:
    ```
-   oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}/'
+   $ oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}/'
    ```
 1. Open the displayed URL in a web browser to access the Kubeflow central dashboard.
-1. Select the namespace entry.
+1. Select the `anonymousami` namespace entry. 
 
    ![Select namespace in Kubeflow Central Dashboard](../images/odh-select-kf-namespace.png)
 
@@ -157,11 +172,23 @@ In Open Data Hub, notebooks are served using [JupyterHub](https://jupyter.org/hu
 
 1. In the terminal window run this command to retrieve the exposed JupyterHub URL:
    ```
-   oc get routes -n kubeflow jupyterhub -o jsonpath='http://{.spec.host}/'
+   $ oc get routes -n kubeflow jupyterhub -o jsonpath='http://{.spec.host}/'
    ```
 
-1. Open the displayed URL in a browser.
+1. Open the displayed URL in a browser, and, if required, log in.
+1. On the JupyterHub Spawner page select `s2i-lab-elyra:vX.Y.Z` as notebook image.
 
+   ![Select the Elyra notebook image](../images/odh-jh-spawner.png)
+
+1. Once the container image was pulled and the container is running the JupyterLab GUI with the Elyra extensions opens in the browser window.
+
+1. In the JupyterLab Launcher window navigate to the `Other` category and open a terminal.
+
+   ![Open terminal in JupyterLab](../images/odh-jupyterlab-open-terminal.png)
+
+1. Enter `elyra-pipeline --version` to display the Elyra version:
+
+   ![Confirm Elyra version](../images/odh-jupyterlab-confirm-elyra-version.png)
 
 
 ## Accessing Default Object Storage 
@@ -170,7 +197,7 @@ installed when Kubeflow Pipelines is installed
 
 - Setup port forwarding to `Minio` with the following :
 ```bash
-oc port-forward svc/minio-service -n kubeflow 9000:9000 &
+$ oc port-forward svc/minio-service -n kubeflow 9000:9000 &
 ```
 - You should be able to reach the `Minio` dashboard in your web browser by navigating to`localhost:9000`
 
