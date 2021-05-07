@@ -1,6 +1,0 @@
-{
-  "**/*{.ts,.tsx,.js,.jsx,.css,.json}": [
-    "prettier --write",
-    "git add"
-  ]
-}
