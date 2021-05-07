@@ -18,7 +18,7 @@ limitations under the License.
 
 # Deploying Open Data Hub with Elyra
 
-This document outlines how to deploy [JupyterHub](https://jupyter.org/hub), [Elyra](https://github.com/elyra-ai/elyra), and [Kubeflow](https://www.kubeflow.org/) on [Open Data Hub (ODH)](https://opendatahub.io/) using the Open Data Hub Operator.
+This document outlines how to perform a quick deployment of [JupyterHub](https://jupyter.org/hub), [Elyra](https://github.com/elyra-ai/elyra), and [Kubeflow](https://www.kubeflow.org/) on [Open Data Hub (ODH)](https://opendatahub.io/) using the Open Data Hub Operator.
 
 Note the following:
 - The instructions in this document utilize default configurations, which are unlikely to meet the requirements of a production deployment.
@@ -42,7 +42,7 @@ Verify that the following requirements are met.
 1. Open the OpenShift web console in a browser and log in.
 1. Copy the login command.
 
-   ![Get oc login command](../images/openshift-get-login-command.png)
+   ![Get oc login command](../images/recipes/deploying-elyra-with-opendatahub/openshift-get-login-command.png)
 1. Open a terminal window and run the copied command.
    ```
    $ oc login --token=TOKEN_VAL --server=https://SERVER:PORT
@@ -68,12 +68,12 @@ To install the operator:
 1. Open the OpenShift web console and log in.
 1. Switch to the `Administrator` view.
 1. Open the projects list (`Home` > `Projects`).
-   ![Open project list in OpenShift](../images/openshift-open-projects.png)
+   ![Open project list in OpenShift](../images/recipes/deploying-elyra-with-opendatahub/openshift-open-projects.png)
 1. Switch to the `kubeflow` project.
-   ![Open kubeflow project](../images/openshift-view-project.png)  
+   ![Open kubeflow project](../images/recipes/deploying-elyra-with-opendatahub/openshift-view-project.png)  
 1. Open the Operator Hub page (`Operators` > `OperatorHub`).
 1. Search for the `Open Data Hub` operator.
-   ![Install ODH operator](../images/install-odh-operator.png)   
+   ![Install ODH operator](../images/recipes/deploying-elyra-with-opendatahub/install-odh-operator.png)   
 1. Install the operator, keeping the default values.
 1. Navigate to `Operators` > `Installed Operators` and wait for the operator installation to complete. 
 
@@ -85,13 +85,13 @@ To deploy Kubeflow using the Open Data Hub operator:
 
 1. Select the `Open Data Hub` operator from the list of installed operators.
 1. On the operator details page select the `Details` tab, if it is not opened by default.
-   ![Deploy component using ODH operator](../images/odh-deploy-using-operator.png)
+   ![Deploy application using ODH operator](../images/recipes/deploying-elyra-with-opendatahub/deploy-app-using-operator.png)
 1. Create a new deployment by clicking `Create instance`.
 1. Select `Configure via YAML view`.
 1. Remove the default deployment configuration in the editor.
 1. Open [this Kubeflow v1.2 deployment file for OpenShift](https://raw.githubusercontent.com/kubeflow/manifests/master/distributions/kfdef/kfctl_openshift.v1.2.0.yaml) in a new browser tab/window.
 1. Copy and paste the content of this file into the editor.
-   ![Deploy Kubeflow using ODH operator](../images/odh-deploy-kubeflow-kfdef.png)
+   ![Deploy Kubeflow using ODH operator](../images/recipes/deploying-elyra-with-opendatahub/deploy-kubeflow-kfdef.png)
 1. Click `Create` to deploy Kubeflow on the cluster.
 1. In the terminal window monitor the deployment progress by periodically listing pods in the `kubeflow` namespace. Wait until all pods are running. This might take a couple minutes.
    ```
@@ -106,7 +106,7 @@ To deploy Kubeflow using the Open Data Hub operator:
 1. Open the displayed URL in a web browser to access the Kubeflow Central dashboard.
 1. Select the `anonymousami` namespace entry. 
 
-   ![Select namespace in Kubeflow Central Dashboard](../images/odh-select-kf-namespace.png)
+   ![Select namespace in Kubeflow Central Dashboard](../images/recipes/deploying-elyra-with-opendatahub/select-kf-namespace.png)
 
 1. Take note of the following information. You'll need it later when you create a runtime configuration in Elyra, so that you can run pipelines in this Kubeflow deployment.
    - The Kubeflow Central dashboard URL (`http://istio-ingressgateway-istio-system...`).
@@ -117,6 +117,10 @@ The Kubeflow deployment is complete. As part of this deployment an instance of t
 Next, you'll create a public endpoint for this service that provides you access to the MinIO GUI.
 
 ## Expose the MinIO object storage service
+
+Elyra utilizes object storage to persist artifacts during pipeline processing. The MinIO GUI provides a basic GUI that is not exposed publicly by default.
+
+To make the GUI available:
 
 1. In the terminal window create a public endpoint for the MinIO service that was deployed alongside Kubeflow.
 
@@ -132,7 +136,7 @@ Next, you'll create a public endpoint for this service that provides you access 
 
 1. Open the displayed URL in a web browser to access the MinIO GUI. Log in using the default credentials (`minio`/`minio123`).
 
-   ![Open MinIO GUI](../images/odh-access-minio-gui.png)
+   ![Open MinIO GUI](../images/recipes/deploying-elyra-with-opendatahub/access-minio-gui.png)
 
 
    Note the `mlpipeline` bucket. This bucket is used by Kubeflow and should not be deleted!
@@ -146,7 +150,9 @@ Next, you'll install JupyterHub with Elyra support.
 
 ## Deploy JupyterHub (with Elyra) on OpenShift
 
-In Open Data Hub, notebooks are served using [JupyterHub](https://jupyter.org/hub). The default deployment includes a notebook server image that has JupyterLab with the Elyra extensions pre-installed. 
+In Open Data Hub, notebooks are served using [JupyterHub](https://jupyter.org/hub). The default deployment includes a container image that has JupyterLab with the Elyra extensions pre-installed.
+
+To deploy JupyterHub and its dependencies:
 
 1. Open the OpenShift web console.
 1. Navigate to `Operators` > `Installed Operators`.
@@ -198,11 +204,17 @@ In Open Data Hub, notebooks are served using [JupyterHub](https://jupyter.org/hu
 
    Note: Above deployment configuration utilizes version 1.0.11 of the [Open Data Hub manifests](https://github.com/opendatahub-io/odh-manifests/tree/master), which includes Elyra v2.2.4.
 
-   ![Deploy JupyterHub with Elyra](../images/odh-copy-jh-kfdef.png)
+   ![Deploy JupyterHub with Elyra](../images/recipes/deploying-elyra-with-opendatahub/copy-jh-kfdef.png)
 
 1. Click `Create` and wait for the deployment to complete.
 
+Next, you'll use the JupyterHub spawner to launch Elyra.
+
 ## Access Elyra using the JupyterHub Spawner page
+
+The JupyterHub instance you've deployed includes a [container image that has JupyterLab with the Elyra extensions installed](https://github.com/opendatahub-io/s2i-lab-elyra).
+
+To run this image:
 
 1. In the terminal window run this command to retrieve the exposed JupyterHub URL:
    ```
@@ -212,29 +224,65 @@ In Open Data Hub, notebooks are served using [JupyterHub](https://jupyter.org/hu
 1. Open the displayed URL in a browser, and, if required, log in.
 1. On the JupyterHub Spawner page select `s2i-lab-elyra:vX.Y.Z` as notebook image.
 
-   ![Select the Elyra notebook image](../images/odh-jh-spawner.png)
+   ![Select the Elyra notebook image](../images/recipes/deploying-elyra-with-opendatahub/select-elyra-image-in-jh-spawner.png)
+
+   Note: The image tag version does not represent the Elyra version.
 
 1. Once the container image was pulled and the container is running the JupyterLab GUI with the Elyra extensions opens in the browser window.
 
 1. In the JupyterLab Launcher window navigate to the `Other` category and open a terminal.
 
-   ![Open terminal in JupyterLab](../images/odh-jupyterlab-open-terminal.png)
+   ![Open terminal in JupyterLab](../images/recipes/deploying-elyra-with-opendatahub/jupyterlab-open-terminal.png)
 
 1. Enter `elyra-pipeline --version` to display the Elyra version:
 
-   ![Confirm Elyra version](../images/odh-jupyterlab-confirm-elyra-version.png)
+   ![Confirm Elyra version](../images/recipes/deploying-elyra-with-opendatahub/jupyterlab-confirm-elyra-version.png)
 
+Next, you'll create a runtime configuration.   
 
-## Accessing Default Object Storage 
-- When using the default metadata runtime created, pipeline artifacts will be sent to the `Minio` S3 object storage instance
-installed when Kubeflow Pipelines is installed
+## Create a Kubeflow Pipelines runtime configuration
 
-- Setup port forwarding to `Minio` with the following :
-```bash
-$ oc port-forward svc/minio-service -n kubeflow 9000:9000 &
-```
-- You should be able to reach the `Minio` dashboard in your web browser by navigating to`localhost:9000`
+In Elyra [runtime configurations](/user_guide/runtime-conf.md) are used to provide the tooling access to external resources where pipelines can be executed.
 
-## Additional Resources and Documentation
-[ODH Installation Docs](https://opendatahub.io/docs/getting-started/quick-installation.html)  
-[ODH KubeFlow Installation Docs](https://opendatahub.io/docs/kubeflow/installation.html)
+To create a runtime configuration that allows for running of pipelines on the Kubeflow instance you've deployed:
+
+1. Select the `Runtimes` tab from the JupyterLab side bar.
+
+   ![Open runtime configuration list](../images/recipes/deploying-elyra-with-opendatahub/open-runtime-configurations-list.png)
+
+1. Click `+` and `New Kubeflow Pipelines runtime`.
+
+1. Enter the Kubeflow and MinIO configuration information:
+   - Name: `Local Kubeflow Pipelines`
+   - Kubeflow Pipelines API Endpoint: the output from command 
+     ```
+     $ oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}/pipeline'
+     ```
+   - Kubeflow Pipelines User Namespace: `anonymousami`
+   - Kubeflow Pipelines API Endpoint Username: leave empty
+   - Kubeflow Pipelines API  Endpoint Password: leave empty
+   - Kubeflow Pipelines Engine: `Tekton`
+   - Cloud Object Storage Endpoint: the output from command 
+     ```
+     $ oc get routes -n kubeflow minio-service -o jsonpath='http://{.spec.host}'
+     ```
+   - Cloud Object Storage Credentials Secret: leave empty
+   - Cloud Object Storage Username: `minio`
+   - Cloud Object Storage Password: `minio123`
+   - Cloud Object Storage Bucket Name: `elyra-pipeline-storage`
+1. Save the runtime configuration.
+
+This concludes the quick deployment and configuration tasks.
+
+## Next steps
+
+- Verify the deployment by running a basic pipeline
+- [Learn more about pipelines](../getting_started/tutorials.html#tutorials)
+- [Explore example pipelines](../getting_started/tutorials.html#examples)
+
+## Additional resources
+
+- [OpenShift CLI documentation](https://docs.openshift.com/container-platform/latest/cli_reference/openshift_cli/getting-started-cli.html)
+- [Open Data Hub installation documentation](https://opendatahub.io/docs/getting-started/quick-installation.html)  
+- [KubeFlow installation documentation for Open Data Hub](https://opendatahub.io/docs/kubeflow/installation.html)
+
