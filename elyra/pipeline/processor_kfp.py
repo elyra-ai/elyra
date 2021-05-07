@@ -77,23 +77,36 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         pipeline_name = pipeline.name
         try:
-            # Connect to the KFP server and determine whether
-            # a pipeline with this name was already uploaded
-            session_cookie = None
+            # Connect to the Kubeflow server, determine whether it is secured,
+            # and if it is try to authenticate with the user-provided credentials
+            # (if any were defined in the runtime configuration)
 
-            if api_username and api_password:
-                endpoint = api_endpoint.replace('/pipeline', '')
-                session_cookie = self._get_user_auth_session_cookie(endpoint,
-                                                                    api_username,
-                                                                    api_password)
+            endpoint = api_endpoint.replace('/pipeline', '')
+            auth_info = \
+                KfpPipelineProcessor._get_user_auth_session_cookie(endpoint,
+                                                                   api_username,
+                                                                   api_password)
+
+            self.log.debug(f"Kubeflow authentication info: {auth_info}")
+
+            if auth_info['endpoint_secured'] and \
+               auth_info['authservice_session_cookie'] is None:
+                # Kubeflow is secured but our attempt to authenticate did
+                # not yield the expected results. Log the collected authentication
+                # information and abort processing.
+                self.log.warning(f"Kubeflow authentication info: {auth_info}")
+                raise RuntimeError(f"Error connecting to Kubeflow at '{endpoint}'"
+                                   f": Authentication request failed. Check the "
+                                   f"Kubeflow Pipelines credentials in runtime "
+                                   f"configuration '{pipeline.runtime_config}'.")
 
             # Create a KFP client
             if 'Tekton' == engine:
                 client = TektonClient(host=api_endpoint,
-                                      cookies=session_cookie)
+                                      cookies=auth_info['authservice_session_cookie'])
             else:
                 client = ArgoClient(host=api_endpoint,
-                                    cookies=session_cookie)
+                                    cookies=auth_info['authservice_session_cookie'])
 
             # Determine whether a pipeline with the provided
             # name already exists
@@ -476,21 +489,56 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-', name)).lstrip('-').rstrip('-')
 
     @staticmethod
-    def _get_user_auth_session_cookie(url, username, password):
+    def _get_user_auth_session_cookie(url, username=None, password=None) -> dict:
+        """
+        Determine whether the specified URL is secured by Dex and, if username
+        and password were provided, try to obtain a session cookie. Other forms
+        of authentication are not supported.
+
+        :param url: Kubeflow server URL, including protocol
+        :type url: str
+        :param username: Kubeflow user name, defaults to None
+        :type username: str, optional
+        :param password: Kubeflow user's password, defaults to None
+        :type password: str, optional
+        :return: authentication information
+        :rtype: dict
+        """
+
+        # Return data structure
+        auth_info = {
+            'endpoint': url,                    # KF endpoint URL
+            'endpoint_response_url': None,      # KF redirect URL, if applicable
+            'endpoint_secured': False,          # True if KF is secured [by dex]
+            'authservice_session_cookie': None  # Set if KF is secured & user authenticated
+        }
+
+        # Obtain redirect URL
         get_response = requests.get(url)
 
-        # auth request to kfp server with istio dex look like '/dex/auth/local?req=REQ_VALUE'
-        if 'auth' in get_response.url:
-            credentials = {'login': username, 'password': password}
+        auth_info['endpoint_response_url'] = get_response.url
 
-            # Authenticate user
+        # If KF redirected to '/dex/auth/local?req=REQ_VALUE'
+        # try to authenticate using the provided credentials
+        if 'dex/auth' in get_response.url:
+            auth_info['endpoint_secured'] = True  # KF is secured
+
+            # Try to authenticate user by sending a request to the
+            # Dex redirect URL
             session = requests.Session()
-            session.post(get_response.url, data=credentials)
+            session.post(get_response.url,
+                         data={'login': username,
+                               'password': password})
+            # Capture authservice_session cookie, if one was returned
+            # in the response
             cookie_auth_key = 'authservice_session'
             cookie_auth_value = session.cookies.get(cookie_auth_key)
 
             if cookie_auth_value:
-                return cookie_auth_key + '=' + cookie_auth_value
+                auth_info['authservice_session_cookie'] = \
+                    f"{cookie_auth_key}={cookie_auth_value}"
+
+        return auth_info
 
 
 class KfpPipelineProcessorResponse(PipelineProcessorResponse):
