@@ -75,6 +75,8 @@ export interface IMetadataDisplayProps {
   namespace: string;
   sortMetadata: boolean;
   className: string;
+  // Optional string to append to a schema display name
+  schemaType?: string;
 }
 
 /**
@@ -317,6 +319,8 @@ export interface IMetadataWidgetProps {
   display_name: string;
   namespace: string;
   icon: LabIcon;
+  // Optional string to append after schema display name
+  schemaType?: string;
 }
 
 /**
@@ -326,6 +330,7 @@ export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
   schemas: IDictionary<any>[];
+  schemaType?: string;
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -333,6 +338,7 @@ export class MetadataWidget extends ReactWidget {
 
     this.props = props;
     this.renderSignal = new Signal<this, any>(this);
+    this.schemaType = props.schemaType;
 
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
@@ -427,6 +433,7 @@ export class MetadataWidget extends ReactWidget {
             <AddMetadataButton
               schemas={this.schemas}
               addMetadata={this.addMetadata}
+              schemaType={this.schemaType}
             />
           </header>
           <UseSignal signal={this.renderSignal} initialArgs={[]}>

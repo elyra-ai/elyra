@@ -27,7 +27,11 @@ describe("Elyra launcher is in use", () => {
     cy.get(
       '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
     );
-    // Pipeline editor extension is available
+    // Generic Pipeline editor extension is available
+    cy.get(
+      '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]:visible'
+    );
+    // Two specific runtime pipeline editor extension is available
     cy.get(
       '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]:visible'
     );

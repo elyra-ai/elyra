@@ -648,6 +648,41 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   background-color: var(--jp-border-color1);
 }
 
+.properties-custom-ctrl div[data-testid="list-row"] {
+  background-color: var(--jp-border-color1);
+  padding: 3px;
+}
+
+.properties-control-item[data-id="properties-ci-runtime_image"]
+  ul[role="listbox"] {
+  max-height: 120px;
+  overflow-y: scroll;
+}
+
+.properties-control-item[data-id="properties-ci-runtime_image"]
+  ul[role="listbox"]::-webkit-scrollbar {
+  width: 10px;
+}
+
+.properties-control-item[data-id="properties-ci-runtime_image"]
+  ul[role="listbox"]::-webkit-scrollbar-thumb {
+  background-color: var(--jp-border-color1);
+}
+
+.properties-control-item[data-id="properties-ci-runtime_image"]
+  ul[role="listbox"]::-webkit-scrollbar-thumb:hover {
+  background-color: var(--jp-border-color0);
+}
+
+.properties-control-item[data-id="properties-ci-runtime_image"]
+  ul[role="listbox"]
+  li {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+}
+
 /* fix font ligatures */
 .lsp-completer-theme-vscode {
   letter-spacing: normal;

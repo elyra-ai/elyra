@@ -22,35 +22,33 @@ interface Props {
   name: string;
   runtimes: IRuntime[];
   schema: ISchema[];
+  runtime?: string;
 }
 
 interface IState {
-  displayedRuntimeOptions: IRuntime[];
-  selectedRuntimePlatform: string;
   validSchemas: ISchema[];
+  selectedRuntimePlatform?: string;
 }
 
-class PipelineSubmissionDialog extends React.Component<Props, IState> {
-  state = {
-    displayedRuntimeOptions: new Array<IRuntime>(),
-    selectedRuntimePlatform: this.props.schema[0] && this.props.schema[0].name,
+export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
+  state: IState = {
     validSchemas: new Array<ISchema>(),
   };
 
   handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const selectedPlatform = event.target.value;
-    const runtimeOptions = this.updateRuntimeOptions(selectedPlatform);
 
     this.setState({
-      displayedRuntimeOptions: runtimeOptions,
       selectedRuntimePlatform: selectedPlatform,
     });
   };
 
-  updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
+  getRuntimeOptions = (platformSelection?: string): IRuntime[] => {
     const filteredRuntimeOptions = PipelineService.filterRuntimes(
       this.props.runtimes,
-      platformSelection
+      platformSelection ??
+        this.props.runtime ??
+        (this.props.schema[0] && this.props.schema[0].name)
     );
     PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
     return filteredRuntimeOptions;
@@ -60,20 +58,16 @@ class PipelineSubmissionDialog extends React.Component<Props, IState> {
     const { schema, runtimes } = this.props;
 
     this.setState({
-      displayedRuntimeOptions: this.updateRuntimeOptions(
-        this.state.selectedRuntimePlatform
-      ),
       validSchemas: PipelineService.filterValidSchema(runtimes, schema),
     });
   }
 
   render(): React.ReactNode {
     const { name } = this.props;
-    const {
-      displayedRuntimeOptions,
-      selectedRuntimePlatform,
-      validSchemas,
-    } = this.state;
+    const { selectedRuntimePlatform, validSchemas } = this.state;
+    const displayedRuntimeOptions = this.getRuntimeOptions(
+      selectedRuntimePlatform
+    );
 
     return (
       <form className="elyra-dialog-form">
@@ -88,22 +82,30 @@ class PipelineSubmissionDialog extends React.Component<Props, IState> {
         />
         <br />
         <br />
-        <label htmlFor="runtime_platform">Runtime Platform:</label>
-        <br />
-        <select
-          id="runtime_platform"
-          name="runtime_platform"
-          className="elyra-form-runtime-platform"
-          data-form-required
-          defaultValue={selectedRuntimePlatform}
-          onChange={this.handleUpdate}
-        >
-          {validSchemas.map((schema) => (
-            <option key={schema.name} value={schema.name}>
-              {schema.display_name}
-            </option>
-          ))}
-        </select>
+        {!this.props.runtime && (
+          <div>
+            <label htmlFor="runtime_platform">Runtime Platform:</label>
+            <br />
+            <select
+              id="runtime_platform"
+              name="runtime_platform"
+              className="elyra-form-runtime-platform"
+              data-form-required
+              value={
+                selectedRuntimePlatform ??
+                this.props.runtime ??
+                (this.props.schema[0] && this.props.schema[0].name)
+              }
+              onChange={this.handleUpdate}
+            >
+              {validSchemas.map((schema) => (
+                <option key={schema.name} value={schema.name}>
+                  {schema.display_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <label htmlFor="runtime_config">Runtime Configuration:</label>
         <br />
         <select

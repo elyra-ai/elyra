@@ -192,7 +192,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       launcher.add({
         command: commandIDs.createNewRFile,
         category: "Elyra",
-        rank: 3,
+        rank: 5,
       });
     }
 
@@ -200,7 +200,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       // Add new r file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewRFile, args: { isMenu: true } }],
-        31
+        34
       );
     }
 
