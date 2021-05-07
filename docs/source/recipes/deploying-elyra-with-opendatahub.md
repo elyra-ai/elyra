@@ -123,15 +123,15 @@ Elyra utilizes object storage to persist artifacts during pipeline processing. T
 To make the GUI available:
 
 1. In the terminal window create a public endpoint for the MinIO service that was deployed alongside Kubeflow.
-
+ 
    ```
-   $ oc expose svc/minio-service --namespace kubeflow
+   $ oc create route edge --service=minio-service --namespace=kubeflow --port=9000 --insecure-policy=Redirect
    ```
 
 1. Retrieve the public MinIO URL.
 
    ```
-   $ oc get routes -n kubeflow minio-service -o jsonpath='http://{.spec.host}'
+   $ oc get routes -n kubeflow minio-service -o jsonpath='https://{.spec.host}'
    ```
 
 1. Open the displayed URL in a web browser to access the MinIO GUI. Log in using the default credentials (`minio`/`minio123`).
@@ -258,13 +258,13 @@ To create a runtime configuration that allows for running of pipelines on the Ku
      ```
      $ oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}/pipeline'
      ```
-   - Kubeflow Pipelines User Namespace: `anonymousami`
+   - Kubeflow Pipelines User Namespace: leave empty
    - Kubeflow Pipelines API Endpoint Username: leave empty
    - Kubeflow Pipelines API  Endpoint Password: leave empty
-   - Kubeflow Pipelines Engine: `Tekton`
+   - Kubeflow Pipelines Engine: `Argo`
    - Cloud Object Storage Endpoint: the output from command 
      ```
-     $ oc get routes -n kubeflow minio-service -o jsonpath='http://{.spec.host}'
+     $ oc get routes -n kubeflow minio-service -o jsonpath='https://{.spec.host}'
      ```
    - Cloud Object Storage Credentials Secret: leave empty
    - Cloud Object Storage Username: `minio`
