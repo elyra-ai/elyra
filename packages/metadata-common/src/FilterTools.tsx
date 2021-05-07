@@ -111,8 +111,8 @@ export class FilterTools extends React.Component<
     return (
       <button
         className={`${FILTER_TAG} tag applied-tag`}
-        id={"filter" + "-" + tag + "-" + index}
-        key={"filter" + "-" + tag + "-" + index}
+        id={`filter-${tag}-${index}`}
+        key={`filter-${tag}-${index}`}
         onClick={this.handleClick}
       >
         {tag}
@@ -133,8 +133,8 @@ export class FilterTools extends React.Component<
     return (
       <button
         className={`${FILTER_TAG} tag unapplied-tag`}
-        id={"filter" + "-" + tag + "-" + index}
-        key={"filter" + "-" + tag + "-" + index}
+        id={`filter-${tag}-${index}`}
+        key={`filter-${tag}-${index}`}
         onClick={this.handleClick}
       >
         {tag}

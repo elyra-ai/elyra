@@ -92,8 +92,7 @@ export interface IMetadataDisplayState {
  * A React Component for displaying a list of metadata
  */
 export class MetadataDisplay<
-  T extends IMetadataDisplayProps,
-  U extends IMetadataDisplayState
+  T extends IMetadataDisplayProps
 > extends React.Component<T, IMetadataDisplayState> {
   constructor(props: T) {
     super(props);

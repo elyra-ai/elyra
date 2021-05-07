@@ -211,8 +211,8 @@ export class MetadataEditorTags extends React.Component<
                     <button
                       onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                      id={"editor" + "-" + tag + "-" + index}
-                      key={"editor" + "-" + tag + "-" + index}
+                      id={`editor-${tag}-${index}`}
+                      key={`editor-${tag}-${index}`}
                     >
                       {tag}
                     </button>
@@ -224,8 +224,8 @@ export class MetadataEditorTags extends React.Component<
                     <button
                       onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag applied-tag`}
-                      id={"editor" + "-" + tag + "-" + index}
-                      key={"editor" + "-" + tag + "-" + index}
+                      id={`editor-${tag}-${index}`}
+                      key={`editor-${tag}-${index}`}
                     >
                       {tag}
                       <checkIcon.react
@@ -243,8 +243,8 @@ export class MetadataEditorTags extends React.Component<
                     <button
                       onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                      id={"editor" + "-" + tag + "-" + index}
-                      key={"editor" + "-" + tag + "-" + index}
+                      id={`editor-${tag}-${index}`}
+                      key={`editor-${tag}-${index}`}
                     >
                       {tag}
                     </button>
