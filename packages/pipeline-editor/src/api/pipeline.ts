@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// TODO: this will be fetched from the server.
+import nodes from './nodes';
+
 // const SERVICE = 'pipeline';
 
 export const submitPipeline = (): void => {
@@ -22,4 +25,10 @@ export const submitPipeline = (): void => {
 
 export const exportPipeline = (): void => {
   // POST elyra/pipeline/export
+};
+
+export const useComponents = (
+  _runtime: string
+): { data: typeof nodes; error?: any } => {
+  return { data: nodes, error: undefined };
 };

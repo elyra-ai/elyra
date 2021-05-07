@@ -14,4 +14,8 @@
  * limitations under the License.
  */
 
-export { default } from "./extension";
+export * from "./PipelineEditor";
+export * from "./RuntimeImages";
+export * from "./Runtimes";
+export * from "./SubmitNotebookButton";
+export * from "./SubmitScriptButton";

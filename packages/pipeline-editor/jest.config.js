@@ -13,5 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global module, require */
-module.exports = require('../../testutils/jest.config');
+
+const baseConfig = require('../../jest.config.base');
+
+module.exports = {
+  ...baseConfig,
+  setupFilesAfterEnv: [
+    '@testing-library/jest-dom/extend-expect',
+    './jest.setup.js'
+  ],
+  roots: ['<rootDir>/src']
+};

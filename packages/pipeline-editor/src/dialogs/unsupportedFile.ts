@@ -14,4 +14,10 @@
  * limitations under the License.
  */
 
-export { default } from "./extension";
+import { Dialog } from "@jupyterlab/apputils";
+
+export const unsupportedFile = {
+  title: "Unsupported File(s)",
+  body: "Only supported files have been added to the pipeline.",
+  buttons: [Dialog.okButton()],
+};

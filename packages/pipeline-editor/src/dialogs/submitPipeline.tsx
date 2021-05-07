@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import * as React from 'react';
+import { Dialog } from "@jupyterlab/apputils";
 
-import { IRuntime, ISchema, PipelineService } from './PipelineService';
+import { createFormBody } from "./utils";
 
-interface IProps {
+interface Props {
   name: string;
   runtimes: IRuntime[];
   schema: ISchema[];
@@ -30,11 +30,11 @@ interface IState {
   validSchemas: ISchema[];
 }
 
-export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
+class PipelineSubmissionDialog extends React.Component<Props, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
     selectedRuntimePlatform: this.props.schema[0] && this.props.schema[0].name,
-    validSchemas: new Array<ISchema>()
+    validSchemas: new Array<ISchema>(),
   };
 
   handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -43,7 +43,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
 
     this.setState({
       displayedRuntimeOptions: runtimeOptions,
-      selectedRuntimePlatform: selectedPlatform
+      selectedRuntimePlatform: selectedPlatform,
     });
   };
 
@@ -63,7 +63,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
       displayedRuntimeOptions: this.updateRuntimeOptions(
         this.state.selectedRuntimePlatform
       ),
-      validSchemas: PipelineService.filterValidSchema(runtimes, schema)
+      validSchemas: PipelineService.filterValidSchema(runtimes, schema),
     });
   }
 
@@ -72,7 +72,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
     const {
       displayedRuntimeOptions,
       selectedRuntimePlatform,
-      validSchemas
+      validSchemas,
     } = this.state;
 
     return (
@@ -98,7 +98,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
           defaultValue={selectedRuntimePlatform}
           onChange={this.handleUpdate}
         >
-          {validSchemas.map(schema => (
+          {validSchemas.map((schema) => (
             <option key={schema.name} value={schema.name}>
               {schema.display_name}
             </option>
@@ -112,7 +112,7 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
           className="elyra-form-runtime-config"
           data-form-required
         >
-          {displayedRuntimeOptions.map(runtime => (
+          {displayedRuntimeOptions.map((runtime) => (
             <option key={runtime.name} value={runtime.name}>
               {runtime.display_name}
             </option>
@@ -122,3 +122,13 @@ export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
     );
   }
 }
+
+export const submitPipeline = ({ name, runtimes, schema }: Props) => ({
+  title: "Run pipeline",
+  body: createFormBody(
+    <PipelineSubmissionDialog name={name} runtimes={runtimes} schema={schema} />
+  ),
+  buttons: [Dialog.cancelButton(), Dialog.okButton()],
+  defaultButton: 1,
+  focusNodeSelector: "#pipeline_name",
+});

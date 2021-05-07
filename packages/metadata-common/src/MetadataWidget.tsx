@@ -14,42 +14,41 @@
  * limitations under the License.
  */
 
-import { IDictionary, MetadataService } from '@elyra/services';
+import React from "react";
+
+import { IDictionary, MetadataService } from "@elyra/services";
 import {
   ExpandableComponent,
   ThemeProvider,
   JSONComponent,
   RequestErrors,
-  trashIcon
-} from '@elyra/ui-components';
-
-import { JupyterFrontEnd } from '@jupyterlab/application';
+  trashIcon,
+} from "@elyra/ui-components";
+import { JupyterFrontEnd } from "@jupyterlab/application";
 import {
   Dialog,
   IThemeManager,
   ReactWidget,
   showDialog,
-  UseSignal
-} from '@jupyterlab/apputils';
-import { editIcon, LabIcon } from '@jupyterlab/ui-components';
-import { Message } from '@lumino/messaging';
-import { Signal } from '@lumino/signaling';
+  UseSignal,
+} from "@jupyterlab/apputils";
+import { editIcon, LabIcon } from "@jupyterlab/ui-components";
+import { Message } from "@lumino/messaging";
+import { Signal } from "@lumino/signaling";
 
-import React from 'react';
-
-import { AddMetadataButton } from './AddMetadataButton';
-import { FilterTools } from './FilterTools';
+import { AddMetadataButton } from "./AddMetadataButton";
+import { FilterTools } from "./FilterTools";
 
 /**
  * The CSS class added to metadata widgets.
  */
-export const METADATA_CLASS = 'elyra-metadata';
-export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
-export const METADATA_ITEM = 'elyra-metadata-item';
-const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
+export const METADATA_CLASS = "elyra-metadata";
+export const METADATA_HEADER_CLASS = "elyra-metadataHeader";
+export const METADATA_ITEM = "elyra-metadata-item";
+const METADATA_JSON_CLASS = "jp-RenderedJSON CodeMirror cm-s-jupyter";
 
 const commands = {
-  OPEN_METADATA_EDITOR: 'elyra-metadata-editor:open'
+  OPEN_METADATA_EDITOR: "elyra-metadata-editor:open",
 };
 
 export interface IMetadata {
@@ -100,24 +99,24 @@ export class MetadataDisplay<
     super(props);
     this.state = {
       metadata: props.metadata,
-      searchValue: '',
+      searchValue: "",
       filterTags: [],
       matchesSearch: this.matchesSearch.bind(this),
-      matchesTags: this.matchesTags.bind(this)
+      matchesTags: this.matchesTags.bind(this),
     };
   }
 
   deleteMetadata = (metadata: IMetadata): Promise<void> => {
     return showDialog({
       title: `Delete metadata: ${metadata.display_name}?`,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
         MetadataService.deleteMetadata(
           this.props.namespace,
           metadata.name
-        ).catch(error => RequestErrors.serverError(error));
+        ).catch((error) => RequestErrors.serverError(error));
       }
     });
   };
@@ -125,26 +124,26 @@ export class MetadataDisplay<
   actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
     return [
       {
-        title: 'Edit',
+        title: "Edit",
         icon: editIcon,
         onClick: (): void => {
           this.props.openMetadataEditor({
             onSave: this.props.updateMetadata,
             namespace: this.props.namespace,
             schema: metadata.schema_name,
-            name: metadata.name
+            name: metadata.name,
           });
-        }
+        },
       },
       {
-        title: 'Delete',
+        title: "Delete",
         icon: trashIcon,
         onClick: (): void => {
           this.deleteMetadata(metadata).then((response: any): void => {
             this.props.updateMetadata();
           });
-        }
-      }
+        },
+      },
     ];
   };
 
@@ -168,7 +167,7 @@ export class MetadataDisplay<
         key={metadata.name}
         className={METADATA_ITEM}
         style={
-          this.state.metadata.includes(metadata) ? {} : { display: 'none' }
+          this.state.metadata.includes(metadata) ? {} : { display: "none" }
         }
       >
         <ExpandableComponent
@@ -208,8 +207,8 @@ export class MetadataDisplay<
 
     // filter with tags
     if (filterTags.length !== 0) {
-      filteredMetadata = filteredMetadata.filter(metadata => {
-        return filterTags.some(tag => {
+      filteredMetadata = filteredMetadata.filter((metadata) => {
+        return filterTags.some((tag) => {
           if (metadata.metadata.tags) {
             return metadata.metadata.tags.includes(tag);
           }
@@ -221,7 +220,7 @@ export class MetadataDisplay<
     this.setState({
       metadata: filteredMetadata,
       searchValue: searchValue,
-      filterTags: filterTags
+      filterTags: filterTags,
     });
   };
 
@@ -263,22 +262,22 @@ export class MetadataDisplay<
     props: IMetadataDisplayProps,
     state: IMetadataDisplayState
   ): IMetadataDisplayState {
-    if (state.searchValue === '' && state.filterTags.length === 0) {
+    if (state.searchValue === "" && state.filterTags.length === 0) {
       return {
         metadata: props.metadata,
-        searchValue: '',
+        searchValue: "",
         filterTags: [],
         matchesSearch: state.matchesSearch,
-        matchesTags: state.matchesTags
+        matchesTags: state.matchesTags,
       };
     }
 
-    if (state.searchValue !== '' || state.filterTags.length !== 0) {
+    if (state.searchValue !== "" || state.filterTags.length !== 0) {
       const filterTags = new Set(state.filterTags);
       const searchValue = state.searchValue.toLowerCase().trim();
 
       const newMetadata = props.metadata.filter(
-        metadata =>
+        (metadata) =>
           state.matchesSearch(searchValue, metadata) &&
           state.matchesTags(filterTags, metadata)
       );
@@ -287,7 +286,7 @@ export class MetadataDisplay<
         searchValue: state.searchValue,
         filterTags: state.filterTags,
         matchesSearch: state.matchesSearch,
-        matchesTags: state.matchesTags
+        matchesTags: state.matchesTags,
       };
     }
     return null;
@@ -331,7 +330,7 @@ export class MetadataWidget extends ReactWidget {
 
   constructor(props: IMetadataWidgetProps) {
     super();
-    this.addClass('elyra-metadata');
+    this.addClass("elyra-metadata");
 
     this.props = props;
     this.renderSignal = new Signal<this, any>(this);
@@ -358,7 +357,7 @@ export class MetadataWidget extends ReactWidget {
     this.openMetadataEditor({
       onSave: this.updateMetadata,
       namespace: this.props.namespace,
-      schema: schema
+      schema: schema,
     });
   }
 
@@ -416,7 +415,7 @@ export class MetadataWidget extends ReactWidget {
       <ThemeProvider themeManager={this.props.themeManager}>
         <div className={METADATA_CLASS}>
           <header className={METADATA_HEADER_CLASS}>
-            <div style={{ display: 'flex' }}>
+            <div style={{ display: "flex" }}>
               <this.props.icon.react
                 tag="span"
                 width="auto"

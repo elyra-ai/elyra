@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-import { ContentParser } from '@elyra/services';
-import { RequestErrors, showFormDialog } from '@elyra/ui-components';
-import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
-import { PathExt } from '@jupyterlab/coreutils';
-import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
-import { FileEditor } from '@jupyterlab/fileeditor';
-import { IDisposable } from '@lumino/disposable';
+import { ContentParser } from "@elyra/services";
+import { RequestErrors, showFormDialog } from "@elyra/ui-components";
+import { Dialog, showDialog, ToolbarButton } from "@jupyterlab/apputils";
+import { PathExt } from "@jupyterlab/coreutils";
+import { DocumentRegistry, DocumentWidget } from "@jupyterlab/docregistry";
+import { FileEditor } from "@jupyterlab/fileeditor";
+import { IDisposable } from "@lumino/disposable";
 
-import * as React from 'react';
-
-import { FileSubmissionDialog } from './FileSubmissionDialog';
-import { formDialogWidget } from './formDialogWidget';
-import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
-import Utils from './utils';
+import { FileSubmissionDialog } from "./FileSubmissionDialog";
+import { formDialogWidget } from "./formDialogWidget";
 
 /**
  * Submit script button extension
@@ -46,11 +42,11 @@ export class SubmitScriptButtonExtension
     if (editor.context.model.dirty) {
       const dialogResult = await showDialog({
         title:
-          'This script contains unsaved changes. To run the script as a pipeline the changes need to be saved.',
+          "This script contains unsaved changes. To run the script as a pipeline the changes need to be saved.",
         buttons: [
           Dialog.cancelButton(),
-          Dialog.okButton({ label: 'Save and Submit' })
-        ]
+          Dialog.okButton({ label: "Save and Submit" }),
+        ],
       });
       if (dialogResult.button && dialogResult.button.accept === true) {
         await editor.context.save();
@@ -62,12 +58,12 @@ export class SubmitScriptButtonExtension
 
     const env = await ContentParser.getEnvVars(
       editor.context.path.toString()
-    ).catch(error => RequestErrors.serverError(error));
-    const action = 'run script as pipeline';
+    ).catch((error) => RequestErrors.serverError(error));
+    const action = "run script as pipeline";
     const runtimes = await PipelineService.getRuntimes(
       true,
       action
-    ).catch(error => RequestErrors.serverError(error));
+    ).catch((error) => RequestErrors.serverError(error));
 
     if (Utils.isDialogResult(runtimes)) {
       if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
@@ -79,16 +75,16 @@ export class SubmitScriptButtonExtension
       return;
     }
 
-    const images = await PipelineService.getRuntimeImages().catch(error =>
+    const images = await PipelineService.getRuntimeImages().catch((error) =>
       RequestErrors.serverError(error)
     );
-    const schema = await PipelineService.getRuntimesSchema().catch(error =>
+    const schema = await PipelineService.getRuntimesSchema().catch((error) =>
       RequestErrors.serverError(error)
     );
     const fileExtension = PathExt.extname(editor.context.path);
 
     const dialogOptions = {
-      title: 'Run script as pipeline',
+      title: "Run script as pipeline",
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
@@ -98,7 +94,7 @@ export class SubmitScriptButtonExtension
           schema={schema}
         />
       ),
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     };
 
     const dialogResult = await showFormDialog(dialogOptions);
@@ -138,7 +134,7 @@ export class SubmitScriptButtonExtension
       runtimes
     );
 
-    PipelineService.submitPipeline(pipeline, displayName).catch(error =>
+    PipelineService.submitPipeline(pipeline, displayName).catch((error) =>
       RequestErrors.serverError(error)
     );
   };
@@ -149,13 +145,13 @@ export class SubmitScriptButtonExtension
   ): IDisposable {
     // Create the toolbar button
     const submitScriptButton = new ToolbarButton({
-      label: 'Run as Pipeline',
+      label: "Run as Pipeline",
       onClick: (): any => this.showWidget(editor),
-      tooltip: 'Run script as batch'
+      tooltip: "Run script as batch",
     });
 
     // Add the toolbar button to editor
-    editor.toolbar.insertItem(10, 'submitScript', submitScriptButton);
+    editor.toolbar.insertItem(10, "submitScript", submitScriptButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.

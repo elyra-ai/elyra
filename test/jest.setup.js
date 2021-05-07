@@ -14,4 +14,35 @@
  * limitations under the License.
  */
 
-export { default } from "./extension";
+// const crypto = require('crypto');
+
+// Object.defineProperty(global.self, 'crypto', {
+//   value: {
+//     getRandomValues: arr => crypto.randomBytes(arr.length)
+//   }
+// });
+
+jest.mock('@elyra/canvas/dist/styles/common-canvas.min.css', () => '', {
+  virtual: true
+});
+
+global.crypto = {
+  getRandomValues: () => {
+    return new Uint8Array(256);
+  }
+};
+
+window.matchMedia = () => {
+  return {
+    matches: true,
+    addEventListener: () => {}
+  };
+};
+
+window.scrollTo = () => {
+  return;
+};
+
+window.Element.prototype.getComputedTextLength = () => {
+  return 200;
+};

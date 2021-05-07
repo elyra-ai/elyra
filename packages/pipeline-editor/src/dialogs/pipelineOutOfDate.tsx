@@ -13,5 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global module, require */
-module.exports = require('@jupyterlab/testutils/lib/babel.config');
+
+import { Dialog } from "@jupyterlab/apputils";
+
+export const pipelineOutOfDate = {
+  title: "Migrate pipeline?",
+  body: (
+    <p>
+      This pipeline corresponds to an older version of Elyra and needs to be
+      migrated.
+      <br />
+      Although the pipeline can be further edited and/or submitted after its
+      update,
+      <br />
+      the migration will not be completed until the pipeline has been saved
+      within the editor.
+      <br />
+      <br />
+      Proceed with migration?
+    </p>
+  ),
+  buttons: [Dialog.cancelButton(), Dialog.okButton()],
+};

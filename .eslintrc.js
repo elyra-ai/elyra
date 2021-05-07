@@ -14,4 +14,7 @@
  * limitations under the License.
  */
 
-export { default } from "./extension";
+module.exports = {
+  root: true,
+  extends: ["elyra"]
+};

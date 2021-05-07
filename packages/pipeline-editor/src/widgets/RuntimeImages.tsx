@@ -14,40 +14,39 @@
  * limitations under the License.
  */
 
+import React from "react";
+
 import {
   MetadataWidget,
-  IMetadataWidgetProps,
   IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps,
-  IMetadataDisplayState
-} from '@elyra/metadata-common';
-import { IDictionary } from '@elyra/services';
+  IMetadataDisplayState,
+} from "@elyra/metadata-common";
+import { IDictionary } from "@elyra/services";
 
-import React from 'react';
+export const RUNTIME_IMAGES_NAMESPACE = "runtime-images";
 
-export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
-
-const RUNTIME_IMAGES_CLASS = 'elyra-metadata-runtime-images';
+const RUNTIME_IMAGES_CLASS = "elyra-metadata-runtime-images";
 
 const getLinkFromImageName = (imageName: string): string => {
-  let hostname = '';
-  const fqinParts = imageName.split('/');
+  let hostname = "";
+  const fqinParts = imageName.split("/");
 
   if (
-    fqinParts[0].includes('.') ||
-    fqinParts[0].includes(':') ||
-    fqinParts[0].includes('localhost')
+    fqinParts[0].includes(".") ||
+    fqinParts[0].includes(":") ||
+    fqinParts[0].includes("localhost")
   ) {
     hostname = fqinParts[0];
-    imageName = fqinParts.slice(1).join('/');
+    imageName = fqinParts.slice(1).join("/");
   }
 
-  if (!hostname || hostname.includes('docker.io')) {
-    hostname = 'hub.docker.com/r';
+  if (!hostname || hostname.includes("docker.io")) {
+    hostname = "hub.docker.com/r";
   }
 
-  const imageRepo = imageName.split(':')[0];
+  const imageRepo = imageName.split(":")[0];
 
   return `https://${hostname}/${imageRepo}`;
 };
@@ -79,10 +78,6 @@ class RuntimeImagesDisplay extends MetadataDisplay<
  * A widget for displaying runtime images.
  */
 export class RuntimeImagesWidget extends MetadataWidget {
-  constructor(props: IMetadataWidgetProps) {
-    super(props);
-  }
-
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
     return (
       <RuntimeImagesDisplay

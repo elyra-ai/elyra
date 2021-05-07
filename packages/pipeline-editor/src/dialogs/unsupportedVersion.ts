@@ -14,4 +14,10 @@
  * limitations under the License.
  */
 
-export const PIPELINE_CURRENT_VERSION = 3;
+import { Dialog } from "@jupyterlab/apputils";
+
+export const unsupportedVersion = {
+  title: "Load pipeline failed!",
+  body: "This pipeline has an unrecognizable version.",
+  buttons: [Dialog.okButton()],
+};

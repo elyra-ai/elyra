@@ -13,11 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global global, require */
-const crypto = require('crypto');
 
-Object.defineProperty(global.self, 'crypto', {
-  value: {
-    getRandomValues: arr => crypto.randomBytes(arr.length)
-  }
-});
+export { default } from "./extension";

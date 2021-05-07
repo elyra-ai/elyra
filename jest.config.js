@@ -14,4 +14,19 @@
  * limitations under the License.
  */
 
-export { default } from "./extension";
+module.exports = {
+  collectCoverageFrom: [
+    // Collect coverage for all typescript files.
+    '**/*.{ts,tsx}',
+    // Ignore `src/index.ts`, because it should only be exports.
+    '!**/src/index.ts',
+    // Ignore any typescript declaration files.
+    '!**/*.d.ts',
+    // Ignore any test utils.
+    '!**/test-utils.{ts,tsx}',
+    // ignore tests.
+    '!**/*.test.{ts,tsx}'
+  ],
+  coverageReporters: ['lcov', 'text'],
+  projects: ['<rootDir>/packages/*']
+};

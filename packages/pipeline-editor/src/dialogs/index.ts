@@ -14,4 +14,15 @@
  * limitations under the License.
  */
 
-export { default } from "./extension";
+// Simple dialogs
+export * from "./clearPipeline";
+export * from "./elyraOutOfDate";
+export * from "./pipelineOutOfDate";
+export * from "./unknownError";
+export * from "./unsupportedFile";
+export * from "./unsupportedVersion";
+
+// Form dialogs
+export * from "./submitFile";
+export * from "./submitPipeline";
+export * from "./exportPipeline";

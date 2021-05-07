@@ -14,4 +14,11 @@
  * limitations under the License.
  */
 
-export { default } from "./extension";
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'jest-environment-jsdom',
+  testMatch: [
+    // Match all typescript tests.
+    '**/*.test.{ts,tsx}'
+  ]
+};

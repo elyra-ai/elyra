@@ -14,4 +14,10 @@
  * limitations under the License.
  */
 
-export { default } from "./extension";
+import { Dialog } from "@jupyterlab/apputils";
+
+export const clearPipeline = {
+  title: "Clear Pipeline",
+  body: "Are you sure you want to clear the pipeline?",
+  buttons: [Dialog.cancelButton(), Dialog.okButton({ label: "Clear" })],
+};

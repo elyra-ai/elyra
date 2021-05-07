@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { IDictionary } from '@elyra/services';
-import * as React from 'react';
+import React, { FC } from "react";
 
-import { IRuntime, ISchema, PipelineService } from './PipelineService';
-import Utils from './utils';
+import { Dialog } from "@jupyterlab/apputils";
 
-interface IProps {
+import { createFormBody } from "./utils";
+
+interface Props {
   env: string[];
   dependencyFileExtension: string;
-  images: IDictionary<string>;
+  images: { [key: string]: string };
   runtimes: IRuntime[];
   schema: ISchema[];
 }
@@ -35,7 +35,11 @@ interface IState {
   validSchemas: ISchema[];
 }
 
-const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
+interface EnvFormProps {
+  env: string[];
+}
+
+const EnvForm: FC<EnvFormProps> = ({ env }) => {
   if (env.length > 0) {
     return (
       <>
@@ -45,7 +49,7 @@ const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
         <br />
         {Utils.chunkArray(env, 4).map((col, i) => (
           <div key={i}>
-            {col.map(envVar => (
+            {col.map((envVar) => (
               <div key={envVar}>
                 <label htmlFor={envVar}>{envVar}:</label>
                 <br />
@@ -66,17 +70,17 @@ const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
   return null;
 };
 
-export class FileSubmissionDialog extends React.Component<IProps, IState> {
+class FileSubmissionDialog extends React.Component<Props, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
     includeDependency: true,
-    selectedRuntimePlatform: '',
-    validSchemas: new Array<ISchema>()
+    selectedRuntimePlatform: "",
+    validSchemas: new Array<ISchema>(),
   };
 
   handleCheck = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({
-      includeDependency: !this.state.includeDependency
+      includeDependency: !this.state.includeDependency,
     });
   };
 
@@ -84,7 +88,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
     const selectedPlatform = event.target.value;
     this.setState({
       displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
-      selectedRuntimePlatform: selectedPlatform
+      selectedRuntimePlatform: selectedPlatform,
     });
   };
 
@@ -109,7 +113,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
     this.setState({
       displayedRuntimeOptions: displayedRuntimeOptions,
       selectedRuntimePlatform: selectedRuntimePlatform,
-      validSchemas: validSchemas
+      validSchemas: validSchemas,
     });
   }
 
@@ -118,7 +122,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
     const {
       displayedRuntimeOptions,
       includeDependency,
-      validSchemas
+      validSchemas,
     } = this.state;
 
     const fileDependencyContent = includeDependency ? (
@@ -146,7 +150,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
           className="elyra-form-runtime-platform"
           onChange={this.handleUpdate}
         >
-          {validSchemas.map(schema => (
+          {validSchemas.map((schema) => (
             <option key={schema.name} value={schema.name}>
               {schema.display_name}
             </option>
@@ -159,7 +163,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
           name="runtime_config"
           className="elyra-form-runtime-config"
         >
-          {displayedRuntimeOptions.map(runtime => (
+          {displayedRuntimeOptions.map((runtime) => (
             <option key={runtime.name} value={runtime.name}>
               {runtime.display_name}
             </option>
@@ -211,3 +215,24 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
     );
   }
 }
+
+export const submitFile = ({
+  type,
+  env,
+  dependencyFileExtension,
+  runtimes,
+  images,
+  schema,
+}: Props & { type: "notebook" | "script" }) => ({
+  title: `Run ${type} as pipeline`,
+  body: createFormBody(
+    <FileSubmissionDialog
+      env={env}
+      dependencyFileExtension={dependencyFileExtension}
+      runtimes={runtimes}
+      images={images}
+      schema={schema}
+    />
+  ),
+  buttons: [Dialog.cancelButton(), Dialog.okButton()],
+});

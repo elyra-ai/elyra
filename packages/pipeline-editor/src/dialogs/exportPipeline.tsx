@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-import * as React from 'react';
+import * as React from "react";
+
+import { Dialog } from "@jupyterlab/apputils";
 
 import {
   KFP_SCHEMA,
   IRuntime,
   ISchema,
-  PipelineService
-} from './PipelineService';
+  PipelineService,
+} from "./PipelineService";
+import { createFormBody } from "./utils";
 
 const KFP_FILE_TYPES = [
-  { label: 'KFP domain-specific language Python code', key: 'py' },
-  { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' }
+  { label: "KFP domain-specific language Python code", key: "py" },
+  { label: "KFP static configuration file (YAML formatted)", key: "yaml" },
 ];
 
 const AIRFLOW_FILE_TYPES = [
-  { label: 'Airflow domain-specific language Python code', key: 'py' }
+  { label: "Airflow domain-specific language Python code", key: "py" },
 ];
 
-interface IProps {
+interface Props {
   runtimes: IRuntime[];
   schema: ISchema[];
 }
@@ -44,12 +47,12 @@ interface IState {
   validSchemas: ISchema[];
 }
 
-export class PipelineExportDialog extends React.Component<IProps, IState> {
+class PipelineExportDialog extends React.Component<Props, IState> {
   state = {
     displayedRuntimeOptions: new Array<IRuntime>(),
     fileTypes: new Array<Record<string, string>>(),
-    selectedRuntimePlatform: '',
-    validSchemas: new Array<ISchema>()
+    selectedRuntimePlatform: "",
+    validSchemas: new Array<ISchema>(),
   };
 
   handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -57,7 +60,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     this.setState({
       displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
       fileTypes: this.updateFileTypeOptions(selectedPlatform),
-      selectedRuntimePlatform: selectedPlatform
+      selectedRuntimePlatform: selectedPlatform,
     });
   };
 
@@ -95,7 +98,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
       displayedRuntimeOptions: displayedRuntimeOptions,
       fileTypes: fileTypes,
       selectedRuntimePlatform: selectedRuntimePlatform,
-      validSchemas: validSchemas
+      validSchemas: validSchemas,
     });
   }
 
@@ -113,7 +116,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
           data-form-required
           onChange={this.handleUpdate}
         >
-          {validSchemas.map(schema => (
+          {validSchemas.map((schema) => (
             <option key={schema.name} value={schema.name}>
               {schema.display_name}
             </option>
@@ -127,7 +130,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
           className="elyra-form-runtime-config"
           data-form-required
         >
-          {displayedRuntimeOptions.map(runtime => (
+          {displayedRuntimeOptions.map((runtime) => (
             <option key={runtime.name} value={runtime.name}>
               {runtime.display_name}
             </option>
@@ -141,9 +144,9 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
           className="elyra-form-export-filetype"
           data-form-required
         >
-          {fileTypes.map(filetype => (
-            <option key={filetype['key']} value={filetype['key']}>
-              {filetype['label']}
+          {fileTypes.map((filetype) => (
+            <option key={filetype["key"]} value={filetype["key"]}>
+              {filetype["label"]}
             </option>
           ))}
         </select>
@@ -159,3 +162,13 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     );
   }
 }
+
+export const exportPipeline = ({ runtimes, schema }: Props) => ({
+  title: "Export pipeline",
+  body: createFormBody(
+    <PipelineExportDialog runtimes={runtimes} schema={schema} />
+  ),
+  buttons: [Dialog.cancelButton(), Dialog.okButton()],
+  defaultButton: 1,
+  focusNodeSelector: "#runtime_config",
+});

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-declare module '*.json' {
-  const value: any;
-  export default value;
-}
+import { Dialog } from "@jupyterlab/apputils";
+
+export const elyraOutOfDate = {
+  title: "Load pipeline failed!",
+  body: `This pipeline corresponds to a more recent version of Elyra and cannot be used until Elyra has been upgraded.`,
+  buttons: [Dialog.okButton()],
+};

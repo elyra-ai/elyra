@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global module, require */
-const config = require('./babel.config.js');
-module.exports = require('babel-jest').createTransformer(config);
+
+import { Dialog } from "@jupyterlab/apputils";
+
+export const unknownError = (message: string) => ({
+  title: "Load pipeline failed!",
+  body: message,
+  buttons: [Dialog.okButton()],
+});

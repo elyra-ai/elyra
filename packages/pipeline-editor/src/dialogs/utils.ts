@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { ReactWidget, Dialog } from '@jupyterlab/apputils';
-import { MessageLoop } from '@lumino/messaging';
-import { Widget } from '@lumino/widgets';
+import { ReactWidget, Dialog } from "@jupyterlab/apputils";
+import { MessageLoop } from "@lumino/messaging";
+import { Widget } from "@lumino/widgets";
 
-export const formDialogWidget = (
+export const createFormBody = (
   dialogComponent: JSX.Element
 ): Dialog.IBodyWidget<any> => {
   const widget = ReactWidget.create(dialogComponent) as Dialog.IBodyWidget<any>;
@@ -28,11 +28,13 @@ export const formDialogWidget = (
   MessageLoop.sendMessage(widget, Widget.Msg.UpdateRequest);
 
   widget.getValue = (): any => {
-    const form = widget.node.querySelector('form');
+    const form = widget.node.querySelector("form");
     const formValues: { [key: string]: any } = {};
-    for (const element of Object.values(form.elements) as HTMLInputElement[]) {
+    for (const element of Object.values(
+      form?.elements ?? []
+    ) as HTMLInputElement[]) {
       switch (element.type) {
-        case 'checkbox':
+        case "checkbox":
           formValues[element.name] = element.checked;
           break;
         default:
