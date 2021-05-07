@@ -20,7 +20,7 @@ import {
   JupyterFrontEndPlugin,
 } from "@jupyterlab/application";
 import { ICommandPalette, WidgetTracker } from "@jupyterlab/apputils";
-import { DocumentWidget } from "@jupyterlab/docregistry";
+import { ABCWidgetFactory, DocumentWidget } from "@jupyterlab/docregistry";
 import { ILauncher } from "@jupyterlab/launcher";
 import { LabIcon } from "@jupyterlab/ui-components";
 import { Token } from "@lumino/coreutils";
@@ -103,7 +103,10 @@ export function createEditorWidget({
   app,
   restorer,
 }: AppContext & RestorerContext) {
-  return (factory, { extensions, icon }: EditorOptions) => {
+  return (
+    factory: ABCWidgetFactory<DocumentWidget>,
+    { extensions, icon }: EditorOptions
+  ) => {
     // Add the default behavior of opening the widget for .pipeline files
     app.docRegistry.addFileType({
       name: "pipeline",

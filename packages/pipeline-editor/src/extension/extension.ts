@@ -25,7 +25,13 @@ import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 import { ILauncher } from "@jupyterlab/launcher";
 import { IMainMenu } from "@jupyterlab/mainmenu";
 
-import { PipelineEditorFactory } from "../widgets";
+import {
+  PipelineEditorFactory,
+  RuntimeImagesWidget,
+  RuntimesWidget,
+  SubmitNotebookButtonExtension,
+  SubmitScriptButtonExtension,
+} from "../widgets";
 import {
   createEditorWidget,
   createExtension,
@@ -53,7 +59,7 @@ export default createExtension({
     console.log("Elyra - pipeline-editor extension is activated!");
 
     // Set up new widget Factory for .pipeline files
-    const pipelineEditorFactory = new PipelineEditorFactory();
+    const pipelineEditorFactory = new PipelineEditorFactory({});
 
     createEditorWidget(ctx)(pipelineEditorFactory, {
       extensions: [".pipeline"],
@@ -116,7 +122,7 @@ export default createExtension({
       rank: 950,
     });
 
-    const runtimeImagesWidget = new RuntimeImages({
+    const runtimeImagesWidget = new RuntimeImagesWidget({
       app: ctx.app,
       themeManager: ctx.themeManager,
       display_name: "Runtime Images",
