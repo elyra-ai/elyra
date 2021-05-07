@@ -32,7 +32,7 @@ import {
   showFormDialog,
 } from "@elyra/ui-components";
 import { ILabShell } from "@jupyterlab/application";
-import { Dialog, ReactWidget, showDialog } from "@jupyterlab/apputils";
+import { ReactWidget, showDialog } from "@jupyterlab/apputils";
 import { PathExt } from "@jupyterlab/coreutils";
 import {
   DocumentRegistry,
@@ -48,19 +48,16 @@ import { Snackbar } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
 
 import { useRuntimeImages } from "../api/metadata";
-import { clearPipeline, exportPipeline, submitPipeline } from "../dialogs";
+import {
+  clearPipeline,
+  exportPipeline,
+  submitPipeline,
+  unsavedChanges,
+  unsupportedFile,
+  unknownError,
+} from "../dialogs";
 
 const PIPELINE_CLASS = "elyra-PipelineEditor";
-
-export const commandIDs = {
-  openPipelineEditor: "pipeline-editor:open",
-  openMetadata: "elyra-metadata:open",
-  openDocManager: "docmanager:open",
-  newDocManager: "docmanager:new-untitled",
-  submitScript: "script-editor:submit",
-  submitNotebook: "notebook:submit",
-  addFileToPipeline: "pipeline-editor:add-node",
-};
 
 class PipelineEditorWidget extends ReactWidget {
   browserFactory: IFileBrowserFactory;
@@ -186,16 +183,12 @@ const PipelineWrapper: React.FC<IProps> = ({
     [runtimeImages]
   );
 
-  const onError = (error?: Error): void => {
-    showDialog({
-      title: "Load pipeline failed!",
-      body: <p> {error || ""} </p>,
-      buttons: [Dialog.okButton()],
-    }).then(() => {
-      if (shell.currentWidget) {
-        shell.currentWidget.close();
-      }
-    });
+  const onError = async (error?: Error): void => {
+    await showDialog(unknownError(error));
+
+    if (shell.currentWidget) {
+      shell.currentWidget.close();
+    }
   };
 
   // const runtimeImages = React.useRef({});
@@ -275,14 +268,9 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
 
     if (contextRef.current.model.dirty) {
-      const dialogResult = await showDialog({
-        title:
-          "This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.",
-        buttons: [
-          Dialog.cancelButton(),
-          Dialog.okButton({ label: "Save and Submit" }),
-        ],
-      });
+      const dialogResult = await showDialog(
+        unsavedChanges({ type: "pipeline" })
+      );
       if (dialogResult.button && dialogResult.button.accept === true) {
         await contextRef.current.save();
       } else {
@@ -379,14 +367,9 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
 
     if (contextRef.current.model.dirty) {
-      const dialogResult = await showDialog({
-        title:
-          "This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.",
-        buttons: [
-          Dialog.cancelButton(),
-          Dialog.okButton({ label: "Save and Submit" }),
-        ],
-      });
+      const dialogResult = await showDialog(
+        unsavedChanges({ type: "pipeline" })
+      );
       if (dialogResult.button && dialogResult.button.accept === true) {
         await contextRef.current.save();
       } else {
@@ -634,12 +617,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       }
 
       if (failedAdd) {
-        return showDialog({
-          title: "Unsupported File(s)",
-          body:
-            "Currently, only selected notebook and python script files can be added to a pipeline",
-          buttons: [Dialog.okButton()],
-        });
+        return showDialog(unsupportedFile);
       }
     },
     [browserFactory.defaultBrowser, defaultPosition, shell, widgetId]

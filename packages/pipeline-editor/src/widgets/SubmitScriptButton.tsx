@@ -16,14 +16,13 @@
 
 import { ContentParser } from "@elyra/services";
 import { RequestErrors, showFormDialog } from "@elyra/ui-components";
-import { Dialog, showDialog, ToolbarButton } from "@jupyterlab/apputils";
+import { showDialog, ToolbarButton } from "@jupyterlab/apputils";
 import { PathExt } from "@jupyterlab/coreutils";
 import { DocumentRegistry, DocumentWidget } from "@jupyterlab/docregistry";
 import { FileEditor } from "@jupyterlab/fileeditor";
 import { IDisposable } from "@lumino/disposable";
 
-import { FileSubmissionDialog } from "./FileSubmissionDialog";
-import { formDialogWidget } from "./formDialogWidget";
+import { submitFile, unsavedChanges } from "../dialogs";
 
 /**
  * Submit script button extension
@@ -40,14 +39,7 @@ export class SubmitScriptButtonExtension
     editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>
   ): Promise<void> => {
     if (editor.context.model.dirty) {
-      const dialogResult = await showDialog({
-        title:
-          "This script contains unsaved changes. To run the script as a pipeline the changes need to be saved.",
-        buttons: [
-          Dialog.cancelButton(),
-          Dialog.okButton({ label: "Save and Submit" }),
-        ],
-      });
+      const dialogResult = await showDialog(unsavedChanges({ type: "script" }));
       if (dialogResult.button && dialogResult.button.accept === true) {
         await editor.context.save();
       } else {
@@ -83,19 +75,14 @@ export class SubmitScriptButtonExtension
     );
     const fileExtension = PathExt.extname(editor.context.path);
 
-    const dialogOptions = {
-      title: "Run script as pipeline",
-      body: formDialogWidget(
-        <FileSubmissionDialog
-          env={env}
-          dependencyFileExtension={fileExtension}
-          images={images}
-          runtimes={runtimes}
-          schema={schema}
-        />
-      ),
-      buttons: [Dialog.cancelButton(), Dialog.okButton()],
-    };
+    const dialogOptions = submitFile({
+      type: "script",
+      env,
+      dependencyFileExtension: fileExtension,
+      images,
+      runtimes,
+      schema,
+    });
 
     const dialogResult = await showFormDialog(dialogOptions);
 

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-// Simple dialogs
-export * from "./clearPipeline";
-export * from "./elyraOutOfDate";
-export * from "./pipelineOutOfDate";
-export * from "./unknownError";
-export * from "./unsupportedFile";
-export * from "./unsupportedVersion";
-export * from "./unsavedChanges";
+import { Dialog } from "@jupyterlab/apputils";
 
-// Form dialogs
-export * from "./submitFile";
-export * from "./submitPipeline";
-export * from "./exportPipeline";
+interface Options {
+  type: "notebook" | "script" | "pipeline";
+}
+
+export const unsavedChanges = ({ type }: Options) => ({
+  title: `This ${type} contains unsaved changes. To run the script as a pipeline the changes need to be saved.`,
+  buttons: [
+    Dialog.cancelButton(),
+    Dialog.okButton({ label: "Save and Submit" }),
+  ],
+});

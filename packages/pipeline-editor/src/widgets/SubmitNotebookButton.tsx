@@ -16,13 +16,12 @@
 
 import { ContentParser } from "@elyra/services";
 import { RequestErrors, showFormDialog } from "@elyra/ui-components";
-import { Dialog, showDialog, ToolbarButton } from "@jupyterlab/apputils";
+import { showDialog, ToolbarButton } from "@jupyterlab/apputils";
 import { DocumentRegistry } from "@jupyterlab/docregistry";
 import { INotebookModel, NotebookPanel } from "@jupyterlab/notebook";
 import { IDisposable } from "@lumino/disposable";
 
-import { FileSubmissionDialog } from "./FileSubmissionDialog";
-import { formDialogWidget } from "./formDialogWidget";
+import { submitFile, unsavedChanges } from "../dialogs";
 
 /**
  * Submit notebook button extension
@@ -34,14 +33,9 @@ export class SubmitNotebookButtonExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
   showWidget = async (panel: NotebookPanel): Promise<void> => {
     if (panel.model?.dirty) {
-      const dialogResult = await showDialog({
-        title:
-          "This notebook contains unsaved changes. To run the notebook as pipeline the changes need to be saved.",
-        buttons: [
-          Dialog.cancelButton(),
-          Dialog.okButton({ label: "Save and Submit" }),
-        ],
-      });
+      const dialogResult = await showDialog(
+        unsavedChanges({ type: "notebook" })
+      );
       if (dialogResult.button && dialogResult.button.accept === true) {
         await panel.context.save();
       } else {
@@ -76,19 +70,14 @@ export class SubmitNotebookButtonExtension
       RequestErrors.serverError(error)
     );
 
-    const dialogOptions = {
-      title: "Run notebook as pipeline",
-      body: formDialogWidget(
-        <FileSubmissionDialog
-          env={env}
-          dependencyFileExtension=".py"
-          runtimes={runtimes}
-          images={images}
-          schema={schema}
-        />
-      ),
-      buttons: [Dialog.cancelButton(), Dialog.okButton()],
-    };
+    const dialogOptions = submitFile({
+      type: "notebook",
+      env,
+      dependencyFileExtension: ".py",
+      runtimes,
+      images,
+      schema,
+    });
 
     const dialogResult = await showFormDialog(dialogOptions);
 
