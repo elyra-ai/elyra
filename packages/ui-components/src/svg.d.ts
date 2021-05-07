@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-declare module '*.svg' {
+declare module "*.svg" {
   const image: string;
   export default image;
 }

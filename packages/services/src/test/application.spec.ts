@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-import { JupyterServer } from '@jupyterlab/testutils';
+import { JupyterServer } from "@jupyterlab/testutils";
 
-import { MetadataService } from '../metadata';
-import { RequestHandler } from '../requests';
+import { MetadataService } from "../metadata";
+import { RequestHandler } from "../requests";
+
 jest.setTimeout(3 * 60 * 1000);
 
 const server = new JupyterServer();
 
 const codeSnippetMetadata = {
-  schema_name: 'code-snippet',
-  display_name: 'tester',
-  name: 'tester',
+  schema_name: "code-snippet",
+  display_name: "tester",
+  name: "tester",
   metadata: {
-    language: 'Python',
-    code: ['hello_world']
-  }
+    language: "Python",
+    code: ["hello_world"],
+  },
 };
 
 beforeAll(async () => {
@@ -40,28 +41,28 @@ afterAll(async () => {
   await server.shutdown();
 });
 
-describe('@elyra/services', () => {
-  describe('MetadataService', () => {
-    describe('#getSchema', () => {
-      it('should get schema', async () => {
-        const schemaResponse = await MetadataService.getSchema('code-snippets');
+describe("@elyra/services", () => {
+  describe("MetadataService", () => {
+    describe("#getSchema", () => {
+      it("should get schema", async () => {
+        const schemaResponse = await MetadataService.getSchema("code-snippets");
         expect(schemaResponse[0]).toHaveProperty(
-          'properties.schema_name.description',
-          'The schema associated with this instance'
+          "properties.schema_name.description",
+          "The schema associated with this instance"
         );
       });
     });
-    describe('#getAllSchema', () => {
-      it('should get all schema', async () => {
+    describe("#getAllSchema", () => {
+      it("should get all schema", async () => {
         const schemas = await MetadataService.getAllSchema();
         const schemaNames = schemas.map((schema: any) => {
           return schema.name;
         });
         const knownSchemaNames = [
-          'code-snippet',
-          'runtime-image',
-          'kfp',
-          'airflow'
+          "code-snippet",
+          "runtime-image",
+          "kfp",
+          "airflow",
         ];
         for (const schemaName of knownSchemaNames) {
           expect(schemaNames).toContain(schemaName);
@@ -69,99 +70,99 @@ describe('@elyra/services', () => {
         expect(schemas.length).toBeGreaterThanOrEqual(knownSchemaNames.length);
       });
     });
-    describe('metadata requests', () => {
+    describe("metadata requests", () => {
       beforeAll(async () => {
         const existingSnippets = await MetadataService.getMetadata(
-          'code-snippets'
+          "code-snippets"
         );
         if (
           existingSnippets.find((snippet: any) => {
-            return snippet.name === 'tester';
+            return snippet.name === "tester";
           })
         ) {
-          await MetadataService.deleteMetadata('code-snippet', 'tester');
+          await MetadataService.deleteMetadata("code-snippet", "tester");
         }
       });
 
-      it('should create metadata instance', async () => {
+      it("should create metadata instance", async () => {
         expect(
           await MetadataService.postMetadata(
-            'code-snippets',
+            "code-snippets",
             JSON.stringify(codeSnippetMetadata)
           )
         ).toMatchObject(codeSnippetMetadata);
       });
 
-      it('should get the correct metadata instance', async () => {
+      it("should get the correct metadata instance", async () => {
         expect(
-          await MetadataService.getMetadata('code-snippets')
+          await MetadataService.getMetadata("code-snippets")
         ).toContainEqual(codeSnippetMetadata);
       });
 
-      it('should update the metadata instance', async () => {
-        codeSnippetMetadata.metadata.code = ['testing'];
+      it("should update the metadata instance", async () => {
+        codeSnippetMetadata.metadata.code = ["testing"];
         expect(
           await MetadataService.putMetadata(
-            'code-snippets',
-            'tester',
+            "code-snippets",
+            "tester",
             JSON.stringify(codeSnippetMetadata)
           )
-        ).toHaveProperty('metadata.code', ['testing']);
+        ).toHaveProperty("metadata.code", ["testing"]);
       });
 
-      it('should delete the metadata instance', async () => {
-        await MetadataService.deleteMetadata('code-snippets', 'tester');
-        const snippets = await MetadataService.getMetadata('code-snippets');
+      it("should delete the metadata instance", async () => {
+        await MetadataService.deleteMetadata("code-snippets", "tester");
+        const snippets = await MetadataService.getMetadata("code-snippets");
         expect(snippets).not.toContain(codeSnippetMetadata);
       });
     });
   });
 
-  describe('RequestHandler', () => {
-    describe('#makeGetRequest', () => {
-      it('should make get request', async () => {
+  describe("RequestHandler", () => {
+    describe("#makeGetRequest", () => {
+      it("should make get request", async () => {
         const schemaResponse = await RequestHandler.makeGetRequest(
-          '/elyra/schema/code-snippets'
+          "/elyra/schema/code-snippets"
         );
-        expect(schemaResponse).toHaveProperty('code-snippets');
-        expect(schemaResponse['code-snippets'].length).toBeGreaterThanOrEqual(
+        expect(schemaResponse).toHaveProperty("code-snippets");
+        expect(schemaResponse["code-snippets"].length).toBeGreaterThanOrEqual(
           1
         );
-        expect(schemaResponse['code-snippets'][0]).toHaveProperty(
-          'properties.schema_name.description',
-          'The schema associated with this instance'
+        expect(schemaResponse["code-snippets"][0]).toHaveProperty(
+          "properties.schema_name.description",
+          "The schema associated with this instance"
         );
       });
     });
-    describe('#makePostRequest', () => {
-      it('should make post request', async () => {
+    describe("#makePostRequest", () => {
+      it("should make post request", async () => {
         expect(
           await RequestHandler.makePostRequest(
-            '/elyra/metadata/code-snippets',
+            "/elyra/metadata/code-snippets",
             JSON.stringify(codeSnippetMetadata)
           )
         ).toMatchObject(codeSnippetMetadata);
       });
     });
-    describe('#makePutRequest', () => {
-      codeSnippetMetadata.metadata.language = 'R';
-      it('should make put request', async () => {
+    describe("#makePutRequest", () => {
+      codeSnippetMetadata.metadata.language = "R";
+      it("should make put request", async () => {
         expect(
           await RequestHandler.makePutRequest(
-            '/elyra/metadata/code-snippets/tester',
+            "/elyra/metadata/code-snippets/tester",
             JSON.stringify(codeSnippetMetadata)
           )
-        ).toHaveProperty('metadata.language', 'R');
+        ).toHaveProperty("metadata.language", "R");
       });
     });
-    describe('#makeDeleteRequest', () => {
-      it('should make delete request', async () => {
+    describe("#makeDeleteRequest", () => {
+      it("should make delete request", async () => {
         await RequestHandler.makeDeleteRequest(
-          '/elyra/metadata/code-snippets/tester'
+          "/elyra/metadata/code-snippets/tester"
         );
         expect(
-          await RequestHandler.makeGetRequest('elyra/metadata/code-snippets')
-        ).toMatchObject({ 'code-snippets': [] });
+          await RequestHandler.makeGetRequest("elyra/metadata/code-snippets")
+        ).toMatchObject({ "code-snippets": [] });
       });
     });
   });

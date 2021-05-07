@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-describe('Toc', () => {
+
+describe("Toc", () => {
   beforeEach(() => {
     cy.resetJupyterLab();
   });
 
-  it('opens ToC extension', () => {
+  it("opens ToC extension", () => {
     cy.get('[title="Table of Contents"]').click();
   });
 });

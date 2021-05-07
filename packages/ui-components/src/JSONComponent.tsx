@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-import React from 'react';
-import JSONTree from 'react-json-tree';
+import React from "react";
+
+import JSONTree from "react-json-tree";
 
 // Provide an invalid theme object (this is on purpose!) to invalidate the
 // react-json-tree's inline styles that override CodeMirror CSS classes
 const theme = {
-  scheme: 'jupyter',
-  base00: 'invalid',
-  base01: 'invalid',
-  base02: 'invalid',
-  base03: 'invalid',
-  base04: 'invalid',
-  base05: 'invalid',
-  base06: 'invalid',
-  base07: 'invalid',
-  base08: 'invalid',
-  base09: 'invalid',
-  base0A: 'invalid',
-  base0B: 'invalid',
-  base0C: 'invalid',
-  base0D: 'invalid',
-  base0E: 'invalid',
-  base0F: 'invalid'
+  scheme: "jupyter",
+  base00: "invalid",
+  base01: "invalid",
+  base02: "invalid",
+  base03: "invalid",
+  base04: "invalid",
+  base05: "invalid",
+  base06: "invalid",
+  base07: "invalid",
+  base08: "invalid",
+  base09: "invalid",
+  base0A: "invalid",
+  base0B: "invalid",
+  base0C: "invalid",
+  base0D: "invalid",
+  base0E: "invalid",
+  base0F: "invalid",
 };
 
 interface IProps {
@@ -55,9 +56,9 @@ export class JSONComponent extends React.Component<IProps> {
         data={this.props.json}
         theme={{
           extend: theme,
-          valueLabel: 'cm-variable',
-          valueText: 'cm-string',
-          nestedNodeItemString: 'cm-comment'
+          valueLabel: "cm-variable",
+          valueText: "cm-string",
+          nestedNodeItemString: "cm-comment",
         }}
         invertTheme={false}
         hideRoot={true}
@@ -78,12 +79,12 @@ export class JSONComponent extends React.Component<IProps> {
           return <span className="cm-keyword">{`${label}: `}</span>;
         }}
         valueRenderer={(raw): any => {
-          let className = 'cm-string';
-          if (typeof raw === 'number') {
-            className = 'cm-number';
+          let className = "cm-string";
+          if (typeof raw === "number") {
+            className = "cm-number";
           }
-          if (raw === 'true' || raw === 'false') {
-            className = 'cm-keyword';
+          if (raw === "true" || raw === "false") {
+            className = "cm-keyword";
           }
           return <span className={className}>{`${raw}`}</span>;
         }}

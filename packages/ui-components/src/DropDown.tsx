@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as React from "react";
+
 import {
   TextField,
   FormHelperText,
@@ -22,13 +24,11 @@ import {
   Select,
   MenuItem,
   InputLabel,
-  FormControl
-} from '@material-ui/core';
-import { Autocomplete } from '@material-ui/lab';
+  FormControl,
+} from "@material-ui/core";
+import { Autocomplete } from "@material-ui/lab";
 
-import * as React from 'react';
-
-const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
+const DROPDOWN_ITEM_CLASS = "elyra-form-DropDown-item";
 
 export interface IDropDownProps {
   defaultError: boolean;
@@ -43,10 +43,10 @@ export interface IDropDownProps {
   readonly?: boolean;
 }
 
-const CustomTooltip = withStyles(_theme => ({
+const CustomTooltip = withStyles((_theme) => ({
   tooltip: {
-    fontSize: 13
-  }
+    fontSize: 13,
+  },
 }))(Tooltip);
 
 export const DropDown: React.FC<IDropDownProps> = ({
@@ -59,7 +59,7 @@ export const DropDown: React.FC<IDropDownProps> = ({
   onChange,
   placeholder,
   initialValue,
-  readonly
+  readonly,
 }) => {
   const [error, setError] = React.useState(defaultError);
   const [value, setValue] = React.useState(initialValue || defaultValue);
@@ -71,13 +71,13 @@ export const DropDown: React.FC<IDropDownProps> = ({
 
   const handleChange = (newValue: string): void => {
     setValue(newValue);
-    setError(required && newValue === '');
+    setError(required && newValue === "");
     onChange(newValue);
   };
 
   return (
     <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
-      <CustomTooltip title={description ?? ''} placement="top">
+      <CustomTooltip title={description ?? ""} placement="top">
         {readonly ? (
           <FormControl variant="outlined">
             <InputLabel error={error}>{label}</InputLabel>
@@ -96,10 +96,10 @@ export const DropDown: React.FC<IDropDownProps> = ({
                     key={`${option}MenuItem`}
                     value={option}
                     style={{
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'flex-start',
-                      padding: '18.5px 14px'
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      padding: "18.5px 14px",
                     }}
                   >
                     {option}
@@ -115,7 +115,7 @@ export const DropDown: React.FC<IDropDownProps> = ({
             key="elyra-DropDown"
             options={options}
             style={{ width: 300 }}
-            value={value ?? ''}
+            value={value ?? ""}
             onChange={(event: any, newValue: string): void => {
               handleChange(newValue);
             }}

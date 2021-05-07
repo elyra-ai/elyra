@@ -14,40 +14,38 @@
  * limitations under the License.
  */
 
-import { MetadataService, IDictionary } from '@elyra/services';
+import * as React from "react";
+
+import { MetadataService, IDictionary } from "@elyra/services";
 import {
   DropDown,
   ThemeProvider,
   RequestErrors,
-  TextInput
-} from '@elyra/ui-components';
-
-import { ILabStatus } from '@jupyterlab/application';
+  TextInput,
+} from "@elyra/ui-components";
+import { ILabStatus } from "@jupyterlab/application";
 import {
   ReactWidget,
   showDialog,
   Dialog,
-  IThemeManager
-} from '@jupyterlab/apputils';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-
-import { find } from '@lumino/algorithm';
-import { IDisposable } from '@lumino/disposable';
-import { Message } from '@lumino/messaging';
+  IThemeManager,
+} from "@jupyterlab/apputils";
+import { CodeEditor, IEditorServices } from "@jupyterlab/codeeditor";
+import { find } from "@lumino/algorithm";
+import { IDisposable } from "@lumino/disposable";
+import { Message } from "@lumino/messaging";
 import {
   InputLabel,
   FormHelperText,
   Button,
   Link,
-  styled
-} from '@material-ui/core';
+  styled,
+} from "@material-ui/core";
 
-import * as React from 'react';
+import { MetadataEditorTags } from "./MetadataEditorTags";
 
-import { MetadataEditorTags } from './MetadataEditorTags';
-
-const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
-const DIRTY_CLASS = 'jp-mod-dirty';
+const ELYRA_METADATA_EDITOR_CLASS = "elyra-metadataEditor";
+const DIRTY_CLASS = "jp-mod-dirty";
 
 interface IMetadataEditorProps {
   schema: string;
@@ -77,7 +75,7 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
   onChange,
   defaultError,
   label,
-  required
+  required,
 }) => {
   const [error, setError] = React.useState(defaultError);
 
@@ -94,8 +92,8 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
 
   React.useEffect(() => {
     const handleChange = (args: any): void => {
-      setError(required && args.text === '');
-      onChange?.(args.text.split('\n'));
+      setError(required && args.text === "");
+      onChange?.(args.text.split("\n"));
     };
 
     editorRef.current = servicesRef.current.factoryService.newInlineEditor({
@@ -104,9 +102,9 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
         value: defaultValue,
         mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
           name: language,
-          codemirror_mode: language
-        })
-      })
+          codemirror_mode: language,
+        }),
+      }),
     });
     editorRef.current.model.value.changed.connect(handleChange);
     return (): void => {
@@ -124,7 +122,7 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
       editorRef.current.model.mimeType = servicesRef.current.mimeTypeService.getMimeTypeByLanguage(
         {
           name: language,
-          codemirror_mode: language
+          codemirror_mode: language,
         }
       );
     }
@@ -144,11 +142,11 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
 };
 
 const SaveButton = styled(Button)({
-  borderColor: 'var(--jp-border-color0)',
-  color: 'var(--jp-ui-font-color1)',
-  '&:hover': {
-    borderColor: ' var(--jp-ui-font-color1)'
-  }
+  borderColor: "var(--jp-border-color0)",
+  color: "var(--jp-ui-font-color1)",
+  "&:hover": {
+    borderColor: " var(--jp-ui-font-color1)",
+  },
 });
 
 /**
@@ -194,7 +192,7 @@ export class MetadataEditor extends ReactWidget {
     this.code = props.code;
     this.themeManager = props.themeManager;
 
-    this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : 'new'}`;
+    this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : "new"}`;
     this.addClass(this.widgetClass);
 
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
@@ -228,7 +226,7 @@ export class MetadataEditor extends ReactWidget {
               this.schema[schemaProperty].uihints &&
               this.schema[schemaProperty].uihints.category;
             if (!category) {
-              this.schemaPropertiesByCategory['_noCategory'].push(
+              this.schemaPropertiesByCategory["_noCategory"].push(
                 schemaProperty
               );
             } else if (this.schemaPropertiesByCategory[category]) {
@@ -261,13 +259,13 @@ export class MetadataEditor extends ReactWidget {
           metadata.metadata.tags = [];
         }
         if (this.name === metadata.name) {
-          this.metadata = metadata['metadata'];
-          this.displayName = metadata['display_name'];
+          this.metadata = metadata["metadata"];
+          this.displayName = metadata["display_name"];
           this.title.label = this.displayName;
         }
       }
     } else {
-      this.displayName = '';
+      this.displayName = "";
     }
 
     this.update();
@@ -277,12 +275,12 @@ export class MetadataEditor extends ReactWidget {
     return (
       schemaValue === undefined ||
       schemaValue === null ||
-      schemaValue === '' ||
+      schemaValue === "" ||
       (Array.isArray(schemaValue) && schemaValue.length === 0) ||
       (Array.isArray(schemaValue) &&
         schemaValue.length === 1 &&
-        schemaValue[0] === '') ||
-      schemaValue === '(No selection)'
+        schemaValue[0] === "") ||
+      schemaValue === "(No selection)"
     );
   }
 
@@ -293,7 +291,7 @@ export class MetadataEditor extends ReactWidget {
    */
   hasInvalidFields(): boolean {
     this.invalidForm = false;
-    if (this.displayName === null || this.displayName === '') {
+    if (this.displayName === null || this.displayName === "") {
       this.invalidForm = true;
     }
     for (const schemaField in this.schema) {
@@ -315,14 +313,14 @@ export class MetadataEditor extends ReactWidget {
   onCloseRequest(msg: Message): void {
     if (this.dirty) {
       showDialog({
-        title: 'Close without saving?',
+        title: "Close without saving?",
         body: (
           <p>
-            {' '}
-            {`"${this.displayName}" has unsaved changes, close without saving?`}{' '}
+            {" "}
+            {`"${this.displayName}" has unsaved changes, close without saving?`}{" "}
           </p>
         ),
-        buttons: [Dialog.cancelButton(), Dialog.okButton()]
+        buttons: [Dialog.cancelButton(), Dialog.okButton()],
       }).then((response: any): void => {
         if (response.button.accept) {
           this.dispose();
@@ -339,7 +337,7 @@ export class MetadataEditor extends ReactWidget {
     const newMetadata: any = {
       schema_name: this.schemaName,
       display_name: this.displayName,
-      metadata: this.metadata
+      metadata: this.metadata,
     };
 
     if (this.hasInvalidFields()) {
@@ -354,7 +352,7 @@ export class MetadataEditor extends ReactWidget {
           this.onSave();
           this.close();
         })
-        .catch(error => RequestErrors.serverError(error));
+        .catch((error) => RequestErrors.serverError(error));
     } else {
       MetadataService.putMetadata(
         this.namespace,
@@ -366,14 +364,14 @@ export class MetadataEditor extends ReactWidget {
           this.onSave();
           this.close();
         })
-        .catch(error => RequestErrors.serverError(error));
+        .catch((error) => RequestErrors.serverError(error));
     }
   }
 
   handleTextInputChange(schemaField: string, value: string): void {
     this.handleDirtyState(true);
     // Special case because all metadata has a display name
-    if (schemaField === 'display_name') {
+    if (schemaField === "display_name") {
       this.displayName = value;
     } else if (!value && !this.requiredFields.includes(schemaField)) {
       delete this.metadata[schemaField];
@@ -385,7 +383,7 @@ export class MetadataEditor extends ReactWidget {
   handleDropdownChange = (schemaField: string, value: string): void => {
     this.handleDirtyState(true);
     this.metadata[schemaField] = value;
-    if (schemaField === 'language') {
+    if (schemaField === "language") {
       this.language = value;
     }
     this.update();
@@ -402,7 +400,7 @@ export class MetadataEditor extends ReactWidget {
     if (this.dirty && !this.title.className.includes(DIRTY_CLASS)) {
       this.title.className += DIRTY_CLASS;
     } else if (!this.dirty) {
-      this.title.className = this.title.className.replace(DIRTY_CLASS, '');
+      this.title.className = this.title.className.replace(DIRTY_CLASS, "");
     }
   }
 
@@ -460,13 +458,13 @@ export class MetadataEditor extends ReactWidget {
     let uihints = this.schema[fieldName].uihints;
     const required =
       this.requiredFields && this.requiredFields.includes(fieldName);
-    const defaultValue = this.schema[fieldName].default || '';
+    const defaultValue = this.schema[fieldName].default || "";
     if (uihints === undefined) {
       uihints = {};
       this.schema[fieldName].uihints = uihints;
     }
     if (
-      uihints.field_type === 'textinput' ||
+      uihints.field_type === "textinput" ||
       uihints.field_type === undefined
     ) {
       return (
@@ -485,7 +483,7 @@ export class MetadataEditor extends ReactWidget {
           }}
         />
       );
-    } else if (uihints.field_type === 'dropdown') {
+    } else if (uihints.field_type === "dropdown") {
       return (
         <DropDown
           label={this.schema[fieldName].title}
@@ -503,18 +501,18 @@ export class MetadataEditor extends ReactWidget {
           }}
         />
       );
-    } else if (uihints.field_type === 'code') {
-      let initialCodeValue = '';
+    } else if (uihints.field_type === "code") {
+      let initialCodeValue = "";
       if (this.name) {
-        initialCodeValue = this.metadata.code.join('\n');
+        initialCodeValue = this.metadata.code.join("\n");
       } else if (this.code) {
         this.metadata.code = this.code;
-        initialCodeValue = this.code.join('\n');
+        initialCodeValue = this.code.join("\n");
       }
 
       return (
         <div
-          className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
+          className={"elyra-metadataEditor-formInput elyra-metadataEditor-code"}
           key={`${fieldName}CodeEditor`}
         >
           <CodeBlock
@@ -532,7 +530,7 @@ export class MetadataEditor extends ReactWidget {
           />
         </div>
       );
-    } else if (uihints.field_type === 'tags') {
+    } else if (uihints.field_type === "tags") {
       return (
         <div
           className="elyra-metadataEditor-formInput"
@@ -560,10 +558,10 @@ export class MetadataEditor extends ReactWidget {
   render(): React.ReactElement {
     const inputElements = [];
     for (const category in this.schemaPropertiesByCategory) {
-      if (category !== '_noCategory') {
+      if (category !== "_noCategory") {
         inputElements.push(
           <h4
-            style={{ flexBasis: '100%', padding: '10px' }}
+            style={{ flexBasis: "100%", padding: "10px" }}
             key={`${category}Category`}
           >
             {category}
@@ -578,12 +576,12 @@ export class MetadataEditor extends ReactWidget {
     if (!this.name) {
       headerText = `Add new ${this.schemaDisplayName}`;
     }
-    const error = this.displayName === '' && this.invalidForm;
+    const error = this.displayName === "" && this.invalidForm;
     return (
       <ThemeProvider themeManager={this.themeManager}>
         <div className={ELYRA_METADATA_EDITOR_CLASS}>
           <h3> {headerText} </h3>
-          <p style={{ width: '100%', marginBottom: '10px' }}>
+          <p style={{ width: "100%", marginBottom: "10px" }}>
             All fields marked with an asterisk are required.&nbsp;
             {this.referenceURL ? (
               <Link
@@ -605,16 +603,16 @@ export class MetadataEditor extends ReactWidget {
               secure={false}
               defaultError={error}
               onChange={(value): void => {
-                this.handleTextInputChange('display_name', value);
+                this.handleTextInputChange("display_name", value);
               }}
             />
           ) : null}
           {inputElements}
           <div
             className={
-              'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
+              "elyra-metadataEditor-formInput elyra-metadataEditor-saveButton"
             }
-            key={'SaveButton'}
+            key={"SaveButton"}
           >
             <SaveButton
               variant="outlined"

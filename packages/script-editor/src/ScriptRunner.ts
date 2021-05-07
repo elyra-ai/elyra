@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { Dialog, showDialog } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from "@jupyterlab/apputils";
 import {
   KernelManager,
   KernelSpecManager,
   Session,
-  SessionManager
-} from '@jupyterlab/services';
+  SessionManager,
+} from "@jupyterlab/services";
 
 const KERNEL_ERROR_MSG =
-  'Could not run script because no supporting kernel is defined.';
-const SESSION_ERROR_MSG = 'Could not start session to execute script.';
+  "Could not run script because no supporting kernel is defined.";
+const SESSION_ERROR_MSG = "Could not start session to execute script.";
 
 export interface IScriptOutput {
   readonly type: string;
@@ -50,7 +50,7 @@ export class ScriptRunner {
     this.kernelSpecManager = new KernelSpecManager();
     this.kernelManager = new KernelManager();
     this.sessionManager = new SessionManager({
-      kernelManager: this.kernelManager
+      kernelManager: this.kernelManager,
     });
     this.sessionConnection = null;
   }
@@ -58,9 +58,9 @@ export class ScriptRunner {
   private errorDialog = (errorMsg: string): Promise<Dialog.IResult<string>> => {
     this.disableRun(false);
     return showDialog({
-      title: 'Error',
+      title: "Error",
       body: errorMsg,
-      buttons: [Dialog.okButton()]
+      buttons: [Dialog.okButton()],
     });
   };
 
@@ -97,24 +97,24 @@ export class ScriptRunner {
       future.onIOPub = (msg: any): void => {
         const msgOutput: any = {};
 
-        if (msg.msg_type === 'error') {
+        if (msg.msg_type === "error") {
           msgOutput.error = {
             type: msg.content.ename,
-            output: msg.content.evalue
+            output: msg.content.evalue,
           };
         } else if (
-          msg.msg_type === 'execute_result' ||
-          msg.msg_type === 'display_data'
+          msg.msg_type === "execute_result" ||
+          msg.msg_type === "display_data"
         ) {
-          if ('text/plain' in msg.content.data) {
-            msgOutput.output = msg.content.data['text/plain'];
+          if ("text/plain" in msg.content.data) {
+            msgOutput.output = msg.content.data["text/plain"];
           } else {
             // ignore
-            console.log('Ignoring received message ' + msg);
+            console.log("Ignoring received message " + msg);
           }
-        } else if (msg.msg_type === 'stream') {
+        } else if (msg.msg_type === "stream") {
           msgOutput.output = msg.content.text;
-        } else if (msg.msg_type === 'status') {
+        } else if (msg.msg_type === "status") {
           msgOutput.status = msg.content.execution_state;
         } else {
           // ignore other message types
@@ -128,7 +128,7 @@ export class ScriptRunner {
         await future.done;
         this.shutdownSession();
       } catch (e) {
-        console.log('Exception: done = ' + JSON.stringify(e));
+        console.log("Exception: done = " + JSON.stringify(e));
       }
     }
   };
@@ -142,11 +142,11 @@ export class ScriptRunner {
   ): Promise<Session.ISessionConnection> => {
     const options: Session.ISessionOptions = {
       kernel: {
-        name: kernelName
+        name: kernelName,
       },
       path: contextPath,
-      type: 'file',
-      name: contextPath
+      type: "file",
+      name: contextPath,
     };
 
     this.sessionConnection = await this.sessionManager.startNew(options);
@@ -166,9 +166,9 @@ export class ScriptRunner {
         this.disableRun(false);
         await this.sessionConnection.shutdown();
         this.sessionConnection = null;
-        console.log(name + ' kernel shut down');
+        console.log(name + " kernel shut down");
       } catch (e) {
-        console.log('Exception: shutdown = ' + JSON.stringify(e));
+        console.log("Exception: shutdown = " + JSON.stringify(e));
       }
     }
   };

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Dialog } from '@jupyterlab/apputils';
-import { URLExt } from '@jupyterlab/coreutils';
-import { ServerConnection } from '@jupyterlab/services';
+import { Dialog } from "@jupyterlab/apputils";
+import { URLExt } from "@jupyterlab/coreutils";
+import { ServerConnection } from "@jupyterlab/services";
 
 /**
  * A service class for making requests to the jupyter lab server.
@@ -45,7 +45,7 @@ export class RequestHandler {
   ): Promise<any> {
     return this.makeServerRequest(
       requestPath,
-      { method: 'GET' },
+      { method: "GET" },
       longRequestDialog
     );
   }
@@ -77,7 +77,7 @@ export class RequestHandler {
   ): Promise<any> {
     return this.makeServerRequest(
       requestPath,
-      { method: 'POST', body: requestBody },
+      { method: "POST", body: requestBody },
       longRequestDialog
     );
   }
@@ -109,7 +109,7 @@ export class RequestHandler {
   ): Promise<any> {
     return this.makeServerRequest(
       requestPath,
-      { method: 'PUT', body: requestBody },
+      { method: "PUT", body: requestBody },
       longRequestDialog
     );
   }
@@ -137,7 +137,7 @@ export class RequestHandler {
   ): Promise<any> {
     return this.makeServerRequest(
       requestPath,
-      { method: 'DELETE' },
+      { method: "DELETE" },
       longRequestDialog
     );
   }
@@ -201,10 +201,10 @@ export class RequestHandler {
             },
             // handle 404 if the server is not found
             (reason: any) => {
-              if (response.status == 404) {
-                response['requestPath'] = requestPath;
+              if (response.status === 404) {
+                response["requestPath"] = requestPath;
                 return reject(response);
-              } else if (response.status == 204) {
+              } else if (response.status === 204) {
                 resolve({});
               } else {
                 return reject(reason);

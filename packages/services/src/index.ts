@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export * from './parsing';
-export * from './metadata';
-export * from './requests';
-export * from './Config';
+export * from "./parsing";
+export * from "./metadata";
+export * from "./requests";
+export * from "./Config";

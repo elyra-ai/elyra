@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { Dialog } from '@jupyterlab/apputils';
-import { IDocumentManager } from '@jupyterlab/docmanager';
+import { Dialog } from "@jupyterlab/apputils";
+import { IDocumentManager } from "@jupyterlab/docmanager";
 import {
   BreadCrumbs,
   DirListing,
-  FilterFileBrowserModel
-} from '@jupyterlab/filebrowser';
-import { Widget, PanelLayout } from '@lumino/widgets';
+  FilterFileBrowserModel,
+} from "@jupyterlab/filebrowser";
+import { Widget, PanelLayout } from "@lumino/widgets";
 
-const BROWSE_FILE_CLASS = 'elyra-browseFileDialog';
-const BROWSE_FILE_OPEN_CLASS = 'elyra-browseFileDialog-open';
+const BROWSE_FILE_CLASS = "elyra-browseFileDialog";
+const BROWSE_FILE_OPEN_CLASS = "elyra-browseFileDialog-open";
 
 export interface IBrowseFileDialogOptions {
   filter?: (model: any) => boolean;
@@ -60,18 +60,18 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
     // if 'rootPath' is defined prevent navigating to it's parent/grandparent directories
     if (localPath && this.rootPath && localPath.indexOf(this.rootPath) === 0) {
       const breadcrumbs = document.querySelectorAll(
-        '.elyra-browseFileDialog .jp-BreadCrumbs > span[title]'
+        ".elyra-browseFileDialog .jp-BreadCrumbs > span[title]"
       );
 
       breadcrumbs.forEach((crumb: Element): void => {
         if ((crumb as HTMLSpanElement).title.indexOf(this.rootPath) === 0) {
           crumb.className = crumb.className
-            .replace('elyra-BreadCrumbs-disabled', '')
+            .replace("elyra-BreadCrumbs-disabled", "")
             .trim();
         } else if (
-          crumb.className.indexOf('elyra-BreadCrumbs-disabled') === -1
+          crumb.className.indexOf("elyra-BreadCrumbs-disabled") === -1
         ) {
-          crumb.className += ' elyra-BreadCrumbs-disabled';
+          crumb.className += " elyra-BreadCrumbs-disabled";
         }
       });
     }
@@ -81,7 +81,8 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
 /**
  * Browse file widget for dialog body
  */
-class BrowseFileDialog extends Widget
+class BrowseFileDialog
+  extends Widget
   implements Dialog.IBodyWidget<IBrowseFileDialogOptions> {
   directoryListing: DirListing;
   breadCrumbs: BreadCrumbs;
@@ -96,13 +97,13 @@ class BrowseFileDialog extends Widget
 
     this.model = new FilterFileBrowserModel({
       manager: props.manager,
-      filter: props.filter
+      filter: props.filter,
     });
 
     const layout = (this.layout = new PanelLayout());
 
     this.directoryListing = new DirListing({
-      model: this.model
+      model: this.model,
     });
 
     this.acceptFileOnDblClick = props.acceptFileOnDblClick;
@@ -115,7 +116,7 @@ class BrowseFileDialog extends Widget
 
     this.breadCrumbs = new BrowseFileDialogBreadcrumbs({
       model: this.model,
-      rootPath: props.rootPath
+      rootPath: props.rootPath,
     });
 
     layout.addWidget(this.breadCrumbs);
@@ -144,7 +145,7 @@ class BrowseFileDialog extends Widget
     let item = null;
 
     while ((item = itemsIter.next()) !== undefined) {
-      if (this.includeDir || item.type !== 'directory') {
+      if (this.includeDir || item.type !== "directory") {
         selected.push(item);
       }
     }
@@ -163,20 +164,20 @@ class BrowseFileDialog extends Widget
     }
 
     switch (event.type) {
-      case 'keydown':
-      case 'keyup':
-      case 'mousedown':
-      case 'mouseup':
-      case 'click':
+      case "keydown":
+      case "keyup":
+      case "mousedown":
+      case "mouseup":
+      case "click":
         if (this.multiselect || !modifierKey) {
           this.dirListingHandleEvent.call(this.directoryListing, event);
         }
         break;
-      case 'dblclick': {
+      case "dblclick": {
         const clickedItem = this.directoryListing.modelForClick(
           event as MouseEvent
         );
-        if (clickedItem.type === 'directory') {
+        if (clickedItem.type === "directory") {
           this.dirListingHandleEvent.call(this.directoryListing, event);
         } else {
           event.preventDefault();
@@ -212,16 +213,16 @@ export const showBrowseFileDialog = async (
     startPath: options.startPath,
     acceptFileOnDblClick: Object.prototype.hasOwnProperty.call(
       options,
-      'acceptFileOnDblClick'
+      "acceptFileOnDblClick"
     )
       ? options.acceptFileOnDblClick
-      : true
+      : true,
   });
 
   const dialog = new Dialog({
-    title: 'Select a file',
+    title: "Select a file",
     body: browseFileDialogBody,
-    buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Select' })]
+    buttons: [Dialog.cancelButton(), Dialog.okButton({ label: "Select" })],
   });
 
   dialog.addClass(BROWSE_FILE_CLASS);
@@ -229,14 +230,14 @@ export const showBrowseFileDialog = async (
 
   return dialog.launch().then((result: any) => {
     document.body.className = document.body.className
-      .replace(BROWSE_FILE_OPEN_CLASS, '')
+      .replace(BROWSE_FILE_OPEN_CLASS, "")
       .trim();
     if (options.rootPath && result.button.accept && result.value.length) {
-      const relativeToPath = options.rootPath.endsWith('/')
+      const relativeToPath = options.rootPath.endsWith("/")
         ? options.rootPath
-        : options.rootPath + '/';
+        : options.rootPath + "/";
       result.value.forEach((val: any) => {
-        val.path = val.path.replace(relativeToPath, '');
+        val.path = val.path.replace(relativeToPath, "");
       });
     }
 

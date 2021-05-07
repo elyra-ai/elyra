@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import "../style/index.css";
 
-export * from './KernelDropdown';
-export * from './ScriptEditor';
-export * from './ScriptEditorController';
-export * from './ScriptRunner';
+export * from "./KernelDropdown";
+export * from "./ScriptEditor";
+export * from "./ScriptEditorController";
+export * from "./ScriptRunner";

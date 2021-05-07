@@ -14,85 +14,85 @@
  * limitations under the License.
  */
 
-import { LabIcon } from '@jupyterlab/ui-components';
+import { LabIcon } from "@jupyterlab/ui-components";
 
-import clearPipelineSvg from '../style/icons/clear-pipeline.svg';
-import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
-import codeSnippetSvg from '../style/icons/code-snippet.svg';
-import containerSvg from '../style/icons/container.svg';
-import dragDropSvg from '../style/icons/dragdrop.svg';
-import errorIconSvg from '../style/icons/error.svg';
-import exportPipelineSvg from '../style/icons/export-pipeline.svg';
-import helpIconSvg from '../style/icons/help.svg';
-import importSvg from '../style/icons/import.svg';
-import pipelineSvg from '../style/icons/pipeline-flow.svg';
-import pyIconSvg from '../style/icons/py-logo.svg';
-import rIconSvg from '../style/icons/r-logo.svg';
-import runtimesSvg from '../style/icons/runtimes.svg';
-import savePipelineSvg from '../style/icons/save-pipeline.svg';
-import tagIconSvg from '../style/icons/tag.svg';
-import trashIconSvg from '../style/icons/trashIcon.svg';
+import clearPipelineSvg from "../style/icons/clear-pipeline.svg";
+import elyraSvg from "../style/icons/codait-piebrainlogo-jupyter-color.svg";
+import codeSnippetSvg from "../style/icons/code-snippet.svg";
+import containerSvg from "../style/icons/container.svg";
+import dragDropSvg from "../style/icons/dragdrop.svg";
+import errorIconSvg from "../style/icons/error.svg";
+import exportPipelineSvg from "../style/icons/export-pipeline.svg";
+import helpIconSvg from "../style/icons/help.svg";
+import importSvg from "../style/icons/import.svg";
+import pipelineSvg from "../style/icons/pipeline-flow.svg";
+import pyIconSvg from "../style/icons/py-logo.svg";
+import rIconSvg from "../style/icons/r-logo.svg";
+import runtimesSvg from "../style/icons/runtimes.svg";
+import savePipelineSvg from "../style/icons/save-pipeline.svg";
+import tagIconSvg from "../style/icons/tag.svg";
+import trashIconSvg from "../style/icons/trashIcon.svg";
 
 export const importIcon = new LabIcon({
-  name: 'elyra:import',
-  svgstr: importSvg
+  name: "elyra:import",
+  svgstr: importSvg,
 });
 export const codeSnippetIcon = new LabIcon({
-  name: 'elyra:code-snippet',
-  svgstr: codeSnippetSvg
+  name: "elyra:code-snippet",
+  svgstr: codeSnippetSvg,
 });
 export const dragDropIcon = new LabIcon({
-  name: 'elyra:dragdrop',
-  svgstr: dragDropSvg
+  name: "elyra:dragdrop",
+  svgstr: dragDropSvg,
 });
-export const elyraIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elyraSvg });
+export const elyraIcon = new LabIcon({ name: "elyra:elyra", svgstr: elyraSvg });
 export const pipelineIcon = new LabIcon({
-  name: 'elyra:pipeline',
-  svgstr: pipelineSvg
+  name: "elyra:pipeline",
+  svgstr: pipelineSvg,
 });
 export const errorIcon = new LabIcon({
-  name: 'elyra:errorIcon',
-  svgstr: errorIconSvg
+  name: "elyra:errorIcon",
+  svgstr: errorIconSvg,
 });
 export const clearPipelineIcon = new LabIcon({
-  name: 'elyra:clear-pipeline',
-  svgstr: clearPipelineSvg
+  name: "elyra:clear-pipeline",
+  svgstr: clearPipelineSvg,
 });
 export const exportPipelineIcon = new LabIcon({
-  name: 'elyra:export-pipeline',
-  svgstr: exportPipelineSvg
+  name: "elyra:export-pipeline",
+  svgstr: exportPipelineSvg,
 });
 export const savePipelineIcon = new LabIcon({
-  name: 'elyra:save-pipeline',
-  svgstr: savePipelineSvg
+  name: "elyra:save-pipeline",
+  svgstr: savePipelineSvg,
 });
 export const runtimesIcon = new LabIcon({
-  name: 'elyra:runtimes',
-  svgstr: runtimesSvg
+  name: "elyra:runtimes",
+  svgstr: runtimesSvg,
 });
 export const containerIcon = new LabIcon({
-  name: 'elyra:container',
-  svgstr: containerSvg
+  name: "elyra:container",
+  svgstr: containerSvg,
 });
 export const trashIcon = new LabIcon({
-  name: 'elyra:trashIcon',
-  svgstr: trashIconSvg
+  name: "elyra:trashIcon",
+  svgstr: trashIconSvg,
 });
 export const helpIcon = new LabIcon({
-  name: 'elyra:helpIcon',
-  svgstr: helpIconSvg
+  name: "elyra:helpIcon",
+  svgstr: helpIconSvg,
 });
 export const tagIcon = new LabIcon({
-  name: 'elyra:tagIcon',
-  svgstr: tagIconSvg
+  name: "elyra:tagIcon",
+  svgstr: tagIconSvg,
 });
 export const rIcon = new LabIcon({
-  name: 'elyra:rIcon',
-  svgstr: rIconSvg
+  name: "elyra:rIcon",
+  svgstr: rIconSvg,
 });
 export const pyIcon = new LabIcon({
-  name: 'elyra:pyIcon',
-  svgstr: pyIconSvg
+  name: "elyra:pyIcon",
+  svgstr: pyIconSvg,
 });
 
 /**
@@ -100,7 +100,7 @@ export const pyIcon = new LabIcon({
  */
 export class IconUtil {
   static encode(icon: LabIcon): string {
-    return 'data:image/svg+xml;utf8,' + encodeURIComponent(icon.svgstr);
+    return "data:image/svg+xml;utf8," + encodeURIComponent(icon.svgstr);
   }
 
   static colorize(
@@ -122,11 +122,11 @@ export class IconUtil {
 
     return LabIcon.resolve({
       icon: {
-        name: `${icon.name}${fillColor ? ':' + fillColor : ''}${
-          strokeColor ? ':' + strokeColor : ''
+        name: `${icon.name}${fillColor ? ":" + fillColor : ""}${
+          strokeColor ? ":" + strokeColor : ""
         }`,
-        svgstr: svgstr
-      }
+        svgstr: svgstr,
+      },
     });
   }
 }

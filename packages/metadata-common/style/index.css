@@ -307,7 +307,7 @@ input.elyra-inputTag {
 }
 
 /* Cell tag styling */
-@import url('~@jupyterlab/celltags/style/base.css');
+@import url("~@jupyterlab/celltags/style/base.css");
 
 .elyra-tags {
   margin-top: 8px;

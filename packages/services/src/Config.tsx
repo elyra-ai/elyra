@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-import { URLExt } from '@jupyterlab/coreutils';
-import { ServerConnection } from '@jupyterlab/services';
-import React, { FC } from 'react';
-import { SWRConfig } from 'swr';
+import React, { FC } from "react";
 
-const settings = ServerConnection.makeSettings({ baseUrl: '/elyra' });
+import { URLExt } from "@jupyterlab/coreutils";
+import { ServerConnection } from "@jupyterlab/services";
+import { SWRConfig } from "swr";
+
+const settings = ServerConnection.makeSettings({ baseUrl: "/elyra" });
 
 const fetcher = async (url: string): Promise<void> => {
   // ServerConnection utility handles JupyterLab token authentication.
   const res = await ServerConnection.makeRequest(
     URLExt.join(settings.baseUrl, url),
-    { method: 'GET' },
+    { method: "GET" },
     settings
   );
 

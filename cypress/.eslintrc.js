@@ -15,9 +15,9 @@
  */
 
 module.exports = {
-  plugins: ['cypress'],
+  plugins: ["cypress"],
   env: {
-    'cypress/globals': true,
-    node: true
-  }
+    "cypress/globals": true,
+    node: true,
+  },
 };

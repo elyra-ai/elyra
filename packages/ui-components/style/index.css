@@ -136,8 +136,8 @@
 
 /* icons */
 
-[data-jp-theme-light='false'] .elyra-pieBrain-icon rect.st1,
-[data-jp-theme-light='false'] .elyra-pieBrain-icon rect.st2 {
+[data-jp-theme-light="false"] .elyra-pieBrain-icon rect.st1,
+[data-jp-theme-light="false"] .elyra-pieBrain-icon rect.st2 {
   fill: var(--jp-inverse-layout-color3);
 }
 
@@ -146,18 +146,18 @@
   position: relative;
 }
 
-.elyra-feedbackButton[data-feedback]:not([data-feedback='']):before {
+.elyra-feedbackButton[data-feedback]:not([data-feedback=""]):before {
   border: solid;
   border-color: var(--jp-inverse-layout-color2) transparent;
   border-width: 0 6px 6px 6px;
   bottom: 0;
-  content: '';
+  content: "";
   left: 5px;
   position: absolute;
   z-index: 999;
 }
 
-.elyra-feedbackButton[data-feedback]:not([data-feedback='']):after {
+.elyra-feedbackButton[data-feedback]:not([data-feedback=""]):after {
   background: var(--jp-inverse-layout-color2);
   border-radius: 2px;
   bottom: -20px;
@@ -185,7 +185,7 @@
 }
 
 .rIcon {
-  content: url('./icons/r-logo.svg');
+  content: url("./icons/r-logo.svg");
   height: 24px;
   width: 14px;
 }

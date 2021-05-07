@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { ReactWidget } from '@jupyterlab/apputils';
-import { KernelSpec } from '@jupyterlab/services';
-
 import React, {
   forwardRef,
   useImperativeHandle,
   useState,
-  RefObject
-} from 'react';
+  RefObject,
+} from "react";
 
-const KERNEL_SELECT_CLASS = 'elyra-ScriptEditor-KernelSelector';
+import { ReactWidget } from "@jupyterlab/apputils";
+import { KernelSpec } from "@jupyterlab/services";
+
+const KERNEL_SELECT_CLASS = "elyra-ScriptEditor-KernelSelector";
 
 export interface ISelect {
   getSelection: () => string;
@@ -49,7 +49,7 @@ const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
   // the change events there as well, but I know this isn't always possible
   // alongside jupyter.
   useImperativeHandle(select, () => ({
-    getSelection: (): string => selection
+    getSelection: (): string => selection,
   }));
 
   const kernelOptions = !Object.keys(specs.kernelspecs).length ? (

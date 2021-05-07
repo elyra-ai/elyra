@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import * as React from 'react';
+import * as React from "react";
 
-import { ExpandableComponent } from './ExpandableComponent';
+import { ExpandableComponent } from "./ExpandableComponent";
 
-const MESSAGE_DISPLAY = 'elyra-errorDialog-messageDisplay';
+const MESSAGE_DISPLAY = "elyra-errorDialog-messageDisplay";
 const ERROR_DIALOG_WIDTH = 600;
 const ERROR_DIALOG_HEIGHT = 400;
-const JP_DIALOG_CONTENT = 'jp-Dialog-content';
+const JP_DIALOG_CONTENT = "jp-Dialog-content";
 
 interface IErrorDialogProps {
   reason: string;
@@ -38,13 +38,9 @@ export class ExpandableErrorDialog extends React.Component<
   dialogNode: HTMLDivElement;
   collapsedDimensions: number[];
 
-  constructor(props: any) {
-    super(props);
-  }
-
   updateDialogSize(expanded: boolean): void {
     if (!this.dialogNode) {
-      this.dialogNode = document.querySelector('.' + JP_DIALOG_CONTENT);
+      this.dialogNode = document.querySelector("." + JP_DIALOG_CONTENT);
     }
 
     const width = this.dialogNode.clientWidth;
@@ -55,20 +51,20 @@ export class ExpandableErrorDialog extends React.Component<
       (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
     ) {
       this.collapsedDimensions = [width, height];
-      this.dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
+      this.dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + "px";
       this.dialogNode.style.height =
-        Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
+        Math.max(height, ERROR_DIALOG_HEIGHT) + "px";
     } else if (!expanded && this.collapsedDimensions) {
-      this.dialogNode.style.width = this.collapsedDimensions[0] + 'px';
-      this.dialogNode.style.height = this.collapsedDimensions[1] + 'px';
+      this.dialogNode.style.width = this.collapsedDimensions[0] + "px";
+      this.dialogNode.style.height = this.collapsedDimensions[1] + "px";
     }
   }
 
   render(): React.ReactElement {
     const details = this.props.traceback ? (
       <ExpandableComponent
-        displayName={'Error details: '}
-        tooltip={'Error stack trace'}
+        displayName={"Error details: "}
+        tooltip={"Error stack trace"}
         onBeforeExpand={(expanded: boolean): void => {
           this.updateDialogSize(expanded);
         }}

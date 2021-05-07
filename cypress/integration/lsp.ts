@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-describe('LSP', () => {
+describe("LSP", () => {
   beforeEach(() => {
     // read python file used for testing
-    cy.bootstrapFile('helloworld.py');
+    cy.bootstrapFile("helloworld.py");
 
     cy.resetJupyterLab();
   });
 
   afterEach(() => {
     // delete Python file used for testing
-    cy.deleteFile('helloworld.py');
+    cy.deleteFile("helloworld.py");
   });
 
-  it('LSP extension is initialized', () => {
+  it("LSP extension is initialized", () => {
     // open Python file
-    cy.openFile('helloworld.py');
+    cy.openFile("helloworld.py");
 
     //check for lsp item on status bar
-    cy.get('.lsp-statusbar-item ').find(
+    cy.get(".lsp-statusbar-item ").find(
       '[title="Fully connected & initialized (1 virtual document)"]'
     );
   });

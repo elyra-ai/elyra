@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import "../style/index.css";
+
+import * as React from "react";
 
 import {
   caretDownIcon,
   caretRightIcon,
-  LabIcon
-} from '@jupyterlab/ui-components';
-import * as React from 'react';
+  LabIcon,
+} from "@jupyterlab/ui-components";
 
-import { FeedbackButton } from './FeedbackButton';
+import { FeedbackButton } from "./FeedbackButton";
 
 /**
  * The CSS class for expandable containers.
  */
-const DETAILS_VISIBLE_CLASS = 'elyra-expandableContainer-details-visible';
-const DETAILS_HIDDEN_CLASS = 'elyra-expandableContainer-details-hidden';
-const DISPLAY_NAME_CLASS = 'elyra-expandableContainer-name';
-const ELYRA_BUTTON_CLASS = 'elyra-button';
-const BUTTON_CLASS = 'elyra-expandableContainer-button';
-const TITLE_CLASS = 'elyra-expandableContainer-title';
-const ACTION_BUTTONS_WRAPPER_CLASS = 'elyra-expandableContainer-action-buttons';
-const ACTION_BUTTON_CLASS = 'elyra-expandableContainer-actionButton';
-const DRAGGABLE_CLASS = 'elyra-expandableContainer-draggable';
+const DETAILS_VISIBLE_CLASS = "elyra-expandableContainer-details-visible";
+const DETAILS_HIDDEN_CLASS = "elyra-expandableContainer-details-hidden";
+const DISPLAY_NAME_CLASS = "elyra-expandableContainer-name";
+const ELYRA_BUTTON_CLASS = "elyra-button";
+const BUTTON_CLASS = "elyra-expandableContainer-button";
+const TITLE_CLASS = "elyra-expandableContainer-title";
+const ACTION_BUTTONS_WRAPPER_CLASS = "elyra-expandableContainer-action-buttons";
+const ACTION_BUTTON_CLASS = "elyra-expandableContainer-actionButton";
+const DRAGGABLE_CLASS = "elyra-expandableContainer-draggable";
 
 /**
  * Expandable container props.
@@ -89,7 +90,7 @@ export class ExpandableComponent extends React.Component<
   }
 
   render(): React.ReactElement {
-    const buttonClasses = [ELYRA_BUTTON_CLASS, BUTTON_CLASS].join(' ');
+    const buttonClasses = [ELYRA_BUTTON_CLASS, BUTTON_CLASS].join(" ");
     const actionButtons = this.props.actionButtons || [];
 
     return (
@@ -97,7 +98,7 @@ export class ExpandableComponent extends React.Component<
         <div key={this.props.displayName} className={TITLE_CLASS}>
           <button
             className={buttonClasses}
-            title={this.state.expanded ? 'Hide Details' : 'Show Details'}
+            title={this.state.expanded ? "Hide Details" : "Show Details"}
             onClick={(): void => {
               this.toggleDetailsDisplay();
             }}
@@ -121,7 +122,7 @@ export class ExpandableComponent extends React.Component<
             className={
               this.props.onMouseDown
                 ? DISPLAY_NAME_CLASS
-                : DISPLAY_NAME_CLASS + ' ' + DRAGGABLE_CLASS
+                : DISPLAY_NAME_CLASS + " " + DRAGGABLE_CLASS
             }
             onClick={(): void => {
               this.toggleDetailsDisplay();
@@ -139,8 +140,8 @@ export class ExpandableComponent extends React.Component<
                 <FeedbackButton
                   key={btn.title}
                   title={btn.title}
-                  feedback={btn.feedback || ''}
-                  className={buttonClasses + ' ' + ACTION_BUTTON_CLASS}
+                  feedback={btn.feedback || ""}
+                  className={buttonClasses + " " + ACTION_BUTTON_CLASS}
                   onClick={(): void => {
                     btn.onClick();
                   }}

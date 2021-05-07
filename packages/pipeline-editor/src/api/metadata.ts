@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import useSWR from 'swr';
+import useSWR from "swr";
 
-const SERVICE = 'metadata';
+const SERVICE = "metadata";
 
 interface Response<T extends keyof Requests> {
   data: Requests[T] | undefined;
@@ -26,7 +26,7 @@ interface Response<T extends keyof Requests> {
 type Request<T extends keyof Requests> = Pick<Requests, T>;
 
 interface Requests {
-  'runtime-images': RuntimeImage[];
+  "runtime-images": RuntimeImage[];
   runtimes: Runtime[];
 }
 
@@ -48,10 +48,10 @@ const useMetadata = <T extends keyof Requests>(x: T): Response<T> => {
 };
 
 // TODO: sort runtime images on the server.
-export const useRuntimeImages = (): Response<'runtime-images'> => {
-  return useMetadata('runtime-images');
+export const useRuntimeImages = (): Response<"runtime-images"> => {
+  return useMetadata("runtime-images");
 };
 
-export const useRuntimes = (): Response<'runtimes'> => {
-  return useMetadata('runtimes');
+export const useRuntimes = (): Response<"runtimes"> => {
+  return useMetadata("runtimes");
 };

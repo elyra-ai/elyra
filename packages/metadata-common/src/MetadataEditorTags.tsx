@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Dialog, showDialog } from '@jupyterlab/apputils';
-import { checkIcon, addIcon } from '@jupyterlab/ui-components';
 
-import React from 'react';
+import React from "react";
+
+import { Dialog, showDialog } from "@jupyterlab/apputils";
+import { checkIcon, addIcon } from "@jupyterlab/ui-components";
 
 interface IMetadataEditorTagProps {
   selectedTags: string[];
@@ -34,10 +35,10 @@ interface IMetadataEditorTagState {
 /**
  * CSS STYLING
  */
-const METADATA_EDITOR_TAG = 'elyra-editor-tag';
-const METADATA_EDITOR_TAG_PLUS_ICON = 'elyra-editor-tag-plusIcon';
-const METADATA_EDITOR_TAG_LIST = 'elyra-editor-tagList';
-const METADATA_EDITOR_INPUT_TAG = 'elyra-inputTag';
+const METADATA_EDITOR_TAG = "elyra-editor-tag";
+const METADATA_EDITOR_TAG_PLUS_ICON = "elyra-editor-tag-plusIcon";
+const METADATA_EDITOR_TAG_LIST = "elyra-editor-tagList";
+const METADATA_EDITOR_INPUT_TAG = "elyra-inputTag";
 
 export class MetadataEditorTags extends React.Component<
   IMetadataEditorTagProps,
@@ -49,7 +50,7 @@ export class MetadataEditorTags extends React.Component<
       selectedTags: [],
       tags: [],
       plusIconShouldHide: false,
-      addingNewTag: false
+      addingNewTag: false,
     };
     this.renderTags = this.renderTags.bind(this);
     this.handleClick = this.handleClick.bind(this);
@@ -60,7 +61,7 @@ export class MetadataEditorTags extends React.Component<
       selectedTags: this.props.selectedTags ? this.props.selectedTags : [],
       tags: this.props.tags ? this.props.tags.sort() : [],
       plusIconShouldHide: false,
-      addingNewTag: false
+      addingNewTag: false,
     });
   }
 
@@ -68,7 +69,7 @@ export class MetadataEditorTags extends React.Component<
     if (prevProps !== this.props) {
       this.setState({
         selectedTags: this.props.selectedTags ? this.props.selectedTags : [],
-        tags: this.props.tags ? this.props.tags : []
+        tags: this.props.tags ? this.props.tags : [],
       });
     }
   }
@@ -78,12 +79,12 @@ export class MetadataEditorTags extends React.Component<
     const clickedTag = target.innerText;
 
     this.setState(
-      state => ({
+      (state) => ({
         selectedTags: this.updateTagsCss(
           target,
           state.selectedTags ? state.selectedTags : [],
           clickedTag
-        )
+        ),
       }),
       this.handleOnChange
     );
@@ -99,11 +100,11 @@ export class MetadataEditorTags extends React.Component<
     clickedTag: string
   ): string[] {
     const currentTags = tags.slice();
-    if (target.classList.contains('unapplied-tag')) {
-      target.classList.replace('unapplied-tag', 'applied-tag');
+    if (target.classList.contains("unapplied-tag")) {
+      target.classList.replace("unapplied-tag", "applied-tag");
       currentTags.splice(-1, 0, clickedTag);
-    } else if (target.classList.contains('applied-tag')) {
-      target.classList.replace('applied-tag', 'unapplied-tag');
+    } else if (target.classList.contains("applied-tag")) {
+      target.classList.replace("applied-tag", "unapplied-tag");
 
       const idx = currentTags.indexOf(clickedTag);
       currentTags.splice(idx, 1);
@@ -114,10 +115,10 @@ export class MetadataEditorTags extends React.Component<
   addTagOnClick(event: React.MouseEvent<HTMLInputElement>): void {
     this.setState({ plusIconShouldHide: true, addingNewTag: true });
     const inputElement = event.target as HTMLInputElement;
-    if (inputElement.value === 'Add Tag') {
-      inputElement.value = '';
-      inputElement.style.width = '62px';
-      inputElement.style.minWidth = '62px';
+    if (inputElement.value === "Add Tag") {
+      inputElement.value = "";
+      inputElement.style.width = "62px";
+      inputElement.style.minWidth = "62px";
     }
   }
 
@@ -126,12 +127,12 @@ export class MetadataEditorTags extends React.Component<
   ): Promise<void> {
     const inputElement = event.target as HTMLInputElement;
 
-    if (inputElement.value !== '' && event.keyCode === 13) {
+    if (inputElement.value !== "" && event.keyCode === 13) {
       if (this.state.tags.includes(inputElement.value)) {
         event.preventDefault();
         await showDialog({
-          title: 'A tag with this label already exists.',
-          buttons: [Dialog.okButton()]
+          title: "A tag with this label already exists.",
+          buttons: [Dialog.okButton()],
         });
         return;
       }
@@ -140,11 +141,11 @@ export class MetadataEditorTags extends React.Component<
 
       // update state all tag and selected tag
       this.setState(
-        state => ({
+        (state) => ({
           selectedTags: [...state.selectedTags, newTag],
           tags: [...state.tags, newTag],
           plusIconShouldHide: false,
-          addingNewTag: false
+          addingNewTag: false,
         }),
         this.handleOnChange
       );
@@ -153,9 +154,9 @@ export class MetadataEditorTags extends React.Component<
 
   addTagOnBlur(event: React.FocusEvent<HTMLInputElement>): void {
     const inputElement = event.target as HTMLInputElement;
-    inputElement.value = 'Add Tag';
-    inputElement.style.width = '50px';
-    inputElement.style.minWidth = '50px';
+    inputElement.value = "Add Tag";
+    inputElement.style.width = "50px";
+    inputElement.style.minWidth = "50px";
     inputElement.blur();
     this.setState({ plusIconShouldHide: false, addingNewTag: false });
   }
@@ -166,7 +167,7 @@ export class MetadataEditorTags extends React.Component<
       this.state.addingNewTag === true ? (
         <ul
           className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-          key={'editor-new-tag'}
+          key={"editor-new-tag"}
         >
           <input
             className={`${METADATA_EDITOR_INPUT_TAG}`}
@@ -210,8 +211,8 @@ export class MetadataEditorTags extends React.Component<
                     <button
                       onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
+                      id={"editor" + "-" + tag + "-" + index}
+                      key={"editor" + "-" + tag + "-" + index}
                     >
                       {tag}
                     </button>
@@ -223,8 +224,8 @@ export class MetadataEditorTags extends React.Component<
                     <button
                       onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag applied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
+                      id={"editor" + "-" + tag + "-" + index}
+                      key={"editor" + "-" + tag + "-" + index}
                     >
                       {tag}
                       <checkIcon.react
@@ -242,8 +243,8 @@ export class MetadataEditorTags extends React.Component<
                     <button
                       onClick={this.handleClick}
                       className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
+                      id={"editor" + "-" + tag + "-" + index}
+                      key={"editor" + "-" + tag + "-" + index}
                     >
                       {tag}
                     </button>

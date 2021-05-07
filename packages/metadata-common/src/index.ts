@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import "../style/index.css";
 
-export * from './MetadataEditor';
-export * from './MetadataWidget';
-export * from './AddMetadataButton';
+export * from "./MetadataEditor";
+export * from "./MetadataWidget";
+export * from "./AddMetadataButton";

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import "../style/index.css";
 
-import * as React from 'react';
+import * as React from "react";
 
 /**
  * The CSS class for feedback buttons.
  */
-const ELYRA_FEEDBACKBUTTON_CLASS = 'elyra-feedbackButton';
+const ELYRA_FEEDBACKBUTTON_CLASS = "elyra-feedbackButton";
 
 export interface IFeedbackButtonProps {
   feedback?: string;
@@ -40,13 +40,13 @@ export class FeedbackButton extends React.Component<
 
   handleClick(): void {
     let feedback = this.props.onClick();
-    if (typeof feedback !== 'string') {
+    if (typeof feedback !== "string") {
       feedback = this.props.feedback;
     }
     if (feedback) {
-      this.node.current.setAttribute('data-feedback', feedback);
+      this.node.current.setAttribute("data-feedback", feedback);
       setTimeout(() => {
-        this.node.current.removeAttribute('data-feedback');
+        this.node.current.removeAttribute("data-feedback");
       }, 750);
     }
   }

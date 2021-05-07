@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { IDictionary } from './parsing';
-import { RequestHandler } from './requests';
+import { IDictionary } from "./parsing";
+import { RequestHandler } from "./requests";
 
-const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
-const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
+const ELYRA_SCHEMA_API_ENDPOINT = "elyra/schema/";
+const ELYRA_METADATA_API_ENDPOINT = "elyra/metadata/";
 
 /**
  * A service class for accessing the elyra api.
@@ -35,7 +35,7 @@ export class MetadataService {
   static async getMetadata(namespace: string): Promise<any> {
     return RequestHandler.makeGetRequest(
       ELYRA_METADATA_API_ENDPOINT + namespace
-    ).then(metadataResponse => metadataResponse[namespace]);
+    ).then((metadataResponse) => metadataResponse[namespace]);
   }
 
   /**
@@ -70,7 +70,7 @@ export class MetadataService {
     requestBody: any
   ): Promise<any> {
     return RequestHandler.makePutRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
+      ELYRA_METADATA_API_ENDPOINT + namespace + "/" + name,
       requestBody
     );
   }
@@ -85,7 +85,7 @@ export class MetadataService {
    */
   static async deleteMetadata(namespace: string, name: string): Promise<any> {
     return RequestHandler.makeDeleteRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name
+      ELYRA_METADATA_API_ENDPOINT + namespace + "/" + name
     );
   }
 
@@ -107,7 +107,7 @@ export class MetadataService {
 
     return RequestHandler.makeGetRequest(
       ELYRA_SCHEMA_API_ENDPOINT + namespace
-    ).then(schemaResponse => {
+    ).then((schemaResponse) => {
       if (schemaResponse[namespace]) {
         this.schemaCache[namespace] = schemaResponse[namespace];
       }
@@ -124,9 +124,9 @@ export class MetadataService {
    */
   static async getAllSchema(): Promise<any> {
     try {
-      const namespaces = await RequestHandler.makeGetRequest('elyra/namespace');
+      const namespaces = await RequestHandler.makeGetRequest("elyra/namespace");
       const schemas = [];
-      for (const namespace of namespaces['namespaces']) {
+      for (const namespace of namespaces["namespaces"]) {
         const schema = await this.getSchema(namespace);
         schemas.push(...schema);
       }

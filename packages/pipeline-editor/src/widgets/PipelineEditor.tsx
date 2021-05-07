@@ -599,12 +599,12 @@ const PipelineWrapper: React.FC<IProps> = ({
         };
       }
 
-      toArray(fileBrowser.selectedItems()).map((item: any): void => {
+      toArray(fileBrowser.selectedItems()).forEach((item: any) => {
         if (PipelineService.isSupportedNode(item)) {
           // read the file contents
           // create a notebook widget to get a string with the node content then dispose of it
           // let itemContent: string;
-          if (item.type == "notebook") {
+          if (item.type === "notebook") {
             const fileWidget = fileBrowser.model.manager.open(item.path);
             // itemContent = (fileWidget as NotebookPanel).content.model.toString();
             fileWidget.dispose();

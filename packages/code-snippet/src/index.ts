@@ -14,34 +14,32 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import "../style/index.css";
 
-import { codeSnippetIcon } from '@elyra/ui-components';
-
+import { codeSnippetIcon } from "@elyra/ui-components";
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
-  ILayoutRestorer
-} from '@jupyterlab/application';
-import { ICommandPalette, IThemeManager } from '@jupyterlab/apputils';
-import { IEditorServices } from '@jupyterlab/codeeditor';
-import { DocumentWidget } from '@jupyterlab/docregistry';
-import { FileEditor } from '@jupyterlab/fileeditor';
-import { MarkdownDocument } from '@jupyterlab/markdownviewer';
-import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-
-import { Widget } from '@lumino/widgets';
+  ILayoutRestorer,
+} from "@jupyterlab/application";
+import { ICommandPalette, IThemeManager } from "@jupyterlab/apputils";
+import { IEditorServices } from "@jupyterlab/codeeditor";
+import { DocumentWidget } from "@jupyterlab/docregistry";
+import { FileEditor } from "@jupyterlab/fileeditor";
+import { MarkdownDocument } from "@jupyterlab/markdownviewer";
+import { Notebook, NotebookPanel } from "@jupyterlab/notebook";
+import { Widget } from "@lumino/widgets";
 
 import {
   CODE_SNIPPET_NAMESPACE,
-  CODE_SNIPPET_SCHEMA
-} from './CodeSnippetService';
-import { CodeSnippetWidget } from './CodeSnippetWidget';
+  CODE_SNIPPET_SCHEMA,
+} from "./CodeSnippetService";
+import { CodeSnippetWidget } from "./CodeSnippetWidget";
 
-const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
+const CODE_SNIPPET_EXTENSION_ID = "elyra-code-snippet-extension";
 
 const commandIDs = {
-  saveAsSnippet: 'codesnippet:save-as-snippet'
+  saveAsSnippet: "codesnippet:save-as-snippet",
 };
 
 /**
@@ -59,7 +57,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     editorServices: IEditorServices,
     themeManager: IThemeManager | null
   ) => {
-    console.log('Elyra - code-snippet extension is activated!');
+    console.log("Elyra - code-snippet extension is activated!");
 
     const getCurrentWidget = (): Widget => {
       return app.shell.currentWidget;
@@ -68,30 +66,30 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     const codeSnippetWidget = new CodeSnippetWidget({
       app,
       themeManager,
-      display_name: 'Code Snippets',
+      display_name: "Code Snippets",
       namespace: CODE_SNIPPET_NAMESPACE,
       schema: CODE_SNIPPET_SCHEMA,
       icon: codeSnippetIcon,
       getCurrentWidget,
-      editorServices
+      editorServices,
     });
     const codeSnippetWidgetId = `elyra-metadata:${CODE_SNIPPET_NAMESPACE}`;
     codeSnippetWidget.id = codeSnippetWidgetId;
     codeSnippetWidget.title.icon = codeSnippetIcon;
-    codeSnippetWidget.title.caption = 'Code Snippets';
+    codeSnippetWidget.title.caption = "Code Snippets";
 
     restorer.add(codeSnippetWidget, codeSnippetWidgetId);
 
     // Rank has been chosen somewhat arbitrarily to give priority to the running
     // sessions widget in the sidebar.
-    app.shell.add(codeSnippetWidget, 'left', { rank: 900 });
+    app.shell.add(codeSnippetWidget, "left", { rank: 900 });
 
     app.commands.addCommand(commandIDs.saveAsSnippet, {
-      label: 'Save As Code Snippet',
+      label: "Save As Code Snippet",
       isEnabled: () => {
         const currentWidget = app.shell.currentWidget;
         const editor = getEditor(currentWidget);
-        let selection = '';
+        let selection = "";
 
         if (editor) {
           selection = getTextSelection(editor);
@@ -108,7 +106,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       execute: () => {
         const currentWidget = app.shell.currentWidget;
         const editor = getEditor(currentWidget);
-        let selection = '';
+        let selection = "";
 
         if (editor) {
           selection = getTextSelection(editor);
@@ -120,26 +118,26 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
           codeSnippetWidget.openMetadataEditor({
             namespace: CODE_SNIPPET_NAMESPACE,
             schema: CODE_SNIPPET_SCHEMA,
-            code: selection.split('\n'),
-            onSave: codeSnippetWidget.updateMetadata
+            code: selection.split("\n"),
+            onSave: codeSnippetWidget.updateMetadata,
           });
         }
-      }
+      },
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-Cell'
+      selector: ".jp-Cell",
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-FileEditor'
+      selector: ".jp-FileEditor",
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-MarkdownViewer'
+      selector: ".jp-MarkdownViewer",
     });
 
     const getTextSelection = (
@@ -184,7 +182,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         return notebookCell.editor;
       }
     };
-  }
+  },
 };
 
 export default code_snippet_extension;

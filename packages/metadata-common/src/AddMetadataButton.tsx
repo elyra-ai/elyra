@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import { IDictionary } from '@elyra/services';
-import { addIcon } from '@jupyterlab/ui-components';
+import React from "react";
+
+import { IDictionary } from "@elyra/services";
+import { addIcon } from "@jupyterlab/ui-components";
 import {
   Box,
   ButtonGroup,
@@ -25,12 +27,11 @@ import {
   MenuList,
   Paper,
   Popper,
-  styled
-} from '@material-ui/core';
-import React from 'react';
+  styled,
+} from "@material-ui/core";
 
-export const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
-export const METADATA_HEADER_POPPER_CLASS = 'elyra-metadataHeader-popper';
+export const METADATA_HEADER_BUTTON_CLASS = "elyra-metadataHeader-button";
+export const METADATA_HEADER_POPPER_CLASS = "elyra-metadataHeader-popper";
 
 export interface IAddMetadataButtonProps {
   schemas: IDictionary<any>[];
@@ -38,7 +39,7 @@ export interface IAddMetadataButtonProps {
 }
 
 const StyledButton = styled(Button)({
-  minWidth: 'auto'
+  minWidth: "auto",
 });
 
 export const AddMetadataButton = (

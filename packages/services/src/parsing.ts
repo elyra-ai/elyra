@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { RequestHandler } from './requests';
+import { RequestHandler } from "./requests";
 
-const ELYRA_FILE_PARSER_API_ENDPOINT = 'elyra/contents/properties/';
+const ELYRA_FILE_PARSER_API_ENDPOINT = "elyra/contents/properties/";
 
 /**
  * An interface for typing json dictionaries in typescript

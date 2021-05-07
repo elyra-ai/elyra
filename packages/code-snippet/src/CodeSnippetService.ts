@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import { IMetadata } from '@elyra/metadata-common';
-import { MetadataService } from '@elyra/services';
+import { IMetadata } from "@elyra/metadata-common";
+import { MetadataService } from "@elyra/services";
+import { Dialog, showDialog } from "@jupyterlab/apputils";
 
-import { Dialog, showDialog } from '@jupyterlab/apputils';
-
-export const CODE_SNIPPET_NAMESPACE = 'code-snippets';
-export const CODE_SNIPPET_SCHEMA = 'code-snippet';
+export const CODE_SNIPPET_NAMESPACE = "code-snippets";
+export const CODE_SNIPPET_SCHEMA = "code-snippet";
 
 export class CodeSnippetService {
   static async findAll(): Promise<IMetadata[]> {
@@ -57,7 +56,7 @@ export class CodeSnippetService {
   static deleteCodeSnippet(codeSnippet: IMetadata): Promise<boolean> {
     return showDialog({
       title: `Delete snippet: ${codeSnippet.display_name}?`,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {

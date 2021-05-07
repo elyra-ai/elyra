@@ -15,7 +15,7 @@
  */
 
 // TODO: this will be fetched from the server.
-import nodes from './nodes';
+import nodes from "./nodes";
 
 // const SERVICE = 'pipeline';
 

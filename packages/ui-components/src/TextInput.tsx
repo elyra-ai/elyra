@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
+import * as React from "react";
+
 import {
   TextField,
   InputAdornment,
   IconButton,
   FormHelperText,
   Tooltip,
-  withStyles
-} from '@material-ui/core';
-import { Visibility, VisibilityOff } from '@material-ui/icons';
-
-import * as React from 'react';
+  withStyles,
+} from "@material-ui/core";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 
 export interface ITextFieldProps {
   label: string;
@@ -39,10 +39,10 @@ export interface ITextFieldProps {
 }
 
 // TODO: we seem to reuse this a lot, we should make a component for it.
-const CustomTooltip = withStyles(_theme => ({
+const CustomTooltip = withStyles((_theme) => ({
   tooltip: {
-    fontSize: 13
-  }
+    fontSize: 13,
+  },
 }))(Tooltip);
 
 export const TextInput: React.FC<ITextFieldProps> = ({
@@ -54,7 +54,7 @@ export const TextInput: React.FC<ITextFieldProps> = ({
   required,
   placeholder,
   onChange,
-  fieldName
+  fieldName,
 }) => {
   const [error, setError] = React.useState(defaultError);
   const [value, setValue] = React.useState(defaultValue);
@@ -73,10 +73,10 @@ export const TextInput: React.FC<ITextFieldProps> = ({
   return (
     <div
       className={`elyra-metadataEditor-formInput ${
-        secure ? 'elyra-metadataEditor-secure' : ''
+        secure ? "elyra-metadataEditor-secure" : ""
       }`}
     >
-      <CustomTooltip title={description ?? ''}>
+      <CustomTooltip title={description ?? ""}>
         <TextField
           id={fieldName}
           label={label}
@@ -85,13 +85,13 @@ export const TextInput: React.FC<ITextFieldProps> = ({
           error={error}
           onChange={(event): void => {
             const newValue = event.target.value;
-            setError(required && newValue === '');
+            setError(required && newValue === "");
             setValue(newValue);
             onChange(newValue);
           }}
           placeholder={placeholder}
-          value={value ?? ''}
-          type={showPassword || !secure ? 'text' : 'password'}
+          value={value ?? ""}
+          type={showPassword || !secure ? "text" : "password"}
           InputProps={
             secure
               ? {
@@ -108,11 +108,11 @@ export const TextInput: React.FC<ITextFieldProps> = ({
                         {showPassword ? <Visibility /> : <VisibilityOff />}
                       </IconButton>
                     </InputAdornment>
-                  )
+                  ),
                 }
               : {}
           }
-          className={`elyra-metadataEditor-form-${fieldName ?? ''}`}
+          className={`elyra-metadataEditor-form-${fieldName ?? ""}`}
         />
       </CustomTooltip>
       {error === true && (

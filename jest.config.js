@@ -17,16 +17,16 @@
 module.exports = {
   collectCoverageFrom: [
     // Collect coverage for all typescript files.
-    '**/*.{ts,tsx}',
+    "**/*.{ts,tsx}",
     // Ignore `src/index.ts`, because it should only be exports.
-    '!**/src/index.ts',
+    "!**/src/index.ts",
     // Ignore any typescript declaration files.
-    '!**/*.d.ts',
+    "!**/*.d.ts",
     // Ignore any test utils.
-    '!**/test-utils.{ts,tsx}',
+    "!**/test-utils.{ts,tsx}",
     // ignore tests.
-    '!**/*.test.{ts,tsx}'
+    "!**/*.test.{ts,tsx}",
   ],
-  coverageReporters: ['lcov', 'text'],
-  projects: ['<rootDir>/packages/*']
+  coverageReporters: ["lcov", "text"],
+  projects: ["<rootDir>/packages/*"],
 };

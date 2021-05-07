@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { showDialog, Dialog } from '@jupyterlab/apputils';
+import * as React from "react";
 
-import * as React from 'react';
+import { showDialog, Dialog } from "@jupyterlab/apputils";
 
-import { ExpandableErrorDialog } from './ExpandableErrorDialog';
+import { ExpandableErrorDialog } from "./ExpandableErrorDialog";
 
 /**
  * A class for handling errors when making requests to the jupyter lab server.
@@ -32,20 +32,20 @@ export class RequestErrors {
    * @returns A promise that resolves with whether the dialog was accepted.
    */
   static serverError(response: any): Promise<Dialog.IResult<any>> {
-    if (response.status == 404) {
+    if (response.status === 404) {
       return this.server404(response.requestPath);
     }
 
-    const reason = response.reason ? response.reason : '';
-    const message = response.message ? response.message : '';
-    const timestamp = response.timestamp ? response.timestamp : '';
-    const traceback = response.traceback ? response.traceback : '';
+    const reason = response.reason ? response.reason : "";
+    const message = response.message ? response.message : "";
+    const timestamp = response.timestamp ? response.timestamp : "";
+    const traceback = response.traceback ? response.traceback : "";
     const default_body = response.timestamp
-      ? 'Check the JupyterLab log for more details at ' + response.timestamp
-      : 'Check the JupyterLab log for more details';
+      ? "Check the JupyterLab log for more details at " + response.timestamp
+      : "Check the JupyterLab log for more details";
 
     return showDialog({
-      title: 'Error making request',
+      title: "Error making request",
       body:
         reason || message ? (
           <ExpandableErrorDialog
@@ -58,7 +58,7 @@ export class RequestErrors {
         ) : (
           <p>{default_body}</p>
         ),
-      buttons: [Dialog.okButton()]
+      buttons: [Dialog.okButton()],
     });
   }
 
@@ -69,13 +69,13 @@ export class RequestErrors {
    */
   private static server404(endpoint: string): Promise<Dialog.IResult<any>> {
     return showDialog({
-      title: 'Error contacting server',
+      title: "Error contacting server",
       body: (
         <p>
           Endpoint <code>{endpoint}</code> not found.
         </p>
       ),
-      buttons: [Dialog.okButton()]
+      buttons: [Dialog.okButton()],
     });
   }
 
@@ -96,7 +96,7 @@ export class RequestErrors {
     action?: string
   ): Promise<Dialog.IResult<any>> {
     return showDialog({
-      title: action ? `Cannot ${action}` : 'Error retrieving metadata',
+      title: action ? `Cannot ${action}` : "Error retrieving metadata",
       body: (
         <div>
           <p>No {namespace} configuration is defined.</p>
@@ -104,9 +104,9 @@ export class RequestErrors {
         </div>
       ),
       buttons:
-        namespace === 'runtime'
+        namespace === "runtime"
           ? [Dialog.cancelButton(), Dialog.okButton({ label: `Open runtimes` })]
-          : [Dialog.okButton()]
+          : [Dialog.okButton()],
     });
   }
 }

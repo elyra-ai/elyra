@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { tagIcon } from '@elyra/ui-components';
-import { InputGroup, checkIcon } from '@jupyterlab/ui-components';
 
-import React from 'react';
+import React from "react";
+
+import { tagIcon } from "@elyra/ui-components";
+import { InputGroup, checkIcon } from "@jupyterlab/ui-components";
 
 interface IFilterMetadataProps {
   tags: string[];
@@ -30,16 +31,16 @@ interface IFilterMetadataState {
   searchValue: string;
 }
 
-const FILTER_OPTION = 'elyra-filter-option';
-const FILTER_TAGS = 'elyra-filter-tags';
-const FILTER_TAG = 'elyra-filter-tag';
-const FILTER_CHECK = 'elyra-filter-check';
-const FILTER_TOOLS = 'elyra-filterTools';
-const FILTER_SEARCHBAR = 'elyra-searchbar';
-const FILTER_SEARCHWRAPPER = 'elyra-searchwrapper';
-const FILTER_CLASS = 'elyra-filter';
-const FILTER_BUTTON = 'elyra-filter-btn';
-const FILTER_EMPTY = 'elyra-filter-empty';
+const FILTER_OPTION = "elyra-filter-option";
+const FILTER_TAGS = "elyra-filter-tags";
+const FILTER_TAG = "elyra-filter-tag";
+const FILTER_CHECK = "elyra-filter-check";
+const FILTER_TOOLS = "elyra-filterTools";
+const FILTER_SEARCHBAR = "elyra-searchbar";
+const FILTER_SEARCHWRAPPER = "elyra-searchwrapper";
+const FILTER_CLASS = "elyra-filter";
+const FILTER_BUTTON = "elyra-filter-btn";
+const FILTER_EMPTY = "elyra-filter-empty";
 
 export class FilterTools extends React.Component<
   IFilterMetadataProps,
@@ -47,7 +48,7 @@ export class FilterTools extends React.Component<
 > {
   constructor(props: IFilterMetadataProps) {
     super(props);
-    this.state = { show: false, selectedTags: [], searchValue: '' };
+    this.state = { show: false, selectedTags: [], searchValue: "" };
     this.createFilterBox = this.createFilterBox.bind(this);
     this.renderFilterOption = this.renderFilterOption.bind(this);
     this.renderTags = this.renderTags.bind(this);
@@ -61,16 +62,16 @@ export class FilterTools extends React.Component<
     this.setState({
       show: false,
       selectedTags: [],
-      searchValue: ''
+      searchValue: "",
     });
   }
 
   componentDidUpdate(prevProps: IFilterMetadataProps): void {
     if (prevProps !== this.props) {
-      this.setState(state => ({
+      this.setState((state) => ({
         selectedTags: state.selectedTags
-          .filter(tag => this.props.tags.includes(tag))
-          .sort()
+          .filter((tag) => this.props.tags.includes(tag))
+          .sort(),
       }));
     }
   }
@@ -80,7 +81,7 @@ export class FilterTools extends React.Component<
       `#${this.props.namespaceId} .${FILTER_OPTION}`
     );
 
-    filterOption.classList.toggle('idle');
+    filterOption.classList.toggle("idle");
 
     this.filterMetadata();
   }
@@ -110,8 +111,8 @@ export class FilterTools extends React.Component<
     return (
       <button
         className={`${FILTER_TAG} tag applied-tag`}
-        id={'filter' + '-' + tag + '-' + index}
-        key={'filter' + '-' + tag + '-' + index}
+        id={"filter" + "-" + tag + "-" + index}
+        key={"filter" + "-" + tag + "-" + index}
         onClick={this.handleClick}
       >
         {tag}
@@ -132,8 +133,8 @@ export class FilterTools extends React.Component<
     return (
       <button
         className={`${FILTER_TAG} tag unapplied-tag`}
-        id={'filter' + '-' + tag + '-' + index}
-        key={'filter' + '-' + tag + '-' + index}
+        id={"filter" + "-" + tag + "-" + index}
+        key={"filter" + "-" + tag + "-" + index}
         onClick={this.handleClick}
       >
         {tag}
@@ -146,8 +147,12 @@ export class FilterTools extends React.Component<
     const clickedTag = target.innerText.trim();
 
     this.setState(
-      state => ({
-        selectedTags: this.updateTagsCss(target, state.selectedTags, clickedTag)
+      (state) => ({
+        selectedTags: this.updateTagsCss(
+          target,
+          state.selectedTags,
+          clickedTag
+        ),
       }),
       this.filterMetadata
     );
@@ -158,12 +163,12 @@ export class FilterTools extends React.Component<
     currentTags: string[],
     clickedTag: string
   ): string[] {
-    if (target.classList.contains('unapplied-tag')) {
-      target.classList.replace('unapplied-tag', 'applied-tag');
+    if (target.classList.contains("unapplied-tag")) {
+      target.classList.replace("unapplied-tag", "applied-tag");
 
       currentTags.splice(-1, 0, clickedTag);
-    } else if (target.classList.contains('applied-tag')) {
-      target.classList.replace('applied-tag', 'unapplied-tag');
+    } else if (target.classList.contains("applied-tag")) {
+      target.classList.replace("applied-tag", "unapplied-tag");
 
       const idx = currentTags.indexOf(clickedTag);
       currentTags.splice(idx, 1);
@@ -178,7 +183,7 @@ export class FilterTools extends React.Component<
   filterMetadata(): void {
     const isTagFilterOpen = document
       .querySelector(`#${this.props.namespaceId} .${FILTER_OPTION}`)
-      .classList.contains('idle');
+      .classList.contains("idle");
     this.props.onFilter(
       this.state.searchValue,
       isTagFilterOpen ? [] : this.state.selectedTags

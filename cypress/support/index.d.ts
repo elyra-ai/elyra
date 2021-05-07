@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 declare namespace Cypress {
-  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
   interface Chainable {
-    createRuntimeConfig(options?: { type?: 'kfp' }): Chainable<void>;
+    createRuntimeConfig(options?: { type?: "kfp" }): Chainable<void>;
     deleteFile(fileName: string): Chainable<void>;
     addFileToPipeline(fileName: string): Chainable<void>;
     createPipelineEditor(): Chainable<void>;

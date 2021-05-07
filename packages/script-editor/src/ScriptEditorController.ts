@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { KernelSpec, KernelSpecManager } from '@jupyterlab/services';
+import { KernelSpec, KernelSpecManager } from "@jupyterlab/services";
 
 export class ScriptEditorController {
   kernelSpecManager: KernelSpecManager;
@@ -40,8 +40,8 @@ export class ScriptEditorController {
   ): Promise<KernelSpec.ISpecModels> => {
     const specs: KernelSpec.ISpecModels = await this.getKernelSpecs();
     Object.entries(specs.kernelspecs)
-      .filter(entry => entry[1].language.includes(language) === false)
-      .forEach(entry => delete specs.kernelspecs[entry[0]]);
+      .filter((entry) => entry[1].language.includes(language) === false)
+      .forEach((entry) => delete specs.kernelspecs[entry[0]]);
 
     return specs;
   };

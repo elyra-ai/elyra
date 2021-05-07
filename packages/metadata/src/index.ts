@@ -14,28 +14,26 @@
  * limitations under the License.
  */
 
-import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
-import { MetadataService } from '@elyra/services';
-
-import { RequestErrors } from '@elyra/ui-components';
+import { MetadataWidget, MetadataEditor } from "@elyra/metadata-common";
+import { MetadataService } from "@elyra/services";
+import { RequestErrors } from "@elyra/ui-components";
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
-  ILabStatus
-} from '@jupyterlab/application';
-import { IThemeManager, ICommandPalette } from '@jupyterlab/apputils';
-import { IEditorServices } from '@jupyterlab/codeeditor';
-import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
+  ILabStatus,
+} from "@jupyterlab/application";
+import { IThemeManager, ICommandPalette } from "@jupyterlab/apputils";
+import { IEditorServices } from "@jupyterlab/codeeditor";
+import { textEditorIcon, LabIcon } from "@jupyterlab/ui-components";
+import { find } from "@lumino/algorithm";
+import { Widget } from "@lumino/widgets";
 
-import { find } from '@lumino/algorithm';
-import { Widget } from '@lumino/widgets';
-
-const METADATA_EDITOR_ID = 'elyra-metadata-editor';
-const METADATA_WIDGET_ID = 'elyra-metadata';
+const METADATA_EDITOR_ID = "elyra-metadata-editor";
+const METADATA_WIDGET_ID = "elyra-metadata";
 
 const commandIDs = {
-  openMetadata: 'elyra-metadata:open',
-  closeTabCommand: 'elyra-metadata:close'
+  openMetadata: "elyra-metadata:open",
+  closeTabCommand: "elyra-metadata:close",
 };
 
 /**
@@ -53,7 +51,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     status: ILabStatus,
     themeManager: IThemeManager | null
   ) => {
-    console.log('Elyra - metadata extension is activated!');
+    console.log("Elyra - metadata extension is activated!");
 
     const openMetadataEditor = (args: {
       schema: string;
@@ -69,11 +67,11 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
       const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${
         args.schema
-      }:${args.name ? args.name : 'new'}`;
+      }:${args.name ? args.name : "new"}`;
       const openWidget = find(
-        app.shell.widgets('main'),
+        app.shell.widgets("main"),
         (widget: Widget, index: number) => {
-          return widget.id == widgetId;
+          return widget.id === widgetId;
         }
       );
       if (openWidget) {
@@ -85,20 +83,20 @@ const extension: JupyterFrontEndPlugin<void> = {
         ...args,
         editorServices,
         status,
-        themeManager
+        themeManager,
       });
       metadataEditorWidget.title.label = widgetLabel;
       metadataEditorWidget.id = widgetId;
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = textEditorIcon;
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
-      app.shell.add(metadataEditorWidget, 'main');
+      app.shell.add(metadataEditorWidget, "main");
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
       execute: (args: any) => {
         openMetadataEditor(args);
-      }
+      },
     });
 
     const openMetadataWidget = (args: {
@@ -113,43 +111,43 @@ const extension: JupyterFrontEndPlugin<void> = {
         themeManager,
         display_name: args.display_name,
         namespace: args.namespace,
-        icon: labIcon
+        icon: labIcon,
       });
       metadataWidget.id = widgetId;
       metadataWidget.title.icon = labIcon;
       metadataWidget.title.caption = args.display_name;
 
       if (
-        find(app.shell.widgets('left'), value => value.id === widgetId) ==
+        find(app.shell.widgets("left"), (value) => value.id === widgetId) ===
         undefined
       ) {
-        app.shell.add(metadataWidget, 'left', { rank: 1000 });
+        app.shell.add(metadataWidget, "left", { rank: 1000 });
       }
       app.shell.activateById(widgetId);
     };
 
     const openMetadataCommand: string = commandIDs.openMetadata;
     app.commands.addCommand(openMetadataCommand, {
-      label: (args: any) => args['label'],
+      label: (args: any) => args["label"],
       execute: (args: any) => {
         // Rank has been chosen somewhat arbitrarily to give priority
         // to the running sessions widget in the sidebar.
         openMetadataWidget(args);
-      }
+      },
     });
 
     // Add command to close metadata tab
     const closeTabCommand: string = commandIDs.closeTabCommand;
     app.commands.addCommand(closeTabCommand, {
-      label: 'Close Tab',
-      execute: args => {
+      label: "Close Tab",
+      execute: (args) => {
         const contextNode: HTMLElement | undefined = app.contextMenuHitTest(
-          node => !!node.dataset.id
+          (node) => !!node.dataset.id
         );
         if (contextNode) {
-          const id = contextNode.dataset['id']!;
+          const id = contextNode.dataset["id"]!;
           const widget = find(
-            app.shell.widgets('left'),
+            app.shell.widgets("left"),
             (widget: Widget, index: number) => {
               return widget.id === id;
             }
@@ -158,18 +156,18 @@ const extension: JupyterFrontEndPlugin<void> = {
             widget.dispose();
           }
         }
-      }
+      },
     });
     app.contextMenu.addItem({
       selector:
         '[data-id^="elyra-metadata:"]:not([data-id$="code-snippets"]):not([data-id$="runtimes"])',
-      command: closeTabCommand
+      command: closeTabCommand,
     });
 
     try {
       const schemas = await MetadataService.getAllSchema();
       for (const schema of schemas) {
-        let icon = 'ui-components:text-editor';
+        let icon = "ui-components:text-editor";
         let title = schema.title;
         if (schema.uihints) {
           if (schema.uihints.icon) {
@@ -185,15 +183,15 @@ const extension: JupyterFrontEndPlugin<void> = {
             label: `Manage ${title}`,
             display_name: schema.uihints.title,
             namespace: schema.namespace,
-            icon: icon
+            icon: icon,
           },
-          category: 'Elyra'
+          category: "Elyra",
         });
       }
     } catch (error) {
       RequestErrors.serverError(error);
     }
-  }
+  },
 };
 
 export default extension;

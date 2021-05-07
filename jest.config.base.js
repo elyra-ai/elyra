@@ -15,10 +15,10 @@
  */
 
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'jest-environment-jsdom',
+  preset: "ts-jest",
+  testEnvironment: "jest-environment-jsdom",
   testMatch: [
     // Match all typescript tests.
-    '**/*.test.{ts,tsx}'
-  ]
+    "**/*.test.{ts,tsx}",
+  ],
 };

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import "../style/index.css";
 
-import { Dialog } from '@jupyterlab/apputils';
-import { Widget } from '@lumino/widgets';
+import { Dialog } from "@jupyterlab/apputils";
+import { Widget } from "@lumino/widgets";
 
-const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
+const DEFAULT_BUTTON_CLASS = "elyra-DialogDefaultButton";
 /*
  * Validate required dialog fields upon display
  * - Provides a generic validation by checking if required form fields are populated
@@ -44,7 +44,7 @@ export const showFormDialog = async (
   } else {
     if (dialogBody instanceof Widget) {
       const requiredFields: NodeListOf<any> = dialogBody.node.querySelectorAll(
-        '[data-form-required]'
+        "[data-form-required]"
       );
 
       if (requiredFields && requiredFields.length > 0) {
@@ -56,7 +56,7 @@ export const showFormDialog = async (
         dialog.handleEvent = (event: Event): void => {
           if (
             event instanceof KeyboardEvent &&
-            event.type === 'keydown' &&
+            event.type === "keydown" &&
             event.keyCode === 13 &&
             fieldsValidated.size !== requiredFields.length
           ) {
@@ -72,10 +72,10 @@ export const showFormDialog = async (
         const defaultButtonIndex =
           options.defaultButton || options.buttons.length - 1;
         const defaultButton = dialog.node
-          .querySelector('.jp-Dialog-footer')
-          .getElementsByTagName('button')[defaultButtonIndex];
+          .querySelector(".jp-Dialog-footer")
+          .getElementsByTagName("button")[defaultButtonIndex];
 
-        defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+        defaultButton.className += " " + DEFAULT_BUTTON_CLASS;
 
         requiredFields.forEach((element: any) => {
           // First deal with the case the field has already been pre-populated
@@ -83,8 +83,8 @@ export const showFormDialog = async (
 
           const fieldType = element.tagName.toLowerCase();
 
-          if (fieldType === 'select') {
-            element.addEventListener('change', (event: Event) => {
+          if (fieldType === "select") {
+            element.addEventListener("change", (event: Event) => {
               handleSingleFieldValidation(event.target, fieldsValidated);
               handleAllFieldsValidation(
                 fieldsValidated,
@@ -92,8 +92,8 @@ export const showFormDialog = async (
                 defaultButton
               );
             });
-          } else if (fieldType === 'input' || fieldType === 'textarea') {
-            element.addEventListener('keyup', (event: Event) => {
+          } else if (fieldType === "input" || fieldType === "textarea") {
+            element.addEventListener("keyup", (event: Event) => {
               handleSingleFieldValidation(event.target, fieldsValidated);
               handleAllFieldsValidation(
                 fieldsValidated,
@@ -115,11 +115,11 @@ export const showFormDialog = async (
 };
 
 export const disableDialogButton = (button: HTMLButtonElement): void => {
-  button.setAttribute('disabled', 'disabled');
+  button.setAttribute("disabled", "disabled");
 };
 
 export const enableDialogButton = (button: HTMLButtonElement): void => {
-  button.removeAttribute('disabled');
+  button.removeAttribute("disabled");
 };
 
 // Update set of validated fields according to element value

@@ -16,5 +16,16 @@
 
 module.exports = {
   root: true,
-  extends: ["elyra"]
+  extends: ["elyra"],
+  overrides: [
+    {
+      files: ["cypress/**"],
+      rules: {
+        // TODO: add to eslint-config-elyra
+        "testing-library/await-async-query": "off",
+        "testing-library/await-async-utils": "off",
+        "jest/valid-expect": "off",
+      },
+    },
+  ],
 };

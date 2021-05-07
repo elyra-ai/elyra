@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-import { IThemeManager } from '@jupyterlab/apputils';
+import React, { useEffect, useState } from "react";
 
+import { IThemeManager } from "@jupyterlab/apputils";
 import {
   StylesProvider,
   createMuiTheme,
-  ThemeProvider as MuiThemeProvider
-} from '@material-ui/core';
-
-import React, { useEffect, useState } from 'react';
+  ThemeProvider as MuiThemeProvider,
+} from "@material-ui/core";
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
   interface Window {
     ELYRA_generateClassName: any;
     ELYRA_lightTheme: any;
@@ -38,19 +36,19 @@ export interface IProps {
 }
 
 const pseudoClasses = [
-  'checked',
-  'disabled',
-  'error',
-  'focused',
-  'focusVisible',
-  'required',
-  'expanded',
-  'selected'
+  "checked",
+  "disabled",
+  "error",
+  "focused",
+  "focusVisible",
+  "required",
+  "expanded",
+  "selected",
 ];
 
 // Taken from material-ui and adapted to use custom prefixes for mui components.
 const createGenerateClassName = (): any => {
-  const elyraPrefix = 'elyra-';
+  const elyraPrefix = "elyra-";
 
   let ruleCounter = 0;
 
@@ -63,7 +61,7 @@ const createGenerateClassName = (): any => {
     const name = styleSheet.options.name;
 
     // Is a global static MUI style?
-    if (name && name.indexOf('Mui') === 0 && !styleSheet.options.link) {
+    if (name && name.indexOf("Mui") === 0 && !styleSheet.options.link) {
       // We can use a shorthand class name, we never use the keys to style the components.
       if (pseudoClasses.indexOf(rule.key) !== -1) {
         return `${elyraPrefix}Mui-${rule.key}`;
@@ -71,7 +69,7 @@ const createGenerateClassName = (): any => {
 
       const prefix = `${elyraPrefix}${name}-${rule.key}`;
 
-      if (!styleSheet.options.theme[Symbol.for('mui.nested')]) {
+      if (!styleSheet.options.theme[Symbol.for("mui.nested")]) {
         return prefix;
       }
 
@@ -90,31 +88,31 @@ if (window.ELYRA_generateClassName === undefined) {
 const overrides = {
   MuiFormControl: {
     root: {
-      width: '100%'
-    }
+      width: "100%",
+    },
   },
   MuiButtonBase: {
     root: {
-      padding: '5px 15px'
-    }
-  }
+      padding: "5px 15px",
+    },
+  },
 };
 
 if (window.ELYRA_darkTheme === undefined) {
   window.ELYRA_darkTheme = createMuiTheme({
     palette: {
-      type: 'dark'
+      type: "dark",
     },
-    overrides
+    overrides,
   });
 }
 
 if (window.ELYRA_lightTheme === undefined) {
   window.ELYRA_lightTheme = createMuiTheme({
     palette: {
-      type: 'light'
+      type: "light",
     },
-    overrides
+    overrides,
   });
 }
 

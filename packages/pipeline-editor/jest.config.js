@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-const baseConfig = require('../../jest.config.base');
+const baseConfig = require("../../jest.config.base");
 
 module.exports = {
   ...baseConfig,
   setupFilesAfterEnv: [
-    '@testing-library/jest-dom/extend-expect',
-    './jest.setup.js'
+    "@testing-library/jest-dom/extend-expect",
+    "./jest.setup.js",
   ],
-  roots: ['<rootDir>/src']
+  roots: ["<rootDir>/src"],
 };

@@ -14,39 +14,39 @@
  * limitations under the License.
  */
 
-import { exec, spawn } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import { exec, spawn } from "child_process";
+import fs from "fs";
+import path from "path";
 
-const config = path.join(__dirname, '..', 'tests', 'test-config.py');
+const config = path.join(__dirname, "..", "tests", "test-config.py");
 const jupyter = exec(`jupyter lab --config ${config}`);
 
-const CONTAINER_NAME = 'minio_test';
+const CONTAINER_NAME = "minio_test";
 
-const docker = spawn('docker', [
-  'run',
-  '--rm',
-  '--name',
+const docker = spawn("docker", [
+  "run",
+  "--rm",
+  "--name",
   CONTAINER_NAME,
-  '-p',
-  '9000:9000',
-  'minio/minio',
-  'server',
-  '/data'
+  "-p",
+  "9000:9000",
+  "minio/minio",
+  "server",
+  "/data",
 ]);
 
-const logDir = path.join(__dirname, '..', 'build', 'cypress-tests');
+const logDir = path.join(__dirname, "..", "build", "cypress-tests");
 
-const jupyterLog = fs.createWriteStream(path.join(logDir, 'jupyter.log'));
+const jupyterLog = fs.createWriteStream(path.join(logDir, "jupyter.log"));
 jupyter.stderr?.pipe(jupyterLog);
 
-const dockerLog = fs.createWriteStream(path.join(logDir, 'docker.log'));
+const dockerLog = fs.createWriteStream(path.join(logDir, "docker.log"));
 docker.stderr.pipe(dockerLog);
 
 const handleTeardown = (): void => {
-  spawn('docker', ['kill', CONTAINER_NAME]);
+  spawn("docker", ["kill", CONTAINER_NAME]);
   process.exit();
 };
 
-process.on('SIGINT', handleTeardown);
-process.on('SIGTERM', handleTeardown);
+process.on("SIGINT", handleTeardown);
+process.on("SIGTERM", handleTeardown);

@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-import { pyIcon } from '@elyra/ui-components';
+import React, { RefObject } from "react";
 
-import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+import { pyIcon } from "@elyra/ui-components";
+import { ToolbarButton, showDialog, Dialog } from "@jupyterlab/apputils";
+import { CodeEditor, IEditorServices } from "@jupyterlab/codeeditor";
 import {
   ABCWidgetFactory,
   DocumentRegistry,
-  DocumentWidget
-} from '@jupyterlab/docregistry';
-import { FileEditor } from '@jupyterlab/fileeditor';
-import { ScrollingWidget } from '@jupyterlab/logconsole';
+  DocumentWidget,
+} from "@jupyterlab/docregistry";
+import { FileEditor } from "@jupyterlab/fileeditor";
+import { ScrollingWidget } from "@jupyterlab/logconsole";
 import {
   OutputArea,
   OutputAreaModel,
-  OutputPrompt
-} from '@jupyterlab/outputarea';
+  OutputPrompt,
+} from "@jupyterlab/outputarea";
 import {
   RenderMimeRegistry,
-  standardRendererFactories as initialFactories
-} from '@jupyterlab/rendermime';
+  standardRendererFactories as initialFactories,
+} from "@jupyterlab/rendermime";
 import {
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
@@ -41,28 +42,27 @@ import {
   runIcon,
   saveIcon,
   stopIcon,
-  TabBarSvg
-} from '@jupyterlab/ui-components';
-import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
-import React, { RefObject } from 'react';
+  TabBarSvg,
+} from "@jupyterlab/ui-components";
+import { BoxLayout, PanelLayout, Widget } from "@lumino/widgets";
 
-import { KernelDropdown, ISelect } from './KernelDropdown';
-import { ScriptEditorController } from './ScriptEditorController';
-import { ScriptRunner } from './ScriptRunner';
+import { KernelDropdown, ISelect } from "./KernelDropdown";
+import { ScriptEditorController } from "./ScriptEditorController";
+import { ScriptRunner } from "./ScriptRunner";
 
 /**
  * The CSS class added to widgets.
  */
-const SCRIPT_EDITOR_CLASS = 'elyra-ScriptEditor';
-const OUTPUT_AREA_CLASS = 'elyra-ScriptEditor-OutputArea';
-const OUTPUT_AREA_ERROR_CLASS = 'elyra-ScriptEditor-OutputArea-error';
-const OUTPUT_AREA_CHILD_CLASS = 'elyra-ScriptEditor-OutputArea-child';
-const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-ScriptEditor-OutputArea-output';
-const OUTPUT_AREA_PROMPT_CLASS = 'elyra-ScriptEditor-OutputArea-prompt';
-const RUN_BUTTON_CLASS = 'elyra-ScriptEditor-Run';
-const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
-const PYTHON = 'python';
-const R = 'R';
+const SCRIPT_EDITOR_CLASS = "elyra-ScriptEditor";
+const OUTPUT_AREA_CLASS = "elyra-ScriptEditor-OutputArea";
+const OUTPUT_AREA_ERROR_CLASS = "elyra-ScriptEditor-OutputArea-error";
+const OUTPUT_AREA_CHILD_CLASS = "elyra-ScriptEditor-OutputArea-child";
+const OUTPUT_AREA_OUTPUT_CLASS = "elyra-ScriptEditor-OutputArea-output";
+const OUTPUT_AREA_PROMPT_CLASS = "elyra-ScriptEditor-OutputArea-prompt";
+const RUN_BUTTON_CLASS = "elyra-ScriptEditor-Run";
+const TOOLBAR_CLASS = "elyra-ScriptEditor-Toolbar";
+const PYTHON = "python";
+const R = "R";
 
 /**
  * A widget for script editors.
@@ -103,33 +103,33 @@ export class ScriptEditor extends DocumentWidget<
       : R;
 
     // Add icon to main tab
-    this.title.icon = this.editorLanguage === PYTHON ? pyIcon : 'rIcon';
+    this.title.icon = this.editorLanguage === PYTHON ? pyIcon : "rIcon";
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
       icon: saveIcon,
       onClick: this.saveFile,
-      tooltip: 'Save file contents'
+      tooltip: "Save file contents",
     });
 
     const runButton = new ToolbarButton({
       className: RUN_BUTTON_CLASS,
       icon: runIcon,
       onClick: this.runScript,
-      tooltip: 'Run'
+      tooltip: "Run",
     });
 
     const stopButton = new ToolbarButton({
       icon: stopIcon,
       onClick: this.stopRun,
-      tooltip: 'Stop'
+      tooltip: "Stop",
     });
 
     // Populate toolbar with button widgets
     const toolbar = this.toolbar;
-    toolbar.addItem('save', saveButton);
-    toolbar.addItem('run', runButton);
-    toolbar.addItem('stop', stopButton);
+    toolbar.addItem("save", saveButton);
+    toolbar.addItem("run", runButton);
+    toolbar.addItem("stop", stopButton);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
 
@@ -155,7 +155,7 @@ export class ScriptEditor extends DocumentWidget<
       kernelSpecs,
       this.kernelSelectorRef
     );
-    this.toolbar.insertItem(3, 'select', kernelDropDown);
+    this.toolbar.insertItem(3, "select", kernelDropDown);
   };
 
   /**
@@ -165,7 +165,7 @@ export class ScriptEditor extends DocumentWidget<
     // Add dockpanel wrapper for output area
     this.dockPanel = new DockPanelSvg({ tabsMovable: false });
     Widget.attach(this.dockPanel, document.body);
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       this.dockPanel.fit();
     });
 
@@ -174,7 +174,7 @@ export class ScriptEditor extends DocumentWidget<
     const renderMimeRegistry = new RenderMimeRegistry({ initialFactories });
     this.outputAreaWidget = new OutputArea({
       rendermime: renderMimeRegistry,
-      model
+      model,
     });
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
 
@@ -205,14 +205,14 @@ export class ScriptEditor extends DocumentWidget<
   private stopRun = async (): Promise<void> => {
     await this.runner.shutdownSession();
     if (!this.dockPanel.isEmpty) {
-      this.updatePromptText(' ');
+      this.updatePromptText(" ");
     }
   };
 
   private disableRun = (disabled: boolean): void => {
     this.runDisabled = disabled;
     (document.querySelector(
-      '#' + this.id + ' .' + RUN_BUTTON_CLASS
+      "#" + this.id + " ." + RUN_BUTTON_CLASS
     ) as HTMLInputElement).disabled = disabled;
   };
 
@@ -230,13 +230,13 @@ export class ScriptEditor extends DocumentWidget<
    * Function: Call back function passed to runner, that handles messages coming from the kernel.
    */
   private handleKernelMsg = async (msg: any): Promise<void> => {
-    let output = '';
+    let output = "";
 
     if (msg.status) {
       this.displayKernelStatus(msg.status);
       return;
     } else if (msg.error) {
-      output = 'Error : ' + msg.error.type + ' - ' + msg.error.output;
+      output = "Error : " + msg.error.type + " - " + msg.error.output;
       this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_ERROR_CLASS);
     } else if (msg.output) {
       output = msg.output;
@@ -247,23 +247,23 @@ export class ScriptEditor extends DocumentWidget<
   private createScrollButtons = (
     scrollingWidget: ScrollingWidget<OutputArea>
   ): void => {
-    const scrollUpButton = document.createElement('button');
-    const scrollDownButton = document.createElement('button');
-    scrollUpButton.className = 'elyra-ScriptEditor-scrollTop';
-    scrollDownButton.className = 'elyra-ScriptEditor-scrollBottom';
-    scrollUpButton.onclick = function(): void {
+    const scrollUpButton = document.createElement("button");
+    const scrollDownButton = document.createElement("button");
+    scrollUpButton.className = "elyra-ScriptEditor-scrollTop";
+    scrollDownButton.className = "elyra-ScriptEditor-scrollBottom";
+    scrollUpButton.onclick = function (): void {
       scrollingWidget.node.scrollTop = 0;
     };
-    scrollDownButton.onclick = function(): void {
+    scrollDownButton.onclick = function (): void {
       scrollingWidget.node.scrollTop = scrollingWidget.node.scrollHeight;
     };
     caretUpEmptyThinIcon.element({
       container: scrollUpButton,
-      elementPosition: 'center'
+      elementPosition: "center",
     });
     caretDownEmptyThinIcon.element({
       container: scrollDownButton,
-      elementPosition: 'center'
+      elementPosition: "center",
     });
     this.dockPanel.node.appendChild(scrollUpButton);
     this.dockPanel.node.appendChild(scrollDownButton);
@@ -281,14 +281,14 @@ export class ScriptEditor extends DocumentWidget<
     if (this.dockPanel.isEmpty) {
       // Add a tab to dockPanel
       this.scrollingWidget = new ScrollingWidget({
-        content: this.outputAreaWidget
+        content: this.outputAreaWidget,
       });
       this.createScrollButtons(this.scrollingWidget);
-      this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
+      this.dockPanel.addWidget(this.scrollingWidget, { mode: "split-bottom" });
 
       const outputTab: TabBarSvg<Widget> = this.dockPanel.tabBars().next();
-      outputTab.id = 'tab-ScriptEditor-output';
-      outputTab.currentTitle.label = 'Console Output';
+      outputTab.id = "tab-ScriptEditor-output";
+      outputTab.currentTitle.label = "Console Output";
       outputTab.currentTitle.closable = true;
       outputTab.disposed.connect((sender, args) => {
         this.stopRun();
@@ -297,12 +297,12 @@ export class ScriptEditor extends DocumentWidget<
     }
 
     const options = {
-      name: 'stdout',
-      output_type: 'stream',
-      text: ['Waiting for kernel to start...']
+      name: "stdout",
+      output_type: "stream",
+      text: ["Waiting for kernel to start..."],
     };
     this.outputAreaWidget.model.add(options);
-    this.updatePromptText(' ');
+    this.updatePromptText(" ");
     this.setOutputAreaClasses();
   };
 
@@ -310,13 +310,13 @@ export class ScriptEditor extends DocumentWidget<
    * Function: Displays kernel status, similar to notebook.
    */
   private displayKernelStatus = (status: string): void => {
-    if (status === 'busy') {
+    if (status === "busy") {
       // TODO: Use a character that does not take any space, also not an empty string
       this.emptyOutput = true;
-      this.displayOutput(' ');
-      this.updatePromptText('*');
-    } else if (status === 'idle') {
-      this.updatePromptText(' ');
+      this.displayOutput(" ");
+      this.updatePromptText("*");
+    } else if (status === "idle") {
+      this.updatePromptText(" ");
     }
   };
 
@@ -326,9 +326,9 @@ export class ScriptEditor extends DocumentWidget<
   private displayOutput = (output: string): void => {
     if (output) {
       const options = {
-        name: 'stdout',
-        output_type: 'stream',
-        text: [output]
+        name: "stdout",
+        output_type: "stream",
+        text: [output],
       };
       // Stream output doesn't instantiate correctly without an initial output string
       if (this.emptyOutput) {
@@ -341,7 +341,7 @@ export class ScriptEditor extends DocumentWidget<
       } else {
         this.outputAreaWidget.model.add(options);
       }
-      this.updatePromptText('*');
+      this.updatePromptText("*");
       this.setOutputAreaClasses();
     }
   };
@@ -383,7 +383,7 @@ export class ScriptEditor extends DocumentWidget<
    */
   private updatePromptText = (kernelStatusFlag: string): void => {
     this.getOutputAreaPromptWidget().node.innerText =
-      '[' + kernelStatusFlag + ']:';
+      "[" + kernelStatusFlag + "]:";
   };
 
   /**
@@ -392,9 +392,9 @@ export class ScriptEditor extends DocumentWidget<
   private saveFile = (): Promise<any> => {
     if (this.model.readOnly) {
       return showDialog({
-        title: 'Cannot Save',
-        body: 'Document is read-only',
-        buttons: [Dialog.okButton()]
+        title: "Cannot Save",
+        body: "Document is read-only",
+        buttons: [Dialog.okButton()],
       });
     }
     void this.context.save().then(() => {
@@ -427,13 +427,13 @@ export class ScriptEditorFactory extends ABCWidgetFactory<
     context: DocumentRegistry.CodeContext
   ): ScriptEditor {
     const newDocumentEditor = this._services.factoryService.newDocumentEditor;
-    const factory: CodeEditor.Factory = options => {
+    const factory: CodeEditor.Factory = (options) => {
       return newDocumentEditor(options);
     };
     const content = new FileEditor({
       factory,
       context,
-      mimeTypeService: this._services.mimeTypeService
+      mimeTypeService: this._services.mimeTypeService,
     });
     return new ScriptEditor({ content, context });
   }

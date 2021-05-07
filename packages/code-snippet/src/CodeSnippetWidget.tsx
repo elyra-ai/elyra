@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import "../style/index.css";
+
+import React from "react";
 
 import {
   IMetadata,
@@ -24,42 +26,38 @@ import {
   IMetadataWidgetProps,
   MetadataDisplay,
   MetadataWidget,
-  METADATA_ITEM
-} from '@elyra/metadata-common';
+  METADATA_ITEM,
+} from "@elyra/metadata-common";
 import {
   ExpandableComponent,
   importIcon,
   RequestErrors,
-  trashIcon
-} from '@elyra/ui-components';
-
-import { JupyterFrontEnd } from '@jupyterlab/application';
-import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { PathExt } from '@jupyterlab/coreutils';
-import { DocumentWidget } from '@jupyterlab/docregistry';
-import { FileEditor } from '@jupyterlab/fileeditor';
-import * as nbformat from '@jupyterlab/nbformat';
-import { Notebook, NotebookModel, NotebookPanel } from '@jupyterlab/notebook';
-import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
-
-import { find } from '@lumino/algorithm';
-import { MimeData } from '@lumino/coreutils';
-import { Drag } from '@lumino/dragdrop';
-import { Widget } from '@lumino/widgets';
-
-import React from 'react';
+  trashIcon,
+} from "@elyra/ui-components";
+import { JupyterFrontEnd } from "@jupyterlab/application";
+import { Clipboard, Dialog, showDialog } from "@jupyterlab/apputils";
+import { CodeCell, MarkdownCell } from "@jupyterlab/cells";
+import { CodeEditor, IEditorServices } from "@jupyterlab/codeeditor";
+import { PathExt } from "@jupyterlab/coreutils";
+import { DocumentWidget } from "@jupyterlab/docregistry";
+import { FileEditor } from "@jupyterlab/fileeditor";
+import nbformat from "@jupyterlab/nbformat";
+import { Notebook, NotebookModel, NotebookPanel } from "@jupyterlab/notebook";
+import { copyIcon, editIcon, LabIcon } from "@jupyterlab/ui-components";
+import { find } from "@lumino/algorithm";
+import { MimeData } from "@lumino/coreutils";
+import { Drag } from "@lumino/dragdrop";
+import { Widget } from "@lumino/widgets";
 
 import {
   CodeSnippetService,
   CODE_SNIPPET_NAMESPACE,
-  CODE_SNIPPET_SCHEMA
-} from './CodeSnippetService';
+  CODE_SNIPPET_SCHEMA,
+} from "./CodeSnippetService";
 
-const METADATA_EDITOR_ID = 'elyra-metadata-editor';
-const SNIPPET_DRAG_IMAGE_CLASS = 'elyra-codeSnippet-drag-image';
-const CODE_SNIPPETS_METADATA_CLASS = 'elyra-metadata-code-snippets';
+const METADATA_EDITOR_ID = "elyra-metadata-editor";
+const SNIPPET_DRAG_IMAGE_CLASS = "elyra-codeSnippet-drag-image";
+const CODE_SNIPPETS_METADATA_CLASS = "elyra-metadata-code-snippets";
 
 /**
  * The threshold in pixels to start a drag event.
@@ -69,7 +67,7 @@ const DRAG_THRESHOLD = 5;
 /**
  * The mimetype used for Jupyter cell data.
  */
-const JUPYTER_CELL_MIME = 'application/vnd.jupyter.cells';
+const JUPYTER_CELL_MIME = "application/vnd.jupyter.cells";
 
 /**
  * CodeSnippetDisplay props.
@@ -107,19 +105,19 @@ class CodeSnippetDisplay extends MetadataDisplay<
   // Handle code snippet insertion into an editor
   private insertCodeSnippet = async (snippet: IMetadata): Promise<void> => {
     const widget = this.props.getCurrentWidget();
-    const snippetStr = snippet.metadata.code.join('\n');
+    const snippetStr = snippet.metadata.code.join("\n");
 
     if (this.isFileEditor(widget)) {
       const fileEditor = widget.content.editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
       if (
         PathExt.extname(widget.context.path).match(markdownRegex) !== null &&
-        snippet.metadata.language.toLowerCase() !== 'markdown'
+        snippet.metadata.language.toLowerCase() !== "markdown"
       ) {
         fileEditor.replaceSelection(
           this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
         );
-      } else if (widget.constructor.name === 'ScriptEditor') {
+      } else if (widget.constructor.name === "ScriptEditor") {
         const editorLanguage =
           widget.context.sessionContext.kernelPreference.language;
         this.verifyLanguageAndInsert(snippet, editorLanguage, fileEditor);
@@ -136,7 +134,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       if (notebookCell instanceof CodeCell) {
         const kernelInfo = await notebookWidget.sessionContext.session?.kernel
           ?.info;
-        const kernelLanguage: string = kernelInfo?.language_info.name || '';
+        const kernelLanguage: string = kernelInfo?.language_info.name || "";
         this.verifyLanguageAndInsert(
           snippet,
           kernelLanguage,
@@ -144,7 +142,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         );
       } else if (
         notebookCell instanceof MarkdownCell &&
-        snippet.metadata.language.toLowerCase() !== 'markdown'
+        snippet.metadata.language.toLowerCase() !== "markdown"
       ) {
         notebookCellEditor.replaceSelection(
           this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
@@ -155,7 +153,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       const cell = notebookWidget.model.contentFactory.createCodeCell({});
       notebookWidget.model.cells.insert(notebookCellIndex + 1, cell);
     } else {
-      this.showErrDialog('Code snippet insert failed: Unsupported widget');
+      this.showErrDialog("Code snippet insert failed: Unsupported widget");
     }
   };
 
@@ -168,7 +166,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
 
   // Return the given code wrapped in a markdown code block
   private addMarkdownCodeBlock = (language: string, code: string): string => {
-    return '```' + language + '\n' + code + '\n```';
+    return "```" + language + "\n" + code + "\n```";
   };
 
   // Handle language compatibility between code snippet and editor
@@ -177,7 +175,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     editorLanguage: string,
     editor: CodeEditor.IEditor
   ): Promise<void> => {
-    const snippetStr: string = snippet.metadata.code.join('\n');
+    const snippetStr: string = snippet.metadata.code.join("\n");
     if (
       editorLanguage &&
       snippet.metadata.language.toLowerCase() !== editorLanguage.toLowerCase()
@@ -201,18 +199,18 @@ class CodeSnippetDisplay extends MetadataDisplay<
     snippetName: string
   ): Promise<Dialog.IResult<string>> => {
     return showDialog({
-      title: 'Warning',
+      title: "Warning",
       body: `Code snippet "${snippetName}" is incompatible with ${editorLanguage}. Continue?`,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     });
   };
 
   // Display error dialog when inserting a code snippet into unsupported widget (i.e. not an editor)
   private showErrDialog = (errMsg: string): Promise<Dialog.IResult<string>> => {
     return showDialog({
-      title: 'Error',
+      title: "Error",
       body: errMsg,
-      buttons: [Dialog.okButton()]
+      buttons: [Dialog.okButton()],
     });
   };
 
@@ -231,7 +229,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     this._dragData = {
       pressX: event.clientX,
       pressY: event.clientY,
-      dragImage: null
+      dragImage: null,
     };
 
     const mouseUpListener = (event: MouseEvent): void => {
@@ -242,11 +240,11 @@ class CodeSnippetDisplay extends MetadataDisplay<
     };
 
     const target = event.target as HTMLElement;
-    target.addEventListener('mouseup', mouseUpListener, {
+    target.addEventListener("mouseup", mouseUpListener, {
       once: true,
-      capture: true
+      capture: true,
     });
-    target.addEventListener('mousemove', mouseMoveListener, true);
+    target.addEventListener("mousemove", mouseMoveListener, true);
 
     // since a browser has its own drag'n'drop support for images and some other elements.
     target.ondragstart = (): boolean => false;
@@ -261,7 +259,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     event.stopPropagation();
 
     const target = event.target as HTMLElement;
-    target.removeEventListener('mousemove', mouseMoveListener, true);
+    target.removeEventListener("mousemove", mouseMoveListener, true);
   }
 
   private handleDragMove(
@@ -285,15 +283,15 @@ class CodeSnippetDisplay extends MetadataDisplay<
       )
     ) {
       // Create drag image
-      const element = document.createElement('div');
+      const element = document.createElement("div");
       element.innerHTML = this.getDisplayName(metadata);
       element.classList.add(SNIPPET_DRAG_IMAGE_CLASS);
       data.dragImage = element;
 
       // Remove mouse listeners and start the drag.
       const target = event.target as HTMLElement;
-      target.removeEventListener('mousemove', mouseMoveListener, true);
-      target.removeEventListener('mouseup', mouseUpListener, true);
+      target.removeEventListener("mousemove", mouseMoveListener, true);
+      target.removeEventListener("mouseup", mouseUpListener, true);
 
       void this.startDrag(
         data.dragImage,
@@ -333,23 +331,23 @@ class CodeSnippetDisplay extends MetadataDisplay<
     const contentFactory = new NotebookModel.ContentFactory({});
     const language = metadata.metadata.language;
     const model =
-      language.toLowerCase() !== 'markdown'
+      language.toLowerCase() !== "markdown"
         ? contentFactory.createCodeCell({})
         : contentFactory.createMarkdownCell({});
-    const content = metadata.metadata.code.join('\n');
+    const content = metadata.metadata.code.join("\n");
     model.value.text = content;
 
     this._drag = new Drag({
       mimeData: new MimeData(),
       dragImage: dragImage,
-      supportedActions: 'copy-move',
-      proposedAction: 'copy',
-      source: this
+      supportedActions: "copy-move",
+      proposedAction: "copy",
+      source: this,
     });
 
     const selected: nbformat.ICell[] = [model.toJSON()];
     this._drag.mimeData.setData(JUPYTER_CELL_MIME, selected);
-    this._drag.mimeData.setData('text/plain', content);
+    this._drag.mimeData.setData("text/plain", content);
 
     return this._drag.start(clientX, clientY).then(() => {
       this._drag = null;
@@ -360,34 +358,34 @@ class CodeSnippetDisplay extends MetadataDisplay<
   actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
     return [
       {
-        title: 'Copy',
+        title: "Copy",
         icon: copyIcon,
-        feedback: 'Copied!',
+        feedback: "Copied!",
         onClick: (): void => {
-          Clipboard.copyToSystem(metadata.metadata.code.join('\n'));
-        }
+          Clipboard.copyToSystem(metadata.metadata.code.join("\n"));
+        },
       },
       {
-        title: 'Insert',
+        title: "Insert",
         icon: importIcon,
         onClick: (): void => {
           this.insertCodeSnippet(metadata);
-        }
+        },
       },
       {
-        title: 'Edit',
+        title: "Edit",
         icon: editIcon,
         onClick: (): void => {
           this.props.openMetadataEditor({
             onSave: this.props.updateMetadata,
             namespace: CODE_SNIPPET_NAMESPACE,
             schema: CODE_SNIPPET_SCHEMA,
-            name: metadata.name
+            name: metadata.name,
           });
-        }
+        },
       },
       {
-        title: 'Delete',
+        title: "Delete",
         icon: trashIcon,
         onClick: (): void => {
           CodeSnippetService.deleteCodeSnippet(metadata)
@@ -396,10 +394,10 @@ class CodeSnippetDisplay extends MetadataDisplay<
                 this.props.updateMetadata();
                 delete this.editors[metadata.name];
                 const editorWidget = find(
-                  this.props.shell.widgets('main'),
+                  this.props.shell.widgets("main"),
                   (value: Widget, index: number) => {
                     return (
-                      value.id ==
+                      value.id ===
                       `${METADATA_EDITOR_ID}:${CODE_SNIPPET_NAMESPACE}:${CODE_SNIPPET_SCHEMA}:${metadata.name}`
                     );
                   }
@@ -409,9 +407,9 @@ class CodeSnippetDisplay extends MetadataDisplay<
                 }
               }
             })
-            .catch(error => RequestErrors.serverError(error));
-        }
-      }
+            .catch((error) => RequestErrors.serverError(error));
+        },
+      },
     ];
   };
 
@@ -444,7 +442,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         data-item-id={metadata.display_name}
         className={METADATA_ITEM}
         style={
-          this.state.metadata.includes(metadata) ? {} : { display: 'none' }
+          this.state.metadata.includes(metadata) ? {} : { display: "none" }
         }
       >
         <ExpandableComponent
@@ -469,24 +467,24 @@ class CodeSnippetDisplay extends MetadataDisplay<
       .newInlineEditor;
     const getMimeTypeByLanguage = this.props.editorServices.mimeTypeService
       .getMimeTypeByLanguage;
-    this.props.metadata.map((codeSnippet: IMetadata) => {
+    this.props.metadata.forEach((codeSnippet: IMetadata) => {
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
         this.editors[
           codeSnippet.name
-        ].model.value.text = codeSnippet.metadata.code.join('\n');
+        ].model.value.text = codeSnippet.metadata.code.join("\n");
       } else {
         // Add new snippets
         this.editors[codeSnippet.name] = editorFactory({
           config: { readOnly: true },
           host: document.getElementById(codeSnippet.name),
           model: new CodeEditor.Model({
-            value: codeSnippet.metadata.code.join('\n'),
+            value: codeSnippet.metadata.code.join("\n"),
             mimeType: getMimeTypeByLanguage({
               name: codeSnippet.metadata.language,
-              codemirror_mode: codeSnippet.metadata.language
-            })
-          })
+              codemirror_mode: codeSnippet.metadata.language,
+            }),
+          }),
         });
       }
     });
@@ -523,13 +521,9 @@ export interface ICodeSnippetWidgetProps extends IMetadataWidgetProps {
 export class CodeSnippetWidget extends MetadataWidget {
   props: ICodeSnippetWidgetProps;
 
-  constructor(props: ICodeSnippetWidgetProps) {
-    super(props);
-  }
-
   // Request code snippets from server
   async fetchMetadata(): Promise<any> {
-    return CodeSnippetService.findAll().catch(error =>
+    return CodeSnippetService.findAll().catch((error) =>
       RequestErrors.serverError(error)
     );
   }

@@ -14,42 +14,30 @@
  * limitations under the License.
  */
 
-import { elyraIcon } from '@elyra/ui-components';
+import * as React from "react";
 
-import {
-  Launcher as JupyterlabLauncher,
-  ILauncher
-} from '@jupyterlab/launcher';
-import { LabIcon } from '@jupyterlab/ui-components';
-
-import { each } from '@lumino/algorithm';
-
-import * as React from 'react';
+import { elyraIcon } from "@elyra/ui-components";
+import { Launcher as JupyterlabLauncher } from "@jupyterlab/launcher";
+import { LabIcon } from "@jupyterlab/ui-components";
+import { each } from "@lumino/algorithm";
 
 /**
  * The known categories of launcher items and their default ordering.
  */
-const ELYRA_CATEGORY = 'Elyra';
-const KNOWN_CATEGORIES = ['Notebook', 'Console', ELYRA_CATEGORY, 'Other'];
+const ELYRA_CATEGORY = "Elyra";
+const KNOWN_CATEGORIES = ["Notebook", "Console", ELYRA_CATEGORY, "Other"];
 
 export class Launcher extends JupyterlabLauncher {
-  /**
-   * Construct a new launcher widget.
-   */
-  constructor(options: ILauncher.IOptions) {
-    super(options);
-  }
-
   private replaceCategoryIcon(
     category: React.ReactElement,
     icon: LabIcon
   ): React.ReactElement {
-    const children = React.Children.map(category.props.children, child => {
-      if (child.props.className === 'jp-Launcher-sectionHeader') {
+    const children = React.Children.map(category.props.children, (child) => {
+      if (child.props.className === "jp-Launcher-sectionHeader") {
         const grandchildren = React.Children.map(
           child.props.children,
-          grandchild => {
-            if (grandchild.props.className !== 'jp-Launcher-sectionTitle') {
+          (grandchild) => {
+            if (grandchild.props.className !== "jp-Launcher-sectionTitle") {
               return <icon.react stylesheet="launcherSection" />;
             } else {
               return grandchild;
@@ -86,7 +74,7 @@ export class Launcher extends JupyterlabLauncher {
     // Assemble the final ordered list of categories
     // based on KNOWN_CATEGORIES.
     each(KNOWN_CATEGORIES, (category, index) => {
-      React.Children.forEach(launcherCategories, cat => {
+      React.Children.forEach(launcherCategories, (cat) => {
         if (cat.key === category) {
           if (cat.key === ELYRA_CATEGORY) {
             cat = this.replaceCategoryIcon(cat, elyraIcon);

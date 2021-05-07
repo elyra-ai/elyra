@@ -23,7 +23,7 @@ import {
   caretDownEmptyIcon,
   editIcon,
   folderIcon,
-  paletteIcon
+  paletteIcon,
 } from "@jupyterlab/ui-components";
 
 const SvgIcon: FC = ({ children }) => {
@@ -50,15 +50,15 @@ export const theme = createTheme({
     primary: {
       main: "var(--jp-inverse-layout-color4)",
       hover: "var(--jp-inverse-layout-color3)",
-      contrastText: "var(--jp-layout-color1)"
+      contrastText: "var(--jp-layout-color1)",
     },
     secondary: {
       main: "var(--jp-border-color1)",
-      contrastText: "var(--jp-content-font-color2)"
+      contrastText: "var(--jp-content-font-color2)",
     },
     error: {
       main: "var(--jp-error-color0)",
-      contrastText: "var(--jp-icon-contrast-color3)"
+      contrastText: "var(--jp-icon-contrast-color3)",
     },
     text: {
       primary: "var(--jp-content-font-color0)",
@@ -68,23 +68,23 @@ export const theme = createTheme({
       disabled: "var(--jp-content-font-color3)",
       link: "var(--jp-content-link-color)",
       error: "var(--jp-error-color0)",
-      icon: "var(--jp-inverse-layout-color2)"
+      icon: "var(--jp-inverse-layout-color2)",
     },
     background: {
       default: "var(--jp-layout-color1)",
       secondary: "var(--jp-border-color2)",
-      input: "var(--jp-editor-selected-background)"
+      input: "var(--jp-editor-selected-background)",
     },
     highlight: {
       border: "rgba(0, 0, 0, 0.12)",
       hover: "rgba(128, 128, 128, 0.07)",
-      focus: "rgba(128, 128, 128, 0.14)"
-    }
+      focus: "rgba(128, 128, 128, 0.14)",
+    },
   },
   typography: {
     fontFamily: "var(--jp-ui-font-family)",
     fontWeight: "normal",
-    fontSize: "var(--jp-code-font-size)"
+    fontSize: "var(--jp-code-font-size)",
   },
   overrides: {
     deleteIcon: trashIcon.react,
@@ -102,6 +102,6 @@ export const theme = createTheme({
       <SvgIcon>
         <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
       </SvgIcon>
-    )
-  }
+    ),
+  },
 });

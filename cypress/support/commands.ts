@@ -14,87 +14,87 @@
  * limitations under the License.
  */
 
-import '@testing-library/cypress/add-commands';
+import "@testing-library/cypress/add-commands";
 
 // TODO: we shouldn't have to fill out the form for any test that isn't specifically
 // testing filling out forms.
-Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
-  cy.findByRole('button', { name: /create new runtime/i }).click();
+Cypress.Commands.add("createRuntimeConfig", ({ type } = {}): void => {
+  cy.findByRole("button", { name: /create new runtime/i }).click();
 
-  if (type === 'kfp') {
-    cy.findByRole('menuitem', { name: /kubeflow pipelines/i }).click();
+  if (type === "kfp") {
+    cy.findByRole("menuitem", { name: /kubeflow pipelines/i }).click();
   } else {
-    cy.findByRole('menuitem', { name: /apache airflow/i }).click();
+    cy.findByRole("menuitem", { name: /apache airflow/i }).click();
   }
 
-  cy.findByLabelText(/^name/i).type('Test Runtime');
+  cy.findByLabelText(/^name/i).type("Test Runtime");
 
-  if (type === 'kfp') {
+  if (type === "kfp") {
     cy.findByLabelText(/kubeflow .* endpoint \*/i).type(
-      'https://kubernetes-service.ibm.com/pipeline'
+      "https://kubernetes-service.ibm.com/pipeline"
     );
   } else {
     cy.findByLabelText(/airflow .* endpoint/i).type(
-      'https://kubernetes-service.ibm.com/pipeline'
+      "https://kubernetes-service.ibm.com/pipeline"
     );
-    cy.findByLabelText(/github .* repository \*/i).type('akchinstc/test-repo');
-    cy.findByLabelText(/github .* branch/i).type('main');
-    cy.findByLabelText(/github .* token/i).type('xxxxxxxx');
+    cy.findByLabelText(/github .* repository \*/i).type("akchinstc/test-repo");
+    cy.findByLabelText(/github .* branch/i).type("main");
+    cy.findByLabelText(/github .* token/i).type("xxxxxxxx");
     // Check the default value is displayed on github api endpoint field
     cy.findByLabelText(/github .* endpoint/i).should(
-      'have.value',
-      'https://api.github.com'
+      "have.value",
+      "https://api.github.com"
     );
   }
 
-  cy.findByLabelText(/object storage endpoint/i).type('http://0.0.0.0:9000');
-  cy.findByLabelText(/object storage username/i).type('minioadmin');
-  cy.findByLabelText(/object storage password/i).type('minioadmin');
-  cy.findByLabelText(/object storage bucket/i).type('test-bucket');
+  cy.findByLabelText(/object storage endpoint/i).type("http://0.0.0.0:9000");
+  cy.findByLabelText(/object storage username/i).type("minioadmin");
+  cy.findByLabelText(/object storage password/i).type("minioadmin");
+  cy.findByLabelText(/object storage bucket/i).type("test-bucket");
 
   // save it
-  cy.findByRole('button', { name: /save/i }).click();
+  cy.findByRole("button", { name: /save/i }).click();
 });
 
-Cypress.Commands.add('deleteFile', (name: string): void => {
+Cypress.Commands.add("deleteFile", (name: string): void => {
   cy.exec(`find build/cypress-tests/ -name "${name}" -delete`, {
-    failOnNonZeroExit: false
+    failOnNonZeroExit: false,
   });
 });
 
-Cypress.Commands.add('createPipelineEditor', (): void => {
+Cypress.Commands.add("createPipelineEditor", (): void => {
   // TODO: find a better way to access this.
   cy.get(
     '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]'
   ).click();
-  cy.get('.common-canvas-drop-div');
+  cy.get(".common-canvas-drop-div");
   // wait an additional 300ms for the list of items to settle
   cy.wait(300);
 });
 
-Cypress.Commands.add('addFileToPipeline', (name: string): void => {
-  cy.findByRole('listitem', {
-    name: (n, _el) => n.includes(name)
+Cypress.Commands.add("addFileToPipeline", (name: string): void => {
+  cy.findByRole("listitem", {
+    name: (n, _el) => n.includes(name),
   }).rightclick();
-  cy.findByRole('menuitem', { name: /add file to pipeline/i }).click();
+  cy.findByRole("menuitem", { name: /add file to pipeline/i }).click();
 });
 
-Cypress.Commands.add('openFile', (name: string): void => {
-  cy.findByRole('listitem', {
-    name: (n, _el) => n.includes(name)
+Cypress.Commands.add("openFile", (name: string): void => {
+  cy.findByRole("listitem", {
+    name: (n, _el) => n.includes(name),
   }).dblclick();
 });
 
-Cypress.Commands.add('bootstrapFile', (name: string): void => {
+Cypress.Commands.add("bootstrapFile", (name: string): void => {
   cy.readFile(`tests/assets/${name}`).then((file: any) => {
     cy.writeFile(`build/cypress-tests/${name}`, file);
   });
 });
 
-Cypress.Commands.add('resetJupyterLab', (): void => {
+Cypress.Commands.add("resetJupyterLab", (): void => {
   // open jupyterlab with a clean workspace
-  cy.visit('?token=test&reset');
-  cy.findByRole('tab', { name: /file browser/i, timeout: 25000 }).should(
-    'exist'
+  cy.visit("?token=test&reset");
+  cy.findByRole("tab", { name: /file browser/i, timeout: 25000 }).should(
+    "exist"
   );
 });

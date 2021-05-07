@@ -14,206 +14,206 @@
  * limitations under the License.
  */
 
-import { rIcon } from '@elyra/ui-components';
+import { rIcon } from "@elyra/ui-components";
 
 const rSVG = rIcon.svgstr;
 
 const r = {
-  op: 'execute-r-node',
-  description: 'R file',
-  label: 'R Script',
-  labelField: 'filename',
-  fileField: 'filename',
+  op: "execute-r-node",
+  description: "R file",
+  label: "R Script",
+  labelField: "filename",
+  fileField: "filename",
   fileBased: true,
-  extension: '.r',
-  image: 'data:image/svg+xml;utf8,' + encodeURIComponent(rSVG),
+  extension: ".r",
+  image: "data:image/svg+xml;utf8," + encodeURIComponent(rSVG),
   properties: {
     current_parameters: {
-      filename: '',
-      runtime_image: '',
-      cpu: '',
-      gpu: '',
-      memory: '',
+      filename: "",
+      runtime_image: "",
+      cpu: "",
+      gpu: "",
+      memory: "",
       dependencies: [],
       include_subdirectories: false,
       env_vars: [],
-      outputs: []
+      outputs: [],
     },
     parameters: [
-      { id: 'filename' },
-      { id: 'runtime_image' },
-      { id: 'cpu' },
-      { id: 'gpu' },
-      { id: 'memory' },
-      { id: 'dependencies' },
-      { id: 'include_subdirectories' },
-      { id: 'env_vars' },
-      { id: 'outputs' }
+      { id: "filename" },
+      { id: "runtime_image" },
+      { id: "cpu" },
+      { id: "gpu" },
+      { id: "memory" },
+      { id: "dependencies" },
+      { id: "include_subdirectories" },
+      { id: "env_vars" },
+      { id: "outputs" },
     ],
     uihints: {
-      id: 'nodeProperties',
+      id: "nodeProperties",
       parameter_info: [
         {
-          parameter_ref: 'filename',
-          control: 'custom',
-          custom_control_id: 'StringControl',
-          label: { default: 'File' },
+          parameter_ref: "filename",
+          control: "custom",
+          custom_control_id: "StringControl",
+          label: { default: "File" },
           description: {
-            default: 'The path to the notebook file.',
-            placement: 'on_panel'
+            default: "The path to the notebook file.",
+            placement: "on_panel",
           },
           data: {
-            format: 'file',
+            format: "file",
             required: true,
-            extensions: ['.r']
-          }
+            extensions: [".r"],
+          },
         },
         {
-          parameter_ref: 'runtime_image',
-          label: { default: 'Runtime Image' },
-          control: 'custom',
-          custom_control_id: 'EnumControl',
+          parameter_ref: "runtime_image",
+          label: { default: "Runtime Image" },
+          control: "custom",
+          custom_control_id: "EnumControl",
           description: {
-            default: 'Docker image used as execution environment.',
-            placement: 'on_panel'
+            default: "Docker image used as execution environment.",
+            placement: "on_panel",
           },
           data: {
             items: [],
-            required: true
-          }
+            required: true,
+          },
         },
         {
-          parameter_ref: 'cpu',
+          parameter_ref: "cpu",
           label: {
-            default: 'CPU'
+            default: "CPU",
           },
-          control: 'custom',
-          custom_control_id: 'NumberControl',
+          control: "custom",
+          custom_control_id: "NumberControl",
           data: {
             minimum: 0,
-            maximum: 99
+            maximum: 99,
           },
           description: {
             default:
-              'For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).',
-            placement: 'on_panel'
-          }
+              "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
+            placement: "on_panel",
+          },
         },
         {
-          parameter_ref: 'gpu',
+          parameter_ref: "gpu",
           label: {
-            default: 'GPU'
+            default: "GPU",
           },
-          control: 'custom',
-          custom_control_id: 'NumberControl',
+          control: "custom",
+          custom_control_id: "NumberControl",
           data: {
             minimum: 0,
-            maximum: 99
+            maximum: 99,
           },
           description: {
             default:
-              'For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.',
-            placement: 'on_panel'
-          }
+              "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.",
+            placement: "on_panel",
+          },
         },
         {
-          parameter_ref: 'memory',
+          parameter_ref: "memory",
           label: {
-            default: 'RAM(GB)'
+            default: "RAM(GB)",
           },
-          control: 'custom',
-          custom_control_id: 'NumberControl',
+          control: "custom",
+          custom_control_id: "NumberControl",
           data: {
             minimum: 0,
-            maximum: 99
+            maximum: 99,
           },
           description: {
-            default: 'The total amount of RAM specified.',
-            placement: 'on_panel'
-          }
+            default: "The total amount of RAM specified.",
+            placement: "on_panel",
+          },
         },
         {
-          control: 'custom',
-          custom_control_id: 'StringArrayControl',
-          parameter_ref: 'dependencies',
-          label: { default: 'File Dependencies' },
+          control: "custom",
+          custom_control_id: "StringArrayControl",
+          parameter_ref: "dependencies",
+          label: { default: "File Dependencies" },
           description: {
             default:
-              'Local file dependencies that need to be copied to remote execution environment.',
-            placement: 'on_panel'
+              "Local file dependencies that need to be copied to remote execution environment.",
+            placement: "on_panel",
           },
-          data: { placeholder: '*.py', format: 'file' }
+          data: { placeholder: "*.py", format: "file" },
         },
         {
-          control: 'custom',
-          custom_control_id: 'BooleanControl',
-          parameter_ref: 'include_subdirectories',
-          label: { default: 'Include Subdirectories' },
+          control: "custom",
+          custom_control_id: "BooleanControl",
+          parameter_ref: "include_subdirectories",
+          label: { default: "Include Subdirectories" },
           data: {
             description:
-              'Recursively include subdirectories when submitting a pipeline (This may increase submission time).'
-          }
+              "Recursively include subdirectories when submitting a pipeline (This may increase submission time).",
+          },
         },
         {
-          control: 'custom',
-          custom_control_id: 'StringArrayControl',
-          parameter_ref: 'env_vars',
-          label: { default: 'Environment Variables' },
+          control: "custom",
+          custom_control_id: "StringArrayControl",
+          parameter_ref: "env_vars",
+          label: { default: "Environment Variables" },
           description: {
             default:
-              'Environment variables to be set on the execution environment.',
-            placement: 'on_panel'
+              "Environment variables to be set on the execution environment.",
+            placement: "on_panel",
           },
-          data: { placeholder: 'ENV_VAR=value' }
+          data: { placeholder: "ENV_VAR=value" },
         },
         {
-          control: 'custom',
-          custom_control_id: 'StringArrayControl',
-          parameter_ref: 'outputs',
-          label: { default: 'Output Files' },
+          control: "custom",
+          custom_control_id: "StringArrayControl",
+          parameter_ref: "outputs",
+          label: { default: "Output Files" },
           description: {
             default:
-              'Files generated during execution that will become available to all subsequent pipeline steps.',
-            placement: 'on_panel'
+              "Files generated during execution that will become available to all subsequent pipeline steps.",
+            placement: "on_panel",
           },
-          data: { placeholder: '*.csv' }
-        }
+          data: { placeholder: "*.csv" },
+        },
       ],
       action_info: [],
       group_info: [
         {
-          id: 'nodeGroupInfo',
-          type: 'panels',
+          id: "nodeGroupInfo",
+          type: "panels",
           group_info: [
-            { id: 'filename', type: 'controls', parameter_refs: ['filename'] },
+            { id: "filename", type: "controls", parameter_refs: ["filename"] },
             {
-              id: 'runtime_image',
-              type: 'controls',
-              parameter_refs: ['runtime_image']
+              id: "runtime_image",
+              type: "controls",
+              parameter_refs: ["runtime_image"],
             },
             {
-              id: 'resources',
-              type: 'controls',
-              parameter_refs: ['cpu', 'gpu', 'memory']
+              id: "resources",
+              type: "controls",
+              parameter_refs: ["cpu", "gpu", "memory"],
             },
             {
-              id: 'dependencies',
-              type: 'controls',
-              parameter_refs: ['dependencies']
+              id: "dependencies",
+              type: "controls",
+              parameter_refs: ["dependencies"],
             },
             {
-              id: 'include_subdirectories',
-              type: 'controls',
-              parameter_refs: ['include_subdirectories']
+              id: "include_subdirectories",
+              type: "controls",
+              parameter_refs: ["include_subdirectories"],
             },
-            { id: 'env_vars', type: 'controls', parameter_refs: ['env_vars'] },
-            { id: 'outputs', type: 'controls', parameter_refs: ['outputs'] }
-          ]
-        }
-      ]
+            { id: "env_vars", type: "controls", parameter_refs: ["env_vars"] },
+            { id: "outputs", type: "controls", parameter_refs: ["outputs"] },
+          ],
+        },
+      ],
     },
-    resources: {}
-  }
+    resources: {},
+  },
 };
 
 export default r;

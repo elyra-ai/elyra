@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-describe('Elyra launcher is in use', () => {
+describe("Elyra launcher is in use", () => {
   beforeEach(() => {
     cy.resetJupyterLab();
   });
 
-  it('should have Elyra extensions', () => {
+  it("should have Elyra extensions", () => {
     // cy.get('.jp-ToolbarButtonComponent[title="New Launcher"]').click({
     //   force: true
     // });

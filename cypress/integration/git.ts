@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-describe('Git', () => {
+describe("Git", () => {
   beforeEach(() => {
     cy.resetJupyterLab();
   });
 
-  it('opens git extension', () => {
+  it("opens git extension", () => {
     cy.get('[title="Git"]').click();
   });
 });

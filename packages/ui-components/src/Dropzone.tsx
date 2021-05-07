@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IDragEvent } from '@lumino/dragdrop';
-import React, { useCallback, useEffect, useRef } from 'react';
+
+import React, { useCallback, useEffect, useRef } from "react";
+
+import { IDragEvent } from "@lumino/dragdrop";
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
   interface HTMLElementEventMap {
-    'lm-dragenter': IDragEvent;
-    'lm-dragleave': IDragEvent;
-    'lm-dragover': IDragEvent;
-    'lm-drop': IDragEvent;
+    "lm-dragenter": IDragEvent;
+    "lm-dragleave": IDragEvent;
+    "lm-dragover": IDragEvent;
+    "lm-drop": IDragEvent;
   }
 }
 
@@ -49,17 +50,17 @@ export const useDropzone = (props: IProps): IReturn => {
       e.preventDefault();
       e.stopPropagation();
       switch (e.type) {
-        case 'lm-dragenter':
+        case "lm-dragenter":
           props.onDragEnter?.(e);
           break;
-        case 'lm-dragleave':
+        case "lm-dragleave":
           props.onDragLeave?.(e);
           break;
-        case 'lm-dragover':
+        case "lm-dragover":
           e.dropAction = e.proposedAction;
           props.onDragOver?.(e);
           break;
-        case 'lm-drop':
+        case "lm-drop":
           props.onDrop?.(e);
           break;
       }
@@ -69,23 +70,23 @@ export const useDropzone = (props: IProps): IReturn => {
 
   useEffect(() => {
     const node = rootRef.current;
-    node?.addEventListener('lm-dragenter', handleEvent);
-    node?.addEventListener('lm-dragleave', handleEvent);
-    node?.addEventListener('lm-dragover', handleEvent);
-    node?.addEventListener('lm-drop', handleEvent);
+    node?.addEventListener("lm-dragenter", handleEvent);
+    node?.addEventListener("lm-dragleave", handleEvent);
+    node?.addEventListener("lm-dragover", handleEvent);
+    node?.addEventListener("lm-drop", handleEvent);
 
     return (): void => {
-      node?.removeEventListener('lm-dragenter', handleEvent);
-      node?.removeEventListener('lm-dragleave', handleEvent);
-      node?.removeEventListener('lm-dragover', handleEvent);
-      node?.removeEventListener('lm-drop', handleEvent);
+      node?.removeEventListener("lm-dragenter", handleEvent);
+      node?.removeEventListener("lm-dragleave", handleEvent);
+      node?.removeEventListener("lm-dragover", handleEvent);
+      node?.removeEventListener("lm-drop", handleEvent);
     };
   }, [handleEvent]);
 
   return {
     getRootProps: (): IRootProps => ({
-      ref: rootRef
-    })
+      ref: rootRef,
+    }),
   };
 };
 
@@ -93,7 +94,7 @@ export const Dropzone: React.FC<IProps> = ({ children, ...rest }) => {
   const { getRootProps } = useDropzone(rest);
 
   return (
-    <div style={{ height: '100%' }} {...getRootProps()}>
+    <div style={{ height: "100%" }} {...getRootProps()}>
       {children}
     </div>
   );
