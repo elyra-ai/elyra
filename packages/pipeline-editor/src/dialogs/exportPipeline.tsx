@@ -18,12 +18,6 @@ import * as React from "react";
 
 import { Dialog } from "@jupyterlab/apputils";
 
-import {
-  KFP_SCHEMA,
-  IRuntime,
-  ISchema,
-  PipelineService,
-} from "./PipelineService";
 import { createFormBody } from "./utils";
 
 const KFP_FILE_TYPES = [
@@ -37,7 +31,6 @@ const AIRFLOW_FILE_TYPES = [
 
 interface Props {
   runtimes: IRuntime[];
-  schema: ISchema[];
 }
 
 interface IState {
@@ -163,11 +156,9 @@ class PipelineExportDialog extends React.Component<Props, IState> {
   }
 }
 
-export const exportPipeline = ({ runtimes, schema }: Props) => ({
+export const exportPipeline = ({ runtimes }: Props) => ({
   title: "Export pipeline",
-  body: createFormBody(
-    <PipelineExportDialog runtimes={runtimes} schema={schema} />
-  ),
+  body: createFormBody(<PipelineExportDialog runtimes={runtimes} />),
   buttons: [Dialog.cancelButton(), Dialog.okButton()],
   defaultButton: 1,
   focusNodeSelector: "#runtime_config",

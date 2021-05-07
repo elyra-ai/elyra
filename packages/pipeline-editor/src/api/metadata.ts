@@ -39,7 +39,9 @@ interface RuntimeImage {
 }
 
 interface Runtime {
-  bloop: string;
+  name: string;
+  display_name: string;
+  schema_name: string;
 }
 
 const useMetadata = <T extends keyof Requests>(x: T): Response<T> => {
