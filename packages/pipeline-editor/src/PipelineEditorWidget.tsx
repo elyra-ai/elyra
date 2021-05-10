@@ -16,6 +16,7 @@
 
 import { PipelineEditor, ThemeProvider } from '@elyra/pipeline-editor';
 import { validate } from '@elyra/pipeline-services';
+import { ContentParser } from '@elyra/services';
 import {
   IconUtil,
   clearPipelineIcon,
@@ -233,6 +234,25 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     });
+  };
+
+  const onPropertiesUpdateRequested = async (args: any): Promise<string[]> => {
+    const path = PipelineService.getWorkspaceRelativeNodePath(
+      contextRef.current.path,
+      args.filename
+    );
+    const env_vars = args.items;
+    const new_env_vars = await ContentParser.getEnvVars(
+      path
+    ).then((response: any) => response.map((str: string) => (str = str + '=')));
+    const merged_env_vars = [
+      ...env_vars,
+      ...new_env_vars.filter(
+        (new_var: string) =>
+          !env_vars.some((old_var: string) => old_var.startsWith(new_var))
+      )
+    ];
+    return merged_env_vars.filter(Boolean);
   };
 
   const handleOpenFile = (data: any): void => {
@@ -784,6 +804,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           onDoubleClickNode={handleOpenFile}
           onError={onError}
           onFileRequested={onFileRequested}
+          onPropertiesUpdateRequested={onPropertiesUpdateRequested}
         />
       </Dropzone>
     </ThemeProvider>
