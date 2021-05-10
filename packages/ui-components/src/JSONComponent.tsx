@@ -48,46 +48,42 @@ interface IProps {
  *
  * A slimmed down copy of the `Component` class in @jupyterlab/json-extension
  */
-export class JSONComponent extends React.Component<IProps> {
-  render(): React.ReactElement {
-    return (
-      <JSONTree
-        data={this.props.json}
-        theme={{
-          extend: theme,
-          valueLabel: 'cm-variable',
-          valueText: 'cm-string',
-          nestedNodeItemString: 'cm-comment'
-        }}
-        invertTheme={false}
-        hideRoot={true}
-        getItemString={(type, data, itemType, itemString): any =>
-          Array.isArray(data) ? (
-            // Always display array type and the number of items i.e. "[] 2 items".
-            <span>
-              {itemType} {itemString}
-            </span>
-          ) : Object.keys(data).length === 0 ? (
-            // Only display object type when it's empty i.e. "{}".
-            <span>{itemType}</span>
-          ) : (
-            null! // Upstream typings don't accept null, but it should be ok
-          )
-        }
-        labelRenderer={([label, type]): any => {
-          return <span className="cm-keyword">{`${label}: `}</span>;
-        }}
-        valueRenderer={(raw): any => {
-          let className = 'cm-string';
-          if (typeof raw === 'number') {
-            className = 'cm-number';
-          }
-          if (raw === 'true' || raw === 'false') {
-            className = 'cm-keyword';
-          }
-          return <span className={className}>{`${raw}`}</span>;
-        }}
-      />
-    );
-  }
-}
+export const JSONComponent: React.FC<IProps> = ({ json }) => (
+  <JSONTree
+    data={json}
+    theme={{
+      extend: theme,
+      valueLabel: 'cm-variable',
+      valueText: 'cm-string',
+      nestedNodeItemString: 'cm-comment'
+    }}
+    invertTheme={false}
+    hideRoot={true}
+    getItemString={(type, data, itemType, itemString): any =>
+      Array.isArray(data) ? (
+        // Always display array type and the number of items i.e. "[] 2 items".
+        <span>
+          {itemType} {itemString}
+        </span>
+      ) : Object.keys(data).length === 0 ? (
+        // Only display object type when it's empty i.e. "{}".
+        <span>{itemType}</span>
+      ) : (
+        null! // Upstream typings don't accept null, but it should be ok
+      )
+    }
+    labelRenderer={([label, type]): any => {
+      return <span className="cm-keyword">{`${label}: `}</span>;
+    }}
+    valueRenderer={(raw): any => {
+      let className = 'cm-string';
+      if (typeof raw === 'number') {
+        className = 'cm-number';
+      }
+      if (raw === 'true' || raw === 'false') {
+        className = 'cm-keyword';
+      }
+      return <span className={className}>{`${raw}`}</span>;
+    }}
+  />
+);
