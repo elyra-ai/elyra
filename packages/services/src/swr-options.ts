@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-export * from "./parsing";
-export * from "./metadata";
-export * from "./pipeline";
-export * from "./requests";
+import { SWRConfiguration } from "swr";
+
+const options: SWRConfiguration = {};
+
+export default options;

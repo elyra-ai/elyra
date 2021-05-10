@@ -17,7 +17,7 @@
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { PipelineEditor, ThemeProvider } from "@elyra/pipeline-editor";
-import { Config, useComponents, useRuntimeImages } from "@elyra/services";
+import { useComponents, useRuntimeImages } from "@elyra/services";
 import {
   IconUtil,
   clearPipelineIcon,
@@ -67,16 +67,14 @@ class PipelineEditorWidget extends ReactWidget {
 
   render(): any {
     return (
-      <Config>
-        <PipelineWrapper
-          context={this.context}
-          browserFactory={this.browserFactory}
-          shell={this.shell}
-          commands={this.commands}
-          addFileToPipelineSignal={this.addFileToPipelineSignal}
-          widgetId={this.parent?.id ?? ""}
-        />
-      </Config>
+      <PipelineWrapper
+        context={this.context}
+        browserFactory={this.browserFactory}
+        shell={this.shell}
+        commands={this.commands}
+        addFileToPipelineSignal={this.addFileToPipelineSignal}
+        widgetId={this.parent?.id ?? ""}
+      />
     );
   }
 }

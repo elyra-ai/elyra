@@ -16,8 +16,10 @@
 
 import useSWR from "swr";
 
+import fetcher from "./fetcher";
 import { IDictionary } from "./parsing";
 import { RequestHandler } from "./requests";
+import options from "./swr-options";
 
 const ELYRA_SCHEMA_API_ENDPOINT = "elyra/schema/";
 const ELYRA_METADATA_API_ENDPOINT = "elyra/metadata/";
@@ -51,7 +53,11 @@ interface Runtime {
 }
 
 const useMetadata = <T extends keyof Requests>(x: T): Response<T> => {
-  const { data, error } = useSWR<Request<T>>(`/${SERVICE}/${x}`);
+  const { data, error } = useSWR<Request<T>>(
+    `/${SERVICE}/${x}`,
+    fetcher,
+    options
+  );
   return { data: data?.[x], error };
 };
 

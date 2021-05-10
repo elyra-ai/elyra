@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import React, { FC } from "react";
-
 import { URLExt } from "@jupyterlab/coreutils";
 import { ServerConnection } from "@jupyterlab/services";
-import { SWRConfig } from "swr";
 
 const settings = ServerConnection.makeSettings({ baseUrl: "/elyra" });
 
-const fetcher = async (url: string): Promise<void> => {
+const fetcher = async (url: string) => {
   // ServerConnection utility handles JupyterLab token authentication.
   const res = await ServerConnection.makeRequest(
     URLExt.join(settings.baseUrl, url),
@@ -37,6 +34,4 @@ const fetcher = async (url: string): Promise<void> => {
   return res.json();
 };
 
-export const Config: FC = ({ children }) => {
-  return <SWRConfig value={{ fetcher }}>{children}</SWRConfig>;
-};
+export default fetcher;
