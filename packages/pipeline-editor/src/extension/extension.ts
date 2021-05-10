@@ -29,14 +29,11 @@ import {
   PipelineEditorFactory,
   RuntimeImagesWidget,
   RuntimesWidget,
-  SubmitNotebookButtonExtension,
-  SubmitScriptButtonExtension,
 } from "../widgets";
 import {
   createEditor,
   createExtension,
   createLeftPanelWidget,
-  createWidgetExtension,
   registerCommand,
   registerContextMenuCommands,
   registerLauncherCommands,
@@ -64,13 +61,13 @@ export default createExtension({
       icon: pipelineIcon,
     });
 
-    createWidgetExtension(ctx)(SubmitNotebookButtonExtension, {
-      widgets: ["Notebook"],
-    });
+    // createWidgetExtension(ctx)(SubmitNotebookButtonExtension, {
+    //   widgets: ["Notebook"],
+    // });
 
-    createWidgetExtension(ctx)(SubmitScriptButtonExtension, {
-      widgets: ["Python Editor", "R Editor"],
-    });
+    // createWidgetExtension(ctx)(SubmitScriptButtonExtension, {
+    //   widgets: ["Python Editor", "R Editor"],
+    // });
 
     createLeftPanelWidget(ctx)(RuntimesWidget, {
       id: "elyra-metadata:runtimes",

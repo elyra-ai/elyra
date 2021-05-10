@@ -14,129 +14,131 @@
  * limitations under the License.
  */
 
-import { ContentParser } from "@elyra/services";
-import { RequestErrors, showFormDialog } from "@elyra/ui-components";
-import { showDialog, ToolbarButton } from "@jupyterlab/apputils";
-import { DocumentRegistry } from "@jupyterlab/docregistry";
-import { INotebookModel, NotebookPanel } from "@jupyterlab/notebook";
-import { IDisposable } from "@lumino/disposable";
+// import { ContentParser } from "@elyra/services";
+// import { RequestErrors, showFormDialog } from "@elyra/ui-components";
+// import { showDialog, ToolbarButton } from "@jupyterlab/apputils";
+// import { DocumentRegistry } from "@jupyterlab/docregistry";
+// import { INotebookModel, NotebookPanel } from "@jupyterlab/notebook";
+// import { IDisposable } from "@lumino/disposable";
 
-import { submitFile, unsavedChanges } from "../dialogs";
+// import { submitFile, unsavedChanges } from "../dialogs";
 
-/**
- * Submit notebook button extension
- *  - Attach button to notebook toolbar and launch a dialog requesting
- *  information about the remote location to where submit the notebook
- *  for execution
- */
-export class SubmitNotebookButtonExtension
-  implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
-  showWidget = async (panel: NotebookPanel): Promise<void> => {
-    if (panel.model?.dirty) {
-      const dialogResult = await showDialog(
-        unsavedChanges({ type: "notebook" })
-      );
-      if (dialogResult.button && dialogResult.button.accept === true) {
-        await panel.context.save();
-      } else {
-        // Don't proceed if cancel button pressed
-        return;
-      }
-    }
+export class SubmitNotebookButtonExtension {}
 
-    const env = await ContentParser.getEnvVars(
-      panel.context.path.toString()
-    ).catch((error) => RequestErrors.serverError(error));
-    const action = "run notebook as pipeline";
-    const runtimes = await PipelineService.getRuntimes(
-      true,
-      action
-    ).catch((error) => RequestErrors.serverError(error));
+// /**
+//  * Submit notebook button extension
+//  *  - Attach button to notebook toolbar and launch a dialog requesting
+//  *  information about the remote location to where submit the notebook
+//  *  for execution
+//  */
+// export class SubmitNotebookButtonExtension
+//   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
+//   showWidget = async (panel: NotebookPanel): Promise<void> => {
+//     if (panel.model?.dirty) {
+//       const dialogResult = await showDialog(
+//         unsavedChanges({ type: "notebook" })
+//       );
+//       if (dialogResult.button && dialogResult.button.accept === true) {
+//         await panel.context.save();
+//       } else {
+//         // Don't proceed if cancel button pressed
+//         return;
+//       }
+//     }
 
-    if (Utils.isDialogResult(runtimes)) {
-      if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
-        // Open the runtimes widget
-        Utils.getLabShell(panel).activateById(
-          `elyra-metadata:${RUNTIMES_NAMESPACE}`
-        );
-      }
-      return;
-    }
+//     const env = await ContentParser.getEnvVars(
+//       panel.context.path.toString()
+//     ).catch((error) => RequestErrors.serverError(error));
+//     const action = "run notebook as pipeline";
+//     const runtimes = await PipelineService.getRuntimes(
+//       true,
+//       action
+//     ).catch((error) => RequestErrors.serverError(error));
 
-    const images = await PipelineService.getRuntimeImages().catch((error) =>
-      RequestErrors.serverError(error)
-    );
-    const schema = await PipelineService.getRuntimesSchema().catch((error) =>
-      RequestErrors.serverError(error)
-    );
+//     if (Utils.isDialogResult(runtimes)) {
+//       if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+//         // Open the runtimes widget
+//         Utils.getLabShell(panel).activateById(
+//           `elyra-metadata:${RUNTIMES_NAMESPACE}`
+//         );
+//       }
+//       return;
+//     }
 
-    const dialogOptions = submitFile({
-      type: "notebook",
-      env,
-      dependencyFileExtension: ".py",
-      runtimes,
-      images,
-      schema,
-    });
+//     const images = await PipelineService.getRuntimeImages().catch((error) =>
+//       RequestErrors.serverError(error)
+//     );
+//     const schema = await PipelineService.getRuntimesSchema().catch((error) =>
+//       RequestErrors.serverError(error)
+//     );
 
-    const dialogResult = await showFormDialog(dialogOptions);
+//     const dialogOptions = submitFile({
+//       type: "notebook",
+//       env,
+//       dependencyFileExtension: ".py",
+//       runtimes,
+//       images,
+//       schema,
+//     });
 
-    if (dialogResult.value == null) {
-      // When Cancel is clicked on the dialog, just return
-      return;
-    }
+//     const dialogResult = await showFormDialog(dialogOptions);
 
-    const {
-      runtime_platform,
-      runtime_config,
-      framework,
-      cpu,
-      gpu,
-      memory,
-      dependency_include,
-      dependencies,
-      ...envObject
-    } = dialogResult.value;
+//     if (dialogResult.value == null) {
+//       // When Cancel is clicked on the dialog, just return
+//       return;
+//     }
 
-    // prepare notebook submission details
-    const pipeline = Utils.generateSingleFilePipeline(
-      panel.context.path,
-      runtime_platform,
-      runtime_config,
-      framework,
-      dependency_include ? dependencies : undefined,
-      envObject,
-      cpu,
-      gpu,
-      memory
-    );
+//     const {
+//       runtime_platform,
+//       runtime_config,
+//       framework,
+//       cpu,
+//       gpu,
+//       memory,
+//       dependency_include,
+//       dependencies,
+//       ...envObject
+//     } = dialogResult.value;
 
-    const displayName = PipelineService.getDisplayName(
-      runtime_config,
-      runtimes
-    );
+//     // prepare notebook submission details
+//     const pipeline = Utils.generateSingleFilePipeline(
+//       panel.context.path,
+//       runtime_platform,
+//       runtime_config,
+//       framework,
+//       dependency_include ? dependencies : undefined,
+//       envObject,
+//       cpu,
+//       gpu,
+//       memory
+//     );
 
-    PipelineService.submitPipeline(pipeline, displayName).catch((error) =>
-      RequestErrors.serverError(error)
-    );
-  };
+//     const displayName = PipelineService.getDisplayName(
+//       runtime_config,
+//       runtimes
+//     );
 
-  createNew(
-    panel: NotebookPanel,
-    context: DocumentRegistry.IContext<INotebookModel>
-  ): IDisposable {
-    // Create the toolbar button
-    const submitNotebookButton = new ToolbarButton({
-      label: "Run as Pipeline",
-      onClick: (): any => this.showWidget(panel),
-      tooltip: "Run notebook as batch",
-    });
+//     PipelineService.submitPipeline(pipeline, displayName).catch((error) =>
+//       RequestErrors.serverError(error)
+//     );
+//   };
 
-    // Add the toolbar button to the notebook
-    panel.toolbar.insertItem(10, "submitNotebook", submitNotebookButton);
+//   createNew(
+//     panel: NotebookPanel,
+//     context: DocumentRegistry.IContext<INotebookModel>
+//   ): IDisposable {
+//     // Create the toolbar button
+//     const submitNotebookButton = new ToolbarButton({
+//       label: "Run as Pipeline",
+//       onClick: (): any => this.showWidget(panel),
+//       tooltip: "Run notebook as batch",
+//     });
 
-    // The ToolbarButton class implements `IDisposable`, so the
-    // button *is* the extension for the purposes of this method.
-    return submitNotebookButton;
-  }
-}
+//     // Add the toolbar button to the notebook
+//     panel.toolbar.insertItem(10, "submitNotebook", submitNotebookButton);
+
+//     // The ToolbarButton class implements `IDisposable`, so the
+//     // button *is* the extension for the purposes of this method.
+//     return submitNotebookButton;
+//   }
+// }
