@@ -1,3 +1,18 @@
 {
-  "components": []
+  "components": [
+    {
+      "name": "Slack Operator",
+      "id": "slack-operator",
+      "path": {
+        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/slack_operator.py"
+      }
+    },
+    {
+      "name": "Spark Sql Op",
+      "id": "spark-sql-op",
+      "path": {
+        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py"
+      }
+    }
+  ]
 }

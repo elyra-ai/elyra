@@ -58,7 +58,7 @@ default_current_parameters = {
 
 
 def get_id_from_name(name):
-    return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-')
+    return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-').replace('_', '-')
 
 
 def set_node_type_data(id, label, description):
@@ -138,7 +138,7 @@ class ComponentParser(SingletonConfigurable):
         with open(catalog_file, 'a') as f:
             f.write(json.dumps(catalog_json))
 
-    def parse_component_details(self, component):
+    def parse_component_details(self, component, component_name):
         """Get component name, id, description for palette JSON"""
         pass
 
@@ -153,7 +153,7 @@ class KfpComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse_component_details(self, component_body):
+    def parse_component_details(self, component_body, component_name=None):
         component_json = {
             'label': component_body['name'],
             'image': "",
@@ -175,6 +175,8 @@ class KfpComponentParser(ComponentParser):
         '''
         # Start with generic properties
         component_parameters = self.get_common_config('properties')
+
+        print("BODYY: " + repr(component_body))
 
         # TODO Do we need to/should we pop these?
         for element in ['runtime_image', 'env_vars', 'dependencies', 'outputs', 'include_subdirectories']:
@@ -282,8 +284,26 @@ class AirflowComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse_component_details(self, component_filename):
-        return None
+    def parse_component_details(self, component_body, component_name):
+        # TODO: Maybe use this loop to get description?
+        for line in component_body:
+            print(line)
+
+        label = ' '.join(component_name.split('_')).title()
+        description = ""
+
+        component_json = {
+            'label': label,
+            'image': "",
+            'id': get_id_from_name(label),
+            'description': ' '.join(description.split()),
+            'node_types': []
+        }
+
+        node_type = set_node_type_data(get_id_from_name(label), label, description)
+        component_json['node_types'].append(node_type)
+
+        return component_json
 
     def parse_component_properties(self, component):
         return None
@@ -310,13 +330,17 @@ class FilesystemComponentReader(ComponentReader):
         component_dir = os.path.join(os.path.dirname(__file__), self._dir_path)
         component_file = os.path.join(component_dir, component_path)
 
+        component_extension = os.path.splitext(component_path)[-1]
         with open(component_file, 'r') as f:
-            try:
-                component_yaml = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                raise RuntimeError from e
-
-        return component_yaml
+            if component_extension == '.yaml':
+                try:
+                    return yaml.safe_load(f), None
+                except yaml.YAMLError as e:
+                    raise RuntimeError from e
+            elif component_extension == '.py':
+                return f.readlines()
+            else:
+                raise ValueError(f'File type {component_extension} is not supported.')
 
 
 class UrlComponentReader(ComponentReader):
@@ -327,15 +351,19 @@ class UrlComponentReader(ComponentReader):
         super().__init__()
 
     def get_component_body(self, component_path):
-        try:
-            component_body = urllib.request.urlopen(component_path)
-            component_yaml = yaml.safe_load(component_body)
-        except yaml.YAMLError as e:
-            raise RuntimeError from e
-        except Exception as e:
-            raise RuntimeError from e
+        parsed_path = urllib.parse.urlparse(component_path).path
+        component_name, component_extension = os.path.splitext(parsed_path)
+        component_body = urllib.request.urlopen(component_path)
 
-        return component_yaml
+        if component_extension == ".yaml":
+            try:
+                return yaml.safe_load(component_body), None
+            except yaml.YAMLError as e:
+                raise RuntimeError from e
+        elif component_extension == ".py":
+            return component_body.readlines(), component_name.split('/')[-1]
+        else:
+            raise ValueError(f'File type {component_extension} is not supported.')
 
 
 class ComponentRegistry(SingletonConfigurable):
@@ -372,10 +400,10 @@ class ComponentRegistry(SingletonConfigurable):
             if reader is None or reader._type != list(component['path'].keys())[0]:
                 reader = self._get_reader(component)
 
-            component_body = reader.get_component_body(component['path'][reader._type])
+            component_body, component_name = reader.get_component_body(component['path'][reader._type])
 
             # Parse the component definition in order to add to palette
-            component_json = parser.parse_component_details(component_body)
+            component_json = parser.parse_component_details(component_body, component_name)
             if component_json is None:
                 continue
             components['categories'].append(component_json)
@@ -400,7 +428,7 @@ class ComponentRegistry(SingletonConfigurable):
             reader = self._get_reader(component)
 
             component_path = component['path'][reader._type]
-            component_body = reader.get_component_body(component_path)
+            component_body, _ = reader.get_component_body(component_path)
             properties = parser.parse_component_properties(component_body)
 
         return properties
