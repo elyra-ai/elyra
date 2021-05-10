@@ -14,26 +14,17 @@
  * limitations under the License.
  */
 
-import {
-  containerIcon,
-  pipelineIcon,
-  runtimesIcon,
-} from "@elyra/ui-components";
+import { pipelineIcon } from "@elyra/ui-components";
 import { ILayoutRestorer } from "@jupyterlab/application";
 import { ICommandPalette, IThemeManager } from "@jupyterlab/apputils";
 import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 import { ILauncher } from "@jupyterlab/launcher";
 import { IMainMenu } from "@jupyterlab/mainmenu";
 
-import {
-  PipelineEditorFactory,
-  RuntimeImagesWidget,
-  RuntimesWidget,
-} from "../widgets";
+import { PipelineEditorFactory } from "../widgets";
 import {
   createEditor,
   createExtension,
-  createLeftPanelWidget,
   registerCommand,
   registerContextMenuCommands,
   registerLauncherCommands,
@@ -69,19 +60,19 @@ export default createExtension({
     //   widgets: ["Python Editor", "R Editor"],
     // });
 
-    createLeftPanelWidget(ctx)(RuntimesWidget, {
-      id: "elyra-metadata:runtimes",
-      caption: "Runtimes",
-      icon: runtimesIcon,
-      rank: 950,
-    });
+    // createLeftPanelWidget(ctx)(RuntimesWidget, {
+    //   id: "elyra-metadata:runtimes",
+    //   caption: "Runtimes",
+    //   icon: runtimesIcon,
+    //   rank: 950,
+    // });
 
-    createLeftPanelWidget(ctx)(RuntimeImagesWidget, {
-      id: "elyra-metadata:runtime-images",
-      caption: "Runtime Images",
-      icon: containerIcon,
-      rank: 951,
-    });
+    // createLeftPanelWidget(ctx)(RuntimeImagesWidget, {
+    //   id: "elyra-metadata:runtime-images",
+    //   caption: "Runtime Images",
+    //   icon: containerIcon,
+    //   rank: 951,
+    // });
 
     registerCommand(ctx)("pipeline-editor:add-node", (args) => {
       pipelineEditor.addFileToPipelineSignal.emit(args);
