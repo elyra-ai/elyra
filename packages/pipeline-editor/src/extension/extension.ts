@@ -87,19 +87,16 @@ export default createExtension({
       pipelineEditor.addFileToPipelineSignal.emit(args);
     });
 
-    registerCommand(ctx)("pipeline-editor:open", () => {
-      ctx.app.commands
-        .execute("docmanager:new-untitled", {
-          type: "file",
-          path: ctx.browserFactory.defaultBrowser.model.path,
-          ext: ".pipeline",
-        })
-        .then((model) => {
-          return ctx.app.commands.execute("docmanager:open", {
-            path: model.path,
-            // factory: PIPELINE_FACTORY
-          });
-        });
+    registerCommand(ctx)("pipeline-editor:open", async () => {
+      const model = await ctx.app.commands.execute("docmanager:new-untitled", {
+        type: "file",
+        path: ctx.browserFactory.defaultBrowser.model.path,
+        ext: ".pipeline",
+      });
+
+      await ctx.app.commands.execute("docmanager:open", {
+        path: model.path,
+      });
     });
 
     registerContextMenuCommands(ctx);

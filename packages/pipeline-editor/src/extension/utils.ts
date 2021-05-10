@@ -29,6 +29,7 @@ import {
   DocumentRegistry,
   DocumentWidget,
 } from "@jupyterlab/docregistry";
+import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 import { ILauncher } from "@jupyterlab/launcher";
 import { LabIcon } from "@jupyterlab/ui-components";
 import { Token } from "@lumino/coreutils";
@@ -64,21 +65,21 @@ export function createExtension<R extends TokenSet, O extends TokenSet>({
   optional,
   ...rest
 }: Options<R, O>): JupyterFrontEndPlugin<void> {
-  const req = Object.values(required);
-  const opt = Object.values(optional);
+  const req = Object.entries(required);
+  const opt = Object.entries(optional);
   return {
     ...rest,
-    requires: req,
-    optional: opt,
+    requires: req.map(([_k, v]) => v),
+    optional: opt.map(([_k, v]) => v),
     activate: (...args) => {
       let context: any = {
         app: args.shift(),
       };
-      for (const r of req) {
-        context[r.name] = args.shift();
+      for (const [k, _v] of req) {
+        context[k] = args.shift();
       }
-      for (const o of opt) {
-        context[o.name] = args.shift();
+      for (const [k, _v] of opt) {
+        context[k] = args.shift();
       }
       activate(context);
     },
@@ -91,6 +92,10 @@ interface AppContext {
 
 interface RestorerContext {
   restorer: ILayoutRestorer;
+}
+
+interface FileBrowserFactoryContext {
+  browserFactory: IFileBrowserFactory;
 }
 
 interface PaletteContext {
@@ -106,12 +111,24 @@ interface EditorOptions {
   icon: LabIcon;
 }
 
-export function createEditor({ app, restorer }: AppContext & RestorerContext) {
+export function createEditor({
+  app,
+  restorer,
+  browserFactory,
+}: AppContext & RestorerContext & FileBrowserFactoryContext) {
   return <T extends ABCWidgetFactory<DocumentWidget>>(
     Factory: { new (o: any): T },
     { extensions, icon }: EditorOptions
   ) => {
-    const factory = new Factory({});
+    const factory = new Factory({
+      name: "Pipeline Editor",
+      fileTypes: ["pipeline"],
+      defaultFor: ["pipeline"],
+      shell: app.shell,
+      commands: app.commands,
+      browserFactory: browserFactory,
+      serviceManager: app.serviceManager,
+    });
     // Add the default behavior of opening the widget for .pipeline files
     app.docRegistry.addFileType({
       name: "pipeline",

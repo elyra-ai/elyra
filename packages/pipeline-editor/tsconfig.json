@@ -1,10 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
-    "outDir": "dist",
+    "outDir": "lib",
     "jsx": "react-jsx",
     "declaration": true,
     "downlevelIteration": true,
