@@ -16,14 +16,8 @@
 
 import { Dialog } from "@jupyterlab/apputils";
 
-interface Options {
-  type: "notebook" | "script" | "pipeline";
-}
-
-export const unsavedChanges = ({ type }: Options) => ({
-  title: `This ${type} contains unsaved changes. To run the script as a pipeline the changes need to be saved.`,
-  buttons: [
-    Dialog.cancelButton(),
-    Dialog.okButton({ label: "Save and Submit" }),
-  ],
-});
+export const unsavedChanges = {
+  title:
+    "This file contains unsaved changes. To proceed, the changes need to be saved.",
+  buttons: [Dialog.cancelButton(), Dialog.okButton({ label: "Save" })],
+};

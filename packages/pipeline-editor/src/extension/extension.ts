@@ -53,12 +53,8 @@ export default createExtension({
       icon: pipelineIcon,
     });
 
-    // createWidgetExtension(ctx)(SubmitNotebookButtonExtension, {
-    //   widgets: ["Notebook"],
-    // });
-
-    // createWidgetExtension(ctx)(SubmitScriptButtonExtension, {
-    //   widgets: ["Python Editor", "R Editor"],
+    // createWidgetExtension(ctx)(SubmitFileButtonExtension, {
+    //   widgets: ["Notebook", "Python Editor", "R Editor"],
     // });
 
     // createLeftPanelWidget(ctx)(RuntimesWidget, {

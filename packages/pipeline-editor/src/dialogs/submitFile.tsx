@@ -187,13 +187,12 @@ const FileSubmissionDialog: FC<Props> = ({
 };
 
 export const submitFile = ({
-  type,
   env,
   dependencyFileExtension,
   runtimes,
   images,
-}: Props & { type: "notebook" | "script" }) => ({
-  title: `Run ${type} as pipeline`,
+}: Props) => ({
+  title: "Run file as pipeline",
   body: createFormBody(
     <FileSubmissionDialog
       env={env}
