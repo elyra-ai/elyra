@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
 import { PipelineEditor, ThemeProvider } from "@elyra/pipeline-editor";
 import { validate } from "@elyra/pipeline-services";
 import {
@@ -37,17 +39,12 @@ import {
   DocumentWidget,
   Context,
 } from "@jupyterlab/docregistry";
-
-import "carbon-components/css/carbon-components.min.css";
-
 import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 import { toArray } from "@lumino/algorithm";
 import { IDragEvent } from "@lumino/dragdrop";
 import { Signal } from "@lumino/signaling";
 import { Snackbar } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
-
-import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { formDialogWidget } from "./formDialogWidget";
 import nodes from "./nodes";

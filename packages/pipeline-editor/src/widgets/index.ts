@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-export * from "./Base";
 export * from "./PipelineEditor";
 export * from "./RuntimeImages";
 export * from "./Runtimes";
