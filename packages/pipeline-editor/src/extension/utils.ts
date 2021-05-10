@@ -19,12 +19,19 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
 } from "@jupyterlab/application";
-import { ICommandPalette, WidgetTracker } from "@jupyterlab/apputils";
-import { ABCWidgetFactory, DocumentWidget } from "@jupyterlab/docregistry";
+import {
+  ICommandPalette,
+  ReactWidget,
+  WidgetTracker,
+} from "@jupyterlab/apputils";
+import {
+  ABCWidgetFactory,
+  DocumentRegistry,
+  DocumentWidget,
+} from "@jupyterlab/docregistry";
 import { ILauncher } from "@jupyterlab/launcher";
 import { LabIcon } from "@jupyterlab/ui-components";
 import { Token } from "@lumino/coreutils";
-import { Widget } from "@lumino/widgets";
 
 import { commands, contextMenu, launcher, palette } from "./commands";
 
@@ -99,14 +106,12 @@ interface EditorOptions {
   icon: LabIcon;
 }
 
-export function createEditorWidget({
-  app,
-  restorer,
-}: AppContext & RestorerContext) {
-  return (
-    factory: ABCWidgetFactory<DocumentWidget>,
+export function createEditor({ app, restorer }: AppContext & RestorerContext) {
+  return <T extends ABCWidgetFactory<DocumentWidget>>(
+    Factory: { new (o: any): T },
     { extensions, icon }: EditorOptions
   ) => {
+    const factory = new Factory({});
     // Add the default behavior of opening the widget for .pipeline files
     app.docRegistry.addFileType({
       name: "pipeline",
@@ -138,6 +143,25 @@ export function createEditorWidget({
       }),
       name: (widget) => widget.context.path,
     });
+
+    return factory;
+  };
+}
+
+interface ExtensionOptions {
+  widgets: string[];
+}
+
+export function createWidgetExtension(ctx: AppContext) {
+  return <T extends DocumentRegistry.IWidgetExtension<any, any>>(
+    Extension: { new (): T },
+    { widgets }: ExtensionOptions
+  ) => {
+    const extension = new Extension();
+    for (const widget of widgets) {
+      ctx.app.docRegistry.addWidgetExtension(widget, extension);
+    }
+    return extension;
   };
 }
 
@@ -148,17 +172,20 @@ interface WidgetOptions {
   rank: number;
 }
 
-export function createLeftPanelWidget({
-  restorer,
-  app,
-}: AppContext & RestorerContext) {
-  return (widget: Widget, { id, icon, caption, rank }: WidgetOptions) => {
+export function createLeftPanelWidget(ctx: AppContext & RestorerContext) {
+  return <T extends ReactWidget>(
+    Widget: { new (ctx: any, o: any): T },
+    { id, icon, caption, rank, ...rest }: WidgetOptions
+  ) => {
+    const { restorer, app } = ctx;
+    const widget = new Widget(ctx, { id, caption, icon, ...rest });
     widget.id = id;
     widget.title.icon = icon;
     widget.title.caption = caption;
 
     restorer.add(widget, id);
     app.shell.add(widget, "left", { rank });
+    return widget;
   };
 }
 

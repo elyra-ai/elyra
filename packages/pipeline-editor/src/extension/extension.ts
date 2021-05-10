@@ -33,9 +33,10 @@ import {
   SubmitScriptButtonExtension,
 } from "../widgets";
 import {
-  createEditorWidget,
+  createEditor,
   createExtension,
   createLeftPanelWidget,
+  createWidgetExtension,
   registerCommand,
   registerContextMenuCommands,
   registerLauncherCommands,
@@ -58,16 +59,35 @@ export default createExtension({
   activate: (ctx) => {
     console.log("Elyra - pipeline-editor extension is activated!");
 
-    // Set up new widget Factory for .pipeline files
-    const pipelineEditorFactory = new PipelineEditorFactory({});
-
-    createEditorWidget(ctx)(pipelineEditorFactory, {
+    const pipelineEditor = createEditor(ctx)(PipelineEditorFactory, {
       extensions: [".pipeline"],
       icon: pipelineIcon,
     });
 
+    createWidgetExtension(ctx)(SubmitNotebookButtonExtension, {
+      widgets: ["Notebook"],
+    });
+
+    createWidgetExtension(ctx)(SubmitScriptButtonExtension, {
+      widgets: ["Python Editor", "R Editor"],
+    });
+
+    createLeftPanelWidget(ctx)(RuntimesWidget, {
+      id: "elyra-metadata:runtimes",
+      caption: "Runtimes",
+      icon: runtimesIcon,
+      rank: 950,
+    });
+
+    createLeftPanelWidget(ctx)(RuntimeImagesWidget, {
+      id: "elyra-metadata:runtime-images",
+      caption: "Runtime Images",
+      icon: containerIcon,
+      rank: 951,
+    });
+
     registerCommand(ctx)("pipeline-editor:add-node", (args) => {
-      pipelineEditorFactory.addFileToPipelineSignal.emit(args);
+      pipelineEditor.addFileToPipelineSignal.emit(args);
     });
 
     registerCommand(ctx)("pipeline-editor:open", () => {
@@ -89,52 +109,9 @@ export default createExtension({
     registerPaletteCommands(ctx);
     registerLauncherCommands(ctx);
 
-    // Add new pipeline to the file menu
     ctx.menu.fileMenu.newMenu.addGroup(
       [{ command: "pipeline-editor:open" }],
       30
     );
-
-    // SubmitNotebookButtonExtension initialization code
-    const notebookButtonExtension = new SubmitNotebookButtonExtension();
-    ctx.app.docRegistry.addWidgetExtension("Notebook", notebookButtonExtension);
-
-    // SubmitScriptButtonExtension initialization code
-    const scriptButtonExtension = new SubmitScriptButtonExtension();
-    ctx.app.docRegistry.addWidgetExtension(
-      "Python Editor",
-      scriptButtonExtension
-    );
-    ctx.app.docRegistry.addWidgetExtension("R Editor", scriptButtonExtension);
-
-    const runtimesWidget = new RuntimesWidget({
-      app: ctx.app,
-      themeManager: ctx.themeManager,
-      display_name: "Runtimes",
-      namespace: RUNTIMES_NAMESPACE,
-      icon: runtimesIcon,
-    });
-
-    createLeftPanelWidget(ctx)(runtimesWidget, {
-      id: `elyra-metadata:${RUNTIMES_NAMESPACE}`,
-      icon: runtimesIcon,
-      caption: "Runtimes",
-      rank: 950,
-    });
-
-    const runtimeImagesWidget = new RuntimeImagesWidget({
-      app: ctx.app,
-      themeManager: ctx.themeManager,
-      display_name: "Runtime Images",
-      namespace: RUNTIME_IMAGES_NAMESPACE,
-      icon: containerIcon,
-    });
-
-    createLeftPanelWidget(ctx)(runtimeImagesWidget, {
-      id: `elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`,
-      icon: containerIcon,
-      caption: "Runtime Images",
-      rank: 951,
-    });
   },
 });

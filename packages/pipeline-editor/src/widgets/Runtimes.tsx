@@ -17,14 +17,12 @@
 import React from "react";
 
 import {
-  MetadataWidget,
   IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps,
-  IMetadataDisplayState,
+  MetadataWidget,
 } from "@elyra/metadata-common";
 import { IDictionary } from "@elyra/services";
-import { RequestErrors } from "@elyra/ui-components";
 
 const RUNTIMES_METADATA_CLASS = "elyra-metadata-runtimes";
 
@@ -55,10 +53,7 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
 /**
  * A React Component for displaying the runtimes list.
  */
-class RuntimesDisplay extends MetadataDisplay<
-  IRuntimesDisplayProps,
-  IMetadataDisplayState
-> {
+class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     const apiEndpoint = addTrailingSlash(metadata.metadata.api_endpoint);
     const cosEndpoint = addTrailingSlash(metadata.metadata.cos_endpoint);
@@ -120,9 +115,9 @@ class RuntimesDisplay extends MetadataDisplay<
  */
 export class RuntimesWidget extends MetadataWidget {
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes(false).catch((error) =>
-      RequestErrors.serverError(error)
-    );
+    // return await PipelineService.getRuntimes(false).catch((error) =>
+    //   RequestErrors.serverError(error)
+    // );
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
@@ -143,7 +138,7 @@ export class RuntimesWidget extends MetadataWidget {
         metadata={metadata}
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
-        namespace={RUNTIMES_NAMESPACE}
+        namespace="runtimes"
         sortMetadata={true}
         schemas={this.schemas}
         className={RUNTIMES_METADATA_CLASS}

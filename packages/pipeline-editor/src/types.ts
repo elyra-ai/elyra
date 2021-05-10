@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-export * from "./Base";
-export * from "./PipelineEditor";
-export * from "./RuntimeImages";
-export * from "./Runtimes";
-export * from "./SubmitNotebookButton";
-export * from "./SubmitScriptButton";
+export interface Runtime {
+  name: string;
+  display_name: string;
+  schema_name: string;
+}

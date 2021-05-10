@@ -18,14 +18,9 @@ import React, { FC, useState } from "react";
 
 import { Dialog } from "@jupyterlab/apputils";
 
+import { Runtime } from "../types";
 import { chunkArray } from "../utils";
 import { createFormBody } from "./utils";
-
-interface Runtime {
-  name: string;
-  display_name: string;
-  schema_name: string;
-}
 
 interface Props {
   env: string[];
