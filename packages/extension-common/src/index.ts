@@ -21,6 +21,7 @@ import {
 } from "@jupyterlab/application";
 import {
   ICommandPalette,
+  IPaletteItem,
   ReactWidget,
   WidgetTracker,
 } from "@jupyterlab/apputils";
@@ -33,8 +34,7 @@ import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 import { ILauncher } from "@jupyterlab/launcher";
 import { LabIcon } from "@jupyterlab/ui-components";
 import { Token } from "@lumino/coreutils";
-
-import { commands, contextMenu, launcher, palette } from "./commands";
+import { ContextMenu } from "@lumino/widgets";
 
 type GetTypeOfToken<T> = T extends Token<infer Type> ? Type : never;
 
@@ -75,10 +75,10 @@ export function createExtension<R extends TokenSet, O extends TokenSet>({
       let context: any = {
         app: args.shift(),
       };
-      for (const [k, _v] of req) {
+      for (const [k] of req) {
         context[k] = args.shift();
       }
-      for (const [k, _v] of opt) {
+      for (const [k] of opt) {
         context[k] = args.shift();
       }
       activate(context);
@@ -206,7 +206,13 @@ export function createLeftPanelWidget(ctx: AppContext & RestorerContext) {
   };
 }
 
-export function registerCommand({ app }: AppContext) {
+interface Command {
+  command: string;
+  label: string;
+  icon: LabIcon;
+}
+
+export function registerCommand({ app }: AppContext, commands: Command[]) {
   return (command: string, callback: (...args: any[]) => any) => {
     const cmd = commands.find((c) => c.command === command);
 
@@ -223,19 +229,25 @@ export function registerCommand({ app }: AppContext) {
 }
 
 export function registerContextMenuCommands({ app }: AppContext) {
-  for (const cm of contextMenu) {
-    app.contextMenu.addItem(cm);
-  }
+  return (contextMenu: ContextMenu.IItemOptions[]) => {
+    for (const cm of contextMenu) {
+      app.contextMenu.addItem(cm);
+    }
+  };
 }
 
 export function registerPaletteCommands(c: PaletteContext) {
-  for (const p of palette) {
-    c.palette.addItem(p);
-  }
+  return (palette: IPaletteItem[]) => {
+    for (const p of palette) {
+      c.palette.addItem(p);
+    }
+  };
 }
 
 export function registerLauncherCommands(c: LauncherContext) {
-  for (const l of launcher) {
-    c.launcher.add(l);
-  }
+  return (launcher: ILauncher.IItemOptions[]) => {
+    for (const l of launcher) {
+      c.launcher.add(l);
+    }
+  };
 }

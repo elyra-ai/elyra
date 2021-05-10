@@ -19,7 +19,6 @@ import React, { FC, useState } from "react";
 import { Dialog } from "@jupyterlab/apputils";
 
 import { Runtime } from "../types";
-import { chunkArray } from "../utils";
 import { createFormBody } from "./utils";
 
 interface Props {
@@ -31,6 +30,12 @@ interface Props {
 
 interface EnvFormProps {
   env: string[];
+}
+
+function chunkArray<T>(arr: T[], n: number): T[][] {
+  return Array.from(Array(Math.ceil(arr.length / n)), (_, i) =>
+    arr.slice(i * n, i * n + n)
+  );
 }
 
 const EnvForm: FC<EnvFormProps> = ({ env }) => {

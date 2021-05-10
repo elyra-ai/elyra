@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+import {
+  createEditor,
+  createExtension,
+  registerCommand,
+  registerContextMenuCommands,
+  registerLauncherCommands,
+  registerPaletteCommands,
+} from "@elyra/extension-common";
 import { pipelineIcon } from "@elyra/ui-components";
 import { ILayoutRestorer } from "@jupyterlab/application";
 import { ICommandPalette, IThemeManager } from "@jupyterlab/apputils";
@@ -22,14 +30,7 @@ import { ILauncher } from "@jupyterlab/launcher";
 import { IMainMenu } from "@jupyterlab/mainmenu";
 
 import { PipelineEditorFactory } from "../widgets";
-import {
-  createEditor,
-  createExtension,
-  registerCommand,
-  registerContextMenuCommands,
-  registerLauncherCommands,
-  registerPaletteCommands,
-} from "./utils";
+import { commands, contextMenu, launcher, palette } from "./commands";
 
 export default createExtension({
   id: "pipeline",
@@ -74,11 +75,11 @@ export default createExtension({
     //   rank: 951,
     // });
 
-    registerCommand(ctx)("pipeline-editor:add-node", (args) => {
+    registerCommand(ctx, commands)("pipeline-editor:add-node", (args) => {
       pipelineEditor.addFileToPipelineSignal.emit(args);
     });
 
-    registerCommand(ctx)("pipeline-editor:open", async () => {
+    registerCommand(ctx, commands)("pipeline-editor:open", async () => {
       const model = await ctx.app.commands.execute("docmanager:new-untitled", {
         type: "file",
         path: ctx.browserFactory.defaultBrowser.model.path,
@@ -90,9 +91,9 @@ export default createExtension({
       });
     });
 
-    registerContextMenuCommands(ctx);
-    registerPaletteCommands(ctx);
-    registerLauncherCommands(ctx);
+    registerContextMenuCommands(ctx)(contextMenu);
+    registerPaletteCommands(ctx)(palette);
+    registerLauncherCommands(ctx)(launcher);
 
     ctx.menu.fileMenu.newMenu.addGroup(
       [{ command: "pipeline-editor:open" }],

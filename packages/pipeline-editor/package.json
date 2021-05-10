@@ -34,6 +34,7 @@
     "watch": "tsc -w"
   },
   "dependencies": {
+    "@elyra/extension-common": "^2.3.0-dev",
     "@elyra/metadata-common": "^2.3.0-dev",
     "@elyra/pipeline-editor": "^0.2.1",
     "@elyra/pipeline-services": "^0.2.1",

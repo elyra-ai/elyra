@@ -17,7 +17,7 @@
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { PipelineEditor, ThemeProvider } from "@elyra/pipeline-editor";
-import { Config } from "@elyra/services";
+import { Config, useComponents, useRuntimeImages } from "@elyra/services";
 import {
   IconUtil,
   clearPipelineIcon,
@@ -44,7 +44,6 @@ import { Signal } from "@lumino/signaling";
 import { Snackbar } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
 
-import { useComponents, useRuntimeImages } from "../api";
 import { clearPipeline, unsupportedFile, unknownError } from "../dialogs";
 import { theme } from "../theme";
 

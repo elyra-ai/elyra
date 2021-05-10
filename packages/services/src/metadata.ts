@@ -14,11 +14,55 @@
  * limitations under the License.
  */
 
+import useSWR from "swr";
+
 import { IDictionary } from "./parsing";
 import { RequestHandler } from "./requests";
 
 const ELYRA_SCHEMA_API_ENDPOINT = "elyra/schema/";
 const ELYRA_METADATA_API_ENDPOINT = "elyra/metadata/";
+
+const SERVICE = "metadata";
+
+interface Response<T extends keyof Requests> {
+  data: Requests[T] | undefined;
+  error: any;
+}
+
+type Request<T extends keyof Requests> = Pick<Requests, T>;
+
+interface Requests {
+  "runtime-images": RuntimeImage[];
+  runtimes: Runtime[];
+}
+
+interface RuntimeImage {
+  name: string;
+  display_name: string;
+  metadata: {
+    image_name: string;
+  };
+}
+
+interface Runtime {
+  name: string;
+  display_name: string;
+  schema_name: string;
+}
+
+const useMetadata = <T extends keyof Requests>(x: T): Response<T> => {
+  const { data, error } = useSWR<Request<T>>(`/${SERVICE}/${x}`);
+  return { data: data?.[x], error };
+};
+
+// TODO: sort runtime images on the server.
+export const useRuntimeImages = (): Response<"runtime-images"> => {
+  return useMetadata("runtime-images");
+};
+
+export const useRuntimes = (): Response<"runtimes"> => {
+  return useMetadata("runtimes");
+};
 
 /**
  * A service class for accessing the elyra api.

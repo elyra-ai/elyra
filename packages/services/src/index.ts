@@ -16,5 +16,6 @@
 
 export * from "./parsing";
 export * from "./metadata";
+export * from "./pipeline";
 export * from "./requests";
 export * from "./Config";
