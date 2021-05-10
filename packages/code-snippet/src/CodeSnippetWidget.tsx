@@ -22,7 +22,6 @@ import {
   IMetadata,
   IMetadataActionButton,
   IMetadataDisplayProps,
-  IMetadataDisplayState,
   IMetadataWidgetProps,
   MetadataDisplay,
   MetadataWidget,
@@ -88,10 +87,7 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
 /**
  * A React Component for code-snippets display list.
  */
-class CodeSnippetDisplay extends MetadataDisplay<
-  ICodeSnippetDisplayProps,
-  IMetadataDisplayState
-> {
+class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
 
   constructor(props: ICodeSnippetDisplayProps) {
@@ -520,6 +516,11 @@ export interface ICodeSnippetWidgetProps extends IMetadataWidgetProps {
  */
 export class CodeSnippetWidget extends MetadataWidget {
   props: ICodeSnippetWidgetProps;
+
+  constructor(props: ICodeSnippetWidgetProps) {
+    super(props);
+    this.props = props;
+  }
 
   // Request code snippets from server
   async fetchMetadata(): Promise<any> {
