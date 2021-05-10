@@ -57,112 +57,94 @@ export interface IExpandableComponentProps {
   onMouseDown?: (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => any;
 }
 
-export interface IExpandableComponentState {
-  expanded: boolean;
-}
-
 /**
  * A React component for expandable containers.
  */
-export class ExpandableComponent extends React.Component<
-  IExpandableComponentProps,
-  IExpandableComponentState
-> {
-  constructor(props: IExpandableComponentProps) {
-    super(props);
-    this.state = { expanded: false };
-  }
+export const ExpandableComponent: React.FC<IExpandableComponentProps> = props => {
+  const [expanded, setExpandedValue] = React.useState(false);
 
-  toggleDetailsDisplay(): void {
+  const toggleDetailsDisplay = (): void => {
     // Switch expanded flag
-    const newExpandFlag = !this.state.expanded;
-    if (this.props.onBeforeExpand) {
-      this.props.onBeforeExpand(newExpandFlag);
+    const newExpandFlag = !expanded;
+    if (props.onBeforeExpand) {
+      props.onBeforeExpand(newExpandFlag);
     }
-    this.setState({ expanded: newExpandFlag });
-  }
+    setExpandedValue(newExpandFlag);
+  };
 
-  componentDidUpdate(): void {
-    if (this.props.onExpand) {
-      this.props.onExpand(this.state.expanded);
-    }
-  }
+  React.useEffect((): void => {
+    props.onExpand && props.onExpand(expanded);
+  });
 
-  render(): React.ReactElement {
-    const buttonClasses = [ELYRA_BUTTON_CLASS, BUTTON_CLASS].join(' ');
-    const actionButtons = this.props.actionButtons || [];
+  const buttonClasses = [ELYRA_BUTTON_CLASS, BUTTON_CLASS].join(' ');
+  const actionButtons = props.actionButtons || [];
 
-    return (
-      <div>
-        <div key={this.props.displayName} className={TITLE_CLASS}>
-          <button
-            className={buttonClasses}
-            title={this.state.expanded ? 'Hide Details' : 'Show Details'}
-            onClick={(): void => {
-              this.toggleDetailsDisplay();
-            }}
-          >
-            {this.state.expanded ? (
-              <caretDownIcon.react
-                tag="span"
-                elementPosition="center"
-                width="20px"
-              />
-            ) : (
-              <caretRightIcon.react
-                tag="span"
-                elementPosition="center"
-                width="20px"
-              />
-            )}
-          </button>
-          <span
-            title={this.props.tooltip}
-            className={
-              this.props.onMouseDown
-                ? DISPLAY_NAME_CLASS
-                : DISPLAY_NAME_CLASS + ' ' + DRAGGABLE_CLASS
-            }
-            onClick={(): void => {
-              this.toggleDetailsDisplay();
-            }}
-            onMouseDown={(event): void => {
-              this.props.onMouseDown && this.props.onMouseDown(event);
-            }}
-          >
-            {this.props.displayName}
-          </span>
-
-          <div className={ACTION_BUTTONS_WRAPPER_CLASS}>
-            {actionButtons.map((btn: IExpandableActionButton) => {
-              return (
-                <FeedbackButton
-                  key={btn.title}
-                  title={btn.title}
-                  feedback={btn.feedback || ''}
-                  className={buttonClasses + ' ' + ACTION_BUTTON_CLASS}
-                  onClick={(): void => {
-                    btn.onClick();
-                  }}
-                >
-                  <btn.icon.react
-                    tag="span"
-                    elementPosition="center"
-                    width="16px"
-                  />
-                </FeedbackButton>
-              );
-            })}
-          </div>
-        </div>
-        <div
-          className={
-            this.state.expanded ? DETAILS_VISIBLE_CLASS : DETAILS_HIDDEN_CLASS
-          }
+  return (
+    <div>
+      <div key={props.displayName} className={TITLE_CLASS}>
+        <button
+          className={buttonClasses}
+          title={expanded ? 'Hide Details' : 'Show Details'}
+          onClick={(): void => {
+            toggleDetailsDisplay();
+          }}
         >
-          {this.props.children ? this.props.children : null}
+          {expanded ? (
+            <caretDownIcon.react
+              tag="span"
+              elementPosition="center"
+              width="20px"
+            />
+          ) : (
+            <caretRightIcon.react
+              tag="span"
+              elementPosition="center"
+              width="20px"
+            />
+          )}
+        </button>
+        <span
+          title={props.tooltip}
+          className={
+            props.onMouseDown
+              ? DISPLAY_NAME_CLASS
+              : DISPLAY_NAME_CLASS + ' ' + DRAGGABLE_CLASS
+          }
+          onClick={(): void => {
+            toggleDetailsDisplay();
+          }}
+          onMouseDown={(event): void => {
+            props.onMouseDown && props.onMouseDown(event);
+          }}
+        >
+          {props.displayName}
+        </span>
+
+        <div className={ACTION_BUTTONS_WRAPPER_CLASS}>
+          {actionButtons.map((btn: IExpandableActionButton) => {
+            return (
+              <FeedbackButton
+                key={btn.title}
+                title={btn.title}
+                feedback={btn.feedback || ''}
+                className={buttonClasses + ' ' + ACTION_BUTTON_CLASS}
+                onClick={(): void => {
+                  btn.onClick();
+                }}
+              >
+                <btn.icon.react
+                  tag="span"
+                  elementPosition="center"
+                  width="16px"
+                />
+              </FeedbackButton>
+            );
+          })}
         </div>
       </div>
-    );
-  }
-}
+      <div className={expanded ? DETAILS_VISIBLE_CLASS : DETAILS_HIDDEN_CLASS}>
+        {props.children || null}
+      </div>
+    </div>
+  );
+};
