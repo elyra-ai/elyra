@@ -14,121 +14,107 @@
  * limitations under the License.
  */
 
+import React, { FC, useState } from "react";
+
 import { Dialog } from "@jupyterlab/apputils";
 
 import { createFormBody } from "./utils";
 
+interface Runtime {
+  name: string;
+  display_name: string;
+  schema_name: string;
+}
+
 interface Props {
   name: string;
-  runtimes: IRuntime[];
-  schema: ISchema[];
-  runtime?: string;
+  runtimes: Runtime[];
+  platform?: string;
 }
 
-interface IState {
-  validSchemas: ISchema[];
-  selectedRuntimePlatform?: string;
-}
+const PipelineSubmissionDialog: FC<Props> = ({ name, runtimes, platform }) => {
+  // TODO: WHAT DOES THIS DO?@?@@?@?@?@?!!!!?!? CONFUSION!
+  const validSchemas = runtimes.filter((r) =>
+    runtimes.some((rr) => rr.schema_name === r.name)
+  );
 
-export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
-  state: IState = {
-    validSchemas: new Array<ISchema>(),
+  const [selectedPlatform, setSelectedPlatform] = useState(
+    validSchemas[0]?.name
+  );
+
+  const handlePlatformChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPlatform(e.target.value);
   };
 
-  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const selectedPlatform = event.target.value;
+  const filteredRuntimeOptions = runtimes.filter(
+    (r) => r.schema_name === platform ?? selectedPlatform
+  );
 
-    this.setState({
-      selectedRuntimePlatform: selectedPlatform,
-    });
-  };
+  // TODO: Doesn't this happen when fetched?
+  filteredRuntimeOptions.sort((r1, r2) =>
+    r1.display_name.localeCompare(r2.display_name)
+  );
 
-  getRuntimeOptions = (platformSelection?: string): IRuntime[] => {
-    const filteredRuntimeOptions = PipelineService.filterRuntimes(
-      this.props.runtimes,
-      platformSelection ??
-        this.props.runtime ??
-        (this.props.schema[0] && this.props.schema[0].name)
-    );
-    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-    return filteredRuntimeOptions;
-  };
+  return (
+    <form className="elyra-dialog-form">
+      <label htmlFor="pipeline_name">Pipeline Name:</label>
+      <br />
+      <input
+        type="text"
+        id="pipeline_name"
+        name="pipeline_name"
+        defaultValue={name}
+        data-form-required
+      />
+      <br />
+      <br />
+      {/* If a platform is provided, it cannot be changed. */}
+      {platform === undefined && (
+        <div>
+          <label htmlFor="runtime_platform">Runtime Platform:</label>
+          <br />
+          <select
+            id="runtime_platform"
+            name="runtime_platform"
+            className="elyra-form-runtime-platform"
+            data-form-required
+            value={selectedPlatform}
+            onChange={handlePlatformChange}
+          >
+            {validSchemas.map((schema) => (
+              <option key={schema.name} value={schema.name}>
+                {schema.display_name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <label htmlFor="runtime_config">Runtime Configuration:</label>
+      <br />
+      <select
+        id="runtime_config"
+        name="runtime_config"
+        className="elyra-form-runtime-config"
+        data-form-required
+      >
+        {filteredRuntimeOptions.map((runtime) => (
+          <option key={runtime.name} value={runtime.name}>
+            {runtime.display_name}
+          </option>
+        ))}
+      </select>
+    </form>
+  );
+};
 
-  componentDidMount(): void {
-    const { schema, runtimes } = this.props;
-
-    this.setState({
-      validSchemas: PipelineService.filterValidSchema(runtimes, schema),
-    });
-  }
-
-  render(): React.ReactNode {
-    const { name } = this.props;
-    const { selectedRuntimePlatform, validSchemas } = this.state;
-    const displayedRuntimeOptions = this.getRuntimeOptions(
-      selectedRuntimePlatform
-    );
-
-    return (
-      <form className="elyra-dialog-form">
-        <label htmlFor="pipeline_name">Pipeline Name:</label>
-        <br />
-        <input
-          type="text"
-          id="pipeline_name"
-          name="pipeline_name"
-          defaultValue={name}
-          data-form-required
-        />
-        <br />
-        <br />
-        {!this.props.runtime && (
-          <div>
-            <label htmlFor="runtime_platform">Runtime Platform:</label>
-            <br />
-            <select
-              id="runtime_platform"
-              name="runtime_platform"
-              className="elyra-form-runtime-platform"
-              data-form-required
-              value={
-                selectedRuntimePlatform ??
-                this.props.runtime ??
-                (this.props.schema[0] && this.props.schema[0].name)
-              }
-              onChange={this.handleUpdate}
-            >
-              {validSchemas.map((schema) => (
-                <option key={schema.name} value={schema.name}>
-                  {schema.display_name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        <label htmlFor="runtime_config">Runtime Configuration:</label>
-        <br />
-        <select
-          id="runtime_config"
-          name="runtime_config"
-          className="elyra-form-runtime-config"
-          data-form-required
-        >
-          {displayedRuntimeOptions.map((runtime) => (
-            <option key={runtime.name} value={runtime.name}>
-              {runtime.display_name}
-            </option>
-          ))}
-        </select>
-      </form>
-    );
-  }
-}
-
-export const submitPipeline = ({ name, runtimes, schema }: Props) => ({
+export const submitPipeline = ({ name, runtimes, platform }: Props) => ({
   title: "Run pipeline",
   body: createFormBody(
-    <PipelineSubmissionDialog name={name} runtimes={runtimes} schema={schema} />
+    <PipelineSubmissionDialog
+      name={name}
+      runtimes={runtimes}
+      platform={platform}
+    />
   ),
   buttons: [Dialog.cancelButton(), Dialog.okButton()],
   defaultButton: 1,

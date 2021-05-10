@@ -72,58 +72,33 @@ const EnvForm: FC<EnvFormProps> = ({ env }) => {
 const FileSubmissionDialog: FC<Props> = ({
   env,
   images,
+  runtimes,
   dependencyFileExtension,
 }) => {
   const [includeDependency, setIncludeDependency] = useState(true);
-  // state = {
-  //   displayedRuntimeOptions: new Array<IRuntime>(),
-  //   includeDependency: true,
-  //   selectedRuntimePlatform: "",
-  //   validSchemas: new Array<ISchema>(),
-  // };
+  const [selectedPlatform, setSelectedPlatform] = useState(runtimes[0]?.name);
+
+  const handlePlatformChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPlatform(e.target.value);
+  };
 
   const handleCheckboxChange = () => {
     setIncludeDependency((prev) => !prev);
   };
 
-  // handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-  //   const selectedPlatform = event.target.value;
-  //   this.setState({
-  //     displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
-  //     selectedRuntimePlatform: selectedPlatform,
-  //   });
-  // };
+  // TODO: WHAT DOES THIS DO?@?@@?@?@?@?!!!!?!? CONFUSION!
+  const validSchemas = runtimes.filter((r) =>
+    runtimes.some((rr) => rr.schema_name === r.name)
+  );
 
-  // updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
-  //   const filteredRuntimeOptions = PipelineService.filterRuntimes(
-  //     this.props.runtimes,
-  //     platformSelection
-  //   );
-  //   PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-  //   return filteredRuntimeOptions;
-  // };
+  const filteredRuntimeOptions = runtimes.filter(
+    (r) => r.schema_name === selectedPlatform
+  );
 
-  // componentDidMount(): void {
-  //   const { schema, runtimes } = this.props;
-
-  //   const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
-  //   const selectedRuntimePlatform = validSchemas[0] && validSchemas[0].name;
-  //   const displayedRuntimeOptions = this.updateRuntimeOptions(
-  //     selectedRuntimePlatform
-  //   );
-
-  //   this.setState({
-  //     displayedRuntimeOptions: displayedRuntimeOptions,
-  //     selectedRuntimePlatform: selectedRuntimePlatform,
-  //     validSchemas: validSchemas,
-  //   });
-  // }
-
-  // const {
-  //   displayedRuntimeOptions,
-  //   includeDependency,
-  //   validSchemas,
-  // } = this.state;
+  // TODO: Doesn't this happen when fetched?
+  filteredRuntimeOptions.sort((r1, r2) =>
+    r1.display_name.localeCompare(r2.display_name)
+  );
 
   const fileDependencyContent = includeDependency ? (
     <div key="dependencies">
@@ -148,7 +123,7 @@ const FileSubmissionDialog: FC<Props> = ({
         id="runtime_platform"
         name="runtime_platform"
         className="elyra-form-runtime-platform"
-        onChange={this.handleUpdate}
+        onChange={handlePlatformChange}
       >
         {validSchemas.map((schema) => (
           <option key={schema.name} value={schema.name}>
@@ -163,7 +138,7 @@ const FileSubmissionDialog: FC<Props> = ({
         name="runtime_config"
         className="elyra-form-runtime-config"
       >
-        {displayedRuntimeOptions.map((runtime) => (
+        {filteredRuntimeOptions.map((runtime) => (
           <option key={runtime.name} value={runtime.name}>
             {runtime.display_name}
           </option>
