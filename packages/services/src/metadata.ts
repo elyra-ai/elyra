@@ -27,8 +27,8 @@ const ELYRA_METADATA_API_ENDPOINT = "elyra/metadata/";
 const SERVICE = "metadata";
 
 interface Response<T extends keyof Requests> {
-  data: Requests[T] | undefined;
-  error: any;
+  data?: Requests[T] | undefined;
+  error?: any;
 }
 
 type Request<T extends keyof Requests> = Pick<Requests, T>;
@@ -68,6 +68,23 @@ export const useRuntimeImages = (): Response<"runtime-images"> => {
 
 export const useRuntimes = (): Response<"runtimes"> => {
   return useMetadata("runtimes");
+};
+
+const getMetadata = async <T extends keyof Requests>(
+  ns: T
+): Promise<Requests[T]> => {
+  const data = await fetcher<Request<T>>(`/${SERVICE}/${ns}`);
+  return data[ns];
+};
+
+export const getRuntimeImages = async (): Promise<
+  Requests["runtime-images"]
+> => {
+  return await getMetadata("runtime-images");
+};
+
+export const getRuntimes = async (): Promise<Requests["runtimes"]> => {
+  return await getMetadata("runtimes");
 };
 
 /**

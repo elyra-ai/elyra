@@ -19,7 +19,7 @@ import nodes from "./nodes";
 
 // const SERVICE = 'pipeline';
 
-export const submitPipeline = (): void => {
+export const submitPipeline = (pipeline: any, runtimeName: string) => {
   // POST elyra/pipeline/schedule
 };
 

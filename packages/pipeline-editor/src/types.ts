@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
+// TODO: These should come from services.
 export interface Runtime {
   name: string;
   display_name: string;
   schema_name: string;
+}
+
+export interface RuntimeImage {
+  name: string;
+  display_name: string;
+  metadata: {
+    image_name: string;
+  };
 }

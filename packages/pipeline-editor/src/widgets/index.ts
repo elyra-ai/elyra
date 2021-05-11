@@ -17,5 +17,4 @@
 export * from "./PipelineEditor";
 export * from "./RuntimeImages";
 export * from "./Runtimes";
-export * from "./SubmitNotebookButton";
-export * from "./SubmitScriptButton";
+export * from "./SubmitFileButton";

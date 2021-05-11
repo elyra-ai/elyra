@@ -17,6 +17,7 @@
 import {
   createEditor,
   createExtension,
+  createWidgetExtension,
   registerCommand,
   registerContextMenuCommands,
   registerLauncherCommands,
@@ -30,6 +31,7 @@ import { ILauncher } from "@jupyterlab/launcher";
 import { IMainMenu } from "@jupyterlab/mainmenu";
 
 import { PipelineEditorFactory } from "../widgets";
+import { SubmitFileButtonExtension } from "../widgets/SubmitFileButton";
 import { commands, contextMenu, launcher, palette } from "./commands";
 
 export default createExtension({
@@ -53,9 +55,9 @@ export default createExtension({
       icon: pipelineIcon,
     });
 
-    // createWidgetExtension(ctx)(SubmitFileButtonExtension, {
-    //   widgets: ["Notebook", "Python Editor", "R Editor"],
-    // });
+    createWidgetExtension(ctx)(SubmitFileButtonExtension, {
+      widgets: ["Notebook", "Python Editor", "R Editor"],
+    });
 
     // createLeftPanelWidget(ctx)(RuntimesWidget, {
     //   id: "elyra-metadata:runtimes",

@@ -18,13 +18,13 @@ import React, { FC, useState } from "react";
 
 import { Dialog } from "@jupyterlab/apputils";
 
-import { Runtime } from "../types";
+import { Runtime, RuntimeImage } from "../types";
 import { createFormBody } from "./utils";
 
 interface Props {
   env: string[];
   dependencyFileExtension: string;
-  images: { [key: string]: string };
+  images: RuntimeImage[];
   runtimes: Runtime[];
 }
 
@@ -100,21 +100,6 @@ const FileSubmissionDialog: FC<Props> = ({
     r1.display_name.localeCompare(r2.display_name)
   );
 
-  const fileDependencyContent = includeDependency ? (
-    <div key="dependencies">
-      <br />
-      <input
-        type="text"
-        id="dependencies"
-        className="jp-mod-styled"
-        name="dependencies"
-        placeholder={`*${dependencyFileExtension}`}
-        defaultValue={`*${dependencyFileExtension}`}
-        size={30}
-      />
-    </div>
-  ) : null;
-
   return (
     <form className="elyra-dialog-form">
       <label htmlFor="runtime_platform">Runtime Platform:</label>
@@ -147,9 +132,9 @@ const FileSubmissionDialog: FC<Props> = ({
       <label htmlFor="framework">Runtime Image:</label>
       <br />
       <select id="framework" name="framework" className="elyra-form-framework">
-        {Object.entries(images).map(([key, val]) => (
-          <option key={key} value={key}>
-            {val}
+        {images.map((i) => (
+          <option key={i.metadata.image_name} value={i.metadata.image_name}>
+            {i.display_name}
           </option>
         ))}
       </select>
@@ -180,13 +165,26 @@ const FileSubmissionDialog: FC<Props> = ({
       />
       <label htmlFor="dependency_include">Include File Dependencies:</label>
       <br />
-      {fileDependencyContent}
+      {includeDependency && (
+        <div key="dependencies">
+          <br />
+          <input
+            type="text"
+            id="dependencies"
+            className="jp-mod-styled"
+            name="dependencies"
+            placeholder={`*${dependencyFileExtension}`}
+            defaultValue={`*${dependencyFileExtension}`}
+            size={30}
+          />
+        </div>
+      )}
       <EnvForm env={env} />
     </form>
   );
 };
 
-export const submitFile = ({
+export const createSubmitFileDialog = ({
   env,
   dependencyFileExtension,
   runtimes,

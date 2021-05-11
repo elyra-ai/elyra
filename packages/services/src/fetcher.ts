@@ -19,7 +19,7 @@ import { ServerConnection } from "@jupyterlab/services";
 
 const settings = ServerConnection.makeSettings({ baseUrl: "/elyra" });
 
-const fetcher = async (url: string) => {
+async function fetcher<T>(url: string): Promise<T> {
   // ServerConnection utility handles JupyterLab token authentication.
   const res = await ServerConnection.makeRequest(
     URLExt.join(settings.baseUrl, url),
@@ -32,6 +32,6 @@ const fetcher = async (url: string) => {
   }
 
   return res.json();
-};
+}
 
 export default fetcher;

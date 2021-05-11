@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { ContentParser } from "@elyra/services";
+import {
+  ContentParser,
+  getRuntimeImages,
+  getRuntimes,
+  submitPipeline,
+} from "@elyra/services";
 import {
   RequestErrors,
   showFormDialog,
@@ -24,8 +29,64 @@ import {
 import { showDialog, ToolbarButton } from "@jupyterlab/apputils";
 import { PathExt } from "@jupyterlab/coreutils";
 import { DocumentRegistry, DocumentWidget } from "@jupyterlab/docregistry";
+import { nanoid } from "nanoid";
 
-import { submitFile, unsavedChanges } from "../dialogs";
+import { createSubmitFileDialog, unsavedChanges } from "../dialogs";
+
+// TODO: this should be moved to the backend service so we can also submit files
+// via the CLI
+function createPipelineFromFile({
+  filename,
+  envObject,
+  runtimeImage,
+  dependencies,
+  cpu,
+  gpu,
+  memory,
+  runtime_platform,
+  runtime_config,
+}: any) {
+  const pipeline = {
+    id: nanoid(),
+    nodes: [
+      {
+        id: nanoid(),
+        app_data: {
+          filename,
+          runtime_image: runtimeImage,
+          env_vars: Object.entries(envObject).map(
+            ([key, val]) => `${key}=${val}`
+          ),
+          dependencies,
+          cpu,
+          gpu,
+          memory,
+        },
+      },
+    ],
+    app_data: {
+      name: PathExt.basename(filename, PathExt.extname(filename)),
+      runtime: runtime_platform,
+      "runtime-config": runtime_config,
+      version: 3,
+      source: PathExt.basename(filename),
+      ui_data: {
+        comments: [],
+      },
+    },
+  };
+
+  return {
+    doc_type: "pipeline",
+    version: "3.0",
+    json_schema:
+      "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+    id: nanoid(),
+    primary_pipeline: pipeline.id,
+    pipelines: [pipeline],
+    schemas: [],
+  };
+}
 
 /**
  * Submit script button extension
@@ -47,16 +108,12 @@ export class SubmitFileButtonExtension<
     }
 
     let env;
+    let runtimes;
+    let images;
     try {
       env = await ContentParser.getEnvVars(context.path);
-    } catch (e) {
-      await showServerError(e);
-      return;
-    }
-
-    let runtimes;
-    try {
-      runtimes = await PipelineService.getRuntimes();
+      runtimes = await getRuntimes();
+      images = await getRuntimeImages();
     } catch (e) {
       await showServerError(e);
       return;
@@ -73,27 +130,21 @@ export class SubmitFileButtonExtension<
       return;
     }
 
-    let images;
-    try {
-      images = await PipelineService.getRuntimeImages();
-    } catch (e) {
-      await showServerError(e);
-      return;
+    let dependencyFileExtension = PathExt.extname(context.path);
+    if (dependencyFileExtension === ".ipynb") {
+      dependencyFileExtension = ".py";
     }
 
-    const fileExtension = PathExt.extname(context.path);
-
-    const dialogOptions = submitFile({
-      env,
-      dependencyFileExtension: fileExtension,
-      images,
-      runtimes,
-    });
-
-    const dialogResult = await showFormDialog(dialogOptions);
+    const dialogResult = await showFormDialog(
+      createSubmitFileDialog({
+        env,
+        images,
+        runtimes,
+        dependencyFileExtension,
+      })
+    );
 
     if (dialogResult.value == null) {
-      // When Cancel is clicked on the dialog, just return
       return;
     }
 
@@ -110,26 +161,26 @@ export class SubmitFileButtonExtension<
     } = dialogResult.value;
 
     // prepare submission details
-    const pipeline = Utils.generateSingleFilePipeline(
-      context.path,
+    const pipeline = createPipelineFromFile({
+      filename: context.path,
       runtime_platform,
       runtime_config,
-      framework,
-      dependency_include ? dependencies : undefined,
+      runtimeImage: framework,
+      dependencies: dependency_include ? dependencies : undefined,
       envObject,
       cpu,
       gpu,
-      memory
-    );
+      memory,
+    });
 
-    const displayName = PipelineService.getDisplayName(
-      runtime_config,
-      runtimes
-    );
+    const displayName = runtimes.find((r) => r.name === runtime_config)
+      ?.display_name;
 
-    PipelineService.submitPipeline(pipeline, displayName).catch((error) =>
-      RequestErrors.serverError(error)
-    );
+    try {
+      await submitPipeline(pipeline, displayName ?? "untitled");
+    } catch (e) {
+      await showServerError(e);
+    }
   };
 
   createNew(editor: T) {
