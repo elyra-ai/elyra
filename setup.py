@@ -69,7 +69,7 @@ setup_args = dict(
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
-        'jupyter_server>=1.2.0',
+        'jupyter_server>=1.7.0',
         'jupyterlab>=3.0.0',
         'jupyterlab-git==0.30.0',
         'jupyterlab-lsp>=3.0.0',

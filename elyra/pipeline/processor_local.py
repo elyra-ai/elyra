@@ -183,7 +183,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         # We'll always use the ElyraEngine.  This engine is essentially the default Papermill engine
         # but allows for environment variables to be passed to the kernel process (via 'kernel_env').
         # If the current notebook server is running with Enterprise Gateway configured, we will also
-        # point the 'kernel_manager_class' to our HTTPKernelManager so that notebooks run as they
+        # point the 'kernel_manager_class' to GatewayKernelManager so that notebooks run as they
         # would outside of Elyra.  Current working directory (cwd) is specified both for where papermill
         # runs the notebook (cwd) and where the directory of the kernel process (kernel_cwd).  The latter
         # of which is important when EG is configured.
@@ -195,7 +195,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         envs.update(operation.env_vars_as_dict())
         additional_kwargs['kernel_env'] = envs
         if GatewayClient.instance().gateway_enabled:
-            additional_kwargs['kernel_manager_class'] = 'elyra.pipeline.http_kernel_manager.HTTPKernelManager'
+            additional_kwargs['kernel_manager_class'] = 'jupyter_server.gateway.managers.GatewayKernelManager'
 
         t0 = time.time()
         try:
