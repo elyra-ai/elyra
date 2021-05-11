@@ -31,58 +31,48 @@ interface IErrorDialogProps {
   default_msg: string;
 }
 
-export class ExpandableErrorDialog extends React.Component<
-  IErrorDialogProps,
-  any
-> {
-  dialogNode: HTMLDivElement;
-  collapsedDimensions: number[];
+export const ExpandableErrorDialog: React.FC<IErrorDialogProps> = props => {
+  let dialogNode: HTMLDivElement;
+  let collapsedDimensions: number[];
 
-  constructor(props: any) {
-    super(props);
-  }
-
-  updateDialogSize(expanded: boolean): void {
-    if (!this.dialogNode) {
-      this.dialogNode = document.querySelector('.' + JP_DIALOG_CONTENT);
+  const updateDialogSize = (expanded: boolean): void => {
+    if (!dialogNode) {
+      dialogNode = document.querySelector('.' + JP_DIALOG_CONTENT);
     }
 
-    const width = this.dialogNode.clientWidth;
-    const height = this.dialogNode.clientHeight;
+    const width = dialogNode.clientWidth;
+    const height = dialogNode.clientHeight;
 
     if (
       expanded &&
       (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
     ) {
-      this.collapsedDimensions = [width, height];
-      this.dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
-      this.dialogNode.style.height =
-        Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
-    } else if (!expanded && this.collapsedDimensions) {
-      this.dialogNode.style.width = this.collapsedDimensions[0] + 'px';
-      this.dialogNode.style.height = this.collapsedDimensions[1] + 'px';
+      collapsedDimensions = [width, height];
+      dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
+      dialogNode.style.height = Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
+    } else if (!expanded && collapsedDimensions) {
+      dialogNode.style.width = collapsedDimensions[0] + 'px';
+      dialogNode.style.height = collapsedDimensions[1] + 'px';
     }
-  }
+  };
 
-  render(): React.ReactElement {
-    const details = this.props.traceback ? (
-      <ExpandableComponent
-        displayName={'Error details: '}
-        tooltip={'Error stack trace'}
-        onBeforeExpand={(expanded: boolean): void => {
-          this.updateDialogSize(expanded);
-        }}
-      >
-        <pre>{this.props.traceback}</pre>
-      </ExpandableComponent>
-    ) : null;
+  const details = props.traceback ? (
+    <ExpandableComponent
+      displayName={'Error details: '}
+      tooltip={'Error stack trace'}
+      onBeforeExpand={(expanded: boolean): void => {
+        updateDialogSize(expanded);
+      }}
+    >
+      <pre>{props.traceback}</pre>
+    </ExpandableComponent>
+  ) : null;
 
-    return (
-      <div className={MESSAGE_DISPLAY}>
-        <div>{this.props.message}</div>
-        {details}
-        <div>{this.props.default_msg}</div>
-      </div>
-    );
-  }
-}
+  return (
+    <div className={MESSAGE_DISPLAY}>
+      <div>{props.message}</div>
+      {details}
+      <div>{props.default_msg}</div>
+    </div>
+  );
+};
