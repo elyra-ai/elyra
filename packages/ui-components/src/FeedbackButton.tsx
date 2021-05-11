@@ -25,37 +25,34 @@ const ELYRA_FEEDBACKBUTTON_CLASS = 'elyra-feedbackButton';
 
 export interface IFeedbackButtonProps {
   feedback?: string;
-  onClick: () => string | void;
+  onClick: () => void;
 }
 
 export const FeedbackButton: React.FC<React.HTMLProps<HTMLButtonElement> &
   IFeedbackButtonProps> = props => {
-  const node: React.RefObject<HTMLButtonElement> = React.createRef();
+  const [showFeedback, setShowFeedback] = React.useState(false);
 
   const handleClick = (): void => {
-    let feedback = props.onClick();
-    if (typeof feedback !== 'string') {
-      feedback = props.feedback;
-    }
-    if (feedback) {
-      node.current.setAttribute('data-feedback', feedback);
+    props.onClick();
+
+    if (props.feedback) {
+      setShowFeedback(true);
       setTimeout(() => {
-        node.current.removeAttribute('data-feedback');
+        setShowFeedback(false);
       }, 750);
     }
   };
 
-  const { children, className } = props;
-  const classes = `${ELYRA_FEEDBACKBUTTON_CLASS} ${className}`;
+  const classes = `${ELYRA_FEEDBACKBUTTON_CLASS} ${props.className}`;
 
   return (
     <button
       title={props.title}
-      ref={node}
       className={classes}
-      onClick={(): void => handleClick()}
+      onClick={handleClick}
+      data-feedback={showFeedback ? props.feedback : undefined}
     >
-      {children}
+      {props.children}
     </button>
   );
 };
