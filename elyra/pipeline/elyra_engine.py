@@ -73,9 +73,9 @@ class ElyraEngine(NBClientEngine):
         )
         kernel_kwargs = dict()
         kernel_kwargs['env'] = kwargs.get('kernel_env')
-        # Only include kernel_name and set path if HTTPKernelManager will be used
+        # Only include kernel_name and set path if GatewayKernelManager will be used
         kernel_manager_class = final_kwargs.get('kernel_manager_class')
-        if kernel_manager_class == 'elyra.pipeline.http_kernel_manager.HTTPKernelManager':
+        if kernel_manager_class == 'jupyter_server.gateway.managers.GatewayKernelManager':
             kernel_kwargs['kernel_name'] = kernel_name
             kernel_kwargs['path'] = kwargs.get('kernel_cwd')
 
