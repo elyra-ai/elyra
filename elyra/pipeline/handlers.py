@@ -106,7 +106,7 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def get(self, processor):
         print(f'>>> Retrieving pipeline components for {processor}')
-        if processor not in self.valid_processors:
+        if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         components = await PipelineProcessorManager.instance().get_components(processor)
