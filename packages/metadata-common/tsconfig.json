@@ -4,13 +4,5 @@
     "outDir": "lib",
     "rootDir": "src"
   },
-  "include": ["src/*"],
-  "references": [
-    {
-      "path": "../services"
-    },
-    {
-      "path": "../ui-components"
-    }
-  ]
+  "include": ["src/*"]
 }

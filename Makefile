@@ -98,6 +98,7 @@ build-server: lint-server # Build backend
 build: build-server build-ui
 
 install-ui: build-ui # Install packages
+	$(call LINK_LAB_EXTENSION,extension-common)
 	$(call LINK_LAB_EXTENSION,services)
 	$(call LINK_LAB_EXTENSION,ui-components)
 	$(call LINK_LAB_EXTENSION,metadata-common)

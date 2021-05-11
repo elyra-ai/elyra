@@ -30,7 +30,7 @@
     "dist": "npm pack .",
     "prepare": "npm run build",
     "test": "jest",
-    "watch": "tsc -w"
+    "watch": "tsc -w --preserveWatchOutput"
   },
   "dependencies": {
     "@jupyterlab/apputils": "^3.0.0",

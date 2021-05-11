@@ -28,7 +28,7 @@
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build",
-    "watch": "tsc -w"
+    "watch": "tsc -w --preserveWatchOutput"
   },
   "dependencies": {
     "@elyra/services": "^2.3.0-dev",

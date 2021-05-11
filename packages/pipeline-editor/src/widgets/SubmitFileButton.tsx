@@ -21,7 +21,6 @@ import {
   submitPipeline,
 } from "@elyra/services";
 import {
-  RequestErrors,
   showFormDialog,
   showNoRuntimesError,
   showServerError,

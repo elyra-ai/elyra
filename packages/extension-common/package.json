@@ -28,7 +28,7 @@
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build",
-    "watch": "tsc -w"
+    "watch": "tsc -w --preserveWatchOutput"
   },
   "dependencies": {
     "@jupyterlab/application": "^3.0.0",

@@ -31,7 +31,7 @@
     "dist": "npm pack .",
     "prepare": "npm run build ",
     "test": "jest --passWithNoTests",
-    "watch": "tsc -w"
+    "watch": "tsc -w --preserveWatchOutput"
   },
   "dependencies": {
     "@elyra/extension-common": "^2.3.0-dev",
