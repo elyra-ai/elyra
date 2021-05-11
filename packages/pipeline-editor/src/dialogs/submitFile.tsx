@@ -75,8 +75,11 @@ const FileSubmissionDialog: FC<Props> = ({
   runtimes,
   dependencyFileExtension,
 }) => {
+  // TODO oh... I didn't realize there was a "schemas" endpoint, I should use that...
+  const platforms = [...new Set(runtimes.map((r) => r.schema_name))];
+
   const [includeDependency, setIncludeDependency] = useState(true);
-  const [selectedPlatform, setSelectedPlatform] = useState(runtimes[0]?.name);
+  const [selectedPlatform, setSelectedPlatform] = useState(platforms[0]);
 
   const handlePlatformChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPlatform(e.target.value);
@@ -85,11 +88,6 @@ const FileSubmissionDialog: FC<Props> = ({
   const handleCheckboxChange = () => {
     setIncludeDependency((prev) => !prev);
   };
-
-  // TODO: WHAT DOES THIS DO?@?@@?@?@?@?!!!!?!? CONFUSION!
-  const validSchemas = runtimes.filter((r) =>
-    runtimes.some((rr) => rr.schema_name === r.name)
-  );
 
   const filteredRuntimeOptions = runtimes.filter(
     (r) => r.schema_name === selectedPlatform
@@ -110,9 +108,9 @@ const FileSubmissionDialog: FC<Props> = ({
         className="elyra-form-runtime-platform"
         onChange={handlePlatformChange}
       >
-        {validSchemas.map((schema) => (
-          <option key={schema.name} value={schema.name}>
-            {schema.display_name}
+        {platforms.map((p) => (
+          <option key={p} value={p}>
+            {p}
           </option>
         ))}
       </select>
