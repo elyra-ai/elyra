@@ -15,7 +15,11 @@
  */
 
 import { ContentParser } from "@elyra/services";
-import { RequestErrors, showFormDialog } from "@elyra/ui-components";
+import {
+  RequestErrors,
+  showFormDialog,
+  showServerError,
+} from "@elyra/ui-components";
 import { showDialog, ToolbarButton } from "@jupyterlab/apputils";
 import { PathExt } from "@jupyterlab/coreutils";
 import { DocumentRegistry, DocumentWidget } from "@jupyterlab/docregistry";
@@ -31,7 +35,7 @@ export class SubmitFileButtonExtension<
   T extends DocumentWidget,
   U extends DocumentRegistry.IModel
 > implements DocumentRegistry.IWidgetExtension<T, U> {
-  showWidget = async (document: T): Promise<void> => {
+  showWidget = async (document: T) => {
     const { context } = document;
     if (context.model.dirty) {
       const dialogResult = await showDialog(unsavedChanges);
@@ -60,9 +64,13 @@ export class SubmitFileButtonExtension<
       return;
     }
 
-    const images = await PipelineService.getRuntimeImages().catch((error) =>
-      RequestErrors.serverError(error)
-    );
+    let images;
+    try {
+      images = await PipelineService.getRuntimeImages();
+    } catch (e) {
+      await showServerError(e);
+      return;
+    }
 
     const fileExtension = PathExt.extname(context.path);
 

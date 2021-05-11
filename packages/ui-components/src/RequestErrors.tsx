@@ -21,6 +21,61 @@ import { showDialog, Dialog } from "@jupyterlab/apputils";
 import { ExpandableErrorDialog } from "./ExpandableErrorDialog";
 
 /**
+ * Displays an error dialog for when a server request returns a 404.
+ *
+ * @returns A promise that resolves with whether the dialog was accepted.
+ */
+async function show404Error(endpoint: string) {
+  return await showDialog({
+    title: "Error contacting server",
+    body: (
+      <p>
+        Endpoint <code>{endpoint}</code> not found.
+      </p>
+    ),
+    buttons: [Dialog.okButton()],
+  });
+}
+
+/**
+ * Displays an error dialog showing error data and stacktrace, if available.
+ *
+ * @param response - The server response containing the error data
+ *
+ * @returns A promise that resolves with whether the dialog was accepted.
+ */
+export async function showServerError(response: any) {
+  if (response.status === 404) {
+    return show404Error(response.requestPath);
+  }
+
+  const reason = response.reason ? response.reason : "";
+  const message = response.message ? response.message : "";
+  const timestamp = response.timestamp ? response.timestamp : "";
+  const traceback = response.traceback ? response.traceback : "";
+  const default_body = response.timestamp
+    ? "Check the JupyterLab log for more details at " + response.timestamp
+    : "Check the JupyterLab log for more details";
+
+  return await showDialog({
+    title: "Error making request",
+    body:
+      reason || message ? (
+        <ExpandableErrorDialog
+          reason={reason}
+          message={message}
+          timestamp={timestamp}
+          traceback={traceback}
+          default_msg={default_body}
+        />
+      ) : (
+        <p>{default_body}</p>
+      ),
+    buttons: [Dialog.okButton()],
+  });
+}
+
+/**
  * A class for handling errors when making requests to the jupyter lab server.
  */
 export class RequestErrors {
@@ -32,51 +87,7 @@ export class RequestErrors {
    * @returns A promise that resolves with whether the dialog was accepted.
    */
   static serverError(response: any): Promise<Dialog.IResult<any>> {
-    if (response.status === 404) {
-      return this.server404(response.requestPath);
-    }
-
-    const reason = response.reason ? response.reason : "";
-    const message = response.message ? response.message : "";
-    const timestamp = response.timestamp ? response.timestamp : "";
-    const traceback = response.traceback ? response.traceback : "";
-    const default_body = response.timestamp
-      ? "Check the JupyterLab log for more details at " + response.timestamp
-      : "Check the JupyterLab log for more details";
-
-    return showDialog({
-      title: "Error making request",
-      body:
-        reason || message ? (
-          <ExpandableErrorDialog
-            reason={reason}
-            message={message}
-            timestamp={timestamp}
-            traceback={traceback}
-            default_msg={default_body}
-          />
-        ) : (
-          <p>{default_body}</p>
-        ),
-      buttons: [Dialog.okButton()],
-    });
-  }
-
-  /**
-   * Displays an error dialog for when a server request returns a 404.
-   *
-   * @returns A promise that resolves with whether the dialog was accepted.
-   */
-  private static server404(endpoint: string): Promise<Dialog.IResult<any>> {
-    return showDialog({
-      title: "Error contacting server",
-      body: (
-        <p>
-          Endpoint <code>{endpoint}</code> not found.
-        </p>
-      ),
-      buttons: [Dialog.okButton()],
-    });
+    return showServerError(response);
   }
 
   /**
