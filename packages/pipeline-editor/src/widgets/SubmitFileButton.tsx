@@ -18,6 +18,7 @@ import { ContentParser } from "@elyra/services";
 import {
   RequestErrors,
   showFormDialog,
+  showNoRuntimesError,
   showServerError,
 } from "@elyra/ui-components";
 import { showDialog, ToolbarButton } from "@jupyterlab/apputils";
@@ -45,21 +46,29 @@ export class SubmitFileButtonExtension<
       await context.save();
     }
 
-    const env = await ContentParser.getEnvVars(context.path).catch((error) =>
-      RequestErrors.serverError(error)
-    );
-    const action = "run script as pipeline";
-    const runtimes = await PipelineService.getRuntimes(
-      true,
-      action
-    ).catch((error) => RequestErrors.serverError(error));
+    let env;
+    try {
+      env = await ContentParser.getEnvVars(context.path);
+    } catch (e) {
+      await showServerError(e);
+      return;
+    }
 
-    if (Utils.isDialogResult(runtimes)) {
-      if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
-        // Open the runtimes widget
-        Utils.getLabShell(document).activateById(
-          `elyra-metadata:${RUNTIMES_NAMESPACE}`
-        );
+    let runtimes;
+    try {
+      runtimes = await PipelineService.getRuntimes();
+    } catch (e) {
+      await showServerError(e);
+      return;
+    }
+
+    if (runtimes.length === 0) {
+      const result = await showNoRuntimesError("Cannot run file as pipeline");
+      if (result.button.accept === true) {
+        // TODO: Open the runtimes widget
+        // Utils.getLabShell(document).activateById(
+        //   `elyra-metadata:${RUNTIMES_NAMESPACE}`
+        // );
       }
       return;
     }

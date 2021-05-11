@@ -75,6 +75,45 @@ export async function showServerError(response: any) {
   });
 }
 
+interface NoMetadataDialogOptions {
+  title?: string;
+  namespace: string;
+  schemaName?: string;
+  buttons?: Dialog.IButton[];
+}
+
+export async function showNoMetadataError({
+  title = "Error retrieving metadata",
+  namespace,
+  schemaName,
+  buttons = [Dialog.okButton()],
+}: NoMetadataDialogOptions) {
+  return await showDialog({
+    title: title,
+    body: (
+      <div>
+        <p>
+          No {namespace} configuration {!!schemaName && `for ${schemaName}`} is
+          defined.
+        </p>
+        <p>Please create one and try again.</p>
+      </div>
+    ),
+    buttons,
+  });
+}
+
+export async function showNoRuntimesError(title: string) {
+  return await showNoMetadataError({
+    title,
+    namespace: "runtime",
+    buttons: [
+      Dialog.cancelButton(),
+      Dialog.okButton({ label: `Open runtimes` }),
+    ],
+  });
+}
+
 /**
  * A class for handling errors when making requests to the jupyter lab server.
  */
@@ -107,21 +146,14 @@ export class RequestErrors {
     action?: string,
     schemaName?: string
   ): Promise<Dialog.IResult<any>> {
-    return showDialog({
-      title: action ? `Cannot ${action}` : "Error retrieving metadata",
-      body: (
-        <div>
-          <p>
-            No {namespace} configuration{schemaName && ` for ${schemaName}`} is
-            defined.
-          </p>
-          <p>Please create one and try again.</p>
-        </div>
-      ),
+    return showNoMetadataError({
+      title: action ? `Cannot ${action}` : undefined,
+      namespace,
+      schemaName,
       buttons:
         namespace === "runtime"
           ? [Dialog.cancelButton(), Dialog.okButton({ label: `Open runtimes` })]
-          : [Dialog.okButton()],
+          : undefined,
     });
   }
 }
