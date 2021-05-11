@@ -128,9 +128,7 @@ export const ExpandableComponent: React.FC<IExpandableComponentProps> = props =>
                 title={btn.title}
                 feedback={btn.feedback || ''}
                 className={buttonClasses + ' ' + ACTION_BUTTON_CLASS}
-                onClick={(): void => {
-                  btn.onClick();
-                }}
+                onClick={(): void => btn.onClick()}
               >
                 <btn.icon.react
                   tag="span"

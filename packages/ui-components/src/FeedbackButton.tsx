@@ -28,44 +28,34 @@ export interface IFeedbackButtonProps {
   onClick: () => string | void;
 }
 
-export class FeedbackButton extends React.Component<
-  React.HTMLProps<HTMLButtonElement> & IFeedbackButtonProps
-> {
-  node: React.RefObject<HTMLButtonElement>;
+export const FeedbackButton: React.FC<React.HTMLProps<HTMLButtonElement> &
+  IFeedbackButtonProps> = props => {
+  const node: React.RefObject<HTMLButtonElement> = React.createRef();
 
-  constructor(props: any) {
-    super(props);
-    this.node = React.createRef();
-  }
-
-  handleClick(): void {
-    let feedback = this.props.onClick();
+  const handleClick = (): void => {
+    let feedback = props.onClick();
     if (typeof feedback !== 'string') {
-      feedback = this.props.feedback;
+      feedback = props.feedback;
     }
     if (feedback) {
-      this.node.current.setAttribute('data-feedback', feedback);
+      node.current.setAttribute('data-feedback', feedback);
       setTimeout(() => {
-        this.node.current.removeAttribute('data-feedback');
+        node.current.removeAttribute('data-feedback');
       }, 750);
     }
-  }
+  };
 
-  render(): React.ReactElement {
-    const { children, className } = this.props;
-    const classes = `${ELYRA_FEEDBACKBUTTON_CLASS} ${className}`;
+  const { children, className } = props;
+  const classes = `${ELYRA_FEEDBACKBUTTON_CLASS} ${className}`;
 
-    return (
-      <button
-        title={this.props.title}
-        ref={this.node}
-        className={classes}
-        onClick={(): void => {
-          this.handleClick();
-        }}
-      >
-        {children}
-      </button>
-    );
-  }
-}
+  return (
+    <button
+      title={props.title}
+      ref={node}
+      className={classes}
+      onClick={(): void => handleClick()}
+    >
+      {children}
+    </button>
+  );
+};
