@@ -81,7 +81,8 @@ Cypress.Commands.add('addFileToPipeline', (name: string): void => {
 
 Cypress.Commands.add('openFile', (name: string): void => {
   cy.findByRole('listitem', {
-    name: (n, _el) => n.includes(name)
+    name: (n, _el) => n.includes(name),
+    timeout: 50000
   }).dblclick();
 });
 
