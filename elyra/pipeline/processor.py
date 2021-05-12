@@ -51,10 +51,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
             return None
 
     def is_valid_processor(self, processor_type: str) -> bool:
-        if processor_type in self._processors.keys():
-            return True
-        else:
-            return False
+        return processor_type in self._processors.keys()
 
 
 class PipelineProcessorManager(SingletonConfigurable):
