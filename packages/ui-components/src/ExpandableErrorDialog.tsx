@@ -32,37 +32,36 @@ interface IErrorDialogProps {
 }
 
 export const ExpandableErrorDialog: React.FC<IErrorDialogProps> = props => {
-  let dialogNode: HTMLDivElement;
-  let collapsedDimensions: number[];
+  const [collapsedSize, setCollapsedSize] = React.useState(null);
 
-  const updateDialogSize = (expanded: boolean): void => {
-    if (!dialogNode) {
-      dialogNode = document.querySelector('.' + JP_DIALOG_CONTENT);
-    }
+  const updateDialogSize = React.useCallback(
+    (expanded: boolean): void => {
+      const dialogNode: HTMLDivElement = document.querySelector(
+        '.' + JP_DIALOG_CONTENT
+      );
+      const width = dialogNode.clientWidth;
+      const height = dialogNode.clientHeight;
 
-    const width = dialogNode.clientWidth;
-    const height = dialogNode.clientHeight;
-
-    if (
-      expanded &&
-      (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
-    ) {
-      collapsedDimensions = [width, height];
-      dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
-      dialogNode.style.height = Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
-    } else if (!expanded && collapsedDimensions) {
-      dialogNode.style.width = collapsedDimensions[0] + 'px';
-      dialogNode.style.height = collapsedDimensions[1] + 'px';
-    }
-  };
+      if (
+        expanded &&
+        (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
+      ) {
+        setCollapsedSize({ width, height });
+        dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
+        dialogNode.style.height = Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
+      } else if (!expanded && collapsedSize) {
+        dialogNode.style.width = collapsedSize.width + 'px';
+        dialogNode.style.height = collapsedSize.height + 'px';
+      }
+    },
+    [collapsedSize, setCollapsedSize]
+  );
 
   const details = props.traceback ? (
     <ExpandableComponent
       displayName={'Error details: '}
       tooltip={'Error stack trace'}
-      onBeforeExpand={(expanded: boolean): void => {
-        updateDialogSize(expanded);
-      }}
+      onBeforeExpand={updateDialogSize}
     >
       <pre>{props.traceback}</pre>
     </ExpandableComponent>

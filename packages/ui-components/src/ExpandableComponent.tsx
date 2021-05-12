@@ -85,9 +85,7 @@ export const ExpandableComponent: React.FC<IExpandableComponentProps> = props =>
         <button
           className={buttonClasses}
           title={expanded ? 'Hide Details' : 'Show Details'}
-          onClick={(): void => {
-            toggleDetailsDisplay();
-          }}
+          onClick={toggleDetailsDisplay}
         >
           {expanded ? (
             <caretDownIcon.react
@@ -110,9 +108,7 @@ export const ExpandableComponent: React.FC<IExpandableComponentProps> = props =>
               ? DISPLAY_NAME_CLASS
               : DISPLAY_NAME_CLASS + ' ' + DRAGGABLE_CLASS
           }
-          onClick={(): void => {
-            toggleDetailsDisplay();
-          }}
+          onClick={toggleDetailsDisplay}
           onMouseDown={(event): void => {
             props.onMouseDown && props.onMouseDown(event);
           }}
