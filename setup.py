@@ -80,6 +80,7 @@ setup_args = dict(
         'nbconvert>=5.6.1,<6.0',
         'nbdime~=3.1',
         'nbformat>=5.1.2',
+        'networkx>=2.5.1',
         'papermill>=2.1.3',
         'python-language-server[all]>=0.36.2',
         'pyyaml>=5.3.1,<6.0',
