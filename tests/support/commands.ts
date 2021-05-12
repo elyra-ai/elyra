@@ -99,3 +99,12 @@ Cypress.Commands.add('resetJupyterLab', (): void => {
     'exist'
   );
 });
+
+Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
+  cy.findByRole('tab', { name: /pipeline/i }).rightclick();
+  cy.findAllByRole('menuitem', { name: new RegExp(fileType, 'i') }).should(
+    'exist'
+  );
+  //dismiss menu
+  cy.get('[aria-label="Canvas"]').click({ force: true });
+});
