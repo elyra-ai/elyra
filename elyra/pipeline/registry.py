@@ -18,6 +18,7 @@ import io
 import json
 import yaml
 import urllib
+import re
 
 from traitlets.config import SingletonConfigurable
 
@@ -171,12 +172,10 @@ class KfpComponentParser(ComponentParser):
 
     def parse_component_properties(self, component_body):
         '''
-        Build the current_parameters object according to the YAML, return this portion.
+        Build the properties object according to the YAML and return properties.
         '''
         # Start with generic properties
         component_parameters = self.get_common_config('properties')
-
-        print("BODYY: " + repr(component_body))
 
         # TODO Do we need to/should we pop these?
         for element in ['runtime_image', 'env_vars', 'dependencies', 'outputs', 'include_subdirectories']:
@@ -270,8 +269,6 @@ class KfpComponentParser(ComponentParser):
             }
         }
 
-        # TODO Add conditions?
-
         return new_parameter, parameter_info
 
     def parse_component_execution_instructions(self, component_body):
@@ -285,11 +282,13 @@ class AirflowComponentParser(ComponentParser):
         super().__init__()
 
     def parse_component_details(self, component_body, component_name):
-        # TODO: Maybe use this loop to get description?
-        for line in component_body:
-            print(line)
+        # Component_body never used
 
         label = ' '.join(component_name.split('_')).title()
+
+        # TODO: Is there any way to reliably get the description for the operator overall?
+        # Could maybe pull from a class description but this wouldn't work for operators
+        # with multiple classes or those without docstrings at all.
         description = ""
 
         component_json = {
@@ -306,7 +305,122 @@ class AirflowComponentParser(ComponentParser):
         return component_json
 
     def parse_component_properties(self, component):
-        return None
+        '''
+        Build the properties object according to the operator python file and return properties.
+        '''
+        # Start with generic properties
+        component_parameters = self.get_common_config('properties')
+
+        # TODO Do we need to/should we pop these?
+        for element in ['runtime_image', 'env_vars', 'dependencies', 'outputs', 'include_subdirectories']:
+            component_parameters['current_parameters'].pop(element, None)
+
+        class_regex = re.compile(r"class ([\w]+)\(\w*\):")
+        init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*]*)\):")
+
+        # Organize lines according to the class to which they belong
+        classes = {}
+        class_name = "no_class"
+        classes[class_name] = {
+            'lines': [],
+            'init_args': []
+        }
+        for line in component:
+            line = line.decode("utf-8")
+            match = class_regex.search(line)
+            if match:
+                class_name = match.group(1)
+                classes[class_name] = {'lines': [], 'init_args': []}
+            classes[class_name]['lines'].append(line)
+
+        # Loop through classes to get parameters for each class
+        for class_name in classes:
+            if class_name == "no_class":
+                continue
+
+            group_info = {
+                'id': f"{class_name[:1].lower() + class_name[1:]}Controls",
+                'type': "controls",
+                'parameter_refs': []
+            }
+
+            # Concatenate class body and search for __init__ function
+            class_content = ''.join(classes[class_name]['lines'])
+            for match in init_regex.finditer(class_content):
+                classes[class_name]['init_args'] = [x.strip() for x in match.group(1).split(',')]
+
+                # For each argument to the init function, build a new parameter and add to existing
+                for arg in classes[class_name]['init_args']:
+                    if arg in ['self', '*args', '**kwargs']:
+                        continue
+
+                    default_value = ""
+                    if '=' in arg:
+                        split_arg = arg.split('=')
+                        arg = split_arg[0]
+                        default_value = split_arg[1]
+
+                    new_parameter, parameter_info = self.build_parameter(arg, class_name, class_content)
+
+                    # Add to existing parameter list
+                    component_parameters['parameters'].append(new_parameter)
+                    component_parameters['current_parameters'][new_parameter['id']] = default_value
+
+                    # Add to existing parameter info list
+                    component_parameters['uihints']['parameter_info'].append(parameter_info)
+
+                    # Add parameter to output group info
+                    group_info['parameter_refs'].append(new_parameter['id'])
+
+            # Append output group info to parameter details
+            component_parameters['uihints']['group_info'][0]['group_info'].append(group_info)
+
+        return component_parameters
+
+    def build_parameter(self, parameter_name, class_name, component_body):
+        new_parameter = {}
+        new_parameter['id'] = f"{class_name}_{parameter_name}"
+
+        # Search for :type [param] information in class docstring
+        type_regex = re.compile(f":type {parameter_name}" + r":([\w ]*)")
+        match = type_regex.search(component_body)
+        if match:
+            new_parameter['type'] = match.group(1)
+        else:
+            new_parameter['type'] = "string"
+
+        # Search for parameter description in class doctring
+        parameter_description = ""
+        param_regex = re.compile(f":param {parameter_name}" + r":([\w ]*)")  # TODO Fix this regex to capture more
+        match = param_regex.search(component_body)
+        if match:
+            parameter_description = match.group(1)
+
+        # Search description to determine whether parameter is optional
+        # Another potential check for 'required' status would be if there is
+        # an = sign in the init function parameters, this implies that it is
+        # not required and all else are required.
+        if ("not optional" in parameter_description.lower()) or \
+                ("required" in parameter_description.lower() and
+                 "not required" not in parameter_description.lower() and
+                 "n't required" not in parameter_description.lower()):
+            new_parameter['required'] = True
+        else:
+            new_parameter['required'] = False
+
+        # Build parameter_info
+        # TODO Determine if any other param info should be added here, e.g. control, separator, orientation, etc.
+        parameter_info = {
+            'parameter_ref': new_parameter['id'],
+            'label': {
+                "default": parameter_name
+            },
+            'description': {
+                "default": parameter_description
+            }
+        }
+
+        return new_parameter, parameter_info
 
 
 class ComponentReader(SingletonConfigurable):
@@ -338,6 +452,9 @@ class FilesystemComponentReader(ComponentReader):
                 except yaml.YAMLError as e:
                     raise RuntimeError from e
             elif component_extension == '.py':
+                # TODO: Find better way to read in file. Can we assume operator files are always
+                # small enough to be read into memory? Reading and yielding by line likely won't
+                # work because multiple lines need to be checked at once (or multiple times).
                 return f.readlines()
             else:
                 raise ValueError(f'File type {component_extension} is not supported.')
@@ -412,7 +529,7 @@ class ComponentRegistry(SingletonConfigurable):
 
     def get_properties(self, processor_type, component_id):
         """
-        Return the properties JOSN for a given component.
+        Return the properties JSON for a given component.
         """
         default_components = ["notebooks", "python-script", "r-script"]
 
