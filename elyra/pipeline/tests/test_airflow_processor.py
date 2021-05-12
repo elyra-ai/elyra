@@ -20,6 +20,7 @@ import tempfile
 
 from elyra.pipeline.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 from elyra.metadata.metadata import Metadata
 from elyra.util import git
@@ -296,3 +297,22 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                     if node['app_data'].get(arg):
                         for file in node['app_data'][arg]:
                             assert file in ordered_dict[key]["pipeline_" + arg]
+
+
+def test_collect_envs(processor):
+    pipelines_test_file = 'elyra/pipeline/tests/resources/archive/test.ipynb'
+
+    test_operation = Operation(id='this-is-a-test-id',
+                               type='execution-node',
+                               classifier='airflow',
+                               name='test',
+                               filename=pipelines_test_file,
+                               runtime_image='tensorflow/tensorflow:latest')
+
+    envs = processor._collect_envs(test_operation, cos_secret=None, cos_username='Alice', cos_password='secret')
+
+    assert envs['ELYRA_RUNTIME_ENV'] == 'airflow'
+    assert envs['AWS_ACCESS_KEY_ID'] == 'Alice'
+    assert envs['AWS_SECRET_ACCESS_KEY'] == 'secret'
+    assert envs['ELYRA_ENABLE_PIPELINE_INFO'] == 'True'
+    assert 'ELYRA_WRITABLE_CONTAINER_DIR' not in envs

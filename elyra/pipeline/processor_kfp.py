@@ -25,7 +25,7 @@ from black import format_str, FileMode
 from datetime import datetime
 from elyra._version import __version__
 from elyra.metadata import MetadataManager
-from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelineProcessorResponse
+from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
 from jinja2 import Environment, PackageLoader
 from kfp import Client as ArgoClient
@@ -34,6 +34,7 @@ from kfp.aws import use_aws_secret
 from kfp_tekton import TektonClient, compiler as kfp_tekton_compiler
 from kfp_notebook.pipeline import NotebookOp
 from kfp_server_api.exceptions import ApiException
+from typing import Dict
 from urllib3.exceptions import LocationValueError, MaxRetryError
 
 
@@ -350,6 +351,17 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         return pipeline_export_path  # Return the input value, not its absolute form
 
+    def _collect_envs(self, operation: Operation, **kwargs) -> Dict:
+        """
+        Amends envs collected from superclass with those pertaining to this subclass
+
+        :return: dictionary containing environment name/value pairs
+        """
+        envs = super()._collect_envs(operation, **kwargs)
+        # Only Unix-style path spec is supported.
+        envs['ELYRA_WRITABLE_CONTAINER_DIR'] = self.WCD
+        return envs
+
     def _cc_pipeline(self,
                      pipeline,
                      pipeline_name,
@@ -403,24 +415,13 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                 emptydir_volume_size = '20Gi'
 
             # Collect env variables
-            pipeline_envs = dict()
-            if not cos_secret:
-                pipeline_envs['AWS_ACCESS_KEY_ID'] = cos_username
-                pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
-            # Convey pipeline logging enablement to operation
-            pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
-            # Setting identifies a writable directory in the container image.
-            # Only Unix-style path spec is supported.
-            pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'] = self.WCD
+            pipeline_envs = self._collect_envs(operation,
+                                               cos_secret=cos_secret,
+                                               cos_username=cos_username,
+                                               cos_password=cos_password)
 
-            if operation.env_vars:
-                for env_var in operation.env_vars:
-                    # Strip any of these special characters from both key and value
-                    # Splits on the first occurrence of '='
-                    result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
-                    # Should be non empty key with a value
-                    if len(result) == 2 and result[0] != '':
-                        pipeline_envs[result[0]] = result[1]
+            # Include any envs set on the operation
+            pipeline_envs.update(operation.env_vars_as_dict(logger=self.log))
 
             sanitized_operation_name = self._sanitize_operation_name(operation.name)
 
