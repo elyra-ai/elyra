@@ -86,6 +86,13 @@ lint-ui:
 
 lint: lint-ui lint-server ## Run linters
 
+dev-link:
+	yarn link @elyra/pipeline-services
+	yarn link @elyra/pipeline-editor
+	yarn
+	cd node_modules/react && yarn link
+	cd node_modules/@types/react && yarn link
+
 yarn-install:
 	yarn
 
