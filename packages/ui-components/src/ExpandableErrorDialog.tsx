@@ -38,13 +38,19 @@ export const ExpandableErrorDialog: React.FC<IErrorDialogProps> = ({
   traceback,
   defaultMessage
 }) => {
-  const [collapsedSize, setCollapsedSize] = React.useState(null);
+  const [collapsedSize, setCollapsedSize] = React.useState<{
+    width: number;
+    height: number;
+  }>();
 
   const handleUpdateDialogSize = React.useCallback(
     (expanded: boolean): void => {
-      const dialogNode: HTMLDivElement = document.querySelector(
+      const dialogNode = document.querySelector<HTMLDivElement>(
         '.' + JP_DIALOG_CONTENT
       );
+      if (dialogNode === null) {
+        return;
+      }
       const width = dialogNode.clientWidth;
       const height = dialogNode.clientHeight;
 

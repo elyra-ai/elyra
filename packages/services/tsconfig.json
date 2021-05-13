@@ -1,14 +1,7 @@
 {
-  "extends": "../../tsconfig-base",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "lib",
-    "rootDir": "src",
-    "types": ["node", "jest"]
+    "outDir": "lib"
   },
-  "include": ["src/*"],
-  "references": [
-    {
-      "path": "../ui-components"
-    }
-  ]
+  "include": ["src"]
 }

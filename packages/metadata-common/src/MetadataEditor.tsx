@@ -57,7 +57,7 @@ interface IMetadataEditorProps {
   onSave: () => void;
   editorServices: IEditorServices | null;
   status: ILabStatus;
-  themeManager: IThemeManager;
+  themeManager?: IThemeManager;
 }
 
 interface ICodeBlockProps {
@@ -82,7 +82,7 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
   const [error, setError] = React.useState(defaultError);
 
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
-  const editorRef = React.useRef<CodeEditor.IEditor>(null);
+  const editorRef = React.useRef<CodeEditor.IEditor>();
 
   // `editorServices` should never change so make it a ref.
   const servicesRef = React.useRef(editorServices);
@@ -98,19 +98,22 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
       onChange?.(args.text.split('\n'));
     };
 
-    editorRef.current = servicesRef.current.factoryService.newInlineEditor({
-      host: codeBlockRef.current,
-      model: new CodeEditor.Model({
-        value: defaultValue,
-        mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
-          name: language,
-          codemirror_mode: language
+    if (codeBlockRef.current !== null) {
+      editorRef.current = servicesRef.current.factoryService.newInlineEditor({
+        host: codeBlockRef.current,
+        model: new CodeEditor.Model({
+          value: defaultValue,
+          mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
+            name: language,
+            codemirror_mode: language
+          })
         })
-      })
-    });
-    editorRef.current.model.value.changed.connect(handleChange);
+      });
+      editorRef.current?.model.value.changed.connect(handleChange);
+    }
+
     return (): void => {
-      editorRef.current.model.value.changed.disconnect(handleChange);
+      editorRef.current?.model.value.changed.disconnect(handleChange);
     };
     // NOTE: The parent component is unstable so props change frequently causing
     // new editors to be created unnecessarily. This effect on mount should only
@@ -120,7 +123,7 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
   }, []);
 
   React.useEffect(() => {
-    if (editorRef !== null) {
+    if (editorRef.current !== undefined) {
       editorRef.current.model.mimeType = servicesRef.current.mimeTypeService.getMimeTypeByLanguage(
         {
           name: language,
@@ -156,25 +159,26 @@ const SaveButton = styled(Button)({
  */
 export class MetadataEditor extends ReactWidget {
   onSave: () => void;
-  displayName: string;
-  editorServices: IEditorServices;
+  editorServices: IEditorServices | null;
   status: ILabStatus;
-  editor: CodeEditor.IEditor;
   schemaName: string;
-  schemaDisplayName: string;
   namespace: string;
-  name: string;
-  code: string[];
-  dirty: boolean;
+  name?: string;
+  code?: string[];
   allTags: string[];
-  clearDirty: IDisposable;
-  requiredFields: string[];
+  clearDirty: IDisposable | null;
   invalidForm: boolean;
   showSecure: IDictionary<boolean>;
   widgetClass: string;
-  themeManager: IThemeManager;
-  referenceURL: string;
-  language: string;
+  themeManager?: IThemeManager;
+
+  displayName?: string;
+  editor?: CodeEditor.IEditor;
+  schemaDisplayName?: string;
+  dirty?: boolean;
+  requiredFields?: string[];
+  referenceURL?: string;
+  language?: string;
 
   schema: IDictionary<any> = {};
   schemaPropertiesByCategory: IDictionary<string[]> = {};
@@ -263,7 +267,7 @@ export class MetadataEditor extends ReactWidget {
         if (this.name === metadata.name) {
           this.metadata = metadata['metadata'];
           this.displayName = metadata['display_name'];
-          this.title.label = this.displayName;
+          this.title.label = this.displayName ?? '';
         }
       }
     } else {
@@ -300,7 +304,7 @@ export class MetadataEditor extends ReactWidget {
       const value =
         this.metadata[schemaField] || this.schema[schemaField].default;
       if (
-        this.requiredFields.includes(schemaField) &&
+        this.requiredFields?.includes(schemaField) &&
         this.isValueEmpty(value)
       ) {
         this.invalidForm = true;
@@ -375,7 +379,7 @@ export class MetadataEditor extends ReactWidget {
     // Special case because all metadata has a display name
     if (schemaField === 'display_name') {
       this.displayName = value;
-    } else if (!value && !this.requiredFields.includes(schemaField)) {
+    } else if (!value && !this.requiredFields?.includes(schemaField)) {
       delete this.metadata[schemaField];
     } else {
       this.metadata[schemaField] = value;
@@ -434,7 +438,7 @@ export class MetadataEditor extends ReactWidget {
   setFormFocus(): void {
     const isFocused = document
       .querySelector(`.${this.widgetClass}`)
-      .contains(document.activeElement);
+      ?.contains(document.activeElement);
 
     if (!isFocused) {
       const input = document.querySelector(
@@ -456,7 +460,7 @@ export class MetadataEditor extends ReactWidget {
     this.setFormFocus();
   }
 
-  renderField(fieldName: string): React.ReactElement {
+  renderField(fieldName: string): React.ReactNode {
     let uihints = this.schema[fieldName].uihints;
     const required =
       this.requiredFields && this.requiredFields.includes(fieldName);
@@ -517,19 +521,21 @@ export class MetadataEditor extends ReactWidget {
           className={'elyra-metadataEditor-formInput elyra-metadataEditor-code'}
           key={`${fieldName}CodeEditor`}
         >
-          <CodeBlock
-            editorServices={this.editorServices}
-            language={this.language ?? this.metadata.language}
-            defaultValue={initialCodeValue}
-            onChange={(value): void => {
-              this.metadata.code = value;
-              this.handleDirtyState(true);
-              return;
-            }}
-            defaultError={uihints.error}
-            required={required}
-            label={this.schema[fieldName].title}
-          />
+          {this.editorServices !== null && (
+            <CodeBlock
+              editorServices={this.editorServices}
+              language={this.language ?? this.metadata.language}
+              defaultValue={initialCodeValue}
+              onChange={(value): void => {
+                this.metadata.code = value;
+                this.handleDirtyState(true);
+                return;
+              }}
+              defaultError={uihints.error}
+              required={required ?? false}
+              label={this.schema[fieldName].title}
+            />
+          )}
         </div>
       );
     } else if (uihints.field_type === 'tags') {
@@ -547,7 +553,7 @@ export class MetadataEditor extends ReactWidget {
         </div>
       );
     } else {
-      return;
+      return null;
     }
   }
 

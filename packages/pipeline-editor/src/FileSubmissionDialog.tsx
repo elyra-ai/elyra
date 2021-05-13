@@ -35,7 +35,7 @@ interface IState {
   validSchemas: ISchema[];
 }
 
-const EnvForm = ({ env }: { env: string[] }): JSX.Element => {
+const EnvForm: React.FC<{ env: string[] }> = ({ env }) => {
   if (env.length > 0) {
     return (
       <>

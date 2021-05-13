@@ -292,7 +292,7 @@ export class MetadataDisplay<
         matchesTags: state.matchesTags
       };
     }
-    return null;
+    return state;
   }
 
   render(): React.ReactElement {
@@ -317,7 +317,7 @@ export class MetadataDisplay<
  */
 export interface IMetadataWidgetProps {
   app: JupyterFrontEnd;
-  themeManager: IThemeManager;
+  themeManager?: IThemeManager;
   display_name: string;
   namespace: string;
   icon: LabIcon;
@@ -331,7 +331,7 @@ export interface IMetadataWidgetProps {
 export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
-  schemas: IDictionary<any>[];
+  schemas?: IDictionary<any>[];
   schemaType?: string;
 
   constructor(props: IMetadataWidgetProps) {

@@ -122,7 +122,7 @@ export default class Utils {
     if (this.hasPipelineAppdataField(node, fieldName)) {
       return node['app_data'][fieldName] as string;
     } else {
-      return null;
+      return '';
     }
   }
 

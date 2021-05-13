@@ -103,7 +103,7 @@ class PipelineEditorWidget extends ReactWidget {
         shell={this.shell}
         commands={this.commands}
         addFileToPipelineSignal={this.addFileToPipelineSignal}
-        widgetId={this.parent.id}
+        widgetId={this.parent?.id}
       />
     );
   }
@@ -115,7 +115,7 @@ interface IProps {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<PipelineEditorWidget, any>;
-  widgetId: string;
+  widgetId?: string;
 }
 
 const PipelineWrapper: React.FC<IProps> = ({
@@ -126,11 +126,11 @@ const PipelineWrapper: React.FC<IProps> = ({
   addFileToPipelineSignal,
   widgetId
 }) => {
-  const ref = useRef(null);
+  const ref = useRef<any>(null);
   const [loading, setLoading] = useState(true);
-  const [pipeline, setPipeline] = useState(null);
+  const [pipeline, setPipeline] = useState<any>(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
-  const [alert, setAlert] = React.useState(null);
+  const [alert, setAlert] = React.useState<string>();
   const [updatedNodes, setUpdatedNodes] = React.useState(nodes);
   const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
 
@@ -212,7 +212,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     });
   };
 
-  const runtimeImages = React.useRef({});
+  const runtimeImages = React.useRef<any>({});
 
   const onFileRequested = (args: any): Promise<string> => {
     let currentExt = '';
@@ -263,7 +263,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   const handleOpenFile = (data: any): void => {
     for (let i = 0; i < data.selectedObjectIds.length; i++) {
       const node = pipeline.pipelines[0].nodes.find(
-        node => node.id === data.selectedObjectIds[i]
+        (node: any) => node.id === data.selectedObjectIds[i]
       );
       if (!node || !node.app_data || !node.app_data.filename) {
         continue;
@@ -709,7 +709,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     (location?: { x: number; y: number }) => {
       const fileBrowser = browserFactory.defaultBrowser;
       // Only add file to pipeline if it is currently in focus
-      if (shell.currentWidget.id !== widgetId) {
+      if (shell.currentWidget?.id !== widgetId) {
         return;
       }
 
@@ -734,15 +734,15 @@ const PipelineWrapper: React.FC<IProps> = ({
           if (item.type == 'notebook') {
             const fileWidget = fileBrowser.model.manager.open(item.path);
             // itemContent = (fileWidget as NotebookPanel).content.model.toString();
-            fileWidget.dispose();
+            fileWidget?.dispose();
           }
           item.op = PipelineService.getNodeType(item.path);
           item.path = PipelineService.getPipelineRelativeNodePath(
             contextRef.current.path,
             item.path
           );
-          item.x = location.x + position;
-          item.y = location.y + position;
+          item.x = (location?.x ?? 0) + position;
+          item.y = (location?.y ?? 0) + position;
 
           const success = ref.current?.addFile(item);
 
@@ -768,6 +768,8 @@ const PipelineWrapper: React.FC<IProps> = ({
           buttons: [Dialog.okButton()]
         });
       }
+
+      return;
     },
     [browserFactory.defaultBrowser, defaultPosition, shell, widgetId]
   );
@@ -791,7 +793,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       return;
     }
 
-    setAlert(null);
+    setAlert(undefined);
   };
 
   if (loading) {

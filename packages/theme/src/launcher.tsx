@@ -78,7 +78,7 @@ export class Launcher extends JupyterlabLauncher {
     // get the rendering from JupyterLab Launcher
     // and resort the categories
     const launcherBody = super.render();
-    const launcherContent = launcherBody.props.children;
+    const launcherContent = launcherBody?.props.children;
     const launcherCategories = launcherContent.props.children;
 
     const categories: React.ReactElement<any>[] = [];

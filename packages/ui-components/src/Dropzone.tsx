@@ -27,7 +27,7 @@ declare global {
 }
 
 interface IRootProps {
-  ref: React.MutableRefObject<HTMLDivElement>;
+  ref: React.RefObject<HTMLDivElement>;
 }
 
 interface IProps {
