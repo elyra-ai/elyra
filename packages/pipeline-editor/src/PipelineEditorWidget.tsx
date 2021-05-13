@@ -54,7 +54,6 @@ import Alert from '@material-ui/lab/Alert';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
-import nodes from './nodes';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import {
   IRuntime,
@@ -130,9 +129,8 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState<any>(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
-  const [alert, setAlert] = React.useState<string>();
-  const [updatedNodes, setUpdatedNodes] = React.useState(nodes);
-  const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
+  const [alert, setAlert] = React.useState(null);
+  const [updatedNodes, setUpdatedNodes] = React.useState([]);
 
   const contextRef = useRef(context);
   useEffect(() => {
@@ -159,15 +157,9 @@ const PipelineWrapper: React.FC<IProps> = ({
       setLoading(false);
     };
 
-    currentContext.model.contentChanged.connect(changeHandler);
-
-    currentContext.ready.then(changeHandler);
-
-    PipelineService.getRuntimeImages()
-      .then((images: any) => {
+    let loadNodes = (pipelineRuntime?: string) => {
+      PipelineService.getRuntimeImages().then((images: any) => {
         runtimeImages.current = images;
-        const pipelineRuntime =
-          pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
         PipelineService.getRuntimeComponents(pipelineRuntime ?? 'local').then(
           async (serverNodes: any) => {
             const newNodes = [];
@@ -178,19 +170,43 @@ const PipelineWrapper: React.FC<IProps> = ({
               ).then((properties: any) => {
                 for (const node of nodeCategory.node_types) {
                   newNodes.push(node);
+                  node.label = nodeCategory.label;
+                  node.id = nodeCategory.id;
+                  node.description = nodeCategory.description;
                   node.properties = properties;
                   node.properties.uihints.parameter_info[1].data = {
                     items: Object.values(runtimeImages.current)
                   };
                 }
-              });
+              }, RequestErrors.serverError);
             }
             setUpdatedNodes(newNodes);
             changeHandler();
-          }
+          },
+          RequestErrors.serverError
         );
-      })
-      .catch(error => RequestErrors.serverError(error));
+      }, RequestErrors.serverError);
+    };
+
+    loadNodes();
+
+    // Trigger a re-load of the nodes if the pipeline runtime changes
+    const maybeLoadNodes = () => {
+      const pipelineJSON: any = currentContext.model.toJSON();
+      const pipelineRuntime =
+        pipelineJSON?.pipelines?.[0]?.app_data?.ui_data?.runtime.name;
+      if (
+        pipelineRuntime !==
+        pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime.name
+      ) {
+        loadNodes(pipelineRuntime);
+      } else {
+        changeHandler();
+      }
+    };
+
+    currentContext.ready.then(maybeLoadNodes);
+    currentContext.model.contentChanged.connect(maybeLoadNodes);
 
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
@@ -317,7 +333,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       setAlert('Failed export: Cannot export empty pipelines.');
       return;
     }
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodes);
+    const errorMessages = validate(JSON.stringify(pipelineJson), updatedNodes);
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -456,7 +472,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // Check that all nodes are valid
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodes);
+    const errorMessages = validate(JSON.stringify(pipelineJson), updatedNodes);
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
