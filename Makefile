@@ -89,7 +89,6 @@ lint: lint-ui lint-server ## Run linters
 dev-link:
 	yarn link @elyra/pipeline-services
 	yarn link @elyra/pipeline-editor
-	yarn
 	cd node_modules/@elyra/pipeline-editor && jupyter labextension link --no-build .
 	cd node_modules/@elyra/pipeline-services && jupyter labextension link --no-build .
 
