@@ -140,7 +140,10 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const changeHandler = (): void => {
       const pipelineJson: any = currentContext.model.toJSON();
-      if (pipelineJson?.pipelines?.[0]?.nodes) {
+      if (
+        pipelineJson?.pipelines?.[0]?.nodes &&
+        pipelineJson?.pipelines?.[0]?.nodes.length > 0
+      ) {
         // Update to display actual value of runtime image
         for (const node of pipelineJson?.pipelines?.[0]?.nodes) {
           const app_data = node?.app_data;
@@ -163,14 +166,29 @@ const PipelineWrapper: React.FC<IProps> = ({
     PipelineService.getRuntimeImages()
       .then((images: any) => {
         runtimeImages.current = images;
-        const nodesCopy = JSON.parse(JSON.stringify(nodes));
-        for (const node of nodesCopy) {
-          node.properties.uihints.parameter_info[1].data.items = Object.values(
-            runtimeImages.current
-          );
-        }
-        setUpdatedNodes(nodesCopy);
-        changeHandler();
+        const pipelineRuntime =
+          pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
+        PipelineService.getRuntimeComponents(pipelineRuntime ?? 'local').then(
+          async (serverNodes: any) => {
+            const newNodes = [];
+            for (const nodeCategory of serverNodes.categories) {
+              await PipelineService.getComponentProperties(
+                pipelineRuntime ?? 'local',
+                nodeCategory.id
+              ).then((properties: any) => {
+                for (const node of nodeCategory.node_types) {
+                  newNodes.push(node);
+                  node.properties = properties;
+                  node.properties.uihints.parameter_info[1].data = {
+                    items: Object.values(runtimeImages.current)
+                  };
+                }
+              });
+            }
+            setUpdatedNodes(newNodes);
+            changeHandler();
+          }
+        );
       })
       .catch(error => RequestErrors.serverError(error));
 
@@ -433,7 +451,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [context.model, pipelineRuntime, cleanNullProperties, shell]);
+  }, [context.model, pipeline?.pipelines, cleanNullProperties, shell]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
@@ -568,7 +586,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [context.model, pipelineRuntime, cleanNullProperties, shell]);
+  }, [context.model, pipeline?.pipelines, cleanNullProperties, shell]);
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
     return showDialog({

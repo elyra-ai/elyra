@@ -26,6 +26,7 @@ import Utils from './utils';
 
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_NAMESPACE = 'runtimes';
+export const COMPONENTS_NAMESPACE = 'components';
 
 export interface IRuntime {
   name: string;
@@ -65,6 +66,33 @@ export class PipelineService {
 
       return runtimes;
     });
+  }
+
+  /**
+   * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
+   *
+   * @param pipeline
+   * @param runtimeName
+   */
+  static async getRuntimeComponents(runtimeName: string): Promise<any> {
+    return RequestHandler.makeGetRequest(
+      `elyra/pipeline/components/${runtimeName}`
+    );
+  }
+
+  /**
+   * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
+   *
+   * @param pipeline
+   * @param runtimeName
+   */
+  static async getComponentProperties(
+    runtimeName: string,
+    componentCategory: string
+  ): Promise<any> {
+    return RequestHandler.makeGetRequest(
+      `elyra/pipeline/components/${runtimeName}/${componentCategory}/properties`
+    );
   }
 
   /**
