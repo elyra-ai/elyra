@@ -97,6 +97,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Add the default behavior of opening the widget for .pipeline files
     app.docRegistry.addFileType({
       name: PIPELINE,
+      displayName: 'Pipeline',
       extensions: ['.pipeline'],
       icon: pipelineIcon
     });

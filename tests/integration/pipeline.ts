@@ -42,7 +42,7 @@ describe('Pipeline Editor tests', () => {
     });
   });
 
-  // Test is actually failing
+  // TODO: Fix Test is actually failing
   // it('empty editor should have disabled buttons', () => {
   //   cy.focusPipelineEditor();
 
@@ -73,6 +73,8 @@ describe('Pipeline Editor tests', () => {
 
   it('populated editor should have enabled buttons', () => {
     cy.createPipelineEditor();
+
+    cy.checkTabMenuOptions('Pipeline');
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
     cy.addFileToPipeline('helloworld.py'); // add Python Script
