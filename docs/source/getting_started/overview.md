@@ -36,7 +36,7 @@ You can try out some of these features using the getting started tour on [Binder
 
 Building an AI pipeline for a model is hard, breaking down and modularizing a pipeline is harder.
 A typical machine/deep learning pipeline begins as a series of preprocessing steps followed by
-experimentation/optimization and finally deployment. Each of these steps represent a challenge in
+experimentation/optimization and finally deployment. Each of these steps represents a challenge in
 the model development lifecycle.
 
 Elyra provides a **Pipeline Visual Editor** for building AI pipelines from notebooks, Python scripts
