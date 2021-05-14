@@ -271,7 +271,7 @@ class KfpComponentParser(ComponentParser):
                 'default': label
             },
             'description': {
-                'default': obj["description"].title(),
+                'default': obj["description"].capitalize(),
                 'placement': "on_panel"
             },
             "data": data_object
@@ -436,7 +436,7 @@ class AirflowComponentParser(ComponentParser):
                 'default': parameter_name
             },
             'description': {
-                'default': parameter_description.title(),
+                'default': parameter_description.capitalize(),
                 'placement': "on_panel"
             },
             "data": data_object
