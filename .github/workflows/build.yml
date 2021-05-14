@@ -85,7 +85,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install
         run: |
-          pip install --use-deprecated=legacy-resolver ".[test]"
+          pip install --use-deprecated=legacy-resolver -r test_requirements.txt .
       - name: Test
         run: pytest -v elyra
 
@@ -139,10 +139,10 @@ jobs:
           yarn install
           pip install --use-deprecated=legacy-resolver .
       - name: Build
-        run: yarn lerna run build
-      - name: Install Elyra into JupyterLab
+        run: yarn lerna run build --stream
+      - name: Setup JupyterLab
         run: |
-          make install-ui-x
+          yarn lerna run lab:install --stream
           jupyter lab build
       - name: Cypress
         run: yarn test:integration

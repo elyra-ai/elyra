@@ -28,7 +28,9 @@
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "lab:install": "jupyter labextension link --no-build",
+    "lab:uninstall": "jupyter labextension unlink --no-build"
   },
   "dependencies": {
     "@jupyterlab/apputils": "^3.0.0",
