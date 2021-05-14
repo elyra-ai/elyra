@@ -85,9 +85,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install
         run: |
-          pip install -q --upgrade pip --user
-          pip --version
-          pip install .
+          pip install --use-deprecated=legacy-resolver .
       - name: Test
         run: pytest -v elyra
 
