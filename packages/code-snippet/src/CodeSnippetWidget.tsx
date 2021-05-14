@@ -490,12 +490,12 @@ class CodeSnippetDisplay extends MetadataDisplay<
       } else {
         // Add new snippets
         const snippetElement = document.getElementById(codeSnippet.name);
-        if (snippetEl === null) {
+        if (snippetElement === null) {
           return;
         }
         this.editors[codeSnippet.name] = editorFactory({
           config: { readOnly: true },
-          host: snippetEl,
+          host: snippetElement,
           model: new CodeEditor.Model({
             value: codeSnippet.metadata.code.join('\n'),
             mimeType: getMimeTypeByLanguage({
