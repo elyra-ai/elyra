@@ -117,6 +117,18 @@ install-ui: build-ui # Install packages
 	$(call INSTALL_LAB_EXTENSION,python-editor)
 	$(call INSTALL_LAB_EXTENSION,r-editor)
 
+install-ui-x:
+	$(call LINK_LAB_EXTENSION,services)
+	$(call LINK_LAB_EXTENSION,ui-components)
+	$(call LINK_LAB_EXTENSION,metadata-common)
+	$(call LINK_LAB_EXTENSION,script-editor)
+	$(call INSTALL_LAB_EXTENSION,theme)
+	$(call INSTALL_LAB_EXTENSION,code-snippet)
+	$(call INSTALL_LAB_EXTENSION,metadata)
+	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
+	$(call INSTALL_LAB_EXTENSION,python-editor)
+	$(call INSTALL_LAB_EXTENSION,r-editor)
+
 install-server: build-server # Install backend
 	pip install --upgrade pip
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl

@@ -85,9 +85,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install
         run: |
-          python -m pip install --upgrade pip wheel jupyter_server
-          python -m pip install --upgrade jupyterlab
-          make install-server
+          pip install wheel
+          python setup.py bdist_wheel
+          pip install dist/elyra-*-py3-none-any.whl
       - name: Test
         run: pytest -v elyra
 
@@ -110,12 +110,11 @@ jobs:
             */*/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Install
-        run: yarn install
-      - name: Install
         run: |
-          python -m pip install --upgrade pip wheel jupyter_server
-          python -m pip install --upgrade jupyterlab
-          make install-server
+          yarn install
+          pip install wheel
+          python setup.py bdist_wheel
+          pip install dist/elyra-*-py3-none-any.whl
       - name: Test
         run: yarn test:unit
 
@@ -141,10 +140,16 @@ jobs:
       - name: Install
         # TODO: `make install` also lints and things, so we should break this down more.
         run: |
-          python -m pip install --upgrade pip wheel jupyter_server
-          python -m pip install --upgrade jupyterlab
-          make install-server
-          make install
+          yarn install
+          pip install wheel
+          python setup.py bdist_wheel
+          pip install dist/elyra-*-py3-none-any.whl
+      - name: Build
+        run: yarn lerna run build
+      - name: Install Elyra into JupyterLab
+        run: |
+          make install-ui-x
+          jupyter lab build
       - name: Cypress
         run: yarn test:integration
 
