@@ -489,7 +489,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         ].model.value.text = codeSnippet.metadata.code.join('\n');
       } else {
         // Add new snippets
-        const snippetEl = document.getElementById(codeSnippet.name);
+        const snippetElement = document.getElementById(codeSnippet.name);
         if (snippetEl === null) {
           return;
         }
