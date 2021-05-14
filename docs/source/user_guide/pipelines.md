@@ -114,7 +114,7 @@ Current values of `ELYRA_RUNTIME_ENV` are:
 - **airflow**: Indicating the component is running within Apache Airflow
 - **local**: A special case, indicating the component is running locally
 
-Additional values will be available as more [custom pipeline processors](/developer_guide/pipelines.md) are introduced.
+Additional values will be available as more [custom pipeline processors](../developer_guide/pipelines.html#pipeline-processor-customization) are introduced.
 ### Distributing Your Pipeline
 Oftentimes you'll want to share or distribute your pipeline (including its notebooks and their dependencies) with colleagues.  This section covers some of the best practices for accomplishing that, but first, it's good to understand the relationships between components of a pipeline.
 
