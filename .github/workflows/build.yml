@@ -15,90 +15,131 @@
 #
 name: Elyra Tests
 on:
-  push:
-    branches: '*'
-  pull_request:
-    branches: '*'
+  push: # all branches
+  pull_request: # all branches
   schedule:
     # once a day at 3 am (UTC) (7 pm (PST))
     - cron:  '0 3 * * *'
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [ '3.6', '3.7', '3.8' ]
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        clean: true
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: 'x64'
-    - name: Set up Node
-      uses: actions/setup-node@v2
-      with:
-         node-version: '*'
-    - name: Create npm configuration for authentication
-      run: |
-        echo "scripts-prepend-node-path=true" >> ~/.npmrc
-        echo "prefix=~/.npm-global" >> ~/.npmrc
-        mkdir -p ~/.npm-global
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip wheel jupyter_server
-        python -m pip install --upgrade jupyterlab
-    - name: Install NPM dependencies
-      run: |
-        sudo apt install yarn
-        npm install -g lerna@3.22.1
-        npm install -g rimraf@3.0.2
-        npm install -g typescript@4.1.3
-        npm install -g yarn@1.22.4
-    - name: Log current build tools version
-      run: |
-        python --version
-        node --version
-        npm --version
-        yarn --version
-        lerna --version
-        pip --version
-    - name: Log current Python dependencies version
-      run: |
-        pip freeze
-    - name: Build
-      run: |
-        export PATH=~/.npm-global/bin:$PATH
-        # make sure nothing was manually added to the package.json
-        yarn install --frozen-lockfile
-        make install
-    - name: Documentation
-      run: |
-        make docs
-    - name: Test
-      run: |
-        make test
-    - name: Collect logs
-      uses: actions/upload-artifact@v2
-      if: failure()
-      with:
-        path: |
-          ${{ github.workspace }}/build/cypress-tests/*.log
-          ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
-          ${{ github.workspace }}/build/cypress-tests/videos//**/*
-          /home/runner/.npm/_logs/*.log
-  image_validation:
+  prepare-yarn-cache:
+    name: Prepare Cache
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        clean: true
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "*"
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+            /home/runner/.cache/Cypress
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+  lint-server:
+    name: Lint Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install
+        run: pip install -q -r test_requirements.txt
+      - name: Lint
+        run: flake8 elyra
+
+  lint-ui:
+    name: Lint UI
+    needs: prepare-yarn-cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "*"
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+      - name: Install
+        run: yarn install
+      - name: Lint
+        run: yarn eslint:check --max-warnings=0
+      - name: Check format
+        run: yarn prettier:check
+
+  test-server:
+    name: Test Server
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Test
+        run: pytest -v elyra
+
+  test-ui:
+    name: Test UI
+    needs: prepare-yarn-cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2 # Install dependencies with latest node version
+        with:
+          node-version: "*"
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+      - name: Install
+        run: yarn install
+      - name: Test
+        run: yarn test:unit
+
+  test-integration:
+    name: Run Integration Tests
+    needs: prepare-yarn-cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "*"
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+            /home/runner/.cache/Cypress
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+      - name: Install
+        # TODO: `make install` also lints and things, so we should break this down more.
+        run: make install
+      - name: Cypress
+        run: yarn test:integration
+
+  # TODO: Why are building? this should be named accordingly
+  build-documentation:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build
+        run: make docs
+
+  validate-images:
+    name: Validate Images
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
     - name: Validate runtime images
       run: make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images
