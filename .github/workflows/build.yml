@@ -83,6 +83,8 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: pip install .
       - name: Test
         run: pytest -v elyra
 
@@ -133,6 +135,7 @@ jobs:
     name: Build Documentation
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Build
         run: make docs
 
@@ -140,6 +143,6 @@ jobs:
     name: Validate Images
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Validate runtime images
-      run: make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images
+      - uses: actions/checkout@v2
+      - name: Validate runtime images
+        run: make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images
