@@ -84,7 +84,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
-        run: make install-server
+        run: |
+          python -m pip install --upgrade pip wheel jupyter_server
+          python -m pip install --upgrade jupyterlab
+          make install-server
       - name: Test
         run: pytest -v elyra
 
@@ -106,7 +109,10 @@ jobs:
       - name: Install
         run: yarn install
       - name: Install
-        run: make install-server
+        run: |
+          python -m pip install --upgrade pip wheel jupyter_server
+          python -m pip install --upgrade jupyterlab
+          make install-servermake install-server
       - name: Test
         run: yarn test:unit
 
@@ -128,7 +134,11 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         # TODO: `make install` also lints and things, so we should break this down more.
-        run: make install
+        run: |
+          python -m pip install --upgrade pip wheel jupyter_server
+          python -m pip install --upgrade jupyterlab
+          make install-server
+          make install
       - name: Cypress
         run: yarn test:integration
 
