@@ -85,7 +85,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install
         run: |
-          pip install --use-deprecated=legacy-resolver .
+          pip install --use-deprecated=legacy-resolver ".[test]"
       - name: Test
         run: pytest -v elyra
 
@@ -110,9 +110,7 @@ jobs:
       - name: Install
         run: |
           yarn install
-          pip install -q --upgrade pip --user
-          pip --version
-          pip install .
+          pip install --use-deprecated=legacy-resolver .
       - name: Test
         run: yarn test:unit
 
@@ -139,9 +137,7 @@ jobs:
         # TODO: `make install` also lints and things, so we should break this down more.
         run: |
           yarn install
-          pip install -q --upgrade pip --user
-          pip --version
-          pip install .
+          pip install --use-deprecated=legacy-resolver .
       - name: Build
         run: yarn lerna run build
       - name: Install Elyra into JupyterLab
