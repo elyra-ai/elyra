@@ -8,8 +8,8 @@
       }
     },
     {
-      "name": "Spark Sql Op",
-      "id": "spark-sql-op",
+      "name": "Spark Sql Operator",
+      "id": "spark-sql-operator",
       "path": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py"
       }

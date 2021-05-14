@@ -157,7 +157,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       setLoading(false);
     };
 
-    let loadNodes = (pipelineRuntime?: string) => {
+    const loadNodes = (pipelineRuntime?: string) => {
       PipelineService.getRuntimeImages().then((images: any) => {
         runtimeImages.current = images;
         PipelineService.getRuntimeComponents(pipelineRuntime ?? 'local').then(
@@ -174,6 +174,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                   node.id = nodeCategory.id;
                   node.description = nodeCategory.description;
                   node.properties = properties;
+                  console.log(node);
                   node.properties.uihints.parameter_info[1].data = {
                     items: Object.values(runtimeImages.current)
                   };

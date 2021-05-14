@@ -48,15 +48,6 @@ outputs = {
     }
 }
 
-default_current_parameters = {
-    "filename": "",
-    "runtime_image": "",
-    "outputs": [],
-    "env_vars": [],
-    "dependencies": [],
-    "include_subdirectories": False
-}
-
 
 def get_id_from_name(name):
     return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-').replace('_', '-')
@@ -183,14 +174,14 @@ class KfpComponentParser(ComponentParser):
 
         # Define new input group object
         input_group_info = {
-            'id': "nodeInputControls",  # need to actually figure out the control id
+            'id': "inputs",
             'type': "controls",
             'parameter_refs': []
         }
 
         inputs = component_body['inputs']
         for input_object in inputs:
-            new_parameter, parameter_info = self.build_parameter(input_object, "input")
+            new_parameter_info = self.build_parameter(input_object, "input")
 
             # TODO: Adjust this to return an empty value for whatever type the parameter is?
             default_value = ""
@@ -198,41 +189,41 @@ class KfpComponentParser(ComponentParser):
                 default_value = input_object['default']
 
             # Add to existing parameter list
-            component_parameters['parameters'].append(new_parameter)
-            component_parameters['current_parameters'][new_parameter['id']] = default_value
+            component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
+            component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = default_value
 
             # Add to existing parameter info list
-            component_parameters['uihints']['parameter_info'].append(parameter_info)
+            component_parameters['uihints']['parameter_info'].append(new_parameter_info)
 
             # Add parameter to input group info
-            input_group_info['parameter_refs'].append(new_parameter['id'])
+            input_group_info['parameter_refs'].append(new_parameter_info['parameter_ref'])
 
         # Append input group info to parameter details
         component_parameters['uihints']['group_info'][0]['group_info'].append(input_group_info)
 
         # Define new output group object
         output_group_info = {
-            'id': "nodeOutputControls",  # need to actually figure out the control id
+            'id': "outputs",  # need to actually figure out the control id
             'type': "controls",
             'parameter_refs': []
         }
 
         outputs = component_body['outputs']
         for output_object in outputs:
-            new_parameter, parameter_info = self.build_parameter(output_object, "output")
+            new_parameter_info = self.build_parameter(output_object, "output")
 
-            # TODO Adjust this to return an empty value for whatever type the parameter is?
-            default_value = ""
+            if new_parameter_info['parameter_ref'] in input_group_info['parameter_refs']:
+                new_parameter_info['parameter_ref'] = f"output_{new_parameter_info['parameter_ref']}"
 
             # Add to existing parameter list
-            component_parameters['parameters'].append(new_parameter)
-            component_parameters['current_parameters'][new_parameter['id']] = default_value
+            component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
+            component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = ""
 
             # Add to existing parameter info list
-            component_parameters['uihints']['parameter_info'].append(parameter_info)
+            component_parameters['uihints']['parameter_info'].append(new_parameter_info)
 
             # Add parameter to output group info
-            output_group_info['parameter_refs'].append(new_parameter['id'])
+            output_group_info['parameter_refs'].append(new_parameter_info['parameter_ref'])
 
         # Append output group info to parameter details
         component_parameters['uihints']['group_info'][0]['group_info'].append(output_group_info)
@@ -240,36 +231,53 @@ class KfpComponentParser(ComponentParser):
         return component_parameters
 
     def build_parameter(self, obj, obj_type):
-        new_parameter = {}
-
-        new_parameter['id'] = f"elyra{obj_type}_{obj['name'].replace(' ', '_')}"
-
-        # Assign type, default to string??
-        if "type" in obj:
-            new_parameter['type'] = obj['type']
-        else:
-            new_parameter['type'] = "string"
-
+        data_object = {}
         # Determine whether parameter is optional
         if ("optional" in obj and obj['optional']) \
                 or ("description" in obj and "required" in obj['description'].lower()):
-            new_parameter['required'] = True
+            data_object['required'] = True
         else:
-            new_parameter['required'] = False
+            data_object['required'] = False
 
-        # Build parameter_info
-        # TODO Determine if any other param info should be added here, e.g. control, separator, orientation, etc.
-        parameter_info = {
-            'parameter_ref': new_parameter['id'],
+        # Assign type, default to string
+        data_object['format'] = "string"
+        custom_control_id = "StringControl"
+        if "type" in obj:
+            data_object['format'] = obj['type']
+
+            # This may not be applicable in every case
+            if "string" in obj['type'].lower():
+                custom_control_id = "StringControl"
+            elif obj['type'].lower() in ["number", "integer"]:
+                custom_control_id = "NumberControl"
+            elif obj['type'].lower() in ["bool", "boolean"]:
+                custom_control_id = "BooleanControl"
+            elif "array" in obj['type'].lower():
+                custom_control_id = "StringArrayControl"
+            elif "object" in obj['type'].lower():
+                custom_control_id = "StringControl"
+
+        # Build label name
+        label = obj['name']
+        if obj_type not in obj['name'].lower():
+            label = f"{obj['name']} ({obj_type})"
+
+        # Build parameter info
+        new_parameter = {
+            'parameter_ref': obj['name'].replace(' ', '_'),
+            'control': "custom",
+            'custom_control_id': custom_control_id,
             'label': {
-                "default": obj['name']
+                'default': label
             },
             'description': {
-                "default": obj['description']
-            }
+                'default': obj["description"].title(),
+                'placement': "on_panel"
+            },
+            "data": data_object
         }
 
-        return new_parameter, parameter_info
+        return new_parameter
 
     def parse_component_execution_instructions(self, component_body):
         pass
@@ -339,7 +347,7 @@ class AirflowComponentParser(ComponentParser):
                 continue
 
             group_info = {
-                'id': f"{class_name[:1].lower() + class_name[1:]}Controls",
+                'id': class_name,
                 'type': "controls",
                 'parameter_refs': []
             }
@@ -360,17 +368,17 @@ class AirflowComponentParser(ComponentParser):
                         arg = split_arg[0]
                         default_value = split_arg[1]
 
-                    new_parameter, parameter_info = self.build_parameter(arg, class_name, class_content)
+                    new_parameter_info = self.build_parameter(arg, class_name, class_content)
 
                     # Add to existing parameter list
-                    component_parameters['parameters'].append(new_parameter)
-                    component_parameters['current_parameters'][new_parameter['id']] = default_value
+                    component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
+                    component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = default_value
 
                     # Add to existing parameter info list
-                    component_parameters['uihints']['parameter_info'].append(parameter_info)
+                    component_parameters['uihints']['parameter_info'].append(new_parameter_info)
 
                     # Add parameter to output group info
-                    group_info['parameter_refs'].append(new_parameter['id'])
+                    group_info['parameter_refs'].append(new_parameter_info['parameter_ref'])
 
             # Append output group info to parameter details
             component_parameters['uihints']['group_info'][0]['group_info'].append(group_info)
@@ -378,17 +386,6 @@ class AirflowComponentParser(ComponentParser):
         return component_parameters
 
     def build_parameter(self, parameter_name, class_name, component_body):
-        new_parameter = {}
-        new_parameter['id'] = f"{class_name}_{parameter_name}"
-
-        # Search for :type [param] information in class docstring
-        type_regex = re.compile(f":type {parameter_name}" + r":([\w ]*)")
-        match = type_regex.search(component_body)
-        if match:
-            new_parameter['type'] = match.group(1)
-        else:
-            new_parameter['type'] = "string"
-
         # Search for parameter description in class doctring
         parameter_description = ""
         param_regex = re.compile(f":param {parameter_name}" + r":([\w ]*)")  # TODO Fix this regex to capture more
@@ -396,6 +393,7 @@ class AirflowComponentParser(ComponentParser):
         if match:
             parameter_description = match.group(1)
 
+        data_object = {}
         # Search description to determine whether parameter is optional
         # Another potential check for 'required' status would be if there is
         # an = sign in the init function parameters, this implies that it is
@@ -404,23 +402,47 @@ class AirflowComponentParser(ComponentParser):
                 ("required" in parameter_description.lower() and
                  "not required" not in parameter_description.lower() and
                  "n't required" not in parameter_description.lower()):
-            new_parameter['required'] = True
+            data_object['required'] = True
         else:
-            new_parameter['required'] = False
+            data_object['required'] = False
 
-        # Build parameter_info
-        # TODO Determine if any other param info should be added here, e.g. control, separator, orientation, etc.
-        parameter_info = {
-            'parameter_ref': new_parameter['id'],
+        # Default type will be string
+        data_object['format'] = "string"
+        custom_control_id = "StringControl"
+        # Search for :type [param] information in class docstring
+        type_regex = re.compile(f":type {parameter_name}" + r":([\w ]*)")
+        match = type_regex.search(component_body)
+        if match:
+            data_object['format'] = match.group(1)
+
+            # This may not be applicable in every case
+            if "string" in match.group(1).lower():
+                custom_control_id = "StringControl"
+            elif match.group(1).lower() in ["number", "integer"]:
+                custom_control_id = "NumberControl"
+            elif match.group(1).lower() in ["bool", "boolean"]:
+                custom_control_id = "BooleanControl"
+            elif "array" in match.group(1).lower():
+                custom_control_id = "StringArrayControl"
+            elif "object" in match.group(1).lower():
+                custom_control_id = "StringControl"
+
+        # Build parameter info
+        new_parameter = {
+            'parameter_ref': f"{class_name}_{parameter_name}",
+            'control': "custom",
+            'custom_control_id': custom_control_id,
             'label': {
-                "default": parameter_name
+                'default': parameter_name
             },
             'description': {
-                "default": parameter_description
-            }
+                'default': parameter_description.title(),
+                'placement': "on_panel"
+            },
+            "data": data_object
         }
 
-        return new_parameter, parameter_info
+        return new_parameter
 
 
 class ComponentReader(SingletonConfigurable):
@@ -444,18 +466,18 @@ class FilesystemComponentReader(ComponentReader):
         component_dir = os.path.join(os.path.dirname(__file__), self._dir_path)
         component_file = os.path.join(component_dir, component_path)
 
-        component_extension = os.path.splitext(component_path)[-1]
+        component_name, component_extension = os.path.splitext(component_path)
         with open(component_file, 'r') as f:
             if component_extension == '.yaml':
                 try:
-                    return yaml.safe_load(f), None
+                    return yaml.safe_load(f), component_name.split('/')[-1], component_extension
                 except yaml.YAMLError as e:
                     raise RuntimeError from e
             elif component_extension == '.py':
                 # TODO: Find better way to read in file. Can we assume operator files are always
                 # small enough to be read into memory? Reading and yielding by line likely won't
                 # work because multiple lines need to be checked at once (or multiple times).
-                return f.readlines()
+                return f.readlines(), component_name.split('/')[-1], component_extension
             else:
                 raise ValueError(f'File type {component_extension} is not supported.')
 
@@ -474,11 +496,11 @@ class UrlComponentReader(ComponentReader):
 
         if component_extension == ".yaml":
             try:
-                return yaml.safe_load(component_body), None
+                return yaml.safe_load(component_body), component_name.split('/')[-1], component_extension
             except yaml.YAMLError as e:
                 raise RuntimeError from e
         elif component_extension == ".py":
-            return component_body.readlines(), component_name.split('/')[-1]
+            return component_body.readlines(), component_name.split('/')[-1], component_extension
         else:
             raise ValueError(f'File type {component_extension} is not supported.')
 
@@ -517,7 +539,7 @@ class ComponentRegistry(SingletonConfigurable):
             if reader is None or reader._type != list(component['path'].keys())[0]:
                 reader = self._get_reader(component)
 
-            component_body, component_name = reader.get_component_body(component['path'][reader._type])
+            component_body, component_name, _ = reader.get_component_body(component['path'][reader._type])
 
             # Parse the component definition in order to add to palette
             component_json = parser.parse_component_details(component_body, component_name)
@@ -536,7 +558,19 @@ class ComponentRegistry(SingletonConfigurable):
         parser = self._get_parser(processor_type)
 
         if parser._type == "local" or component_id in default_components:
-            properties = parser.get_common_config('properties')
+            properties_details = parser.get_common_config('properties')
+
+            properties = {
+                'op': "execute-notebook-node",
+                'description': "Notebook file",
+                'label': "Notebook",
+                'labelField': "filename",
+                'fileField': "filename",
+                'fileBased': True,
+                'extension': ".ipynb",
+                'image': "'data:image/svg+xml;utf8,' + + encodeURIComponent(jupyterSVG)",
+                'properties': properties_details
+            }
         else:
             component = parser.return_component_if_exists(component_id)
             if component is None:
@@ -545,10 +579,23 @@ class ComponentRegistry(SingletonConfigurable):
             reader = self._get_reader(component)
 
             component_path = component['path'][reader._type]
-            component_body, _ = reader.get_component_body(component_path)
-            properties = parser.parse_component_properties(component_body)
+            component_body, component_name, component_extension = reader.get_component_body(component_path)
+            properties_details = parser.parse_component_properties(component_body)
 
-        return properties
+            properties = {
+                'op': f"execute-{component_id}-node",
+                'description': f"Component file - {' '.join(component_name.split('_')).title()}",
+                'label': ' '.join(component_name.split('_')).title(),
+                'labelField': "filename",
+                'fileField': "filename",
+                'fileBased': True,
+                'extension': component_extension,
+                'image': "data:image/svg+xml;utf8,",
+                'properties': properties_details
+            }
+
+        print(properties)
+        return properties_details
 
     def add_component(self, processor_type, request_body):
         """
@@ -573,7 +620,7 @@ class ComponentRegistry(SingletonConfigurable):
 
         reader = self._get_reader(component)
         component_path = component['path'][reader._type]
-        component_body = reader.get_component_body(component_path)
+        component_body, _, _ = reader.get_component_body(component_path)
 
         execution_instructions = parser.parse_component_execution_instructions(component_body)
         return execution_instructions
