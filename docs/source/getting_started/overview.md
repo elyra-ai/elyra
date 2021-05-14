@@ -30,19 +30,19 @@ The main features include:
 * [Notebook navigation using auto-generated Table of Contents](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Language Server Protocol integration](#language-server-protocol-integration)
 
-You can try out some of these features using the getting started tour [on Binder](https://github.com/elyra-ai/elyra#using-binder) without having to install anything.
+You can try out some of these features using the getting started tour on [Binder](https://github.com/elyra-ai/elyra#using-binder) without having to install anything.
 
 #### AI Pipelines visual editor
 
 Building an AI pipeline for a model is hard, breaking down and modularizing a pipeline is harder.
 A typical machine/deep learning pipeline begins as a series of preprocessing steps followed by
-experimentation/optimization and finally deployment. Each of these steps represent a challenge in
+experimentation/optimization and finally deployment. Each of these steps represents a challenge in
 the model development lifecycle.
 
 Elyra provides a **Pipeline Visual Editor** for building AI pipelines from notebooks, Python scripts
 and R scripts, simplifying the conversion of multiple notebooks or scripts files into batch jobs or workflows.
 
-Currently, pipelines can be executed locally in JupyterLab or on 
+Currently, pipelines can be executed locally in JupyterLab or on
 [**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/).
 
 ![Pipeline Editor](../images/pipeline-in-editor.png)
@@ -110,7 +110,7 @@ To access the Table of Contents, open a notebook and select the _Table of Conten
 
 #### Language Server Protocol integration
 
-The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/krassowski/jupyterlab-lsp) enhances the development experience in the notebook editor and file editors, delivering features common in IDEs such as autocompletion, code navigation, hover suggestions, code linting, and renaming. 
+The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/krassowski/jupyterlab-lsp) enhances the development experience in the notebook editor and file editors, delivering features common in IDEs such as autocompletion, code navigation, hover suggestions, code linting, and renaming.
 
 ![LSP Integration](../images/lsp.gif)
 
