@@ -84,7 +84,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
-        run: pip install .
+        run: make install-server
       - name: Test
         run: pytest -v elyra
 
@@ -105,6 +105,8 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: yarn install
+      - name: Install
+        run: make install-server
       - name: Test
         run: yarn test:unit
 
