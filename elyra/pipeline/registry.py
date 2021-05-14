@@ -557,20 +557,9 @@ class ComponentRegistry(SingletonConfigurable):
 
         parser = self._get_parser(processor_type)
 
+        properties = {}
         if parser._type == "local" or component_id in default_components:
-            properties_details = parser.get_common_config('properties')
-
-            properties = {
-                'op': "execute-notebook-node",
-                'description': "Notebook file",
-                'label': "Notebook",
-                'labelField': "filename",
-                'fileField': "filename",
-                'fileBased': True,
-                'extension': ".ipynb",
-                'image': "'data:image/svg+xml;utf8,' + + encodeURIComponent(jupyterSVG)",
-                'properties': properties_details
-            }
+            properties = parser.get_common_config('properties')
         else:
             component = parser.return_component_if_exists(component_id)
             if component is None:
@@ -579,23 +568,10 @@ class ComponentRegistry(SingletonConfigurable):
             reader = self._get_reader(component)
 
             component_path = component['path'][reader._type]
-            component_body, component_name, component_extension = reader.get_component_body(component_path)
-            properties_details = parser.parse_component_properties(component_body)
+            component_body, _, _ = reader.get_component_body(component_path)
+            properties = parser.parse_component_properties(component_body)
 
-            properties = {
-                'op': f"execute-{component_id}-node",
-                'description': f"Component file - {' '.join(component_name.split('_')).title()}",
-                'label': ' '.join(component_name.split('_')).title(),
-                'labelField': "filename",
-                'fileField': "filename",
-                'fileBased': True,
-                'extension': component_extension,
-                'image': "data:image/svg+xml;utf8,",
-                'properties': properties_details
-            }
-
-        print(properties)
-        return properties_details
+        return properties
 
     def add_component(self, processor_type, request_body):
         """
