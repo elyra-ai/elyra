@@ -236,15 +236,16 @@ const PipelineWrapper: React.FC<IProps> = ({
     });
   };
 
-  const onPropertiesUpdateRequested = async (args: any): Promise<string[]> => {
+  const onPropertiesUpdateRequested = async (args: any): Promise<any> => {
     const path = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
       args.filename
     );
-    const env_vars = args.items;
     const new_env_vars = await ContentParser.getEnvVars(
       path
     ).then((response: any) => response.map((str: string) => (str = str + '=')));
+
+    const env_vars = args.env_vars ?? [];
     const merged_env_vars = [
       ...env_vars,
       ...new_env_vars.filter(
@@ -252,7 +253,8 @@ const PipelineWrapper: React.FC<IProps> = ({
           !env_vars.some((old_var: string) => old_var.startsWith(new_var))
       )
     ];
-    return merged_env_vars.filter(Boolean);
+
+    return { env_vars: merged_env_vars.filter(Boolean) };
   };
 
   const handleOpenFile = (data: any): void => {
