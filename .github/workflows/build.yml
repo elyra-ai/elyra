@@ -100,6 +100,9 @@ jobs:
       - uses: actions/setup-node@v2 # Install dependencies with latest node version
         with:
           node-version: "*"
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "*"
       - uses: actions/cache@v2
         with:
           path: |
@@ -112,7 +115,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel jupyter_server
           python -m pip install --upgrade jupyterlab
-          make install-servermake install-server
+          make install-server
       - name: Test
         run: yarn test:unit
 
@@ -125,6 +128,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "*"
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "*"
       - uses: actions/cache@v2
         with:
           path: |
