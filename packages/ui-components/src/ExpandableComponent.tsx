@@ -60,32 +60,37 @@ export interface IExpandableComponentProps {
 /**
  * A React component for expandable containers.
  */
-export const ExpandableComponent: React.FC<IExpandableComponentProps> = props => {
+export const ExpandableComponent: React.FC<IExpandableComponentProps> = ({
+  displayName,
+  tooltip,
+  actionButtons = [],
+  onExpand,
+  onBeforeExpand,
+  onMouseDown,
+  children
+}) => {
   const [expanded, setExpandedValue] = React.useState(false);
 
-  const toggleDetailsDisplay = (): void => {
+  const handleToggleDetailsDisplay = (): void => {
     // Switch expanded flag
     const newExpandFlag = !expanded;
-    if (props.onBeforeExpand) {
-      props.onBeforeExpand(newExpandFlag);
-    }
+    onBeforeExpand?.(newExpandFlag);
     setExpandedValue(newExpandFlag);
   };
 
   React.useEffect((): void => {
-    props.onExpand && props.onExpand(expanded);
+    onExpand?.(expanded);
   });
 
   const buttonClasses = [ELYRA_BUTTON_CLASS, BUTTON_CLASS].join(' ');
-  const actionButtons = props.actionButtons || [];
 
   return (
     <div>
-      <div key={props.displayName} className={TITLE_CLASS}>
+      <div key={displayName} className={TITLE_CLASS}>
         <button
           className={buttonClasses}
           title={expanded ? 'Hide Details' : 'Show Details'}
-          onClick={toggleDetailsDisplay}
+          onClick={handleToggleDetailsDisplay}
         >
           {expanded ? (
             <caretDownIcon.react
@@ -102,18 +107,18 @@ export const ExpandableComponent: React.FC<IExpandableComponentProps> = props =>
           )}
         </button>
         <span
-          title={props.tooltip}
+          title={tooltip}
           className={
-            props.onMouseDown
+            onMouseDown
               ? DISPLAY_NAME_CLASS
               : DISPLAY_NAME_CLASS + ' ' + DRAGGABLE_CLASS
           }
-          onClick={toggleDetailsDisplay}
+          onClick={handleToggleDetailsDisplay}
           onMouseDown={(event): void => {
-            props.onMouseDown && props.onMouseDown(event);
+            onMouseDown?.(event);
           }}
         >
-          {props.displayName}
+          {displayName}
         </span>
 
         <div className={ACTION_BUTTONS_WRAPPER_CLASS}>
@@ -124,7 +129,7 @@ export const ExpandableComponent: React.FC<IExpandableComponentProps> = props =>
                 title={btn.title}
                 feedback={btn.feedback || ''}
                 className={buttonClasses + ' ' + ACTION_BUTTON_CLASS}
-                onClick={(): void => btn.onClick()}
+                onClick={btn.onClick}
               >
                 <btn.icon.react
                   tag="span"
@@ -137,7 +142,7 @@ export const ExpandableComponent: React.FC<IExpandableComponentProps> = props =>
         </div>
       </div>
       <div className={expanded ? DETAILS_VISIBLE_CLASS : DETAILS_HIDDEN_CLASS}>
-        {props.children || null}
+        {children}
       </div>
     </div>
   );

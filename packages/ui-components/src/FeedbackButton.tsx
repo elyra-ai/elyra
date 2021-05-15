@@ -29,13 +29,19 @@ export interface IFeedbackButtonProps {
 }
 
 export const FeedbackButton: React.FC<React.HTMLProps<HTMLButtonElement> &
-  IFeedbackButtonProps> = props => {
+  IFeedbackButtonProps> = ({
+  feedback,
+  onClick,
+  className,
+  children,
+  title
+}) => {
   const [showFeedback, setShowFeedback] = React.useState(false);
 
   const handleClick = (): void => {
-    props.onClick();
+    onClick();
 
-    if (props.feedback) {
+    if (feedback) {
       setShowFeedback(true);
       setTimeout(() => {
         setShowFeedback(false);
@@ -43,16 +49,16 @@ export const FeedbackButton: React.FC<React.HTMLProps<HTMLButtonElement> &
     }
   };
 
-  const classes = `${ELYRA_FEEDBACKBUTTON_CLASS} ${props.className}`;
+  const classes = `${ELYRA_FEEDBACKBUTTON_CLASS} ${className}`;
 
   return (
     <button
-      title={props.title}
+      title={title}
       className={classes}
       onClick={handleClick}
-      data-feedback={showFeedback ? props.feedback : undefined}
+      data-feedback={showFeedback ? feedback : undefined}
     >
-      {props.children}
+      {children}
     </button>
   );
 };
