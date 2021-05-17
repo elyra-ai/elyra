@@ -164,7 +164,7 @@ const r = {
               'Environment variables to be set on the execution environment.',
             placement: 'on_panel'
           },
-          data: { placeholder: 'ENV_VAR=value', format: 'properties' }
+          data: { placeholder: 'ENV_VAR=value', canRefresh: true }
         },
         {
           control: 'custom',
