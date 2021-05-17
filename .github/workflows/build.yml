@@ -64,7 +64,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "*"
-      - uses: actions/cache@v2
+      - name: Cache node_modules
+        uses: actions/cache@v2
         with:
           path: |
             node_modules
@@ -88,16 +89,19 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/cache@v2
+      - name: Cache pip
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
           restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}
             ${{ runner.os }}-pip-
       - name: Install
         run: |
           python -m pip install --upgrade pip wheel jupyter_server jupyterlab
-          make install-server
+          python setup.py bdist_wheel sdist
+          pip install --upgrade --upgrade-strategy only-if-needed --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
       - name: Test
         run: pytest -v elyra
 
@@ -113,21 +117,25 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "*"
-      - uses: actions/cache@v2
+      - name: Cache node_modules
+        uses: actions/cache@v2
         with:
           path: |
             node_modules
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - uses: actions/cache@v2
+      - name: Cache pip
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+          key: ${{ runner.os }}-pip-default-${{ hashFiles('setup.py', 'test_requirements.txt') }}
           restore-keys: |
+            ${{ runner.os }}-pip-default-
             ${{ runner.os }}-pip-
       - name: Install
         run: |
           yarn install
+          python -m pip install --upgrade pip
           pip install --use-deprecated=legacy-resolver .
       - name: Test
         run: yarn test:unit
@@ -144,23 +152,26 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "*"
-      - uses: actions/cache@v2
+      - name: Cache node_modules
+        uses: actions/cache@v2
         with:
           path: |
             node_modules
             */*/node_modules
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - uses: actions/cache@v2
+      - name: Cache pip
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+          key: ${{ runner.os }}-pip-default-${{ hashFiles('setup.py', 'test_requirements.txt') }}
           restore-keys: |
+            ${{ runner.os }}-pip-default-
             ${{ runner.os }}-pip-
       - name: Install
-        # TODO: `make install` also lints and things, so we should break this down more.
         run: |
           yarn install
+          python -m pip install --upgrade pip
           pip install --use-deprecated=legacy-resolver .
       - name: Build
         run: yarn lerna run build --stream
@@ -171,7 +182,7 @@ jobs:
       - name: Cypress
         run: yarn test:integration
 
-  # TODO: Why are building? this should be named accordingly
+  # TODO: Why are building? Is this just a test that it successfully builds? this should be named accordingly
   build-documentation:
     name: Build Documentation
     runs-on: ubuntu-latest
