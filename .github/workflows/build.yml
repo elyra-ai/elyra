@@ -119,6 +119,12 @@ jobs:
             node_modules
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Install
         run: |
           yarn install
