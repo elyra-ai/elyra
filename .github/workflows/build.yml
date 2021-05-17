@@ -64,8 +64,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "*"
-      - name: Cache node_modules
-        uses: actions/cache@v2
+      - uses: actions/cache@v2
         with:
           path: |
             node_modules
@@ -89,11 +88,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      # - name: Cache pip
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ${{ env.pythonLocation }}
-      #     key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
       - name: Install
         run: |
           python -m pip install --upgrade pip wheel jupyter_server jupyterlab
@@ -109,24 +103,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2 # Install dependencies with latest node version
+      - uses: actions/setup-node@v2
         with:
           node-version: "*"
       - uses: actions/setup-python@v2
         with:
           python-version: "*"
-      - name: Cache node_modules
-        uses: actions/cache@v2
+      - uses: actions/cache@v2
         with:
           path: |
             node_modules
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      # - name: Cache pip
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ${{ env.pythonLocation }}
-      #     key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
       - name: Install
         run: |
           yarn install
@@ -147,19 +135,13 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "*"
-      - name: Cache node_modules
-        uses: actions/cache@v2
+      - uses: actions/cache@v2
         with:
           path: |
             node_modules
             */*/node_modules
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      # - name: Cache pip
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ${{ env.pythonLocation }}
-      #     key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
       - name: Install
         run: |
           yarn install
