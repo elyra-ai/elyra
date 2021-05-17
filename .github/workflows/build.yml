@@ -39,7 +39,7 @@ jobs:
             node_modules
             */*/node_modules
             /home/runner/.cache/Cypress
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: yarn install --frozen-lockfile
 
@@ -49,7 +49,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install
-        run: pip install -q -r test_requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
       - name: Lint
         run: flake8 elyra
 
@@ -67,7 +69,7 @@ jobs:
           path: |
             node_modules
             */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: yarn install
       - name: Lint
@@ -86,10 +88,15 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Install
         run: |
-          python -m pip install --upgrade pip wheel jupyter_server
-          python -m pip install --upgrade jupyterlab
+          python -m pip install --upgrade pip wheel jupyter_server jupyterlab
           make install-server
       - name: Test
         run: pytest -v elyra
@@ -111,7 +118,7 @@ jobs:
           path: |
             node_modules
             */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: |
           yarn install
@@ -137,7 +144,13 @@ jobs:
             node_modules
             */*/node_modules
             /home/runner/.cache/Cypress
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Install
         # TODO: `make install` also lints and things, so we should break this down more.
         run: |
