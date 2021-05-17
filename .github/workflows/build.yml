@@ -25,20 +25,6 @@ env:
   FORCE_COLOR: true
 
 jobs:
-  debug:
-    name: Debug
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '*'
-      - name: Debug
-        run: |
-          python -m pip install --upgrade pip wheel jupyter_server jupyterlab
-          jupyter lab path
-          jupyter lab path | grep "Application directory:" | sed -e "s/^Application directory:   //"
-
   prepare-yarn-cache:
     name: Prepare Cache
     runs-on: ubuntu-latest
@@ -183,6 +169,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-default-
             ${{ runner.os }}-pip-
+      - name: Get JupyterLab directory
+        id: jupyterlab-cache
+        run: |
+          echo "::set-output name=dir::$(jupyter lab path | grep 'Application directory:' | sed -e 's/^Application directory:   //')"
+      - name: Cache JupyterLab
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.jupyterlab-cache.outputs.dir }}
+          key: ${{ runner.os }}-jupyterlab
       - name: Install
         run: |
           yarn install
