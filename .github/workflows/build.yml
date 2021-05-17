@@ -89,11 +89,11 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+      # - name: Cache pip
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ${{ env.pythonLocation }}
+      #     key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
       - name: Install
         run: |
           python -m pip install --upgrade pip wheel jupyter_server jupyterlab
@@ -122,11 +122,11 @@ jobs:
             node_modules
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+      # - name: Cache pip
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ${{ env.pythonLocation }}
+      #     key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
       - name: Install
         run: |
           yarn install
@@ -155,11 +155,11 @@ jobs:
             */*/node_modules
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
+      # - name: Cache pip
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ${{ env.pythonLocation }}
+      #     key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py', 'test_requirements.txt') }}
       - name: Install
         run: |
           yarn install
