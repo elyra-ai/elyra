@@ -241,20 +241,10 @@ const PipelineWrapper: React.FC<IProps> = ({
       contextRef.current.path,
       args.filename
     );
-    const new_env_vars = await ContentParser.getEnvVars(
+    const env_vars = await ContentParser.getEnvVars(
       path
     ).then((response: any) => response.map((str: string) => (str = str + '=')));
-
-    const env_vars = args.env_vars ?? [];
-    const merged_env_vars = [
-      ...env_vars,
-      ...new_env_vars.filter(
-        (new_var: string) =>
-          !env_vars.some((old_var: string) => old_var.startsWith(new_var))
-      )
-    ];
-
-    return { env_vars: merged_env_vars.filter(Boolean) };
+    return { env_vars };
   };
 
   const handleOpenFile = (data: any): void => {
