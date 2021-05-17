@@ -104,15 +104,15 @@ elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
 
 The `runtime-config`  should be a valid [runtime configuration](/user_guide/runtime-conf.md).
 
-#### Detecting the runtime from a component
-In some cases, components are written with the intention of running within multiple runtime environments, yet need to vary how they operate based on the runtime in which they are currently running.  For example, a component, while running within Kubeflow Pipelines, may need to perform an action specific to Kubeflow Pipelines.  While that same component, running within Apache Airflow, may need to perform an action specific to Apache Airflow.
+#### Detecting the runtime from a node
+In some cases, execution nodes are written with the intention of executing within multiple runtime environments, yet need to vary how they operate based on the runtime in which they are currently executing.  For example, a node, while executing within Kubeflow Pipelines, may need to perform an action specific to Kubeflow Pipelines.  While that same node, executing within Apache Airflow, may need to perform an action specific to Apache Airflow.
 
-To help make these distinctions, the Elyra Pipeline Engine will make available an environment variable indicating the runtime in which the component is executing.  This environment variable is `ELYRA_RUNTIME_ENV` and its value is the value of the schema name corresponding to the runtime metadata configuration and associated with the pipeline processor that launched the pipeline.
+To help make these distinctions, the Elyra Pipeline Engine will make available an environment variable indicating the runtime in which the node is executing.  This environment variable is `ELYRA_RUNTIME_ENV` and its value is the value of the schema name corresponding to the runtime metadata configuration and associated with the pipeline processor that launched the pipeline.
 
 Current values of `ELYRA_RUNTIME_ENV` are:
-- **kfp**: indicating the component is running within Kubeflow Pipelines
-- **airflow**: Indicating the component is running within Apache Airflow
-- **local**: A special case, indicating the component is running locally
+- **kfp**: indicating the node is executing within Kubeflow Pipelines
+- **airflow**: Indicating the node is executing within Apache Airflow
+- **local**: A special case, indicating the node is executing locally
 
 Additional values will be available as more [custom pipeline processors](../developer_guide/pipelines.html#pipeline-processor-customization) are introduced.
 ### Distributing Your Pipeline
