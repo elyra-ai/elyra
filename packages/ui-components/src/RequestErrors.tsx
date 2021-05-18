@@ -40,7 +40,7 @@ export class RequestErrors {
     const message = response.message ? response.message : '';
     const timestamp = response.timestamp ? response.timestamp : '';
     const traceback = response.traceback ? response.traceback : '';
-    const default_body = response.timestamp
+    const defaultBody = response.timestamp
       ? 'Check the JupyterLab log for more details at ' + response.timestamp
       : 'Check the JupyterLab log for more details';
 
@@ -53,10 +53,10 @@ export class RequestErrors {
             message={message}
             timestamp={timestamp}
             traceback={traceback}
-            default_msg={default_body}
+            defaultMessage={defaultBody}
           />
         ) : (
-          <p>{default_body}</p>
+          <p>{defaultBody}</p>
         ),
       buttons: [Dialog.okButton()]
     });

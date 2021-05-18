@@ -28,7 +28,7 @@ interface IErrorDialogProps {
   message: string;
   timestamp: string;
   traceback: string;
-  default_msg: string;
+  defaultMessage: string;
 }
 
 export const ExpandableErrorDialog: React.FC<IErrorDialogProps> = ({
@@ -36,7 +36,7 @@ export const ExpandableErrorDialog: React.FC<IErrorDialogProps> = ({
   message,
   timestamp,
   traceback,
-  default_msg
+  defaultMessage
 }) => {
   const [collapsedSize, setCollapsedSize] = React.useState(null);
 
@@ -63,21 +63,19 @@ export const ExpandableErrorDialog: React.FC<IErrorDialogProps> = ({
     [collapsedSize, setCollapsedSize]
   );
 
-  const details = traceback ? (
-    <ExpandableComponent
-      displayName={'Error details: '}
-      tooltip={'Error stack trace'}
-      onBeforeExpand={handleUpdateDialogSize}
-    >
-      <pre>{traceback}</pre>
-    </ExpandableComponent>
-  ) : null;
-
   return (
     <div className={MESSAGE_DISPLAY}>
       <div>{message}</div>
-      {details}
-      <div>{default_msg}</div>
+      {traceback ? (
+        <ExpandableComponent
+          displayName="Error details: "
+          tooltip="Error stack trace"
+          onBeforeExpand={handleUpdateDialogSize}
+        >
+          <pre>{traceback}</pre>
+        </ExpandableComponent>
+      ) : null}
+      <div>{defaultMessage}</div>
     </div>
   );
 };

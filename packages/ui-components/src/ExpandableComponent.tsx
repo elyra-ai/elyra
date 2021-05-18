@@ -127,7 +127,7 @@ export const ExpandableComponent: React.FC<IExpandableComponentProps> = ({
               <FeedbackButton
                 key={btn.title}
                 title={btn.title}
-                feedback={btn.feedback || ''}
+                feedback={btn.feedback ?? ''}
                 className={buttonClasses + ' ' + ACTION_BUTTON_CLASS}
                 onClick={btn.onClick}
               >
