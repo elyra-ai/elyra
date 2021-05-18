@@ -28,186 +28,152 @@ interface IProps {
   schema: ISchema[];
 }
 
-interface IState {
-  displayedRuntimeOptions: IRuntime[];
-  includeDependency: boolean;
-  selectedRuntimePlatform: string;
-  validSchemas: ISchema[];
-}
+export const FileSubmissionDialog: React.FC<IProps> = ({
+  env,
+  dependencyFileExtension,
+  images,
+  runtimes,
+  schema
+}) => {
+  const [includeDependency, setIncludeDependency] = React.useState(true);
+  const [runtimeOptions, setRuntimeOptions] = React.useState(
+    new Array<IRuntime>()
+  );
+  const [validSchemas, setValidSchemas] = React.useState(new Array<ISchema>());
 
-const EnvForm: React.FC<{ env: string[] }> = ({ env }) => {
-  if (env.length > 0) {
-    return (
-      <>
-        <br />
-        <br />
-        <div>Environment Variables:</div>
-        <br />
-        {Utils.chunkArray(env, 4).map((col, i) => (
-          <div key={i}>
-            {col.map(envVar => (
-              <div key={envVar}>
-                <label htmlFor={envVar}>{envVar}:</label>
-                <br />
-                <input
-                  type="text"
-                  id={envVar}
-                  className="envVar"
-                  name={envVar}
-                  size={30}
-                />
-              </div>
-            ))}
-          </div>
-        ))}
-      </>
-    );
-  }
-  return null;
-};
-
-export class FileSubmissionDialog extends React.Component<IProps, IState> {
-  state = {
-    displayedRuntimeOptions: new Array<IRuntime>(),
-    includeDependency: true,
-    selectedRuntimePlatform: '',
-    validSchemas: new Array<ISchema>()
+  const handleDependency = (): void => {
+    setIncludeDependency(!includeDependency);
   };
 
-  handleCheck = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    this.setState({
-      includeDependency: !this.state.includeDependency
-    });
+  const handleUpdateRuntime = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
+    const platformSelection = event.target.value;
+    setRuntimeOptions(filterRuntimeOptions(platformSelection));
   };
 
-  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const selectedPlatform = event.target.value;
-    this.setState({
-      displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
-      selectedRuntimePlatform: selectedPlatform
-    });
-  };
-
-  updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
+  const filterRuntimeOptions = (platformSelection: string): IRuntime[] => {
     const filteredRuntimeOptions = PipelineService.filterRuntimes(
-      this.props.runtimes,
+      runtimes,
       platformSelection
     );
     PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
     return filteredRuntimeOptions;
   };
 
-  componentDidMount(): void {
-    const { schema, runtimes } = this.props;
-
+  React.useEffect((): void => {
     const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
-    const selectedRuntimePlatform = validSchemas[0] && validSchemas[0].name;
-    const displayedRuntimeOptions = this.updateRuntimeOptions(
-      selectedRuntimePlatform
-    );
+    if (validSchemas) {
+      const platformSelection = validSchemas[0] && validSchemas[0].name;
+      setRuntimeOptions(filterRuntimeOptions(platformSelection));
+      setValidSchemas(validSchemas);
+    }
+  }, []);
 
-    this.setState({
-      displayedRuntimeOptions: displayedRuntimeOptions,
-      selectedRuntimePlatform: selectedRuntimePlatform,
-      validSchemas: validSchemas
-    });
-  }
-
-  render(): React.ReactNode {
-    const { env, images, dependencyFileExtension } = this.props;
-    const {
-      displayedRuntimeOptions,
-      includeDependency,
-      validSchemas
-    } = this.state;
-
-    const fileDependencyContent = includeDependency ? (
-      <div key="dependencies">
-        <br />
-        <input
-          type="text"
-          id="dependencies"
-          className="jp-mod-styled"
-          name="dependencies"
-          placeholder={`*${dependencyFileExtension}`}
-          defaultValue={`*${dependencyFileExtension}`}
-          size={30}
-        />
-      </div>
-    ) : null;
-
-    return (
-      <form className="elyra-dialog-form">
-        <label htmlFor="runtime_platform">Runtime Platform:</label>
-        <br />
-        <select
-          id="runtime_platform"
-          name="runtime_platform"
-          className="elyra-form-runtime-platform"
-          onChange={this.handleUpdate}
-        >
-          {validSchemas.map(schema => (
-            <option key={schema.name} value={schema.name}>
-              {schema.display_name}
-            </option>
-          ))}
-        </select>
-        <label htmlFor="runtime_config">Runtime Configuration:</label>
-        <br />
-        <select
-          id="runtime_config"
-          name="runtime_config"
-          className="elyra-form-runtime-config"
-        >
-          {displayedRuntimeOptions.map(runtime => (
-            <option key={runtime.name} value={runtime.name}>
-              {runtime.display_name}
-            </option>
-          ))}
-        </select>
-        <label htmlFor="framework">Runtime Image:</label>
-        <br />
-        <select
-          id="framework"
-          name="framework"
-          className="elyra-form-framework"
-        >
-          {Object.entries(images).map(([key, val]) => (
-            <option key={key} value={key}>
-              {val}
-            </option>
-          ))}
-        </select>
-        <br />
-        <div className="elyra-resourcesWrapper">
-          <div className="elyra-resourceInput">
-            <label htmlFor="cpu"> CPU:</label>
-            <input id="cpu" type="number" name="cpu" />
-          </div>
-          <div className="elyra-resourceInput">
-            <label htmlFor="gpu"> GPU:</label>
-            <input id="gpu" type="number" name="gpu" />
-          </div>
-          <div className="elyra-resourceInput">
-            <label htmlFor="memory"> RAM (GB):</label>
-            <input id="memory" type="number" name="memory" />
-          </div>
+  return (
+    <form className="elyra-dialog-form">
+      <label htmlFor="runtime_platform">Runtime Platform:</label>
+      <br />
+      <select
+        id="runtime_platform"
+        name="runtime_platform"
+        className="elyra-form-runtime-platform"
+        onChange={handleUpdateRuntime}
+      >
+        {validSchemas.map(schema => (
+          <option key={schema.name} value={schema.name}>
+            {schema.display_name}
+          </option>
+        ))}
+      </select>
+      <label htmlFor="runtime_config">Runtime Configuration:</label>
+      <br />
+      <select
+        id="runtime_config"
+        name="runtime_config"
+        className="elyra-form-runtime-config"
+      >
+        {runtimeOptions.map(runtime => (
+          <option key={runtime.name} value={runtime.name}>
+            {runtime.display_name}
+          </option>
+        ))}
+      </select>
+      <label htmlFor="framework">Runtime Image:</label>
+      <br />
+      <select id="framework" name="framework" className="elyra-form-framework">
+        {Object.entries(images).map(([key, val]) => (
+          <option key={key} value={key}>
+            {val}
+          </option>
+        ))}
+      </select>
+      <br />
+      <div className="elyra-resourcesWrapper">
+        <div className="elyra-resourceInput">
+          <label htmlFor="cpu"> CPU:</label>
+          <input id="cpu" type="number" name="cpu" />
         </div>
-        <br />
-        <input
-          type="checkbox"
-          className="elyra-Dialog-checkbox"
-          id="dependency_include"
-          name="dependency_include"
-          size={20}
-          checked={this.state.includeDependency}
-          onChange={this.handleCheck}
-        />
-        <label htmlFor="dependency_include">Include File Dependencies:</label>
-        <br />
-        {fileDependencyContent}
-        <EnvForm env={env} />
-      </form>
-    );
-  }
-}
+        <div className="elyra-resourceInput">
+          <label htmlFor="gpu"> GPU:</label>
+          <input id="gpu" type="number" name="gpu" />
+        </div>
+        <div className="elyra-resourceInput">
+          <label htmlFor="memory"> RAM (GB):</label>
+          <input id="memory" type="number" name="memory" />
+        </div>
+      </div>
+      <br />
+      <input
+        type="checkbox"
+        className="elyra-Dialog-checkbox"
+        id="dependency_include"
+        name="dependency_include"
+        size={20}
+        checked={includeDependency}
+        onChange={handleDependency}
+      />
+      <label htmlFor="dependency_include">Include File Dependencies:</label>
+      <br />
+      {includeDependency && (
+        <div key="dependencies">
+          <br />
+          <input
+            type="text"
+            id="dependencies"
+            className="jp-mod-styled"
+            name="dependencies"
+            placeholder={`*${dependencyFileExtension}`}
+            defaultValue={`*${dependencyFileExtension}`}
+            size={30}
+          />
+        </div>
+      )}
+      {env.length > 0 ? (
+        <div>
+          <br />
+          <br />
+          <div>Environment Variables:</div>
+          <br />
+          {Utils.chunkArray(env, 4).map((col, i) => (
+            <div key={i}>
+              {col.map(envVar => (
+                <div key={envVar}>
+                  <label htmlFor={envVar}>{envVar}:</label>
+                  <br />
+                  <input
+                    type="text"
+                    id={envVar}
+                    className="envVar"
+                    name={envVar}
+                    size={30}
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </form>
+  );
+};
