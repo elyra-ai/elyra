@@ -276,18 +276,21 @@ class KfpComponentParser(ComponentParser):
         else:
             data_object['required'] = False
 
+        # Set description
+        parameter_description = ""
+        if "description" in obj:
+            parameter_description = obj['description']
+
         # Assign type, default to string
         data_object['format'] = "string"
         custom_control_id = "StringControl"
         if "type" in obj:
             custom_control_id = self.get_custom_control_id_and_type(obj['type'].lower())
+            # Add type to description as hint to users?
+            parameter_description += f" (type: {obj['type']})"
 
         # Build label name
         label = f"{obj['name']} ({obj_type})"
-
-        parameter_description = ""
-        if "description" in obj:
-            parameter_description = obj['description']
 
         # Build parameter info
         new_parameter = self.return_parameter(obj['name'], custom_control_id, label,
@@ -429,8 +432,11 @@ class AirflowComponentParser(ComponentParser):
         match = type_regex.search(component_body)
         if match:
             # TODO: Determine where this field is used -- does it need to be set
-            data_object['format'] = match.group(1)
+            # data_object['format'] = match.group(1)
             custom_control_id = self.get_custom_control_id_and_type(match.group(1).lower())
+
+            # Add type to description as hint to users?
+            parameter_description += f"(type: {match.group(1)})"
 
         # Build parameter info
         new_parameter = self.return_parameter(f"{class_name}_{parameter_name}",
