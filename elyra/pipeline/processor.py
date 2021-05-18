@@ -48,7 +48,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         if self.is_valid_processor(processor_type):
             return self._processors[processor_type]
         else:
-            return None
+            raise RuntimeError('Could not find pipeline processor for [{}]'.format(processor_type))
 
     def is_valid_processor(self, processor_type: str) -> bool:
         return processor_type in self._processors.keys()
@@ -78,9 +78,6 @@ class PipelineProcessorManager(SingletonConfigurable):
 
     def _get_processor_for_runtime(self, processor_type: str):
         processor = self._registry.get_processor(processor_type)
-
-        if not processor:
-            raise RuntimeError('Could not find pipeline processor for [{}]'.format(processor_type))
 
         return processor
 
@@ -155,6 +152,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     root_dir = Unicode(allow_none=True)
 
+    component_registry: ComponentRegistry = ComponentRegistry()
+
     enable_pipeline_info = Bool(config=True,
                                 default_value=(os.getenv('ELYRA_ENABLE_PIPELINE_INFO', 'true').lower() == 'true'),
                                 help="""Produces formatted logging of informational messages with durations
@@ -169,10 +168,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     def type(self):
         raise NotImplementedError()
 
-    @abstractmethod
     def get_components(self):
-        # raise NotImplementedError()
-        components = ComponentRegistry().get_all_components(registry_type='file', processor_type=self.type)
+        components = self.component_registry.get_all_components(registry_type='file', processor_type=self.type)
         return components
 
     @abstractmethod
@@ -262,16 +259,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
 
 class RuntimePipelineProcess(PipelineProcessor):
-    component_registry: ComponentRegistry = ComponentRegistry()
-
-    def get_components(self):
-        # component_registry = ComponentReader.get_instance(registry_type='file', processor_type=self.type)
-        components = self.component_registry.get_all_components(registry_type='file', processor_type=self.type)
-
-        print('>>>')
-        print(components)
-
-        return components
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)

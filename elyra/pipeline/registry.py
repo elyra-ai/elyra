@@ -19,6 +19,7 @@ import json
 import yaml
 import urllib
 import re
+import copy
 
 from traitlets.config import SingletonConfigurable
 
@@ -50,6 +51,10 @@ outputs = {
 
 
 def get_id_from_name(name):
+    """
+    Takes the lowercase name of a component and removes '-' and redundant spaces by splitting and
+    then rejoining on spaces. Spaces and underscores are finally replaced with '-'.
+    """
     return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-').replace('_', '-')
 
 
@@ -77,15 +82,13 @@ def set_node_type_data(id, label, description):
 
 class ComponentParser(SingletonConfigurable):
     _type = "local"
-    properties: dict() = {}
-    parameters: dict() = {}
+    _resources_dir = "resources"
 
     def __init__(self):
-        super().__init__()
         self.properties = self.get_common_config('properties')
 
     def get_common_config(self, config_name):
-        common_dir = os.path.join(os.path.dirname(__file__), 'resources')
+        common_dir = os.path.join(os.path.dirname(__file__), self._resources_dir)
         common_file = os.path.join(common_dir, f"{config_name}.json")
         with io.open(common_file, 'r', encoding='utf-8') as f:
             common_json = json.load(f)
@@ -93,29 +96,31 @@ class ComponentParser(SingletonConfigurable):
         return common_json
 
     def _get_component_catalog_json(self):
-        catalog_dir = os.path.join(os.path.dirname(__file__), "resources")
+        catalog_dir = os.path.join(os.path.dirname(__file__), self._resources_dir)
         catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
         with open(catalog_file, 'r') as f:
             catalog_json = json.load(f)
 
-        return catalog_json['components']
+        return catalog_json
 
     def list_all_components(self):
-        components = []
-        if self._type != "local":
-            for component in self._get_component_catalog_json():
-                assert "path" in component
-                components.append(component)
+        if self._type == "local":
+            return []
 
-        return components
+        component_json = self._get_component_catalog_json()
+        return component_json['components'].values()
 
     def return_component_if_exists(self, component_id):
-        for component in self._get_component_catalog_json():
-            if component['id'] == component_id:
-                return component
-        return None
+        component_json = self._get_component_catalog_json()
+        return component_json['components'].get(component_id)
 
     def add_component(self, request_body):
+        """
+        Adds a component to the component catalog. Implementation subject to change
+        once support for adding components is available.
+        """
+        assert "path" in request_body
+
         component_json = {
             'name': request_body['name'],
             'id': get_id_from_name(request_body['name']),
@@ -125,14 +130,14 @@ class ComponentParser(SingletonConfigurable):
         catalog_json = self._get_component_catalog_json()
         catalog_json['components'].append(component_json)
 
-        catalog_dir = os.path.join(os.path.dirname(__file__), "resources")
+        catalog_dir = os.path.join(os.path.dirname(__file__), self._resources_dir)
         catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
-        with open(catalog_file, 'a') as f:
+        with open(catalog_file, 'w') as f:
             f.write(json.dumps(catalog_json))
 
-    def parse_component_details(self, component, component_name):
+    def parse_component_details(self, component, component_name=None):
         """Get component name, id, description for palette JSON"""
-        pass
+        raise NotImplementedError
 
     def parse_component_properties(self, component):
         """Get component properties for properties JSON"""
@@ -146,11 +151,15 @@ class KfpComponentParser(ComponentParser):
         super().__init__()
 
     def parse_component_details(self, component_body, component_name=None):
+        component_description = ""
+        if "description" in component_body:
+            component_description = ' '.join(component_body['description'].split())
+
         component_json = {
             'label': component_body['name'],
             'image': "",
             'id': get_id_from_name(component_body['name']),
-            'description': ' '.join(component_body['description'].split()),
+            'description': component_description,
             'node_types': []
         }
 
@@ -165,8 +174,9 @@ class KfpComponentParser(ComponentParser):
         '''
         Build the properties object according to the YAML and return properties.
         '''
-        # Start with generic properties
-        component_parameters = self.get_common_config('properties')
+        # Start with generic properties loaded on init
+        # component_parameters = self.get_common_config('properties')
+        component_parameters = copy.deepcopy(self.properties)
 
         # TODO Do we need to/should we pop these?
         for element in ['runtime_image', 'env_vars', 'dependencies', 'outputs', 'include_subdirectories']:
@@ -213,7 +223,7 @@ class KfpComponentParser(ComponentParser):
             new_parameter_info = self.build_parameter(output_object, "output")
 
             if new_parameter_info['parameter_ref'] in input_group_info['parameter_refs']:
-                new_parameter_info['parameter_ref'] = f"output_{new_parameter_info['parameter_ref']}"
+                new_parameter_info['parameter_ref'] = f"elyra_outputs_{new_parameter_info['parameter_ref']}"
 
             # Add to existing parameter list
             component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
@@ -233,7 +243,7 @@ class KfpComponentParser(ComponentParser):
     def build_parameter(self, obj, obj_type):
         data_object = {}
         # Determine whether parameter is optional
-        if ("optional" in obj and obj['optional']) \
+        if ("optional" in obj and not obj['optional']) \
                 or ("description" in obj and "required" in obj['description'].lower()):
             data_object['required'] = True
         else:
@@ -243,24 +253,25 @@ class KfpComponentParser(ComponentParser):
         data_object['format'] = "string"
         custom_control_id = "StringControl"
         if "type" in obj:
-            data_object['format'] = obj['type']
-
             # This may not be applicable in every case
-            if "string" in obj['type'].lower():
+            if obj['type'].lower() == "string":
+                data_object['format'] = "string"
                 custom_control_id = "StringControl"
             elif obj['type'].lower() in ["number", "integer"]:
                 custom_control_id = "NumberControl"
             elif obj['type'].lower() in ["bool", "boolean"]:
                 custom_control_id = "BooleanControl"
-            elif "array" in obj['type'].lower():
-                custom_control_id = "StringArrayControl"
             elif "object" in obj['type'].lower():
+                # Change to string to properly integrate with custom properties
+                data_object['format'] = "string"
                 custom_control_id = "StringControl"
 
         # Build label name
-        label = obj['name']
-        if obj_type not in obj['name'].lower():
-            label = f"{obj['name']} ({obj_type})"
+        label = f"{obj['name']} ({obj_type})"
+
+        parameter_description = ""
+        if "description" in obj:
+            parameter_description = obj['description']
 
         # Build parameter info
         new_parameter = {
@@ -271,7 +282,7 @@ class KfpComponentParser(ComponentParser):
                 'default': label
             },
             'description': {
-                'default': obj["description"].capitalize(),
+                'default': parameter_description,
                 'placement': "on_panel"
             },
             "data": data_object
@@ -289,10 +300,11 @@ class AirflowComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse_component_details(self, component_body, component_name):
+    def parse_component_details(self, component_body, component_name=None):
         # Component_body never used
 
-        label = ' '.join(component_name.split('_')).title()
+        # label = ' '.join(component_name.split('_')).title()
+        label = component_name
 
         # TODO: Is there any way to reliably get the description for the operator overall?
         # Could maybe pull from a class description but this wouldn't work for operators
@@ -316,8 +328,9 @@ class AirflowComponentParser(ComponentParser):
         '''
         Build the properties object according to the operator python file and return properties.
         '''
-        # Start with generic properties
-        component_parameters = self.get_common_config('properties')
+        # Start with generic properties loaded in init
+        # component_parameters = self.get_common_config('properties')
+        component_parameters = copy.deepcopy(self.properties)
 
         # TODO Do we need to/should we pop these?
         for element in ['runtime_image', 'env_vars', 'dependencies', 'outputs', 'include_subdirectories']:
@@ -409,6 +422,7 @@ class AirflowComponentParser(ComponentParser):
         # Default type will be string
         data_object['format'] = "string"
         custom_control_id = "StringControl"
+
         # Search for :type [param] information in class docstring
         type_regex = re.compile(f":type {parameter_name}" + r":([\w ]*)")
         match = type_regex.search(component_body)
@@ -436,7 +450,7 @@ class AirflowComponentParser(ComponentParser):
                 'default': parameter_name
             },
             'description': {
-                'default': parameter_description.capitalize(),
+                'default': parameter_description,
                 'placement': "on_panel"
             },
             "data": data_object
@@ -448,9 +462,6 @@ class AirflowComponentParser(ComponentParser):
 class ComponentReader(SingletonConfigurable):
     _type = 'local'
 
-    def __init__(self):
-        super().__init__()
-
     def get_component_body(self, component_path):
         raise NotImplementedError()
 
@@ -459,25 +470,23 @@ class FilesystemComponentReader(ComponentReader):
     _type = 'file'
     _dir_path: str = 'resources'
 
-    def __init__(self):
-        super().__init__()
-
     def get_component_body(self, component_path):
         component_dir = os.path.join(os.path.dirname(__file__), self._dir_path)
         component_file = os.path.join(component_dir, component_path)
 
-        component_name, component_extension = os.path.splitext(component_path)
+        # component_name, component_extension = os.path.splitext(component_path)
+        component_extension = os.path.splitext(component_path)[-1]
         with open(component_file, 'r') as f:
             if component_extension == '.yaml':
                 try:
-                    return yaml.safe_load(f), component_name.split('/')[-1], component_extension
+                    return yaml.safe_load(f)  # , component_name.split('/')[-1], component_extension
                 except yaml.YAMLError as e:
                     raise RuntimeError from e
             elif component_extension == '.py':
                 # TODO: Find better way to read in file. Can we assume operator files are always
                 # small enough to be read into memory? Reading and yielding by line likely won't
                 # work because multiple lines need to be checked at once (or multiple times).
-                return f.readlines(), component_name.split('/')[-1], component_extension
+                return f.readlines()  # , component_name.split('/')[-1], component_extension
             else:
                 raise ValueError(f'File type {component_extension} is not supported.')
 
@@ -486,21 +495,19 @@ class UrlComponentReader(ComponentReader):
     _type = 'url'
     _url_path: str
 
-    def __init__(self):
-        super().__init__()
-
     def get_component_body(self, component_path):
         parsed_path = urllib.parse.urlparse(component_path).path
-        component_name, component_extension = os.path.splitext(parsed_path)
+        # component_name, component_extension = os.path.splitext(parsed_path)
+        component_extension = os.path.splitext(parsed_path)[-1]
         component_body = urllib.request.urlopen(component_path)
 
         if component_extension == ".yaml":
             try:
-                return yaml.safe_load(component_body), component_name.split('/')[-1], component_extension
+                return yaml.safe_load(component_body)  # , component_name.split('/')[-1], component_extension
             except yaml.YAMLError as e:
                 raise RuntimeError from e
         elif component_extension == ".py":
-            return component_body.readlines(), component_name.split('/')[-1], component_extension
+            return component_body.readlines()  # , component_name.split('/')[-1], component_extension
         else:
             raise ValueError(f'File type {component_extension} is not supported.')
 
@@ -533,16 +540,16 @@ class ComponentRegistry(SingletonConfigurable):
         # Loop through all the component definitions for the given registry type
         reader = None
         for component in parser.list_all_components():
-            print(f"component registry -> found component {component['name']}")
+            self.log.debug(f"Component registry found component {component['name']}")
 
             # Get appropriate reader in order to read component definition
             if reader is None or reader._type != list(component['path'].keys())[0]:
                 reader = self._get_reader(component)
 
-            component_body, component_name, _ = reader.get_component_body(component['path'][reader._type])
+            component_body = reader.get_component_body(component['path'][reader._type])
 
             # Parse the component definition in order to add to palette
-            component_json = parser.parse_component_details(component_body, component_name)
+            component_json = parser.parse_component_details(component_body, component['name'])
             if component_json is None:
                 continue
             components['categories'].append(component_json)
@@ -559,7 +566,7 @@ class ComponentRegistry(SingletonConfigurable):
 
         properties = {}
         if parser._type == "local" or component_id in default_components:
-            properties = parser.get_common_config('properties')
+            properties = parser.properties
         else:
             component = parser.return_component_if_exists(component_id)
             if component is None:
@@ -568,7 +575,7 @@ class ComponentRegistry(SingletonConfigurable):
             reader = self._get_reader(component)
 
             component_path = component['path'][reader._type]
-            component_body, _, _ = reader.get_component_body(component_path)
+            component_body = reader.get_component_body(component_path)
             properties = parser.parse_component_properties(component_body)
 
         return properties
@@ -593,10 +600,12 @@ class ComponentRegistry(SingletonConfigurable):
         assert parser._type != "local"  # Local components should not have execution details
 
         component = parser.return_component_if_exists(component_id)
+        if component is None:
+            raise RuntimeError(f"Could not find parser for component {component_id}.")
 
         reader = self._get_reader(component)
         component_path = component['path'][reader._type]
-        component_body, _, _ = reader.get_component_body(component_path)
+        component_body = reader.get_component_body(component_path)
 
         execution_instructions = parser.parse_component_execution_instructions(component_body)
         return execution_instructions
@@ -618,6 +627,6 @@ class ComponentRegistry(SingletonConfigurable):
         """
 
         try:
-            return self.parsers.get(processor_type)
-        except Exception:
-            raise ValueError(f"Unsupported processor type: {processor_type}")
+            return self.parsers[processor_type]
+        except KeyError as ke:
+            raise KeyError(f"Unsupported processor type: {processor_type}") from ke

@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import io
 import json
-import os
 
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
@@ -101,17 +99,13 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
 class PipelineComponentHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipelines editor component configuration"""
 
-    valid_processors = ["local", "kfp", "airflow"]
-
     @web.authenticated
     async def get(self, processor):
-        print(f'>>> Retrieving pipeline components for {processor}')
+        self.log.info(f'>>> Retrieving pipeline components for {processor}')
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         components = await PipelineProcessorManager.instance().get_components(processor)
-        print('>>>')
-        print(components)
         json_msg = json.dumps(components)
 
         self.set_status(200)
@@ -122,27 +116,18 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipeline component properties"""
 
-    valid_processors = ["local", "kfp", "airflow"]
     component_registry: ComponentRegistry = ComponentRegistry()
 
     @web.authenticated
     async def get(self, processor, component_id):
-        print('>>> Retrieving pipeline component properties')
-        if processor not in self.valid_processors:
+        self.log.info('>>> Retrieving pipeline component properties')
+        if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         properties = ComponentRegistry().get_properties(processor, component_id)
         json_msg = json.dumps(properties)
 
-        # json_msg = self._read_config('properties')
         self.set_status(200)
 
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
-
-    def _read_config(self, config_name):
-        config_dir = os.path.join(os.path.dirname(__file__), 'resources')
-        config_file = os.path.join(config_dir, config_name + ".json")
-        with io.open(config_file, 'r', encoding='utf-8') as f:
-            config_json = json.load(f)
-        return config_json
