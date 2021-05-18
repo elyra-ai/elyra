@@ -143,6 +143,34 @@ class ComponentParser(SingletonConfigurable):
         """Get component properties for properties JSON"""
         raise NotImplementedError
 
+    def get_custom_control_id_and_type(self, parameter_type):
+        # This may not be applicable in every case
+        if parameter_type in ["number", "integer"]:
+            return "NumberControl"
+        elif parameter_type in ["bool", "boolean"]:
+            return "BooleanControl"
+        # elif "array" in parameter_type:
+        #     return "StringArrayControl"
+        else:
+            return "StringControl"
+
+    def return_parameter(self, name, control_id, label, description, data):
+        parameter = {
+            'parameter_ref': name.replace(' ', '_'),
+            'control': "custom",
+            'custom_control_id': control_id,
+            'label': {
+                'default': label
+            },
+            'description': {
+                'default': description,
+                'placement': "on_panel"
+            },
+            "data": data
+        }
+
+        return parameter
+
 
 class KfpComponentParser(ComponentParser):
     _type = "kfp"
@@ -175,7 +203,6 @@ class KfpComponentParser(ComponentParser):
         Build the properties object according to the YAML and return properties.
         '''
         # Start with generic properties loaded on init
-        # component_parameters = self.get_common_config('properties')
         component_parameters = copy.deepcopy(self.properties)
 
         # TODO Do we need to/should we pop these?
@@ -253,18 +280,7 @@ class KfpComponentParser(ComponentParser):
         data_object['format'] = "string"
         custom_control_id = "StringControl"
         if "type" in obj:
-            # This may not be applicable in every case
-            if obj['type'].lower() == "string":
-                data_object['format'] = "string"
-                custom_control_id = "StringControl"
-            elif obj['type'].lower() in ["number", "integer"]:
-                custom_control_id = "NumberControl"
-            elif obj['type'].lower() in ["bool", "boolean"]:
-                custom_control_id = "BooleanControl"
-            elif "object" in obj['type'].lower():
-                # Change to string to properly integrate with custom properties
-                data_object['format'] = "string"
-                custom_control_id = "StringControl"
+            custom_control_id = self.get_custom_control_id_and_type(obj['type'].lower())
 
         # Build label name
         label = f"{obj['name']} ({obj_type})"
@@ -274,19 +290,8 @@ class KfpComponentParser(ComponentParser):
             parameter_description = obj['description']
 
         # Build parameter info
-        new_parameter = {
-            'parameter_ref': obj['name'].replace(' ', '_'),
-            'control': "custom",
-            'custom_control_id': custom_control_id,
-            'label': {
-                'default': label
-            },
-            'description': {
-                'default': parameter_description,
-                'placement': "on_panel"
-            },
-            "data": data_object
-        }
+        new_parameter = self.return_parameter(obj['name'], custom_control_id, label,
+                                              parameter_description, data_object)
 
         return new_parameter
 
@@ -301,9 +306,8 @@ class AirflowComponentParser(ComponentParser):
         super().__init__()
 
     def parse_component_details(self, component_body, component_name=None):
-        # Component_body never used
+        # Component_body never used, but component_name never used in KFP parser
 
-        # label = ' '.join(component_name.split('_')).title()
         label = component_name
 
         # TODO: Is there any way to reliably get the description for the operator overall?
@@ -399,7 +403,7 @@ class AirflowComponentParser(ComponentParser):
         return component_parameters
 
     def build_parameter(self, parameter_name, class_name, component_body):
-        # Search for parameter description in class doctring
+        # Search for :param [param] in class doctring to get parameter description
         parameter_description = ""
         param_regex = re.compile(f":param {parameter_name}" + r":([\w ]*)")  # TODO Fix this regex to capture more
         match = param_regex.search(component_body)
@@ -408,10 +412,7 @@ class AirflowComponentParser(ComponentParser):
 
         data_object = {}
         # Search description to determine whether parameter is optional
-        # Another potential check for 'required' status would be if there is
-        # an = sign in the init function parameters, this implies that it is
-        # not required and all else are required.
-        if ("not optional" in parameter_description.lower()) or \
+        if "not optional" in parameter_description.lower() or \
                 ("required" in parameter_description.lower() and
                  "not required" not in parameter_description.lower() and
                  "n't required" not in parameter_description.lower()):
@@ -419,7 +420,7 @@ class AirflowComponentParser(ComponentParser):
         else:
             data_object['required'] = False
 
-        # Default type will be string
+        # Set default type to string
         data_object['format'] = "string"
         custom_control_id = "StringControl"
 
@@ -427,34 +428,16 @@ class AirflowComponentParser(ComponentParser):
         type_regex = re.compile(f":type {parameter_name}" + r":([\w ]*)")
         match = type_regex.search(component_body)
         if match:
+            # TODO: Determine where this field is used -- does it need to be set
             data_object['format'] = match.group(1)
-
-            # This may not be applicable in every case
-            if "string" in match.group(1).lower():
-                custom_control_id = "StringControl"
-            elif match.group(1).lower() in ["number", "integer"]:
-                custom_control_id = "NumberControl"
-            elif match.group(1).lower() in ["bool", "boolean"]:
-                custom_control_id = "BooleanControl"
-            elif "array" in match.group(1).lower():
-                custom_control_id = "StringArrayControl"
-            elif "object" in match.group(1).lower():
-                custom_control_id = "StringControl"
+            custom_control_id = self.get_custom_control_id_and_type(match.group(1).lower())
 
         # Build parameter info
-        new_parameter = {
-            'parameter_ref': f"{class_name}_{parameter_name}",
-            'control': "custom",
-            'custom_control_id': custom_control_id,
-            'label': {
-                'default': parameter_name
-            },
-            'description': {
-                'default': parameter_description,
-                'placement': "on_panel"
-            },
-            "data": data_object
-        }
+        new_parameter = self.return_parameter(f"{class_name}_{parameter_name}",
+                                              custom_control_id,
+                                              parameter_name,
+                                              parameter_description,
+                                              data_object)
 
         return new_parameter
 
@@ -474,19 +457,18 @@ class FilesystemComponentReader(ComponentReader):
         component_dir = os.path.join(os.path.dirname(__file__), self._dir_path)
         component_file = os.path.join(component_dir, component_path)
 
-        # component_name, component_extension = os.path.splitext(component_path)
         component_extension = os.path.splitext(component_path)[-1]
         with open(component_file, 'r') as f:
             if component_extension == '.yaml':
                 try:
-                    return yaml.safe_load(f)  # , component_name.split('/')[-1], component_extension
+                    return yaml.safe_load(f)
                 except yaml.YAMLError as e:
                     raise RuntimeError from e
             elif component_extension == '.py':
-                # TODO: Find better way to read in file. Can we assume operator files are always
+                # TODO: Is there a better way to read in files? Can we assume operator files are always
                 # small enough to be read into memory? Reading and yielding by line likely won't
                 # work because multiple lines need to be checked at once (or multiple times).
-                return f.readlines()  # , component_name.split('/')[-1], component_extension
+                return f.readlines()
             else:
                 raise ValueError(f'File type {component_extension} is not supported.')
 
@@ -497,17 +479,17 @@ class UrlComponentReader(ComponentReader):
 
     def get_component_body(self, component_path):
         parsed_path = urllib.parse.urlparse(component_path).path
-        # component_name, component_extension = os.path.splitext(parsed_path)
+
         component_extension = os.path.splitext(parsed_path)[-1]
         component_body = urllib.request.urlopen(component_path)
 
         if component_extension == ".yaml":
             try:
-                return yaml.safe_load(component_body)  # , component_name.split('/')[-1], component_extension
+                return yaml.safe_load(component_body)
             except yaml.YAMLError as e:
                 raise RuntimeError from e
         elif component_extension == ".py":
-            return component_body.readlines()  # , component_name.split('/')[-1], component_extension
+            return component_body.readlines()
         else:
             raise ValueError(f'File type {component_extension} is not supported.')
 
@@ -526,11 +508,11 @@ class ComponentRegistry(SingletonConfigurable):
         'local': ComponentReader()
     }
 
-    def get_all_components(self, registry_type, processor_type):
+    def get_all_components(self, processor_type):
         """
         Builds a component palette in the form of a dictionary of components.
         """
-
+        # Get parser for this processor
         parser = self._get_parser(processor_type)
         assert processor_type == parser._type
 
@@ -562,16 +544,19 @@ class ComponentRegistry(SingletonConfigurable):
         """
         default_components = ["notebooks", "python-script", "r-script"]
 
+        # Get parser for this processor
         parser = self._get_parser(processor_type)
 
         properties = {}
         if parser._type == "local" or component_id in default_components:
             properties = parser.properties
         else:
+            # Find component with given id in component catalog
             component = parser.return_component_if_exists(component_id)
             if component is None:
                 raise ValueError(f"Component with ID {component_id} not found.")
 
+            # Get appropriate reader in order to read component definition
             reader = self._get_reader(component)
 
             component_path = component['path'][reader._type]
@@ -589,7 +574,7 @@ class ComponentRegistry(SingletonConfigurable):
         parser = self._get_parser(processor_type)
         parser.add_component(request_body)  # Maybe make this async to prevent reading issues in get_all_components()
 
-        components = self.get_all_components(None, parser._type)
+        components = self.get_all_components(parser._type)
         return components
 
     def get_component_execution_details(self, processor_type, component_id):

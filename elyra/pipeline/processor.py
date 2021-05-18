@@ -169,7 +169,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         raise NotImplementedError()
 
     def get_components(self):
-        components = self.component_registry.get_all_components(registry_type='file', processor_type=self.type)
+        components = self.component_registry.get_all_components(processor_type=self.type)
         return components
 
     @abstractmethod
