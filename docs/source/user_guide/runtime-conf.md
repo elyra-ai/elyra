@@ -297,6 +297,13 @@ Example: `test-bucket`
 and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
 Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
 
+### Verifying runtime configurations
+
+The [Elyra examples repository contains a basic pipeline](https://github.com/elyra-ai/examples/pipelines/setup_validation) that you can use to verify your runtime configurations:
+
+1. Launch JupyterLab.
+1. Clone `https://github.com/elyra-ai/examples.git` (`Git` > `Clone A Repository`) into the current working directory.
+1. In the File Browser navigate to `examples/pipelines/setup_validation/` and follow the instructions in `README.md`. If your runtime configuration is correct and the target runtime environment configured correctly, the validation pipeline should run as is without any modifications.
 
 ### Troubleshooting 
 
