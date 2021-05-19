@@ -26,8 +26,8 @@
 .elyra-ScriptEditor-OutputArea-prompt {
   flex: 0 0 37px;
   border-right: 1px solid var(--jp-border-color2);
-  padding: unset;
-  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 
 .elyra-ScriptEditor-OutputArea-output {
