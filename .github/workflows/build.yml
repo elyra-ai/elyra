@@ -89,7 +89,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
-        run: |
+        # Note: Tests fail if we don't install `wheel` for some reason.
+        run: | 
           python -m pip install --upgrade pip wheel
           pip install -q -r test_requirements.txt
           pip install --use-deprecated=legacy-resolver .
