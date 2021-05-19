@@ -162,22 +162,10 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                 op=operation, archive=operation_artifact_archive))
 
             # Collect env variables
-            pipeline_envs = dict()
-            if not cos_secret:
-                pipeline_envs['AWS_ACCESS_KEY_ID'] = cos_username
-                pipeline_envs['AWS_SECRET_ACCESS_KEY'] = cos_password
-            # Convey pipeline logging enablement to operation
-            pipeline_envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
-
-            # Set ENV variables in each container
-            if operation.env_vars:
-                for env_var in operation.env_vars:
-                    # Strip any of these special characters from both key and value
-                    # Splits on the first occurrence of '='
-                    result = [x.strip(' \'\"') for x in env_var.split('=', 1)]
-                    # Should be non empty key with a value
-                    if len(result) == 2 and result[0] != '':
-                        pipeline_envs[result[0]] = result[1]
+            pipeline_envs = self._collect_envs(operation,
+                                               cos_secret=cos_secret,
+                                               cos_username=cos_username,
+                                               cos_password=cos_password)
 
             image_pull_policy = None
             for image_instance in image_namespace:

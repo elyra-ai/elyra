@@ -16,6 +16,7 @@
 import os
 import sys
 
+from logging import Logger
 from typing import Dict, Optional
 
 
@@ -136,7 +137,7 @@ class Operation(object):
     def gpu(self):
         return self._gpu
 
-    def env_vars_as_dict(self, logger: Optional[object] = None) -> Dict:
+    def env_vars_as_dict(self, logger: Optional[Logger] = None) -> Dict:
         """
         Operation stores environment variables in a list of name=value pairs, while
         subprocess.run() requires a dictionary - so we must convert.  If no envs are

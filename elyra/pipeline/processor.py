@@ -25,7 +25,7 @@ from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
-from typing import List
+from typing import List, Dict
 from urllib3.exceptions import MaxRetryError
 from minio.error import SignatureDoesNotMatch
 
@@ -322,3 +322,22 @@ class RuntimePipelineProcess(PipelineProcessor):
         except BaseException as err:
             self.log.error('Error retrieving metadata configuration for {}'.format(name), exc_info=True)
             raise RuntimeError('Error retrieving metadata configuration for {}', err) from err
+
+    def _collect_envs(self, operation: Operation, **kwargs) -> Dict:
+        """
+        Collect the envs stored on the Operation and set the system-defined ELYRA_RUNTIME_ENV
+
+        Note: subclasses should call their superclass (this) method first.
+        :return: dictionary containing environment name/value pairs
+        """
+
+        envs: Dict = operation.env_vars_as_dict(logger=self.log)
+        envs['ELYRA_RUNTIME_ENV'] = self.type
+
+        if 'cos_secret' not in kwargs or not kwargs['cos_secret']:
+            envs['AWS_ACCESS_KEY_ID'] = kwargs['cos_username']
+            envs['AWS_SECRET_ACCESS_KEY'] = kwargs['cos_password']
+
+        # Convey pipeline logging enablement to operation
+        envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
+        return envs

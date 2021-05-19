@@ -112,3 +112,31 @@ def test_get_dependency_archive_name(processor):
     filename = processor._get_dependency_archive_name(test_operation)
 
     assert filename == correct_filename
+
+
+def test_collect_envs(processor):
+    pipelines_test_file = 'elyra/pipeline/tests/resources/archive/test.ipynb'
+
+    test_operation = Op(id='this-is-a-test-id',
+                        type='execution-node',
+                        classifier='kfp',
+                        name='test',
+                        filename=pipelines_test_file,
+                        runtime_image='tensorflow/tensorflow:latest')
+
+    envs = processor._collect_envs(test_operation, cos_secret=None, cos_username='Alice', cos_password='secret')
+
+    assert envs['ELYRA_RUNTIME_ENV'] == 'kfp'
+    assert envs['AWS_ACCESS_KEY_ID'] == 'Alice'
+    assert envs['AWS_SECRET_ACCESS_KEY'] == 'secret'
+    assert envs['ELYRA_ENABLE_PIPELINE_INFO'] == 'True'
+    assert envs['ELYRA_WRITABLE_CONTAINER_DIR'] == '/tmp'
+
+    # Repeat with non-None secret - ensure user and password envs are not present, but others are
+    envs = processor._collect_envs(test_operation, cos_secret='secret', cos_username='Alice', cos_password='secret')
+
+    assert envs['ELYRA_RUNTIME_ENV'] == 'kfp'
+    assert 'AWS_ACCESS_KEY_ID' not in envs
+    assert 'AWS_SECRET_ACCESS_KEY' not in envs
+    assert envs['ELYRA_ENABLE_PIPELINE_INFO'] == 'True'
+    assert envs['ELYRA_WRITABLE_CONTAINER_DIR'] == '/tmp'

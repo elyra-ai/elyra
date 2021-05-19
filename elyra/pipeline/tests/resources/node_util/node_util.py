@@ -90,7 +90,10 @@ class ExecutionNode(ABC):
 
     def perform_experiment(self) -> None:
         """Emulates the experiment to run."""
-        print("NODE_NAME: {}".format(self.node_name))
+        print(f"NODE_NAME: {self.node_name}")
+        runtime_env = os.getenv("ELYRA_RUNTIME_ENV")
+        print(f"ELYRA_RUNTIME_ENV: {runtime_env}")
+        assert runtime_env == "local", "ELYRA_RUNTIME_ENV has not been set to 'local'!"
 
     def process_inputs(self, env_var: str) -> List[InputNodeFile]:
         """Given an environment variable `env_var`, that contains a SEMI-COLON-separated

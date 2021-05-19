@@ -115,6 +115,13 @@ class OperationProcessor(ABC):
     def process(self, operation: Operation):
         raise NotImplementedError
 
+    @staticmethod
+    def _collect_envs(operation: Operation) -> Dict:
+        envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
+        envs['ELYRA_RUNTIME_ENV'] = "local"  # Special case
+        envs.update(operation.env_vars_as_dict())
+        return envs
+
 
 class FileOperationProcessor(OperationProcessor):
 
@@ -191,9 +198,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         additional_kwargs['engine_name'] = "ElyraEngine"
         additional_kwargs['cwd'] = file_dir  # For local operations, papermill runs from this dir
         additional_kwargs['kernel_cwd'] = file_dir
-        envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
-        envs.update(operation.env_vars_as_dict())
-        additional_kwargs['kernel_env'] = envs
+        additional_kwargs['kernel_env'] = OperationProcessor._collect_envs(operation)
         if GatewayClient.instance().gateway_enabled:
             additional_kwargs['kernel_manager_class'] = 'jupyter_server.gateway.managers.GatewayKernelManager'
 
@@ -233,9 +238,7 @@ class ScriptOperationProcessor(FileOperationProcessor):
         self.log.debug(f'Processing {self._script_type} script: {filepath}')
 
         argv = self.get_argv(filepath)
-
-        envs = os.environ.copy()  # Make sure this process's env is "available" in subprocess
-        envs.update(operation.env_vars_as_dict())
+        envs = OperationProcessor._collect_envs(operation)
         t0 = time.time()
         try:
             run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)

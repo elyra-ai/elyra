@@ -165,24 +165,44 @@ For more details on the **pipeline json definition** see it's [json schema](http
 }
 ```
 
-## Pipeline processor design
 
-Elyra implements an extensible **pipeline processor engine**, which enables the addition of new processors utilizing
-a service discovery mechanism.
+## Pipeline Processor Customization
+Elyra implements an extensible **pipeline processor engine**, which enables the addition of new pipeline processors utilizing
+a service discovery mechanism.  The pipeline processor class hierarchy is depicted here:
+![Pipeline Processor Class Hierachy](../images/pipeline-processor-class-hierarchy.png)
+This section outlines what is needed to introduce your own runtime for integration with Elyra.  In essence, two criteria must be fulfilled to introduce a new runtime: 
+1. A schema describing the necessary runtime metadata
+1. A pipeline processor implementation appropriately associated to the runtime
 
-![Notebook Pipeline Editor](../images/pipeline-class-hierarchy.png)
+### Custom Runtime Schema
+The first requirement for introducing a new runtime for use in Elyra is to define the necessary metadata corresponding to the runtime.  This is accomplished via a JSON schema file describing the necessary metadata used to integrate with the targeted runtime platform.
 
+This file must reside in the `elyra/metadata/schemas` directory in which Elyra has been installed.  (This location will change to better accommodate custom runtimes in the future.)
 
-### Registering new pipeline processor
+The schema name, represented by the value of the top-level `name` property or, if absent, the file's basename, is what the pipeline engine uses to locate the appropriate pipeline processor implementation.  This value is also set into the pipeline definition's `runtime` property in Elyra's UI, thereby tying the pipeline to the appropriate processor.
 
-New processors that properly implement the **Pipeline Processor** service definition can be discovered
-by the runtime using **entry_points** defined in the **setup.py** file (either from Elyra or in the package
-where the processor is located):
+The schema should minimally include property definitions for the Cloud Object Storage (cos) properties found in the built-in schema definitions for [Kubeflow Pipelines](https://github.com/elyra-ai/elyra/blob/62e1964244ec8ada3e63c9c6d39befd7c046df08/elyra/metadata/schemas/kfp.json#L83-L129) and [Apache Airflow](https://github.com/elyra-ai/elyra/blob/62e1964244ec8ada3e63c9c6d39befd7c046df08/elyra/metadata/schemas/airflow.json#L93-L139).
+    
+### Custom Runtime Pipeline Processor Implementation
+The pipeline processor implementation that corresponds to the targeted runtime platform must be a subclass of `elyra.pipeline.processor.RuntimePipelineProcessor` - which, itself, derives from `elyra.pipeline.processor.PipelineProcessor`.
+
+To facilitate discovery by the pipeline engine, this implementation must use a value for its [`type` property](https://github.com/elyra-ai/elyra/blob/62e1964244ec8ada3e63c9c6d39befd7c046df08/elyra/pipeline/processor.py#L156) identical to its schema name.
+
+#### Processor Registration
+The pipeline processor should be registered using **entry_points** with a _name_ that matches both the schema name corresponding to the new runtime and the pipeline processor's `type` property value.  Although this is not technically required, we would like to possibly utilize this during discovery in the future (and is true relative to the built-in processors).
+
+Entrypoint definitions are typically found in the package's **setup.py** or **setup.cfg** files similar to the following example:
 
 ```python
     entry_points={
         'elyra.pipeline.processors': [
-            'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'
+            'my_runtime = acme.my_runtime:MyRuntimePipelineProcessor'
         ]
     },
 ```
+In this example, and corresponding to the criteria above, pipeline processor `acme.my_runtime.MyRuntimePipelineProcessor` will:
+- derive from `elyra.pipeline.processor.RuntimePipelineProcessor`
+  
+- use a value of `my_runtime` for its `type` property value
+  
+- place a `my_runtime.json` schema file into Elyra's installation's `metadata/schemas` directory
