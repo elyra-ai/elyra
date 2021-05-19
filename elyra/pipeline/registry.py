@@ -143,7 +143,7 @@ class ComponentParser(SingletonConfigurable):
         """Get component properties for properties JSON"""
         raise NotImplementedError
 
-    def get_custom_control_id_and_type(self, parameter_type):
+    def get_custom_control_id(self, parameter_type):
         # This may not be applicable in every case
         if parameter_type in ["number", "integer"]:
             return "NumberControl"
@@ -154,7 +154,7 @@ class ComponentParser(SingletonConfigurable):
         else:
             return "StringControl"
 
-    def return_parameter(self, name, control_id, label, description, data):
+    def compose_parameter(self, name, control_id, label, description, data):
         parameter = {
             'parameter_ref': name.replace(' ', '_'),
             'control': "custom",
@@ -285,16 +285,18 @@ class KfpComponentParser(ComponentParser):
         data_object['format'] = "string"
         custom_control_id = "StringControl"
         if "type" in obj:
-            custom_control_id = self.get_custom_control_id_and_type(obj['type'].lower())
+            data_object['format'] = obj['type']
+            custom_control_id = self.get_custom_control_id(obj['type'].lower())
+
             # Add type to description as hint to users?
-            parameter_description += f" (type: {obj['type']})"
+            parameter_description += f" (type: {data_object['format']})"
 
         # Build label name
         label = f"{obj['name']} ({obj_type})"
 
         # Build parameter info
-        new_parameter = self.return_parameter(obj['name'], custom_control_id, label,
-                                              parameter_description, data_object)
+        new_parameter = self.compose_parameter(obj['name'], custom_control_id, label,
+                                               parameter_description, data_object)
 
         return new_parameter
 
@@ -432,18 +434,18 @@ class AirflowComponentParser(ComponentParser):
         match = type_regex.search(component_body)
         if match:
             # TODO: Determine where this field is used -- does it need to be set
-            # data_object['format'] = match.group(1)
-            custom_control_id = self.get_custom_control_id_and_type(match.group(1).lower())
+            data_object['format'] = match.group(1)
+            custom_control_id = self.get_custom_control_id(match.group(1).lower())
 
             # Add type to description as hint to users?
-            parameter_description += f"(type: {match.group(1)})"
+            parameter_description += f"(type: {data_object['format']})"
 
         # Build parameter info
-        new_parameter = self.return_parameter(f"{class_name}_{parameter_name}",
-                                              custom_control_id,
-                                              parameter_name,
-                                              parameter_description,
-                                              data_object)
+        new_parameter = self.compose_parameter(f"{class_name}_{parameter_name}",
+                                               custom_control_id,
+                                               parameter_name,
+                                               parameter_description,
+                                               data_object)
 
         return new_parameter
 
