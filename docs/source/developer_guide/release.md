@@ -50,19 +50,19 @@ which exposes three goals:
 - The `prepare-changelog` goal traverse the recent commits to update the changelog.md for a given release.
 
 ```bash
-create release --prepare-changelog --version 2.3.0
+create release prepare-changelog --version 2.3.0
 ```
 
 - The `prepare` goal create the release artifacts and make them available locally for validation.
 
 ```bash
-create release --prepare --version 2.3.0 --dev-version 2.4.0
+create release prepare --version 2.3.0 --dev-version 2.4.0
 ```
 
 -- The 'publish' goal get a previous prepared release and publish the artifacts to respective repositories.
 
 ```bash
-create release --publish --version 2.3.0
+create release publish --version 2.3.0
 ```
 
 ### Creating minor/patch releases from branches
@@ -80,7 +80,7 @@ check_run(['git', 'status'], cwd=config.source_dir)
 
 ### Generate the release changelog
 ```bash
-create release --prepare-changelog --version 2.3.0
+create release prepare-changelog --version 2.3.0
 ```
 - The updated changelog will then be available at `./build/release/elyra` as a git commit
   - The release manager should make any necessary adjustments and/or updates before 'pushing the changelog commit'. 
