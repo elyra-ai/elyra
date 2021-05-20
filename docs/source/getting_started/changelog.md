@@ -2,6 +2,37 @@
 
 ## Release 2.3.0b1 - 05/20/2021
 
+- Add prepare-changelog goal to release script help
+- Update documentation with proper release steps
+- Update changelog for release 2.3.0b1
+- Refactor ui-components to use React best-practices - [1657](https://github.com/elyra-ai/elyra/pull/1657)
+- Add support for updating env vars to Pipeline Editor - [1654](https://github.com/elyra-ai/elyra/pull/1654)
+- Update to Pipeline Editor 0.3.0 and Canvas 10.7.0 - [1679](https://github.com/elyra-ai/elyra/pull/1679)
+- Fix Script editor output prompt alignment - [1678](https://github.com/elyra-ai/elyra/pull/1678)
+- Add runtime configuration validation section to docs - [1676](https://github.com/elyra-ai/elyra/pull/1676)
+- Add indication of runtime into operation's environment - [1668](https://github.com/elyra-ai/elyra/pull/1668)
+- Pin stable version binder link to 2.2.4
+- Update the Getting Started > Overview section in the docs - [1669](https://github.com/elyra-ai/elyra/pull/1669)
+- Add missing dependencies to useCallBack array - [1667](https://github.com/elyra-ai/elyra/pull/1667)
+- Fix Pipeline label in tab context menu - [1666](https://github.com/elyra-ai/elyra/pull/1666)
+- Fix pipeline editor integration test timeout failures - [1660](https://github.com/elyra-ai/elyra/pull/1660)
+- Use GatewayKernelManager from Jupyter Server - [1655](https://github.com/elyra-ai/elyra/pull/1655)
+- Fix KF Dex authentication bug - [1642](https://github.com/elyra-ai/elyra/pull/1642)
+- Update kubeflow installation link on documentation - [1644](https://github.com/elyra-ai/elyra/pull/1644)
+- Remove unused NotebookSubmissionDialog.tsx  file - [1639](https://github.com/elyra-ai/elyra/pull/1639)
+- Add tested runtime version info to prerequisites - [1641](https://github.com/elyra-ai/elyra/pull/1641)
+- Fix Cypress integration tests timeouts - [1640](https://github.com/elyra-ai/elyra/pull/1640)
+- Add configuration instruction for KF 1.3 - [1635](https://github.com/elyra-ai/elyra/pull/1635)
+- Enable creation of pipelines specific to a runtime - [1591](https://github.com/elyra-ai/elyra/pull/1591)
+- Update node properties UI style on pipeline editor - [1631](https://github.com/elyra-ai/elyra/pull/1631)
+- Update Python/R labels in file menu - [1633](https://github.com/elyra-ai/elyra/pull/1633)
+- Fix resources input alignment on node properties - [1630](https://github.com/elyra-ai/elyra/pull/1630)
+- Add more details to Pull Request Template - [1585](https://github.com/elyra-ai/elyra/pull/1585)
+- Fix failing pipeline integration tests - [1621](https://github.com/elyra-ai/elyra/pull/1621)
+- Update to KFP v1.4.0 and KFP-Tekton v0.7.0 - [1622](https://github.com/elyra-ai/elyra/pull/1622)
+
+## Release 2.3.0b1 - 05/20/2021
+
 High level enhancements
 - Enable creation of pipelines specific to a runtime
 - Upgrade Elyra Canvas to version 10.7.0
