@@ -6,6 +6,7 @@
     "rootDir": "src",
     "target": "es6",
     "types": ["node", "jest"],
+    "skipLibCheck": true,
     "typeRoots": ["./node_modules/@types"],
     "noImplicitAny": false
   },

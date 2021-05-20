@@ -62,6 +62,8 @@ uninstall:
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-editor-extension)
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/r-editor-extension)
+	- jupyter labextension uninstall @elyra/pipeline-services
+	- jupyter labextension uninstall @elyra/pipeline-editor
 	pip uninstall -y jupyterlab-git
 	pip uninstall -y jupyter-lsp
 	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
@@ -85,6 +87,12 @@ lint-ui:
 	yarn run eslint
 
 lint: lint-ui lint-server ## Run linters
+
+dev-link:
+	yarn link @elyra/pipeline-services
+	yarn link @elyra/pipeline-editor
+	cd node_modules/@elyra/pipeline-editor && jupyter labextension link --no-build .
+	cd node_modules/@elyra/pipeline-services && jupyter labextension link --no-build .
 
 yarn-install:
 	yarn

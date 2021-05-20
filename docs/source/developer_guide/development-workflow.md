@@ -121,6 +121,13 @@ To clean your environment and install the latest JupyterLab:
 To specify a JupyterLab version to be installed:
 `etc/scripts/clean-jupyterlab.sh --version 2.2.9`
 
+#### Parallel Development with @elyra/pipeline-editor
+
+You can install Elyra using a local build of @elyra/pipeline-editor with:
+```bash
+make clean dev-link install
+```
+
 ### Incremental Development
 
 Elyra supports incremental development using `--watch`. This allows you to make code changes to
