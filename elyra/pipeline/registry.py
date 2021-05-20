@@ -49,6 +49,23 @@ outputs = {
     }
 }
 
+empty_properties = {
+    "current_parameters": {},
+    "parameters": [],
+    "uihints": {
+        "id": "nodeProperties",
+        "parameter_info": [],
+        "group_info": [
+            {
+                "id": "nodeGroupInfo",
+                "type": "panels",
+                "group_info": []
+            }
+        ]
+    },
+    "resources": {}
+}
+
 
 def get_id_from_name(name):
     """
@@ -155,6 +172,7 @@ class ComponentParser(SingletonConfigurable):
             return "StringControl"
 
     def compose_parameter(self, name, control_id, label, description, data):
+        formatted_description = "" if not description else description[0].upper() + description[1:]
         parameter = {
             'parameter_ref': name.replace(' ', '_'),
             'control': "custom",
@@ -163,7 +181,7 @@ class ComponentParser(SingletonConfigurable):
                 'default': label
             },
             'description': {
-                'default': description,
+                'default': formatted_description,
                 'placement': "on_panel"
             },
             "data": data
@@ -202,12 +220,8 @@ class KfpComponentParser(ComponentParser):
         '''
         Build the properties object according to the YAML and return properties.
         '''
-        # Start with generic properties loaded on init
-        component_parameters = copy.deepcopy(self.properties)
-
-        # TODO Do we need to/should we pop these?
-        for element in ['runtime_image', 'env_vars', 'dependencies', 'outputs', 'include_subdirectories']:
-            component_parameters['current_parameters'].pop(element, None)
+        # Start with empty properties object
+        component_parameters = copy.deepcopy(empty_properties)
 
         # Define new input group object
         input_group_info = {
@@ -286,10 +300,15 @@ class KfpComponentParser(ComponentParser):
         custom_control_id = "StringControl"
         if "type" in obj:
             data_object['format'] = obj['type']
+            print('OBJJ: ' + obj['type'])
             custom_control_id = self.get_custom_control_id(obj['type'].lower())
+            print('OBJJ2: ' + obj['type'])
 
             # Add type to description as hint to users?
-            parameter_description += f" (type: {data_object['format']})"
+            if not parameter_description:
+                parameter_description = f"(type: {data_object['format']})"
+            else:
+                parameter_description += f" (type: {data_object['format']})"
 
         # Build label name
         label = f"{obj['name']} ({obj_type})"
@@ -337,24 +356,16 @@ class AirflowComponentParser(ComponentParser):
         '''
         Build the properties object according to the operator python file and return properties.
         '''
-        # Start with generic properties loaded in init
-        # component_parameters = self.get_common_config('properties')
-        component_parameters = copy.deepcopy(self.properties)
-
-        # TODO Do we need to/should we pop these?
-        for element in ['runtime_image', 'env_vars', 'dependencies', 'outputs', 'include_subdirectories']:
-            component_parameters['current_parameters'].pop(element, None)
-
-        class_regex = re.compile(r"class ([\w]+)\(\w*\):")
-        init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*]*)\):")
+        # Start with empty properties object
+        component_parameters = copy.deepcopy(empty_properties)
 
         # Organize lines according to the class to which they belong
         classes = {}
         class_name = "no_class"
-        classes[class_name] = {
-            'lines': [],
-            'init_args': []
+        classes["no_class"] = {
+            'lines': []
         }
+        class_regex = re.compile(r"class ([\w]+)\(\w*\):")
         for line in component:
             line = line.decode("utf-8")
             match = class_regex.search(line)
@@ -363,7 +374,8 @@ class AirflowComponentParser(ComponentParser):
                 classes[class_name] = {'lines': [], 'init_args': []}
             classes[class_name]['lines'].append(line)
 
-        # Loop through classes to get parameters for each class
+        # Loop through classes to find init function for each class; grab init parameters as properties
+        init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*]*)\):")
         for class_name in classes:
             if class_name == "no_class":
                 continue
@@ -438,7 +450,10 @@ class AirflowComponentParser(ComponentParser):
             custom_control_id = self.get_custom_control_id(match.group(1).lower())
 
             # Add type to description as hint to users?
-            parameter_description += f"(type: {data_object['format']})"
+            if not parameter_description:
+                parameter_description = f"(type: {data_object['format']})"
+            else:
+                parameter_description += f" (type: {data_object['format']})"
 
         # Build parameter info
         new_parameter = self.compose_parameter(f"{class_name}_{parameter_name}",
