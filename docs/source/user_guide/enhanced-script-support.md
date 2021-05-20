@@ -63,7 +63,7 @@ then enable it on Jupyter:
 > IRkernel::installspec()
 ```
 
-You can check that the R kernel was successful installed with:
+You can check that the R kernel was successfully installed with:
 ```bash
 jupyter kernelspec list
 ```

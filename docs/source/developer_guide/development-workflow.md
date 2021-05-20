@@ -102,12 +102,12 @@ You can build and install all Elyra packages with:
 make clean install
 ```
 
-You can check that the notebook server extension was successful installed with:
+You can check that the notebook server extension was successfully installed with:
 ```bash
 jupyter serverextension list
 ```
 
-You can check that the JupyterLab extension was successful installed with:
+You can check that the JupyterLab extension was successfully installed with:
 ```bash
 jupyter labextension list
 ```
