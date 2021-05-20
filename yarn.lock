@@ -1365,10 +1365,10 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@elyra/canvas@10.3.0":
-  version "10.3.0"
-  resolved "https://registry.yarnpkg.com/@elyra/canvas/-/canvas-10.3.0.tgz#888992df7da337b3ee9d9e90feb09b4de7568b1e"
-  integrity sha512-3aboMQH+dSzQiUpasIhCREKEnAux5mAxKjE7ptqLZ2oi8XjQ2Q/WVHRSf0G07vqDButCbgHSK9U/BS8QJsVF4g==
+"@elyra/canvas@10.7.0":
+  version "10.7.0"
+  resolved "https://registry.yarnpkg.com/@elyra/canvas/-/canvas-10.7.0.tgz#b16359c0c8deeb36d3cf5dcb69887f998804890a"
+  integrity sha512-OA9TATZSnsygZ660fAoWXx0AJyBaPWdloLI1F4YjQn6nJXhWV3NWsIqBCBPxOScNO3bmC+iLzbJsg1VFfxJfSQ==
   dependencies:
     "@carbon/icons-react" "10.26.0"
     "@carbon/themes" "10.28.0"
@@ -1377,7 +1377,7 @@
     carbon-components-react "7.29.0"
     carbon-icons "7.0.7"
     codemirror "5.58.2"
-    d3 "6.2.0"
+    d3 "6.7.0"
     dagre "0.8.5"
     immutable "4.0.0-rc.12"
     immutable-undo "2.0.0"
@@ -1395,17 +1395,16 @@
     seedrandom "3.0.5"
     uuid "8.3.0"
 
-"@elyra/pipeline-editor@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-0.2.1.tgz#a0502d7ea92d612b16d1d11aa7e8091aa7d9f4ee"
-  integrity sha512-7upSOxWxw6e8JbxY2g1O+3z8fOqaRc/VA4FSYbOQkbs9LwTH/isQpqBiqm+ZSWj7ooyHro7tjfO+1C1y4zzlWA==
+"@elyra/pipeline-editor@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-0.3.0.tgz#0439619513d7bfcdb4571a34c6e00bf73fc10bda"
+  integrity sha512-8BUVKrl5v44h1ChjyyLbfFwitxKRmLZeipVXZniaB4pa31JZ5VdS3xlx2TP6GpdOQ3S24Zbn0vgCt2ZtazYKrw==
   dependencies:
-    "@elyra/canvas" "10.3.0"
-    "@elyra/pipeline-services" "^0.2.1"
+    "@elyra/canvas" "10.7.0"
+    "@elyra/pipeline-services" "^0.3.0"
     downshift "^6.1.2"
     immer "^8.0.1"
     nanoid "^3.1.20"
-    react "^17.0.1"
     react-dom "^17.0.1"
     react-intl "^5.0.0"
     react-redux "^7.0.0"
@@ -1421,6 +1420,14 @@
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-0.2.1.tgz#702dfa65c7e83beaa09a5bf1d312b27d3646a8b4"
   integrity sha512-DJBIPgqF/ZAyk7SxYjxe7JuICOffYUAC6jCoZXpoAAXggc9tjdtN0zTHwEj3hT1/znlljrUKJzq5wb0lPl3vtw==
+  dependencies:
+    immer "^8.0.1"
+    jsonc-parser "^3.0.0"
+
+"@elyra/pipeline-services@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-0.3.0.tgz#ad78cb3a439dfeacb957de3f8a3d4e88d937fab4"
+  integrity sha512-R9C/usN6ivcSnliG6cPn9XTENL8+HF5qphmMUhuxOWRkEoTz431k8sV+aIxHSzc3HfC6Ya9+hV5ZsGmDm5tNhA==
   dependencies:
     immer "^8.0.1"
     jsonc-parser "^3.0.0"
@@ -7058,10 +7065,10 @@ d3-zoom@2:
     d3-selection "2"
     d3-transition "2"
 
-d3@6.2.0:
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/d3/-/d3-6.2.0.tgz#f19b0ecb16ca4ad2171ce8b37c63247e71c6f01d"
-  integrity sha512-aH+kx55J8vRBh4K4k9GN4EbNO3QnZsXy4XBfrnr4fL2gQuszUAPQU3fV2oObO2iSpreRH/bG/wfvO+hDu2+e9w==
+d3@6.7.0:
+  version "6.7.0"
+  resolved "https://registry.yarnpkg.com/d3/-/d3-6.7.0.tgz#adac458597b4a2cafe8e08cf30948af0c95cd61f"
+  integrity sha512-hNHRhe+yCDLUG6Q2LwvR/WdNFPOJQ5VWqsJcwIYVeI401+d2/rrCjxSXkiAdIlpx7/73eApFB4Olsmh3YN7a6g==
   dependencies:
     d3-array "2"
     d3-axis "2"
