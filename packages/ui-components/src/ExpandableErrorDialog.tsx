@@ -28,61 +28,54 @@ interface IErrorDialogProps {
   message: string;
   timestamp: string;
   traceback: string;
-  default_msg: string;
+  defaultMessage: string;
 }
 
-export class ExpandableErrorDialog extends React.Component<
-  IErrorDialogProps,
-  any
-> {
-  dialogNode: HTMLDivElement;
-  collapsedDimensions: number[];
+export const ExpandableErrorDialog: React.FC<IErrorDialogProps> = ({
+  reason,
+  message,
+  timestamp,
+  traceback,
+  defaultMessage
+}) => {
+  const [collapsedSize, setCollapsedSize] = React.useState(null);
 
-  constructor(props: any) {
-    super(props);
-  }
+  const handleUpdateDialogSize = React.useCallback(
+    (expanded: boolean): void => {
+      const dialogNode: HTMLDivElement = document.querySelector(
+        '.' + JP_DIALOG_CONTENT
+      );
+      const width = dialogNode.clientWidth;
+      const height = dialogNode.clientHeight;
 
-  updateDialogSize(expanded: boolean): void {
-    if (!this.dialogNode) {
-      this.dialogNode = document.querySelector('.' + JP_DIALOG_CONTENT);
-    }
+      if (
+        expanded &&
+        (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
+      ) {
+        setCollapsedSize({ width, height });
+        dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
+        dialogNode.style.height = Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
+      } else if (!expanded && collapsedSize) {
+        dialogNode.style.width = collapsedSize.width + 'px';
+        dialogNode.style.height = collapsedSize.height + 'px';
+      }
+    },
+    [collapsedSize, setCollapsedSize]
+  );
 
-    const width = this.dialogNode.clientWidth;
-    const height = this.dialogNode.clientHeight;
-
-    if (
-      expanded &&
-      (width < ERROR_DIALOG_WIDTH || height < ERROR_DIALOG_HEIGHT)
-    ) {
-      this.collapsedDimensions = [width, height];
-      this.dialogNode.style.width = Math.max(width, ERROR_DIALOG_WIDTH) + 'px';
-      this.dialogNode.style.height =
-        Math.max(height, ERROR_DIALOG_HEIGHT) + 'px';
-    } else if (!expanded && this.collapsedDimensions) {
-      this.dialogNode.style.width = this.collapsedDimensions[0] + 'px';
-      this.dialogNode.style.height = this.collapsedDimensions[1] + 'px';
-    }
-  }
-
-  render(): React.ReactElement {
-    const details = this.props.traceback ? (
-      <ExpandableComponent
-        displayName={'Error details: '}
-        tooltip={'Error stack trace'}
-        onBeforeExpand={(expanded: boolean): void => {
-          this.updateDialogSize(expanded);
-        }}
-      >
-        <pre>{this.props.traceback}</pre>
-      </ExpandableComponent>
-    ) : null;
-
-    return (
-      <div className={MESSAGE_DISPLAY}>
-        <div>{this.props.message}</div>
-        {details}
-        <div>{this.props.default_msg}</div>
-      </div>
-    );
-  }
-}
+  return (
+    <div className={MESSAGE_DISPLAY}>
+      <div>{message}</div>
+      {traceback ? (
+        <ExpandableComponent
+          displayName="Error details: "
+          tooltip="Error stack trace"
+          onBeforeExpand={handleUpdateDialogSize}
+        >
+          <pre>{traceback}</pre>
+        </ExpandableComponent>
+      ) : null}
+      <div>{defaultMessage}</div>
+    </div>
+  );
+};
