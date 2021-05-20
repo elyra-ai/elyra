@@ -592,13 +592,16 @@ def print_help() -> str:
     DESCRIPTION
     Creates Elyra release based on git commit hash or from HEAD.
     
+    create release prepare-changelog --version 1.3.0 [--beta 0] [--rc 0]
+    This will prepare the release changelog and make it ready for review on the release workdir.
+
     create-release.py prepare --version 1.3.0 --dev-version 1.4.0 [--beta 0] [--rc 0]
-    This form will prepare a release candidate, build it locally and push the changes to a branch for review.
+    This will prepare a release candidate, build it locally and make it ready for review on the release workdir.
     
     Note: that one can either use a beta or rc modifier for the release, but not both.
 
     create-release.py publish --version 1.3.0 [--beta 0] [--rc 0]
-    This form will build a previously prepared release, and publish the artifacts to public repositories.
+    This will build a previously prepared release, and publish the artifacts to public repositories.
     
     Required software dependencies for building and publishing a release:
      - Git
