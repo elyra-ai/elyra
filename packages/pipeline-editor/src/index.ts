@@ -160,6 +160,14 @@ const extension: JupyterFrontEndPlugin<void> = {
             : 'Pipeline Editor'
           : 'Generic Pipeline Editor';
       },
+      caption: (args: any) =>
+        args.runtime?.display_name
+          ? `${args.runtime?.display_name} Pipeline Editor`
+          : 'Generic Pipeline Editor',
+      iconLabel: (args: any) =>
+        args.runtime?.display_name
+          ? `${args.runtime?.display_name} Pipeline Editor`
+          : 'Generic Pipeline Editor',
       icon: (args: any) => {
         if (args['isPalette']) {
           return undefined;

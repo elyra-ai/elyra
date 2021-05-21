@@ -33,7 +33,10 @@ describe('Elyra launcher is in use', () => {
     );
     // Two specific runtime pipeline editor extension is available
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Pipeline Editor"]:visible'
+      '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]:visible'
+    );
+    cy.get(
+      '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]:visible'
     );
     // Script editor extension is available
     cy.get(
