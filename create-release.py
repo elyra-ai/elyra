@@ -150,7 +150,7 @@ def update_version_to_release() -> None:
             f"{new_version}")
 
         sed(_source('etc/docker/kubeflow/Dockerfile'),
-            r"elyra==[0-9].[0-9].[0-9]",
+            r"elyra==.*",
             f"elyra=={new_version}")
         sed(_source('etc/docker/elyra/Dockerfile'),
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
@@ -226,7 +226,7 @@ def update_version_to_dev() -> None:
             "master")
 
         # for now, this stays with the latest release
-        # sed(_source('etc/docker/kubeflow/Dockerfile'), r"elyra==[0-9].[0-9].[0-9]", f"elyra=={new_version}")
+        # sed(_source('etc/docker/kubeflow/Dockerfile'), r"elyra==.*", f"elyra=={new_version}")
 
         sed(_source('etc/docker/elyra/Dockerfile'),
             rf"\&\& git checkout tags/v{new_version} -b v{new_version} ",
