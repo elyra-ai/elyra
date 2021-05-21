@@ -127,9 +127,11 @@ def update_version_to_release() -> None:
         sed(_source('README.md'),
             r"elyra:dev ",
             f"elyra:{new_version} ")
-        sed(_source('README.md'),
-            r"/v[0-9].[0-9].[0-9]?",
-            f"/v{new_version}?")
+        if config.rc is None and config.beta is None:
+            # Update the stable version Binder link
+            sed(_source('README.md'),
+                r"/v[0-9].[0-9].[0-9]?",
+                f"/v{new_version}?")
         sed(_source('etc/docker/kubeflow/README.md'),
             r"kf-notebook:dev",
             f"kf-notebook:{new_version}")
@@ -549,6 +551,7 @@ def initialize_config(args=None) -> SimpleNamespace:
         'new_version': args.version if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta)) else f'{args.version}rc{args.rc}' if args.rc else f'{args.version}b{args.beta}',
         'new_npm_version': args.version if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta)) else f'{args.version}-rc.{args.rc}' if args.rc else f'{args.version}-beta.{args.beta}',
         'rc': args.rc,
+        'beta': args.beta,
         'dev_version': f'{args.dev_version}.dev0',
         'dev_npm_version': f'{args.dev_version}-dev',
         'tag': f'v{args.version}' if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta)) else f'v{args.version}rc{args.rc}' if args.rc else f'v{args.version}b{args.beta}'
@@ -578,6 +581,8 @@ def print_config() -> None:
     print(f'New NPN Version \t -> {config.new_npm_version}')
     if config.rc is not None:
         print(f'RC number \t\t -> {config.rc}')
+    if config.beta is not None:
+        print(f'Beta number \t\t -> {config.beta}')
     print(f'Dev Version \t\t -> {config.dev_version}')
     print(f'Dev NPM Version \t -> {config.dev_npm_version}')
     print(f'Release Tag \t\t -> {config.tag}')
