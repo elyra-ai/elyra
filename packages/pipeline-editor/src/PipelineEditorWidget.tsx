@@ -433,7 +433,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [context.model, cleanNullProperties, shell, pipeline?.pipelines]);
+  }, [context.model, pipelineRuntime, cleanNullProperties, shell]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
@@ -568,7 +568,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [context.model, cleanNullProperties, shell, pipeline?.pipelines]);
+  }, [context.model, pipelineRuntime, cleanNullProperties, shell]);
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
     return showDialog({
