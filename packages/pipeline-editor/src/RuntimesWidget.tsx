@@ -153,6 +153,7 @@ export class RuntimesWidget extends MetadataWidget {
         sortMetadata={true}
         schemas={this.schemas}
         className={RUNTIMES_METADATA_CLASS}
+        labelName={'runtime configuration'}
       />
     );
   }
