@@ -803,7 +803,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
-        open={alert !== null}
+        open={alert !== undefined}
         autoHideDuration={6000}
         onClose={handleClose}
       >
