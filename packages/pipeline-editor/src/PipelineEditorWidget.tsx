@@ -682,7 +682,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     rightBar: [
       {
         action: 'toggleOpenPanel',
-        label: 'Open panel',
+        label: panelOpen ? 'Close Panel' : 'Open Panel',
         enable: true,
         iconTypeOverride: panelOpen ? 'paletteOpen' : 'paletteClose'
       }
