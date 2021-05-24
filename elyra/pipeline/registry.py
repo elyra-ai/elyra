@@ -422,10 +422,10 @@ class AirflowComponentParser(ComponentParser):
     def build_parameter(self, parameter_name, class_name, component_body):
         # Search for :param [param] in class doctring to get parameter description
         parameter_description = ""
-        param_regex = re.compile(f":param {parameter_name}" + r":([\w ]*)")  # TODO Fix this regex to capture more
+        param_regex = re.compile(f":param {parameter_name}:" + r"([\s\S]*?(?=:type|:param))")
         match = param_regex.search(component_body)
         if match:
-            parameter_description = match.group(1)
+            parameter_description = match.group(1).strip()
 
         data_object = {}
         # Search description to determine whether parameter is optional
@@ -442,12 +442,12 @@ class AirflowComponentParser(ComponentParser):
         custom_control_id = "StringControl"
 
         # Search for :type [param] information in class docstring
-        type_regex = re.compile(f":type {parameter_name}" + r":([\w ]*)")
+        type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param))")
         match = type_regex.search(component_body)
         if match:
             # TODO: Determine where this field is used -- does it need to be set
-            data_object['format'] = match.group(1)
-            custom_control_id = self.get_custom_control_id(match.group(1).lower())
+            data_object['format'] = match.group(1).strip()
+            custom_control_id = self.get_custom_control_id(match.group(1).strip().lower())
 
             # Add type to description as hint to users?
             if not parameter_description:
