@@ -71,7 +71,7 @@ jobs:
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
-        run: make yarn-install
+        run: yarn install
       - name: Lint
         run: yarn eslint:check --max-warnings=0
       - name: Check format
@@ -92,7 +92,7 @@ jobs:
         # Note: Tests fail if we don't install `wheel` for some reason.
         run: | 
           python -m pip install --upgrade pip wheel
-          make install-server
+          pip install --use-deprecated=legacy-resolver .
           make test-dependencies
       - name: Test
         run: pytest -v elyra
@@ -117,8 +117,9 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: |
-          make yarn-install
-          make install-server
+          yarn install
+          python -m pip install --upgrade pip
+          pip install --use-deprecated=legacy-resolver .
       - name: Test
         run: yarn test:unit
 
@@ -143,8 +144,9 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: |
-          make yarn-install
-          make install-server
+          yarn install
+          python -m pip install --upgrade pip
+          pip install --use-deprecated=legacy-resolver .
       - name: Build
         run: yarn lerna run build --stream
       - name: Setup JupyterLab
