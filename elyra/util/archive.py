@@ -115,7 +115,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
     temp_dir = create_project_temp_dir()
     archive = os.path.join(temp_dir, archive_name)
 
-    with tarfile.open(archive, "w:gz") as tar:
+    with tarfile.open(archive, "w:gz", dereference=True) as tar:
         tar.add(source_dir, arcname="", filter=tar_filter)
 
     if require_complete and not include_all:
