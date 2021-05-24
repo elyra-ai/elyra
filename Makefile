@@ -96,12 +96,12 @@ dev-link:
 	cd node_modules/@elyra/pipeline-services && jupyter labextension link --no-build .
 
 yarn-install:
-	yarn
+	yarn install
 
-build-ui: yarn-install lint-ui # Build packages
-	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run build
+build-ui: yarn-install # Build packages
+	yarn lerna run build
 
-build-server: lint-server # Build backend
+build-server: # Build backend
 	python setup.py bdist_wheel sdist
 
 build: build-server build-ui
@@ -120,21 +120,21 @@ install: install-server install-ui ## Build and install
 	jupyter labextension list
 
 watch: ## Watch packages. For use alongside jupyter lab --watch
-	export PATH=$$(pwd)/node_modules/.bin:$$PATH && lerna run watch --parallel
+	yarn lerna run watch --parallel
 
-test-server: install-server # Run unit tests
+test-server: lint-server install-server # Run unit tests
 	pytest -v elyra
 
 test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
 
 test-ui-unit: # Run frontend jest unit tests
-	npm run test:unit
+	yarn test:unit
 
 test-integration: # Run frontend cypress integration tests
-	npm run test:integration
+	yarn test:integration
 
 test-integration-debug: # Open cypress integration test debugger
-	npm run test:integration:debug
+	yarn test:integration:debug
 
 test: test-server test-ui ## Run all tests (backend, frontend and cypress integration tests)
 
@@ -235,5 +235,5 @@ define UNINSTALL_LAB_EXTENSION
 endef
 
 define PACKAGE_LAB_EXTENSION
-	export PATH=$$(pwd)/node_modules/.bin:$$PATH && cd packages/$1 && npm run dist && mv *.tgz ../../dist
+	cd packages/$1 && yarn dist && mv *.tgz ../../dist
 endef
