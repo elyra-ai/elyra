@@ -51,6 +51,7 @@ purge:
 	rm -rf $$(find . -name .pytest_cache)
 	rm -rf $(yarn cache dir)
 
+# NOTE: We can't use "lerna run lab:uninstall" because we may have deleted node_modules.
 uninstall:
 	$(call UNLINK_LAB_EXTENSION,@elyra/services)
 	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
@@ -106,28 +107,7 @@ build-server: lint-server # Build backend
 build: build-server build-ui
 
 install-ui: build-ui # Install packages
-	$(call LINK_LAB_EXTENSION,services)
-	$(call LINK_LAB_EXTENSION,ui-components)
-	$(call LINK_LAB_EXTENSION,metadata-common)
-	$(call LINK_LAB_EXTENSION,script-editor)
-	$(call INSTALL_LAB_EXTENSION,theme)
-	$(call INSTALL_LAB_EXTENSION,code-snippet)
-	$(call INSTALL_LAB_EXTENSION,metadata)
-	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
-	$(call INSTALL_LAB_EXTENSION,python-editor)
-	$(call INSTALL_LAB_EXTENSION,r-editor)
-
-install-ui-x:
-	$(call LINK_LAB_EXTENSION,services)
-	$(call LINK_LAB_EXTENSION,ui-components)
-	$(call LINK_LAB_EXTENSION,metadata-common)
-	$(call LINK_LAB_EXTENSION,script-editor)
-	$(call INSTALL_LAB_EXTENSION,theme)
-	$(call INSTALL_LAB_EXTENSION,code-snippet)
-	$(call INSTALL_LAB_EXTENSION,metadata)
-	$(call INSTALL_LAB_EXTENSION,pipeline-editor)
-	$(call INSTALL_LAB_EXTENSION,python-editor)
-	$(call INSTALL_LAB_EXTENSION,r-editor)
+	yarn lerna run lab:install --stream
 
 install-server: build-server # Install backend
 	pip install --upgrade pip
@@ -250,16 +230,8 @@ define UNLINK_LAB_EXTENSION
 	- jupyter labextension unlink --no-build $1
 endef
 
-define LINK_LAB_EXTENSION
-	cd packages/$1 && jupyter labextension link --no-build .
-endef
-
 define UNINSTALL_LAB_EXTENSION
 	- jupyter labextension uninstall --no-build $1
-endef
-
-define INSTALL_LAB_EXTENSION
-	cd packages/$1 && jupyter labextension install --no-build .
 endef
 
 define PACKAGE_LAB_EXTENSION
