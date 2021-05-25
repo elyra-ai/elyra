@@ -117,11 +117,19 @@ def test_get_dependency_archive_name(processor):
 def test_collect_envs(processor):
     pipelines_test_file = 'elyra/pipeline/tests/resources/archive/test.ipynb'
 
+    # add system-owned envs with bogus values to ensure they get set to system-derived values
+    system_owned_envs = ['ELYRA_RUNTIME_ENV="bogus_runtime"',
+                         'ELYRA_ENABLE_PIPELINE_INFO="bogus_pipeline"',
+                         'ELYRA_WRITABLE_CONTAINER_DIR=""',  # simulate operation reference in pipeline
+                         'AWS_ACCESS_KEY_ID="bogus_key"',
+                         'AWS_SECRET_ACCESS_KEY="bogus_secret"']
+
     test_operation = Op(id='this-is-a-test-id',
                         type='execution-node',
                         classifier='kfp',
                         name='test',
                         filename=pipelines_test_file,
+                        env_vars=system_owned_envs,
                         runtime_image='tensorflow/tensorflow:latest')
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username='Alice', cos_password='secret')
