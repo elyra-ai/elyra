@@ -420,9 +420,6 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                cos_username=cos_username,
                                                cos_password=cos_password)
 
-            # Include any envs set on the operation
-            pipeline_envs.update(operation.env_vars_as_dict(logger=self.log))
-
             sanitized_operation_name = self._sanitize_operation_name(operation.name)
 
             # create pipeline operation

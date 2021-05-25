@@ -141,8 +141,8 @@ class Operation(object):
         """
         Operation stores environment variables in a list of name=value pairs, while
         subprocess.run() requires a dictionary - so we must convert.  If no envs are
-        configured on the Operation, the existing env is returned, otherwise envs
-        configured on the Operation are overlayed on the existing env.
+        configured on the Operation, an empty dictionary is return, otherwise envs
+        configured on the Operation are converted to dictionary entries and returned.
         """
         envs = {}
         for nv in self.env_vars:
@@ -150,11 +150,10 @@ class Operation(object):
                 nv_pair = nv.split("=")
                 if len(nv_pair) == 2 and nv_pair[0].strip():
                     envs[nv_pair[0]] = nv_pair[1]
+                elif logger:
+                    logger.warning(f"Could not process environment variable entry `{nv}`, skipping...")
                 else:
-                    if logger:
-                        logger.warning(f"Could not process environment variable entry `{nv}`, skipping...")
-                    else:
-                        print(f"Could not process environment variable entry `{nv}`, skipping...")
+                    print(f"Could not process environment variable entry `{nv}`, skipping...")
         return envs
 
     @property
