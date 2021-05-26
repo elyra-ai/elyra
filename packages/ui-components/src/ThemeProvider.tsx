@@ -34,7 +34,7 @@ declare global {
 }
 
 export interface IProps {
-  themeManager: IThemeManager;
+  themeManager?: IThemeManager;
 }
 
 const pseudoClasses = [
@@ -118,7 +118,7 @@ if (window.ELYRA_lightTheme === undefined) {
   });
 }
 
-const isLightTheme = (themeManager: IThemeManager): boolean => {
+const isLightTheme = (themeManager?: IThemeManager): boolean => {
   // Default to light theme
   return themeManager?.theme ? themeManager.isLight(themeManager.theme) : true;
 };
@@ -135,7 +135,7 @@ export const ThemeProvider: React.FC<IProps> = ({ themeManager, children }) => {
       themeManager.themeChanged.connect(updateTheme);
     }
     return (): void => {
-      themeManager.themeChanged.disconnect(updateTheme);
+      themeManager?.themeChanged.disconnect(updateTheme);
     };
   }, [themeManager]);
 

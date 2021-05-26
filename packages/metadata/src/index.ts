@@ -51,7 +51,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     editorServices: IEditorServices,
     status: ILabStatus,
-    themeManager: IThemeManager | null
+    themeManager?: IThemeManager
   ) => {
     console.log('Elyra - metadata extension is activated!');
 

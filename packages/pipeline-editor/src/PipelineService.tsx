@@ -138,7 +138,7 @@ export class PipelineService {
   }
 
   static getDisplayName(name: string, metadataArr: IDictionary<any>[]): string {
-    return metadataArr.find(r => r['name'] === name)['display_name'];
+    return metadataArr.find(r => r['name'] === name)?.['display_name'];
   }
 
   /**
@@ -147,7 +147,7 @@ export class PipelineService {
    * @param metadataArr
    */
   static getRuntimeName(name: string, metadataArr: IDictionary<any>[]): string {
-    return metadataArr.find(r => r['name'] === name)['schema_name'];
+    return metadataArr.find(r => r['name'] === name)?.['schema_name'];
   }
 
   /**

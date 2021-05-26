@@ -79,7 +79,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
     menu: IMainMenu,
-    themeManager: IThemeManager | null
+    themeManager?: IThemeManager
   ) => {
     console.log('Elyra - pipeline-editor extension is activated!');
 

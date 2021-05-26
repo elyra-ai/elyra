@@ -30,7 +30,9 @@ export const formDialogWidget = (
   widget.getValue = (): any => {
     const form = widget.node.querySelector('form');
     const formValues: { [key: string]: any } = {};
-    for (const element of Object.values(form.elements) as HTMLInputElement[]) {
+    for (const element of Object.values(
+      form?.elements ?? []
+    ) as HTMLInputElement[]) {
       switch (element.type) {
         case 'checkbox':
           formValues[element.name] = element.checked;

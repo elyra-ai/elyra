@@ -51,7 +51,7 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
   namespace: string;
   sortMetadata: boolean;
   className: string;
-  schemas: IDictionary<any>[];
+  schemas?: IDictionary<any>[];
 }
 
 /**
@@ -68,7 +68,7 @@ class RuntimesDisplay extends MetadataDisplay<
     let githubRepoElement = null;
     let metadata_props = null;
 
-    for (const schema of this.props.schemas) {
+    for (const schema of this.props.schemas ?? []) {
       if (schema.name === metadata.schema_name) {
         metadata_props = schema.properties.metadata.properties;
       }

@@ -26,7 +26,7 @@ export class ScriptEditorController {
   /**
    * Get available kernelspecs.
    */
-  getKernelSpecs = async (): Promise<KernelSpec.ISpecModels> => {
+  getKernelSpecs = async (): Promise<KernelSpec.ISpecModels | null> => {
     await this.kernelSpecManager.ready;
     const kernelSpecs = await this.kernelSpecManager.specs;
     return kernelSpecs;
@@ -37,11 +37,11 @@ export class ScriptEditorController {
    */
   getKernelSpecsByLanguage = async (
     language: string
-  ): Promise<KernelSpec.ISpecModels> => {
-    const specs: KernelSpec.ISpecModels = await this.getKernelSpecs();
-    Object.entries(specs.kernelspecs)
-      .filter(entry => entry[1].language.includes(language) === false)
-      .forEach(entry => delete specs.kernelspecs[entry[0]]);
+  ): Promise<KernelSpec.ISpecModels | null> => {
+    const specs = await this.getKernelSpecs();
+    Object.entries(specs?.kernelspecs ?? [])
+      .filter(entry => entry[1]?.language.includes(language) === false)
+      .forEach(entry => delete specs?.kernelspecs[entry[0]]);
 
     return specs;
   };

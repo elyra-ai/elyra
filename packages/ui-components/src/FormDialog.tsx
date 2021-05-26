@@ -70,10 +70,10 @@ export const showFormDialog = async (
 
         // Get dialog default action button
         const defaultButtonIndex =
-          options.defaultButton || options.buttons.length - 1;
+          options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
         const defaultButton = dialog.node
           .querySelector('.jp-Dialog-footer')
-          .getElementsByTagName('button')[defaultButtonIndex];
+          ?.getElementsByTagName('button')[defaultButtonIndex]!;
 
         defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
 

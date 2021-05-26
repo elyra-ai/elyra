@@ -1,31 +1,7 @@
 {
-  "extends": "../../tsconfig-base",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "outDir": "lib",
-    "rootDir": "src",
-    "target": "es6",
-    "types": ["node", "jest"],
-    "skipLibCheck": true,
-    "typeRoots": ["./node_modules/@types"],
-    "noImplicitAny": false
+    "outDir": "lib"
   },
-  "include": ["src/*", "src/*/*"],
-  "files": [
-    "src/palette.json",
-    "src/properties.json",
-    "src/en.json",
-    "src/pipeline-template.json"
-  ],
-  "references": [
-    {
-      "path": "../services"
-    },
-    {
-      "path": "../metadata-common"
-    },
-    {
-      "path": "../ui-components"
-    }
-  ]
+  "include": ["src"]
 }

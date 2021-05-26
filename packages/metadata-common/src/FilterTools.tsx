@@ -80,7 +80,7 @@ export class FilterTools extends React.Component<
       `#${this.props.namespaceId} .${FILTER_OPTION}`
     );
 
-    filterOption.classList.toggle('idle');
+    filterOption?.classList.toggle('idle');
 
     this.filterMetadata();
   }
@@ -178,7 +178,7 @@ export class FilterTools extends React.Component<
   filterMetadata(): void {
     const isTagFilterOpen = document
       .querySelector(`#${this.props.namespaceId} .${FILTER_OPTION}`)
-      .classList.contains('idle');
+      ?.classList.contains('idle');
     this.props.onFilter(
       this.state.searchValue,
       isTagFilterOpen ? [] : this.state.selectedTags

@@ -1,20 +1,20 @@
 {
   "compilerOptions": {
+    "target": "es2015",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "commonjs",
+    "jsx": "react-jsx",
     "allowJs": true,
     "skipLibCheck": true,
+    "declaration": true,
+    "downlevelIteration": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
 
     /* Strict Type-Checking Options */
     "strict": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
 
     /* Additional Checks */
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
@@ -25,7 +25,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
 
-    /* Advanced Options */
-    "resolveJsonModule": true
+    /* Logging */
+    "preserveWatchOutput": true
   }
 }
