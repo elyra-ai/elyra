@@ -141,7 +141,7 @@ class Operation(object):
         """
         Operation stores environment variables in a list of name=value pairs, while
         subprocess.run() requires a dictionary - so we must convert.  If no envs are
-        configured on the Operation, an empty dictionary is return, otherwise envs
+        configured on the Operation, an empty dictionary is returned, otherwise envs
         configured on the Operation are converted to dictionary entries and returned.
         """
         envs = {}
