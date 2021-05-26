@@ -92,7 +92,9 @@ export class RuntimeImagesWidget extends MetadataWidget {
         namespace={RUNTIME_IMAGES_NAMESPACE}
         sortMetadata={true}
         className={RUNTIME_IMAGES_CLASS}
-        labelName={'runtime image'}
+        labelName={(): string => {
+          return 'runtime image';
+        }}
       />
     );
   }
