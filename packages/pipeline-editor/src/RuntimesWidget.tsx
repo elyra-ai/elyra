@@ -131,11 +131,14 @@ export class RuntimesWidget extends MetadataWidget {
   }
 
   private getSchemaTitle = (metadata: IMetadata): string => {
-    for (const schema of this.schemas) {
-      if (schema.name === metadata.schema_name) {
-        return schema.title;
+    if (this.schemas) {
+      for (const schema of this.schemas) {
+        if (schema.name === metadata.schema_name) {
+          return schema.title;
+        }
       }
     }
+
     return 'runtime configuration';
   };
 
