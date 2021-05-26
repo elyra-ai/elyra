@@ -20,7 +20,7 @@ import path from 'path';
 
 import chalk from 'chalk';
 
-const makeDir = path.join(__dirname, '..');
+const makeDir = path.join(__dirname, '..', '..');
 
 const cmd = process.argv[2];
 
