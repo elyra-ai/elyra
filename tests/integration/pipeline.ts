@@ -243,7 +243,7 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/helloworld.yaml');
   });
 
-  it.only('should not leak properties when switching between nodes', () => {
+  it('should not leak properties when switching between nodes', () => {
     cy.openFile('helloworld.pipeline');
 
     cy.get('#jp-main-dock-panel').within(() => {
