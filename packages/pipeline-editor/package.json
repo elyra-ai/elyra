@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@elyra/metadata-common": "^2.3.0-dev",
-    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/ee1a95d8/@elyra/pipeline-editor",
+    "@elyra/pipeline-editor": "^0.3.0",
     "@elyra/pipeline-services": "^0.3.0",
     "@elyra/services": "^2.3.0-dev",
     "@elyra/ui-components": "^2.3.0-dev",

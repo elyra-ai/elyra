@@ -133,6 +133,10 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState(null);
   const [updatedNodes, setUpdatedNodes] = React.useState(nodes);
+  const [
+    updatedPipelineProperties,
+    setUpdatedPipelineProperties
+  ] = React.useState(pipelineProperties);
   const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
 
   const contextRef = useRef(context);
@@ -152,6 +156,15 @@ const PipelineWrapper: React.FC<IProps> = ({
             }
           }
         }
+        const pipelineProperties =
+          pipelineJson?.pipelines?.[0]?.app_data?.pipeline_properties;
+        if (
+          pipelineProperties?.default_runtime_image &&
+          runtimeImages.current?.[pipelineProperties.default_runtime_image]
+        ) {
+          pipelineProperties.default_runtime_image =
+            runtimeImages.current?.[pipelineProperties.default_runtime_image];
+        }
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -165,12 +178,19 @@ const PipelineWrapper: React.FC<IProps> = ({
       .then((images: any) => {
         runtimeImages.current = images;
         const nodesCopy = JSON.parse(JSON.stringify(nodes));
+        const pipelinePropertiesCopy = JSON.parse(
+          JSON.stringify(updatedPipelineProperties)
+        );
         for (const node of nodesCopy) {
           node.properties.uihints.parameter_info[1].data.items = Object.values(
             runtimeImages.current
           );
         }
+        pipelinePropertiesCopy.properties.uihints.parameter_info[2].data.items = Object.values(
+          runtimeImages.current
+        );
         setUpdatedNodes(nodesCopy);
+        setUpdatedPipelineProperties(pipelinePropertiesCopy);
         changeHandler();
       })
       .catch(error => RequestErrors.serverError(error));
@@ -192,6 +212,18 @@ const PipelineWrapper: React.FC<IProps> = ({
                 app_data.runtime_image = tag;
               }
             }
+          }
+        }
+      }
+      const pipelineProperties =
+        pipelineJson?.pipelines?.[0]?.app_data?.pipeline_properties;
+      if (pipelineProperties?.default_runtime_image) {
+        for (const tag in runtimeImages.current) {
+          if (
+            runtimeImages.current?.[tag] ===
+            pipelineProperties.default_runtime_image
+          ) {
+            pipelineProperties.default_runtime_image = tag;
           }
         }
       }
@@ -814,7 +846,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineEditor
           ref={ref}
           nodes={updatedNodes}
-          pipelineProperties={pipelineProperties}
+          pipelineProperties={updatedPipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}

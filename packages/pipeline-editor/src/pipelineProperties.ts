@@ -18,9 +18,14 @@ const pipelineProperties = {
   properties: {
     current_parameters: {
       description: '',
-      env_vars: []
+      env_vars: [],
+      default_runtime_image: ''
     },
-    parameters: [{ id: 'description' }, { id: 'env_vars' }],
+    parameters: [
+      { id: 'description' },
+      { id: 'env_vars' },
+      { id: 'default_runtime_image' }
+    ],
     uihints: {
       id: 'nodeProperties',
       parameter_info: [
@@ -48,6 +53,21 @@ const pipelineProperties = {
             placement: 'on_panel'
           },
           data: { placeholder: 'ENV_VAR=value', canRefresh: false }
+        },
+        {
+          parameter_ref: 'default_runtime_image',
+          label: { default: 'Default Runtime Image' },
+          control: 'custom',
+          custom_control_id: 'EnumControl',
+          description: {
+            default:
+              'Docker image used as execution environment if not specified in node properties.',
+            placement: 'on_panel'
+          },
+          data: {
+            items: [],
+            required: true
+          }
         }
       ],
       group_info: [
@@ -60,7 +80,12 @@ const pipelineProperties = {
               type: 'controls',
               parameter_refs: ['description']
             },
-            { id: 'env_vars', type: 'controls', parameter_refs: ['env_vars'] }
+            { id: 'env_vars', type: 'controls', parameter_refs: ['env_vars'] },
+            {
+              id: 'default_runtime_image',
+              type: 'controls',
+              parameter_refs: ['default_runtime_image']
+            }
           ]
         }
       ]
