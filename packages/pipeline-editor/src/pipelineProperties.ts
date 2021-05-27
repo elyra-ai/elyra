@@ -39,7 +39,8 @@ const pipelineProperties = {
             placement: 'on_panel'
           },
           data: {
-            placehodler: 'Pipeline description'
+            placeholder: 'Pipeline description',
+            textarea: true
           }
         },
         {
