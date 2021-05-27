@@ -56,6 +56,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { formDialogWidget } from './formDialogWidget';
 import nodes from './nodes';
 import { PipelineExportDialog } from './PipelineExportDialog';
+import pipelineProperties from './pipelineProperties';
 import {
   IRuntime,
   ISchema,
@@ -813,6 +814,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineEditor
           ref={ref}
           nodes={updatedNodes}
+          pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}
