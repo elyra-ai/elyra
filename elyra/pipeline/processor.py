@@ -337,6 +337,9 @@ class RuntimePipelineProcess(PipelineProcessor):
         if 'cos_secret' not in kwargs or not kwargs['cos_secret']:
             envs['AWS_ACCESS_KEY_ID'] = kwargs['cos_username']
             envs['AWS_SECRET_ACCESS_KEY'] = kwargs['cos_password']
+        else:  # ensure the "access-key" envs are NOT present...
+            envs.pop('AWS_ACCESS_KEY_ID', None)
+            envs.pop('AWS_SECRET_ACCESS_KEY', None)
 
         # Convey pipeline logging enablement to operation
         envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)

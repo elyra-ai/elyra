@@ -141,21 +141,38 @@ class Operation(object):
         """
         Operation stores environment variables in a list of name=value pairs, while
         subprocess.run() requires a dictionary - so we must convert.  If no envs are
-        configured on the Operation, the existing env is returned, otherwise envs
-        configured on the Operation are overlayed on the existing env.
+        configured on the Operation, an empty dictionary is returned, otherwise envs
+        configured on the Operation are converted to dictionary entries and returned.
         """
         envs = {}
         for nv in self.env_vars:
-            if nv and len(nv) > 0:
-                nv_pair = nv.split("=")
+            if nv:
+                nv_pair = nv.split("=", 1)
                 if len(nv_pair) == 2 and nv_pair[0].strip():
-                    envs[nv_pair[0]] = nv_pair[1]
-                else:
-                    if logger:
-                        logger.warning(f"Could not process environment variable entry `{nv}`, skipping...")
+                    if len(nv_pair[1]) > 0:
+                        envs[nv_pair[0]] = nv_pair[1]
                     else:
-                        print(f"Could not process environment variable entry `{nv}`, skipping...")
+                        Operation._log_info(f"Skipping inclusion of environment variable: "
+                                            f"`{nv_pair[0]}` has no value...",
+                                            logger=logger)
+                else:
+                    Operation._log_warning(f"Could not process environment variable entry `{nv}`, skipping...",
+                                           logger=logger)
         return envs
+
+    @staticmethod
+    def _log_info(msg: str, logger: Optional[Logger] = None):
+        if logger:
+            logger.info(msg)
+        else:
+            print(msg)
+
+    @staticmethod
+    def _log_warning(msg: str, logger: Optional[Logger] = None):
+        if logger:
+            logger.warning(msg)
+        else:
+            print(f"WARNING: {msg}")
 
     @property
     def inputs(self):
