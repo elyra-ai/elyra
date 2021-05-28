@@ -56,7 +56,7 @@ export class CodeSnippetService {
    */
   static deleteCodeSnippet(codeSnippet: IMetadata): Promise<boolean> {
     return showDialog({
-      title: `Delete snippet: ${codeSnippet.display_name}?`,
+      title: `Delete snippet '${codeSnippet.display_name}'?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
