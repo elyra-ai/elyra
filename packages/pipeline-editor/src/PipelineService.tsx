@@ -441,10 +441,15 @@ export class PipelineService {
     pipelinePath: string
   ): any {
     for (const node of pipeline.nodes) {
-      node.app_data.filename = this.getPipelineRelativeNodePath(
-        pipelinePath,
-        node.app_data.filename
-      );
+      if (
+        node.op ==
+        ('execute-notebook-node' || 'execute-python-node' || 'execute-r-node')
+      ) {
+        node.app_data.filename = this.getPipelineRelativeNodePath(
+          pipelinePath,
+          node.app_data.filename
+        );
+      }
     }
     return pipeline;
   }
@@ -454,10 +459,15 @@ export class PipelineService {
     pipelinePath: string
   ): any {
     for (const node of pipeline.nodes) {
-      node.app_data.filename = this.getWorkspaceRelativeNodePath(
-        pipelinePath,
-        node.app_data.filename
-      );
+      if (
+        node.op ==
+        ('execute-notebook-node' || 'execute-python-node' || 'execute-r-node')
+      ) {
+        node.app_data.filename = this.getWorkspaceRelativeNodePath(
+          pipelinePath,
+          node.app_data.filename
+        );
+      }
     }
     return pipeline;
   }

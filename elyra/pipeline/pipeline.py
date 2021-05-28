@@ -27,7 +27,7 @@ class Operation(object):
 
     def __init__(self, id, type, name, classifier, filename, runtime_image, memory=None, cpu=None, gpu=None,
                  dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None,
-                 outputs=None, parent_operations=None):
+                 outputs=None, parent_operations=None, component_source_type=None, component_params=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -49,6 +49,9 @@ class Operation(object):
         :param cpu: number of cpus requested to run the operation
         :param memory: amount of memory requested to run the operation (in Gi)
         :param gpu: number of gpus requested to run the operation
+        :param component_source_type: source type of a non-standard component, either filepath or url
+        :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
+                                 a non-standard operation instance
         """
 
         # validate that the operation has all required properties
@@ -86,6 +89,8 @@ class Operation(object):
         self._cpu = cpu
         self._gpu = gpu
         self._memory = memory
+        self._component_source_type = component_source_type
+        self._component_params = component_params
 
     @property
     def id(self):

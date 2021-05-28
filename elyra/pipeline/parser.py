@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
 
@@ -154,7 +155,9 @@ class PipelineParser(LoggingConfigurable):
             include_subdirectories=PipelineParser._get_app_data_field(node, 'include_subdirectories', False),
             env_vars=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'env_vars', [])),
             outputs=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'outputs', [])),
-            parent_operations=parent_operations)
+            parent_operations=parent_operations,
+            component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type'),
+            component_params=PipelineParser._get_remaining_component_params(node))
 
     @staticmethod
     def _get_child_field(obj: Dict, child: str, field_name: str, default_value: Any = None) -> Any:
@@ -234,3 +237,18 @@ class PipelineParser(LoggingConfigurable):
         if not dirty:
             return []
         return [clean for clean in dirty if clean]
+
+    @staticmethod
+    def _get_remaining_component_params(node: Dict):
+        """
+        Builds a dictionary of the parameters for a given node that do not have a corresponding
+        property in the Operation object. These parameters will be used by the appropriate processor when
+        loading and running a component that is not one of the standard notebook or script operations.
+        """
+        component_params = {}
+        if node.get('op') not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
+            for key, value in node['app_data'].items():
+                if key not in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies",
+                               "include_subdirectories", "env_vars", "outputs", "ui_data", "component_source_type"]:
+                    component_params[key] = json.dumps(value)
+        return component_params

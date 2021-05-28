@@ -50,16 +50,61 @@ outputs = {
 }
 
 empty_properties = {
-    "current_parameters": {},
-    "parameters": [],
+    "current_parameters": {"component_source_type": "", "filename": "", "runtime_image": ""},
+    "parameters": [{"id": "component_source_type"}, {"id": "filename"}, {"id": "runtime_image"}],
     "uihints": {
         "id": "nodeProperties",
-        "parameter_info": [],
+        "parameter_info": [
+            {
+                "parameter_ref": "component_source_type",
+                "control": "readonly",
+                "label": {
+                    "default": "Component Source Type"
+                },
+                "data": {
+                    "format": "string"
+                }
+            },
+            {
+                "parameter_ref": "filename",
+                "control": "readonly",
+                "label": {
+                    "default": "Path to Component"
+                },
+                "description": {
+                    "default": "The path to the component specification file.",
+                    "placement": "on_panel"
+                },
+                "data": {
+                    "format": "string"
+                }
+            },
+            {
+                "parameter_ref": "runtime_image",
+                "control": "custom",
+                "custom_control_id": "EnumControl",
+                "label": {
+                    "default": "Runtime Image"
+                },
+                "description": {
+                    "default": "Docker image used as execution environment.",
+                    "placement": "on_panel"
+                },
+                "data": {
+                    "items": [],
+                    "required": True
+                }
+            }
+        ],
         "group_info": [
             {
                 "id": "nodeGroupInfo",
                 "type": "panels",
-                "group_info": []
+                "group_info": [
+                    {"id": "component_source_type", "type": "controls", "parameter_refs": ["component_source_type"]},
+                    {"id": "filename", "type": "controls", "parameter_refs": ["filename"]},
+                    {"id": "runtime_image", "type": "controls", "parameter_refs": ["runtime_image"]}
+                ]
             }
         ]
     },
@@ -78,7 +123,7 @@ def get_id_from_name(name):
 def set_node_type_data(id, label, description):
     node_type = {
         'id': "",
-        'op': f"execute-{id}-node",
+        'op': id,
         'type': "execution_node",
         'inputs': [inputs],
         'outputs': [outputs],
@@ -156,7 +201,7 @@ class ComponentParser(SingletonConfigurable):
         """Get component name, id, description for palette JSON"""
         raise NotImplementedError
 
-    def parse_component_properties(self, component):
+    def parse_component_properties(self, component_body, component_path):
         """Get component properties for properties JSON"""
         raise NotImplementedError
 
@@ -174,7 +219,7 @@ class ComponentParser(SingletonConfigurable):
     def compose_parameter(self, name, control_id, label, description, data):
         formatted_description = "" if not description else description[0].upper() + description[1:]
         parameter = {
-            'parameter_ref': name.replace(' ', '_'),
+            'parameter_ref': name.lower().replace(' ', '_'),
             'control': "custom",
             'custom_control_id': control_id,
             'label': {
@@ -216,12 +261,27 @@ class KfpComponentParser(ComponentParser):
 
         return component_json
 
-    def parse_component_properties(self, component_body):
+    def parse_component_properties(self, component_body, component_path):
         '''
         Build the properties object according to the YAML and return properties.
         '''
         # Start with empty properties object
         component_parameters = copy.deepcopy(empty_properties)
+
+        component_parameters['uihints']['parameter_info'][1]['data']['value'] = component_path
+
+        # Add runtime image details
+        component_parameters['uihints']['parameter_info'][2]['control'] = "readonly"
+        component_parameters['uihints']['parameter_info'][2]['custom_control_id'] = "StringControl"
+        component_parameters['uihints']['parameter_info'][2]['data'] = {"format": "string"}
+        try:
+            component_parameters['current_parameters']['runtime_image'] = \
+                component_body['implementation']['container']['image']
+        except Exception:
+            raise RuntimeError("Error accessing runtime image for component.")
+
+        # Add path details
+        component_parameters['current_parameters']['filename'] = component_path
 
         # Define new input group object
         input_group_info = {
@@ -252,6 +312,10 @@ class KfpComponentParser(ComponentParser):
         # Append input group info to parameter details
         component_parameters['uihints']['group_info'][0]['group_info'].append(input_group_info)
 
+        # TODO: Determine whether outputs should be included. Some components throw an error when
+        # attempting to execute a component where output fields have been passed, even if no value
+        # is specified.
+        '''
         # Define new output group object
         output_group_info = {
             'id': "outputs",  # need to actually figure out the control id
@@ -278,6 +342,7 @@ class KfpComponentParser(ComponentParser):
 
         # Append output group info to parameter details
         component_parameters['uihints']['group_info'][0]['group_info'].append(output_group_info)
+        '''
 
         return component_parameters
 
@@ -300,9 +365,7 @@ class KfpComponentParser(ComponentParser):
         custom_control_id = "StringControl"
         if "type" in obj:
             data_object['format'] = obj['type']
-            print('OBJJ: ' + obj['type'])
             custom_control_id = self.get_custom_control_id(obj['type'].lower())
-            print('OBJJ2: ' + obj['type'])
 
             # Add type to description as hint to users?
             if not parameter_description:
@@ -352,21 +415,27 @@ class AirflowComponentParser(ComponentParser):
 
         return component_json
 
-    def parse_component_properties(self, component):
+    def parse_component_properties(self, component_body, component_path):
         '''
         Build the properties object according to the operator python file and return properties.
         '''
         # Start with empty properties object
         component_parameters = copy.deepcopy(empty_properties)
 
+        # Add path details
+        component_parameters['current_parameters']['filename'] = component_path
+
         # Organize lines according to the class to which they belong
+        # TODO: Determine how to handle the case where one operator.py file has multiple
+        # class definitions. How will we differentiate on the frontend? How will we
+        # execute on the backend?
         classes = {}
         class_name = "no_class"
         classes["no_class"] = {
             'lines': []
         }
         class_regex = re.compile(r"class ([\w]+)\(\w*\):")
-        for line in component:
+        for line in component_body:
             line = line.decode("utf-8")
             match = class_regex.search(line)
             if match:
@@ -468,26 +537,27 @@ class AirflowComponentParser(ComponentParser):
 class ComponentReader(SingletonConfigurable):
     _type = 'local'
 
-    def get_component_body(self, component_path):
+    def get_component_body(self, component_path, parser_type):
         raise NotImplementedError()
 
 
 class FilesystemComponentReader(ComponentReader):
-    _type = 'file'
-    _dir_path: str = 'resources'
+    _type = 'filepath'
+    _dir_path: str = ''
 
-    def get_component_body(self, component_path):
-        component_dir = os.path.join(os.path.dirname(__file__), self._dir_path)
-        component_file = os.path.join(component_dir, component_path)
-
+    def get_component_body(self, component_path, parser_type):
+        component_file = os.path.join(os.path.dirname(__file__), component_path)
         component_extension = os.path.splitext(component_path)[-1]
+
         with open(component_file, 'r') as f:
-            if component_extension == '.yaml':
+            if parser_type == "kfp":
+                assert component_extension == '.yaml'
                 try:
                     return yaml.safe_load(f)
                 except yaml.YAMLError as e:
                     raise RuntimeError from e
-            elif component_extension == '.py':
+            elif parser_type == "airflow":
+                assert component_extension == '.py'
                 # TODO: Is there a better way to read in files? Can we assume operator files are always
                 # small enough to be read into memory? Reading and yielding by line likely won't
                 # work because multiple lines need to be checked at once (or multiple times).
@@ -500,18 +570,20 @@ class UrlComponentReader(ComponentReader):
     _type = 'url'
     _url_path: str
 
-    def get_component_body(self, component_path):
+    def get_component_body(self, component_path, parser_type):
         parsed_path = urllib.parse.urlparse(component_path).path
 
         component_extension = os.path.splitext(parsed_path)[-1]
         component_body = urllib.request.urlopen(component_path)
 
-        if component_extension == ".yaml":
+        if parser_type == "kfp":
+            assert component_extension == ".yaml"
             try:
                 return yaml.safe_load(component_body)
             except yaml.YAMLError as e:
                 raise RuntimeError from e
-        elif component_extension == ".py":
+        elif parser_type == "airflow":
+            assert component_extension == ".py"
             return component_body.readlines()
         else:
             raise ValueError(f'File type {component_extension} is not supported.')
@@ -551,7 +623,7 @@ class ComponentRegistry(SingletonConfigurable):
             if reader is None or reader._type != list(component['path'].keys())[0]:
                 reader = self._get_reader(component)
 
-            component_body = reader.get_component_body(component['path'][reader._type])
+            component_body = reader.get_component_body(component['path'][reader._type], parser._type)
 
             # Parse the component definition in order to add to palette
             component_json = parser.parse_component_details(component_body, component['name'])
@@ -583,8 +655,12 @@ class ComponentRegistry(SingletonConfigurable):
             reader = self._get_reader(component)
 
             component_path = component['path'][reader._type]
-            component_body = reader.get_component_body(component_path)
-            properties = parser.parse_component_properties(component_body)
+            if reader._type == "filepath":
+                component_path = os.path.join(os.path.dirname(__file__), component_path)
+
+            component_body = reader.get_component_body(component_path, parser._type)
+            properties = parser.parse_component_properties(component_body, component_path)
+            properties['current_parameters']['component_source_type'] = reader._type
 
         return properties
 
@@ -613,7 +689,7 @@ class ComponentRegistry(SingletonConfigurable):
 
         reader = self._get_reader(component)
         component_path = component['path'][reader._type]
-        component_body = reader.get_component_body(component_path)
+        component_body = reader.get_component_body(component_path, parser._type)
 
         execution_instructions = parser.parse_component_execution_instructions(component_body)
         return execution_instructions
@@ -622,7 +698,6 @@ class ComponentRegistry(SingletonConfigurable):
         """
         Find the proper reader based on the given registry component.
         """
-
         try:
             component_type = list(component['path'].keys())[0]
             return self.readers.get(component_type)
@@ -633,7 +708,6 @@ class ComponentRegistry(SingletonConfigurable):
         """
         Find the proper parser based on processor type.
         """
-
         try:
             return self.parsers[processor_type]
         except KeyError as ke:

@@ -3,13 +3,13 @@
     "train-spark-model-ibm-cloud": {
       "name": "Train Spark Model - IBM Cloud",
       "path": {
-        "file": "example1.yaml"
+        "filepath": "resources/example1.yaml"
       }
     },
     "run-notebook-using-papermill": {
       "name": "Run Notebook Using Papermill",
       "path": {
-        "file": "example2.yaml"
+        "filepath": "resources/example2.yaml"
       }
     },
     "serve-pytorch-model-seldon-core": {
@@ -22,6 +22,12 @@
       "name": "Deploy Model - Watson Machine Learning",
       "path": {
         "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/ibm-components/watson/deploy/component.yaml"
+      }
+    },
+    "filter-text-using-shell-and-grep": {
+      "name": "Filter text using shell and grep",
+      "path": {
+        "filepath": "resources/example3.yaml"
       }
     }
   }
