@@ -8,6 +8,7 @@
     ]
   },
   "scripts": {
+    "graph": "ts-node etc/scripts/generate-make-graph.ts",
     "cy:open": "npx cypress open",
     "cy:run": "npx cypress run",
     "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts,.tsx,.js",
