@@ -64,7 +64,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
 
-        api_endpoint = runtime_configuration.metadata['api_endpoint']
+        api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
