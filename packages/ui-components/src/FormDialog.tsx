@@ -42,74 +42,77 @@ export const showFormDialog = async (
   if (formValidationFunction) {
     formValidationFunction(dialog);
   } else {
-    if (dialogBody instanceof Widget) {
-      const requiredFields: NodeListOf<any> = dialogBody.node.querySelectorAll(
-        '[data-form-required]'
-      );
-
-      if (requiredFields && requiredFields.length > 0) {
-        // Keep track of all fields already validated. Start with an empty set.
-        const fieldsValidated = new Set();
-
-        // Override Dialog.handleEvent to prevent user from bypassing validation upon pressing the 'Enter' key
-        const dialogHandleEvent = dialog.handleEvent;
-        dialog.handleEvent = (event: Event): void => {
-          if (
-            event instanceof KeyboardEvent &&
-            event.type === 'keydown' &&
-            event.keyCode === 13 &&
-            fieldsValidated.size !== requiredFields.length
-          ) {
-            // prevent action since Enter key is pressed and all fields are not validated
-            event.stopPropagation();
-            event.preventDefault();
-          } else {
-            dialogHandleEvent.call(dialog, event);
-          }
-        };
-
-        // Get dialog default action button
-        const defaultButtonIndex =
-          options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
-        const defaultButton = dialog.node
-          .querySelector('.jp-Dialog-footer')
-          ?.getElementsByTagName('button')[defaultButtonIndex]!;
-
-        defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
-
-        requiredFields.forEach((element: any) => {
-          // First deal with the case the field has already been pre-populated
-          handleSingleFieldValidation(element, fieldsValidated);
-
-          const fieldType = element.tagName.toLowerCase();
-
-          if (fieldType === 'select') {
-            element.addEventListener('change', (event: Event) => {
-              handleSingleFieldValidation(event.target, fieldsValidated);
-              handleAllFieldsValidation(
-                fieldsValidated,
-                requiredFields,
-                defaultButton
-              );
-            });
-          } else if (fieldType === 'input' || fieldType === 'textarea') {
-            element.addEventListener('keyup', (event: Event) => {
-              handleSingleFieldValidation(event.target, fieldsValidated);
-              handleAllFieldsValidation(
-                fieldsValidated,
-                requiredFields,
-                defaultButton
-              );
-            });
-          }
-        });
-        handleAllFieldsValidation(
-          fieldsValidated,
-          requiredFields,
-          defaultButton
+    // Check for required fields sometime in the future to wait for dialog body to be rendered
+    setTimeout(() => {
+      if (dialogBody instanceof Widget) {
+        const requiredFields: NodeListOf<any> = dialogBody.node.querySelectorAll(
+          '[data-form-required]'
         );
+
+        if (requiredFields && requiredFields.length > 0) {
+          // Keep track of all fields already validated. Start with an empty set.
+          const fieldsValidated = new Set();
+
+          // Override Dialog.handleEvent to prevent user from bypassing validation upon pressing the 'Enter' key
+          const dialogHandleEvent = dialog.handleEvent;
+          dialog.handleEvent = (event: Event): void => {
+            if (
+              event instanceof KeyboardEvent &&
+              event.type === 'keydown' &&
+              event.keyCode === 13 &&
+              fieldsValidated.size !== requiredFields.length
+            ) {
+              // prevent action since Enter key is pressed and all fields are not validated
+              event.stopPropagation();
+              event.preventDefault();
+            } else {
+              dialogHandleEvent.call(dialog, event);
+            }
+          };
+
+          // Get dialog default action button
+          const defaultButtonIndex =
+            options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
+          const defaultButton = dialog.node
+            .querySelector('.jp-Dialog-footer')
+            ?.getElementsByTagName('button')[defaultButtonIndex]!;
+
+          defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+
+          requiredFields.forEach((element: any) => {
+            // First deal with the case the field has already been pre-populated
+            handleSingleFieldValidation(element, fieldsValidated);
+
+            const fieldType = element.tagName.toLowerCase();
+
+            if (fieldType === 'select') {
+              element.addEventListener('change', (event: Event) => {
+                handleSingleFieldValidation(event.target, fieldsValidated);
+                handleAllFieldsValidation(
+                  fieldsValidated,
+                  requiredFields,
+                  defaultButton
+                );
+              });
+            } else if (fieldType === 'input' || fieldType === 'textarea') {
+              element.addEventListener('keyup', (event: Event) => {
+                handleSingleFieldValidation(event.target, fieldsValidated);
+                handleAllFieldsValidation(
+                  fieldsValidated,
+                  requiredFields,
+                  defaultButton
+                );
+              });
+            }
+          });
+          handleAllFieldsValidation(
+            fieldsValidated,
+            requiredFields,
+            defaultButton
+          );
+        }
       }
-    }
+    }, 0);
   }
   return dialog.launch();
 };

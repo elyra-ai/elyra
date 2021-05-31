@@ -33,38 +33,28 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
 }) => {
   const [validSchemas, setValidSchemas] = React.useState(new Array<ISchema>());
   const [runtimePlatform, setRuntimePlatform] = React.useState('');
-  const [runtimeOptions, setRuntimeOptions] = React.useState(
-    new Array<IRuntime>()
-  );
 
-  const handleUpdateRuntime = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ): void => {
-    const platformSelection = event.target.value;
-    setRuntimePlatform(platformSelection);
-    setRuntimeOptions(filterRuntimeOptions(platformSelection));
-  };
-
-  const filterRuntimeOptions = React.useCallback(
-    (platformSelection?: string): IRuntime[] => {
-      const filteredRuntimeOptions = PipelineService.filterRuntimes(
-        runtimes,
-        platformSelection ?? runtime ?? (schema[0] && schema[0].name)
-      );
-      PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-      return filteredRuntimeOptions;
+  const handleUpdatePlatform = React.useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>): void => {
+      const platformSelection = event.target.value;
+      setRuntimePlatform(platformSelection);
     },
-    [runtime, schema]
+    [setRuntimePlatform]
   );
+
+  const runtimeOptions = React.useMemo((): IRuntime[] => {
+    const filteredRuntimeOptions = PipelineService.filterRuntimes(
+      runtimes,
+      runtimePlatform || (runtime ?? (schema[0] && schema[0].name))
+    );
+    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
+    return filteredRuntimeOptions;
+  }, [runtime, runtimes, schema, runtimePlatform]);
 
   React.useEffect((): void => {
     const schemas = PipelineService.filterValidSchema(runtimes, schema);
-    if (schemas) {
-      const platformSelection = schemas[0] && schemas[0].name;
-      setRuntimeOptions(filterRuntimeOptions(platformSelection));
-      setValidSchemas(schemas);
-    }
-  }, [filterRuntimeOptions, runtimes, schema]);
+    setValidSchemas(schemas);
+  }, [runtimes, schema]);
 
   return (
     <form className="elyra-dialog-form">
@@ -88,8 +78,10 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
             name="runtime_platform"
             className="elyra-form-runtime-platform"
             data-form-required
-            value={runtimePlatform ?? runtime ?? (schema[0] && schema[0].name)}
-            onChange={handleUpdateRuntime}
+            value={
+              runtimePlatform || (runtime ?? (schema[0] && schema[0].name))
+            }
+            onChange={handleUpdatePlatform}
           >
             {validSchemas.map(schema => (
               <option key={schema.name} value={schema.name}>
@@ -107,9 +99,9 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
         className="elyra-form-runtime-config"
         data-form-required
       >
-        {runtimeOptions.map(runtime => (
-          <option key={runtime.name} value={runtime.name}>
-            {runtime.display_name}
+        {runtimeOptions.map(runtimeOption => (
+          <option key={runtimeOption.name} value={runtimeOption.name}>
+            {runtimeOption.display_name}
           </option>
         ))}
       </select>
