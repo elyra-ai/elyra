@@ -52,23 +52,27 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
     setRuntimeOptions(filterRuntimeOptions(platformSelection));
   };
 
-  const filterRuntimeOptions = (platformSelection: string): IRuntime[] => {
-    const filteredRuntimeOptions = PipelineService.filterRuntimes(
-      runtimes,
-      platformSelection
-    );
-    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-    return filteredRuntimeOptions;
-  };
+  const filterRuntimeOptions = React.useCallback(
+    (platformSelection: string): IRuntime[] => {
+      const filteredRuntimeOptions = PipelineService.filterRuntimes(
+        runtimes,
+        platformSelection
+      );
+      PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
+      return filteredRuntimeOptions;
+    },
+    [runtimes]
+  );
 
   React.useEffect((): void => {
-    const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
-    if (validSchemas) {
-      const platformSelection = validSchemas[0] && validSchemas[0].name;
-      setRuntimeOptions(filterRuntimeOptions(platformSelection));
-      setValidSchemas(validSchemas);
+    const schemas = PipelineService.filterValidSchema(runtimes, schema);
+    if (schemas) {
+      const platformSelection = schemas[0] && schemas[0].name;
+      const filteredRuntimeOptions = filterRuntimeOptions(platformSelection);
+      setRuntimeOptions(filteredRuntimeOptions);
+      setValidSchemas(schemas);
     }
-  }, []);
+  }, [filterRuntimeOptions, runtimes, schema]);
 
   return (
     <form className="elyra-dialog-form">

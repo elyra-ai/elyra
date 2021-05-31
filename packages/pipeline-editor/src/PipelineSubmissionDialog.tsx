@@ -25,102 +25,94 @@ interface IProps {
   runtime?: string;
 }
 
-interface IState {
-  validSchemas: ISchema[];
-  selectedRuntimePlatform?: string;
-}
+export const PipelineSubmissionDialog: React.FC<IProps> = ({
+  name,
+  runtimes,
+  schema,
+  runtime
+}) => {
+  const [validSchemas, setValidSchemas] = React.useState(new Array<ISchema>());
+  const [runtimePlatform, setRuntimePlatform] = React.useState('');
+  const [runtimeOptions, setRuntimeOptions] = React.useState(
+    new Array<IRuntime>()
+  );
 
-export class PipelineSubmissionDialog extends React.Component<IProps, IState> {
-  state: IState = {
-    validSchemas: new Array<ISchema>()
+  const handleUpdateRuntime = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
+    const platformSelection = event.target.value;
+    setRuntimePlatform(platformSelection);
+    setRuntimeOptions(filterRuntimeOptions(platformSelection));
   };
 
-  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const selectedPlatform = event.target.value;
+  const filterRuntimeOptions = React.useCallback(
+    (platformSelection?: string): IRuntime[] => {
+      const filteredRuntimeOptions = PipelineService.filterRuntimes(
+        runtimes,
+        platformSelection ?? runtime ?? (schema[0] && schema[0].name)
+      );
+      PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
+      return filteredRuntimeOptions;
+    },
+    [runtime, schema]
+  );
 
-    this.setState({
-      selectedRuntimePlatform: selectedPlatform
-    });
-  };
+  React.useEffect((): void => {
+    const schemas = PipelineService.filterValidSchema(runtimes, schema);
+    if (schemas) {
+      const platformSelection = schemas[0] && schemas[0].name;
+      setRuntimeOptions(filterRuntimeOptions(platformSelection));
+      setValidSchemas(schemas);
+    }
+  }, [filterRuntimeOptions, runtimes, schema]);
 
-  getRuntimeOptions = (platformSelection?: string): IRuntime[] => {
-    const filteredRuntimeOptions = PipelineService.filterRuntimes(
-      this.props.runtimes,
-      platformSelection ??
-        this.props.runtime ??
-        (this.props.schema[0] && this.props.schema[0].name)
-    );
-    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-    return filteredRuntimeOptions;
-  };
-
-  componentDidMount(): void {
-    const { schema, runtimes } = this.props;
-
-    this.setState({
-      validSchemas: PipelineService.filterValidSchema(runtimes, schema)
-    });
-  }
-
-  render(): React.ReactNode {
-    const { name } = this.props;
-    const { selectedRuntimePlatform, validSchemas } = this.state;
-    const displayedRuntimeOptions = this.getRuntimeOptions(
-      selectedRuntimePlatform
-    );
-
-    return (
-      <form className="elyra-dialog-form">
-        <label htmlFor="pipeline_name">Pipeline Name:</label>
-        <br />
-        <input
-          type="text"
-          id="pipeline_name"
-          name="pipeline_name"
-          defaultValue={name}
-          data-form-required
-        />
-        <br />
-        <br />
-        {!this.props.runtime && (
-          <div>
-            <label htmlFor="runtime_platform">Runtime Platform:</label>
-            <br />
-            <select
-              id="runtime_platform"
-              name="runtime_platform"
-              className="elyra-form-runtime-platform"
-              data-form-required
-              value={
-                selectedRuntimePlatform ??
-                this.props.runtime ??
-                (this.props.schema[0] && this.props.schema[0].name)
-              }
-              onChange={this.handleUpdate}
-            >
-              {validSchemas.map(schema => (
-                <option key={schema.name} value={schema.name}>
-                  {schema.display_name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        <label htmlFor="runtime_config">Runtime Configuration:</label>
-        <br />
-        <select
-          id="runtime_config"
-          name="runtime_config"
-          className="elyra-form-runtime-config"
-          data-form-required
-        >
-          {displayedRuntimeOptions.map(runtime => (
-            <option key={runtime.name} value={runtime.name}>
-              {runtime.display_name}
-            </option>
-          ))}
-        </select>
-      </form>
-    );
-  }
-}
+  return (
+    <form className="elyra-dialog-form">
+      <label htmlFor="pipeline_name">Pipeline Name:</label>
+      <br />
+      <input
+        type="text"
+        id="pipeline_name"
+        name="pipeline_name"
+        defaultValue={name}
+        data-form-required
+      />
+      <br />
+      <br />
+      {!runtime && (
+        <div>
+          <label htmlFor="runtime_platform">Runtime Platform:</label>
+          <br />
+          <select
+            id="runtime_platform"
+            name="runtime_platform"
+            className="elyra-form-runtime-platform"
+            data-form-required
+            value={runtimePlatform ?? runtime ?? (schema[0] && schema[0].name)}
+            onChange={handleUpdateRuntime}
+          >
+            {validSchemas.map(schema => (
+              <option key={schema.name} value={schema.name}>
+                {schema.display_name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <label htmlFor="runtime_config">Runtime Configuration:</label>
+      <br />
+      <select
+        id="runtime_config"
+        name="runtime_config"
+        className="elyra-form-runtime-config"
+        data-form-required
+      >
+        {runtimeOptions.map(runtime => (
+          <option key={runtime.name} value={runtime.name}>
+            {runtime.display_name}
+          </option>
+        ))}
+      </select>
+    </form>
+  );
+};
