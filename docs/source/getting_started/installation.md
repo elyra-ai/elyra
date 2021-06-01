@@ -40,35 +40,33 @@ The instructions below are installing the latest release.
 If you use `pip`, install Elyra with:
 
 ```bash
-pip install --upgrade elyra && jupyter lab build
+pip3 install --upgrade elyra && jupyter lab build
 ```
-
-Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
 
 If desired, you can install these Elyra extensions independently:
 
 - [Pipeline Editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
 
    ```bash
-   pip install --upgrade elyra-pipeline-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-pipeline-editor-extension && jupyter lab build
    ```
 
 - [Code Snippets](https://pypi.org/project/elyra-code-snippet-extension/)
 
    ```bash
-   pip install --upgrade elyra-code-snippet-extension && jupyter lab build
+   pip3 install --upgrade elyra-code-snippet-extension && jupyter lab build
    ```
 
 - [Python Editor](https://pypi.org/project/elyra-python-editor-extension/)
 
    ```bash
-   pip install --upgrade elyra-python-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-python-editor-extension && jupyter lab build
    ```
 
 - [R Editor](https://pypi.org/project/elyra-r-editor-extension/)
 
    ```bash
-   pip install --upgrade elyra-r-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-r-editor-extension && jupyter lab build
    ```
 
 ### conda
