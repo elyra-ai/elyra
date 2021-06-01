@@ -98,14 +98,14 @@ Elyra can be installed from PyPI:
 
 #### JupyterLab support
 
+**NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
+
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
 
   Install from PyPI:
   ```bash
-  pip install --upgrade "elyra>=2.0.1" && jupyter lab build
+  pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
   ```
-
-  Note: Ubuntu and CentOS users may need to use `pip3 install elyra` 
 
   Install fom Conda:
   ```bash
@@ -116,9 +116,8 @@ Elyra can be installed from PyPI:
 
   Install from PyPI:
   ```bash
-  pip install --upgrade "elyra<2.0.0" && jupyter lab build
+  pip3 install --upgrade "elyra<2.0.0" && jupyter lab build
   ```
-  Note: Ubuntu and CentOS users may need to use `pip3 install elyra`
 
   Install from Conda:
   ```bash
@@ -129,10 +128,9 @@ Elyra can be installed from PyPI:
 
   Install from PyPI:
   ```bash
-  pip install elyra==0.10.3 && jupyter lab build
+  pip3 install elyra==0.10.3 && jupyter lab build
   ```
 
-**NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
 ### Verify Installation 
 
 Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.
