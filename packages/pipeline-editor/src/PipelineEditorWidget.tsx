@@ -156,15 +156,26 @@ const PipelineWrapper: React.FC<IProps> = ({
             }
           }
         }
+      }
+      if (pipelineJson?.pipelines?.[0]?.app_data) {
+        if (!pipelineJson.pipelines[0].app_data.pipeline_properties) {
+          pipelineJson.pipelines[0].app_data.pipeline_properties = {};
+        }
         const pipelineProperties =
-          pipelineJson?.pipelines?.[0]?.app_data?.pipeline_properties;
-        if (
-          pipelineProperties?.default_runtime_image &&
-          runtimeImages.current?.[pipelineProperties.default_runtime_image]
-        ) {
+          pipelineJson.pipelines[0].app_data.pipeline_properties;
+        if (runtimeImages.current?.[pipelineProperties.default_runtime_image]) {
           pipelineProperties.default_runtime_image =
             runtimeImages.current?.[pipelineProperties.default_runtime_image];
         }
+        const pipeline_path = contextRef.current.path;
+        const pipeline_name = PathExt.basename(
+          pipeline_path,
+          PathExt.extname(pipeline_path)
+        );
+        pipelineJson.pipelines[0].app_data.pipeline_properties.name = pipeline_name;
+        pipelineJson.pipelines[0].app_data.pipeline_properties.runtime =
+          pipelineJson.pipelines[0].app_data.ui_data?.runtime?.display_name ??
+          'Generic';
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -186,7 +197,7 @@ const PipelineWrapper: React.FC<IProps> = ({
             runtimeImages.current
           );
         }
-        pipelinePropertiesCopy.properties.uihints.parameter_info[2].data.items = Object.values(
+        pipelinePropertiesCopy.properties.uihints.parameter_info[4].data.items = Object.values(
           runtimeImages.current
         );
         setUpdatedNodes(nodesCopy);

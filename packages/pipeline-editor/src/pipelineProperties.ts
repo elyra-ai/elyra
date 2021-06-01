@@ -17,11 +17,15 @@
 const pipelineProperties = {
   properties: {
     current_parameters: {
+      name: '',
+      runtime: '',
       description: '',
       env_vars: [],
       default_runtime_image: ''
     },
     parameters: [
+      { id: 'name' },
+      { id: 'runtime' },
       { id: 'description' },
       { id: 'env_vars' },
       { id: 'default_runtime_image' }
@@ -32,12 +36,26 @@ const pipelineProperties = {
         {
           control: 'custom',
           custom_control_id: 'StringControl',
+          parameter_ref: 'name',
+          label: { default: 'Pipeline Name' },
+          data: {
+            readonly: true
+          }
+        },
+        {
+          control: 'custom',
+          custom_control_id: 'StringControl',
+          parameter_ref: 'runtime',
+          label: { default: 'Pipeline Runtime' },
+          data: {
+            readonly: true
+          }
+        },
+        {
+          control: 'custom',
+          custom_control_id: 'StringControl',
           parameter_ref: 'description',
           label: { default: 'Pipeline Description' },
-          description: {
-            default: 'Description of the pipeline.',
-            placement: 'on_panel'
-          },
           data: {
             placeholder: 'Pipeline description',
             textarea: true
@@ -76,6 +94,16 @@ const pipelineProperties = {
           id: 'nodeGroupInfo',
           type: 'panels',
           group_info: [
+            {
+              id: 'name',
+              type: 'controls',
+              parameter_refs: ['name']
+            },
+            {
+              id: 'runtime',
+              type: 'controls',
+              parameter_refs: ['runtime']
+            },
             {
               id: 'description',
               type: 'controls',
