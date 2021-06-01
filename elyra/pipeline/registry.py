@@ -272,7 +272,6 @@ class KfpComponentParser(ComponentParser):
 
         # Add runtime image details
         component_parameters['uihints']['parameter_info'][2]['control'] = "readonly"
-        component_parameters['uihints']['parameter_info'][2]['custom_control_id'] = "StringControl"
         component_parameters['uihints']['parameter_info'][2]['data'] = {"format": "string"}
         try:
             component_parameters['current_parameters']['runtime_image'] = \
@@ -315,7 +314,6 @@ class KfpComponentParser(ComponentParser):
         # TODO: Determine whether outputs should be included. Some components throw an error when
         # attempting to execute a component where output fields have been passed, even if no value
         # is specified.
-        '''
         # Define new output group object
         output_group_info = {
             'id': "outputs",  # need to actually figure out the control id
@@ -342,7 +340,6 @@ class KfpComponentParser(ComponentParser):
 
         # Append output group info to parameter details
         component_parameters['uihints']['group_info'][0]['group_info'].append(output_group_info)
-        '''
 
         return component_parameters
 
@@ -542,7 +539,7 @@ class ComponentReader(SingletonConfigurable):
 
 
 class FilesystemComponentReader(ComponentReader):
-    _type = 'filepath'
+    _type = 'filename'
     _dir_path: str = ''
 
     def get_component_body(self, component_path, parser_type):
@@ -655,7 +652,7 @@ class ComponentRegistry(SingletonConfigurable):
             reader = self._get_reader(component)
 
             component_path = component['path'][reader._type]
-            if reader._type == "filepath":
+            if reader._type == "filename":
                 component_path = os.path.join(os.path.dirname(__file__), component_path)
 
             component_body = reader.get_component_body(component_path, parser._type)

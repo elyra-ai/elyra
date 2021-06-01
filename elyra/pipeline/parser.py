@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
 
@@ -248,7 +247,15 @@ class PipelineParser(LoggingConfigurable):
         component_params = {}
         if node.get('op') not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
             for key, value in node['app_data'].items():
-                if key not in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies",
-                               "include_subdirectories", "env_vars", "outputs", "ui_data", "component_source_type"]:
-                    component_params[key] = json.dumps(value)
+                # Do not include any null values
+                if not value:
+                    continue
+                # Do not include any of the standard set of parameters
+                if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies",
+                           "include_subdirectories", "env_vars", "outputs", "ui_data", "component_source_type"]:
+                    continue
+                # Remove parameter id if a unique identifier was added during component properties parsing
+                if "elyra_outputs_" in key:
+                    key = key.replace("elyra_outputs_", "")
+                component_params[key] = value
         return component_params

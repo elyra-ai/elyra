@@ -3,13 +3,13 @@
     "train-spark-model-ibm-cloud": {
       "name": "Train Spark Model - IBM Cloud",
       "path": {
-        "filepath": "resources/example1.yaml"
+        "filename": "resources/example1.yaml"
       }
     },
     "run-notebook-using-papermill": {
       "name": "Run Notebook Using Papermill",
       "path": {
-        "filepath": "resources/example2.yaml"
+        "filename": "resources/example2.yaml"
       }
     },
     "serve-pytorch-model-seldon-core": {
@@ -27,7 +27,7 @@
     "filter-text-using-shell-and-grep": {
       "name": "Filter text using shell and grep",
       "path": {
-        "filepath": "resources/example3.yaml"
+        "filename": "resources/example3.yaml"
       }
     }
   }
