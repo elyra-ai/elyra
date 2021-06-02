@@ -17,6 +17,7 @@
 import { IDictionary } from '@elyra/services';
 import * as React from 'react';
 
+import { DialogSelector } from './DialogSelector';
 import { IRuntime, ISchema, PipelineService } from './PipelineService';
 import Utils from './utils';
 
@@ -70,42 +71,37 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
 
   return (
     <form className="elyra-dialog-form">
-      <label htmlFor="runtime_platform">Runtime Platform:</label>
-      <br />
-      <select
-        id="runtime_platform"
-        name="runtime_platform"
+      <DialogSelector
         className="elyra-form-runtime-platform"
-        onChange={handleUpdateRuntime}
-      >
-        {validSchemas.map(schema => (
+        handleUpdate={handleUpdateRuntime}
+        id="runtime_platform"
+        label="Runtime Platform"
+        optionList={validSchemas.map(schema => (
           <option key={schema.name} value={schema.name}>
             {schema.display_name}
           </option>
         ))}
-      </select>
-      <label htmlFor="runtime_config">Runtime Configuration:</label>
-      <br />
-      <select
-        id="runtime_config"
-        name="runtime_config"
+      ></DialogSelector>
+      <DialogSelector
         className="elyra-form-runtime-config"
-      >
-        {runtimeOptions.map(runtime => (
-          <option key={runtime.name} value={runtime.name}>
-            {runtime.display_name}
+        id="runtime_config"
+        label="Runtime Configuration"
+        optionList={runtimeOptions.map(runtimeOption => (
+          <option key={runtimeOption.name} value={runtimeOption.name}>
+            {runtimeOption.display_name}
           </option>
         ))}
-      </select>
-      <label htmlFor="framework">Runtime Image:</label>
-      <br />
-      <select id="framework" name="framework" className="elyra-form-framework">
-        {Object.entries(images).map(([key, val]) => (
+      ></DialogSelector>
+      <DialogSelector
+        className="elyra-form-framework"
+        id="framework"
+        label="Runtime Image"
+        optionList={Object.entries(images).map(([key, val]) => (
           <option key={key} value={key}>
             {val}
           </option>
         ))}
-      </select>
+      ></DialogSelector>
       <br />
       <div className="elyra-resourcesWrapper">
         <div className="elyra-resourceInput">

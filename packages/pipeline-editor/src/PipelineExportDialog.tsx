@@ -16,6 +16,8 @@
 
 import * as React from 'react';
 
+import { DialogSelector } from './DialogSelector';
+
 import {
   KFP_SCHEMA,
   IRuntime,
@@ -88,52 +90,38 @@ export const PipelineExportDialog: React.FC<IProps> = ({
   return (
     <form className="elyra-dialog-form">
       {!runtime && (
-        <div>
-          <label htmlFor="runtime_platform">Runtime Platform:</label>
-          <br />
-          <select
-            id="runtime_platform"
-            name="runtime_platform"
-            className="elyra-form-runtime-platform"
-            data-form-required
-            onChange={handleUpdate}
-          >
-            {validSchemas.map(schema => (
-              <option key={schema.name} value={schema.name}>
-                {schema.display_name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <DialogSelector
+          className="elyra-form-runtime-platform"
+          handleUpdate={handleUpdate}
+          id="runtime_platform"
+          label="Runtime Platform"
+          optionList={validSchemas.map(schema => (
+            <option key={schema.name} value={schema.name}>
+              {schema.display_name}
+            </option>
+          ))}
+        ></DialogSelector>
       )}
-      <label htmlFor="runtime_config">Runtime Configuration:</label>
-      <br />
-      <select
-        id="runtime_config"
-        name="runtime_config"
+      <DialogSelector
         className="elyra-form-runtime-config"
-        data-form-required
-      >
-        {runtimeOptions.map(runtimeOption => (
+        id="runtime_config"
+        label="Runtime Configuration"
+        optionList={runtimeOptions.map(runtimeOption => (
           <option key={runtimeOption.name} value={runtimeOption.name}>
             {runtimeOption.display_name}
           </option>
         ))}
-      </select>
-      <label htmlFor="pipeline_filetype">Export Pipeline as:</label>
-      <br />
-      <select
-        id="pipeline_filetype"
-        name="pipeline_filetype"
+      ></DialogSelector>
+      <DialogSelector
         className="elyra-form-export-filetype"
-        data-form-required
-      >
-        {fileTypes.map(filetype => (
+        id="pipeline_filetype"
+        label="Export Pipeline as"
+        optionList={fileTypes.map(filetype => (
           <option key={filetype['key']} value={filetype['key']}>
             {filetype['label']}
           </option>
         ))}
-      </select>
+      ></DialogSelector>
       <input
         type="checkbox"
         className="elyra-Dialog-checkbox"

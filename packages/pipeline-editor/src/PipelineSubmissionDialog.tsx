@@ -16,6 +16,7 @@
 
 import * as React from 'react';
 
+import { DialogSelector } from './DialogSelector';
 import { IRuntime, ISchema, PipelineService } from './PipelineService';
 
 interface IProps {
@@ -70,41 +71,29 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
       <br />
       <br />
       {!runtime && (
-        <div>
-          <label htmlFor="runtime_platform">Runtime Platform:</label>
-          <br />
-          <select
-            id="runtime_platform"
-            name="runtime_platform"
-            className="elyra-form-runtime-platform"
-            data-form-required
-            value={
-              runtimePlatform || (runtime ?? (schema[0] && schema[0].name))
-            }
-            onChange={handleUpdatePlatform}
-          >
-            {validSchemas.map(schema => (
-              <option key={schema.name} value={schema.name}>
-                {schema.display_name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <DialogSelector
+          className="elyra-form-runtime-platform"
+          handleUpdate={handleUpdatePlatform}
+          id="runtime_platform"
+          label="Runtime Platform"
+          optionList={validSchemas.map(schema => (
+            <option key={schema.name} value={schema.name}>
+              {schema.display_name}
+            </option>
+          ))}
+          value={runtimePlatform || (runtime ?? (schema[0] && schema[0].name))}
+        ></DialogSelector>
       )}
-      <label htmlFor="runtime_config">Runtime Configuration:</label>
-      <br />
-      <select
-        id="runtime_config"
-        name="runtime_config"
+      <DialogSelector
         className="elyra-form-runtime-config"
-        data-form-required
-      >
-        {runtimeOptions.map(runtimeOption => (
+        id="runtime_config"
+        label="Runtime Configuration"
+        optionList={runtimeOptions.map(runtimeOption => (
           <option key={runtimeOption.name} value={runtimeOption.name}>
             {runtimeOption.display_name}
           </option>
         ))}
-      </select>
+      ></DialogSelector>
     </form>
   );
 };
