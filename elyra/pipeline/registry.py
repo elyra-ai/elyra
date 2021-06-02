@@ -50,23 +50,13 @@ outputs = {
 }
 
 empty_properties = {
-    "current_parameters": {"component_source_type": "", "filename": "", "runtime_image": ""},
-    "parameters": [{"id": "component_source_type"}, {"id": "filename"}, {"id": "runtime_image"}],
+    "current_parameters": {"component_source": "", "runtime_image": "", "component_source_type": ""},
+    "parameters": [{"id": "component_source"}, {"id": "runtime_image"}, {"id": "component_source_type"}],
     "uihints": {
         "id": "nodeProperties",
         "parameter_info": [
             {
-                "parameter_ref": "component_source_type",
-                "control": "readonly",
-                "label": {
-                    "default": "Component Source Type"
-                },
-                "data": {
-                    "format": "string"
-                }
-            },
-            {
-                "parameter_ref": "filename",
+                "parameter_ref": "component_source",
                 "control": "readonly",
                 "label": {
                     "default": "Path to Component"
@@ -94,6 +84,16 @@ empty_properties = {
                     "items": [],
                     "required": True
                 }
+            },
+            {
+                "parameter_ref": "component_source_type",
+                "control": "readonly",
+                "label": {
+                    "default": "Component Source Type"
+                },
+                "data": {
+                    "format": "string"
+                }
             }
         ],
         "group_info": [
@@ -101,9 +101,9 @@ empty_properties = {
                 "id": "nodeGroupInfo",
                 "type": "panels",
                 "group_info": [
-                    {"id": "component_source_type", "type": "controls", "parameter_refs": ["component_source_type"]},
-                    {"id": "filename", "type": "controls", "parameter_refs": ["filename"]},
-                    {"id": "runtime_image", "type": "controls", "parameter_refs": ["runtime_image"]}
+                    {"id": "component_source", "type": "controls", "parameter_refs": ["component_source"]},
+                    {"id": "runtime_image", "type": "controls", "parameter_refs": ["runtime_image"]},
+                    {"id": "component_source_type", "type": "controls", "parameter_refs": ["component_source_type"]}
                 ]
             }
         ]
@@ -241,6 +241,41 @@ class KfpComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
+    def get_adjusted_parameter_fields(self,
+                                      component_body,
+                                      io_object_name,
+                                      io_object_type,
+                                      parameter_ref,
+                                      parameter_type,
+                                      description):
+        """
+        TODO: Add docstring
+        """
+        ref = parameter_ref
+        desc = f"{description} (type: {parameter_type})"
+        if "implementation" in component_body and "container" in component_body['implementation']:
+            if "command" in component_body['implementation']['container']:
+                for command in component_body['implementation']['container']['command']:
+                    if isinstance(command, dict) and list(command.values())[0] == io_object_name and \
+                            list(command.keys())[0] == f"{io_object_type}Path":
+                        ref = f"elyra_path_{parameter_ref}"
+                        if parameter_type == "string":
+                            desc = f"{description} (type: path)"
+                        else:
+                            desc = f"{description} (type: path to {parameter_type})"
+
+            if "args" in component_body['implementation']['container']:
+                for arg in component_body['implementation']['container']['args']:
+                    if isinstance(arg, dict) and list(arg.values())[0] == io_object_name and \
+                            list(arg.keys())[0] == f"{io_object_type}Path":
+                        ref = f"elyra_path_{parameter_ref}"
+                        if parameter_type == "string":
+                            desc = f"{description} (type: path)"
+                        else:
+                            desc = f"{description} (type: path to {parameter_type})"
+
+        return ref, desc
+
     def parse_component_details(self, component_body, component_name=None):
         component_description = ""
         if "description" in component_body:
@@ -268,12 +303,9 @@ class KfpComponentParser(ComponentParser):
         # Start with empty properties object
         component_parameters = copy.deepcopy(empty_properties)
 
-        # component_parameters['uihints']['parameter_info'][1]['data']['value'] = component_path
-        component_parameters['current_parameters']['filename'] = component_path
-
         # Add runtime image details
-        component_parameters['uihints']['parameter_info'][2]['control'] = "readonly"
-        component_parameters['uihints']['parameter_info'][2]['data'] = {"format": "string"}
+        component_parameters['uihints']['parameter_info'][1]['control'] = "readonly"
+        component_parameters['uihints']['parameter_info'][1]['data'] = {"format": "string"}
         try:
             component_parameters['current_parameters']['runtime_image'] = \
                 component_body['implementation']['container']['image']
@@ -281,7 +313,7 @@ class KfpComponentParser(ComponentParser):
             raise RuntimeError("Error accessing runtime image for component.")
 
         # Add path details
-        component_parameters['current_parameters']['filename'] = component_path
+        component_parameters['current_parameters']['component_source'] = component_path
 
         # Define new input group object
         input_group_info = {
@@ -294,12 +326,14 @@ class KfpComponentParser(ComponentParser):
         for input_object in inputs:
             new_parameter_info = self.build_parameter(input_object, "input")
 
-            # TODO: Refactor this into a function that can be called for both inputs and outputs
-            for command in component_body['implementation']['container']['command']:
-                if isinstance(command, dict):
-                    for key, value in command.items():
-                        if value == input_object['name'] and key == "inputPath":
-                            new_parameter_info['parameter_ref'] = f"elyra_path_{new_parameter_info['parameter_ref']}"
+            # Change parameter_ref and description to reflect the type of input (inputValue vs inputPath)
+            new_parameter_info['parameter_ref'], new_parameter_info['description']['default'] = \
+                self.get_adjusted_parameter_fields(component_body=component_body,
+                                                   io_object_name=input_object['name'],
+                                                   io_object_type="input",
+                                                   parameter_ref=new_parameter_info['parameter_ref'],
+                                                   parameter_type=new_parameter_info['data']['format'],
+                                                   description=new_parameter_info['description']['default'])
 
             # TODO: Adjust this to return an empty value for whatever type the parameter is?
             default_value = ""
@@ -334,11 +368,14 @@ class KfpComponentParser(ComponentParser):
                     f"elyra_path_{new_parameter_info['parameter_ref']}" in input_group_info['parameter_refs']:
                 new_parameter_info['parameter_ref'] = f"elyra_outputs_{new_parameter_info['parameter_ref']}"
 
-            for command in component_body['implementation']['container']['command']:
-                if isinstance(command, dict):
-                    for key, value in command.items():
-                        if value == output_object['name'] and key == "outputPath":
-                            new_parameter_info['parameter_ref'] = f"elyra_path_{new_parameter_info['parameter_ref']}"
+            # Change parameter_ref and description to reflect the type of output (value vs path)
+            new_parameter_info['parameter_ref'], new_parameter_info['description']['default'] = \
+                self.get_adjusted_parameter_fields(component_body=component_body,
+                                                   io_object_name=output_object['name'],
+                                                   io_object_type="output",
+                                                   parameter_ref=new_parameter_info['parameter_ref'],
+                                                   parameter_type=new_parameter_info['data']['format'],
+                                                   description=new_parameter_info['description']['default'])
 
             # Add to existing parameter list
             component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
@@ -375,12 +412,6 @@ class KfpComponentParser(ComponentParser):
         if "type" in obj:
             data_object['format'] = obj['type']
             custom_control_id = self.get_custom_control_id(obj['type'].lower())
-
-            # Add type to description as hint to users?
-            if not parameter_description:
-                parameter_description = f"(type: {data_object['format']})"
-            else:
-                parameter_description += f" (type: {data_object['format']})"
 
         # Build label name
         label = f"{obj['name']} ({obj_type})"
@@ -432,7 +463,7 @@ class AirflowComponentParser(ComponentParser):
         component_parameters = copy.deepcopy(empty_properties)
 
         # Add path details
-        component_parameters['current_parameters']['filename'] = component_path
+        component_parameters['current_parameters']['component_source'] = component_path
 
         # Organize lines according to the class to which they belong
         # TODO: Determine how to handle the case where one operator.py file has multiple

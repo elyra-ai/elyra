@@ -406,11 +406,6 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         for operation in sorted_operations:
 
-            operation_artifact_archive = self._get_dependency_archive_name(operation)
-
-            self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
-                           op=operation, archive=operation_artifact_archive))
-
             if container_runtime:
                 # Volume size to create when using CRI-o, NOTE: IBM Cloud minimum is 20Gi
                 emptydir_volume_size = '20Gi'
@@ -426,6 +421,11 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             # Create pipeline operation
             # If operation is one of the "standard" set of NBs or scripts, construct custom NotebookOp
             if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
+
+                operation_artifact_archive = self._get_dependency_archive_name(operation)
+
+                self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                               op=operation, archive=operation_artifact_archive))
 
                 notebook_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
                                                         pipeline_name=pipeline_name,
@@ -476,7 +476,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             # If operation is a "non-standard" component, load it's spec and create operation with factory function
             else:
                 component_source = {}
-                component_source[operation._component_source_type] = operation.filename
+                component_source[operation._component_source_type] = operation._component_source
 
                 # Build component task factory
                 try:

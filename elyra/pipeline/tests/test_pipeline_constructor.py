@@ -140,7 +140,7 @@ def test_create_operation_correct_naming():
 
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name=label,
                                filename=filename,
                                runtime_image='tensorflow/tensorflow:latest')
