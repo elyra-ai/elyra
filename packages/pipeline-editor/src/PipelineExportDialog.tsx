@@ -38,126 +38,114 @@ interface IProps {
   runtime?: string;
 }
 
-interface IState {
-  displayedRuntimeOptions: IRuntime[];
-  fileTypes: Record<string, string>[];
-  validSchemas: ISchema[];
-}
+const getRuntimeOptions = (
+  platformSelection: string,
+  runtimes: IRuntime[]
+): IRuntime[] => {
+  const filteredRuntimeOptions = PipelineService.filterRuntimes(
+    runtimes,
+    platformSelection
+  );
+  PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
+  return filteredRuntimeOptions;
+};
 
-export class PipelineExportDialog extends React.Component<IProps, IState> {
-  state = {
-    displayedRuntimeOptions: new Array<IRuntime>(),
-    fileTypes: new Array<Record<string, string>>(),
-    validSchemas: new Array<ISchema>()
-  };
-
-  handleUpdate = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const selectedPlatform = event.target.value;
-    this.setState({
-      displayedRuntimeOptions: this.updateRuntimeOptions(selectedPlatform),
-      fileTypes: this.updateFileTypeOptions(selectedPlatform)
-    });
-  };
-
-  updateRuntimeOptions = (platformSelection: string): IRuntime[] => {
-    const filteredRuntimeOptions = PipelineService.filterRuntimes(
-      this.props.runtimes,
-      platformSelection
-    );
-    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-    return filteredRuntimeOptions;
-  };
-
-  updateFileTypeOptions = (
-    platformSelection: string
-  ): Record<string, string>[] => {
-    if (!platformSelection) {
-      return new Array<Record<string, string>>();
-    } else if (platformSelection === KFP_SCHEMA) {
-      return KFP_FILE_TYPES;
-    }
-    return AIRFLOW_FILE_TYPES;
-  };
-
-  componentDidMount(): void {
-    const { schema, runtimes } = this.props;
-
-    const validSchemas = PipelineService.filterValidSchema(runtimes, schema);
-    const selectedRuntimePlatform =
-      this.props.runtime ?? (validSchemas[0] && validSchemas[0].name);
-    const displayedRuntimeOptions = this.updateRuntimeOptions(
-      selectedRuntimePlatform
-    );
-    const fileTypes = this.updateFileTypeOptions(selectedRuntimePlatform);
-
-    this.setState({
-      displayedRuntimeOptions: displayedRuntimeOptions,
-      fileTypes: fileTypes,
-      validSchemas: validSchemas
-    });
+const getFileTypes = (platformSelection: string): Record<string, string>[] => {
+  if (!platformSelection) {
+    return new Array<Record<string, string>>();
+  } else if (platformSelection === KFP_SCHEMA) {
+    return KFP_FILE_TYPES;
   }
+  return AIRFLOW_FILE_TYPES;
+};
 
-  render(): React.ReactNode {
-    const { displayedRuntimeOptions, fileTypes, validSchemas } = this.state;
+export const PipelineExportDialog: React.FC<IProps> = ({
+  runtimes,
+  schema,
+  runtime
+}) => {
+  const [runtimeOptions, setRuntimeOptions] = React.useState(
+    new Array<IRuntime>()
+  );
+  const [fileTypes, setFileTypes] = React.useState(
+    new Array<Record<string, string>>()
+  );
+  const [validSchemas, setValidSchemas] = React.useState(new Array<ISchema>());
 
-    return (
-      <form className="elyra-dialog-form">
-        {!this.props.runtime && (
-          <div>
-            <label htmlFor="runtime_platform">Runtime Platform:</label>
-            <br />
-            <select
-              id="runtime_platform"
-              name="runtime_platform"
-              className="elyra-form-runtime-platform"
-              data-form-required
-              onChange={this.handleUpdate}
-            >
-              {validSchemas.map(schema => (
-                <option key={schema.name} value={schema.name}>
-                  {schema.display_name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        <label htmlFor="runtime_config">Runtime Configuration:</label>
-        <br />
-        <select
-          id="runtime_config"
-          name="runtime_config"
-          className="elyra-form-runtime-config"
-          data-form-required
-        >
-          {displayedRuntimeOptions.map(runtime => (
-            <option key={runtime.name} value={runtime.name}>
-              {runtime.display_name}
-            </option>
-          ))}
-        </select>
-        <label htmlFor="pipeline_filetype">Export Pipeline as:</label>
-        <br />
-        <select
-          id="pipeline_filetype"
-          name="pipeline_filetype"
-          className="elyra-form-export-filetype"
-          data-form-required
-        >
-          {fileTypes.map(filetype => (
-            <option key={filetype['key']} value={filetype['key']}>
-              {filetype['label']}
-            </option>
-          ))}
-        </select>
-        <input
-          type="checkbox"
-          className="elyra-Dialog-checkbox"
-          id="overwrite"
-          name="overwrite"
-        />
-        <label htmlFor="overwrite">Replace if file already exists</label>
-        <br />
-      </form>
-    );
-  }
-}
+  const handleUpdate = React.useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>): void => {
+      const selectedPlatform = event.target.value;
+      setRuntimeOptions(getRuntimeOptions(selectedPlatform, runtimes));
+      setFileTypes(getFileTypes(selectedPlatform));
+    },
+    [runtimes]
+  );
+
+  React.useEffect((): void => {
+    const schemas = PipelineService.filterValidSchema(runtimes, schema);
+    const selectedPlatform = runtime ?? (schemas[0] && schemas[0].name);
+    setValidSchemas(schemas);
+    setRuntimeOptions(getRuntimeOptions(selectedPlatform, runtimes));
+    setFileTypes(getFileTypes(selectedPlatform));
+  }, [runtimes, schema, runtime]);
+
+  return (
+    <form className="elyra-dialog-form">
+      {!runtime && (
+        <div>
+          <label htmlFor="runtime_platform">Runtime Platform:</label>
+          <br />
+          <select
+            id="runtime_platform"
+            name="runtime_platform"
+            className="elyra-form-runtime-platform"
+            data-form-required
+            onChange={handleUpdate}
+          >
+            {validSchemas.map(schema => (
+              <option key={schema.name} value={schema.name}>
+                {schema.display_name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <label htmlFor="runtime_config">Runtime Configuration:</label>
+      <br />
+      <select
+        id="runtime_config"
+        name="runtime_config"
+        className="elyra-form-runtime-config"
+        data-form-required
+      >
+        {runtimeOptions.map(runtimeOption => (
+          <option key={runtimeOption.name} value={runtimeOption.name}>
+            {runtimeOption.display_name}
+          </option>
+        ))}
+      </select>
+      <label htmlFor="pipeline_filetype">Export Pipeline as:</label>
+      <br />
+      <select
+        id="pipeline_filetype"
+        name="pipeline_filetype"
+        className="elyra-form-export-filetype"
+        data-form-required
+      >
+        {fileTypes.map(filetype => (
+          <option key={filetype['key']} value={filetype['key']}>
+            {filetype['label']}
+          </option>
+        ))}
+      </select>
+      <input
+        type="checkbox"
+        className="elyra-Dialog-checkbox"
+        id="overwrite"
+        name="overwrite"
+      />
+      <label htmlFor="overwrite">Replace if file already exists</label>
+      <br />
+    </form>
+  );
+};
