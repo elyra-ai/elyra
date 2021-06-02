@@ -203,7 +203,7 @@
           },
           {
             "id": "dependencies",
-            "type": "panels",
+            "type": "controls",
             "parameter_refs": ["dependencies"]
           },
           {

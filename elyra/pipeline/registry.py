@@ -268,7 +268,8 @@ class KfpComponentParser(ComponentParser):
         # Start with empty properties object
         component_parameters = copy.deepcopy(empty_properties)
 
-        component_parameters['uihints']['parameter_info'][1]['data']['value'] = component_path
+        # component_parameters['uihints']['parameter_info'][1]['data']['value'] = component_path
+        component_parameters['current_parameters']['filename'] = component_path
 
         # Add runtime image details
         component_parameters['uihints']['parameter_info'][2]['control'] = "readonly"
@@ -293,6 +294,13 @@ class KfpComponentParser(ComponentParser):
         for input_object in inputs:
             new_parameter_info = self.build_parameter(input_object, "input")
 
+            # TODO: Refactor this into a function that can be called for both inputs and outputs
+            for command in component_body['implementation']['container']['command']:
+                if isinstance(command, dict):
+                    for key, value in command.items():
+                        if value == input_object['name'] and key == "inputPath":
+                            new_parameter_info['parameter_ref'] = f"elyra_path_{new_parameter_info['parameter_ref']}"
+
             # TODO: Adjust this to return an empty value for whatever type the parameter is?
             default_value = ""
             if "default" in input_object:
@@ -311,9 +319,6 @@ class KfpComponentParser(ComponentParser):
         # Append input group info to parameter details
         component_parameters['uihints']['group_info'][0]['group_info'].append(input_group_info)
 
-        # TODO: Determine whether outputs should be included. Some components throw an error when
-        # attempting to execute a component where output fields have been passed, even if no value
-        # is specified.
         # Define new output group object
         output_group_info = {
             'id': "outputs",  # need to actually figure out the control id
@@ -325,8 +330,15 @@ class KfpComponentParser(ComponentParser):
         for output_object in outputs:
             new_parameter_info = self.build_parameter(output_object, "output")
 
-            if new_parameter_info['parameter_ref'] in input_group_info['parameter_refs']:
+            if new_parameter_info['parameter_ref'] in input_group_info['parameter_refs'] or \
+                    f"elyra_path_{new_parameter_info['parameter_ref']}" in input_group_info['parameter_refs']:
                 new_parameter_info['parameter_ref'] = f"elyra_outputs_{new_parameter_info['parameter_ref']}"
+
+            for command in component_body['implementation']['container']['command']:
+                if isinstance(command, dict):
+                    for key, value in command.items():
+                        if value == output_object['name'] and key == "outputPath":
+                            new_parameter_info['parameter_ref'] = f"elyra_path_{new_parameter_info['parameter_ref']}"
 
             # Add to existing parameter list
             component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})

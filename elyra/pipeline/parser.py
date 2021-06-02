@@ -17,13 +17,15 @@ from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
 
 from .pipeline import Pipeline, Operation
+from elyra.util import get_expanded_path, get_absolute_path
+
 
 DEFAULT_FILETYPE = "tar.gz"
 
 
 class PipelineParser(LoggingConfigurable):
 
-    def parse(self, pipeline_definitions: Dict) -> Pipeline:
+    def parse(self, pipeline_definitions: Dict, root_dir) -> Pipeline:
         """
         The pipeline definitions allow for defining multiple pipelines  in one json file.
         When super_nodes are used, their node actually references another pipeline in the
@@ -65,12 +67,13 @@ class PipelineParser(LoggingConfigurable):
                                    runtime=runtime,
                                    runtime_config=runtime_config,
                                    source=source)
-        self._nodes_to_operations(pipeline_definitions, pipeline_object, primary_pipeline['nodes'])
+        self._nodes_to_operations(pipeline_definitions, pipeline_object, root_dir, primary_pipeline['nodes'])
         return pipeline_object
 
     def _nodes_to_operations(self,
                              pipeline_definitions: Dict,
                              pipeline_object: Pipeline,
+                             root_dir,
                              nodes: List[Dict],
                              super_node: Optional[Dict] = None) -> None:
         """
@@ -100,7 +103,7 @@ class PipelineParser(LoggingConfigurable):
                 raise ValueError("Node type '{}' is invalid!".format(node_type))
 
             # parse each node as a pipeline operation
-            operation = PipelineParser._create_pipeline_operation(node, super_node)
+            operation = PipelineParser._create_pipeline_operation(root_dir, node, super_node)
             self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.filename, pipeline_object.name))
             pipeline_object.operations[operation.id] = operation
 
@@ -128,7 +131,7 @@ class PipelineParser(LoggingConfigurable):
         return None
 
     @staticmethod
-    def _create_pipeline_operation(node: Dict, super_node: Optional[Dict] = None):
+    def _create_pipeline_operation(root_dir: str, node: Dict, super_node: Optional[Dict] = None):
         """
         Creates a pipeline operation instance from the given node.
         The node and super_node are used to build the list of parent_operations (links) to
@@ -156,7 +159,7 @@ class PipelineParser(LoggingConfigurable):
             outputs=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'outputs', [])),
             parent_operations=parent_operations,
             component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type'),
-            component_params=PipelineParser._get_remaining_component_params(node))
+            component_params=PipelineParser._get_remaining_component_params(root_dir, node))
 
     @staticmethod
     def _get_child_field(obj: Dict, child: str, field_name: str, default_value: Any = None) -> Any:
@@ -238,7 +241,7 @@ class PipelineParser(LoggingConfigurable):
         return [clean for clean in dirty if clean]
 
     @staticmethod
-    def _get_remaining_component_params(node: Dict):
+    def _get_remaining_component_params(root_dir: str, node: Dict):
         """
         Builds a dictionary of the parameters for a given node that do not have a corresponding
         property in the Operation object. These parameters will be used by the appropriate processor when
@@ -254,8 +257,14 @@ class PipelineParser(LoggingConfigurable):
                 if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies",
                            "include_subdirectories", "env_vars", "outputs", "ui_data", "component_source_type"]:
                     continue
-                # Remove parameter id if a unique identifier was added during component properties parsing
+                # Remove unique identifier of parameter id if one was added during component properties parsing
                 if "elyra_outputs_" in key:
                     key = key.replace("elyra_outputs_", "")
+                # For path inputs and outputs, grab the content in order to pass to contructor
+                if "elyra_path_" in key:
+                    key = key.replace("elyra_path_", "")
+                    filename = get_absolute_path(get_expanded_path(root_dir), value)
+                    with open(filename) as f:
+                        value = f.read()
                 component_params[key] = value
         return component_params
