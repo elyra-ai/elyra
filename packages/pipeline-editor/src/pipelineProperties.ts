@@ -58,7 +58,7 @@ const pipelineProperties = {
           label: { default: 'Pipeline Description' },
           data: {
             placeholder: 'Pipeline description',
-            textarea: true
+            format: 'multiline'
           }
         },
         {

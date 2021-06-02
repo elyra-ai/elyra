@@ -158,11 +158,11 @@ const PipelineWrapper: React.FC<IProps> = ({
         }
       }
       if (pipelineJson?.pipelines?.[0]?.app_data) {
-        if (!pipelineJson.pipelines[0].app_data.pipeline_properties) {
-          pipelineJson.pipelines[0].app_data.pipeline_properties = {};
+        if (!pipelineJson.pipelines[0].app_data.properties) {
+          pipelineJson.pipelines[0].app_data.properties = {};
         }
         const pipelineProperties =
-          pipelineJson.pipelines[0].app_data.pipeline_properties;
+          pipelineJson.pipelines[0].app_data.properties;
         if (runtimeImages.current?.[pipelineProperties.default_runtime_image]) {
           pipelineProperties.default_runtime_image =
             runtimeImages.current?.[pipelineProperties.default_runtime_image];
@@ -172,8 +172,8 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipeline_path,
           PathExt.extname(pipeline_path)
         );
-        pipelineJson.pipelines[0].app_data.pipeline_properties.name = pipeline_name;
-        pipelineJson.pipelines[0].app_data.pipeline_properties.runtime =
+        pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
+        pipelineJson.pipelines[0].app_data.properties.runtime =
           pipelineJson.pipelines[0].app_data.ui_data?.runtime?.display_name ??
           'Generic';
       }
@@ -227,7 +227,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         }
       }
       const pipelineProperties =
-        pipelineJson?.pipelines?.[0]?.app_data?.pipeline_properties;
+        pipelineJson?.pipelines?.[0]?.app_data?.properties;
       if (pipelineProperties?.default_runtime_image) {
         for (const tag in runtimeImages.current) {
           if (
