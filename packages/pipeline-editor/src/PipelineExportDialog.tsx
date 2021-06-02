@@ -38,18 +38,6 @@ interface IProps {
   runtime?: string;
 }
 
-const getRuntimeOptions = (
-  platformSelection: string,
-  runtimes: IRuntime[]
-): IRuntime[] => {
-  const filteredRuntimeOptions = PipelineService.filterRuntimes(
-    runtimes,
-    platformSelection
-  );
-  PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-  return filteredRuntimeOptions;
-};
-
 const getFileTypes = (platformSelection: string): Record<string, string>[] => {
   if (!platformSelection) {
     return new Array<Record<string, string>>();
@@ -75,7 +63,11 @@ export const PipelineExportDialog: React.FC<IProps> = ({
   const handleUpdate = React.useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>): void => {
       const selectedPlatform = event.target.value;
-      setRuntimeOptions(getRuntimeOptions(selectedPlatform, runtimes));
+      const filteredRuntimes = PipelineService.filterRuntimes(
+        runtimes,
+        selectedPlatform
+      );
+      setRuntimeOptions(filteredRuntimes);
       setFileTypes(getFileTypes(selectedPlatform));
     },
     [runtimes]
@@ -84,8 +76,12 @@ export const PipelineExportDialog: React.FC<IProps> = ({
   React.useEffect((): void => {
     const schemas = PipelineService.filterValidSchema(runtimes, schema);
     const selectedPlatform = runtime ?? (schemas[0] && schemas[0].name);
+    const filteredRuntimes = PipelineService.filterRuntimes(
+      runtimes,
+      selectedPlatform
+    );
     setValidSchemas(schemas);
-    setRuntimeOptions(getRuntimeOptions(selectedPlatform, runtimes));
+    setRuntimeOptions(filteredRuntimes);
     setFileTypes(getFileTypes(selectedPlatform));
   }, [runtimes, schema, runtime]);
 

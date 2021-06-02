@@ -42,14 +42,14 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
     [setRuntimePlatform]
   );
 
-  const runtimeOptions = React.useMemo((): IRuntime[] => {
-    const filteredRuntimeOptions = PipelineService.filterRuntimes(
-      runtimes,
-      runtimePlatform || (runtime ?? (schema[0] && schema[0].name))
-    );
-    PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-    return filteredRuntimeOptions;
-  }, [runtime, runtimes, schema, runtimePlatform]);
+  const runtimeOptions = React.useMemo(
+    (): IRuntime[] =>
+      PipelineService.filterRuntimes(
+        runtimes,
+        runtimePlatform || (runtime ?? (schema[0] && schema[0].name))
+      ),
+    [runtime, runtimes, schema, runtimePlatform]
+  );
 
   React.useEffect((): void => {
     const schemas = PipelineService.filterValidSchema(runtimes, schema);

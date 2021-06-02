@@ -81,14 +81,16 @@ export class PipelineService {
   }
 
   /**
-   * Returns a list of external runtime configurations
+   * Returns a list of external runtime configurations sorted by display_name
    * based on the runtimePlatform (Airflow or Kubeflow)
    */
   static filterRuntimes = (
     runtimes: IRuntime[],
     runtimePlatform: string
   ): IRuntime[] =>
-    runtimes.filter(runtime => runtime.schema_name === runtimePlatform);
+    runtimes
+      .filter(runtime => runtime.schema_name === runtimePlatform)
+      .sort((r1, r2) => r1.display_name.localeCompare(r2.display_name));
 
   /**
    * Returns a list of external schema configurations
@@ -101,13 +103,6 @@ export class PipelineService {
     schema.filter(s =>
       runtimes.some(runtime => runtime.schema_name === s.name)
     );
-
-  /**
-   * Sorts given list of runtimes by the display_name property
-   */
-  static sortRuntimesByDisplayName = (runtimes: IRuntime[]): void => {
-    runtimes.sort((r1, r2) => r1.display_name.localeCompare(r2.display_name));
-  };
 
   /**
    * Return a list of configured docker images that are used as runtimes environments

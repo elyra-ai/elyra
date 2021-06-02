@@ -53,14 +53,8 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
   };
 
   const filterRuntimeOptions = React.useCallback(
-    (platformSelection: string): IRuntime[] => {
-      const filteredRuntimeOptions = PipelineService.filterRuntimes(
-        runtimes,
-        platformSelection
-      );
-      PipelineService.sortRuntimesByDisplayName(filteredRuntimeOptions);
-      return filteredRuntimeOptions;
-    },
+    (platformSelection: string): IRuntime[] =>
+      PipelineService.filterRuntimes(runtimes, platformSelection),
     [runtimes]
   );
 
