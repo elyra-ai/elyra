@@ -30,15 +30,15 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
 Elyra currently includes the following functionality:
 
-- [Create and run AI pipelines](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ai-pipelines-visual-editor)
-- [Run notebooks as batch jobs](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ability-to-run-a-notebook-as-a-batch-job)
+- [AI Pipelines visual editor](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ai-pipelines-visual-editor)
+- [Ability to run a notebook, Python or R script as a batch job](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ability-to-run-a-notebook-python-or-r-script-as-a-batch-job)
 - [Reusable Code Snippets](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#reusable-code-snippets)
 - [Hybrid runtime support](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#hybrid-runtime-support) based on [Jupyter Enterprise Gateway](https://github.com/jupyter/enterprise_gateway)
 - [Python and R script editors with local/remote execution capabilities](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-and-r-scripts-execution-support)
-- [Python script navigation using auto-generated Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#python-script-execution-support)
+- [Python script navigation using auto-generated Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html##python-and-r-scripts-execution-support)
 - [Notebook navigation using auto-generated outlines using Table of Contents](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#notebook-navigation-using-auto-generated-table-of-contents)
-- [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#version-control-using-git-integration)
 - [Language Server Protocol integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#language-server-protocol-integration)
+- [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#version-control-using-git-integration)
 
 ![Elyra](docs/source/images/elyra-main-page.png)
 

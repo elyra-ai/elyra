@@ -22,13 +22,14 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 The main features include:
 
 * [AI Pipelines visual editor](#ai-pipelines-visual-editor)
-* [Ability to run a notebook or Python script as a batch job](#ability-to-run-a-notebook-or-python-script-as-a-batch-job)
+* [Ability to run a notebook, Python or R script as a batch job](#ability-to-run-a-notebook-python-or-r-script-as-a-batch-job)
 * [Reusable Code Snippets](#reusable-code-snippets)
 * [Hybrid runtime support](#hybrid-runtime-support)
-* [Python script execution support](#python-script-execution-support)
-* [Version control using git integration](#version-control-using-git-integration)
+* [Python and R script editors with local/remote execution capabilities](#python-and-r-scripts-execution-support)
+* [Python script navigation using auto-generated Table of Contents](#python-and-r-scripts-execution-support)
 * [Notebook navigation using auto-generated Table of Contents](#notebook-navigation-using-auto-generated-table-of-contents)
 * [Language Server Protocol integration](#language-server-protocol-integration)
+* [Version control using git integration](#version-control-using-git-integration)
 
 You can try out some of these features using the getting started tour on [Binder](https://github.com/elyra-ai/elyra#using-binder) without having to install anything.
 
@@ -51,7 +52,7 @@ Learn more about the Pipeline Visual Editor in the [AI Pipelines topic](/user_gu
 
 The pipeline editor feature can optionally be [installed as a stand-alone extension](installation).
 
-#### Ability to run a notebook or Python script as a batch job
+#### Ability to run a notebook, Python or R script as a batch job
 
 Elyra extends the Jupyter Notebook UI to to allow for execution of a notebook as a batch job in local or remote cloud environments. This feature leverages the AI pipelines feature and requires either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
 
@@ -91,14 +92,6 @@ For information on how to use the Script editor refer to the [_Enhanced Script S
 
 The Script editor feature can optionally be [installed as a stand-alone extension](installation).
 
-#### Version control using git integration
-
-With the integrated Git version control support users can clone Git repositories, track and manage changes (e.g. by comparing, committing, or discarding them) and share among team members - fostering productivity by enabling a collaborative working environment.
-
-![Git Integration](../images/git.png)
-
-To learn more about the git extension or how to install it individually refer to the [jupyterlab-git repository](https://github.com/jupyterlab/jupyterlab-git).
-
 #### Notebook navigation using auto-generated Table of Contents
 
 The enhanced notebook navigation recognizes markdown headings and auto-generates
@@ -119,3 +112,11 @@ By default, Elyra installs the [Python Language Server package](https://pypi.org
 Refer to the [`jupyterlab-lsp` extension documentation](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) for a full list of supported Language Servers and installation instructions.
 
 To learn more about the `jupyterlab-lsp` extension and its features check out the [repository](https://github.com/krassowski/jupyterlab-lsp).
+
+#### Version control using git integration
+
+With the integrated Git version control support users can clone Git repositories, track and manage changes (e.g. by comparing, committing, or discarding them) and share among team members - fostering productivity by enabling a collaborative working environment.
+
+![Git Integration](../images/git.png)
+
+To learn more about the git extension or how to install it individually refer to the [jupyterlab-git repository](https://github.com/jupyterlab/jupyterlab-git).
