@@ -33,6 +33,7 @@ KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 UPGRADE_STRATEGY?=only-if-needed
+YARN_ARGS?=""
 
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -83,11 +84,13 @@ test-dependencies:
 lint-server: test-dependencies
 	flake8 elyra
 
-lint-ui:
-	yarn run prettier
-	yarn run eslint
+prettier-ui:
+	yarn prettier:check
 
-lint: lint-ui lint-server ## Run linters
+lint-ui:
+	yarn eslint:check --max-warnings=0
+
+lint: lint-ui prettier-ui lint-server ## Run linters
 
 dev-link:
 	yarn link @elyra/pipeline-services
@@ -96,7 +99,7 @@ dev-link:
 	cd node_modules/@elyra/pipeline-services && jupyter labextension link --no-build .
 
 yarn-install:
-	yarn install
+	yarn install $(YARN_ARGS)
 
 build-ui: yarn-install # Build packages
 	yarn lerna run build

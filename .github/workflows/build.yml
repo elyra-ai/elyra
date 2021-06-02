@@ -41,19 +41,15 @@ jobs:
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
-        run: yarn install --frozen-lockfile
+        run: make yarn-install YARN_ARGS="--frozen-lockfile"
 
   lint-server:
     name: Lint Server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8
       - name: Lint
-        run: flake8 elyra
+        run: make lint-server
 
   lint-ui:
     name: Lint UI
@@ -71,11 +67,11 @@ jobs:
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
-        run: yarn install
+        run: make yarn-install
       - name: Lint
-        run: yarn eslint:check --max-warnings=0
+        run: make lint-ui
       - name: Check format
-        run: yarn prettier:check
+        run: make prettier-ui
 
   test-server:
     name: Test Server
@@ -88,14 +84,8 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install
-        # Note: Tests fail if we don't install `wheel` for some reason.
-        run: | 
-          python -m pip install --upgrade pip wheel
-          pip install --use-deprecated=legacy-resolver .
-          make test-dependencies
       - name: Test
-        run: pytest -v elyra
+        run: make test-server
 
   test-ui:
     name: Test UI
