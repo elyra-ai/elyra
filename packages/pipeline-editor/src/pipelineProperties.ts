@@ -35,21 +35,15 @@ const pipelineProperties = {
       parameter_info: [
         {
           control: 'custom',
-          custom_control_id: 'StringControl',
+          custom_control_id: 'DisplayControl',
           parameter_ref: 'name',
-          label: { default: 'Pipeline Name' },
-          data: {
-            readonly: true
-          }
+          label: { default: 'Pipeline Name' }
         },
         {
           control: 'custom',
-          custom_control_id: 'StringControl',
+          custom_control_id: 'DisplayControl',
           parameter_ref: 'runtime',
-          label: { default: 'Pipeline Runtime' },
-          data: {
-            readonly: true
-          }
+          label: { default: 'Pipeline Runtime' }
         },
         {
           control: 'custom',
