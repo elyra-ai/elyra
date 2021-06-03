@@ -150,7 +150,7 @@ docs-dependencies:
 	@pip install -q -r docs/requirements.txt
 
 docs: docs-dependencies ## Build docs
-	make -C docs html
+	make -C docs clean html
 
 dist-ui: build-ui
 	mkdir -p dist

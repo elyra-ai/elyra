@@ -78,6 +78,7 @@ export interface IMetadataDisplayProps {
   className: string;
   // Optional string to append to a schema display name
   schemaType?: string;
+  labelName?: (args: any) => string;
 }
 
 /**
@@ -111,7 +112,9 @@ export class MetadataDisplay<
 
   deleteMetadata = (metadata: IMetadata): Promise<void> => {
     return showDialog({
-      title: `Delete metadata: ${metadata.display_name}?`,
+      title: `Delete ${
+        this.props.labelName ? this.props.labelName(metadata) : ''
+      } '${metadata.display_name}'?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed

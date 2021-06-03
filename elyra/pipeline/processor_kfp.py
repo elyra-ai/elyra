@@ -64,7 +64,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
 
-        api_endpoint = runtime_configuration.metadata['api_endpoint']
+        api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
@@ -261,7 +261,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
-        api_endpoint = runtime_configuration.metadata['api_endpoint']
+        api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
         namespace = runtime_configuration.metadata.get('user_namespace')
         engine = runtime_configuration.metadata.get('engine')
         cos_secret = runtime_configuration.metadata.get('cos_secret')
@@ -419,9 +419,6 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                cos_secret=cos_secret,
                                                cos_username=cos_username,
                                                cos_password=cos_password)
-
-            # Include any envs set on the operation
-            pipeline_envs.update(operation.env_vars_as_dict(logger=self.log))
 
             sanitized_operation_name = self._sanitize_operation_name(operation.name)
 

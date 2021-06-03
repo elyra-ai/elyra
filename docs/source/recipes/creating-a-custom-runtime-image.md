@@ -48,7 +48,7 @@ The [default Python 3 Docker image](https://hub.docker.com/_/python) has Python 
    FROM python:3
 
    COPY requirements.txt ./
-   RUN pip install --no-cache-dir -r requirements.txt
+   RUN pip3 install --no-cache-dir -r requirements.txt
    ```
 
    When you create a container image using this `Dockerfile` the [default Python 3 Docker image](https://hub.docker.com/_/python) is loaded and the requirements listed in `requirements.txt` `pip`-installed.

@@ -118,8 +118,8 @@ class OperationProcessor(ABC):
     @staticmethod
     def _collect_envs(operation: Operation) -> Dict:
         envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
-        envs['ELYRA_RUNTIME_ENV'] = "local"  # Special case
         envs.update(operation.env_vars_as_dict())
+        envs['ELYRA_RUNTIME_ENV'] = "local"  # Special case
         return envs
 
 

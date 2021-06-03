@@ -39,5 +39,6 @@ from node_util import PythonNode
 os.getenv("NODE_FILENAME")
 os.getenv("INPUT_FILENAMES")
 os.getenv("OUTPUT_FILENAMES")
+os.getenv("ELYRA_RUNTIME_ENV")
 # Execute the node
 PythonNode().run()

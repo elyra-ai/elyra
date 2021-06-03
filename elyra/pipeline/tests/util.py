@@ -79,6 +79,9 @@ class NodeBase(object):
         if self.outputs:
             self.env_vars.append(f"OUTPUT_FILENAMES={';'.join(self.outputs)}")
 
+        # Add system-owned here with bogus or no value...
+        self.env_vars.append("ELYRA_RUNTIME_ENV=bogus_runtime")
+
         return Operation(self.id, 'execution_node', self.name, self.classifier, self.filename, self.image_name or "NA",
                          dependencies=self.dependencies, env_vars=self.env_vars,
                          inputs=self.inputs, outputs=self.outputs,

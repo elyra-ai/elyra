@@ -302,11 +302,23 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
 def test_collect_envs(processor):
     pipelines_test_file = 'elyra/pipeline/tests/resources/archive/test.ipynb'
 
+    # add system-owned envs with bogus values to ensure they get set to system-derived values,
+    # and include some user-provided edge cases
+    operation_envs = ['ELYRA_RUNTIME_ENV="bogus_runtime"',
+                      'ELYRA_ENABLE_PIPELINE_INFO="bogus_pipeline"',
+                      'ELYRA_WRITABLE_CONTAINER_DIR=',  # simulate operation reference in pipeline
+                      'AWS_ACCESS_KEY_ID="bogus_key"',
+                      'AWS_SECRET_ACCESS_KEY="bogus_secret"',
+                      'USER_EMPTY_VALUE=  ',
+                      'USER_TWO_EQUALS=KEY=value',
+                      'USER_NO_VALUE=']
+
     test_operation = Operation(id='this-is-a-test-id',
                                type='execution-node',
                                classifier='airflow',
                                name='test',
                                filename=pipelines_test_file,
+                               env_vars=operation_envs,
                                runtime_image='tensorflow/tensorflow:latest')
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username='Alice', cos_password='secret')
@@ -316,6 +328,9 @@ def test_collect_envs(processor):
     assert envs['AWS_SECRET_ACCESS_KEY'] == 'secret'
     assert envs['ELYRA_ENABLE_PIPELINE_INFO'] == 'True'
     assert 'ELYRA_WRITABLE_CONTAINER_DIR' not in envs
+    assert envs['USER_EMPTY_VALUE'] == '  '
+    assert envs['USER_TWO_EQUALS'] == 'KEY=value'
+    assert 'USER_NO_VALUE' not in envs
 
     # Repeat with non-None secret - ensure user and password envs are not present, but others are
     envs = processor._collect_envs(test_operation, cos_secret='secret', cos_username='Alice', cos_password='secret')
@@ -325,3 +340,6 @@ def test_collect_envs(processor):
     assert 'AWS_SECRET_ACCESS_KEY' not in envs
     assert envs['ELYRA_ENABLE_PIPELINE_INFO'] == 'True'
     assert 'ELYRA_WRITABLE_CONTAINER_DIR' not in envs
+    assert envs['USER_EMPTY_VALUE'] == '  '
+    assert envs['USER_TWO_EQUALS'] == 'KEY=value'
+    assert 'USER_NO_VALUE' not in envs
