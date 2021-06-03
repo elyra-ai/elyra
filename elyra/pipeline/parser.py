@@ -161,6 +161,7 @@ class PipelineParser(LoggingConfigurable):
             parent_operations=parent_operations,
             component_source=PipelineParser._get_app_data_field(node, 'component_source'),
             component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type'),
+            component_class=PipelineParser._get_app_data_field(node, 'elyra_airflow_class_name'),
             component_params=self._get_remaining_component_params(node))
 
     @staticmethod
@@ -255,17 +256,27 @@ class PipelineParser(LoggingConfigurable):
                 if not value:
                     continue
                 # Do not include any of the standard set of parameters
-                if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies",
-                           "include_subdirectories", "env_vars", "outputs", "ui_data", "component_source_type"]:
+                if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
+                           "include_subdirectories", "ui_data", "component_source", "component_source_type",
+                           "elyra_airflow_class_name"]:
                     continue
-                # For path inputs and outputs, grab the content in order to pass to contructor
+                # For Airflow inputs, remove class name information from key
+                class_name = PipelineParser._get_app_data_field(node, 'elyra_airflow_class_name')
+                if class_name and not key.startswith(class_name.lower().replace(' ', '_')):
+                    # Skip if the class name does not match that selected
+                    continue
+                elif class_name:
+                    key = key.replace(class_name.lower().replace(' ', '_') + "_", "")
+                # For KFP path inputs and outputs, grab the content in order to pass to contructor
                 if key.startswith("elyra_path_"):
                     key = key.replace("elyra_path_", "")
                     filename = get_absolute_path(get_expanded_path(self.root_dir), value)
                     # TODO: Add error checking for FNF scenarios (at minimum)
                     with open(filename) as f:
-                        component_params[key] = f.read()
-                # Remove unique identifier of parameter id if one was added during component properties parsing
+                        value = f.read()
+                # Remove unique identifier of parameter id if one was added during component properties parsing for KFP
                 if key.startswith("elyra_outputs_"):
                     key = key.replace("elyra_outputs_", "")
+
+                component_params[key] = value
         return component_params

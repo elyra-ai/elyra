@@ -465,6 +465,35 @@ class AirflowComponentParser(ComponentParser):
         # Add path details
         component_parameters['current_parameters']['component_source'] = component_path
 
+        # Add class information as parameter
+        component_parameters['parameters'].append({"id": "elyra_airflow_class_name"})
+        component_parameters['current_parameters']["elyra_airflow_class_name"] = []
+
+        class_parameter_info = {
+            "parameter_ref": "elyra_airflow_class_name",
+            "control": "custom",
+            "custom_control_id": "EnumControl",
+            "label": {
+                "default": "Available Operators"
+            },
+            "description": {
+                "default": "List of operators available in the given operator specification file. \
+                            Select the operator that you wish to execute from the drop down menu.",
+                "placement": "on_panel"
+            },
+            "data": {
+                "items": [],
+            }
+        }
+        component_parameters['uihints']['parameter_info'].append(class_parameter_info)
+
+        class_group_info = {
+            "id": "component_source",
+            "type": "controls",
+            "parameter_refs": ["elyra_airflow_class_name"]
+        }
+        component_parameters['uihints']['group_info'][0]['group_info'].append(class_group_info)
+
         # Organize lines according to the class to which they belong
         # TODO: Determine how to handle the case where one operator.py file has multiple
         # class definitions. How will we differentiate on the frontend? How will we
@@ -484,10 +513,12 @@ class AirflowComponentParser(ComponentParser):
             classes[class_name]['lines'].append(line)
 
         # Loop through classes to find init function for each class; grab init parameters as properties
-        init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*]*)\):")
+        init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*\s\#.\\\/:?]*)\):")
         for class_name in classes:
             if class_name == "no_class":
                 continue
+
+            component_parameters['uihints']['parameter_info'][3]['data']['items'].append(class_name)
 
             group_info = {
                 'id': class_name,
