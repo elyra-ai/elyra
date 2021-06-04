@@ -16,28 +16,23 @@
 
 import * as React from 'react';
 
-export interface IProps {
+interface IProps extends React.HTMLProps<HTMLSelectElement> {
   handleUpdate?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  className: string;
-  id: string;
   label: string;
   optionList: JSX.Element[];
-  value?: string;
 }
 
 export const DialogSelector: React.FC<React.HTMLProps<HTMLSelectElement> &
-  IProps> = ({ className, handleUpdate, id, label, optionList, value }) => {
+  IProps> = ({ handleUpdate, label, optionList, ...selectProps }) => {
   return (
     <div>
-      <label htmlFor={id}>{label}:</label>
+      <label htmlFor={selectProps.id}>{label}:</label>
       <br />
       <select
-        id={id}
-        name={id}
-        className={className}
+        name={selectProps.id}
         data-form-required
         onChange={handleUpdate}
-        value={value}
+        {...selectProps}
       >
         {optionList}
       </select>
