@@ -156,6 +156,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
         PipelineProcessor._propagate_operation_inputs_outputs(pipeline, sorted_operations)
 
         for operation in sorted_operations:
+
             if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
@@ -203,7 +204,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                                           operation)
 
             else:
-                # TODO Remove attributes as needed here
+                # TODO Remove attributes as needed here; keeping the same as standard components
+                # for now in case certain functionality has to be added.
                 notebook = {'notebook': operation.name,
                             'id': operation.id,
                             'filename': operation._component_source.rsplit('/', 1)[-1].split('.')[0],

@@ -1,5 +1,23 @@
 {
   "components": {
+    "python-operator": {
+      "name": "Python Operator",
+      "path": {
+        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/python_operator.py"
+      }
+    },
+    "bash-operator": {
+      "name": "Bash Operator",
+      "path": {
+        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py"
+      }
+    },
+    "papermill-operator": {
+      "name": "Papermill Operator",
+      "path": {
+        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/papermill_operator.py"
+      }
+    },
     "slack-operator": {
       "name": "Slack Operator",
       "path": {

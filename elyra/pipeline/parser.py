@@ -265,7 +265,7 @@ class PipelineParser(LoggingConfigurable):
                 if class_name and not key.startswith(class_name.lower().replace(' ', '_')):
                     # Skip if the class name does not match that selected
                     continue
-                elif class_name:
+                elif class_name and key.startswith(class_name.lower().replace(' ', '_')):
                     key = key.replace(class_name.lower().replace(' ', '_') + "_", "")
                 # For KFP path inputs and outputs, grab the content in order to pass to contructor
                 if key.startswith("elyra_path_"):
@@ -279,4 +279,5 @@ class PipelineParser(LoggingConfigurable):
                     key = key.replace("elyra_outputs_", "")
 
                 component_params[key] = value
+
         return component_params

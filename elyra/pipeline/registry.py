@@ -505,7 +505,9 @@ class AirflowComponentParser(ComponentParser):
         }
         class_regex = re.compile(r"class ([\w]+)\(\w*\):")
         for line in component_body:
-            line = line.decode("utf-8")
+            # Remove any inline comments (must follow the '2 preceding spaces and one following space'
+            # rule). This avoids the case where the default value of an __init__ arg contains '#'.
+            line = re.sub(r"  # .*\n?", "", line.decode("utf-8"))
             match = class_regex.search(line)
             if match:
                 class_name = match.group(1)
@@ -518,17 +520,17 @@ class AirflowComponentParser(ComponentParser):
             if class_name == "no_class":
                 continue
 
-            component_parameters['uihints']['parameter_info'][3]['data']['items'].append(class_name)
-
-            group_info = {
-                'id': class_name,
-                'type': "controls",
-                'parameter_refs': []
-            }
-
             # Concatenate class body and search for __init__ function
             class_content = ''.join(classes[class_name]['lines'])
             for match in init_regex.finditer(class_content):
+                # This class has an __init__ function and can be included as a potential operator
+                component_parameters['uihints']['parameter_info'][3]['data']['items'].append(class_name)
+                group_info = {
+                    'id': class_name,
+                    'type': "controls",
+                    'parameter_refs': []
+                }
+
                 classes[class_name]['init_args'] = [x.strip() for x in match.group(1).split(',')]
 
                 # For each argument to the init function, build a new parameter and add to existing
@@ -536,16 +538,27 @@ class AirflowComponentParser(ComponentParser):
                     if arg in ['self', '*args', '**kwargs']:
                         continue
 
+                    # TODO: Fix default values that wrap lines or consider omitting altogether.
+                    # Default information could also potentially go in the description instead.
                     default_value = ""
                     if '=' in arg:
-                        split_arg = arg.split('=')
-                        arg = split_arg[0]
-                        default_value = split_arg[1]
+                        arg, default_value = arg.split('=', 1)[:2]
 
                     new_parameter_info = self.build_parameter(arg, class_name, class_content)
 
                     # Add to existing parameter list
                     component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
+
+                    # Adjust default value to remove quotation marks and concatenate strings
+                    '''
+                    if new_parameter_info['data']['format'] == "string":
+                        substrs = []
+                        for substr in default_value.split():
+                            substr = substr.strip().replace("'", "")
+                            substrs.append(substr.replace('\n', "") + " ")
+                        default_value = "".join(substrs)
+                    '''
+
                     component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = default_value
 
                     # Add to existing parameter info list
@@ -554,8 +567,8 @@ class AirflowComponentParser(ComponentParser):
                     # Add parameter to output group info
                     group_info['parameter_refs'].append(new_parameter_info['parameter_ref'])
 
-            # Append output group info to parameter details
-            component_parameters['uihints']['group_info'][0]['group_info'].append(group_info)
+                # Append output group info to parameter details
+                component_parameters['uihints']['group_info'][0]['group_info'].append(group_info)
 
         return component_parameters
 
@@ -585,9 +598,11 @@ class AirflowComponentParser(ComponentParser):
         type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param))")
         match = type_regex.search(component_body)
         if match:
-            # TODO: Determine where this field is used -- does it need to be set
-            data_object['format'] = match.group(1).strip()
-            custom_control_id = self.get_custom_control_id(match.group(1).strip().lower())
+            # TODO: Determine where this field is used -- does it need to be set?
+            # TODO: Add some more robust type-checking here
+            if "str" not in match.group(1).strip():
+                data_object['format'] = match.group(1).strip()
+                custom_control_id = self.get_custom_control_id(match.group(1).strip().lower())
 
             # Add type to description as hint to users?
             if not parameter_description:
