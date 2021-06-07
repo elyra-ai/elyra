@@ -27,7 +27,7 @@
     "filter-text-using-shell-and-grep": {
       "name": "Filter text using shell and grep",
       "path": {
-        "filename": "resources/example3.yaml"
+        "filename": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/sample/Shell_script/component.yaml"
       }
     }
   }
