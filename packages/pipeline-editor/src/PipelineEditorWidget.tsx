@@ -209,7 +209,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, []);
+  }, [updatedPipelineProperties]);
 
   const onChange = useCallback((pipelineJson: any): void => {
     if (contextRef.current.isReady) {
