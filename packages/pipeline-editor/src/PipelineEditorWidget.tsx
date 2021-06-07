@@ -155,8 +155,9 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState<any>(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
-  const [alert, setAlert] = React.useState(null);
-  const [updatedNodes, setUpdatedNodes] = React.useState([]);
+  const [alert, setAlert] = React.useState('');
+  const [updatedNodes, setUpdatedNodes] = React.useState([] as any[]);
+  const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
 
   const contextRef = useRef(context);
   useEffect(() => {
@@ -188,7 +189,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         runtimeImages.current = images;
         PipelineService.getRuntimeComponents(pipelineRuntime ?? 'local').then(
           async (serverNodes: any) => {
-            const newNodes = [];
+            const newNodes: any[] = [];
             for (const nodeCategory of serverNodes.categories) {
               await PipelineService.getComponentProperties(
                 pipelineRuntime ?? 'local',
@@ -863,7 +864,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       return;
     }
 
-    setAlert(undefined);
+    setAlert('');
   };
 
   if (loading) {
