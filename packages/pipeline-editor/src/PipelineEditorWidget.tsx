@@ -231,10 +231,10 @@ const PipelineWrapper: React.FC<IProps> = ({
     const maybeLoadNodes = (): void => {
       const pipelineJSON: any = currentContext.model.toJSON();
       const pipelineRuntime =
-        pipelineJSON?.pipelines?.[0]?.app_data?.ui_data?.runtime.name;
+        pipelineJSON?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name;
       if (
         pipelineRuntime !==
-        pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime.name
+        pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name
       ) {
         loadNodes(pipelineRuntime);
       } else {
@@ -874,7 +874,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
-        open={alert !== undefined}
+        open={alert !== ''}
         autoHideDuration={6000}
         onClose={handleClose}
       >
