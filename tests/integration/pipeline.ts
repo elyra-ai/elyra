@@ -103,6 +103,8 @@ describe('Pipeline Editor tests', () => {
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
+    cy.wait(1000);
+
     // Open notebook with double-click
     cy.get('#jp-main-dock-panel').within(() => {
       cy.findByText('helloworld.ipynb').dblclick();
@@ -128,7 +130,7 @@ describe('Pipeline Editor tests', () => {
     // opens pipeline from the file browser
     cy.openFile('invalid.pipeline');
 
-    cy.wait(50000);
+    cy.wait(10000);
 
     // try to run invalid pipeline
     cy.findByRole('button', { name: /run pipeline/i }).click();
@@ -140,6 +142,8 @@ describe('Pipeline Editor tests', () => {
     cy.createPipelineEditor();
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
+
+    cy.wait(1000);
 
     cy.get('#jp-main-dock-panel').within(() => {
       cy.findByText('helloworld.ipynb').rightclick();
@@ -203,6 +207,8 @@ describe('Pipeline Editor tests', () => {
     // Copy invalid pipeline
 
     cy.openFile('invalid.pipeline');
+
+    cy.wait(10000);
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
