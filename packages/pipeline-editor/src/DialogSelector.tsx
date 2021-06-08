@@ -22,8 +22,12 @@ interface IProps extends React.HTMLProps<HTMLSelectElement> {
   optionList: JSX.Element[];
 }
 
-export const DialogSelector: React.FC<React.HTMLProps<HTMLSelectElement> &
-  IProps> = ({ handleUpdate, label, optionList, ...selectProps }) => {
+export const DialogSelector: React.FC<IProps> = ({
+  handleUpdate,
+  label,
+  optionList,
+  ...selectProps
+}) => {
   return (
     <div>
       <label htmlFor={selectProps.id}>{label}:</label>
