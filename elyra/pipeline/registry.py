@@ -305,7 +305,7 @@ class KfpComponentParser(ComponentParser):
 
         # Add runtime image details
         component_parameters['uihints']['parameter_info'][1]['control'] = "readonly"
-        component_parameters['uihints']['parameter_info'][1]['data'] = {"format": "string"}
+        component_parameters['uihints']['parameter_info'][1]['data'] = {"format": "string", "required": True}
         try:
             component_parameters['current_parameters']['runtime_image'] = \
                 component_body['implementation']['container']['image']
@@ -478,17 +478,19 @@ class AirflowComponentParser(ComponentParser):
             },
             "description": {
                 "default": "List of operators available in the given operator specification file. \
-                            Select the operator that you wish to execute from the drop down menu.",
+                            Select the operator that you wish to execute from the drop down menu \
+                            and include the appropriate parameter values below.",
                 "placement": "on_panel"
             },
             "data": {
                 "items": [],
+                "required": True
             }
         }
         component_parameters['uihints']['parameter_info'].append(class_parameter_info)
 
         class_group_info = {
-            "id": "component_source",
+            "id": "elyra_airflow_class_name",
             "type": "controls",
             "parameter_refs": ["elyra_airflow_class_name"]
         }
@@ -569,6 +571,9 @@ class AirflowComponentParser(ComponentParser):
 
                 # Append output group info to parameter details
                 component_parameters['uihints']['group_info'][0]['group_info'].append(group_info)
+
+        component_parameters['current_parameters']['elyra_airflow_class_name'] = \
+            component_parameters['uihints']['parameter_info'][3]['data']['items'][0]
 
         return component_parameters
 
@@ -731,6 +736,10 @@ class ComponentRegistry(SingletonConfigurable):
         properties = {}
         if parser._type == "local" or component_id in default_components:
             properties = parser.properties
+            if component_id == "python-script":
+                properties['uihints']['parameter_info'][0]['data']['extensions'] = ['.py']
+            elif component_id == "r-script":
+                properties['uihints']['parameter_info'][0]['data']['extensions'] = ['.r']
         else:
             # Find component with given id in component catalog
             component = parser.return_component_if_exists(component_id)

@@ -206,7 +206,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             else:
                 # TODO Remove attributes as needed here; keeping the same as standard components
                 # for now in case certain functionality has to be added.
-                notebook = {'notebook': operation.name,
+                notebook = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
                             'id': operation.id,
                             'filename': operation._component_source.rsplit('/', 1)[-1].split('.')[0],
                             'runtime_image': operation.runtime_image,

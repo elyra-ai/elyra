@@ -253,7 +253,7 @@ class PipelineParser(LoggingConfigurable):
         if node.get('op') not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
             for key, value in node['app_data'].items():
                 # Do not include any null values
-                if not value:
+                if not value or value == "None":
                     continue
                 # Do not include any of the standard set of parameters
                 if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
@@ -267,6 +267,9 @@ class PipelineParser(LoggingConfigurable):
                     continue
                 elif class_name and key.startswith(class_name.lower().replace(' ', '_')):
                     key = key.replace(class_name.lower().replace(' ', '_') + "_", "")
+                    # Convert string to double quote so that jinja template can render values properly
+                    if isinstance(value, str):
+                        value = "\"" + value + "\""
                 # For KFP path inputs and outputs, grab the content in order to pass to contructor
                 if key.startswith("elyra_path_"):
                     key = key.replace("elyra_path_", "")
