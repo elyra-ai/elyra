@@ -211,9 +211,15 @@ const PipelineWrapper: React.FC<IProps> = ({
                   }
                   node.description = nodeCategory.description;
                   node.properties = properties;
-                  node.properties.uihints.parameter_info[1].data = {
-                    items: Object.values(runtimeImages.current)
-                  };
+                  if (node.properties.uihints.parameter_info[1].data) {
+                    node.properties.uihints.parameter_info[1].data.items = Object.values(
+                      runtimeImages.current
+                    );
+                  } else {
+                    node.properties.uihints.parameter_info[1].data = {
+                      items: Object.values(runtimeImages.current)
+                    };
+                  }
                 }
               }, RequestErrors.serverError);
             }
