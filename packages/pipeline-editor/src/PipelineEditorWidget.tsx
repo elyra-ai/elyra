@@ -209,7 +209,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [updatedPipelineProperties]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onChange = useCallback((pipelineJson: any): void => {
     if (contextRef.current.isReady) {
