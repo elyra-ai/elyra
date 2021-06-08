@@ -572,14 +572,15 @@ class AirflowComponentParser(ComponentParser):
                 # Append output group info to parameter details
                 component_parameters['uihints']['group_info'][0]['group_info'].append(group_info)
 
-        component_parameters['current_parameters']['elyra_airflow_class_name'] = \
-            component_parameters['uihints']['parameter_info'][3]['data']['items'][0]
+        if len(component_parameters['uihints']['parameter_info'][3]['data']['items']) >= 1:
+            component_parameters['current_parameters']['elyra_airflow_class_name'] = \
+                component_parameters['uihints']['parameter_info'][3]['data']['items'][0]
 
         return component_parameters
 
     def build_parameter(self, parameter_name, class_name, component_body):
         # Search for :param [param] in class doctring to get parameter description
-        parameter_description = ""
+        parameter_description = " "
         param_regex = re.compile(f":param {parameter_name}:" + r"([\s\S]*?(?=:type|:param))")
         match = param_regex.search(component_body)
         if match:
@@ -600,7 +601,7 @@ class AirflowComponentParser(ComponentParser):
         custom_control_id = "StringControl"
 
         # Search for :type [param] information in class docstring
-        type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param))")
+        type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''))")
         match = type_regex.search(component_body)
         if match:
             # TODO: Determine where this field is used -- does it need to be set?
