@@ -206,9 +206,10 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             else:
                 # TODO Remove attributes as needed here; keeping the same as standard components
                 # for now in case certain functionality has to be added.
+                # TODO Change this name
                 notebook = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
                             'id': operation.id,
-                            'filename': operation._component_source.rsplit('/', 1)[-1].split('.')[0],
+                            'filename': operation.component_source.rsplit('/', 1)[-1].split('.')[0],
                             'runtime_image': operation.runtime_image,
                             'cos_endpoint': cos_endpoint,
                             'cos_bucket': cos_bucket,
@@ -219,10 +220,10 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                             'cpu_request': operation.cpu,
                             'mem_request': operation.memory,
                             'gpu_request': operation.gpu,
-                            'component_source': operation._component_source,
-                            'component_source_type': operation._component_source_type,
-                            'component_params': operation._component_params,
-                            'name': operation._component_class,
+                            'component_source': operation.component_source,
+                            'component_source_type': operation.component_source_type,
+                            'component_params': operation.component_params,
+                            'name': operation.component_class,
                             }
 
                 notebook_ops.append(notebook)

@@ -205,6 +205,22 @@ class Operation(object):
     def parent_operations(self):
         return self._parent_operations
 
+    @property
+    def component_source(self):
+        return self._component_source
+
+    @property
+    def component_source_type(self):
+        return self._component_source_type
+
+    @property
+    def component_class(self):
+        return self._component_class
+
+    @property
+    def component_params(self):
+        return self._component_params
+
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
             return self.id == other.id and \
