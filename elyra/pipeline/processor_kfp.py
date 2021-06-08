@@ -476,7 +476,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             # If operation is a "non-standard" component, load it's spec and create operation with factory function
             else:
                 component_source = {}
-                component_source[operation._component_source_type] = operation._component_source
+                component_source[operation.component_source_type] = operation.component_source
 
                 # Build component task factory
                 try:
@@ -488,7 +488,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
-                    notebook_ops[operation.id] = factory_function(**operation._component_params)
+                    notebook_ops[operation.id] = factory_function(**operation.component_params)
                 except Exception:
                     # TODO Fix error messaging and break exceptions down into categories
                     self.log.error(f"There was an error while executing component {operation.name}.")

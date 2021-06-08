@@ -52,8 +52,6 @@ def _load_jupyter_server_extension(nb_server_app):
         (url_path_join(web_app.settings['base_url'], r'/elyra/namespace'), NamespaceHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/schedule'), PipelineSchedulerHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/export'), PipelineExportHandler),
-        # (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/config/%s' % (resource_regex)),
-        # PipelineConfigHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/components/%s' % (processor_regex)),
         PipelineComponentHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/components/%s/%s/properties' % (processor_regex, \

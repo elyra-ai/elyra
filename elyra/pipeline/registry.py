@@ -303,11 +303,12 @@ class KfpComponentParser(ComponentParser):
         # Start with empty properties object
         component_parameters = copy.deepcopy(empty_properties)
 
-        # Add runtime image details
-        # TODO Document why [1] is used or assign a var
-        component_parameters['uihints']['parameter_info'][1]['control'] = "readonly"
-        component_parameters['uihints']['parameter_info'][1].pop("custom_control_id")
-        component_parameters['uihints']['parameter_info'][1]['data'] = {"required": True}
+        # Add runtime image details. Note that runtime image will always be in position 1
+        # due to the structure of the empty_properties object
+        runtime_image_param = component_parameters['uihints']['parameter_info'][1]
+        runtime_image_param['control'] = "readonly"
+        runtime_image_param.pop("custom_control_id")
+        runtime_image_param['data'] = {"required": False}  # Change back to True!
         try:
             component_parameters['current_parameters']['runtime_image'] = \
                 component_body['implementation']['container']['image']
@@ -337,7 +338,7 @@ class KfpComponentParser(ComponentParser):
                                                    parameter_type=new_parameter_info['data']['format'],
                                                    description=new_parameter_info['description']['default'])
 
-            # TODO: Adjust this to return an empty value for whatever type the parameter is?
+            # TODO:Consider adjusting this to return an empty value based on parameter type
             default_value = ""
             if "default" in input_object:
                 default_value = input_object['default']
@@ -500,9 +501,6 @@ class AirflowComponentParser(ComponentParser):
         component_parameters['uihints']['group_info'][0]['group_info'].append(class_group_info)
 
         # Organize lines according to the class to which they belong
-        # TODO: Determine how to handle the case where one operator.py file has multiple
-        # class definitions. How will we differentiate on the frontend? How will we
-        # execute on the backend?
         classes = {}
         class_name = "no_class"
         classes["no_class"] = {
@@ -528,8 +526,10 @@ class AirflowComponentParser(ComponentParser):
             # Concatenate class body and search for __init__ function
             class_content = ''.join(classes[class_name]['lines'])
             for match in init_regex.finditer(class_content):
-                # This class has an __init__ function and can be included as a potential operator
-                component_parameters['uihints']['parameter_info'][3]['data']['items'].append(class_name)
+                # Add class as available operator. Note that elyra_airflow_class_names will always be in
+                # position 3 of the array as it is added as a 4th element to the empty_properties object
+                class_names_param = component_parameters['uihints']['parameter_info'][3]
+                class_names_param['data']['items'].append(class_name)
                 group_info = {
                     'id': class_name,
                     'type': "controls",
@@ -575,9 +575,7 @@ class AirflowComponentParser(ComponentParser):
                 # Append output group info to parameter details
                 component_parameters['uihints']['group_info'][0]['group_info'].append(group_info)
 
-        if len(component_parameters['uihints']['parameter_info'][3]['data']['items']) >= 1:
-            component_parameters['current_parameters']['elyra_airflow_class_name'] = \
-                component_parameters['uihints']['parameter_info'][3]['data']['items'][0]
+        # TODO Consider setting the first available operator as the default value in current_params
 
         return component_parameters
 
@@ -740,10 +738,16 @@ class ComponentRegistry(SingletonConfigurable):
         properties = {}
         if parser._type == "local" or component_id in default_components:
             properties = parser.properties
+
+            # Adjust availalbe extensions based on type. Note that filename will always be
+            # in position 0 due to the structure of the properties object
+            filename_param = properties['uihints']['parameter_info'][0]
             if component_id == "python-script":
-                properties['uihints']['parameter_info'][0]['data']['extensions'] = ['.py']
+                filename_param['data']['extensions'] = ['.py']
             elif component_id == "r-script":
-                properties['uihints']['parameter_info'][0]['data']['extensions'] = ['.r']
+                filename_param['data']['extensions'] = ['.r']
+            elif component_id == "notebook":
+                filename_param['data']['extensions'] = ['.ipynb']
         else:
             # Find component with given id in component catalog
             component = parser.return_component_if_exists(component_id)
@@ -774,24 +778,6 @@ class ComponentRegistry(SingletonConfigurable):
 
         components = self.get_all_components(parser._type)
         return components
-
-    def get_component_execution_details(self, processor_type, component_id):
-        """
-        Returns the implementation details of a given component.
-        """
-        parser = self._get_parser(processor_type)
-        assert parser._type != "local"  # Local components should not have execution details
-
-        component = parser.return_component_if_exists(component_id)
-        if component is None:
-            raise RuntimeError(f"Could not find parser for component {component_id}.")
-
-        reader = self._get_reader(component)
-        component_path = component['path'][reader._type]
-        component_body = reader.get_component_body(component_path, parser._type)
-
-        execution_instructions = parser.parse_component_execution_instructions(component_body)
-        return execution_instructions
 
     def _get_reader(self, component):
         """
