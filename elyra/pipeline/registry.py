@@ -308,7 +308,7 @@ class KfpComponentParser(ComponentParser):
         runtime_image_param = component_parameters['uihints']['parameter_info'][1]
         runtime_image_param['control'] = "readonly"
         runtime_image_param.pop("custom_control_id")
-        runtime_image_param['data'] = {"required": False}  # Change back to True!
+        runtime_image_param['data'] = {"required": True}
         try:
             component_parameters['current_parameters']['runtime_image'] = \
                 component_body['implementation']['container']['image']
