@@ -21,6 +21,8 @@ import urllib
 import re
 import copy
 
+import jupyter_core.paths
+
 from traitlets.config import SingletonConfigurable
 
 
@@ -145,6 +147,7 @@ def set_node_type_data(id, label, description):
 class ComponentParser(SingletonConfigurable):
     _type = "local"
     _resources_dir = "resources"
+    _components_dir = "components"
 
     def __init__(self):
         self.properties = self.get_common_config('properties')
@@ -158,7 +161,8 @@ class ComponentParser(SingletonConfigurable):
         return common_json
 
     def _get_component_catalog_json(self):
-        catalog_dir = os.path.join(os.path.dirname(__file__), self._resources_dir)
+        # then sys.prefix, where installed files will reside (factory data)
+        catalog_dir = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], self._components_dir)
         catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
         with open(catalog_file, 'r') as f:
             catalog_json = json.load(f)
