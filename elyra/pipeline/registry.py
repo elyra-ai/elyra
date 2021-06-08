@@ -304,8 +304,10 @@ class KfpComponentParser(ComponentParser):
         component_parameters = copy.deepcopy(empty_properties)
 
         # Add runtime image details
+        # TODO Document why [1] is used or assign a var
         component_parameters['uihints']['parameter_info'][1]['control'] = "readonly"
-        component_parameters['uihints']['parameter_info'][1]['data'] = {"format": "string", "required": True}
+        component_parameters['uihints']['parameter_info'][1].pop("custom_control_id")
+        component_parameters['uihints']['parameter_info'][1]['data'] = {"required": True}
         try:
             component_parameters['current_parameters']['runtime_image'] = \
                 component_body['implementation']['container']['image']
@@ -467,7 +469,8 @@ class AirflowComponentParser(ComponentParser):
 
         # Add class information as parameter
         component_parameters['parameters'].append({"id": "elyra_airflow_class_name"})
-        component_parameters['current_parameters']["elyra_airflow_class_name"] = []
+        # TODO Test this with empty string or otherwise determine a solution here
+        component_parameters['current_parameters']["elyra_airflow_class_name"] = ""
 
         class_parameter_info = {
             "parameter_ref": "elyra_airflow_class_name",
