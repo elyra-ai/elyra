@@ -128,7 +128,7 @@ describe('Pipeline Editor tests', () => {
     // opens pipeline from the file browser
     cy.openFile('invalid.pipeline');
 
-    cy.wait(5000);
+    cy.wait(50000);
 
     // try to run invalid pipeline
     cy.findByRole('button', { name: /run pipeline/i }).click();
