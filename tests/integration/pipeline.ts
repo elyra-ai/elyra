@@ -103,7 +103,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
-    cy.wait(10000);
+    cy.wait(50000);
 
     // Open notebook with double-click
     cy.get('#jp-main-dock-panel').within(() => {
@@ -143,7 +143,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
-    cy.wait(10000);
+    cy.wait(50000);
 
     cy.get('#jp-main-dock-panel').within(() => {
       cy.findByText('helloworld.ipynb').rightclick();
