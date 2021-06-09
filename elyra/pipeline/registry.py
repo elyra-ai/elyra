@@ -593,7 +593,7 @@ class AirflowComponentParser(ComponentParser):
         # Set default type to string
         data_object['format'] = "string"
         custom_control_id = "StringControl"
-        name_adjust = "str_"
+        name_adjust = ""
 
         # Search for :type [param] information in class docstring
         type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''))")
