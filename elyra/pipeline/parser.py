@@ -268,8 +268,20 @@ class PipelineParser(LoggingConfigurable):
                     continue
                 elif class_name and key.startswith(class_name.lower()):
                     key = key.replace(class_name.lower() + "_", "")
-                    # Convert string to include surrounding quotes so that jinja template can render values properly
-                    if isinstance(value, str):
+                    # TODO Add try/except clause here to catch user-entered incorrect values and display error
+                    if "dict_" in key:
+                        key = key.replace("dict_", "")
+                        value = dict(value)
+                    elif "list_" in key:
+                        key = key.replace("list_", "")
+                        value = list(value)
+                    elif "int_" in key:
+                        key = key.replace("int_", "")
+                        value = int(value)
+                    # If not dictionary or list object, convert string to include surrounding quotes
+                    # so that jinja template can render values properly. Integers and booleans will
+                    # not appear as strign intances
+                    elif isinstance(value, str):
                         value = json.dumps(value)
                 # For KFP path inputs and outputs, grab the content in order to pass to contructor
                 if key.startswith("elyra_path_"):
