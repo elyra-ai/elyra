@@ -744,10 +744,13 @@ class ComponentRegistry(SingletonConfigurable):
             filename_param = properties['uihints']['parameter_info'][0]
             if component_id == "python-script":
                 filename_param['data']['extensions'] = ['.py']
+                filename_param['description'] = "The path to the Python file."
             elif component_id == "r-script":
                 filename_param['data']['extensions'] = ['.r']
+                filename_param['description'] = "The path to the R file."
             elif component_id == "notebooks":
                 filename_param['data']['extensions'] = ['.ipynb']
+                filename_param['description'] = "The path to the notebook file."
         else:
             # Find component with given id in component catalog
             component = parser.return_component_if_exists(component_id)
