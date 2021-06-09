@@ -3,13 +3,13 @@
     "train-spark-model-ibm-cloud": {
       "name": "Train Spark Model - IBM Cloud",
       "path": {
-        "filename": "resources/example1.yaml"
+        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/ibm-components/spark/train_spark/component.yaml"
       }
     },
     "run-notebook-using-papermill": {
       "name": "Run Notebook Using Papermill",
       "path": {
-        "filename": "resources/example2.yaml"
+        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/notebooks/Run_notebook_using_papermill/component.yaml"
       }
     },
     "serve-pytorch-model-seldon-core": {
