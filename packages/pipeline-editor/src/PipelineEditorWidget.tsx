@@ -184,7 +184,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       setLoading(false);
     };
 
-    const loadNodes = (pipelineRuntime?: string) => {
+    const loadNodes = (pipelineRuntime?: string): void => {
       PipelineService.getRuntimeImages().then((images: any) => {
         runtimeImages.current = images;
         PipelineService.getRuntimeComponents(pipelineRuntime ?? 'local').then(
