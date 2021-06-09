@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
 
@@ -265,11 +266,11 @@ class PipelineParser(LoggingConfigurable):
                 if class_name and not key.startswith(class_name.lower().replace(' ', '_')):
                     # Skip if the class name does not match that selected
                     continue
-                elif class_name and key.startswith(class_name.lower().replace(' ', '_')):
-                    key = key.replace(class_name.lower().replace(' ', '_') + "_", "")
-                    # Convert string to double quote so that jinja template can render values properly
+                elif class_name and key.startswith(class_name.lower()):
+                    key = key.replace(class_name.lower() + "_", "")
+                    # Convert string to include surrounding quotes so that jinja template can render values properly
                     if isinstance(value, str):
-                        value = "\"" + value + "\""
+                        value = json.dumps(value)
                 # For KFP path inputs and outputs, grab the content in order to pass to contructor
                 if key.startswith("elyra_path_"):
                     key = key.replace("elyra_path_", "")
