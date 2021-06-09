@@ -746,7 +746,7 @@ class ComponentRegistry(SingletonConfigurable):
                 filename_param['data']['extensions'] = ['.py']
             elif component_id == "r-script":
                 filename_param['data']['extensions'] = ['.r']
-            elif component_id == "notebook":
+            elif component_id == "notebooks":
                 filename_param['data']['extensions'] = ['.ipynb']
         else:
             # Find component with given id in component catalog
