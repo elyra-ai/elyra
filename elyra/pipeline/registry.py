@@ -557,17 +557,6 @@ class AirflowComponentParser(ComponentParser):
 
                     # Add to existing parameter list
                     component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
-
-                    # Adjust default value to remove quotation marks and concatenate strings
-                    '''
-                    if new_parameter_info['data']['format'] == "string":
-                        substrs = []
-                        for substr in default_value.split():
-                            substr = substr.strip().replace("'", "")
-                            substrs.append(substr.replace('\n', "") + " ")
-                        default_value = "".join(substrs)
-                    '''
-
                     component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = default_value
 
                     # Add to existing parameter info list
@@ -604,6 +593,7 @@ class AirflowComponentParser(ComponentParser):
         # Set default type to string
         data_object['format'] = "string"
         custom_control_id = "StringControl"
+        name_adjust = "str_"
 
         # Search for :type [param] information in class docstring
         type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''))")
@@ -614,6 +604,12 @@ class AirflowComponentParser(ComponentParser):
             if "str" not in match.group(1).strip():
                 data_object['format'] = match.group(1).strip()
                 custom_control_id = self.get_custom_control_id(match.group(1).strip().lower())
+            if "dict" in match.group(1).strip():
+                name_adjust = "dict_"
+            elif "list" in match.group(1).strip() or "array" in match.group(1).strip():
+                name_adjust = "list_"
+            elif "int" in match.group(1).strip():
+                name_adjust = "int_"
 
             # Add type to description as hint to users?
             if not parameter_description:
@@ -622,7 +618,7 @@ class AirflowComponentParser(ComponentParser):
                 parameter_description += f" (type: {data_object['format']})"
 
         # Build parameter info
-        new_parameter = self.compose_parameter(f"{class_name}_{parameter_name}",
+        new_parameter = self.compose_parameter(f"{class_name}_{name_adjust}{parameter_name}",
                                                custom_control_id,
                                                parameter_name,
                                                parameter_description,

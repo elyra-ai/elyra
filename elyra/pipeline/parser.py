@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
 
@@ -265,19 +266,38 @@ class PipelineParser(LoggingConfigurable):
                 if class_name and not key.startswith(class_name.lower().replace(' ', '_')):
                     # Skip if the class name does not match that selected
                     continue
-                elif class_name and key.startswith(class_name.lower().replace(' ', '_')):
-                    key = key.replace(class_name.lower().replace(' ', '_') + "_", "")
-                    # Convert string to double quote so that jinja template can render values properly
-                    if isinstance(value, str):
-                        value = "\"" + value + "\""
+                elif class_name and key.startswith(class_name.lower()):
+                    key = key.replace(class_name.lower() + "_", "")
+                    # TODO Add try/except clause here to catch user-entered incorrect values and
+                    # display error
+                    if "dict_" in key:
+                        key = key.replace("dict_", "")
+                        value = dict(value)
+                    elif "list_" in key:
+                        key = key.replace("list_", "")
+                        value = list(value)
+                    elif "int_" in key:
+                        key = key.replace("int_", "")
+                        value = int(value)
+                    # If not dictionary or list object, convert string to include surrounding quotes
+                    # so that jinja template can render values properly. Integers and booleans will
+                    # not appear as string instances
+                    elif isinstance(value, str):
+                        value = json.dumps(value)
                 # For KFP path inputs and outputs, grab the content in order to pass to contructor
                 if key.startswith("elyra_path_"):
                     key = key.replace("elyra_path_", "")
                     filename = get_absolute_path(get_expanded_path(self.root_dir), value)
                     # TODO: Add error checking for FNF scenarios (at minimum)
-                    with open(filename) as f:
-                        value = f.read()
-                # Remove unique identifier of parameter id if one was added during component properties parsing for KFP
+                    try:
+                        with open(filename) as f:
+                            value = f.read()
+                    except Exception:
+                        # If file can't be found locally, assume a remote file location was entered.
+                        # This may cause the pipeline run to fail; the user must debug in this case.
+                        pass
+                # Remove unique identifier of parameter id if one was added during component
+                # properties parsing for KFP
                 if key.startswith("elyra_outputs_"):
                     key = key.replace("elyra_outputs_", "")
 

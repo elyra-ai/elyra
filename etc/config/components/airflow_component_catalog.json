@@ -30,6 +30,12 @@
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/kubernetes_pod_operator.py"
       }
     },
+    "papermill-operator": {
+      "name": "Papermill Operator",
+      "path": {
+        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/papermill_operator.py"
+      }
+    },
     "spark-jdbc-operator": {
       "name": "Spark JDBC Operator",
       "path": {
