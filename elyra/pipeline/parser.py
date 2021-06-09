@@ -281,7 +281,7 @@ class PipelineParser(LoggingConfigurable):
                         value = int(value)
                     # If not dictionary or list object, convert string to include surrounding quotes
                     # so that jinja template can render values properly. Integers and booleans will
-                    # not appear as strign intances
+                    # not appear as string instances
                     elif isinstance(value, str):
                         value = json.dumps(value)
                 # For KFP path inputs and outputs, grab the content in order to pass to contructor
