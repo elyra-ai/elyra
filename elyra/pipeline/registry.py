@@ -363,40 +363,6 @@ class KfpComponentParser(ComponentParser):
         # Append input group info to parameter details
         component_parameters['uihints']['group_info'][0]['group_info'].append(input_group_info)
 
-        # Define new output group object
-        output_group_info = {
-            'id': "outputs",  # need to actually figure out the control id
-            'type': "controls",
-            'parameter_refs': []
-        }
-
-        outputs = component_body['outputs']
-        for output_object in outputs:
-            new_parameter_info = self.build_parameter(output_object, "output")
-            new_parameter_info['parameter_ref'] = f"elyra_outputs_{new_parameter_info['parameter_ref']}"
-
-            # Change parameter_ref and description to reflect the type of output (value vs path)
-            new_parameter_info['parameter_ref'], new_parameter_info['description']['default'] = \
-                self.get_adjusted_parameter_fields(component_body=component_body,
-                                                   io_object_name=output_object['name'],
-                                                   io_object_type="output",
-                                                   parameter_ref=new_parameter_info['parameter_ref'],
-                                                   parameter_type=new_parameter_info['data']['format'],
-                                                   description=new_parameter_info['description']['default'])
-
-            # Add to existing parameter list
-            component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
-            component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = ""
-
-            # Add to existing parameter info list
-            component_parameters['uihints']['parameter_info'].append(new_parameter_info)
-
-            # Add parameter to output group info
-            output_group_info['parameter_refs'].append(new_parameter_info['parameter_ref'])
-
-        # Append output group info to parameter details
-        component_parameters['uihints']['group_info'][0]['group_info'].append(output_group_info)
-
         return component_parameters
 
     def build_parameter(self, obj, obj_type):
@@ -421,7 +387,7 @@ class KfpComponentParser(ComponentParser):
             custom_control_id = self.get_custom_control_id(obj['type'].lower())
 
         # Build label name
-        label = f"{obj['name']} ({obj_type})"
+        label = f"{obj['name']}"
 
         # Build parameter info
         new_parameter = self.compose_parameter(obj['name'], custom_control_id, label,
@@ -605,11 +571,9 @@ class AirflowComponentParser(ComponentParser):
                 data_object['format'] = match.group(1).strip()
                 custom_control_id = self.get_custom_control_id(match.group(1).strip().lower())
             if "dict" in match.group(1).strip():
-                name_adjust = "dict_"
-            elif "list" in match.group(1).strip() or "array" in match.group(1).strip():
-                name_adjust = "list_"
+                name_adjust = "elyra_dict_"
             elif "int" in match.group(1).strip():
-                name_adjust = "int_"
+                name_adjust = "elyra_int_"
 
             # Add type to description as hint to users?
             if not parameter_description:

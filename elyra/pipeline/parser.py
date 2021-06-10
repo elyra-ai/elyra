@@ -270,14 +270,11 @@ class PipelineParser(LoggingConfigurable):
                     key = key.replace(class_name.lower() + "_", "")
                     # TODO Add try/except clause here to catch user-entered incorrect values and
                     # display error
-                    if "dict_" in key:
-                        key = key.replace("dict_", "")
+                    if "elyra_dict_" in key:
+                        key = key.replace("elyra_dict_", "")
                         value = dict(value)
-                    elif "list_" in key:
-                        key = key.replace("list_", "")
-                        value = list(value)
-                    elif "int_" in key:
-                        key = key.replace("int_", "")
+                    elif "elyra_int_" in key:
+                        key = key.replace("elyra_int_", "")
                         value = int(value)
                     # If not dictionary or list object, convert string to include surrounding quotes
                     # so that jinja template can render values properly. Integers and booleans will
@@ -296,12 +293,6 @@ class PipelineParser(LoggingConfigurable):
                         # If file can't be found locally, assume a remote file location was entered.
                         # This may cause the pipeline run to fail; the user must debug in this case.
                         pass
-                # Remove unique identifier of parameter id if one was added during component
-                # properties parsing for KFP
-                if key.startswith("elyra_outputs_"):
-                    # key = key.replace("elyra_outputs_", "")
-                    # Skip outputs for now as they are throwing errors in ContainerOp construction
-                    continue
 
                 component_params[key] = value
 
