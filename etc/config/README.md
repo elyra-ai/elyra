@@ -19,17 +19,27 @@ limitations under the License.
 This directory root contains files necessary for the installation of Elyra. They are packaged with every
 release of Elyra and used as part of the installation process.
 
-### jupyter_server_config.d
+### components
 
-Contains the Jupyter specific configuration files necessary to activate the server side extensions of Elyra. This includes the following extensions:
+Contains the component registry used to populate runtime specific components in the pipeline editor
+
+### jupyter_server_config.d / jupyter_notebook_config.d
+
+Contains the Jupyter specific configuration files necessary to activate the server side extensions of Elyra.
+This includes the following extensions:
 - Elyra
 - Jupyter Resource Usage
 - JupyterLab Git 
 
 ### metadata
 
-Contains the default/sample runtime image configuration metadata (image registry and location). For more information on how to add more runtime images see: [Runtime Image Configuration](https://elyra.readthedocs.io/en/latest/user_guide/runtime-image-conf.html#runtime-image-configuration)
+Contains the default/sample runtime image configuration metadata (image registry and location). For more information
+on how to add more runtime images see:
+[Runtime Image Configuration](https://elyra.readthedocs.io/en/latest/user_guide/runtime-image-conf.html#runtime-image-configuration)
 
 ### settings
 
-The page_config.json data is used to provide configuration data to the application environment. For more details about this file see: [LabConfig Directories](https://jupyterlab.readthedocs.io/en/latest/user/directories.html#labconfig-directories)
+The page_config.json data is used to provide configuration data to the application environment. For more details
+about this file see:
+[LabConfig Directories](https://jupyterlab.readthedocs.io/en/latest/user/directories.html#labconfig-directories)
+

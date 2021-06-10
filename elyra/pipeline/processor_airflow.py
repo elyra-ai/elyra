@@ -156,50 +156,67 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
         PipelineProcessor._propagate_operation_inputs_outputs(pipeline, sorted_operations)
 
         for operation in sorted_operations:
-            operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-            self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
-                op=operation, archive=operation_artifact_archive))
+            if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
+                operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-            # Collect env variables
-            pipeline_envs = self._collect_envs(operation,
-                                               cos_secret=cos_secret,
-                                               cos_username=cos_username,
-                                               cos_password=cos_password)
+                self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                    op=operation, archive=operation_artifact_archive))
 
-            image_pull_policy = None
-            for image_instance in image_namespace:
-                if image_instance.metadata['image_name'] == operation.runtime_image and \
-                        image_instance.metadata.get('pull_policy'):
-                    image_pull_policy = image_instance.metadata['pull_policy']
+                # Collect env variables
+                pipeline_envs = self._collect_envs(operation,
+                                                   cos_secret=cos_secret,
+                                                   cos_username=cos_username,
+                                                   cos_password=cos_password)
 
-            notebook = {'notebook': operation.name,
-                        'id': operation.id,
-                        'filename': operation.filename,
-                        'runtime_image': operation.runtime_image,
-                        'cos_endpoint': cos_endpoint,
-                        'cos_bucket': cos_bucket,
-                        'cos_directory': cos_directory,
-                        'cos_dependencies_archive': operation_artifact_archive,
-                        'pipeline_outputs': operation.outputs,
-                        'pipeline_inputs': operation.inputs,
-                        'pipeline_envs': pipeline_envs,
-                        'parent_operations': operation.parent_operations,
-                        'image_pull_policy': image_pull_policy,
-                        'cpu_request': operation.cpu,
-                        'mem_request': operation.memory,
-                        'gpu_request': operation.gpu
-                        }
+                image_pull_policy = None
+                for image_instance in image_namespace:
+                    if image_instance.metadata['image_name'] == operation.runtime_image and \
+                            image_instance.metadata.get('pull_policy'):
+                        image_pull_policy = image_instance.metadata['pull_policy']
 
-            notebook_ops.append(notebook)
+                notebook = {'notebook': operation.name,
+                            'id': operation.id,
+                            'filename': operation.filename,
+                            'runtime_image': operation.runtime_image,
+                            'cos_endpoint': cos_endpoint,
+                            'cos_bucket': cos_bucket,
+                            'cos_directory': cos_directory,
+                            'cos_dependencies_archive': operation_artifact_archive,
+                            'pipeline_outputs': operation.outputs,
+                            'pipeline_inputs': operation.inputs,
+                            'pipeline_envs': pipeline_envs,
+                            'parent_operations': operation.parent_operations,
+                            'image_pull_policy': image_pull_policy,
+                            'cpu_request': operation.cpu,
+                            'mem_request': operation.memory,
+                            'gpu_request': operation.gpu
+                            }
 
-            self.log_pipeline_info(pipeline_name,
-                                   f"processing operation dependencies for id: {operation.id}",
-                                   operation_name=operation.name)
+                notebook_ops.append(notebook)
 
-            self._upload_dependencies_to_object_store(runtime_configuration,
-                                                      pipeline_name,
-                                                      operation)
+                self.log_pipeline_info(pipeline_name,
+                                       f"processing operation dependencies for id: {operation.id}",
+                                       operation_name=operation.name)
+
+                self._upload_dependencies_to_object_store(runtime_configuration,
+                                                          pipeline_name,
+                                                          operation)
+
+            else:
+                # TODO Change this name
+                notebook = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
+                            'id': operation.id,
+                            'filename': operation.component_source.rsplit('/', 1)[-1].split('.')[0],
+                            'runtime_image': operation.runtime_image,
+                            'parent_operations': operation.parent_operations,
+                            'component_source': operation.component_source,
+                            'component_source_type': operation.component_source_type,
+                            'component_params': operation.component_params,
+                            'name': operation.component_class,
+                            }
+
+                notebook_ops.append(notebook)
 
         ordered_notebook_ops = OrderedDict()
 
