@@ -25,7 +25,7 @@ The Elyra documentation's source is stored in the [Elyra repository](https://git
 
 To contribute content to the Elyra documentation follow these steps:
 
-1. Fork the [repository](https://github.com/elyra-ai/elyra ).
+1. Fork the [repository](https://github.com/elyra-ai/elyra).
 
 1. Clone your fork.
 
