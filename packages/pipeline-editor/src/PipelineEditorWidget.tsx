@@ -133,10 +133,6 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState(null);
   const [updatedNodes, setUpdatedNodes] = React.useState(nodes);
-  const [
-    updatedPipelineProperties,
-    setUpdatedPipelineProperties
-  ] = React.useState(pipelineProperties);
   const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
 
   const contextRef = useRef(context);
@@ -189,19 +185,12 @@ const PipelineWrapper: React.FC<IProps> = ({
       .then((images: any) => {
         runtimeImages.current = images;
         const nodesCopy = JSON.parse(JSON.stringify(nodes));
-        const pipelinePropertiesCopy = JSON.parse(
-          JSON.stringify(updatedPipelineProperties)
-        );
         for (const node of nodesCopy) {
           node.properties.uihints.parameter_info[1].data.items = Object.values(
             runtimeImages.current
           );
         }
-        pipelinePropertiesCopy.properties.uihints.parameter_info[4].data.items = Object.values(
-          runtimeImages.current
-        );
         setUpdatedNodes(nodesCopy);
-        setUpdatedPipelineProperties(pipelinePropertiesCopy);
         changeHandler();
       })
       .catch(error => RequestErrors.serverError(error));
@@ -209,7 +198,6 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onChange = useCallback((pipelineJson: any): void => {
@@ -858,7 +846,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineEditor
           ref={ref}
           nodes={updatedNodes}
-          pipelineProperties={updatedPipelineProperties}
+          pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}

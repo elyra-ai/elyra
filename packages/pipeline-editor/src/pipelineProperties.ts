@@ -19,17 +19,9 @@ const pipelineProperties = {
     current_parameters: {
       name: '',
       runtime: '',
-      description: '',
-      env_vars: [],
-      default_runtime_image: ''
+      description: ''
     },
-    parameters: [
-      { id: 'name' },
-      { id: 'runtime' },
-      { id: 'description' },
-      { id: 'env_vars' },
-      { id: 'default_runtime_image' }
-    ],
+    parameters: [{ id: 'name' }, { id: 'runtime' }, { id: 'description' }],
     uihints: {
       id: 'nodeProperties',
       parameter_info: [
@@ -54,33 +46,6 @@ const pipelineProperties = {
             placeholder: 'Pipeline description',
             format: 'multiline'
           }
-        },
-        {
-          control: 'custom',
-          custom_control_id: 'StringArrayControl',
-          parameter_ref: 'env_vars',
-          label: { default: 'Environment Variables' },
-          description: {
-            default:
-              'Environment variables to be set on the execution environment.',
-            placement: 'on_panel'
-          },
-          data: { placeholder: 'ENV_VAR=value', canRefresh: false }
-        },
-        {
-          parameter_ref: 'default_runtime_image',
-          label: { default: 'Default Runtime Image' },
-          control: 'custom',
-          custom_control_id: 'EnumControl',
-          description: {
-            default:
-              'Docker image used as execution environment if not specified in node properties.',
-            placement: 'on_panel'
-          },
-          data: {
-            items: [],
-            required: true
-          }
         }
       ],
       group_info: [
@@ -102,12 +67,6 @@ const pipelineProperties = {
               id: 'description',
               type: 'controls',
               parameter_refs: ['description']
-            },
-            { id: 'env_vars', type: 'controls', parameter_refs: ['env_vars'] },
-            {
-              id: 'default_runtime_image',
-              type: 'controls',
-              parameter_refs: ['default_runtime_image']
             }
           ]
         }
