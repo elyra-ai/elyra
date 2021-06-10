@@ -18,9 +18,7 @@ import {
   containerIcon,
   pipelineIcon,
   RequestErrors,
-  runtimesIcon,
-  kubeflowIcon,
-  airflowIcon
+  runtimesIcon
 } from '@elyra/ui-components';
 
 import {
@@ -40,7 +38,11 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
-import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
+import {
+  PipelineEditorFactory,
+  commandIDs,
+  getRuntimeIcon
+} from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import {
   RUNTIME_IMAGES_NAMESPACE,
@@ -55,8 +57,6 @@ import '../style/index.css';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-
-const runtimeIcons = [kubeflowIcon, airflowIcon];
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -172,14 +172,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         if (args['isPalette']) {
           return undefined;
         } else {
-          if (args.runtime?.display_name) {
-            for (const runtimeIcon of runtimeIcons) {
-              if (`elyra:${args['runtime']['name']}` === runtimeIcon.name) {
-                return runtimeIcon;
-              }
-            }
-          }
-          return pipelineIcon;
+          return getRuntimeIcon(args.runtime?.name);
         }
       },
       execute: (args: any) => {

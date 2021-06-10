@@ -13,15 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
 
 from .pipeline import Pipeline, Operation
+from elyra.util import get_expanded_path, get_absolute_path
+
 
 DEFAULT_FILETYPE = "tar.gz"
 
 
 class PipelineParser(LoggingConfigurable):
+
+    def __init__(self, root_dir="", **kwargs):
+        self.root_dir = root_dir
 
     def parse(self, pipeline_definitions: Dict) -> Pipeline:
         """
@@ -100,7 +106,7 @@ class PipelineParser(LoggingConfigurable):
                 raise ValueError("Node type '{}' is invalid!".format(node_type))
 
             # parse each node as a pipeline operation
-            operation = PipelineParser._create_pipeline_operation(node, super_node)
+            operation = self._create_pipeline_operation(node, super_node)
             self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.filename, pipeline_object.name))
             pipeline_object.operations[operation.id] = operation
 
@@ -127,8 +133,7 @@ class PipelineParser(LoggingConfigurable):
                 return p
         return None
 
-    @staticmethod
-    def _create_pipeline_operation(node: Dict, super_node: Optional[Dict] = None):
+    def _create_pipeline_operation(self, node: Dict, super_node: Optional[Dict] = None):
         """
         Creates a pipeline operation instance from the given node.
         The node and super_node are used to build the list of parent_operations (links) to
@@ -154,7 +159,11 @@ class PipelineParser(LoggingConfigurable):
             include_subdirectories=PipelineParser._get_app_data_field(node, 'include_subdirectories', False),
             env_vars=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'env_vars', [])),
             outputs=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'outputs', [])),
-            parent_operations=parent_operations)
+            parent_operations=parent_operations,
+            component_source=PipelineParser._get_app_data_field(node, 'component_source'),
+            component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type'),
+            component_class=PipelineParser._get_app_data_field(node, 'elyra_airflow_class_name'),
+            component_params=self._get_remaining_component_params(node))
 
     @staticmethod
     def _get_child_field(obj: Dict, child: str, field_name: str, default_value: Any = None) -> Any:
@@ -234,3 +243,57 @@ class PipelineParser(LoggingConfigurable):
         if not dirty:
             return []
         return [clean for clean in dirty if clean]
+
+    def _get_remaining_component_params(self, node: Dict):
+        """
+        Builds a dictionary of the parameters for a given node that do not have a corresponding
+        property in the Operation object. These parameters will be used by the appropriate processor when
+        loading and running a component that is not one of the standard notebook or script operations.
+        """
+        component_params = {}
+        if node.get('op') not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
+            for key, value in node['app_data'].items():
+                # Do not include any null values
+                if not value or value == "None":
+                    continue
+                # Do not include any of the standard set of parameters
+                if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
+                           "include_subdirectories", "ui_data", "component_source", "component_source_type",
+                           "elyra_airflow_class_name"]:
+                    continue
+                # For Airflow inputs, remove class name information from key
+                class_name = PipelineParser._get_app_data_field(node, 'elyra_airflow_class_name')
+                if class_name and not key.startswith(class_name.lower().replace(' ', '_')):
+                    # Skip if the class name does not match that selected
+                    continue
+                elif class_name and key.startswith(class_name.lower()):
+                    key = key.replace(class_name.lower() + "_", "")
+                    # TODO Add try/except clause here to catch user-entered incorrect values and
+                    # display error
+                    if "elyra_dict_" in key:
+                        key = key.replace("elyra_dict_", "")
+                        value = dict(value)
+                    elif "elyra_int_" in key:
+                        key = key.replace("elyra_int_", "")
+                        value = int(value)
+                    # If not dictionary or list object, convert string to include surrounding quotes
+                    # so that jinja template can render values properly. Integers and booleans will
+                    # not appear as string instances
+                    elif isinstance(value, str):
+                        value = json.dumps(value)
+                # For KFP path inputs and outputs, grab the content in order to pass to contructor
+                if key.startswith("elyra_path_"):
+                    key = key.replace("elyra_path_", "")
+                    filename = get_absolute_path(get_expanded_path(self.root_dir), value)
+                    # TODO: Add error checking for FNF scenarios (at minimum)
+                    try:
+                        with open(filename) as f:
+                            value = f.read()
+                    except Exception:
+                        # If file can't be found locally, assume a remote file location was entered.
+                        # This may cause the pipeline run to fail; the user must debug in this case.
+                        pass
+
+                component_params[key] = value
+
+        return component_params

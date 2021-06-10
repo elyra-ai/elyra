@@ -36,7 +36,9 @@ recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
 recursive-include elyra/metadata/schemas *
 recursive-include elyra/pipeline/resources *
 recursive-include elyra/templates *
-recursive-include etc/config/metadata/runtime-images *.json
+recursive-include etc/config/components/ *.json
 recursive-include etc/config/jupyter_notebook_config.d *.json
 recursive-include etc/config/jupyter_server_config.d *.json
+recursive-include etc/config/metadata/runtime-images *.json
 recursive-include etc/config/settings/ *.json
+

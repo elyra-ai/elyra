@@ -30,6 +30,7 @@ from elyra.util.path import get_absolute_path
 from jinja2 import Environment, PackageLoader
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
+from kfp import components as components
 from kfp.aws import use_aws_secret
 from kfp_tekton import TektonClient, compiler as kfp_tekton_compiler
 from kfp_notebook.pipeline import NotebookOp
@@ -312,6 +313,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             for key, operation in defined_pipeline.items():
+                if operation.classifier not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
+                    continue
                 self.log.debug("component :\n "
                                "container op name : %s \n "
                                "inputs : %s \n "
@@ -405,11 +408,6 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
         for operation in sorted_operations:
 
-            operation_artifact_archive = self._get_dependency_archive_name(operation)
-
-            self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
-                           op=operation, archive=operation_artifact_archive))
-
             if container_runtime:
                 # Volume size to create when using CRI-o, NOTE: IBM Cloud minimum is 20Gi
                 emptydir_volume_size = '20Gi'
@@ -422,50 +420,81 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
 
             sanitized_operation_name = self._sanitize_operation_name(operation.name)
 
-            # create pipeline operation
-            notebook_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
-                                                    pipeline_name=pipeline_name,
-                                                    experiment_name=experiment_name,
-                                                    notebook=operation.filename,
-                                                    cos_endpoint=cos_endpoint,
-                                                    cos_bucket=cos_bucket,
-                                                    cos_directory=cos_directory,
-                                                    cos_dependencies_archive=operation_artifact_archive,
-                                                    pipeline_version=pipeline_version,
-                                                    pipeline_source=pipeline.source,
-                                                    pipeline_inputs=operation.inputs,
-                                                    pipeline_outputs=operation.outputs,
-                                                    pipeline_envs=pipeline_envs,
-                                                    emptydir_volume_size=emptydir_volume_size,
-                                                    cpu_request=operation.cpu,
-                                                    mem_request=operation.memory,
-                                                    gpu_limit=operation.gpu,
-                                                    image=operation.runtime_image,
-                                                    file_outputs={
-                                                        'mlpipeline-metrics':
-                                                            '{}/mlpipeline-metrics.json'
-                                                            .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),
-                                                        'mlpipeline-ui-metadata':
-                                                            '{}/mlpipeline-ui-metadata.json'
-                                                            .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])
-                                                    })
+            # Create pipeline operation
+            # If operation is one of the "standard" set of NBs or scripts, construct custom NotebookOp
+            if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
 
-            if cos_secret and not export:
-                notebook_ops[operation.id].apply(use_aws_secret(cos_secret))
+                operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-            image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
-            for image_instance in image_namespace:
-                if image_instance.metadata['image_name'] == operation.runtime_image and \
-                   image_instance.metadata.get('pull_policy'):
-                    notebook_ops[operation.id].container.set_image_pull_policy(image_instance.metadata['pull_policy'])
+                self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                               op=operation, archive=operation_artifact_archive))
 
-            self.log_pipeline_info(pipeline_name,
-                                   f"processing operation dependencies for id: {operation.id}",
-                                   operation_name=operation.name)
+                notebook_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
+                                                        pipeline_name=pipeline_name,
+                                                        experiment_name=experiment_name,
+                                                        notebook=operation.filename,
+                                                        cos_endpoint=cos_endpoint,
+                                                        cos_bucket=cos_bucket,
+                                                        cos_directory=cos_directory,
+                                                        cos_dependencies_archive=operation_artifact_archive,
+                                                        pipeline_version=pipeline_version,
+                                                        pipeline_source=pipeline.source,
+                                                        pipeline_inputs=operation.inputs,
+                                                        pipeline_outputs=operation.outputs,
+                                                        pipeline_envs=pipeline_envs,
+                                                        emptydir_volume_size=emptydir_volume_size,
+                                                        cpu_request=operation.cpu,
+                                                        mem_request=operation.memory,
+                                                        gpu_limit=operation.gpu,
+                                                        image=operation.runtime_image,
+                                                        file_outputs={
+                                                            'mlpipeline-metrics':
+                                                                '{}/mlpipeline-metrics.json'
+                                                                .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),
+                                                            'mlpipeline-ui-metadata':
+                                                                '{}/mlpipeline-ui-metadata.json'
+                                                                .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])
+                                                        })
 
-            self._upload_dependencies_to_object_store(runtime_configuration,
-                                                      cos_directory,
-                                                      operation)
+                # TODO Can we move all of this to apply to non-standard components as well? Test when servers are up
+                if cos_secret and not export:
+                    notebook_ops[operation.id].apply(use_aws_secret(cos_secret))
+
+                image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+                for image_instance in image_namespace:
+                    if image_instance.metadata['image_name'] == operation.runtime_image and \
+                            image_instance.metadata.get('pull_policy'):
+                        notebook_ops[operation.id].container. \
+                            set_image_pull_policy(image_instance.metadata['pull_policy'])
+
+                self.log_pipeline_info(pipeline_name,
+                                       f"processing operation dependencies for id: {operation.id}",
+                                       operation_name=operation.name)
+
+                self._upload_dependencies_to_object_store(runtime_configuration,
+                                                          cos_directory,
+                                                          operation)
+
+            # If operation is a "non-standard" component, load it's spec and create operation with factory function
+            else:
+                component_source = {}
+                component_source[operation.component_source_type] = operation.component_source
+
+                # Build component task factory
+                try:
+                    factory_function = components.load_component(**component_source)
+                except Exception:
+                    # TODO Fix error messaging and break exceptions down into categories
+                    self.log.error(f"There was an error while loading component spec for {operation.name}.")
+                    raise RuntimeError(f"There was an error while loading component spec for {operation.name}.")
+
+                # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
+                try:
+                    notebook_ops[operation.id] = factory_function(**operation.component_params)
+                except Exception:
+                    # TODO Fix error messaging and break exceptions down into categories
+                    self.log.error(f"There was an error while constructing component {operation.name}.")
+                    raise RuntimeError(f"There was an error while constructing component {operation.name}.")
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():

@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 from .parser import FileReader, NotebookReader, PythonScriptParser, RScriptParser, ContentParser
-from .handlers import FileParserHandler
+from .handlers import ContentHandler
