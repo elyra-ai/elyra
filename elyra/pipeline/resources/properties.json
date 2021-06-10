@@ -1,5 +1,6 @@
 {
   "current_parameters": {
+    "label": "",
     "filename": "",
     "runtime_image": "",
     "cpu": "",
@@ -11,6 +12,9 @@
     "include_subdirectories": false
   },
   "parameters": [
+    {
+      "id": "label"
+    },
     {
       "id": "filename"
     },
@@ -42,6 +46,19 @@
   "uihints": {
     "id": "nodeProperties",
     "parameter_info": [
+      {
+        "parameter_ref": "label",
+        "control": "custom",
+        "custom_control_id": "StringControl",
+        "label": {
+          "default": "Label"
+        },
+        "description": {
+          "default": "A custom label for the node.",
+          "placement": "on_panel"
+        },
+        "data": {}
+      },
       {
         "parameter_ref": "filename",
         "control": "custom",
@@ -187,6 +204,11 @@
         "id": "nodeGroupInfo",
         "type": "panels",
         "group_info": [
+          {
+            "id": "label",
+            "type": "controls",
+            "parameter_refs": ["label"]
+          },
           {
             "id": "filename",
             "type": "controls",

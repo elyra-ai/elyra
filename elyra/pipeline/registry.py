@@ -309,7 +309,10 @@ class KfpComponentParser(ComponentParser):
 
         # Add runtime image details. Note that runtime image will always be in position 1
         # due to the structure of the empty_properties object
-        runtime_image_param = component_parameters['uihints']['parameter_info'][1]
+        refs = [param['parameter_ref'] for param in component_parameters['uihints']['parameter_info']]
+        index = refs.index('runtime_image')
+
+        runtime_image_param = component_parameters['uihints']['parameter_info'][index]
         runtime_image_param['control'] = "readonly"
         runtime_image_param.pop("custom_control_id")
         runtime_image_param['data'] = {"required": True}
@@ -529,7 +532,7 @@ class AirflowComponentParser(ComponentParser):
             for match in init_regex.finditer(class_content):
                 # Add class as available operator. Note that elyra_airflow_class_names will always be in
                 # position 3 of the array as it is added as a 4th element to the empty_properties object
-                class_names_param = component_parameters['uihints']['parameter_info'][3]
+                class_names_param = component_parameters['uihints']['parameter_info'][4]
                 class_names_param['data']['items'].append(class_name)
                 group_info = {
                     'id': class_name,
@@ -738,7 +741,9 @@ class ComponentRegistry(SingletonConfigurable):
 
             # Adjust availalbe extensions based on type. Note that filename will always be
             # in position 0 due to the structure of the properties object
-            filename_param = properties['uihints']['parameter_info'][0]
+            index = [param['parameter_ref'] for param in properties['uihints']['parameter_info']].index('filename')
+
+            filename_param = properties['uihints']['parameter_info'][index]
             if component_id == "python-script":
                 filename_param['data']['extensions'] = ['.py']
                 filename_param['description']['default'] = "The path to the Python file."
