@@ -215,18 +215,6 @@ const PipelineWrapper: React.FC<IProps> = ({
           }
         }
       }
-      const pipelineProperties =
-        pipelineJson?.pipelines?.[0]?.app_data?.properties;
-      if (pipelineProperties?.default_runtime_image) {
-        for (const tag in runtimeImages.current) {
-          if (
-            runtimeImages.current?.[tag] ===
-            pipelineProperties.default_runtime_image
-          ) {
-            pipelineProperties.default_runtime_image = tag;
-          }
-        }
-      }
       contextRef.current.model.fromString(
         JSON.stringify(pipelineJson, null, 2)
       );
