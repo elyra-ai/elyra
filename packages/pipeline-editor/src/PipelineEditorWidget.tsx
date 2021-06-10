@@ -211,12 +211,15 @@ const PipelineWrapper: React.FC<IProps> = ({
                   }
                   node.description = nodeCategory.description;
                   node.properties = properties;
-                  if (node.properties.uihints.parameter_info[1].data) {
-                    node.properties.uihints.parameter_info[1].data.items = Object.values(
-                      runtimeImages.current
-                    );
+                  const index = node.properties.uihints.parameter_info.findIndex(
+                    (p: any) => p.parameter_ref === 'runtime_image'
+                  );
+                  if (node.properties.uihints.parameter_info[index].data) {
+                    node.properties.uihints.parameter_info[
+                      index
+                    ].data.items = Object.values(runtimeImages.current);
                   } else {
-                    node.properties.uihints.parameter_info[1].data = {
+                    node.properties.uihints.parameter_info[index].data = {
                       items: Object.values(runtimeImages.current)
                     };
                   }
