@@ -370,10 +370,7 @@ class KfpComponentParser(ComponentParser):
         outputs = component_body['outputs']
         for output_object in outputs:
             new_parameter_info = self.build_parameter(output_object, "output")
-
-            if new_parameter_info['parameter_ref'] in input_group_info['parameter_refs'] or \
-                    f"elyra_path_{new_parameter_info['parameter_ref']}" in input_group_info['parameter_refs']:
-                new_parameter_info['parameter_ref'] = f"elyra_outputs_{new_parameter_info['parameter_ref']}"
+            new_parameter_info['parameter_ref'] = f"elyra_outputs_{new_parameter_info['parameter_ref']}"
 
             # Change parameter_ref and description to reflect the type of output (value vs path)
             new_parameter_info['parameter_ref'], new_parameter_info['description']['default'] = \
@@ -744,13 +741,13 @@ class ComponentRegistry(SingletonConfigurable):
             filename_param = properties['uihints']['parameter_info'][0]
             if component_id == "python-script":
                 filename_param['data']['extensions'] = ['.py']
-                filename_param['description'] = "The path to the Python file."
+                filename_param['description']['default'] = "The path to the Python file."
             elif component_id == "r-script":
                 filename_param['data']['extensions'] = ['.r']
-                filename_param['description'] = "The path to the R file."
+                filename_param['description']['default'] = "The path to the R file."
             elif component_id == "notebooks":
                 filename_param['data']['extensions'] = ['.ipynb']
-                filename_param['description'] = "The path to the notebook file."
+                filename_param['description']['default'] = "The path to the notebook file."
         else:
             # Find component with given id in component catalog
             component = parser.return_component_if_exists(component_id)

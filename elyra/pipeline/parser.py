@@ -299,7 +299,9 @@ class PipelineParser(LoggingConfigurable):
                 # Remove unique identifier of parameter id if one was added during component
                 # properties parsing for KFP
                 if key.startswith("elyra_outputs_"):
-                    key = key.replace("elyra_outputs_", "")
+                    # key = key.replace("elyra_outputs_", "")
+                    # Skip outputs for now as they are throwing errors in ContainerOp construction
+                    continue
 
                 component_params[key] = value
 

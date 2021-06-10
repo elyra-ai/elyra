@@ -313,6 +313,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             for key, operation in defined_pipeline.items():
+                if operation.classifier not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
+                    continue
                 self.log.debug("component :\n "
                                "container op name : %s \n "
                                "inputs : %s \n "
@@ -491,8 +493,8 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                     notebook_ops[operation.id] = factory_function(**operation.component_params)
                 except Exception:
                     # TODO Fix error messaging and break exceptions down into categories
-                    self.log.error(f"There was an error while executing component {operation.name}.")
-                    raise RuntimeError(f"There was an error while executing component {operation.name}.")
+                    self.log.error(f"There was an error while constructing component {operation.name}.")
+                    raise RuntimeError(f"There was an error while constructing component {operation.name}.")
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
