@@ -18,14 +18,14 @@ limitations under the License.
 
 ## Elyra documentation
 
-The Elyra documentation's source is stored in the https://github.com/elyra-ai/elyra repository and hosted at https://elyra.readthedocs.io/. The documentation is written in [markdown](https://www.sphinx-doc.org/en/master/usage/markdown.html) and built using [Sphinx](https://www.sphinx-doc.org/en/master/).
+The Elyra documentation's source is stored in the [Elyra repository](https://github.com/elyra-ai/elyra) and hosted at [Elyra's Read the Docs](https://elyra.readthedocs.io/). The documentation is written in [Markdown](https://www.sphinx-doc.org/en/master/usage/markdown.html) and built using [Sphinx](https://www.sphinx-doc.org/en/master/).
 
 
 ### Contributing to the Elyra documentation
 
 To contribute content to the Elyra documentation follow these steps:
 
-1. Fork the https://github.com/elyra-ai/elyra repository.
+1. Fork the [repository](https://github.com/elyra-ai/elyra ).
 
 1. Clone your fork.
 
@@ -47,7 +47,7 @@ To contribute content to the Elyra documentation follow these steps:
    make docs
    ```
 
-1. Review the build output and verify that your updates introduced no warnings or errors. 
+1. Review the build output and verify that your updates introduced no warnings or errors.
 
 1. Review the updated documentation assets.
     1. Navigate to the `/docs/_build/html/` directory.
