@@ -442,8 +442,9 @@ export class PipelineService {
   ): any {
     for (const node of pipeline.nodes) {
       if (
-        node.op ==
-        ('execute-notebook-node' || 'execute-python-node' || 'execute-r-node')
+        node.op === 'execute-notebook-node' ||
+        node.op === 'execute-python-node' ||
+        node.op === 'execute-r-node'
       ) {
         node.app_data.filename = this.getPipelineRelativeNodePath(
           pipelinePath,
@@ -460,8 +461,9 @@ export class PipelineService {
   ): any {
     for (const node of pipeline.nodes) {
       if (
-        node.op ==
-        ('execute-notebook-node' || 'execute-python-node' || 'execute-r-node')
+        node.op === 'execute-notebook-node' ||
+        node.op === 'execute-python-node' ||
+        node.op === 'execute-r-node'
       ) {
         node.app_data.filename = this.getWorkspaceRelativeNodePath(
           pipelinePath,
