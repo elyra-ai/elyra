@@ -157,12 +157,6 @@ const PipelineWrapper: React.FC<IProps> = ({
         if (!pipelineJson.pipelines[0].app_data.properties) {
           pipelineJson.pipelines[0].app_data.properties = {};
         }
-        const pipelineProperties =
-          pipelineJson.pipelines[0].app_data.properties;
-        if (runtimeImages.current?.[pipelineProperties.default_runtime_image]) {
-          pipelineProperties.default_runtime_image =
-            runtimeImages.current?.[pipelineProperties.default_runtime_image];
-        }
         const pipeline_path = contextRef.current.path;
         const pipeline_name = PathExt.basename(
           pipeline_path,
