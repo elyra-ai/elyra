@@ -237,6 +237,17 @@ button.elyra-filter-tag {
   font-size: var(--jp-ui-font-size1);
 }
 
+button.elyra-filter-tag .elyra-filter-tag-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.elyra-filter-tag span,
+button.elyra-filter-tag svg {
+  pointer-events: none;
+}
+
 .elyra-filter-empty {
   font-size: var(--jp-ui-font-size1);
 }
