@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 2.3.0rc1 - 06/10/2021
+
+- Update KFP Notebook to 0.24.0
+
 ## Release 2.3.0rc0 - 06/10/2021
 
 - Add support for pipeline runtime specific components - [1620](https://github.com/elyra-ai/elyra/pull/1620)
