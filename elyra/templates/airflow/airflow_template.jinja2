@@ -34,6 +34,15 @@ env_var_secret_key = Secret(deploy_type='env',
 {% endif %}
 
 {% for key, operation in operations_list.items() %}
+{% if operation.component_source %}
+from airflow.operators.{{operation.filename}} import {{ operation.name }}
+notebook_op_{{ operation.id|regex_replace }} = {{ operation.name }}(name='{{ operation.notebook|regex_replace }}',
+                                                                    namespace='{{ namespace }}',
+                                                                    task_id='{{ operation.notebook|regex_replace }}',
+    {% for param, value in operation.component_params.items() %}
+                                                                    {{ param }}={{ value }},
+    {% endfor %}
+{% else %}
 notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|regex_replace }}',
                                                           namespace='{{ namespace }}',
                                                           task_id='{{ operation.notebook|regex_replace }}',
@@ -44,7 +53,7 @@ notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.not
                                                           cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
                                                           pipeline_outputs={{ operation.pipeline_outputs }},
                                                           pipeline_inputs={{ operation.pipeline_inputs }},
-                                                          image='{{ operation.runtime_image }}',
+                                                          env_vars={{ operation.pipeline_envs }},
     {% if operation.cpu_request or operation.mem_request or operation.gpu_limit %}
                                                           resources = {
         {% if operation.cpu_request %}
@@ -58,14 +67,14 @@ notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.not
         {% endif %}
         },
     {% endif %}
+{% endif %}
     {% if cos_secret %}
                                                           secrets=[env_var_secret_id, env_var_secret_key],
     {% endif %}
+                                                          image='{{ operation.runtime_image }}',
                                                           in_cluster={{ in_cluster }},
-                                                          env_vars={{ operation.pipeline_envs }},
                                                           config_file="{{ kube_config_path }}",
                                                           dag=dag)
-
     {% if operation.image_pull_policy %}
         notebook_op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
     {% endif %}

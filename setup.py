@@ -33,11 +33,12 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
 npm_packages_path = "./dist/*.tgz"
 auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
 auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
-settings_path = './etc/config/settings/*.json'
+components_path = './etc/config/components/*.json'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
+settings_path = './etc/config/settings/*.json'
 
 # kfp_packages = [
-#     'kfp-notebook~=0.23.0',
+#     'kfp-notebook~=0.24.0',
 #     'kfp==1.3.0',
 #     'kfp-tekton==0.6.0',
 #     ]
@@ -57,8 +58,9 @@ setup_args = dict(
     license="Apache License Version 2.0",
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
                 ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
-                ('share/jupyter/lab/settings', glob(settings_path)),
-                ('share/jupyter/metadata/runtime-images', glob(metadata_path))],
+                ('share/jupyter/metadata/runtime-images', glob(metadata_path)),
+                ('share/jupyter/components', glob(components_path)),
+                ('share/jupyter/lab/settings', glob(settings_path))],
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
@@ -90,7 +92,7 @@ setup_args = dict(
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp-notebook~=0.23.0',
+        'kfp-notebook~=0.24.0',
         'kfp==1.4.0',
         'kfp-tekton==0.7.0',
         # Airflow runtime dependencies

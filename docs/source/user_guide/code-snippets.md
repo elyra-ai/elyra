@@ -18,7 +18,7 @@ limitations under the License.
 ## Code Snippets
 
 The ability to reuse pieces of code allows users to avoid doing repetitive work,
-making the programming workflow much more simple and productive.
+making the programming workflow more simple and productive.
 Elyra supports custom code snippets that can be added to the file editor.
 
 You can manage code snippets using the [JupyterLab UI](#managing-code-snippets-using-the-jupyterlab-ui) or the [Elyra CLI](#managing-code-snippets-using-the-elyra-cli).

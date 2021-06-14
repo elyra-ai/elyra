@@ -25,7 +25,7 @@ from elyra.util import get_expanded_path, get_absolute_path
 from elyra.util.http import HttpErrorMixin
 
 
-class FileParserHandler(HttpErrorMixin, APIHandler):
+class ContentHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to parse envs from a File"""
     content_parser: ContentParser = ContentParser()
 

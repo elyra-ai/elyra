@@ -29,6 +29,7 @@ from typing import List, Dict
 from urllib3.exceptions import MaxRetryError
 from minio.error import SignatureDoesNotMatch
 
+from .registry import ComponentRegistry
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
@@ -43,11 +44,14 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         self.log.debug('Registering processor {}'.format(processor.type))
         self._processors[processor.type] = processor
 
-    def get_processor(self, processor_type):
-        if processor_type in self._processors.keys():
+    def get_processor(self, processor_type: str):
+        if self.is_valid_processor(processor_type):
             return self._processors[processor_type]
         else:
-            return None
+            raise RuntimeError('Could not find pipeline processor for [{}]'.format(processor_type))
+
+    def is_valid_processor(self, processor_type: str) -> bool:
+        return processor_type in self._processors.keys()
 
 
 class PipelineProcessorManager(SingletonConfigurable):
@@ -69,22 +73,28 @@ class PipelineProcessorManager(SingletonConfigurable):
                 # log and ignore initialization errors
                 self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
-    async def process(self, pipeline):
-        processor_type = pipeline.runtime
+    def is_supported_runtime(self, processor_type: str) -> bool:
+        return self._registry.is_valid_processor(processor_type)
+
+    def _get_processor_for_runtime(self, processor_type: str):
         processor = self._registry.get_processor(processor_type)
 
-        if not processor:
-            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
+        return processor
+
+    async def get_components(self, processor_type):
+        processor = self._get_processor_for_runtime(processor_type)
+
+        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
+        return res
+
+    async def process(self, pipeline):
+        processor = self._get_processor_for_runtime(pipeline.runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.process, pipeline)
         return res
 
     async def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        processor_type = pipeline.runtime
-        processor = self._registry.get_processor(processor_type)
-
-        if not processor:
-            raise RuntimeError('Could not find pipeline processor for [{}]'.format(pipeline.runtime))
+        processor = self._get_processor_for_runtime(pipeline.runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(
             None, processor.export, pipeline, pipeline_export_format, pipeline_export_path, overwrite)
@@ -142,6 +152,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     root_dir = Unicode(allow_none=True)
 
+    component_registry: ComponentRegistry = ComponentRegistry()
+
     enable_pipeline_info = Bool(config=True,
                                 default_value=(os.getenv('ELYRA_ENABLE_PIPELINE_INFO', 'true').lower() == 'true'),
                                 help="""Produces formatted logging of informational messages with durations
@@ -155,6 +167,10 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     @abstractmethod
     def type(self):
         raise NotImplementedError()
+
+    def get_components(self):
+        components = self.component_registry.get_all_components(processor_type=self.type)
+        return components
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:
