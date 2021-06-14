@@ -2,6 +2,10 @@ import kfp
 {% if engine == "Tekton" %}
 import kfp_tekton
 {% endif %}
+{% if kf_secured %}
+import requests
+import sys
+{% endif %}
 {% if cos_secret %}
 from kfp.aws import use_aws_secret
 {% endif %}
@@ -60,8 +64,74 @@ def create_pipeline():
 
     {% endfor %}
 
+{% if kf_secured %}
+def get_user_auth_session_cookie(url, username=None, password=None) -> dict:
+
+    # Return data structure
+    auth_info = {
+        'endpoint': url,                    # KF endpoint URL
+        'endpoint_response_url': None,      # KF redirect URL, if applicable
+        'endpoint_secured': False,          # True if KF is secured [by dex]
+        'authservice_session_cookie': None  # Set if KF secured & user auth'd
+    }
+
+    # Obtain redirect URL
+    get_response = requests.get(url)
+
+    auth_info['endpoint_response_url'] = get_response.url
+
+    # If KF redirected to '/dex/auth/local?req=REQ_VALUE'
+    # try to authenticate using the provided credentials
+    if 'dex/auth' in get_response.url:
+        auth_info['endpoint_secured'] = True  # KF is secured
+
+        # Try to authenticate user by sending a request to the
+        # Dex redirect URL
+        session = requests.Session()
+        session.post(get_response.url,
+                     data={'login': username,
+                           'password': password})
+        # Capture authservice_session cookie, if one was returned
+        # in the response
+        cookie_auth_key = 'authservice_session'
+        cookie_auth_value = session.cookies.get(cookie_auth_key)
+
+        if cookie_auth_value:
+            auth_info['authservice_session_cookie'] = \
+                f"{cookie_auth_key}={cookie_auth_value}"
+
+    return auth_info
+
+{% endif %}
+
 
 if __name__ == "__main__":
+
+{% if kf_secured %}
+    # user id and password are required parameters
+    if(len(sys.argv) < 3):
+        print(f'Invocation: python {sys.argv[0]} '
+               '<kf-user-id> <kf-password>')
+        sys.exit(1)
+
+    print('Trying to authenticate with Kubeflow server ...')
+
+    auth_endpoint = '{{ api_endpoint }}'.rstrip('/').replace('/pipeline','')
+
+    # authenticate
+    auth_info = get_user_auth_session_cookie(auth_endpoint,
+                                             sys.argv[1],
+                                             sys.argv[2])
+
+    if auth_info['endpoint_secured'] and \
+        auth_info['authservice_session_cookie'] is None:
+        print('Authentication failed. Check your credentials.')
+        sys.exit(1)
+
+    auth_cookie = auth_info['authservice_session_cookie']
+{% else %}
+    auth_cookie = None
+{% endif %}
 
     pipeline_func = create_pipeline
     pipeline_name = '{{ pipeline_name }}'
@@ -74,11 +144,13 @@ if __name__ == "__main__":
 {% if engine == "Tekton" %}
     kfp_tekton.compiler.TektonCompiler().compile(pipeline_func, pipeline_archive)
 
-    client = kfp_tekton.TektonClient(host='{{ api_endpoint }}')
+    client = kfp_tekton.TektonClient(host='{{ api_endpoint }}',
+                                     cookies=auth_cookie)
 {% else %}
     kfp.compiler.Compiler().compile(pipeline_func, pipeline_archive)
 
-    client = kfp.Client(host='{{ api_endpoint }}')
+    client = kfp.Client(host='{{ api_endpoint }}',
+                        cookies=auth_cookie)
 {% endif %}
 
     pipeline_id = client.get_pipeline_id(pipeline_name)
@@ -121,4 +193,5 @@ if __name__ == "__main__":
                               pipeline_id=pipeline_id,
                               version_id=version_id)
 
-    print("Pipeline run monitoring URL: {{ api_endpoint }}/#/runs/details/" + run.id)
+    print('Pipeline run monitoring URL: '
+          f'{{ api_endpoint }}/#/runs/details/{run.id}')
