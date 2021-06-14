@@ -57,6 +57,11 @@ import Alert from '@material-ui/lab/Alert';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
+import {
+  useComponentProperties,
+  useRuntimeComponents,
+  useRuntimeImages
+} from './pipeline-hooks';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import pipelineProperties from './pipelineProperties';
 import {
@@ -152,6 +157,12 @@ const PipelineWrapper: React.FC<IProps> = ({
   addFileToPipelineSignal,
   widgetId
 }) => {
+  const { data: d1 } = useRuntimeImages();
+  const { data: d2 } = useRuntimeComponents();
+  // useComponentProperties(null, );
+  console.log(d1);
+  console.log(d2);
+
   const ref = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState<any>(null);

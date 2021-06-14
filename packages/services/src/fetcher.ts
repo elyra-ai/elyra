@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import { URLExt } from '@jupyterlab/coreutils';
+import { ServerConnection } from '@jupyterlab/services';
 
-export * from './fetcher';
-export * from './parsing';
-export * from './metadata';
-export * from './requests';
+const settings = ServerConnection.makeSettings({ baseUrl: '/elyra' });
+
+export const fetcher = async <T>(key: string): Promise<T> => {
+  // ServerConnection utility handles JupyterLab token authentication.
+  const res = await ServerConnection.makeRequest(
+    URLExt.join(settings.baseUrl, key),
+    { method: 'GET' },
+    settings
+  );
+
+  if (!res.ok) {
+    throw Error(res.statusText);
+  }
+
+  return res.json();
+};
