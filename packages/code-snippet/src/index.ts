@@ -57,11 +57,11 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     restorer: ILayoutRestorer,
     editorServices: IEditorServices,
-    themeManager: IThemeManager | null
+    themeManager?: IThemeManager
   ) => {
     console.log('Elyra - code-snippet extension is activated!');
 
-    const getCurrentWidget = (): Widget => {
+    const getCurrentWidget = (): Widget | null => {
       return app.shell.currentWidget;
     };
 
@@ -96,7 +96,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         if (editor) {
           selection = getTextSelection(editor);
         } else if (isMarkdownDocument(currentWidget)) {
-          selection = document.getSelection().toString();
+          selection = document.getSelection()?.toString() ?? '';
         }
 
         if (selection) {
@@ -113,7 +113,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         if (editor) {
           selection = getTextSelection(editor);
         } else if (isMarkdownDocument(currentWidget)) {
-          selection = document.getSelection().toString();
+          selection = document.getSelection()?.toString() ?? '';
         }
 
         if (selection) {
@@ -153,7 +153,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
 
       if (!selection && editor.model.value.text) {
         // Allow selections from a rendered notebook cell
-        return document.getSelection().toString();
+        return document.getSelection()?.toString() ?? '';
       }
 
       return selection;
@@ -181,7 +181,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       } else if (isNotebookEditor(currentWidget)) {
         const notebookWidget = currentWidget as NotebookPanel;
         const notebookCell = (notebookWidget.content as Notebook).activeCell;
-        return notebookCell.editor;
+        return notebookCell?.editor;
       }
     };
   }

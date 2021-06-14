@@ -44,7 +44,7 @@ interface IBrowseFileBreadCrumbsOptions extends BreadCrumbs.IOptions {
  */
 class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
   model: any;
-  rootPath: string;
+  rootPath?: string;
 
   constructor(options: IBrowseFileBreadCrumbsOptions) {
     super(options);
@@ -64,7 +64,9 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
       );
 
       breadcrumbs.forEach((crumb: Element): void => {
-        if ((crumb as HTMLSpanElement).title.indexOf(this.rootPath) === 0) {
+        if (
+          (crumb as HTMLSpanElement).title.indexOf(this.rootPath ?? '') === 0
+        ) {
           crumb.className = crumb.className
             .replace('elyra-BreadCrumbs-disabled', '')
             .trim();
@@ -176,7 +178,7 @@ class BrowseFileDialog extends Widget
         const clickedItem = this.directoryListing.modelForClick(
           event as MouseEvent
         );
-        if (clickedItem.type === 'directory') {
+        if (clickedItem?.type === 'directory') {
           this.dirListingHandleEvent.call(this.directoryListing, event);
         } else {
           event.preventDefault();

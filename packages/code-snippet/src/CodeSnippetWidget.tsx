@@ -82,7 +82,7 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
   schema: string;
   sortMetadata: boolean;
   className: string;
-  getCurrentWidget: () => Widget;
+  getCurrentWidget: () => Widget | null;
   editorServices: IEditorServices;
   shell: JupyterFrontEnd.IShell;
 }
@@ -109,6 +109,10 @@ class CodeSnippetDisplay extends MetadataDisplay<
     const widget = this.props.getCurrentWidget();
     const snippetStr = snippet.metadata.code.join('\n');
 
+    if (widget === null) {
+      return;
+    }
+
     if (this.isFileEditor(widget)) {
       const fileEditor = widget.content.editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
@@ -116,21 +120,26 @@ class CodeSnippetDisplay extends MetadataDisplay<
         PathExt.extname(widget.context.path).match(markdownRegex) !== null &&
         snippet.metadata.language.toLowerCase() !== 'markdown'
       ) {
-        fileEditor.replaceSelection(
+        fileEditor.replaceSelection?.(
           this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
         );
       } else if (widget.constructor.name === 'ScriptEditor') {
         const editorLanguage =
           widget.context.sessionContext.kernelPreference.language;
-        this.verifyLanguageAndInsert(snippet, editorLanguage, fileEditor);
+        this.verifyLanguageAndInsert(snippet, editorLanguage ?? '', fileEditor);
       } else {
-        fileEditor.replaceSelection(snippetStr);
+        fileEditor.replaceSelection?.(snippetStr);
       }
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
       const notebookCell = (notebookWidget.content as Notebook).activeCell;
       const notebookCellIndex = (notebookWidget.content as Notebook)
         .activeCellIndex;
+
+      if (notebookCell === null) {
+        return;
+      }
+
       const notebookCellEditor = notebookCell.editor;
 
       if (notebookCell instanceof CodeCell) {
@@ -146,14 +155,17 @@ class CodeSnippetDisplay extends MetadataDisplay<
         notebookCell instanceof MarkdownCell &&
         snippet.metadata.language.toLowerCase() !== 'markdown'
       ) {
-        notebookCellEditor.replaceSelection(
+        notebookCellEditor.replaceSelection?.(
           this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
         );
       } else {
-        notebookCellEditor.replaceSelection(snippetStr);
+        notebookCellEditor.replaceSelection?.(snippetStr);
       }
-      const cell = notebookWidget.model.contentFactory.createCodeCell({});
-      notebookWidget.model.cells.insert(notebookCellIndex + 1, cell);
+      const cell = notebookWidget.model?.contentFactory.createCodeCell({});
+      if (cell === undefined) {
+        return;
+      }
+      notebookWidget.model?.cells.insert(notebookCellIndex + 1, cell);
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
@@ -187,11 +199,11 @@ class CodeSnippetDisplay extends MetadataDisplay<
         snippet.display_name
       );
       if (result.button.accept) {
-        editor.replaceSelection(snippetStr);
+        editor.replaceSelection?.(snippetStr);
       }
     } else {
       // Language match or editorLanguage is unavailable
-      editor.replaceSelection(snippetStr);
+      editor.replaceSelection?.(snippetStr);
     }
   };
 
@@ -477,9 +489,13 @@ class CodeSnippetDisplay extends MetadataDisplay<
         ].model.value.text = codeSnippet.metadata.code.join('\n');
       } else {
         // Add new snippets
+        const snippetElement = document.getElementById(codeSnippet.name);
+        if (snippetElement === null) {
+          return;
+        }
         this.editors[codeSnippet.name] = editorFactory({
           config: { readOnly: true },
-          host: document.getElementById(codeSnippet.name),
+          host: snippetElement,
           model: new CodeEditor.Model({
             value: codeSnippet.metadata.code.join('\n'),
             mimeType: getMimeTypeByLanguage({
@@ -500,8 +516,12 @@ class CodeSnippetDisplay extends MetadataDisplay<
     this.createPreviewEditors();
   }
 
-  private _drag: Drag;
-  private _dragData: { pressX: number; pressY: number; dragImage: HTMLElement };
+  private _drag: Drag | null;
+  private _dragData: {
+    pressX: number;
+    pressY: number;
+    dragImage: HTMLElement | null;
+  } | null;
 }
 
 /**
@@ -513,7 +533,7 @@ export interface ICodeSnippetWidgetProps extends IMetadataWidgetProps {
   namespace: string;
   schema: string;
   icon: LabIcon;
-  getCurrentWidget: () => Widget;
+  getCurrentWidget: () => Widget | null;
   editorServices: IEditorServices;
 }
 
@@ -521,9 +541,7 @@ export interface ICodeSnippetWidgetProps extends IMetadataWidgetProps {
  * A widget for Code Snippets.
  */
 export class CodeSnippetWidget extends MetadataWidget {
-  props: ICodeSnippetWidgetProps;
-
-  constructor(props: ICodeSnippetWidgetProps) {
+  constructor(public props: ICodeSnippetWidgetProps) {
     super(props);
   }
 

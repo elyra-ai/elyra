@@ -1,8 +1,7 @@
 {
-  "extends": "../tsconfig-base",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "es2017",
-    "lib": ["es2017", "dom"],
+    "isolatedModules": false,
     "types": ["cypress", "@testing-library/cypress"]
   },
   "include": ["**/*.ts"]

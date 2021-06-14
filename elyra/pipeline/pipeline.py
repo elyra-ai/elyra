@@ -25,9 +25,12 @@ class Operation(object):
     Represents a single operation in a pipeline
     """
 
+    standard_node_types = ["execute-notebook-node", "execute-python-node", "exeucute-r-node"]
+
     def __init__(self, id, type, name, classifier, filename, runtime_image, memory=None, cpu=None, gpu=None,
-                 dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None,
-                 outputs=None, parent_operations=None):
+                 dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
+                 parent_operations=None, component_source=None, component_source_type=None, component_class=None,
+                 component_params=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -49,6 +52,9 @@ class Operation(object):
         :param cpu: number of cpus requested to run the operation
         :param memory: amount of memory requested to run the operation (in Gi)
         :param gpu: number of gpus requested to run the operation
+        :param component_source_type: source type of a non-standard component, either filepath or url
+        :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
+                                 a non-standard operation instance
         """
 
         # validate that the operation has all required properties
@@ -60,7 +66,7 @@ class Operation(object):
             raise ValueError("Invalid pipeline operation: Missing field 'operation classifier'.")
         if not name:
             raise ValueError("Invalid pipeline operation: Missing field 'operation name'.")
-        if not filename:
+        if not filename and classifier in self.standard_node_types:
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
         if not runtime_image:
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
@@ -86,6 +92,10 @@ class Operation(object):
         self._cpu = cpu
         self._gpu = gpu
         self._memory = memory
+        self._component_source = component_source
+        self._component_source_type = component_source_type
+        self._component_class = component_class
+        self._component_params = component_params
 
     @property
     def id(self):
@@ -101,7 +111,8 @@ class Operation(object):
 
     @property
     def name(self):
-        if self._name == os.path.basename(self._filename):
+        if self._classifier in self.standard_node_types and \
+                self._name == os.path.basename(self._filename):
             self._name = os.path.basename(self._name).split(".")[0]
         return self._name
 
@@ -141,21 +152,38 @@ class Operation(object):
         """
         Operation stores environment variables in a list of name=value pairs, while
         subprocess.run() requires a dictionary - so we must convert.  If no envs are
-        configured on the Operation, the existing env is returned, otherwise envs
-        configured on the Operation are overlayed on the existing env.
+        configured on the Operation, an empty dictionary is returned, otherwise envs
+        configured on the Operation are converted to dictionary entries and returned.
         """
         envs = {}
         for nv in self.env_vars:
-            if nv and len(nv) > 0:
-                nv_pair = nv.split("=")
+            if nv:
+                nv_pair = nv.split("=", 1)
                 if len(nv_pair) == 2 and nv_pair[0].strip():
-                    envs[nv_pair[0]] = nv_pair[1]
-                else:
-                    if logger:
-                        logger.warning(f"Could not process environment variable entry `{nv}`, skipping...")
+                    if len(nv_pair[1]) > 0:
+                        envs[nv_pair[0]] = nv_pair[1]
                     else:
-                        print(f"Could not process environment variable entry `{nv}`, skipping...")
+                        Operation._log_info(f"Skipping inclusion of environment variable: "
+                                            f"`{nv_pair[0]}` has no value...",
+                                            logger=logger)
+                else:
+                    Operation._log_warning(f"Could not process environment variable entry `{nv}`, skipping...",
+                                           logger=logger)
         return envs
+
+    @staticmethod
+    def _log_info(msg: str, logger: Optional[Logger] = None):
+        if logger:
+            logger.info(msg)
+        else:
+            print(msg)
+
+    @staticmethod
+    def _log_warning(msg: str, logger: Optional[Logger] = None):
+        if logger:
+            logger.warning(msg)
+        else:
+            print(f"WARNING: {msg}")
 
     @property
     def inputs(self):
@@ -176,6 +204,22 @@ class Operation(object):
     @property
     def parent_operations(self):
         return self._parent_operations
+
+    @property
+    def component_source(self):
+        return self._component_source
+
+    @property
+    def component_source_type(self):
+        return self._component_source_type
+
+    @property
+    def component_class(self):
+        return self._component_class
+
+    @property
+    def component_params(self):
+        return self._component_params
 
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):

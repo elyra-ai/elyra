@@ -25,7 +25,7 @@ import {
 } from '@jupyterlab/ui-components';
 import * as React from 'react';
 
-const SvgIcon = ({ children }): any => {
+const SvgIcon: React.FC = ({ children }): any => {
   return (
     <svg
       width="16"

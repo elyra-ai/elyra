@@ -71,7 +71,7 @@ export const DropDown: React.FC<IDropDownProps> = ({
 
   const handleChange = (newValue: string): void => {
     setValue(newValue);
-    setError(required && newValue === '');
+    setError(!!(required && newValue === ''));
     onChange(newValue);
   };
 
@@ -90,7 +90,7 @@ export const DropDown: React.FC<IDropDownProps> = ({
                 handleChange(event.target.value);
               }}
             >
-              {options.map((option: string) => {
+              {options?.map((option: string) => {
                 return (
                   <MenuItem
                     key={`${option}MenuItem`}
@@ -113,11 +113,11 @@ export const DropDown: React.FC<IDropDownProps> = ({
             id="combo-box-demo"
             freeSolo
             key="elyra-DropDown"
-            options={options}
+            options={options ?? []}
             style={{ width: 300 }}
             value={value ?? ''}
-            onChange={(event: any, newValue: string): void => {
-              handleChange(newValue);
+            onChange={(event: any, newValue: string | null): void => {
+              handleChange(newValue ?? '');
             }}
             renderInput={(params): React.ReactNode => (
               <TextField

@@ -48,11 +48,11 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     ```
     python --version
     which python # Displays current python path
-    pip --version
-    which pip
+    pip3 --version
+    which pip3
     ```
     Python path must be under miniconda envs folder.
-    Confirm pip location matches where miniconda is installed.
+    Confirm pip3 location matches where miniconda is installed.
 
 * Install NodeJS
 
@@ -102,12 +102,12 @@ You can build and install all Elyra packages with:
 make clean install
 ```
 
-You can check that the notebook server extension was successful installed with:
+You can check that the notebook server extension was successfully installed with:
 ```bash
 jupyter serverextension list
 ```
 
-You can check that the JupyterLab extension was successful installed with:
+You can check that the JupyterLab extension was successfully installed with:
 ```bash
 jupyter labextension list
 ```

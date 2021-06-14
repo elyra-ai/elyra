@@ -30,7 +30,7 @@ export interface ISelect {
   getSelection: () => string;
 }
 
-class Props {
+interface IProps {
   specs: KernelSpec.ISpecModels;
 }
 
@@ -38,10 +38,8 @@ class Props {
  * A toolbar dropdown component populated with available kernel specs.
  */
 // eslint-disable-next-line react/display-name
-const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
-  const initVal =
-    Object.keys(specs.kernelspecs).length !== 0 &&
-    Object.values(specs.kernelspecs)[0].name;
+const DropDown = forwardRef<ISelect, IProps>(({ specs }, select) => {
+  const initVal = Object.values(specs.kernelspecs ?? [])[0]?.name ?? '';
   const [selection, setSelection] = useState(initVal);
 
   // Note: It's normally best to avoid using an imperative handle if possible.
@@ -59,7 +57,7 @@ const DropDown = forwardRef<ISelect, Props>(({ specs }, select) => {
   ) : (
     Object.entries(specs.kernelspecs).map(([key, val]) => (
       <option key={key} value={key}>
-        {val.display_name || key}
+        {val?.display_name ?? key}
       </option>
     ))
   );

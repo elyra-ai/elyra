@@ -33,6 +33,7 @@ interface IFilterMetadataState {
 const FILTER_OPTION = 'elyra-filter-option';
 const FILTER_TAGS = 'elyra-filter-tags';
 const FILTER_TAG = 'elyra-filter-tag';
+const FILTER_TAG_LABEL = 'elyra-filter-tag-label';
 const FILTER_CHECK = 'elyra-filter-check';
 const FILTER_TOOLS = 'elyra-filterTools';
 const FILTER_SEARCHBAR = 'elyra-searchbar';
@@ -80,7 +81,7 @@ export class FilterTools extends React.Component<
       `#${this.props.namespaceId} .${FILTER_OPTION}`
     );
 
-    filterOption.classList.toggle('idle');
+    filterOption?.classList.toggle('idle');
 
     this.filterMetadata();
   }
@@ -112,9 +113,10 @@ export class FilterTools extends React.Component<
         className={`${FILTER_TAG} tag applied-tag`}
         id={'filter' + '-' + tag + '-' + index}
         key={'filter' + '-' + tag + '-' + index}
+        title={tag}
         onClick={this.handleClick}
       >
-        {tag}
+        <span className={FILTER_TAG_LABEL}>{tag}</span>
         <checkIcon.react
           className={FILTER_CHECK}
           tag="span"
@@ -134,16 +136,17 @@ export class FilterTools extends React.Component<
         className={`${FILTER_TAG} tag unapplied-tag`}
         id={'filter' + '-' + tag + '-' + index}
         key={'filter' + '-' + tag + '-' + index}
+        title={tag}
         onClick={this.handleClick}
       >
-        {tag}
+        <span className={FILTER_TAG_LABEL}>{tag}</span>
       </button>
     );
   }
 
   handleClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
     const target = event.target as HTMLElement;
-    const clickedTag = target.innerText.trim();
+    const clickedTag = target.textContent ?? '';
 
     this.setState(
       state => ({
@@ -178,7 +181,7 @@ export class FilterTools extends React.Component<
   filterMetadata(): void {
     const isTagFilterOpen = document
       .querySelector(`#${this.props.namespaceId} .${FILTER_OPTION}`)
-      .classList.contains('idle');
+      ?.classList.contains('idle');
     this.props.onFilter(
       this.state.searchValue,
       isTagFilterOpen ? [] : this.state.selectedTags

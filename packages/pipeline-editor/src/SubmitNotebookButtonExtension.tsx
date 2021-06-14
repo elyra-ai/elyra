@@ -37,7 +37,7 @@ import Utils from './utils';
 export class SubmitNotebookButtonExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
   showWidget = async (panel: NotebookPanel): Promise<void> => {
-    if (panel.model.dirty) {
+    if (panel.model?.dirty) {
       const dialogResult = await showDialog({
         title:
           'This notebook contains unsaved changes. To run the notebook as pipeline the changes need to be saved.',

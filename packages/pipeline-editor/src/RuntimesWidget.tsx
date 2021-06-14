@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {
   MetadataWidget,
   IMetadataWidgetProps,
@@ -51,7 +50,7 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
   namespace: string;
   sortMetadata: boolean;
   className: string;
-  schemas: IDictionary<any>[];
+  schemas?: IDictionary<any>[];
 }
 
 /**
@@ -68,7 +67,7 @@ class RuntimesDisplay extends MetadataDisplay<
     let githubRepoElement = null;
     let metadata_props = null;
 
-    for (const schema of this.props.schemas) {
+    for (const schema of this.props.schemas ?? []) {
       if (schema.name === metadata.schema_name) {
         metadata_props = schema.properties.metadata.properties;
       }
@@ -131,6 +130,18 @@ export class RuntimesWidget extends MetadataWidget {
     );
   }
 
+  private getSchemaTitle = (metadata: IMetadata): string => {
+    if (this.schemas) {
+      for (const schema of this.schemas) {
+        if (schema.name === metadata.schema_name) {
+          return schema.title;
+        }
+      }
+    }
+
+    return 'runtime configuration';
+  };
+
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
     if (Array.isArray(metadata) && !metadata.length) {
       // Empty metadata
@@ -153,6 +164,7 @@ export class RuntimesWidget extends MetadataWidget {
         sortMetadata={true}
         schemas={this.schemas}
         className={RUNTIMES_METADATA_CLASS}
+        labelName={this.getSchemaTitle}
       />
     );
   }

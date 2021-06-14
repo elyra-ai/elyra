@@ -18,22 +18,21 @@ limitations under the License.
 
 # Deploying Open Data Hub with Elyra
 
-This document outlines how to perform a quick deployment of [JupyterHub](https://jupyter.org/hub) and [Elyra](https://github.com/elyra-ai/elyra) on [Open Data Hub (ODH)](https://opendatahub.io/) using the Open Data Hub Operator.
+This document outlines how to perform a quick deployment of [Kubeflow](https://kubeflow.org), [JupyterHub](https://jupyter.org/hub) and [Elyra](https://github.com/elyra-ai/elyra) on [Open Data Hub (ODH)](https://opendatahub.io/) using the Open Data Hub Operator.
 
 Note the following:
 - The instructions in this document utilize default configurations, which are unlikely to meet the requirements of a production deployment.
-- By completing the steps in this document JupyterHub v1.4 and Elyra v2.2.4 are deployed in the `kubeflow` project/namespace.
+- By completing the steps in this document Kubeflow 1.3, JupyterHub v1.4, and Elyra v2.2.4 are deployed in the `kubeflow` project/namespace.
+- The Kubeflow Central dashboard is unsecured.
 - The JupyterHub GUI is secured by OpenShift. 
  
 ## Requirements
 
 Verify that the following requirements are met.
 
-- You have some hands-on experience with Red Hat OpenShift.
-- You have access to a v4.x Red Hat OpenShift Cluster with internet connectivity. 
+- Access to a v4.x Red Hat OpenShift Cluster (16 GB RAM, 6 CPUs, and 45G of disk space) with internet connectivity. 
 - The OpenShift CLI (`oc`) is installed locally. 
     - [Installation instructions](https://docs.openshift.com/container-platform/4.7/cli_reference/openshift_cli/getting-started-cli.html) for  Windows and MacOS    
-- [Kubeflow v1.3 is deployed](https://www.kubeflow.org/docs/distributions/openshift/) in the `kubeflow` project/namespace if you are planning on running pipelines on Kubeflow Pipelines.
 
 ## Prepare for deployment
 
@@ -46,7 +45,7 @@ Verify that the following requirements are met.
    $ oc login --token=TOKEN_VAL --server=https://SERVER:PORT
    ```
 
-1. If Kubeflow is not yet deployed in this cluster, create a new project named `kubeflow`. 
+1. Create a new project named `kubeflow`. 
    ```
    $ oc new-project kubeflow
    ```
@@ -75,9 +74,6 @@ To install the operator:
 1. Install the operator, keeping the default values.
 1. Navigate to `Operators` > `Installed Operators` and wait for the operator installation to complete. 
 
-<!--
-{% comment %}
-
 Next, you'll install Kubeflow using the operator.
 
 ## Deploy Kubeflow on OpenShift
@@ -90,7 +86,7 @@ To deploy Kubeflow using the Open Data Hub operator:
 1. Create a new deployment by clicking `Create instance`.
 1. Select `Configure via YAML view`.
 1. Remove the default deployment configuration in the editor.
-1. Open [this Kubeflow v1.2 deployment file for OpenShift](https://raw.githubusercontent.com/kubeflow/manifests/master/distributions/kfdef/kfctl_openshift.v1.2.0.yaml) in a new browser tab/window.
+1. Open [this Kubeflow v1.3 deployment file for OpenShift](https://raw.githubusercontent.com/kubeflow/manifests/master/distributions/kfdef/kfctl_openshift_v1.3.0.yaml) in a new browser tab/window.
 1. Copy and paste the content of this file into the editor.
    ![Deploy Kubeflow using ODH operator](../images/recipes/deploying-elyra-with-opendatahub/deploy-kubeflow-kfdef.png)
 1. Click `Create` to deploy Kubeflow on the cluster.
@@ -98,20 +94,13 @@ To deploy Kubeflow using the Open Data Hub operator:
    ```
    $ oc get pods --namespace kubeflow
    ```
-
    Upon successful deployment you can access the Kubeflow Central dashboard using a public route.
 1. In the terminal window run the following command to retrieve the public Kubeflow Central dashboard URL:
    ```
-   $ oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}/'
+   $ oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}'
    ```
 1. Open the displayed URL in a web browser to access the Kubeflow Central dashboard.
-1. Select the `anonymousami` namespace entry. 
-
-   ![Select namespace in Kubeflow Central Dashboard](../images/recipes/deploying-elyra-with-opendatahub/select-kf-namespace.png)
-
-1. Take note of the following information. You'll need it later when you create a runtime configuration in Elyra, so that you can run pipelines in this Kubeflow deployment.
-   - The Kubeflow Central dashboard URL (`http://istio-ingressgateway-istio-system...`).
-   - The user namespace (`anonymousami`).
+1. Do not select a namespace entry, if you've deployed Kubeflow using the defaults.
 
 The Kubeflow deployment is complete. As part of this deployment an instance of the MinIO object storage was provisioned. 
 
@@ -146,9 +135,6 @@ To make the GUI available:
    - The MinIO GUI URL (`http://minio-service-kubeflow...`).
    - The MinIO access key (`minio`).
    - The MinIO secret key (`minio123`).
-
-{% endcomment %}
--->
 
 Next, you'll install JupyterHub with Elyra support.
 
@@ -212,6 +198,8 @@ To deploy JupyterHub and its dependencies:
 
 1. Click `Create` and wait for the deployment to complete.
 
+   ![Deployment completed](../images/recipes/deploying-elyra-with-opendatahub/kf-and-odh-deployments-complete.png)
+
 Next, you'll use the JupyterHub spawner to launch Elyra.
 
 ## Access Elyra using the JupyterHub Spawner page
@@ -256,26 +244,21 @@ To create a runtime configuration that allows for running of pipelines on the Ku
 
 1. Click `+` and `New Kubeflow Pipelines runtime`.
 
-1. Enter the Kubeflow and MinIO configuration information:
+1. Enter the following Kubeflow and MinIO configuration information, assuming you've performed a Kubeflow quick install using the linked manifest:
    - Name: `Local Kubeflow Pipelines`
    - Kubeflow Pipelines API Endpoint: the output from command 
      ```
      $ oc get routes -n istio-system istio-ingressgateway -o jsonpath='http://{.spec.host}/pipeline'
      ```
-   - Kubeflow Pipelines User Namespace: the assigned namespace if accessing a multi-user Kubeflow deployment
-   - Kubeflow Pipelines API Endpoint Username: if applicable, id of a user who is authorized to access the Kubeflow deployment
-   - Kubeflow Pipelines API  Endpoint Password: if applicable, password of the specified user 
-   - Kubeflow Pipelines Engine: `Argo` or `Tekton`, as configured
+   - Kubeflow Pipelines User Namespace: leave empty, if Kubeflow deployment defaults were used
+   - Kubeflow Pipelines API Endpoint Username: leave empty, if Kubeflow deployment defaults were used
+   - Kubeflow Pipelines API  Endpoint Password: leave empty, if Kubeflow deployment defaults were used
+   - Kubeflow Pipelines Engine: `Tekton`, if Kubeflow deployment defaults were used
    - Cloud Object Storage Endpoint: the output from command 
      ```
      $ oc get routes -n kubeflow minio-service -o jsonpath='https://{.spec.host}'
      ```
 
-      Note: If no public endpoint is defined for the MinIO service that was deployed as part of Kubeflow, run the following command first to expose the service.
- 
-      ```
-      $ oc create route edge --service=minio-service --namespace=kubeflow --port=9000 --insecure-policy=Redirect
-      ```
    - Cloud Object Storage Credentials Secret: leave empty
    - Cloud Object Storage Username: `minio` if Kubeflow deployment defaults were used, otherwise the appropriate id
    - Cloud Object Storage Password: `minio123` if Kubeflow deployment defaults were used, otherwise the appropriate password

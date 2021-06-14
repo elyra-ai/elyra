@@ -40,8 +40,7 @@ import {
   DockPanelSvg,
   runIcon,
   saveIcon,
-  stopIcon,
-  TabBarSvg
+  stopIcon
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
@@ -72,14 +71,14 @@ export class ScriptEditor extends DocumentWidget<
   DocumentRegistry.ICodeModel
 > {
   private runner: ScriptRunner;
-  private kernelName: string;
-  private dockPanel: DockPanelSvg;
-  private outputAreaWidget: OutputArea;
-  private scrollingWidget: ScrollingWidget<OutputArea>;
+  private kernelName?: string;
+  private dockPanel?: DockPanelSvg;
+  private outputAreaWidget?: OutputArea;
+  private scrollingWidget?: ScrollingWidget<OutputArea>;
   private model: any;
   private emptyOutput: boolean;
   private runDisabled: boolean;
-  private kernelSelectorRef: RefObject<ISelect>;
+  private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
   private editorLanguage: string;
 
@@ -98,7 +97,7 @@ export class ScriptEditor extends DocumentWidget<
     this.emptyOutput = true;
     this.runDisabled = false;
     this.controller = new ScriptEditorController();
-    this.editorLanguage = this.kernelName.toLowerCase().includes(PYTHON)
+    this.editorLanguage = this.kernelName?.toLowerCase().includes(PYTHON)
       ? PYTHON
       : R;
 
@@ -144,18 +143,17 @@ export class ScriptEditor extends DocumentWidget<
       this.editorLanguage
     );
 
-    this.kernelName =
-      Object.keys(kernelSpecs.kernelspecs).length === 0
-        ? null
-        : Object.values(kernelSpecs.kernelspecs)[0].name;
+    this.kernelName = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
 
     this.kernelSelectorRef = React.createRef<ISelect>();
 
-    const kernelDropDown = new KernelDropdown(
-      kernelSpecs,
-      this.kernelSelectorRef
-    );
-    this.toolbar.insertItem(3, 'select', kernelDropDown);
+    if (kernelSpecs !== null) {
+      const kernelDropDown = new KernelDropdown(
+        kernelSpecs,
+        this.kernelSelectorRef
+      );
+      this.toolbar.insertItem(3, 'select', kernelDropDown);
+    }
   };
 
   /**
@@ -166,7 +164,7 @@ export class ScriptEditor extends DocumentWidget<
     this.dockPanel = new DockPanelSvg({ tabsMovable: false });
     Widget.attach(this.dockPanel, document.body);
     window.addEventListener('resize', () => {
-      this.dockPanel.fit();
+      this.dockPanel?.fit();
     });
 
     // Create output area widget
@@ -190,7 +188,7 @@ export class ScriptEditor extends DocumentWidget<
    */
   private runScript = async (): Promise<void> => {
     if (!this.runDisabled) {
-      this.kernelName = this.kernelSelectorRef.current.getSelection();
+      this.kernelName = this.kernelSelectorRef?.current?.getSelection();
       this.resetOutputArea();
       this.kernelName && this.displayOutputArea();
       await this.runner.runScript(
@@ -204,7 +202,7 @@ export class ScriptEditor extends DocumentWidget<
 
   private stopRun = async (): Promise<void> => {
     await this.runner.shutdownSession();
-    if (!this.dockPanel.isEmpty) {
+    if (!this.dockPanel?.isEmpty) {
       this.updatePromptText(' ');
     }
   };
@@ -221,9 +219,9 @@ export class ScriptEditor extends DocumentWidget<
    */
   private resetOutputArea = (): void => {
     // TODO: hide this.layout(), or set its height to 0
-    this.dockPanel.hide();
-    this.outputAreaWidget.model.clear();
-    this.outputAreaWidget.removeClass(OUTPUT_AREA_ERROR_CLASS); // if no error class is found, command is ignored
+    this.dockPanel?.hide();
+    this.outputAreaWidget?.model.clear();
+    this.outputAreaWidget?.removeClass(OUTPUT_AREA_ERROR_CLASS); // if no error class is found, command is ignored
   };
 
   /**
@@ -265,35 +263,45 @@ export class ScriptEditor extends DocumentWidget<
       container: scrollDownButton,
       elementPosition: 'center'
     });
-    this.dockPanel.node.appendChild(scrollUpButton);
-    this.dockPanel.node.appendChild(scrollDownButton);
+    this.dockPanel?.node.appendChild(scrollUpButton);
+    this.dockPanel?.node.appendChild(scrollDownButton);
   };
 
   /**
    * Function: Displays output area widget.
    */
   private displayOutputArea = (): void => {
-    this.dockPanel.show();
+    if (this.outputAreaWidget === undefined) {
+      return;
+    }
+
+    this.dockPanel?.show();
 
     // TODO: Set layout height to be flexible
-    BoxLayout.setStretch(this.dockPanel, 1);
+    if (this.dockPanel !== undefined) {
+      BoxLayout.setStretch(this.dockPanel, 1);
+    }
 
-    if (this.dockPanel.isEmpty) {
+    if (this.dockPanel?.isEmpty) {
       // Add a tab to dockPanel
       this.scrollingWidget = new ScrollingWidget({
         content: this.outputAreaWidget
       });
       this.createScrollButtons(this.scrollingWidget);
-      this.dockPanel.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
+      this.dockPanel?.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
-      const outputTab: TabBarSvg<Widget> = this.dockPanel.tabBars().next();
-      outputTab.id = 'tab-ScriptEditor-output';
-      outputTab.currentTitle.label = 'Console Output';
-      outputTab.currentTitle.closable = true;
-      outputTab.disposed.connect((sender, args) => {
-        this.stopRun();
-        this.resetOutputArea();
-      }, this);
+      const outputTab = this.dockPanel?.tabBars().next();
+      if (outputTab !== undefined) {
+        outputTab.id = 'tab-ScriptEditor-output';
+        if (outputTab.currentTitle !== null) {
+          outputTab.currentTitle.label = 'Console Output';
+          outputTab.currentTitle.closable = true;
+        }
+        outputTab.disposed.connect((sender, args) => {
+          this.stopRun();
+          this.resetOutputArea();
+        }, this);
+      }
     }
 
     const options = {
@@ -333,13 +341,13 @@ export class ScriptEditor extends DocumentWidget<
       // Stream output doesn't instantiate correctly without an initial output string
       if (this.emptyOutput) {
         // Clears the "Waiting for kernel" message immediately
-        this.outputAreaWidget.model.clear(false);
-        this.outputAreaWidget.model.add(options);
+        this.outputAreaWidget?.model.clear(false);
+        this.outputAreaWidget?.model.add(options);
         this.emptyOutput = false;
         // Clear will wait until the first output from the kernel to clear the initial string
-        this.outputAreaWidget.model.clear(true);
+        this.outputAreaWidget?.model.clear(true);
       } else {
-        this.outputAreaWidget.model.add(options);
+        this.outputAreaWidget?.model.add(options);
       }
       this.updatePromptText('*');
       this.setOutputAreaClasses();
@@ -356,7 +364,7 @@ export class ScriptEditor extends DocumentWidget<
    * Function: Gets OutputArea child widget, where output and kernel status are displayed.
    */
   private getOutputAreaChildWidget = (): Widget => {
-    const outputAreaChildLayout = this.outputAreaWidget.layout as PanelLayout;
+    const outputAreaChildLayout = this.outputAreaWidget?.layout as PanelLayout;
     return outputAreaChildLayout.widgets[0];
   };
 
@@ -389,7 +397,7 @@ export class ScriptEditor extends DocumentWidget<
   /**
    * Function: Saves file editor content.
    */
-  private saveFile = (): Promise<any> => {
+  private saveFile = async (): Promise<any> => {
     if (this.model.readOnly) {
       return showDialog({
         title: 'Cannot Save',
@@ -401,6 +409,7 @@ export class ScriptEditor extends DocumentWidget<
       if (!this.isDisposed) {
         return this.context.createCheckpoint();
       }
+      return;
     });
   };
 }

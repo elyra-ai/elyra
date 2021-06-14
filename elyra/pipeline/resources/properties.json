@@ -1,7 +1,11 @@
 {
   "current_parameters": {
+    "label": "",
     "filename": "",
     "runtime_image": "",
+    "cpu": "",
+    "gpu": "",
+    "memory": "",
     "outputs": [],
     "env_vars": [],
     "dependencies": [],
@@ -9,364 +13,240 @@
   },
   "parameters": [
     {
-      "id": "filename",
-      "type": "string",
-      "required": true
+      "id": "label"
     },
     {
-      "id": "runtime_image",
-      "enum": [],
-      "required": true
+      "id": "filename"
     },
     {
-      "id": "cpu",
-      "type": "double",
-      "required": "false"
+      "id": "runtime_image"
     },
     {
-      "id": "gpu",
-      "type": "double",
-      "required": "false"
+      "id": "cpu"
     },
     {
-      "id": "memory",
-      "type": "double",
-      "required": "false"
+      "id": "gpu"
     },
     {
-      "id": "dependencies",
-      "type": "array[string]",
-      "required": false
+      "id": "memory"
     },
     {
-      "id": "include_subdirectories",
-      "type": "boolean",
-      "required": false
+      "id": "dependencies"
     },
     {
-      "id": "env_vars",
-      "type": "array[string]",
-      "required": false
+      "id": "include_subdirectories"
     },
     {
-      "id": "outputs",
-      "type": "array[string]",
-      "required": false
+      "id": "env_vars"
+    },
+    {
+      "id": "outputs"
     }
   ],
   "uihints": {
     "id": "nodeProperties",
     "parameter_info": [
       {
+        "parameter_ref": "label",
+        "control": "custom",
+        "custom_control_id": "StringControl",
+        "label": {
+          "default": "Label"
+        },
+        "description": {
+          "default": "A custom label for the node.",
+          "placement": "on_panel"
+        },
+        "data": {}
+      },
+      {
         "parameter_ref": "filename",
-        "control": "readonly",
+        "control": "custom",
+        "custom_control_id": "StringControl",
         "label": {
           "default": "Filename"
         },
-        "orientation": "horizontal",
-        "separator": "after"
+        "description": {
+          "default": "The path to the notebook file.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "format": "file",
+          "required": true,
+          "extensions": [".ipynb"]
+        }
       },
       {
         "parameter_ref": "runtime_image",
+        "control": "custom",
+        "custom_control_id": "EnumControl",
         "label": {
           "default": "Runtime Image"
         },
         "description": {
-          "default": "Container image used as execution environment"
+          "default": "Docker image used as execution environment.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "items": [],
+          "required": true
         }
       },
       {
         "parameter_ref": "cpu",
+        "control": "custom",
+        "custom_control_id": "NumberControl",
         "label": {
           "default": "CPU"
         },
         "description": {
-          "default": "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5)."
+          "default": "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
+          "placement": "on_panel"
+        },
+        "data": {
+          "minimum": 0,
+          "maximum": 99
         }
       },
       {
         "parameter_ref": "gpu",
+        "control": "custom",
+        "custom_control_id": "NumberControl",
         "label": {
           "default": "GPU"
         },
         "description": {
-          "default": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer."
+          "default": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "minimum": 0,
+          "maximum": 99
         }
       },
       {
         "parameter_ref": "memory",
+        "control": "custom",
+        "custom_control_id": "NumberControl",
         "label": {
           "default": "RAM(GB)"
         },
         "description": {
-          "default": "The total amount of RAM specified."
+          "default": "The total amount of RAM specified.",
+          "placement": "on_panel"
         },
-        "orientation": "horizontal",
-        "separator": "after"
+        "data": {
+          "minimum": 0,
+          "maximum": 99
+        }
       },
       {
         "parameter_ref": "dependencies",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
         "label": {
           "default": "File Dependencies"
         },
-        "control": "custom",
-        "custom_control_id": "elyra-string-array-input",
         "description": {
-          "default": "Local file dependencies that need to be copied to remote execution environment.\nOne filename or expression (e.g. *.py) per line. Supported patterns: ? and *."
+          "default": "Local file dependencies that need to be copied to remote execution environment.",
+          "placement": "on_panel"
         },
-        "orientation": "horizontal",
-        "separator": "after",
         "data": {
-          "single_item_label": "Dependency",
           "placeholder": "*.py",
-          "filebrowser": true
+          "format": "file"
         }
       },
       {
         "parameter_ref": "include_subdirectories",
+        "control": "custom",
+        "custom_control_id": "BooleanControl",
         "label": {
-          "default": "Include Subdirectories in Dependencies"
+          "default": "Include Subdirectories",
+          "placement": "on_panel"
         },
-        "description": {
-          "default": "May increase submission time"
-        },
-        "orientation": "horizontal",
-        "separator": "after"
+        "data": {
+          "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time)."
+        }
       },
       {
         "parameter_ref": "env_vars",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
         "label": {
           "default": "Environment Variables"
         },
-        "control": "custom",
-        "custom_control_id": "elyra-string-array-input",
         "description": {
-          "default": "Environment variables to be set on the execution environment.\nOne variable per line in the format ENV_VAR=value."
+          "default": "Environment variables to be set on the execution environment.",
+          "placement": "on_panel"
         },
-        "orientation": "horizontal",
-        "separator": "after",
         "data": {
-          "placeholder": "env_var=VALUE",
-          "single_item_label": "Environment Variable"
+          "placeholder": "env_var=VALUE"
         }
       },
       {
         "parameter_ref": "outputs",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
         "label": {
           "default": "Output Files"
         },
-        "control": "custom",
-        "custom_control_id": "elyra-string-array-input",
         "description": {
-          "default": "Files generated during execution that will become available to all subsequent pipeline steps.\n One filename or expression (e.g. *.csv) per line. Supported patterns: ? and *."
+          "default": "Files generated during execution that will become available to all subsequent pipeline steps.",
+          "placement": "on_panel"
         },
         "data": {
-          "placeholder": "output.csv",
-          "single_item_label": "Output File"
-        }
-      }
-    ],
-    "action_info": [
-      {
-        "id": "browse_file",
-        "label": {
-          "default": "Browse"
-        },
-        "control": "button",
-        "data": {
-          "parameter_ref": "filename"
+          "placeholder": "*.csv"
         }
       }
     ],
     "group_info": [
       {
         "id": "nodeGroupInfo",
-        "label": {
-          "default": "Node Properties"
-        },
         "type": "panels",
         "group_info": [
           {
-            "id": "nodeFileControl",
+            "id": "label",
+            "type": "controls",
+            "parameter_refs": ["label"]
+          },
+          {
+            "id": "filename",
             "type": "controls",
             "parameter_refs": ["filename"]
           },
           {
-            "id": "nodeBrowseFileAction",
-            "type": "actionPanel",
-            "action_refs": ["browse_file"]
-          },
-          {
-            "id": "nodeRuntimeImageControl",
+            "id": "runtime_image",
             "type": "controls",
             "parameter_refs": ["runtime_image"]
           },
           {
-            "id": "nodeUsageControls",
+            "id": "resources",
             "type": "controls",
             "parameter_refs": ["cpu", "gpu", "memory"]
           },
           {
-            "id": "nodeDependenciesControls",
-            "type": "panels",
-            "group_info": [
-              {
-                "id": "nodeListDependenciesControl",
-                "type": "controls",
-                "parameter_refs": ["dependencies"]
-              }
-            ]
+            "id": "dependencies",
+            "type": "controls",
+            "parameter_refs": ["dependencies"]
           },
           {
-            "id": "nodePropertiesControls",
+            "id": "include_subdirectories",
             "type": "controls",
-            "parameter_refs": ["include_subdirectories", "env_vars", "outputs"]
+            "parameter_refs": ["include_subdirectories"]
+          },
+          {
+            "id": "env_vars",
+            "type": "controls",
+            "parameter_refs": ["env_vars"]
+          },
+          {
+            "id": "outputs",
+            "type": "controls",
+            "parameter_refs": ["outputs"]
           }
         ]
       }
     ]
   },
-  "conditions": [
-    {
-      "validation": {
-        "fail_message": {
-          "type": "error",
-          "focus_parameter_ref": "memory",
-          "message": {
-            "default": "Memory must be greater than 0."
-          }
-        },
-        "evaluate": {
-          "or": [
-            {
-              "condition": {
-                "parameter_ref": "memory",
-                "op": "greaterThan",
-                "value": 0
-              }
-            },
-            {
-              "condition": {
-                "parameter_ref": "memory",
-                "op": "isEmpty"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "validation": {
-        "fail_message": {
-          "type": "error",
-          "focus_parameter_ref": "cpu",
-          "message": {
-            "default": "CPU must be greater than 0."
-          }
-        },
-        "evaluate": {
-          "or": [
-            {
-              "condition": {
-                "parameter_ref": "cpu",
-                "op": "greaterThan",
-                "value": 0
-              }
-            },
-            {
-              "condition": {
-                "parameter_ref": "cpu",
-                "op": "isEmpty"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "validation": {
-        "fail_message": {
-          "type": "error",
-          "focus_parameter_ref": "gpu",
-          "message": {
-            "default": "GPU must be greater than or equal to 0."
-          }
-        },
-        "evaluate": {
-          "or": [
-            {
-              "condition": {
-                "parameter_ref": "gpu",
-                "op": "greaterThan",
-                "value": -1
-              }
-            },
-            {
-              "condition": {
-                "parameter_ref": "gpu",
-                "op": "isEmpty"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "validation": {
-        "fail_message": {
-          "type": "error",
-          "focus_parameter_ref": "cpu",
-          "message": {
-            "default": "CPU must be less than 99."
-          }
-        },
-        "evaluate": {
-          "or": [
-            {
-              "condition": {
-                "parameter_ref": "cpu",
-                "op": "lessThan",
-                "value": 99
-              }
-            },
-            {
-              "condition": {
-                "parameter_ref": "cpu",
-                "op": "isEmpty"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "validation": {
-        "fail_message": {
-          "type": "error",
-          "focus_parameter_ref": "gpu",
-          "message": {
-            "default": "GPU must be less than 99."
-          }
-        },
-        "evaluate": {
-          "or": [
-            {
-              "condition": {
-                "parameter_ref": "gpu",
-                "op": "lessThan",
-                "value": 99
-              }
-            },
-            {
-              "condition": {
-                "parameter_ref": "gpu",
-                "op": "isEmpty"
-              }
-            }
-          ]
-        }
-      }
-    }
-  ],
   "resources": {}
 }

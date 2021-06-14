@@ -342,7 +342,7 @@ const deleteSnippet = (snippetName: string): void => {
   item.find('button[title="Delete"]').click();
 
   // Confirm action in dialog
-  cy.get('.jp-Dialog-header').contains(`Delete snippet: ${snippetName}?`);
+  cy.get('.jp-Dialog-header').contains(`Delete snippet '${snippetName}'?`);
   cy.get('button.jp-mod-accept').click();
 };
 

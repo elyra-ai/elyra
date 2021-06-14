@@ -140,7 +140,7 @@ def test_create_operation_correct_naming():
 
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name=label,
                                filename=filename,
                                runtime_image='tensorflow/tensorflow:latest')
@@ -280,8 +280,9 @@ def test_fail_pipelines_are_equal(good_pipeline):
 
 
 def test_env_list_to_dict_function():
-    env_variables = ['FOO=Bar', 'BAR=Foo', None, '', '  =Dog', 'DOG=  ']
-    env_variables_dict = {"FOO": "Bar", "BAR": "Foo", "DOG": "  "}
+    env_variables = ['KEY=value', None, '', '  =empty_key', '=no_key', 'EMPTY_VALUE=  ',
+                     'NO_VALUE=', 'KEY2=value2', 'TWO_EQUALS=KEY=value', '==']
+    env_variables_dict = {"KEY": "value", "KEY2": "value2", "EMPTY_VALUE": "  ", "TWO_EQUALS": "KEY=value"}
 
     test_operation = Operation(id='test-id',
                                type='test',

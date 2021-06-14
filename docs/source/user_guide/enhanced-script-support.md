@@ -33,7 +33,7 @@ In the JupyterLab Launcher, click the `Python Editor` icon to create a new Pytho
 
 ![Open Python Editor](../images/launcher-python-editor.png)
 
-When used in conjunction with `Jupyter Enterprise Gateway`, the dropdown will be populated with more kernel options,
+When used in conjunction with `Jupyter Enterprise Gateway`, the dropdown in the editor's toolbar will be populated with more kernel options,
 allowing users to run their scripts with remote kernels with more specialized resources.
 
 To run your script locally, select the `Python 3` option in the dropdown menu, and click the `Run` icon.
@@ -55,12 +55,17 @@ Alternatively, you can install it via [CRAN](https://cran.r-project.org/) on an 
 NOTE: You will need to have R installed and available prior to using this method of installing the R kernel.
 
 In an R interactive console,
-```
+```bash
 > install.packages('IRkernel')
 ```
 then enable it on Jupyter:
-```
+```bash
 > IRkernel::installspec()
+```
+
+You can check that the R kernel was successfully installed with:
+```bash
+jupyter kernelspec list
 ```
 
 To run the script, from the Script editor toolbar, select the `R` option in the kernel selection drop-down, and click the `Run` icon.

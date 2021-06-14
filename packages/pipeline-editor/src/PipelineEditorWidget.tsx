@@ -28,6 +28,8 @@ import {
   Dropzone,
   RequestErrors,
   showFormDialog,
+  pyIcon,
+  rIcon,
   kubeflowIcon,
   airflowIcon
 } from '@elyra/ui-components';
@@ -45,6 +47,7 @@ import 'carbon-components/css/carbon-components.min.css';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
+import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 import { Signal } from '@lumino/signaling';
@@ -54,7 +57,6 @@ import Alert from '@material-ui/lab/Alert';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
-import nodes from './nodes';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import pipelineProperties from './pipelineProperties';
 import {
@@ -78,6 +80,17 @@ export const commandIDs = {
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
+};
+
+const runtimeIcons = [kubeflowIcon, airflowIcon];
+
+export const getRuntimeIcon = (runtime?: string): LabIcon => {
+  for (const runtimeIcon of runtimeIcons) {
+    if (`elyra:${runtime}` === runtimeIcon.name) {
+      return runtimeIcon;
+    }
+  }
+  return pipelineIcon;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -104,7 +117,7 @@ class PipelineEditorWidget extends ReactWidget {
         shell={this.shell}
         commands={this.commands}
         addFileToPipelineSignal={this.addFileToPipelineSignal}
-        widgetId={this.parent.id}
+        widgetId={this.parent?.id}
       />
     );
   }
@@ -116,8 +129,20 @@ interface IProps {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<PipelineEditorWidget, any>;
-  widgetId: string;
+  widgetId?: string;
 }
+
+const NodeIcons: Map<string, string> = new Map([
+  [
+    'notebooks',
+    'data:image/svg+xml;utf8,' + encodeURIComponent(notebookIcon.svgstr)
+  ],
+  [
+    'python-script',
+    'data:image/svg+xml;utf8,' + encodeURIComponent(pyIcon.svgstr)
+  ],
+  ['r-script', 'data:image/svg+xml;utf8,' + encodeURIComponent(rIcon.svgstr)]
+]);
 
 const PipelineWrapper: React.FC<IProps> = ({
   context,
@@ -127,12 +152,12 @@ const PipelineWrapper: React.FC<IProps> = ({
   addFileToPipelineSignal,
   widgetId
 }) => {
-  const ref = useRef(null);
+  const ref = useRef<any>(null);
   const [loading, setLoading] = useState(true);
-  const [pipeline, setPipeline] = useState(null);
+  const [pipeline, setPipeline] = useState<any>(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
-  const [alert, setAlert] = React.useState(null);
-  const [updatedNodes, setUpdatedNodes] = React.useState(nodes);
+  const [alert, setAlert] = React.useState('');
+  const [updatedNodes, setUpdatedNodes] = React.useState([] as any[]);
   const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
 
   const contextRef = useRef(context);
@@ -141,7 +166,10 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const changeHandler = (): void => {
       const pipelineJson: any = currentContext.model.toJSON();
-      if (pipelineJson?.pipelines?.[0]?.nodes) {
+      if (
+        pipelineJson?.pipelines?.[0]?.nodes &&
+        pipelineJson?.pipelines?.[0]?.nodes.length > 0
+      ) {
         // Update to display actual value of runtime image
         for (const node of pipelineJson?.pipelines?.[0]?.nodes) {
           const app_data = node?.app_data;
@@ -171,23 +199,75 @@ const PipelineWrapper: React.FC<IProps> = ({
       setLoading(false);
     };
 
-    currentContext.model.contentChanged.connect(changeHandler);
-
-    currentContext.ready.then(changeHandler);
-
-    PipelineService.getRuntimeImages()
-      .then((images: any) => {
+    const loadNodes = (pipelineRuntime?: string): void => {
+      PipelineService.getRuntimeImages().then((images: any) => {
         runtimeImages.current = images;
-        const nodesCopy = JSON.parse(JSON.stringify(nodes));
-        for (const node of nodesCopy) {
-          node.properties.uihints.parameter_info[1].data.items = Object.values(
-            runtimeImages.current
-          );
-        }
-        setUpdatedNodes(nodesCopy);
+        PipelineService.getRuntimeComponents(pipelineRuntime ?? 'local').then(
+          async (serverNodes: any) => {
+            const newNodes: any[] = [];
+            for (const nodeCategory of serverNodes.categories) {
+              await PipelineService.getComponentProperties(
+                pipelineRuntime ?? 'local',
+                nodeCategory.id
+              ).then((properties: any) => {
+                for (const node of nodeCategory.node_types) {
+                  newNodes.push(node);
+                  node.label = nodeCategory.label;
+                  node.id = nodeCategory.id;
+                  const nodeIcon = NodeIcons.get(nodeCategory.id);
+                  if (!nodeIcon || nodeIcon === '') {
+                    node.image =
+                      'data:image/svg+xml;utf8,' +
+                      encodeURIComponent(
+                        getRuntimeIcon(pipelineRuntime).svgstr
+                      );
+                  } else {
+                    node.image = nodeIcon;
+                  }
+                  node.description = nodeCategory.description;
+                  node.properties = properties;
+                  const index = node.properties.uihints.parameter_info.findIndex(
+                    (p: any) => p.parameter_ref === 'runtime_image'
+                  );
+                  if (node.properties.uihints.parameter_info[index].data) {
+                    node.properties.uihints.parameter_info[
+                      index
+                    ].data.items = Object.values(runtimeImages.current);
+                  } else {
+                    node.properties.uihints.parameter_info[index].data = {
+                      items: Object.values(runtimeImages.current)
+                    };
+                  }
+                }
+              }, RequestErrors.serverError);
+            }
+            setUpdatedNodes(newNodes);
+            changeHandler();
+          },
+          RequestErrors.serverError
+        );
+      }, RequestErrors.serverError);
+    };
+
+    loadNodes();
+
+    // Trigger a re-load of the nodes if the pipeline runtime changes
+    const maybeLoadNodes = (): void => {
+      const pipelineJSON: any = currentContext.model.toJSON();
+      const pipelineRuntime =
+        pipelineJSON?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name;
+      if (
+        pipelineRuntime !==
+        pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name
+      ) {
+        loadNodes(pipelineRuntime);
+      } else {
         changeHandler();
-      })
-      .catch(error => RequestErrors.serverError(error));
+      }
+    };
+
+    currentContext.ready.then(maybeLoadNodes);
+    currentContext.model.contentChanged.connect(maybeLoadNodes);
 
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
@@ -227,7 +307,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     });
   };
 
-  const runtimeImages = React.useRef({});
+  const runtimeImages = React.useRef<any>({});
 
   const onFileRequested = (args: any): Promise<string> => {
     let currentExt = '';
@@ -278,7 +358,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   const handleOpenFile = (data: any): void => {
     for (let i = 0; i < data.selectedObjectIds.length; i++) {
       const node = pipeline.pipelines[0].nodes.find(
-        node => node.id === data.selectedObjectIds[i]
+        (node: any) => node.id === data.selectedObjectIds[i]
       );
       if (!node || !node.app_data || !node.app_data.filename) {
         continue;
@@ -314,7 +394,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       setAlert('Failed export: Cannot export empty pipelines.');
       return;
     }
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodes);
+    const errorMessages = validate(JSON.stringify(pipelineJson), updatedNodes);
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -448,12 +528,12 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [context.model, pipelineRuntime, cleanNullProperties, shell]);
+  }, [context.model, pipeline?.pipelines, cleanNullProperties, shell]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // Check that all nodes are valid
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodes);
+    const errorMessages = validate(JSON.stringify(pipelineJson), updatedNodes);
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -583,7 +663,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [context.model, pipelineRuntime, cleanNullProperties, shell]);
+  }, [context.model, pipeline?.pipelines, cleanNullProperties, shell]);
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
     return showDialog({
@@ -724,7 +804,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     (location?: { x: number; y: number }) => {
       const fileBrowser = browserFactory.defaultBrowser;
       // Only add file to pipeline if it is currently in focus
-      if (shell.currentWidget.id !== widgetId) {
+      if (shell.currentWidget?.id !== widgetId) {
         return;
       }
 
@@ -749,15 +829,15 @@ const PipelineWrapper: React.FC<IProps> = ({
           if (item.type == 'notebook') {
             const fileWidget = fileBrowser.model.manager.open(item.path);
             // itemContent = (fileWidget as NotebookPanel).content.model.toString();
-            fileWidget.dispose();
+            fileWidget?.dispose();
           }
           item.op = PipelineService.getNodeType(item.path);
           item.path = PipelineService.getPipelineRelativeNodePath(
             contextRef.current.path,
             item.path
           );
-          item.x = location.x + position;
-          item.y = location.y + position;
+          item.x = (location?.x ?? 0) + position;
+          item.y = (location?.y ?? 0) + position;
 
           const success = ref.current?.addFile(item);
 
@@ -783,6 +863,8 @@ const PipelineWrapper: React.FC<IProps> = ({
           buttons: [Dialog.okButton()]
         });
       }
+
+      return;
     },
     [browserFactory.defaultBrowser, defaultPosition, shell, widgetId]
   );
@@ -806,7 +888,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       return;
     }
 
-    setAlert(null);
+    setAlert('');
   };
 
   if (loading) {
@@ -816,7 +898,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
-        open={alert !== null}
+        open={alert !== ''}
         autoHideDuration={6000}
         onClose={handleClose}
       >

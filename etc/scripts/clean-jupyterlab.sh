@@ -55,8 +55,10 @@ echo "Anaconda env......: $CONDA_DEFAULT_ENV"
 echo " "
 
 set -e
-echo "Uninstalling old packages"
+echo "Uninstalling old packages and kernels"
 conda uninstall -y xeus-python -c conda-forge || true;
+conda uninstall -y r r-essentials r-irkernel || true;
+conda uninstall -y r-languageserver -c conda-forge || true;
 pip uninstall -y elyra || true;
 pip uninstall -y jupyterlab-git || true;
 pip uninstall -y jupyterlab-server || true;
@@ -89,7 +91,14 @@ else
 fi
 echo " "
 
+echo "Installing R kernel and language server"
+conda install -y r r-essentials r-irkernel
+conda install -y -c conda-forge r-languageserver
+echo " "
+
 jupyter --version
+echo " "
+jupyter kernelspec list
 echo " "
 jupyter serverextension list
 echo " "

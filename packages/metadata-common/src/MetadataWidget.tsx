@@ -78,6 +78,7 @@ export interface IMetadataDisplayProps {
   className: string;
   // Optional string to append to a schema display name
   schemaType?: string;
+  labelName?: (args: any) => string;
 }
 
 /**
@@ -111,7 +112,9 @@ export class MetadataDisplay<
 
   deleteMetadata = (metadata: IMetadata): Promise<void> => {
     return showDialog({
-      title: `Delete metadata: ${metadata.display_name}?`,
+      title: `Delete ${
+        this.props.labelName ? this.props.labelName(metadata) : ''
+      } '${metadata.display_name}'?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
@@ -292,7 +295,7 @@ export class MetadataDisplay<
         matchesTags: state.matchesTags
       };
     }
-    return null;
+    return state;
   }
 
   render(): React.ReactElement {
@@ -317,7 +320,7 @@ export class MetadataDisplay<
  */
 export interface IMetadataWidgetProps {
   app: JupyterFrontEnd;
-  themeManager: IThemeManager;
+  themeManager?: IThemeManager;
   display_name: string;
   namespace: string;
   icon: LabIcon;
@@ -331,7 +334,7 @@ export interface IMetadataWidgetProps {
 export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
-  schemas: IDictionary<any>[];
+  schemas?: IDictionary<any>[];
   schemaType?: string;
 
   constructor(props: IMetadataWidgetProps) {
