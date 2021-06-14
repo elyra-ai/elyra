@@ -28,8 +28,6 @@ import {
   Dropzone,
   RequestErrors,
   showFormDialog,
-  pyIcon,
-  rIcon,
   kubeflowIcon,
   airflowIcon
 } from '@elyra/ui-components';
@@ -47,7 +45,6 @@ import 'carbon-components/css/carbon-components.min.css';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
-import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 import { Signal } from '@lumino/signaling';
@@ -57,11 +54,7 @@ import Alert from '@material-ui/lab/Alert';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
-import {
-  useComponentProperties,
-  useRuntimeComponents,
-  useRuntimeImages
-} from './pipeline-hooks';
+import { useNodeDefs, useRuntimeImages } from './pipeline-hooks';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import pipelineProperties from './pipelineProperties';
 import {
@@ -85,17 +78,6 @@ export const commandIDs = {
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
-};
-
-const runtimeIcons = [kubeflowIcon, airflowIcon];
-
-export const getRuntimeIcon = (runtime?: string): LabIcon => {
-  for (const runtimeIcon of runtimeIcons) {
-    if (`elyra:${runtime}` === runtimeIcon.name) {
-      return runtimeIcon;
-    }
-  }
-  return pipelineIcon;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -137,18 +119,6 @@ interface IProps {
   widgetId?: string;
 }
 
-const NodeIcons: Map<string, string> = new Map([
-  [
-    'notebooks',
-    'data:image/svg+xml;utf8,' + encodeURIComponent(notebookIcon.svgstr)
-  ],
-  [
-    'python-script',
-    'data:image/svg+xml;utf8,' + encodeURIComponent(pyIcon.svgstr)
-  ],
-  ['r-script', 'data:image/svg+xml;utf8,' + encodeURIComponent(rIcon.svgstr)]
-]);
-
 const PipelineWrapper: React.FC<IProps> = ({
   context,
   browserFactory,
@@ -157,19 +127,20 @@ const PipelineWrapper: React.FC<IProps> = ({
   addFileToPipelineSignal,
   widgetId
 }) => {
-  const { data: d1 } = useRuntimeImages();
-  const { data: d2 } = useRuntimeComponents();
-  // useComponentProperties(null, );
-  console.log(d1);
-  console.log(d2);
-
   const ref = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState<any>(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState('');
-  const [updatedNodes, setUpdatedNodes] = React.useState([] as any[]);
+
   const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime;
+
+  const pipelineRuntimeName =
+    pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name;
+
+  const { data: nodeDefs } = useNodeDefs(pipelineRuntimeName);
+
+  const { data: runtimeImages } = useRuntimeImages();
 
   const contextRef = useRef(context);
   useEffect(() => {
@@ -177,17 +148,17 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const changeHandler = (): void => {
       const pipelineJson: any = currentContext.model.toJSON();
-      if (
-        pipelineJson?.pipelines?.[0]?.nodes &&
-        pipelineJson?.pipelines?.[0]?.nodes.length > 0
-      ) {
-        // Update to display actual value of runtime image
-        for (const node of pipelineJson?.pipelines?.[0]?.nodes) {
-          const app_data = node?.app_data;
-          if (app_data?.runtime_image) {
-            if (runtimeImages.current?.[app_data.runtime_image]) {
-              app_data.runtime_image =
-                runtimeImages.current?.[app_data.runtime_image];
+
+      // map IDs to display names
+      const nodes = pipelineJson?.pipelines?.[0]?.nodes;
+      if (nodes?.length > 0) {
+        for (const node of nodes) {
+          if (node?.app_data?.runtime_image) {
+            const image = runtimeImages?.['runtime-images'].find(
+              i => i.metadata.image_name === node.app_data.runtime_image
+            );
+            if (image) {
+              node.app_data.runtime_image = image.display_name;
             }
           }
         }
@@ -210,101 +181,41 @@ const PipelineWrapper: React.FC<IProps> = ({
       setLoading(false);
     };
 
-    const loadNodes = (pipelineRuntime?: string): void => {
-      PipelineService.getRuntimeImages().then((images: any) => {
-        runtimeImages.current = images;
-        PipelineService.getRuntimeComponents(pipelineRuntime ?? 'local').then(
-          async (serverNodes: any) => {
-            const newNodes: any[] = [];
-            for (const nodeCategory of serverNodes.categories) {
-              await PipelineService.getComponentProperties(
-                pipelineRuntime ?? 'local',
-                nodeCategory.id
-              ).then((properties: any) => {
-                for (const node of nodeCategory.node_types) {
-                  newNodes.push(node);
-                  node.label = nodeCategory.label;
-                  node.id = nodeCategory.id;
-                  const nodeIcon = NodeIcons.get(nodeCategory.id);
-                  if (!nodeIcon || nodeIcon === '') {
-                    node.image =
-                      'data:image/svg+xml;utf8,' +
-                      encodeURIComponent(
-                        getRuntimeIcon(pipelineRuntime).svgstr
-                      );
-                  } else {
-                    node.image = nodeIcon;
-                  }
-                  node.description = nodeCategory.description;
-                  node.properties = properties;
-                  const index = node.properties.uihints.parameter_info.findIndex(
-                    (p: any) => p.parameter_ref === 'runtime_image'
-                  );
-                  if (node.properties.uihints.parameter_info[index].data) {
-                    node.properties.uihints.parameter_info[
-                      index
-                    ].data.items = Object.values(runtimeImages.current);
-                  } else {
-                    node.properties.uihints.parameter_info[index].data = {
-                      items: Object.values(runtimeImages.current)
-                    };
-                  }
-                }
-              }, RequestErrors.serverError);
-            }
-            setUpdatedNodes(newNodes);
-            changeHandler();
-          },
-          RequestErrors.serverError
-        );
-      }, RequestErrors.serverError);
-    };
-
-    loadNodes();
-
-    // Trigger a re-load of the nodes if the pipeline runtime changes
-    const maybeLoadNodes = (): void => {
-      const pipelineJSON: any = currentContext.model.toJSON();
-      const pipelineRuntime =
-        pipelineJSON?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name;
-      if (
-        pipelineRuntime !==
-        pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name
-      ) {
-        loadNodes(pipelineRuntime);
-      } else {
-        changeHandler();
-      }
-    };
-
-    currentContext.ready.then(maybeLoadNodes);
-    currentContext.model.contentChanged.connect(maybeLoadNodes);
+    currentContext.ready.then(changeHandler);
+    currentContext.model.contentChanged.connect(changeHandler);
 
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, []);
+  }, [runtimeImages]);
 
-  const onChange = useCallback((pipelineJson: any): void => {
-    if (contextRef.current.isReady) {
-      if (pipelineJson?.pipelines?.[0]?.nodes) {
-        // Update to store tag of runtime image
-        for (const node of pipelineJson?.pipelines?.[0]?.nodes) {
-          const app_data = node?.app_data;
-          if (app_data?.runtime_image) {
-            for (const tag in runtimeImages.current) {
-              if (runtimeImages.current?.[tag] === app_data?.runtime_image) {
-                app_data.runtime_image = tag;
+  const onChange = useCallback(
+    (pipelineJson: any): void => {
+      if (contextRef.current.isReady) {
+        if (pipelineJson?.pipelines?.[0]?.nodes) {
+          // map display names to IDs
+          const nodes = pipelineJson?.pipelines?.[0]?.nodes;
+          if (nodes?.length > 0) {
+            for (const node of nodes) {
+              if (node?.app_data?.runtime_image) {
+                const image = runtimeImages?.['runtime-images'].find(
+                  i => i.display_name === node.app_data.runtime_image
+                );
+                if (image) {
+                  node.app_data.runtime_image = image.metadata.image_name;
+                }
               }
             }
           }
         }
+
+        contextRef.current.model.fromString(
+          JSON.stringify(pipelineJson, null, 2)
+        );
       }
-      contextRef.current.model.fromString(
-        JSON.stringify(pipelineJson, null, 2)
-      );
-    }
-  }, []);
+    },
+    [runtimeImages]
+  );
 
   const onError = (error?: Error): void => {
     showDialog({
@@ -317,8 +228,6 @@ const PipelineWrapper: React.FC<IProps> = ({
       }
     });
   };
-
-  const runtimeImages = React.useRef<any>({});
 
   const onFileRequested = (args: any): Promise<string> => {
     let currentExt = '';
@@ -405,7 +314,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       setAlert('Failed export: Cannot export empty pipelines.');
       return;
     }
-    const errorMessages = validate(JSON.stringify(pipelineJson), updatedNodes);
+    const errorMessages = validate(JSON.stringify(pipelineJson), nodeDefs);
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -539,12 +448,12 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [context.model, pipeline?.pipelines, cleanNullProperties, shell]);
+  }, [cleanNullProperties, context.model, nodeDefs, pipelineRuntime, shell]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // Check that all nodes are valid
-    const errorMessages = validate(JSON.stringify(pipelineJson), updatedNodes);
+    const errorMessages = validate(JSON.stringify(pipelineJson), nodeDefs);
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -674,7 +583,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [context.model, pipeline?.pipelines, cleanNullProperties, shell]);
+  }, [cleanNullProperties, context.model, nodeDefs, pipelineRuntime, shell]);
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
     return showDialog({
@@ -902,7 +811,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     setAlert('');
   };
 
-  if (loading) {
+  if (loading || nodeDefs === undefined) {
     return <div>loading</div>;
   }
 
@@ -920,7 +829,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
-          nodes={updatedNodes}
+          nodes={nodeDefs}
           pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}

@@ -15,6 +15,15 @@
  */
 
 import { fetcher } from '@elyra/services';
+import {
+  pipelineIcon,
+  kubeflowIcon,
+  airflowIcon,
+  pyIcon,
+  rIcon
+} from '@elyra/ui-components';
+import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
+import produce from 'immer';
 import useSWR from 'swr';
 
 interface IReturn<T> {
@@ -35,7 +44,7 @@ interface IRuntimeImage {
 }
 
 export const useRuntimeImages = <T = IRuntimeImagesResponse>(): IReturn<T> => {
-  return useSWR<T>(`elyra/metadata/runtime-images`, fetcher);
+  return useSWR<T>(`/metadata/runtime-images`, fetcher);
 };
 
 interface IRuntimeComponentsResponse {
@@ -56,12 +65,6 @@ interface IRuntimeComponent {
     app_data: any;
   }[];
 }
-
-export const useRuntimeComponents = <T = IRuntimeComponentsResponse>(
-  pipelineRuntime = 'local'
-): IReturn<T> => {
-  return useSWR<T>(`elyra/pipeline/components/${pipelineRuntime}`, fetcher);
-};
 
 interface IComponentPropertiesResponse {
   current_parameters: { [key: string]: any };
@@ -87,12 +90,101 @@ interface IComponentPropertiesResponse {
   }[];
 }
 
-export const useComponentProperties = <T = IComponentPropertiesResponse>(
-  runtimeName = 'local',
-  componentCategory: string
-): IReturn<T> => {
-  return useSWR<T>(
-    `elyra/pipeline/components/${runtimeName}/${componentCategory}/properties`,
-    fetcher
+type INodeDefsResponse = INodeDef[];
+
+interface INodeDef {
+  label: string;
+  id: string;
+  image: string;
+  description: string;
+  properties: IComponentPropertiesResponse;
+}
+
+const componentFetcher = async (
+  runtime: string
+): Promise<INodeDefsResponse> => {
+  const components = await fetcher<IRuntimeComponentsResponse>(
+    `/pipeline/components/${runtime}`
   );
+
+  const propertiesPromises = components.categories.map(category =>
+    fetcher<IComponentPropertiesResponse>(
+      `/pipeline/components/${runtime}/${category.id}/properties`
+    )
+  );
+
+  // load all of the properties in parallel instead of serially
+  const properties = await Promise.all(propertiesPromises);
+
+  // zip together properties and components
+  return properties.map((prop, i) => ({
+    ...components.categories[i],
+    properties: prop
+  }));
+};
+
+const NodeIcons: Map<string, string> = new Map([
+  [
+    'notebooks',
+    'data:image/svg+xml;utf8,' + encodeURIComponent(notebookIcon.svgstr)
+  ],
+  [
+    'python-script',
+    'data:image/svg+xml;utf8,' + encodeURIComponent(pyIcon.svgstr)
+  ],
+  ['r-script', 'data:image/svg+xml;utf8,' + encodeURIComponent(rIcon.svgstr)]
+]);
+
+export const getRuntimeIcon = (runtime?: string): LabIcon => {
+  const runtimeIcons = [kubeflowIcon, airflowIcon];
+  for (const runtimeIcon of runtimeIcons) {
+    if (`elyra:${runtime}` === runtimeIcon.name) {
+      return runtimeIcon;
+    }
+  }
+  return pipelineIcon;
+};
+
+export const useNodeDefs = (
+  pipelineRuntime = 'local'
+): IReturn<INodeDefsResponse> => {
+  const { data: runtimeImages, error: runtimeError } = useRuntimeImages();
+
+  const { data: nodeDefs, error: nodeDefError } = useSWR<INodeDefsResponse>(
+    pipelineRuntime,
+    componentFetcher
+  );
+
+  const updatedDefs = nodeDefs?.map(def =>
+    produce(def, draft => {
+      // update icon
+      const nodeIcon = NodeIcons.get(draft.id);
+      if (!nodeIcon || nodeIcon === '') {
+        draft.image =
+          'data:image/svg+xml;utf8,' +
+          encodeURIComponent(getRuntimeIcon(pipelineRuntime).svgstr);
+      } else {
+        draft.image = nodeIcon;
+      }
+
+      // update runtime images
+      const param = draft.properties.uihints.parameter_info.find(
+        p => p.parameter_ref === 'runtime_image'
+      );
+
+      const displayNames = (runtimeImages?.['runtime-images'] ?? []).map(
+        i => i.display_name
+      );
+
+      if (param?.data) {
+        param.data.items = displayNames;
+      } else {
+        param!.data = {
+          items: displayNames
+        };
+      }
+    })
+  );
+
+  return { data: updatedDefs, error: runtimeError ?? nodeDefError };
 };
