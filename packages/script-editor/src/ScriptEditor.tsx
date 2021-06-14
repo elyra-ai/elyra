@@ -257,11 +257,13 @@ export class ScriptEditor extends DocumentWidget<
     };
     caretUpEmptyThinIcon.element({
       container: scrollUpButton,
-      elementPosition: 'center'
+      elementPosition: 'center',
+      title: 'Top'
     });
     caretDownEmptyThinIcon.element({
       container: scrollDownButton,
-      elementPosition: 'center'
+      elementPosition: 'center',
+      title: 'Bottom'
     });
     this.dockPanel?.node.appendChild(scrollUpButton);
     this.dockPanel?.node.appendChild(scrollDownButton);
