@@ -94,7 +94,7 @@ type INodeDefsResponse = INodeDef[];
 
 interface INodeDef {
   label: string;
-  id: string;
+  op: string;
   image: string;
   description: string;
   properties: IComponentPropertiesResponse;
@@ -117,22 +117,31 @@ const componentFetcher = async (
   const properties = await Promise.all(propertiesPromises);
 
   // zip together properties and components
-  return properties.map((prop, i) => ({
-    ...components.categories[i],
-    properties: prop
-  }));
+  return properties.map((prop, i) => {
+    const component = components.categories[i];
+    return {
+      op: component.node_types[0].op,
+      image: component.image,
+      label: component.label,
+      description: component.description,
+      properties: prop
+    };
+  });
 };
 
 const NodeIcons: Map<string, string> = new Map([
   [
-    'notebooks',
+    'execute-notebook-node',
     'data:image/svg+xml;utf8,' + encodeURIComponent(notebookIcon.svgstr)
   ],
   [
-    'python-script',
+    'execute-python-node',
     'data:image/svg+xml;utf8,' + encodeURIComponent(pyIcon.svgstr)
   ],
-  ['r-script', 'data:image/svg+xml;utf8,' + encodeURIComponent(rIcon.svgstr)]
+  [
+    'execute-r-node',
+    'data:image/svg+xml;utf8,' + encodeURIComponent(rIcon.svgstr)
+  ]
 ]);
 
 export const getRuntimeIcon = (runtime?: string): LabIcon => {
@@ -158,7 +167,7 @@ export const useNodeDefs = (
   const updatedDefs = nodeDefs?.map(def =>
     produce(def, draft => {
       // update icon
-      const nodeIcon = NodeIcons.get(draft.id);
+      const nodeIcon = NodeIcons.get(draft.op);
       if (!nodeIcon || nodeIcon === '') {
         draft.image =
           'data:image/svg+xml;utf8,' +
