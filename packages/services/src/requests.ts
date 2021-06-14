@@ -39,10 +39,10 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makeGetRequest(
+  static async makeGetRequest<T = any>(
     requestPath: string,
     longRequestDialog?: Dialog<any>
-  ): Promise<any> {
+  ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'GET' },

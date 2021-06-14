@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { fetcher } from '@elyra/services';
+import { RequestHandler } from '@elyra/services';
 import {
   pipelineIcon,
   kubeflowIcon,
@@ -44,7 +44,7 @@ interface IRuntimeImage {
 }
 
 export const useRuntimeImages = <T = IRuntimeImagesResponse>(): IReturn<T> => {
-  return useSWR<T>(`/metadata/runtime-images`, fetcher);
+  return useSWR<T>(`/metadata/runtime-images`, RequestHandler.makeGetRequest);
 };
 
 interface IRuntimeComponentsResponse {
@@ -103,12 +103,12 @@ interface INodeDef {
 const componentFetcher = async (
   runtime: string
 ): Promise<INodeDefsResponse> => {
-  const components = await fetcher<IRuntimeComponentsResponse>(
-    `/pipeline/components/${runtime}`
-  );
+  const components = await RequestHandler.makeGetRequest<
+    IRuntimeComponentsResponse
+  >(`/pipeline/components/${runtime}`);
 
   const propertiesPromises = components.categories.map(category =>
-    fetcher<IComponentPropertiesResponse>(
+    RequestHandler.makeGetRequest<IComponentPropertiesResponse>(
       `/pipeline/components/${runtime}/${category.id}/properties`
     )
   );
