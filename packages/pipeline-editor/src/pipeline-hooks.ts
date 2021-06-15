@@ -44,7 +44,6 @@ interface IRuntimeImage {
 }
 
 export const useRuntimeImages = <T = IRuntimeImagesResponse>(): IReturn<T> => {
-  console.log('runs');
   return useSWR<T>(`elyra/metadata/runtime-images`, async <T>(key: string) => {
     return await RequestHandler.makeGetRequest<T>(key);
   });
