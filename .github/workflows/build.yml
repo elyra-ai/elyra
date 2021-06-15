@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install
-        run: make lint-dependencies
+        run: make lint-server-dependencies
       - name: Lint
         run: make flake
 
