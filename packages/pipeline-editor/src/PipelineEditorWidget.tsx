@@ -620,7 +620,6 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const onAction = useCallback(
     (args: { type: string; payload?: any }) => {
-      console.log(args.type);
       switch (args.type) {
         case 'save':
           contextRef.current.save();
