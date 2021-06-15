@@ -15,7 +15,7 @@
 #
 
 .PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui prettier-ui flake lint-server-dependencies
-.PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install
+.PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image airflow-image publish-airflow-image container-images publish-container-images
@@ -124,10 +124,14 @@ install-extensions:
 build-jupyterlab:
 	jupyter lab build
 
-install-server: lint-server build-server install-server-package # Install backend
+prepare-server:
+	pip install --upgrade pip wheel
+
+only-install-server: prepare-server build-server install-server-package
+
+install-server: lint-server only-install-server # Install backend
 
 install-server-package:
-	pip install --upgrade pip wheel
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
 
 install: install-server install-ui check-install ## Build and install

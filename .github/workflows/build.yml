@@ -89,7 +89,7 @@ jobs:
       - name: Install
         # Note: Tests fail if we don't install `wheel` for some reason.
         run: |
-          make build-server install-server-package
+          make only-install-server
           make test-dependencies
       - name: Test
         run: make pytest
@@ -115,7 +115,7 @@ jobs:
       - name: Install
         run: |
           make yarn-install
-          make build-server install-server-package
+          make only-install-server
       - name: Test
         run: make test-ui-unit
 
@@ -141,7 +141,7 @@ jobs:
       - name: Install
         run: |
           make yarn-install
-          make build-server install-server-package
+          make only-install-server
       - name: Build
         run: make build-ui
       - name: Setup JupyterLab
