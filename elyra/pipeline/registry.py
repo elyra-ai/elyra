@@ -523,6 +523,17 @@ class AirflowComponentParser(ComponentParser):
 
                     # Add to existing parameter list
                     component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
+                    if(default_value is not None and len(default_value) > 0):
+                        if 'data' in new_parameter_info:
+                            if 'format' in new_parameter_info['data']:
+                                component_parameter_format = new_parameter_info['data']['format']
+                                if (component_parameter_format):
+                                    if component_parameter_format == 'bool' or component_parameter_format == 'Boolean':
+                                        default_value = default_value in ('True', 'true')
+                                    elif component_parameter_format == 'int':
+                                        if default_value != 'None':
+                                            default_value = int(default_value)
+
                     component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = default_value
 
                     # Add to existing parameter info list
