@@ -44,10 +44,10 @@ interface IRuntimeImage {
 }
 
 export const useRuntimeImages = <T = IRuntimeImagesResponse>(): IReturn<T> => {
-  return useSWR<T>(
-    `elyra/metadata/runtime-images`,
-    RequestHandler.makeGetRequest
-  );
+  console.log('runs');
+  return useSWR<T>(`elyra/metadata/runtime-images`, async <T>(key: string) => {
+    return await RequestHandler.makeGetRequest<T>(key);
+  });
 };
 
 interface IRuntimeComponentsResponse {
