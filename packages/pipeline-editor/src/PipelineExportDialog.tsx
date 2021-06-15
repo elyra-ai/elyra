@@ -24,7 +24,7 @@ import {
 } from './PipelineService';
 
 const KFP_FILE_TYPES = [
-  { label: 'KFP domain-specific language Python code', key: 'py' },
+  // { label: 'KFP domain-specific language Python code', key: 'py' },
   { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' }
 ];
 
