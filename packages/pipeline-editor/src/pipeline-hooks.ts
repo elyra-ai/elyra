@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { RequestHandler } from '@elyra/services';
+import { MetadataService, RequestHandler } from '@elyra/services';
 import {
   pipelineIcon,
   kubeflowIcon,
@@ -31,9 +31,7 @@ interface IReturn<T> {
   error?: any;
 }
 
-interface IRuntimeImagesResponse {
-  'runtime-images': IRuntimeImage[];
-}
+type IRuntimeImagesResponse = IRuntimeImage[];
 
 interface IRuntimeImage {
   name: string;
@@ -43,10 +41,19 @@ interface IRuntimeImage {
   };
 }
 
-export const useRuntimeImages = <T = IRuntimeImagesResponse>(): IReturn<T> => {
-  return useSWR<T>(`elyra/metadata/runtime-images`, async <T>(key: string) => {
-    return await RequestHandler.makeGetRequest<T>(key);
-  });
+const metadataFetcher = async <T>(key: string): Promise<T> => {
+  return await MetadataService.getMetadata(key);
+};
+
+export const useRuntimeImages = (): IReturn<IRuntimeImagesResponse> => {
+  const { data, error } = useSWR<IRuntimeImagesResponse>(
+    'runtime-images',
+    metadataFetcher
+  );
+
+  data?.sort((a, b) => 0 - (a.name > b.name ? -1 : 1));
+
+  return { data, error };
 };
 
 interface IRuntimeComponentsResponse {
@@ -183,9 +190,7 @@ export const useNodeDefs = (
         p => p.parameter_ref === 'runtime_image'
       );
 
-      const displayNames = (runtimeImages?.['runtime-images'] ?? []).map(
-        i => i.display_name
-      );
+      const displayNames = (runtimeImages ?? []).map(i => i.display_name);
 
       if (param?.data) {
         param.data.items = displayNames;
