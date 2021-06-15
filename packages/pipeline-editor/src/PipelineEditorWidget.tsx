@@ -138,9 +138,29 @@ const PipelineWrapper: React.FC<IProps> = ({
   const pipelineRuntimeName =
     pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name;
 
-  const { data: nodeDefs } = useNodeDefs(pipelineRuntimeName);
+  const { data: nodeDefs, error: nodeDefsError } = useNodeDefs(
+    pipelineRuntimeName
+  );
 
-  const { data: runtimeImages } = useRuntimeImages();
+  const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
+
+  useEffect(() => {
+    if (runtimeImages?.length === 0) {
+      RequestErrors.noMetadataError('runtime image');
+    }
+  }, [runtimeImages?.length]);
+
+  useEffect(() => {
+    if (nodeDefsError) {
+      RequestErrors.serverError(nodeDefsError);
+    }
+  }, [nodeDefsError]);
+
+  useEffect(() => {
+    if (runtimeImagesError) {
+      RequestErrors.serverError(runtimeImagesError);
+    }
+  }, [runtimeImagesError]);
 
   const contextRef = useRef(context);
   useEffect(() => {
@@ -154,7 +174,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       if (nodes?.length > 0) {
         for (const node of nodes) {
           if (node?.app_data?.runtime_image) {
-            const image = runtimeImages?.['runtime-images'].find(
+            const image = runtimeImages?.find(
               i => i.metadata.image_name === node.app_data.runtime_image
             );
             if (image) {
@@ -198,7 +218,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           if (nodes?.length > 0) {
             for (const node of nodes) {
               if (node?.app_data?.runtime_image) {
-                const image = runtimeImages?.['runtime-images'].find(
+                const image = runtimeImages?.find(
                   i => i.display_name === node.app_data.runtime_image
                 );
                 if (image) {
