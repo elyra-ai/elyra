@@ -127,7 +127,7 @@ build-jupyterlab:
 install-server: lint-server build-server install-server-package # Install backend
 
 install-server-package:
-	pip install --upgrade pip
+	pip install --upgrade pip wheel
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
 
 install: install-server install-ui check-install ## Build and install
