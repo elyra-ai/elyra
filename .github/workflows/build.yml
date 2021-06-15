@@ -41,15 +41,17 @@ jobs:
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
-        run: make yarn-install YARN_ARGS="--frozen-lockfile"
+        run: yarn install --frozen-lockfile
 
   lint-server:
     name: Lint Server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install
+        run: make lint-dependencies
       - name: Lint
-        run: make lint-server
+        run: make flake
 
   lint-ui:
     name: Lint UI
@@ -69,7 +71,7 @@ jobs:
       - name: Install
         run: make yarn-install
       - name: Lint
-        run: make lint-ui
+        run: make eslint-ui
       - name: Check format
         run: make prettier-ui
 
@@ -84,8 +86,13 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install
+        # Note: Tests fail if we don't install `wheel` for some reason.
+        run: |
+          make build-server install-server-package
+          make test-dependencies
       - name: Test
-        run: make test-server
+        run: make pytest
 
   test-ui:
     name: Test UI
@@ -107,11 +114,10 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: |
-          yarn install
-          python -m pip install --upgrade pip
-          pip install --use-deprecated=legacy-resolver .
+          make yarn-install
+          make build-server install-server-package
       - name: Test
-        run: yarn test:unit
+        run: make test-ui-unit
 
   test-integration:
     name: Run Integration Tests
@@ -134,17 +140,16 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: |
-          yarn install
-          python -m pip install --upgrade pip
-          pip install --use-deprecated=legacy-resolver .
+          make yarn-install
+          make build-server install-server-package
       - name: Build
-        run: yarn lerna run build --stream
+        run: make build-ui
       - name: Setup JupyterLab
         run: |
-          yarn lerna run lab:install --stream
-          jupyter lab build
+          make install-extensions
+          make build-jupyterlab
       - name: Cypress
-        run: yarn test:integration
+        run: make test-integration
 
   # TODO: Why are building? Is this just a test that it successfully builds? this should be named accordingly
   build-documentation:

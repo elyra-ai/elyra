@@ -14,9 +14,9 @@
 # limitations under the License.
 #
 
-.PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install
-.PHONY: build-ui build-server install-server watch
-.PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release
+.PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui prettier-ui flake lint-server-dependencies
+.PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install
+.PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image airflow-image publish-airflow-image container-images publish-container-images
 
@@ -33,7 +33,6 @@ KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 UPGRADE_STRATEGY?=only-if-needed
-YARN_ARGS?=""
 
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -81,14 +80,22 @@ clean: purge uninstall ## Make a clean source tree and uninstall extensions
 test-dependencies:
 	@pip install -q -r test_requirements.txt
 
-lint-server: test-dependencies
+lint-server-dependencies:
+	python -m pip install --upgrade pip
+	pip install flake8
+
+flake:
 	flake8 elyra
+
+lint-server: lint-server-dependencies flake
 
 prettier-ui:
 	yarn prettier:check
 
-lint-ui:
+eslint-ui:
 	yarn eslint:check --max-warnings=0
+
+lint-ui: prettier-ui eslint-ui
 
 lint: lint-ui prettier-ui lint-server ## Run linters
 
@@ -99,25 +106,33 @@ dev-link:
 	cd node_modules/@elyra/pipeline-services && jupyter labextension link --no-build .
 
 yarn-install:
-	yarn install $(YARN_ARGS)
+	yarn install
 
-build-ui: yarn-install # Build packages
-	yarn lerna run build
+build-ui: # Build packages
+	yarn lerna run build --stream
 
 build-server: # Build backend
 	python setup.py bdist_wheel sdist
 
 build: build-server build-ui
 
-install-ui: build-ui # Install packages
+install-ui: yarn-install lint-ui build-ui install-extensions build-jupyterlab # Install packages
+
+install-extensions:
 	yarn lerna run lab:install --stream
 
-install-server: build-server # Install backend
+build-jupyterlab:
+	jupyter lab build
+
+install-server: lint-server build-server install-server-package # Install backend
+
+install-server-package:
 	pip install --upgrade pip
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
 
-install: install-server install-ui ## Build and install
-	jupyter lab build
+install: install-server install-ui check-install ## Build and install
+
+check-install:
 	jupyter serverextension list
 	jupyter server extension list
 	jupyter labextension list
@@ -125,8 +140,10 @@ install: install-server install-ui ## Build and install
 watch: ## Watch packages. For use alongside jupyter lab --watch
 	yarn lerna run watch --parallel
 
-test-server: lint-server install-server # Run unit tests
+pytest:
 	pytest -v elyra
+
+test-server: install-server test-dependencies pytest # Run unit tests
 
 test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
 
