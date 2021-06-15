@@ -44,7 +44,10 @@ interface IRuntimeImage {
 }
 
 export const useRuntimeImages = <T = IRuntimeImagesResponse>(): IReturn<T> => {
-  return useSWR<T>(`/metadata/runtime-images`, RequestHandler.makeGetRequest);
+  return useSWR<T>(
+    `elyra/metadata/runtime-images`,
+    RequestHandler.makeGetRequest
+  );
 };
 
 interface IRuntimeComponentsResponse {
@@ -105,11 +108,11 @@ const componentFetcher = async (
 ): Promise<INodeDefsResponse> => {
   const components = await RequestHandler.makeGetRequest<
     IRuntimeComponentsResponse
-  >(`/pipeline/components/${runtime}`);
+  >(`elyra/pipeline/components/${runtime}`);
 
   const propertiesPromises = components.categories.map(category =>
     RequestHandler.makeGetRequest<IComponentPropertiesResponse>(
-      `/pipeline/components/${runtime}/${category.id}/properties`
+      `elyra/pipeline/components/${runtime}/${category.id}/properties`
     )
   );
 
