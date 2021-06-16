@@ -58,6 +58,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
 import { PipelineExportDialog } from './PipelineExportDialog';
+import pipelineProperties from './pipelineProperties';
 import {
   IRuntime,
   ISchema,
@@ -179,6 +180,20 @@ const PipelineWrapper: React.FC<IProps> = ({
             }
           }
         }
+      }
+      if (pipelineJson?.pipelines?.[0]?.app_data) {
+        if (!pipelineJson.pipelines[0].app_data.properties) {
+          pipelineJson.pipelines[0].app_data.properties = {};
+        }
+        const pipeline_path = contextRef.current.path;
+        const pipeline_name = PathExt.basename(
+          pipeline_path,
+          PathExt.extname(pipeline_path)
+        );
+        pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
+        pipelineJson.pipelines[0].app_data.properties.runtime =
+          pipelineJson.pipelines[0].app_data.ui_data?.runtime?.display_name ??
+          'Generic';
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -895,6 +910,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineEditor
           ref={ref}
           nodes={updatedNodes}
+          pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}
