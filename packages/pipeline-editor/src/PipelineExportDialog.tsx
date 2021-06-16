@@ -24,7 +24,7 @@ import {
 } from './PipelineService';
 
 const KFP_FILE_TYPES = [
-  // { label: 'KFP domain-specific language Python code', key: 'py' },
+  { label: 'KFP domain-specific language Python code', key: 'py' },
   { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' }
 ];
 
@@ -74,6 +74,10 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     if (!platformSelection) {
       return new Array<Record<string, string>>();
     } else if (platformSelection === KFP_SCHEMA) {
+      // TODO: remove temporary workaround for KFP Python DSL export option
+      if (this.props.runtime === KFP_SCHEMA) {
+        return [KFP_FILE_TYPES[1]];
+      }
       return KFP_FILE_TYPES;
     }
     return AIRFLOW_FILE_TYPES;
