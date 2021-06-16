@@ -22,8 +22,6 @@ import { PathExt } from '@jupyterlab/coreutils';
 
 import * as React from 'react';
 
-import Utils from './utils';
-
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_NAMESPACE = 'runtimes';
 export const COMPONENTS_NAMESPACE = 'components';
@@ -325,92 +323,6 @@ export class PipelineService {
     } else {
       return false;
     }
-  }
-
-  /**
-   * Verify if the given pipeline is "current" by looking on it's version, and perform
-   * any conversion if needed.
-   *
-   * @param pipelineDefinition
-   */
-  static convertPipeline(pipelineDefinition: any, pipelinePath: string): any {
-    let pipelineJSON = JSON.parse(JSON.stringify(pipelineDefinition));
-
-    const currentVersion: number = Utils.getPipelineVersion(pipelineJSON);
-
-    if (currentVersion < 1) {
-      // original pipeline definition without a version
-      console.info('Migrating pipeline to version 1.');
-      pipelineJSON = this.convertPipelineV0toV1(pipelineJSON);
-    }
-    if (currentVersion < 2) {
-      // adding relative path on the pipeline filenames
-      console.info('Migrating pipeline to version 2.');
-      pipelineJSON = this.convertPipelineV1toV2(pipelineJSON, pipelinePath);
-    }
-    if (currentVersion < 3) {
-      // Adding python script support
-      console.info('Migrating pipeline to version 3 (current version).');
-      pipelineJSON = this.convertPipelineV2toV3(pipelineJSON, pipelinePath);
-    }
-    return pipelineJSON;
-  }
-
-  private static convertPipelineV0toV1(pipelineJSON: any): any {
-    Utils.renamePipelineAppdataField(
-      pipelineJSON.pipelines[0],
-      'title',
-      'name'
-    );
-    Utils.deletePipelineAppdataField(pipelineJSON.pipelines[0], 'export');
-    Utils.deletePipelineAppdataField(
-      pipelineJSON.pipelines[0],
-      'export_format'
-    );
-    Utils.deletePipelineAppdataField(pipelineJSON.pipelines[0], 'export_path');
-
-    // look into nodes
-    for (const nodeKey in pipelineJSON.pipelines[0]['nodes']) {
-      const node = pipelineJSON.pipelines[0]['nodes'][nodeKey];
-      Utils.renamePipelineAppdataField(node, 'artifact', 'filename');
-      Utils.renamePipelineAppdataField(node, 'image', 'runtime_image');
-      Utils.renamePipelineAppdataField(node, 'vars', 'env_vars');
-      Utils.renamePipelineAppdataField(
-        node,
-        'file_dependencies',
-        'dependencies'
-      );
-      Utils.renamePipelineAppdataField(
-        node,
-        'recursive_dependencies',
-        'include_subdirectories'
-      );
-    }
-
-    pipelineJSON.pipelines[0]['app_data']['version'] = 1;
-    return pipelineJSON;
-  }
-
-  private static convertPipelineV1toV2(
-    pipelineJSON: any,
-    pipelinePath: string
-  ): any {
-    pipelineJSON.pipelines[0] = this.setNodePathsRelativeToPipeline(
-      pipelineJSON.pipelines[0],
-      pipelinePath
-    );
-    pipelineJSON.pipelines[0]['app_data']['version'] = 2;
-    return pipelineJSON;
-  }
-
-  private static convertPipelineV2toV3(
-    pipelineJSON: any,
-    pipelinePath: string
-  ): any {
-    // No-Op this is to disable old versions of Elyra
-    // to see a pipeline with Python Script nodes
-    pipelineJSON.pipelines[0]['app_data']['version'] = 3;
-    return pipelineJSON;
   }
 
   static getPipelineRelativeNodePath(
