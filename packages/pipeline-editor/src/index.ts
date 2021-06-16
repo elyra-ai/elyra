@@ -38,11 +38,8 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
 import { PIPELINE_CURRENT_VERSION } from './constants';
-import {
-  PipelineEditorFactory,
-  commandIDs,
-  getRuntimeIcon
-} from './PipelineEditorWidget';
+import { getRuntimeIcon } from './pipeline-hooks';
+import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
 import {
   RUNTIME_IMAGES_NAMESPACE,
@@ -165,7 +162,9 @@ const extension: JupyterFrontEndPlugin<void> = {
           ? `${args.runtime?.display_name} Pipeline Editor`
           : 'Generic Pipeline Editor',
       iconLabel: (args: any) =>
-        args.runtime?.display_name
+        args['isPalette']
+          ? ''
+          : args.runtime?.display_name
           ? `${args.runtime?.display_name} Pipeline Editor`
           : 'Generic Pipeline Editor',
       icon: (args: any) => {
