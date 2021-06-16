@@ -200,12 +200,12 @@ const extension: JupyterFrontEndPlugin<void> = {
                       comments: [],
                       runtime: args.runtime
                         ? {
-                            name: args.runtime?.name,
                             display_name: args.runtime?.display_name
                           }
                         : null
                     },
-                    version: PIPELINE_CURRENT_VERSION
+                    version: PIPELINE_CURRENT_VERSION,
+                    runtime: args.runtime?.name
                   },
                   runtime_ref: ''
                 }
