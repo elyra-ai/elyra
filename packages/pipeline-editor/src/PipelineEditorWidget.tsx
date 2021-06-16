@@ -157,11 +157,13 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState('');
   const [updatedNodes, setUpdatedNodes] = React.useState([] as any[]);
-  const pipelineRuntime = {
-    name: pipeline?.pipelines?.[0]?.app_data?.runtime,
-    display_name:
-      pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.display_name
-  };
+  const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.runtime
+    ? {
+        name: pipeline?.pipelines?.[0]?.app_data?.runtime,
+        display_name:
+          pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.display_name
+      }
+    : null;
 
   const contextRef = useRef(context);
   useEffect(() => {
