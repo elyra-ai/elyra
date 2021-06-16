@@ -21,19 +21,37 @@ class TestOperator(BaseOperator):
     r"""
     Execute a test script.
 
-    :param test_command: The test command description
-    :type test_command: str
-    :param test_bool: The test command bool description
-    :type test_bool: bool
-    :param test_int: The test command int description
-    :type test_int: int
+    :param test_string_no_default: The test command description
+    :type test_string_no_default: str
+    :param test_bool_default: The test command bool description
+    :type test_bool_default: bool
+    :param test_int_default: The test command int description
+    :type test_int_default: int
+    :param test_string_default_value: The test command description
+    :type test_string_default_value: str
+    :param test_string_default_empty: The test command description
+    :type test_string_default_empty: str
+    :param test_bool_false: The test command bool description
+    :type test_bool_false: bool
+    :param test_bool_true: The test command bool description
+    :type test_bool_true: bool
+    :param test_int_zero: The test command int description
+    :type test_int_zero: int
+    :param test_int_non_zero: The test command int description
+    :type test_int_non_zero: int
     """
 
     @apply_defaults
     def __init__(self,
-                 test_command,
-                 test_bool=False,
-                 test_int=0,
+                 test_string_no_default,
+                 test_bool_default,
+                 test_int_default,
+                 test_string_default_value='default',
+                 test_string_default_empty=None,
+                 test_bool_false=False,
+                 test_bool_true=True,
+                 test_int_zero=0,
+                 test_int_non_zero=1,
                  *args, **kwargs):
 
         super(TestOperator, self).__init__(*args, **kwargs)
