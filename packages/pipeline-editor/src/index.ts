@@ -165,7 +165,9 @@ const extension: JupyterFrontEndPlugin<void> = {
           ? `${args.runtime?.display_name} Pipeline Editor`
           : 'Generic Pipeline Editor',
       iconLabel: (args: any) =>
-        args.runtime?.display_name
+        args['isPalette']
+          ? ''
+          : args.runtime?.display_name
           ? `${args.runtime?.display_name} Pipeline Editor`
           : 'Generic Pipeline Editor',
       icon: (args: any) => {
