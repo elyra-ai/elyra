@@ -92,6 +92,8 @@ class MetadataManager(LoggingConfigurable):
 
     def get(self, name: str) -> Metadata:
         """Returns the metadata instance corresponding to the given name"""
+        if name is None:
+            raise ValueError("The 'name' parameter requires a value.")
         instance_list = self.metadata_store.fetch_instances(name=name)
         metadata_dict = instance_list[0]
         metadata = Metadata.from_dict(self.namespace, metadata_dict)
