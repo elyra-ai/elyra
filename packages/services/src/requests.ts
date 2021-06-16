@@ -39,10 +39,10 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makeGetRequest(
+  static async makeGetRequest<T = any>(
     requestPath: string,
     longRequestDialog?: Dialog<any>
-  ): Promise<any> {
+  ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'GET' },
@@ -70,11 +70,11 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makePostRequest(
+  static async makePostRequest<T = any>(
     requestPath: string,
     requestBody: any,
     longRequestDialog?: Dialog<any>
-  ): Promise<any> {
+  ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'POST', body: requestBody },
@@ -102,11 +102,11 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makePutRequest(
+  static async makePutRequest<T = any>(
     requestPath: string,
     requestBody: any,
     longRequestDialog?: Dialog<any>
-  ): Promise<any> {
+  ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'PUT', body: requestBody },
@@ -131,10 +131,10 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makeDeleteRequest(
+  static async makeDeleteRequest<T = any>(
     requestPath: string,
     longRequestDialog?: Dialog<any>
-  ): Promise<any> {
+  ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'DELETE' },
@@ -167,11 +167,11 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makeServerRequest(
+  static async makeServerRequest<T = any>(
     requestPath: string,
     requestInit: any,
     longRequestDialog?: Dialog<any>
-  ): Promise<any> {
+  ): Promise<T> {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are in the extension installed by this package
     const settings = ServerConnection.makeSettings();
