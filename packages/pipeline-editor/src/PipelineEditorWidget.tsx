@@ -245,12 +245,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     // Trigger a re-load of the nodes if the pipeline runtime changes
     const maybeLoadNodes = (): void => {
       const pipelineJSON: any = currentContext.model.toJSON();
-      const pipelineRuntime =
-        pipelineJSON?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name;
-      if (
-        pipelineRuntime !==
-        pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.name
-      ) {
+      const pipelineRuntime = pipelineJSON?.pipelines?.[0]?.app_data?.runtime;
+      if (pipelineRuntime !== pipeline?.pipelines?.[0]?.app_data?.runtime) {
         loadNodes(pipelineRuntime);
       } else {
         changeHandler();
