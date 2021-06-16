@@ -26,6 +26,7 @@ import Utils from './utils';
 
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_NAMESPACE = 'runtimes';
+export const COMPONENTS_NAMESPACE = 'components';
 
 export interface IRuntime {
   name: string;
@@ -65,6 +66,33 @@ export class PipelineService {
 
       return runtimes;
     });
+  }
+
+  /**
+   * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
+   *
+   * @param pipeline
+   * @param runtimeName
+   */
+  static async getRuntimeComponents(runtimeName: string): Promise<any> {
+    return RequestHandler.makeGetRequest(
+      `elyra/pipeline/components/${runtimeName}`
+    );
+  }
+
+  /**
+   * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
+   *
+   * @param pipeline
+   * @param runtimeName
+   */
+  static async getComponentProperties(
+    runtimeName: string,
+    componentCategory: string
+  ): Promise<any> {
+    return RequestHandler.makeGetRequest(
+      `elyra/pipeline/components/${runtimeName}/${componentCategory}/properties`
+    );
   }
 
   /**
@@ -413,10 +441,16 @@ export class PipelineService {
     pipelinePath: string
   ): any {
     for (const node of pipeline.nodes) {
-      node.app_data.filename = this.getPipelineRelativeNodePath(
-        pipelinePath,
-        node.app_data.filename
-      );
+      if (
+        node.op === 'execute-notebook-node' ||
+        node.op === 'execute-python-node' ||
+        node.op === 'execute-r-node'
+      ) {
+        node.app_data.filename = this.getPipelineRelativeNodePath(
+          pipelinePath,
+          node.app_data.filename
+        );
+      }
     }
     return pipeline;
   }
@@ -426,10 +460,16 @@ export class PipelineService {
     pipelinePath: string
   ): any {
     for (const node of pipeline.nodes) {
-      node.app_data.filename = this.getWorkspaceRelativeNodePath(
-        pipelinePath,
-        node.app_data.filename
-      );
+      if (
+        node.op === 'execute-notebook-node' ||
+        node.op === 'execute-python-node' ||
+        node.op === 'execute-r-node'
+      ) {
+        node.app_data.filename = this.getWorkspaceRelativeNodePath(
+          pipelinePath,
+          node.app_data.filename
+        );
+      }
     }
     return pipeline;
   }
