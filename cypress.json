@@ -2,6 +2,7 @@
   "baseUrl": "http://localhost:58888/lab",
   "numTestsKeptInMemory": 10,
   "integrationFolder": "./tests/integration",
+  "snapshotsFolder": "./tests/snapshots",
   "supportFile": "./tests/support/commands.ts",
   "pluginsFile": "./tests/plugins/index.js",
   "screenshotsFolder": "./build/cypress-tests/screenshots",

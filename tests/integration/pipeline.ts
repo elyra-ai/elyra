@@ -71,6 +71,35 @@ describe('Pipeline Editor tests', () => {
   //   closePipelineEditor();
   // });
 
+  it('kfp pipeline should display custom components', () => {
+    cy.createPipeline({ type: 'kfp' });
+    cy.openPalette();
+
+    const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
+
+    kfpCustomComponents.forEach(component => {
+      cy.findByText(new RegExp(component, 'i')).should('exist');
+    });
+  });
+
+  it('airflow pipeline should display custom components', () => {
+    cy.createPipeline({ type: 'airflow' });
+    cy.openPalette();
+
+    const airflowCustomComponents = [
+      'bash',
+      'email',
+      'HTTP',
+      'spark JDBC',
+      'spark sql',
+      'spark submit'
+    ];
+
+    airflowCustomComponents.forEach(component => {
+      cy.findByText(new RegExp(component, 'i')).should('exist');
+    });
+  });
+
   it('populated editor should have enabled buttons', () => {
     cy.createPipeline();
 
@@ -98,6 +127,31 @@ describe('Pipeline Editor tests', () => {
     checkEnabledToolbarButtons(enabledButtons);
   });
 
+  it.only('matches empty pipeline snapshot', () => {
+    cy.createPipeline({ name: 'empty.pipeline' });
+
+    cy.addFileToPipeline('helloworld.ipynb');
+
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb').rightclick();
+      cy.findByRole('menuitem', { name: /delete/i }).click();
+    });
+
+    cy.findByRole('button', { name: /save pipeline/i }).click();
+
+    cy.readFile('build/cypress-tests/empty.pipeline').matchesSnapshot();
+  });
+
+  it.only('matches normal pipeline snapshot', () => {
+    cy.createPipeline({ name: 'full.pipeline' });
+
+    cy.addFileToPipeline('helloworld.ipynb');
+
+    cy.findByRole('button', { name: /save pipeline/i }).click();
+
+    cy.readFile('build/cypress-tests/full.pipeline').matchesSnapshot();
+  });
+
   it('should open notebook on double-click', () => {
     cy.createPipeline();
 
@@ -113,7 +167,12 @@ describe('Pipeline Editor tests', () => {
 
   it('should save runtime configuration', () => {
     cy.createPipeline();
+<<<<<<< HEAD
 
+=======
+    // Open runtimes sidebar
+    cy.findByRole('button', { name: /open runtimes/i }).click();
+>>>>>>> ddf7c59 (extremely basic snapshot testing)
     // Create runtime configuration
     cy.createRuntimeConfig();
 

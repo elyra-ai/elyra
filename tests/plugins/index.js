@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-module.exports = (_on, _config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
+const fs = require('fs');
+
+module.exports = (on, _config) => {
+  on('task', {
+    fileExists(filename) {
+      return fs.existsSync(filename);
+    }
+  });
 };
