@@ -6,12 +6,6 @@
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py"
       }
     },
-    "docker-operator": {
-      "name": "Docker Operator",
-      "path": {
-        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/docker_operator.py"
-      }
-    },
     "email-operator": {
       "name": "Email Operator",
       "path": {
@@ -22,12 +16,6 @@
       "name": "HTTP Operator",
       "path": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/http_operator.py"
-      }
-    },
-    "kubernetes-pod-operator": {
-      "name": "Kubernetes Pod Operator",
-      "path": {
-        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/kubernetes_pod_operator.py"
       }
     },
     "spark-jdbc-operator": {
@@ -46,12 +34,6 @@
       "name": "Spark Submit Operator",
       "path": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py"
-      }
-    },
-    "ssh-operator": {
-      "name": "SSH Operator",
-      "path": {
-        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/ssh_operator.py"
       }
     }
   }
