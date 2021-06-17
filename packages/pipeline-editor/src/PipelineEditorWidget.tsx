@@ -831,7 +831,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   if (loading || nodeDefs === undefined) {
-    return <div>loading</div>;
+    return <div className="elyra-loader"></div>;
   }
 
   return (
