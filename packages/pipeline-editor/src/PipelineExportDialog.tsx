@@ -75,6 +75,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
       return new Array<Record<string, string>>();
     } else if (platformSelection === KFP_SCHEMA) {
       // TODO: remove temporary workaround for KFP Python DSL export option
+      // See https://github.com/elyra-ai/elyra/issues/1760 for context.
       if (this.props.runtime === KFP_SCHEMA) {
         return [KFP_FILE_TYPES[1]];
       }
