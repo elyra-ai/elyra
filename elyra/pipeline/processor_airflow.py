@@ -215,7 +215,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                             'component_params': operation.component_params,
                             'name': operation.component_class,
                             }
-                if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator', 
+                if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
                                             'spark-sql-operator', 'ssh-operator']:
                     notebook['is_contrib_operator'] = True
 
