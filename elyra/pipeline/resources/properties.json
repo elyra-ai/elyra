@@ -67,7 +67,7 @@
           "default": "Filename"
         },
         "description": {
-          "default": "The path to the notebook file.",
+          "default": "The path to the file.",
           "placement": "on_panel"
         },
         "data": {
@@ -180,7 +180,8 @@
           "placement": "on_panel"
         },
         "data": {
-          "placeholder": "env_var=VALUE"
+          "placeholder": "env_var=VALUE",
+          "canRefresh": true
         }
       },
       {
