@@ -49,22 +49,21 @@ def test_parse_airflow_component_file():
     assert properties['current_parameters']['testoperator_test_bool_default'] is False
     assert properties['current_parameters']['testoperator_test_bool_false'] is False
     assert properties['current_parameters']['testoperator_test_bool_true'] is True
-    assert properties['current_parameters']['testoperator_elyra_int_test_int_default'] == 0
+    assert properties['current_parameters']['testoperator_elyra_int_test_int_default'] is None
     assert properties['current_parameters']['testoperator_elyra_int_test_int_zero'] == 0
     assert properties['current_parameters']['testoperator_elyra_int_test_int_non_zero'] == 1
 
 
 def test_parse_airflow_component_url():
     parser = AirflowComponentParser()
-    print('>>> test_parse_airflow_component')
-    # component = parser.parse_component_details(airflow_component, 'operator')
-    # print('>>> Component')
-    # print(json.dumps(component, indent=2))
 
     test_url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'
     test_filename = 'bash_operator.py'
     airflow_component = _read_component_resource_from_url(test_url)
 
     properties = parser.parse_component_properties(airflow_component, test_filename)
-    print('>>> Properties')
-    print(json.dumps(properties, indent=2))
+
+    assert properties['current_parameters']['bashoperator_bash_command'] == ''
+    assert properties['current_parameters']['bashoperator_xcom_push'] == False
+    assert properties['current_parameters']['bashoperator_elyra_dict_env'] == None
+    assert properties['current_parameters']['bashoperator_output_encoding'] == 'utf-8'

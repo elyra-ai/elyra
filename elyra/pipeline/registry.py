@@ -537,7 +537,7 @@ class AirflowComponentParser(ComponentParser):
                                     if default_value:
                                         default_value = int(default_value)
                                     else:
-                                        default_value = 0
+                                        default_value = None
                                 elif component_parameter_format == 'bool' or component_parameter_format == 'Boolean':
                                     if default_value:
                                         default_value = default_value in ('True', 'true')
