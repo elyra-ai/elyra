@@ -5,10 +5,6 @@ Object {
   "pipelines": Array [
     Object {
       "app_data": Object {
-        "properties": Object {
-          "name": "empty",
-          "runtime": "Generic",
-        },
         "ui_data": Object {
           "comments": Array [],
         },

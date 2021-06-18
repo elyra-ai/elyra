@@ -142,8 +142,8 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/empty.pipeline').matchesSnapshot();
   });
 
-  it('matches normal pipeline snapshot', () => {
-    cy.createPipeline({ name: 'full.pipeline' });
+  it('matches simple pipeline snapshot', () => {
+    cy.createPipeline({ name: 'simple.pipeline' });
 
     cy.addFileToPipeline('helloworld.ipynb');
 
@@ -153,7 +153,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.savePipeline();
 
-    cy.readFile('build/cypress-tests/full.pipeline').matchesSnapshot();
+    cy.readFile('build/cypress-tests/simple.pipeline').matchesSnapshot();
   });
 
   it('should open notebook on double-click', () => {
