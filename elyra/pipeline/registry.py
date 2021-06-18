@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import ast
 import os
 import io
 import json
@@ -515,34 +516,12 @@ class AirflowComponentParser(ComponentParser):
 
                     # TODO: Fix default values that wrap lines or consider omitting altogether.
                     # Default information could also potentially go in the description instead.
-                    default_value = ""
+                    default_value = None
                     if '=' in arg:
                         arg, default_value = arg.split('=', 1)[:2]
-                        if default_value == 'None':
-                            default_value = None
+                        default_value = ast.literal_eval(default_value)
 
                     new_parameter_info = self.build_parameter(arg, class_name, class_content)
-
-                    # Add to existing parameter list
-                    component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
-                    if 'data' in new_parameter_info:
-                        if 'format' in new_parameter_info['data']:
-                            component_parameter_format = new_parameter_info['data']['format']
-                            if component_parameter_format:
-                                if component_parameter_format == 'str' or component_parameter_format == 'string':
-                                    # Remove quotes
-                                    if default_value:
-                                        default_value = default_value[1:-1]
-                                elif component_parameter_format == 'int':
-                                    if default_value:
-                                        default_value = int(default_value)
-                                    else:
-                                        default_value = None
-                                elif component_parameter_format == 'bool' or component_parameter_format == 'Boolean':
-                                    if default_value:
-                                        default_value = default_value in ('True', 'true')
-                                    else:
-                                        default_value = False
 
                     component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = default_value
 
