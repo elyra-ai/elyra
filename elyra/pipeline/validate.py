@@ -111,11 +111,7 @@ class PipelineValidationManager(SingletonConfigurable):
             return response
 
         pipeline_execution = pipeline_json['pipelines'][0]['app_data'].get('runtime')  # local, kfp, airflow
-
-        if not pipeline_json['pipelines'][0]['app_data']['ui_data'].get('runtime'):  # null, kfp, airflow
-            pipeline_runtime = 'generic'  # null/generic pipeline
-        else:
-            pipeline_runtime = pipeline_json['pipelines'][0]['app_data']['ui_data']['runtime'].get('name')
+        pipeline_runtime = self._get_runtime_schema(pipeline_json)
 
         self._validate_pipeline_structure(pipeline=pipeline, response=response)
         await self._validate_compatibility(pipeline=pipeline, response=response,
@@ -501,3 +497,12 @@ class PipelineValidationManager(SingletonConfigurable):
                 properties = ComponentRegistry().get_properties(pipeline_runtime, category['id'])
                 return properties['current_parameters']
         return {}
+
+    def _get_runtime_schema(self, pipeline_json) -> str:
+        runtime = pipeline_json['pipelines'][0]['app_data']['properties'].get('runtime')
+        if runtime == "Kubeflow Pipelines":
+            return "kfp"
+        elif runtime == "Apache Airflow":
+            return "airflow"
+        elif runtime == "Generic":
+            return "generic"
