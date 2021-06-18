@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import os
-import json
 import urllib
 
 from elyra.pipeline.registry import AirflowComponentParser
@@ -45,7 +44,7 @@ def test_parse_airflow_component_file():
 
     assert properties['current_parameters']['testoperator_test_string_no_default'] == ''
     assert properties['current_parameters']['testoperator_test_string_default_value'] == 'default'
-    assert properties['current_parameters']['testoperator_test_string_default_empty'] == None
+    assert properties['current_parameters']['testoperator_test_string_default_empty'] is None
     assert properties['current_parameters']['testoperator_test_bool_default'] is False
     assert properties['current_parameters']['testoperator_test_bool_false'] is False
     assert properties['current_parameters']['testoperator_test_bool_true'] is True
@@ -64,6 +63,6 @@ def test_parse_airflow_component_url():
     properties = parser.parse_component_properties(airflow_component, test_filename)
 
     assert properties['current_parameters']['bashoperator_bash_command'] == ''
-    assert properties['current_parameters']['bashoperator_xcom_push'] == False
-    assert properties['current_parameters']['bashoperator_elyra_dict_env'] == None
+    assert properties['current_parameters']['bashoperator_xcom_push'] is False
+    assert properties['current_parameters']['bashoperator_elyra_dict_env'] is None
     assert properties['current_parameters']['bashoperator_output_encoding'] == 'utf-8'
