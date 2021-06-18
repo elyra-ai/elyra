@@ -18,6 +18,14 @@ import '@testing-library/cypress/add-commands';
 
 import { kebabCase } from 'lodash';
 
+let snapshotIndexTracker: { [key: string]: number } = {};
+
+beforeEach(() => {
+  // reset tracker before each test, otherwise test retries will act as if there
+  // are multiple snapshots in one test case.
+  snapshotIndexTracker = {};
+});
+
 const getSnapshotPath = (test: any): string => {
   const names = [];
   for (let k = test; k; k = k.parent) {
@@ -30,15 +38,31 @@ const getSnapshotPath = (test: any): string => {
     .reverse()
     .join('/');
 
+  if (snapshotIndexTracker[filename] !== undefined) {
+    snapshotIndexTracker[filename] += 1;
+  } else {
+    snapshotIndexTracker[filename] = 1;
+  }
+
+  const index = snapshotIndexTracker[filename];
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   const snapshotsFolder = Cypress.config('snapshotsFolder');
 
-  return `${snapshotsFolder}/${filename}.snap`;
+  return `${snapshotsFolder}/${filename}.${index}.snap`;
 };
 
 const createSnapshot = (value: string): Cypress.Chainable<string> => {
-  return cy.task('serializeSnapshot', JSON.parse(value)).then(val => {
+  let obj = value;
+
+  try {
+    obj = JSON.parse(value);
+  } catch {
+    // no-op
+  }
+
+  return cy.task('serializeSnapshot', obj).then(val => {
     const valString = val as string;
 
     // replace UUIDs with something generic

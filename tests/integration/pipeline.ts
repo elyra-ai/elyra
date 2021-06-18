@@ -137,7 +137,7 @@ describe('Pipeline Editor tests', () => {
       cy.findByRole('menuitem', { name: /delete/i }).click();
     });
 
-    cy.findByRole('button', { name: /save pipeline/i }).click();
+    cy.savePipeline();
 
     cy.readFile('build/cypress-tests/empty.pipeline').matchesSnapshot();
   });
@@ -147,7 +147,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.addFileToPipeline('helloworld.ipynb');
 
-    cy.findByRole('button', { name: /save pipeline/i }).click();
+    cy.savePipeline();
 
     cy.readFile('build/cypress-tests/full.pipeline').matchesSnapshot();
   });
@@ -167,12 +167,8 @@ describe('Pipeline Editor tests', () => {
 
   it('should save runtime configuration', () => {
     cy.createPipeline();
-<<<<<<< HEAD
-
-=======
     // Open runtimes sidebar
     cy.findByRole('button', { name: /open runtimes/i }).click();
->>>>>>> ddf7c59 (extremely basic snapshot testing)
     // Create runtime configuration
     cy.createRuntimeConfig();
 
@@ -210,9 +206,6 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.savePipeline();
-
-    // can take a moment to register as saved in ci
-    cy.wait(1000);
 
     cy.findByRole('button', { name: /run pipeline/i }).click();
 

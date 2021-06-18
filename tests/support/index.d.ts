@@ -24,6 +24,7 @@ declare namespace Cypress {
       name?: string;
       type?: 'kfp' | 'airflow' | 'generic';
     }): Chainable<void>;
+    savePipeline(): Chainable<void>;
     openFile(fileName: string): Chainable<void>;
     bootstrapFile(fileName: string): Chainable<void>;
     resetJupyterLab(): Chainable<void>;
