@@ -170,9 +170,13 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                                    cos_password=cos_password)
 
                 # Generate unique ELYRA_RUN_NAME value and expose it as an
-                # environment variable in the container
-                # https://airflow.apache.org/docs/apache-airflow/1.10.12/_api/airflow/contrib/operators/kubernetes_pod_operator/index.html
-                # https://airflow.apache.org/docs/apache-airflow/1.10.12/macros-ref#default-variables
+                # environment variable in the container.
+                # Notebook | script nodes are implemented using the kubernetes_pod_operator
+                # (https://airflow.apache.org/docs/apache-airflow/1.10.12/_api/airflow/contrib/operators/kubernetes_pod_operator/index.html)
+                # Environment variables that are passed to this operator are
+                # pre-processed by Airflow at runtime and placeholder values (expressed as '{{ xyz }}'
+                #  - see https://airflow.apache.org/docs/apache-airflow/1.10.12/macros-ref#default-variables)
+                # replaced.
                 if pipeline_envs is None:
                     pipeline_envs = {}
                 pipeline_envs['ELYRA_RUN_NAME'] = f'{pipeline_name}-{{{{ run_id }}}}'
