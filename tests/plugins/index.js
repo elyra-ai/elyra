@@ -16,10 +16,26 @@
 
 const fs = require('fs');
 
+const { diffStringsUnified } = require('jest-diff');
+const { utils } = require('jest-snapshot');
+
 module.exports = (on, _config) => {
   on('task', {
     fileExists(filename) {
       return fs.existsSync(filename);
+    },
+    serializeSnapshot(value) {
+      return utils.serialize(value);
+    },
+    printDiff({ a, b }) {
+      const noColor = string => string;
+      return diffStringsUnified(a, b, {
+        aColor: noColor,
+        bColor: noColor,
+        changeColor: noColor,
+        commonColor: noColor,
+        patchColor: noColor
+      });
     }
   });
 };

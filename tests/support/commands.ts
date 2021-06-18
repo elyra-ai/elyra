@@ -15,6 +15,7 @@
  */
 
 import '@testing-library/cypress/add-commands';
+
 import { kebabCase } from 'lodash';
 
 const getSnapshotPath = (test: any): string => {
@@ -36,11 +37,16 @@ const getSnapshotPath = (test: any): string => {
   return `${snapshotsFolder}/${filename}.snap`;
 };
 
-const createSnapshot = (value: string): string => {
-  return JSON.stringify(JSON.parse(value), null, 2).replace(
-    /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi,
-    'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
-  );
+const createSnapshot = (value: string): Cypress.Chainable<string> => {
+  return cy.task('serializeSnapshot', JSON.parse(value)).then(val => {
+    const valString = val as string;
+
+    // replace UUIDs with something generic
+    return valString.replace(
+      /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi,
+      'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+    );
+  });
 };
 
 Cypress.Commands.add('matchesSnapshot', { prevSubject: true }, function(value) {
@@ -50,14 +56,23 @@ Cypress.Commands.add('matchesSnapshot', { prevSubject: true }, function(value) {
 
   const snapshotPath = getSnapshotPath(test);
 
-  cy.task('fileExists', snapshotPath).then(exists => {
-    if (exists) {
-      cy.readFile(snapshotPath).then(snap => {
-        expect(snap).to.equal(createSnapshot(value));
-      });
-    } else {
-      cy.writeFile(snapshotPath, createSnapshot(value));
-    }
+  createSnapshot(value).then(newSnap => {
+    cy.task('fileExists', snapshotPath).then(exists => {
+      if (exists) {
+        cy.readFile(snapshotPath).then(snap => {
+          cy.task('printDiff', { a: snap, b: newSnap }).then(val => {
+            const diff = val as string;
+            if (snap !== newSnap) {
+              const error = new Error(diff);
+              error.name = 'SnapshotError';
+              throw error;
+            }
+          });
+        });
+      } else {
+        cy.writeFile(snapshotPath, newSnap);
+      }
+    });
   });
 });
 
