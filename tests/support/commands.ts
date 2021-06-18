@@ -70,7 +70,6 @@ Cypress.Commands.add('createPipelineEditor', (): void => {
   cy.get('.common-canvas-drop-div');
   // wait an additional 300ms for the list of items to settle
   cy.wait(300);
-  cy.wait(10000);
 });
 
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {
@@ -85,7 +84,6 @@ Cypress.Commands.add('openFile', (name: string): void => {
     name: (n, _el) => n.includes(name),
     timeout: 50000
   }).dblclick();
-  cy.wait(10000);
 });
 
 Cypress.Commands.add('bootstrapFile', (name: string): void => {
