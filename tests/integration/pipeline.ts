@@ -127,7 +127,7 @@ describe('Pipeline Editor tests', () => {
     checkEnabledToolbarButtons(enabledButtons);
   });
 
-  it.only('matches empty pipeline snapshot', () => {
+  it('matches empty pipeline snapshot', () => {
     cy.createPipeline({ name: 'empty.pipeline' });
 
     cy.addFileToPipeline('helloworld.ipynb');
@@ -142,10 +142,14 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/empty.pipeline').matchesSnapshot();
   });
 
-  it.only('matches normal pipeline snapshot', () => {
+  it('matches normal pipeline snapshot', () => {
     cy.createPipeline({ name: 'full.pipeline' });
 
     cy.addFileToPipeline('helloworld.ipynb');
+
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb');
+    });
 
     cy.savePipeline();
 
