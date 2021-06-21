@@ -48,8 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install
-        run: make test-dependencies
       - name: Lint
         run: make lint-server
 
