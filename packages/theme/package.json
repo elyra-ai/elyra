@@ -29,7 +29,9 @@
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "lab:install": "jupyter labextension install --no-build",
+    "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
     "@elyra/ui-components": "^2.3.0-dev",
