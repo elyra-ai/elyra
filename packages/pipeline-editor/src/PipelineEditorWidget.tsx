@@ -616,8 +616,20 @@ const PipelineWrapper: React.FC<IProps> = ({
       buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
     }).then(result => {
       if (result.button.accept) {
-        // select all canvas elements
-        contextRef.current.model.fromString('');
+        const newPipeline: any = contextRef.current.model.toJSON();
+        if (newPipeline?.pipelines?.[0]?.nodes?.length > 0) {
+          newPipeline.pipelines[0].nodes = [];
+        }
+        const pipelineProperties =
+          newPipeline?.pipelines?.[0]?.app_data?.properties;
+        if (pipelineProperties) {
+          // Remove all fields of pipeline properties except for the name/runtime (readonly)
+          newPipeline.pipelines[0].app_data.properties = {
+            name: pipelineProperties.name,
+            runtime: pipelineProperties.runtime
+          };
+        }
+        contextRef.current.model.fromJSON(newPipeline);
       }
     });
   }, []);
