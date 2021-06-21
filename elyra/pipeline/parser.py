@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import ast
 import json
 from traitlets.config import LoggingConfigurable
 from typing import Any, Dict, List, Optional
@@ -272,7 +273,7 @@ class PipelineParser(LoggingConfigurable):
                     # display error
                     if "elyra_dict_" in key:
                         key = key.replace("elyra_dict_", "")
-                        value = dict(value)
+                        value = ast.literal_eval(value)
                     elif "elyra_int_" in key:
                         key = key.replace("elyra_int_", "")
                         value = int(value)

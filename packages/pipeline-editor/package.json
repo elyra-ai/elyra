@@ -31,12 +31,14 @@
     "dist": "npm pack .",
     "prepare": "npm run build ",
     "test": "jest --passWithNoTests",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "lab:install": "jupyter labextension install --no-build",
+    "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
     "@elyra/metadata-common": "^2.3.0-dev",
-    "@elyra/pipeline-editor": "^0.5.2",
-    "@elyra/pipeline-services": "^0.5.2",
+    "@elyra/pipeline-editor": "^0.6.0",
+    "@elyra/pipeline-services": "^0.6.0",
     "@elyra/services": "^2.3.0-dev",
     "@elyra/ui-components": "^2.3.0-dev",
     "@jupyterlab/application": "^3.0.0",
@@ -67,6 +69,7 @@
     "react-intl": "^5.10.15",
     "react-redux": "^7.2.0",
     "react-scripts": "3.0.1",
+    "swr": "^0.5.6",
     "uuid": "^3.4.0"
   },
   "devDependencies": {
