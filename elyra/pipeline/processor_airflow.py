@@ -179,7 +179,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                 # replaced.
                 if pipeline_envs is None:
                     pipeline_envs = {}
-                pipeline_envs['ELYRA_RUN_NAME'] = f'{pipeline_name}-{{{{ run_id }}}}'
+                pipeline_envs['ELYRA_RUN_NAME'] = f'{pipeline_name}-{{{{ ts_nodash }}}}'
 
                 image_pull_policy = None
                 for image_instance in image_namespace:
