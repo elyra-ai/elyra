@@ -31,7 +31,9 @@
     "dist": "npm pack .",
     "prepare": "npm run build ",
     "test": "jest --passWithNoTests",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "lab:install": "jupyter labextension install --no-build",
+    "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
     "@elyra/metadata-common": "^2.3.0-dev",
