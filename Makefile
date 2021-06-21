@@ -78,16 +78,11 @@ uninstall:
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
 test-dependencies:
+	python -m pip install --upgrade pip
 	@pip install -q -r test_requirements.txt
 
-lint-server-dependencies:
-	python -m pip install --upgrade pip
-	pip install flake8
-
-flake:
+lint-server: test-dependencies
 	flake8 elyra
-
-lint-server: lint-server-dependencies flake
 
 prettier-ui:
 	yarn prettier:check

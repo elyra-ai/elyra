@@ -49,9 +49,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install
-        run: make lint-server-dependencies
+        run: make test-dependencies
       - name: Lint
-        run: make flake
+        run: make lint-server
 
   lint-ui:
     name: Lint UI
