@@ -62,7 +62,7 @@ def test_parse_airflow_component_url():
 
     properties = parser.parse_component_properties(airflow_component, test_filename)
 
-    assert properties['current_parameters']['bashoperator_bash_command'] is None
+    assert properties['current_parameters']['bashoperator_bash_command'] == ''
     assert properties['current_parameters']['bashoperator_xcom_push'] is False
     assert properties['current_parameters']['bashoperator_elyra_dict_env'] is None
     assert properties['current_parameters']['bashoperator_output_encoding'] == 'utf-8'
