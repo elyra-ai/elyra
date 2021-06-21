@@ -42,13 +42,13 @@ def test_parse_airflow_component_file():
 
     properties = parser.parse_component_properties(airflow_component, test_filename)
 
-    assert properties['current_parameters']['testoperator_test_string_no_default'] is None
+    assert properties['current_parameters']['testoperator_test_string_no_default'] == ''
     assert properties['current_parameters']['testoperator_test_string_default_value'] == 'default'
-    assert properties['current_parameters']['testoperator_test_string_default_empty'] is None
-    assert properties['current_parameters']['testoperator_test_bool_default'] is None
+    assert properties['current_parameters']['testoperator_test_string_default_empty'] == ''
+    assert properties['current_parameters']['testoperator_test_bool_default'] is False
     assert properties['current_parameters']['testoperator_test_bool_false'] is False
     assert properties['current_parameters']['testoperator_test_bool_true'] is True
-    assert properties['current_parameters']['testoperator_elyra_int_test_int_default'] is None
+    assert properties['current_parameters']['testoperator_elyra_int_test_int_default'] == 0
     assert properties['current_parameters']['testoperator_elyra_int_test_int_zero'] == 0
     assert properties['current_parameters']['testoperator_elyra_int_test_int_non_zero'] == 1
 
