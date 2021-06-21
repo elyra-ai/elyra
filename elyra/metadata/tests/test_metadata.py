@@ -196,14 +196,9 @@ def test_manager_get_all(tests_manager):
 
 
 def test_manager_get_none(tests_manager, namespace_location):
-    # Delete the namespace contents and attempt listing metadata
-    _remove_namespace(tests_manager.metadata_store, namespace_location)
-    assert tests_manager.namespace_exists() is False
-    _create_namespace(tests_manager.metadata_store, namespace_location)
-    assert tests_manager.namespace_exists()
-
-    metadata_list = tests_manager.get_all()
-    assert len(metadata_list) == 0
+    # Attempt to get a metadata instance using `None` (error expected)
+    with pytest.raises(ValueError, match="The 'name' parameter requires a value."):
+        tests_manager.get(name=None)
 
 
 def test_manager_get_all_none(tests_manager, namespace_location):

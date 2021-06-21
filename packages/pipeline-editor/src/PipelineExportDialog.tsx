@@ -40,10 +40,18 @@ interface IProps {
   runtime?: string;
 }
 
-const getFileTypes = (platformSelection: string): Record<string, string>[] => {
+const getFileTypes = (
+  platformSelection: string,
+  runtime?: string
+): Record<string, string>[] => {
   if (!platformSelection) {
     return new Array<Record<string, string>>();
   } else if (platformSelection === KFP_SCHEMA) {
+    // TODO: remove temporary workaround for KFP Python DSL export option
+    // See https://github.com/elyra-ai/elyra/issues/1760 for context.
+    if (runtime === KFP_SCHEMA) {
+      return [KFP_FILE_TYPES[1]];
+    }
     return KFP_FILE_TYPES;
   }
   return AIRFLOW_FILE_TYPES;
@@ -70,7 +78,7 @@ export const PipelineExportDialog: React.FC<IProps> = ({
         selectedPlatform
       );
       setRuntimeOptions(filteredRuntimes);
-      setFileTypes(getFileTypes(selectedPlatform));
+      setFileTypes(getFileTypes(selectedPlatform, runtime ?? ''));
     },
     [runtimes]
   );

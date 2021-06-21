@@ -242,6 +242,39 @@ describe('Pipeline Editor tests', () => {
 
     cy.readFile('build/cypress-tests/helloworld.yaml');
   });
+
+  it('should not leak properties when switching between nodes', () => {
+    cy.openFile('helloworld.pipeline');
+
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb').rightclick();
+
+      cy.findByRole('menuitem', { name: /properties/i }).click();
+
+      cy.findByText('TEST_ENV_1=1').should('exist');
+
+      cy.findByText('helloworld.py').click();
+
+      cy.get('[data-id="properties-env_vars"]').within(() => {
+        cy.findByRole('button', { name: /add item/i }).click();
+
+        cy.focused().type('BAD=two');
+
+        cy.findByRole('button', { name: /ok/i }).click();
+      });
+
+      cy.findByText('BAD=two').should('exist');
+
+      cy.findByText('helloworld.ipynb').click();
+
+      cy.findByText('TEST_ENV_1=1').should('exist');
+      cy.findByText('BAD=two').should('not.exist');
+
+      cy.findByText('helloworld.py').click();
+
+      cy.findByText('BAD=two').should('exist');
+    });
+  });
 });
 
 // ------------------------------
