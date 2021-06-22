@@ -45,7 +45,7 @@ op_{{ operation.id|regex_replace }} = {{ operation.name }}(namespace='{{ namespa
                                                                     {{ param }}={{ value }},
         {% endfor %}
     {% else %}
-notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|regex_replace }}',
+op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|regex_replace }}',
                                                           namespace='{{ namespace }}',
                                                           task_id='{{ operation.notebook|regex_replace }}',
                                                           notebook='{{ operation.filename }}',
@@ -78,12 +78,12 @@ notebook_op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.not
                                                           config_file="{{ kube_config_path }}",
                                                           dag=dag)
     {% if operation.image_pull_policy %}
-        notebook_op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
+        op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
     {% endif %}
 
     {% if operation.parent_operations %}
         {% for parent_operation in operation.parent_operations %}
-            notebook_op_{{ operation.id|regex_replace }} << notebook_op_{{ parent_operation|regex_replace }}
+            op_{{ operation.id|regex_replace }} << op_{{ parent_operation|regex_replace }}
         {% endfor %}
     {% endif %}
 {% endfor %}
