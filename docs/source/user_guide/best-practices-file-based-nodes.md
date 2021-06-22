@@ -45,7 +45,7 @@ Valid directory layout examples:
 ./a-symlink                     # can reference any file or directory
 ./a-subdir/a-dependency-file
 ./a-subdir/a-symlink            # can reference any file or directory
-./a-subdir/s-script-symlink.py  # can reference a script in any local directory
+./a-subdir/a-script-symlink.py  # can reference a script in any local directory
 ```
 
 Invalid directory layout examples:
@@ -84,6 +84,15 @@ Refer to the next section for a list of proprietary environment variables that c
 ### Proprietary environment variables
 
 Elyra makes a set of proprietary environment variables available to notebooks and scripts during execution. Unless indicated otherwise, these variables are defined in all runtime environments.
+
+![Access proprietary environment variables](../images/user_guide/elyra-env-vars.png)
+
+#### ELYRA_RUN_NAME
+
+`ELYRA_RUN_NAME` is an identifier that is unique for each pipeline run but the same for all nodes in the pipeline. You can use this identifier to generate predictable file names.
+
+Example value: `unicorn-0617153527`
+
 #### ELYRA_RUNTIME_ENV
 
 `ELYRA_RUNTIME_ENV` identifies the runtime environment that the 
@@ -91,9 +100,3 @@ notebook or script is executed in:
 - `local` - JupyterLab
 - `kfp` - Kubeflow Pipelines
 - `airflow` - Apache Airflow
-
-#### ELYRA_RUN_NAME
-
-`ELYRA_RUN_NAME` is an identifier that is unique for each pipeline run but the same for all nodes in the pipeline. You can use this identifier to generate predictable file names.
-
-Example value: `unicorn-0617153527`
