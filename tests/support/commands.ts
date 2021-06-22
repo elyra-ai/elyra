@@ -94,6 +94,12 @@ Cypress.Commands.add('createPipeline', ({ name, type } = {}): void => {
   cy.wait(300);
 });
 
+Cypress.Commands.add('openDirectory', (name: string): void => {
+  cy.findByRole('listitem', {
+    name: (n, _el) => n.includes(name)
+  }).dblclick();
+});
+
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {
   cy.findByRole('listitem', {
     name: (n, _el) => n.includes(name)

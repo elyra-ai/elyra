@@ -18,6 +18,7 @@ declare namespace Cypress {
   interface Chainable {
     createRuntimeConfig(options?: { type?: 'kfp' }): Chainable<void>;
     deleteFile(fileName: string): Chainable<void>;
+    openDirectory(fileName: string): Chainable<void>;
     addFileToPipeline(fileName: string): Chainable<void>;
     createPipeline(options?: {
       name?: string;
