@@ -219,9 +219,9 @@ class ComponentParser(SingletonConfigurable):
 
     def get_custom_control_id(self, parameter_type):
         # This may not be applicable in every case
-        if parameter_type in ["number", "integer"]:
+        if parameter_type in ['int', 'integer', 'float', 'number']:
             return "NumberControl"
-        elif parameter_type in ["bool", "boolean"]:
+        elif parameter_type in ['bool', 'boolean']:
             return "BooleanControl"
         # elif "array" in parameter_type:
         #     return "StringArrayControl"
@@ -531,7 +531,7 @@ class AirflowComponentParser(ComponentParser):
 
                     # TODO: Fix default values that wrap lines or consider omitting altogether.
                     # Default information could also potentially go in the description instead.
-                    default_value = None
+                    default_value = ''
                     if '=' in arg:
                         arg, default_value = arg.split('=', 1)[:2]
                         default_value = ast.literal_eval(default_value)
@@ -544,15 +544,23 @@ class AirflowComponentParser(ComponentParser):
                             component_parameter_format = new_parameter_info['data']['format']
                             if component_parameter_format:
                                 if component_parameter_format == 'str' or component_parameter_format == 'string':
-                                    if default_value is None:
+                                    if not default_value:
                                         default_value = ''
                                 elif component_parameter_format == 'int':
-                                    if default_value is None:
+                                    if not default_value:
                                         default_value = 0
                                 elif component_parameter_format == 'bool' or component_parameter_format == 'Boolean':
-                                    if default_value is None:
+                                    if not default_value:
                                         default_value = False
+                                elif component_parameter_format == 'dict' or component_parameter_format == 'Dictionary':
+                                    if not default_value:
+                                        default_value = ''
+                                elif component_parameter_format.lower() == 'list':
+                                    if not default_value:
+                                        default_value = ''
                     component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = default_value
+
+                    # print(f'>>>Processing parameter: {arg} ==> Value [{default_value}] type {type(default_value)}')
 
                     # Add to existing parameter info list
                     component_parameters['uihints']['parameter_info'].append(new_parameter_info)

@@ -27,6 +27,10 @@ class TestOperator(BaseOperator):
     :type test_bool_default: bool
     :param test_int_default: The test command int description
     :type test_int_default: int
+    :param test_dict_default: The test command dict description
+    :type test_dict_default: dict
+    :param test_list_default: The test command list description
+    :type test_list_default: list
     :param test_string_default_value: The test command description
     :type test_string_default_value: str
     :param test_string_default_empty: The test command description
@@ -46,6 +50,8 @@ class TestOperator(BaseOperator):
                  test_string_no_default,
                  test_bool_default,
                  test_int_default,
+                 test_dict_default,
+                 test_list_default,
                  test_string_default_value='default',
                  test_string_default_empty=None,
                  test_bool_false=False,
