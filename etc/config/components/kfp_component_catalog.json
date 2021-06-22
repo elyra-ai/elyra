@@ -3,13 +3,19 @@
     "run-notebook-using-papermill": {
       "name": "Run Notebook Using Papermill",
       "path": {
-        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/notebooks/Run_notebook_using_papermill/component.yaml"
+        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml"
       }
     },
     "filter-text-using-shell-and-grep": {
       "name": "Filter text using shell and grep",
       "path": {
         "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/sample/Shell_script/component.yaml"
+      }
+    },
+    "serve-model-using-kfserving": {
+      "name": "Serve Model using KFServing",
+      "path": {
+        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/kubeflow/kfserving/component.yaml"
       }
     }
   }

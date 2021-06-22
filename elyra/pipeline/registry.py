@@ -161,18 +161,11 @@ class ComponentParser(SingletonConfigurable):
         return common_json
 
     def _get_component_catalog_json(self):
-        try:
-            # then sys.prefix, where installed files will reside (factory data)
-            catalog_dir = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], self._components_dir)
-            catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
-            with open(catalog_file, 'r') as f:
-                catalog_json = json.load(f)
-        except FileNotFoundError as fnfe:
-            self.log.error(f"The component catalog could not be found at path '{catalog_file}': {str(fnfe)}")
-            raise FileNotFoundError(f"The component catalog could not be found at path '{catalog_file}'.")
-        except Exception as e:
-            self.log.error(f"The component catalog at path '{catalog_file}' could not be loaded: {str(e)}")
-            raise RuntimeError(f"The component catalog at path '{catalog_file}' could not be loaded.")
+        # then sys.prefix, where installed files will reside (factory data)
+        catalog_dir = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], self._components_dir)
+        catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
+        with open(catalog_file, 'r') as f:
+            catalog_json = json.load(f)
 
         return catalog_json
 
@@ -251,10 +244,6 @@ class KfpComponentParser(ComponentParser):
 
     def __init__(self):
         super().__init__()
-
-    @property
-    def formatted_type(self):
-        return self._type.upper()
 
     def get_adjusted_parameter_fields(self,
                                       component_body,
@@ -415,10 +404,6 @@ class AirflowComponentParser(ComponentParser):
 
     def __init__(self):
         super().__init__()
-
-    @property
-    def formatted_type(self):
-        return self._type.capitalize()
 
     def parse_component_details(self, component_body, component_name=None):
         # Component_body never used, but component_name never used in KFP parser
@@ -736,10 +721,7 @@ class ComponentRegistry(SingletonConfigurable):
             # Find component with given id in component catalog
             component = parser.return_component_if_exists(component_id)
             if component is None:
-                self.log.error(f"Component with ID '{component_id}' could not be found in the " +
-                               f"{parser.formatted_type} component catalog.")
-                raise ValueError(f"Component with ID '{component_id}' could not be found in the " +
-                                 f"{parser.formatted_type} component catalog.")
+                raise ValueError(f"Component with ID {component_id} not found.")
 
             # Get appropriate reader in order to read component definition
             reader = self._get_reader(component)
