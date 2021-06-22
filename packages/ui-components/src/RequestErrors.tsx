@@ -36,6 +36,15 @@ export class RequestErrors {
       return this.server404(response.requestPath);
     }
 
+    const issues = JSON.parse(response.message).issues;
+    if (issues) {
+      response.message = 'Errors found in pipeline';
+      response.traceback = '';
+      for (const issue of issues) {
+        response.traceback += JSON.stringify(issue, null, 2) + '\n';
+      }
+    }
+
     const reason = response.reason ? response.reason : '';
     const message = response.message ? response.message : '';
     const timestamp = response.timestamp ? response.timestamp : '';

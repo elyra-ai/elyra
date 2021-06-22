@@ -79,7 +79,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
             )
             self.set_header('Location', location)
         else:
-            raise web.HTTPError(400, f"Errors found in pipeline :'{response.to_json().get('issues')}'")
+            raise web.HTTPError(400, json.dumps({'issues': response.to_json().get('issues')}))
 
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
@@ -114,7 +114,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
             json_msg = json.dumps(response.to_json())
             self.set_status(200)
         else:
-            raise web.HTTPError(400, f"Errors found in pipeline :'{response.to_json().get('issues')}'")
+            raise web.HTTPError(400, json.dumps({'issues': response.to_json().get('issues')}))
 
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
