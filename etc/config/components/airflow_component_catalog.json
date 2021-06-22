@@ -2,37 +2,37 @@
   "components": {
     "bash-operator": {
       "name": "Bash Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py"
       }
     },
     "email-operator": {
       "name": "Email Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py"
       }
     },
     "http-operator": {
       "name": "HTTP Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/http_operator.py"
       }
     },
     "spark-jdbc-operator": {
       "name": "Spark JDBC Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_jdbc_operator.py"
       }
     },
     "spark-sql-operator": {
       "name": "Spark Sql Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py"
       }
     },
     "spark-submit-operator": {
       "name": "Spark Submit Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py"
       }
     }

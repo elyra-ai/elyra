@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
+from http import HTTPStatus
 import os
-import yaml
-import urllib
+import requests
 
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
@@ -25,7 +26,7 @@ from elyra.pipeline.component import ComponentParser
 class ComponentReader(SingletonConfigurable):
     _type = 'local'
 
-    def get_component_body(self, component_path, parser_type):
+    def read_component_definition(self, location: str):
         raise NotImplementedError()
 
 
@@ -33,48 +34,26 @@ class FilesystemComponentReader(ComponentReader):
     _type = 'filename'
     _dir_path: str = ''
 
-    def get_component_body(self, component_path, parser_type):
-        component_file = os.path.join(os.path.dirname(__file__), component_path)
-        component_extension = os.path.splitext(component_path)[-1]
+    def read_component_definition(self, location):
+        component_file = os.path.join(os.path.dirname(__file__), location)
+
+        if not os.path.exists(component_file):
+            raise FileNotFoundError(f'Invalid component location: {location}')
 
         with open(component_file, 'r') as f:
-            if parser_type == "kfp":
-                assert component_extension == '.yaml'
-                try:
-                    return yaml.safe_load(f)
-                except yaml.YAMLError as e:
-                    raise RuntimeError from e
-            elif parser_type == "airflow":
-                assert component_extension == '.py'
-                # TODO: Is there a better way to read in files? Can we assume operator files are always
-                # small enough to be read into memory? Reading and yielding by line likely won't
-                # work because multiple lines need to be checked at once (or multiple times).
-                return f.readlines()
-            else:
-                raise ValueError(f'File type {component_extension} is not supported.')
+            return f.readlines()
 
 
 class UrlComponentReader(ComponentReader):
     _type = 'url'
     _url_path: str
 
-    def get_component_body(self, component_path, parser_type):
-        parsed_path = urllib.parse.urlparse(component_path).path
+    def read_component_definition(self, location):
+        res = requests.get(location)
+        if res.status_code != HTTPStatus.OK:
+            raise FileNotFoundError(f'Invalid component location: {location}')
 
-        component_extension = os.path.splitext(parsed_path)[-1]
-        component_body = urllib.request.urlopen(component_path)
-
-        if parser_type == "kfp":
-            assert component_extension == ".yaml"
-            try:
-                return yaml.safe_load(component_body)
-            except yaml.YAMLError as e:
-                raise RuntimeError from e
-        elif parser_type == "airflow":
-            assert component_extension == ".py"
-            return component_body.readlines()
-        else:
-            raise ValueError(f'File type {component_extension} is not supported.')
+        return res.text
 
 
 class ComponentRegistry(LoggingConfigurable):
@@ -87,41 +66,40 @@ class ComponentRegistry(LoggingConfigurable):
         super().__init__()
         self._component_catalog_location = component_catalog_location
         self._parser = parser
-        self.log.info(f'Creating new registry using {component_catalog_location}')
+        self.log.info(f'Creating new registry using {self.catalog_location}')
 
     @property
     def catalog_location(self) -> str:
         return self._component_catalog_location
 
-    def get_all_components(self, processor_type):
+    def get_all_components(self):
         """
         Builds a component palette in the form of a dictionary of components.
         """
 
-        print(f'Retrieving components for {processor_type} using parser {self._parser._type}')
-        # Get parser for this processor
-        assert processor_type == self._parser._type
+        print(f'Retrieving components from {self.catalog_location}')
 
         # Get components common to all runtimes
         components = {}
         components['categories'] = list()
 
-        # Loop through all the component definitions for the given registry type
-        reader = None
-        for component in self._parser.list_all_components():
-            self.log.debug(f"Component registry found component {component['name']}")
+        # Process component catalog
+        component_catalog = self._read_component_catalog()
+
+        # process each registered component
+        for component_entry in component_catalog:
+            self.log.debug(f"Component registry found component {component_entry['name']}")
 
             # Get appropriate reader in order to read component definition
-            if reader is None or reader._type != list(component['path'].keys())[0]:
-                reader = self._get_reader(component)
+            reader = self._get_reader(component_entry)
 
-            component_body = reader.get_component_body(component['path'][reader._type], self._parser._type)
+            component_definition = \
+                reader.read_component_definition(component_entry['location'][reader._type])
 
             # Parse the component definition in order to add to palette
-            component_json = self._parser.parse_component_details(component_body, component['name'])
-            if component_json is None:
-                continue
-            components['categories'].append(component_json)
+            component_json = self._parser.parse_component_details(component_definition, component_entry['name'])
+            if component_json:
+                components['categories'].append(component_json)
 
         return components
 
@@ -130,45 +108,49 @@ class ComponentRegistry(LoggingConfigurable):
         Return the properties JSON for a given component.
         """
 
+        # Process component catalog
+        component_catalog = self._read_component_catalog()
+
         # Find component with given id in component catalog
-        component = self._parser.return_component_if_exists(component_id)
-        if component is None:
+        component_entry = component_catalog['components'].get(component_id)
+        if not component_entry:
             self.log.error(f"Component with ID '{component_id}' could not be found in the " +
                            f"{self._component_catalog_location} component catalog.")
             raise ValueError(f"Component with ID '{component_id}' could not be found in the " +
                              f"{self._component_catalog_location} component catalog.")
 
         # Get appropriate reader in order to read component definition
-        reader = self._get_reader(component)
+        reader = self._get_reader(component_entry)
 
-        component_path = component['path'][reader._type]
+        component_location = component_entry['location'][reader._type]
         if reader._type == "filename":
-            component_path = os.path.join(os.path.dirname(__file__), component_path)
+            component_location = os.path.join(os.path.dirname(__file__), component_location)
 
-        component_body = reader.get_component_body(component_path, self._parser._type)
-        properties = self._parser.parse_component_properties(component_body, component_path)
+        component_body = reader.read_component_definition(component_location)
+        properties = self._parser.parse_component_properties(component_body, component_location)
         properties['current_parameters']['component_source_type'] = reader._type
 
         return properties
 
-    def add_component(self, processor_type, request_body):
+    def _read_component_catalog(self):
         """
-        Add a component based on the provided definition. Definition will be provided in POST body
-        in the format {"name": "desired_name", path": {"file/url": "filepath/urlpath"}}.
+        Read a component catalog and return its component definitions
         """
 
-        parser = self._get_parser(processor_type)
-        parser.add_component(request_body)  # Maybe make this async to prevent reading issues in get_all_components()
+        with open(self._component_catalog_location, 'r') as catalog_file:
+            catalog_json = json.load(catalog_file)
 
-        components = self.get_all_components(parser._type)
-        return components
+        if 'components' in catalog_json.keys():
+            return catalog_json['components'].values()
+        else:
+            return list()
 
     def _get_reader(self, component):
         """
         Find the proper reader based on the given registry component.
         """
         try:
-            component_type = list(component['path'].keys())[0]
+            component_type = list(component['location'].keys())[0]
             return self.readers.get(component_type)
         except Exception:
             raise ValueError("Unsupported registry type.")

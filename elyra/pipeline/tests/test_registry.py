@@ -45,7 +45,7 @@ def test_component_registry_can_load_components_from_catalog():
     component_parser = AirflowComponentParser()
     component_registry = ComponentRegistry(component_catalog, component_parser)
 
-    components = component_registry.get_all_components("airflow")
+    components = component_registry.get_all_components()
     print(json.dumps(components, indent=2))
     assert len(components) > 0
 
