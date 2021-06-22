@@ -17,16 +17,45 @@ limitations under the License.
 -->
 ## Best practices for file-based pipeline nodes
 
+Generic pipelines and runtime specific pipelines support natively file-based nodes for  Jupyter notebooks, Python scripts, and R scripts. In order to support heterogeneous execution - that is making them runnable in any runtime environment (JupyterLab, Kubeflow Pipelines, and Apache Airflow) - follow the guidelines listed below.
+
+### Container image
+
+On Kubeflow Pipelines and Apache Airflow notebooks and scripts are executed in containers. Elyra ships with a few example container images to get you started, but you should consider utilizing purpose-built [container images](../recipes/creating-a-custom-runtime-image.md) instead. If possible, pre-install all software prerequisites in the container image you are using instead of installing them on the fly (e.g. by running `pip install my-package==1.2.3` in a notebook cell).
 
 ### File I/O 
 
-In runtime environments (like Kubeflow Pipelines and Apache Airflow) where containers are used to run notebooks/scripts special consideration must be given to file input and output operations. 
+In runtime environments (like Kubeflow Pipelines and Apache Airflow) where containers are used to run notebooks/scripts special consideration must be given to file input and output operations.
 
 #### File input
 
 If a notebook/script requires access to files that are stored on you local system, those files must be declared as input dependencies. Elyra collects declared files and uploads them to cloud storage and makes them available to the notebook/script at runtime.
 
 ![Define input files](../images/user_guide/vpe-node-input-files.png)
+
+Input dependencies must be located in the pipeline file directory or a subdirectory of that location. Symlinks can be used to avoid the need to maintain multiple copies if files are shared among pipelines.
+
+Valid directory layout examples:
+
+```
+./my-pipeline.pipeline
+./my-notebook.ipynb
+./a-notebook-symlink.ipynb      # can reference a notebook in any local directory
+./a-dependency-file               
+./a-symlink                     # can reference any file or directory
+./a-subdir/a-dependency-file
+./a-subdir/a-symlink            # can reference any file or directory
+./a-subdir/s-script-symlink.py  # can reference a script in any local directory
+```
+
+Invalid directory layout examples:
+```
+./my-pipeline.pipeline
+./my-script.py
+../my-other-notebook.ipynb     # must be symlinked
+../a-dependency-in-parent-dir  # must be symlinked 
+/some/dir/some-dependency      # must be symlinked
+```
 
 #### File output
 
@@ -65,6 +94,6 @@ notebook or script is executed in:
 
 #### ELYRA_RUN_NAME
 
-`ELYRA_RUN_NAME` is an identifier that is unique for each pipeline run. You can use this identifier to generate predictable file names.
+`ELYRA_RUN_NAME` is an identifier that is unique for each pipeline run but the same for all nodes in the pipeline. You can use this identifier to generate predictable file names.
 
 Example value: `unicorn-0617153527`
