@@ -131,7 +131,7 @@ describe('Pipeline Editor tests', () => {
     checkEnabledToolbarButtons(enabledButtons);
   });
 
-  it('matches complex pipeline snapshot', () => {
+  it.only('matches complex pipeline snapshot', () => {
     cy.bootstrapFile('pipelines/consumer.ipynb');
     cy.bootstrapFile('pipelines/create-source-files.py');
     cy.bootstrapFile('pipelines/producer-script.py');
@@ -165,6 +165,17 @@ describe('Pipeline Editor tests', () => {
       // producer props
       cy.findByText('producer.ipynb').rightclick();
       cy.findByRole('menuitem', { name: /properties/i }).click();
+      cy.get('[data-id="properties-filename"]').within(() => {
+        cy.findByRole('button', { name: /browse/i }).click();
+      });
+    });
+
+    cy.get('.elyra-browseFileDialog').within(() => {
+      cy.openDirectory('pipelines');
+      cy.openDirectory('producer.ipynb');
+    });
+
+    cy.get('#jp-main-dock-panel').within(() => {
       cy.get('[data-id="properties-outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-1.csv');
