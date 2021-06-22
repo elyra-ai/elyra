@@ -68,7 +68,6 @@ export const PipelineExportDialog: React.FC<IProps> = ({
   const [fileTypes, setFileTypes] = React.useState(
     new Array<Record<string, string>>()
   );
-  const [validSchemas, setValidSchemas] = React.useState(new Array<ISchema>());
 
   const handleUpdate = React.useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -80,20 +79,44 @@ export const PipelineExportDialog: React.FC<IProps> = ({
       setRuntimeOptions(filteredRuntimes);
       setFileTypes(getFileTypes(selectedPlatform, runtime ?? ''));
     },
-    [runtimes]
+    [runtimes, runtime]
+  );
+
+  // React.useEffect((): void => {
+  //   const schemas = PipelineService.filterValidSchema(runtimes, schema);
+  //   const selectedPlatform = runtime ?? (schemas[0] && schemas[0].name);
+  //   const filteredRuntimes = PipelineService.filterRuntimes(
+  //     runtimes,
+  //     selectedPlatform
+  //   );
+  //   setValidSchemas(schemas);
+  //   setRuntimeOptions(filteredRuntimes);
+  //   setFileTypes(getFileTypes(selectedPlatform, runtime ?? ''));
+  // }, [runtimes, schema, runtime]);
+
+  const validSchemas = React.useMemo(
+    (): ISchema[] => PipelineService.filterValidSchema(runtimes, schema),
+    [runtimes, schema]
+  );
+
+  const platformSelection = React.useMemo(
+    (): string => runtime ?? (validSchemas[0] && validSchemas[0].name),
+    [validSchemas]
+  );
+
+  const filteredRuntimes = React.useMemo(
+    (): IRuntime[] =>
+      PipelineService.filterRuntimes(runtimes, platformSelection),
+    [runtimes, platformSelection]
   );
 
   React.useEffect((): void => {
-    const schemas = PipelineService.filterValidSchema(runtimes, schema);
-    const selectedPlatform = runtime ?? (schemas[0] && schemas[0].name);
-    const filteredRuntimes = PipelineService.filterRuntimes(
-      runtimes,
-      selectedPlatform
-    );
-    setValidSchemas(schemas);
     setRuntimeOptions(filteredRuntimes);
-    setFileTypes(getFileTypes(selectedPlatform));
-  }, [runtimes, schema, runtime]);
+  }, [filteredRuntimes]);
+
+  React.useEffect((): void => {
+    setFileTypes(getFileTypes(platformSelection, runtime ?? ''));
+  }, [getFileTypes, platformSelection, runtime]);
 
   return (
     <form className="elyra-dialog-form">

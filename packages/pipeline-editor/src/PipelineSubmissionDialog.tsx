@@ -32,7 +32,6 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
   schema,
   runtime
 }) => {
-  const [validSchemas, setValidSchemas] = React.useState(new Array<ISchema>());
   const [runtimePlatform, setRuntimePlatform] = React.useState('');
 
   const handleUpdatePlatform = React.useCallback(
@@ -52,10 +51,15 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
     [runtime, runtimes, schema, runtimePlatform]
   );
 
-  React.useEffect((): void => {
-    const schemas = PipelineService.filterValidSchema(runtimes, schema);
-    setValidSchemas(schemas);
-  }, [runtimes, schema]);
+  // React.useEffect((): void => {
+  //   const schemas = PipelineService.filterValidSchema(runtimes, schema);
+  //   setValidSchemas(schemas);
+  // }, [runtimes, schema]);
+
+  const validSchemas = React.useMemo(
+    (): ISchema[] => PipelineService.filterValidSchema(runtimes, schema),
+    [runtimes, schema]
+  );
 
   return (
     <form className="elyra-dialog-form">

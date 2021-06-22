@@ -40,8 +40,6 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
   const [runtimeOptions, setRuntimeOptions] = React.useState(
     new Array<IRuntime>()
   );
-  const [validSchemas, setValidSchemas] = React.useState(new Array<ISchema>());
-
   const handleDependency = (): void => {
     setIncludeDependency(!includeDependency);
   };
@@ -59,15 +57,29 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
     [runtimes]
   );
 
+  // React.useEffect((): void => {
+  //   const schemas = PipelineService.filterValidSchema(runtimes, schema);
+  //   if (schemas) {
+  //     const platformSelection = schemas[0] && schemas[0].name;
+  //     const filteredRuntimeOptions = filterRuntimeOptions(platformSelection);
+  //     setRuntimeOptions(filteredRuntimeOptions);
+  //     setValidSchemas(schemas);
+  //   }
+  // }, [filterRuntimeOptions, runtimes, schema]);
+
+  const validSchemas = React.useMemo(
+    (): ISchema[] => PipelineService.filterValidSchema(runtimes, schema),
+    [runtimes, schema]
+  );
+
+  const platformSelection = React.useMemo(
+    (): string => (validSchemas && validSchemas[0]?.name) ?? '',
+    [validSchemas]
+  );
+
   React.useEffect((): void => {
-    const schemas = PipelineService.filterValidSchema(runtimes, schema);
-    if (schemas) {
-      const platformSelection = schemas[0] && schemas[0].name;
-      const filteredRuntimeOptions = filterRuntimeOptions(platformSelection);
-      setRuntimeOptions(filteredRuntimeOptions);
-      setValidSchemas(schemas);
-    }
-  }, [filterRuntimeOptions, runtimes, schema]);
+    setRuntimeOptions(filterRuntimeOptions(platformSelection));
+  }, [filterRuntimeOptions, platformSelection]);
 
   return (
     <form className="elyra-dialog-form">
