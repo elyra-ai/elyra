@@ -62,7 +62,7 @@ Cypress.Commands.add('deleteFile', (name: string): void => {
   });
 });
 
-Cypress.Commands.add('createPipelineEditor', (): void => {
+Cypress.Commands.add('createGenericPipeline', (): void => {
   // TODO: find a better way to access this.
   cy.get(
     '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'

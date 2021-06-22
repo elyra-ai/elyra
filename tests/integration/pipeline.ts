@@ -72,7 +72,7 @@ describe('Pipeline Editor tests', () => {
   // });
 
   it('populated editor should have enabled buttons', () => {
-    cy.createPipelineEditor();
+    cy.createGenericPipeline();
 
     cy.checkTabMenuOptions('Pipeline');
 
@@ -99,7 +99,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should open notebook on double-click', () => {
-    cy.createPipelineEditor();
+    cy.createGenericPipeline();
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
@@ -112,7 +112,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should save runtime configuration', () => {
-    cy.createPipelineEditor();
+    cy.createGenericPipeline();
     // Open runtimes sidebar
     cy.findByRole('button', { name: /open runtimes/i }).click();
     // Create runtime configuration
@@ -135,7 +135,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should run pipeline after adding runtime image', () => {
-    cy.createPipelineEditor();
+    cy.createGenericPipeline();
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
