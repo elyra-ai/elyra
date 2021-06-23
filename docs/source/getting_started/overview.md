@@ -43,8 +43,9 @@ the model development lifecycle.
 Elyra provides a **Pipeline Visual Editor** for building AI pipelines from notebooks, Python scripts
 and R scripts, simplifying the conversion of multiple notebooks or scripts files into batch jobs or workflows.
 
-Currently, pipelines can be executed locally in JupyterLab or on
-[**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/).
+Currently, pipelines can be executed locally in JupyterLab, on
+[**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/), or with
+[**Apache Airflow**](https://airflow.apache.org/docs/apache-airflow/stable/index.html).
 
 ![Pipeline Editor](../images/pipeline-in-editor.png)
 
