@@ -74,7 +74,7 @@ setup_args = dict(
         'jupyter_server>=1.7.0',
         'jupyterlab>=3.0.0',
         'jupyterlab-git==0.30.0',
-        'jupyterlab-lsp>=3.0.0',
+        'jupyterlab-lsp>=3.7.0',
         'jupyter-resource-usage>=0.5.1',
         'minio>=5.0.7,<7.0.0',
         'nbclient>=0.5.1',

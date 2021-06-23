@@ -1,33 +1,21 @@
 {
   "components": {
-    "train-spark-model-ibm-cloud": {
-      "name": "Train Spark Model - IBM Cloud",
-      "path": {
-        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/ibm-components/spark/train_spark/component.yaml"
-      }
-    },
     "run-notebook-using-papermill": {
       "name": "Run Notebook Using Papermill",
       "path": {
-        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/notebooks/Run_notebook_using_papermill/component.yaml"
-      }
-    },
-    "serve-pytorch-model-seldon-core": {
-      "name": "Serve PyTorch Model - Seldon Core",
-      "path": {
-        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/ibm-components/ffdl/serve/component.yaml"
-      }
-    },
-    "deploy-model-watson-machine-learning": {
-      "name": "Deploy Model - Watson Machine Learning",
-      "path": {
-        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/ibm-components/watson/deploy/component.yaml"
+        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml"
       }
     },
     "filter-text-using-shell-and-grep": {
       "name": "Filter text using shell and grep",
       "path": {
         "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/sample/Shell_script/component.yaml"
+      }
+    },
+    "serve-model-using-kfserving": {
+      "name": "Serve Model using KFServing",
+      "path": {
+        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/kubeflow/kfserving/component.yaml"
       }
     }
   }
