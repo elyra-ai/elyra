@@ -100,6 +100,13 @@ dev-link:
 	cd node_modules/@elyra/pipeline-editor && jupyter labextension link --no-build .
 	cd node_modules/@elyra/pipeline-services && jupyter labextension link --no-build .
 
+dev-unlink:
+	yarn unlink @elyra/pipeline-services
+	yarn unlink @elyra/pipeline-editor
+	jupyter labextension uninstall @elyra/pipeline-services
+	jupyter labextension uninstall @elyra/pipeline-editor
+	yarn install --force
+
 yarn-install:
 	yarn install
 

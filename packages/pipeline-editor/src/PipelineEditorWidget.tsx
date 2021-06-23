@@ -255,29 +255,63 @@ const PipelineWrapper: React.FC<IProps> = ({
     });
   };
 
-  const onFileRequested = (args: any): Promise<string> => {
-    let currentExt = '';
-    if (args && args.filters && args.filters.File) {
-      currentExt = args.filters.File[0];
-    }
+  const onFileRequested = async (args: any): Promise<string[] | undefined> => {
     const filename = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
-      ''
+      args.filename
     );
-    return showBrowseFileDialog(browserFactory.defaultBrowser.model.manager, {
-      startPath: PathExt.dirname(filename),
-      multiselect: args.canSelectMany,
-      filter: (model: any): boolean => {
-        const ext = PathExt.extname(model.path);
-        return currentExt === '' || currentExt === ext;
-      }
-    }).then((result: any) => {
-      if (result.button.accept && result.value.length) {
-        return result.value.map((val: any) => {
-          return val.path;
-        });
-      }
-    });
+
+    switch (args.propertyID) {
+      case 'filename':
+        {
+          const res = await showBrowseFileDialog(
+            browserFactory.defaultBrowser.model.manager,
+            {
+              startPath: PathExt.dirname(filename),
+              filter: (model: any): boolean => {
+                if (args.filters?.File === undefined) {
+                  return true;
+                }
+
+                const ext = PathExt.extname(model.path);
+                return args.filters.File.includes(ext);
+              }
+            }
+          );
+
+          if (res.button.accept && res.value.length) {
+            const file = PipelineService.getPipelineRelativeNodePath(
+              contextRef.current.path,
+              res.value[0].path
+            );
+            return [file];
+          }
+        }
+        break;
+      case 'dependencies':
+        {
+          const res = await showBrowseFileDialog(
+            browserFactory.defaultBrowser.model.manager,
+            {
+              multiselect: true,
+              includeDir: true,
+              rootPath: PathExt.dirname(filename),
+              filter: (model: any): boolean => {
+                return model.path !== filename;
+              }
+            }
+          );
+
+          if (res.button.accept && res.value.length) {
+            return res.value.map((v: any) => v.path);
+          }
+        }
+        break;
+      default:
+        throw new Error('Unsupported property requesting a filepath.');
+    }
+
+    return undefined;
   };
 
   const onPropertiesUpdateRequested = async (args: any): Promise<any> => {

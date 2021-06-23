@@ -171,7 +171,6 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.get('.elyra-browseFileDialog').within(() => {
-      cy.openDirectory('pipelines');
       cy.openDirectory('producer.ipynb');
     });
 
@@ -210,7 +209,6 @@ describe('Pipeline Editor tests', () => {
 
     // choosing dependencies happens outside of canvas
     cy.get('.elyra-browseFileDialog').within(() => {
-      cy.openDirectory('scripts');
       cy.openDirectory('setup.txt');
     });
 
