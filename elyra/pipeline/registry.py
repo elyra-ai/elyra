@@ -162,11 +162,18 @@ class ComponentParser(SingletonConfigurable):
         return common_json
 
     def _get_component_catalog_json(self):
-        # then sys.prefix, where installed files will reside (factory data)
-        catalog_dir = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], self._components_dir)
-        catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
-        with open(catalog_file, 'r') as f:
-            catalog_json = json.load(f)
+        try:
+            # then sys.prefix, where installed files will reside (factory data)
+            catalog_dir = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], self._components_dir)
+            catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
+            with open(catalog_file, 'r') as f:
+                catalog_json = json.load(f)
+        except FileNotFoundError as fnfe:
+            self.log.error(f"The component catalog could not be found at path '{catalog_file}': {str(fnfe)}")
+            raise FileNotFoundError(f"The component catalog could not be found at path '{catalog_file}'.")
+        except Exception as e:
+            self.log.error(f"The component catalog at path '{catalog_file}' could not be loaded: {str(e)}")
+            raise RuntimeError(f"The component catalog at path '{catalog_file}' could not be loaded.")
 
         return catalog_json
 
@@ -212,9 +219,9 @@ class ComponentParser(SingletonConfigurable):
 
     def get_custom_control_id(self, parameter_type):
         # This may not be applicable in every case
-        if parameter_type in ["number", "integer"]:
+        if parameter_type in ['int', 'integer', 'float', 'number']:
             return "NumberControl"
-        elif parameter_type in ["bool", "boolean"]:
+        elif parameter_type in ['bool', 'boolean']:
             return "BooleanControl"
         # elif "array" in parameter_type:
         #     return "StringArrayControl"
@@ -245,6 +252,10 @@ class KfpComponentParser(ComponentParser):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def formatted_type(self):
+        return self._type.upper()
 
     def get_adjusted_parameter_fields(self,
                                       component_body,
@@ -406,6 +417,10 @@ class AirflowComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
+    @property
+    def formatted_type(self):
+        return self._type.capitalize()
+
     def parse_component_details(self, component_body, component_name=None):
         # Component_body never used, but component_name never used in KFP parser
 
@@ -516,14 +531,36 @@ class AirflowComponentParser(ComponentParser):
 
                     # TODO: Fix default values that wrap lines or consider omitting altogether.
                     # Default information could also potentially go in the description instead.
-                    default_value = None
+                    default_value = ''
                     if '=' in arg:
                         arg, default_value = arg.split('=', 1)[:2]
                         default_value = ast.literal_eval(default_value)
 
                     new_parameter_info = self.build_parameter(arg, class_name, class_content)
 
+                    component_parameters['parameters'].append({"id": new_parameter_info['parameter_ref']})
+                    if 'data' in new_parameter_info:
+                        if 'format' in new_parameter_info['data']:
+                            component_parameter_format = new_parameter_info['data']['format']
+                            if component_parameter_format:
+                                if component_parameter_format == 'str' or component_parameter_format == 'string':
+                                    if not default_value:
+                                        default_value = ''
+                                elif component_parameter_format == 'int':
+                                    if not default_value:
+                                        default_value = 0
+                                elif component_parameter_format == 'bool' or component_parameter_format == 'Boolean':
+                                    if not default_value:
+                                        default_value = False
+                                elif component_parameter_format == 'dict' or component_parameter_format == 'Dictionary':
+                                    if not default_value:
+                                        default_value = ''
+                                elif component_parameter_format.lower() == 'list':
+                                    if not default_value:
+                                        default_value = ''
                     component_parameters['current_parameters'][new_parameter_info['parameter_ref']] = default_value
+
+                    # print(f'>>>Processing parameter: {arg} ==> Value [{default_value}] type {type(default_value)}')
 
                     # Add to existing parameter info list
                     component_parameters['uihints']['parameter_info'].append(new_parameter_info)
@@ -721,7 +758,10 @@ class ComponentRegistry(SingletonConfigurable):
             # Find component with given id in component catalog
             component = parser.return_component_if_exists(component_id)
             if component is None:
-                raise ValueError(f"Component with ID {component_id} not found.")
+                self.log.error(f"Component with ID '{component_id}' could not be found in the " +
+                               f"{parser.formatted_type} component catalog.")
+                raise ValueError(f"Component with ID '{component_id}' could not be found in the " +
+                                 f"{parser.formatted_type} component catalog.")
 
             # Get appropriate reader in order to read component definition
             reader = self._get_reader(component)
