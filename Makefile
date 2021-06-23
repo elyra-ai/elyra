@@ -65,6 +65,7 @@ uninstall:
 	$(call UNINSTALL_LAB_EXTENSION,@elyra/r-editor-extension)
 	- jupyter labextension unlink @elyra/pipeline-services
 	- jupyter labextension unlink @elyra/pipeline-editor
+	pip uninstall -y jupyterlab-git
 	pip uninstall -y jupyter-lsp
 	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
 	pip uninstall -y jupyterlab-lsp
