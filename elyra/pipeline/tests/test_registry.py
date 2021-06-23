@@ -42,18 +42,23 @@ def test_parse_airflow_component_file():
 
     properties = parser.parse_component_properties(airflow_component, test_filename)
 
-    assert properties['current_parameters']['testoperator_test_string_no_default'] is None
+    assert properties['current_parameters']['testoperator_test_string_no_default'] == ''
+    assert properties['current_parameters']['testoperator_test_bool_default'] is False
+    assert properties['current_parameters']['testoperator_elyra_int_test_int_default'] == 0
+    assert properties['current_parameters']['testoperator_elyra_dict_test_dict_default'] == ''  # {}
+    assert properties['current_parameters']['testoperator_test_list_default'] == ''  # []
+
     assert properties['current_parameters']['testoperator_test_string_default_value'] == 'default'
-    assert properties['current_parameters']['testoperator_test_string_default_empty'] is None
-    assert properties['current_parameters']['testoperator_test_bool_default'] is None
+    assert properties['current_parameters']['testoperator_test_string_default_empty'] == ''
+
     assert properties['current_parameters']['testoperator_test_bool_false'] is False
     assert properties['current_parameters']['testoperator_test_bool_true'] is True
-    assert properties['current_parameters']['testoperator_elyra_int_test_int_default'] is None
+
     assert properties['current_parameters']['testoperator_elyra_int_test_int_zero'] == 0
     assert properties['current_parameters']['testoperator_elyra_int_test_int_non_zero'] == 1
 
 
-def test_parse_airflow_component_url():
+def test_parse_airflow_bash_component_url():
     parser = AirflowComponentParser()
 
     test_url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'
@@ -62,7 +67,25 @@ def test_parse_airflow_component_url():
 
     properties = parser.parse_component_properties(airflow_component, test_filename)
 
-    assert properties['current_parameters']['bashoperator_bash_command'] is None
+    assert properties['current_parameters']['bashoperator_bash_command'] == ''
     assert properties['current_parameters']['bashoperator_xcom_push'] is False
-    assert properties['current_parameters']['bashoperator_elyra_dict_env'] is None
+    assert properties['current_parameters']['bashoperator_elyra_dict_env'] == ''  # {}
     assert properties['current_parameters']['bashoperator_output_encoding'] == 'utf-8'
+
+
+def test_parse_all_airflow_sample_components():
+    components = {
+        'bash_operator.py': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
+        'email_operator.py': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py',  # noqa: E501
+        'http_operator.py': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/http_operator.py',  # noqa: E501
+        'spark_jdbc_operator.py': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_jdbc_operator.py',  # noqa: E501
+        'spark_sql_operator.py': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py',  # noqa: E501
+        'spark_submit_operator.py': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py',  # noqa: E501
+    }
+    parser = AirflowComponentParser()
+
+    for component_file_name, component_url in components.items():
+        component = _read_component_resource_from_url(component_url)
+        properties = parser.parse_component_properties(component, component_file_name)
+
+        assert len(properties['current_parameters']) > 0
