@@ -269,7 +269,7 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/empty.pipeline').matchesSnapshot();
   });
 
-  it('matches simple pipeline snapshot', () => {
+  it.only('matches simple pipeline snapshot', () => {
     cy.createPipeline({ name: 'simple.pipeline' });
 
     cy.addFileToPipeline('helloworld.ipynb');

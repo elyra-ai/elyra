@@ -19,12 +19,20 @@ Object {
       "nodes": Array [
         Object {
           "app_data": Object {
+            "cpu": "",
+            "dependencies": Array [],
             "env_vars": Array [
               "TEST_ENV_1=",
               "TEST_ENV_2=",
             ],
             "filename": "helloworld.ipynb",
+            "gpu": "",
+            "include_subdirectories": false,
             "invalidNodeError": "property \"Runtime Image\" is required",
+            "label": "",
+            "memory": "",
+            "outputs": Array [],
+            "runtime_image": "",
             "ui_data": Object {
               "decorations": Array [
                 Object {
