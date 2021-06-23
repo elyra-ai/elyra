@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-import os
 import autopep8
+import jupyter_core.paths
 import json
+import os
 import re
 import tempfile
 import time
@@ -26,13 +26,17 @@ from collections import OrderedDict
 from datetime import datetime
 from elyra._version import __version__
 from elyra.metadata import MetadataManager
-from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelineProcessorResponse
+from elyra.pipeline import RuntimePipelineProcessor, PipelineProcessor, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
 from elyra.util.git import GithubClient
 from jinja2 import Environment, PackageLoader
 
+from .component import ComponentParser
+from .component_parser_airflow import AirflowComponentParser
+from .component_registry import ComponentRegistry
 
-class AirflowPipelineProcessor(RuntimePipelineProcess):
+
+class AirflowPipelineProcessor(RuntimePipelineProcessor):
     _type = 'airflow'
 
     # Provide users with the ability to identify a writable directory in the
@@ -44,6 +48,29 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
     @property
     def type(self):
         return self._type
+
+    @property
+    def component_catalog(self) -> str:
+        return self._component_catalog_location
+
+    @property
+    def component_parser(self) -> ComponentParser:
+        return self._component_parser
+
+    def __init__(self, root_dir, **kwargs):
+        super().__init__(root_dir, **kwargs)
+        # then sys.prefix, where installed files will reside (factory data)
+        self._component_catalog_location =  \
+            os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0],
+                         'components',
+                         f"{self._type}_component_catalog.json")
+
+        if not os.path.exists(self._component_catalog_location):
+            raise FileNotFoundError(f'Invalid component catalog path {self._component_catalog_location}'
+                                    f' for {self._type} processor')
+
+        self._component_parser = AirflowComponentParser()
+        self._component_registry = ComponentRegistry(self.component_catalog, self.component_parser)
 
     def process(self, pipeline):
         t0_all = time.time()

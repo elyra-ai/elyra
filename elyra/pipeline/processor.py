@@ -15,6 +15,9 @@
 #
 import asyncio
 import entrypoints
+import functools
+import json
+import io
 import os
 import time
 
@@ -29,7 +32,8 @@ from typing import List, Dict
 from urllib3.exceptions import MaxRetryError
 from minio.error import SignatureDoesNotMatch
 
-from .registry import ComponentRegistry
+from .component import ComponentParser
+from .component_registry import ComponentRegistry
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
@@ -38,7 +42,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     _processors = {}
 
     def __init__(self):
-        super(PipelineProcessorRegistry, self).__init__()
+        super().__init__()
 
     def add_processor(self, processor):
         self.log.debug('Registering processor {}'.format(processor.type))
@@ -58,7 +62,7 @@ class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
     def __init__(self, **kwargs):
-        super(PipelineProcessorManager, self).__init__()
+        super().__init__()
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
 
         self._registry = PipelineProcessorRegistry.instance()
@@ -73,18 +77,25 @@ class PipelineProcessorManager(SingletonConfigurable):
                 # log and ignore initialization errors
                 self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
-    def is_supported_runtime(self, processor_type: str) -> bool:
-        return self._registry.is_valid_processor(processor_type)
-
     def _get_processor_for_runtime(self, processor_type: str):
         processor = self._registry.get_processor(processor_type)
 
         return processor
 
+    def is_supported_runtime(self, processor_type: str) -> bool:
+        return self._registry.is_valid_processor(processor_type)
+
     async def get_components(self, processor_type):
         processor = self._get_processor_for_runtime(processor_type)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
+        return res
+
+    async def get_component_properties(self, processor_type, component):
+        processor = self._get_processor_for_runtime(processor_type)
+
+        res = await asyncio.get_event_loop().\
+            run_in_executor(None, functools.partial(processor.get_component_properties, component=component))
         return res
 
     async def process(self, pipeline):
@@ -148,11 +159,12 @@ class PipelineProcessorResponse(ABC):
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
 
-    _type = None
+    _type: str = None
+    _component_catalog_location: str = None
+    _component_parser: ComponentParser = None
+    _component_registry: ComponentRegistry = None
 
     root_dir = Unicode(allow_none=True)
-
-    component_registry: ComponentRegistry = ComponentRegistry()
 
     enable_pipeline_info = Bool(config=True,
                                 default_value=(os.getenv('ELYRA_ENABLE_PIPELINE_INFO', 'true').lower() == 'true'),
@@ -160,17 +172,65 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                                 (default=True). (ELYRA_ENABLE_PIPELINE_INFO env var)""")
 
     def __init__(self, root_dir, **kwargs):
-        super(PipelineProcessor, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.root_dir = root_dir
 
     @property
     @abstractmethod
-    def type(self):
+    def type(self) -> str:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def component_catalog(self) -> str:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def component_parser(self) -> ComponentParser:
         raise NotImplementedError()
 
     def get_components(self):
-        components = self.component_registry.get_all_components(processor_type=self.type)
+        # Retrieve components common to all runtimes
+        common_components_location = os.path.join(os.path.dirname(__file__), 'resources', 'palette.json')
+        with io.open(common_components_location, 'r', encoding='utf-8') as f:
+            components = json.load(f)
+
+        # Retrieve runtime specific components
+        if self._component_registry:
+            if self.type and self.type != 'local':
+                custom_components = self._component_registry.get_all_components(processor_type=self.type)
+                components['categories'].extend(custom_components['categories'])
+
         return components
+
+    def get_component_properties(self, component):
+        if self.type == 'local' or component in ('notebooks', 'python-script', 'r-script'):
+            # TODO: move this to a common base class when further refactoring
+            # Retrieve component properties common to all runtimes
+            common_properties_location = os.path.join(os.path.dirname(__file__), 'resources', 'properties.json')
+            with io.open(common_properties_location, 'r', encoding='utf-8') as f:
+                properties = json.load(f)
+
+                # Adjust availalbe extensions based on type. Note that filename will always be
+                # in position 0 due to the structure of the properties object
+                index = [param['parameter_ref'] for param in properties['uihints']['parameter_info']].index('filename')
+
+                filename_param = properties['uihints']['parameter_info'][index]
+                if component == "python-script":
+                    filename_param['data']['extensions'] = ['.py']
+                    filename_param['description']['default'] = "The path to the Python file."
+                elif component == "r-script":
+                    filename_param['data']['extensions'] = ['.r']
+                    filename_param['description']['default'] = "The path to the R file."
+                elif component == "notebooks":
+                    filename_param['data']['extensions'] = ['.ipynb']
+                    filename_param['description']['default'] = "The path to the notebook file."
+        else:
+            # Retrieve runtime specific component properties
+            properties = self._component_registry.get_properties(processor_type=self.type, component_id=component)
+
+        return properties
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:
@@ -258,7 +318,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             ordered_operations.append(operation)
 
 
-class RuntimePipelineProcess(PipelineProcessor):
+class RuntimePipelineProcessor(PipelineProcessor):
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)

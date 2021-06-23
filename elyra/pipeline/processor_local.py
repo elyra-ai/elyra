@@ -26,6 +26,8 @@ from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
 from typing import Dict, List
 
+from elyra.pipeline.component import ComponentParser
+
 
 class LocalPipelineProcessor(PipelineProcessor):
     """
@@ -56,6 +58,14 @@ class LocalPipelineProcessor(PipelineProcessor):
     @property
     def type(self):
         return self._type
+
+    @property
+    def component_catalog(self) -> str:
+        return None
+
+    @property
+    def component_parser(self) -> ComponentParser:
+        return None
 
     def process(self, pipeline):
         """

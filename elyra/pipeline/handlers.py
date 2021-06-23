@@ -22,8 +22,6 @@ from .processor import PipelineProcessorManager
 from tornado import web
 from ..util.http import HttpErrorMixin
 
-from .registry import ComponentRegistry
-
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to export pipelines"""
@@ -101,7 +99,7 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self, processor):
-        self.log.info(f'Retrieving pipeline components for {processor}')
+        self.log.info(f'Retrieving pipeline components for: {processor} runtime')
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
@@ -116,15 +114,17 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipeline component properties"""
 
-    component_registry: ComponentRegistry = ComponentRegistry()
-
     @web.authenticated
     async def get(self, processor, component_id):
-        self.log.info(f'Retrieving pipeline component properties for component {component_id}')
+        self.log.info(f'Retrieving pipeline component properties for component: {component_id}')
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
-        properties = ComponentRegistry().get_properties(processor, component_id)
+        if not component_id:
+            raise web.HTTPError(400, f"Invalid component ID '{component_id}'")
+
+        properties = await PipelineProcessorManager.instance().get_component_properties(processor, component_id)
+
         json_msg = json.dumps(properties)
 
         self.set_status(200)

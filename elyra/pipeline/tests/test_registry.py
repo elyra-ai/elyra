@@ -13,10 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
+
+import jupyter_core.paths
 import os
 import urllib
 
-from elyra.pipeline.registry import AirflowComponentParser
+from elyra.pipeline.component_parser_airflow import AirflowComponentParser
+from elyra.pipeline.component_registry import ComponentRegistry
+
+COMPONENT_CATALOG_DIRECORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
 
 
 def _read_component_resource(component_filename):
@@ -32,6 +38,16 @@ def _read_component_resource(component_filename):
 def _read_component_resource_from_url(component_url):
         component_body = urllib.request.urlopen(component_url)  # noqa E131
         return component_body.readlines()
+
+
+def test_component_registry_can_load_components_from_catalog():
+    component_catalog = os.path.join(COMPONENT_CATALOG_DIRECORY, 'airflow_component_catalog.json')
+    component_parser = AirflowComponentParser()
+    component_registry = ComponentRegistry(component_catalog, component_parser)
+
+    components = component_registry.get_all_components("airflow")
+    print(json.dumps(components, indent=2))
+    assert len(components) > 0
 
 
 def test_parse_airflow_component_file():
