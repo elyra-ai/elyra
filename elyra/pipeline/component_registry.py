@@ -84,7 +84,7 @@ class ComponentRegistry(LoggingConfigurable):
         components['categories'] = list()
 
         # Process component catalog
-        component_catalog = self._read_component_catalog()
+        component_catalog = self._read_component_catalog().values()
 
         # process each registered component
         for component_entry in component_catalog:
@@ -112,7 +112,7 @@ class ComponentRegistry(LoggingConfigurable):
         component_catalog = self._read_component_catalog()
 
         # Find component with given id in component catalog
-        component_entry = component_catalog['components'].get(component_id)
+        component_entry = component_catalog.get(component_id)
         if not component_entry:
             self.log.error(f"Component with ID '{component_id}' could not be found in the " +
                            f"{self._component_catalog_location} component catalog.")
@@ -134,14 +134,14 @@ class ComponentRegistry(LoggingConfigurable):
 
     def _read_component_catalog(self):
         """
-        Read a component catalog and return its component definitions
+        Read a component catalog and return its component definitions.
         """
 
         with open(self._component_catalog_location, 'r') as catalog_file:
             catalog_json = json.load(catalog_file)
 
         if 'components' in catalog_json.keys():
-            return catalog_json['components'].values()
+            return catalog_json['components']
         else:
             return list()
 
@@ -150,7 +150,8 @@ class ComponentRegistry(LoggingConfigurable):
         Find the proper reader based on the given registry component.
         """
         try:
-            component_type = list(component['location'].keys())[0]
+            # Get first (and only) key of 'location' subdictionary
+            component_type = next(iter(component.get('location')))
             return self.readers.get(component_type)
         except Exception:
             raise ValueError("Unsupported registry type.")

@@ -98,10 +98,10 @@ class AirflowComponentParser(ComponentParser):
             'lines': []
         }
         class_regex = re.compile(r"class ([\w]+)\(\w*\):")
-        for line in component_body:
+        for line in component_body.split('\n'):
             # Remove any inline comments (must follow the '2 preceding spaces and one following space'
             # rule). This avoids the case where the default value of an __init__ arg contains '#'.
-            line = re.sub(r"  # .*\n?", "", line.decode("utf-8"))
+            line = re.sub(r"  # .*\n?", "", line)  # .decode("utf-8"))
             match = class_regex.search(line)
             if match:
                 class_name = match.group(1)

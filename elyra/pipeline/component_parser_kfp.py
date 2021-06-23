@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import copy
+import yaml
 
 from elyra.pipeline.component import ComponentParser, get_id_from_name, set_node_type_data, empty_properties
 
@@ -23,6 +24,15 @@ class KfpComponentParser(ComponentParser):
 
     def __init__(self):
         super().__init__()
+
+    def get_component_object_from_string(self, component_body):
+        """
+        Convert component_body string to YAML object.
+        """
+        try:
+            return yaml.safe_load(component_body)
+        except yaml.YAMLError as e:
+            raise RuntimeError from e
 
     def get_adjusted_parameter_fields(self,
                                       component_body,
@@ -60,6 +70,8 @@ class KfpComponentParser(ComponentParser):
         return ref, desc
 
     def parse_component_details(self, component_body, component_name=None):
+        component_body = self.get_component_object_from_string(component_body)
+
         component_description = ""
         if "description" in component_body:
             component_description = ' '.join(component_body['description'].split())
@@ -83,6 +95,8 @@ class KfpComponentParser(ComponentParser):
         '''
         Build the properties object according to the YAML and return properties.
         '''
+        component_body = self.get_component_object_from_string(component_body)
+
         # Start with empty properties object
         component_parameters = copy.deepcopy(empty_properties)
 
