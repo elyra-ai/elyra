@@ -19,10 +19,13 @@ declare namespace Cypress {
     createRuntimeConfig(options?: { type?: 'kfp' }): Chainable<void>;
     deleteFile(fileName: string): Chainable<void>;
     addFileToPipeline(fileName: string): Chainable<void>;
-    createPipelineEditor(): Chainable<void>;
+    createGenericPipeline(): Chainable<void>;
+    createKFPPipeline(): Chainable<void>;
+    createAirflowPipeline(): Chainable<void>;
     openFile(fileName: string): Chainable<void>;
     bootstrapFile(fileName: string): Chainable<void>;
     resetJupyterLab(): Chainable<void>;
     checkTabMenuOptions(fileType: string): Chainable<void>;
+    OpenPalette(): Chainable<void>;
   }
 }
