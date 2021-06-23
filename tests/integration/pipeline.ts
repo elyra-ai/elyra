@@ -92,19 +92,16 @@ describe('Pipeline Editor tests', () => {
     cy.createAirflowPipeline();
     cy.openPalette();
 
-    const customComponents = [
-      'bash operator',
-      'docker operator',
-      'email operator',
-      'HTTP operator',
-      'kubernetes pod operator',
-      'spark JDBC operator',
-      'spark sql operator',
-      'spark submit operator',
-      'ssh operator'
+    const airflowCustomComponents = [
+      'bash',
+      'email',
+      'HTTP',
+      'spark JDBC',
+      'spark sql',
+      'spark submit'
     ];
 
-    customComponents.forEach(component => {
+    airflowCustomComponents.forEach(component => {
       cy.findByText(new RegExp(component, 'i')).should('exist');
     });
   });
