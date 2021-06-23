@@ -75,15 +75,9 @@ describe('Pipeline Editor tests', () => {
     cy.createKFPPipeline();
     cy.openPalette();
 
-    const customComponents = [
-      'train spark model',
-      'papermill',
-      'pytorch model',
-      'watson machine learning',
-      'filter text'
-    ];
+    const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
 
-    customComponents.forEach(component => {
+    kfpCustomComponents.forEach(component => {
       cy.findByText(new RegExp(component, 'i')).should('exist');
     });
   });
