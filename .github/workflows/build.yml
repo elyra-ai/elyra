@@ -148,6 +148,15 @@ jobs:
           make build-jupyterlab
       - name: Cypress
         run: make test-integration
+      - name: Collect logs
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          path: |
+            ${{ github.workspace }}/build/cypress-tests/*.log
+            ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
+            ${{ github.workspace }}/build/cypress-tests/videos//**/*
+            /home/runner/.npm/_logs/*.log
 
   # TODO: Why are building? Is this just a test that it successfully builds? this should be named accordingly
   build-documentation:
