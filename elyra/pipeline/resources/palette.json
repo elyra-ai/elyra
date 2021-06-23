@@ -57,6 +57,7 @@
       "image": "",
       "id": "python-script",
       "description": "Run Python script",
+      "extensions": [".py"],
       "node_types": [
         {
           "id": "",
@@ -108,6 +109,7 @@
       "image": "",
       "id": "r-script",
       "description": "Run R script",
+      "extensions": [".r"],
       "node_types": [
         {
           "id": "",
