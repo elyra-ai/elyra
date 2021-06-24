@@ -13,10 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
-import os
-
-import jupyter_core.paths
 from traitlets.config import SingletonConfigurable
 
 
@@ -141,47 +137,6 @@ def set_node_type_data(id, label, description):
 class ComponentParser(SingletonConfigurable):
     _type = "local"
     _components_dir = "components"
-
-    def _get_component_catalog_json(self):
-        # then sys.prefix, where installed files will reside (factory data)
-        catalog_dir = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], self._components_dir)
-        catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
-        with open(catalog_file, 'r') as f:
-            catalog_json = json.load(f)
-
-        return catalog_json
-
-    def list_all_components(self):
-        if self._type == "local":
-            return []
-
-        component_json = self._get_component_catalog_json()
-        return component_json['components'].values()
-
-    def return_component_if_exists(self, component_id):
-        component_json = self._get_component_catalog_json()
-        return component_json['components'].get(component_id)
-
-    def add_component(self, request_body):
-        """
-        Adds a component to the component catalog. Implementation subject to change
-        once support for adding components is available.
-        """
-        assert "path" in request_body
-
-        component_json = {
-            'name': request_body['name'],
-            'id': get_id_from_name(request_body['name']),
-            'path': request_body['path']
-        }
-
-        catalog_json = self._get_component_catalog_json()
-        catalog_json['components'].append(component_json)
-
-        catalog_dir = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], self._components_dir)
-        catalog_file = os.path.join(catalog_dir, f"{self._type}_component_catalog.json")
-        with open(catalog_file, 'w') as f:
-            f.write(json.dumps(catalog_json))
 
     def parse_component_details(self, component, component_name=None):
         """Get component name, id, description for palette JSON"""
