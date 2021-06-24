@@ -29,6 +29,10 @@ from elyra.metadata import MetadataManager, SchemaManager
 from typing import Optional
 from yaspin import yaspin
 
+# TODO: Make pipeline version available more widely
+# as today is only available on the pipeline editor
+PIPELINE_CURRENT_VERSION = 3
+
 
 def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
     if not runtime_config:
@@ -112,6 +116,16 @@ def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) 
         raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
 
     assert primary_pipeline is not None, f"No primary pipeline was found in {pipeline_path}"
+
+    pipeline_version = int(primary_pipeline["app_data"]["version"])
+    if pipeline_version < PIPELINE_CURRENT_VERSION:
+        # Pipeline needs to be migrated
+        raise click.ClickException(f'Pipeline version {pipeline_version} is out of date and needs to be migrated '
+                                   f'using the Elyra pipeline editor.')
+    elif pipeline_version > PIPELINE_CURRENT_VERSION:
+        # New version of Elyra is needed
+        raise click.ClickException('Pipeline was last edited in a newer version of Elyra. '
+                                   'Update Elyra to use this pipeline.')
 
     if not _validate_pipeline_runtime(primary_pipeline, runtime):
         runtime_description = primary_pipeline['app_data']['ui_data']['runtime']['display_name']
