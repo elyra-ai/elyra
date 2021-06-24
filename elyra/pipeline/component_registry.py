@@ -20,7 +20,8 @@ import requests
 
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
-from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.component import ComponentParser, Component
+from typing import List
 
 
 class ComponentReader(SingletonConfigurable):
@@ -80,8 +81,7 @@ class ComponentRegistry(LoggingConfigurable):
         print(f'Retrieving components from {self.catalog_location}')
 
         # Get components common to all runtimes
-        components = {}
-        components['categories'] = list()
+        components: List[Component] = list()
 
         # Process component catalog
         component_catalog = self._read_component_catalog().values()
@@ -97,9 +97,9 @@ class ComponentRegistry(LoggingConfigurable):
                 reader.read_component_definition(component_entry['location'][reader._type])
 
             # Parse the component definition in order to add to palette
-            component_json = self._parser.parse_component_details(component_definition, component_entry['name'])
-            if component_json:
-                components['categories'].append(component_json)
+            component: Component = self._parser.parse(component_entry['name'], component_definition)
+            if component:
+                components.append(component)
 
         return components
 

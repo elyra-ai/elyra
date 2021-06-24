@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from traitlets.config import SingletonConfigurable
+from abc import ABC, abstractmethod
+from traitlets.config import LoggingConfigurable
+from typing import List, Optional
 
 
 cardinality = {
@@ -104,6 +106,34 @@ empty_properties = {
 }
 
 
+
+class Property(object):
+
+    name: str
+    type: str
+    value: str
+    required: bool
+
+
+class Component(object):
+    """
+    Reoresents a runtime specific component
+    """
+
+    id: str
+    name: str
+    description: str
+    runtime: str
+    properties: List[Property]
+
+    def __init__(self, id: str, name: str, description: str, runtime: Optional[str] = None, properties: List[Property]=None):
+        self._id = id
+        self._name = name
+        self._description = description
+        self._runtime = runtime
+        self._properties = properties
+
+
 def get_id_from_name(name):
     """
     Takes the lowercase name of a component and removes '-' and redundant spaces by splitting and
@@ -134,9 +164,11 @@ def set_node_type_data(id, label, description):
     return node_type
 
 
-class ComponentParser(SingletonConfigurable):
-    _type = "local"
-    _components_dir = "components"
+class ComponentParser(LoggingConfigurable):  # ABC
+
+    @abstractmethod
+    def parse(self, component_name, component_definition):
+        raise NotImplementedError()
 
     def parse_component_details(self, component, component_name=None):
         """Get component name, id, description for palette JSON"""

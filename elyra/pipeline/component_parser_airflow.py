@@ -15,9 +15,12 @@
 #
 import ast
 import copy
+import json
 import re
+import yaml
 
-from elyra.pipeline.component import ComponentParser, get_id_from_name, set_node_type_data, empty_properties
+from elyra.pipeline.component import Component, ComponentParser, get_id_from_name, set_node_type_data, empty_properties
+
 
 
 class AirflowComponentParser(ComponentParser):
@@ -25,6 +28,21 @@ class AirflowComponentParser(ComponentParser):
 
     def __init__(self):
         super().__init__()
+
+    def parse(self, component_name, component_definition):
+        component = Component(id = get_id_from_name(component_name),
+                              name= component_name,
+                              description= '')
+        return component
+
+    def get_component_object_from_string(self, component_body):
+        """
+        Convert component_body string to YAML object.
+        """
+        try:
+            return yaml.safe_load(component_body)
+        except yaml.YAMLError as e:
+            raise RuntimeError from e
 
     def parse_component_details(self, component_body, component_name=None):
         # Component_body never used, but component_name never used in KFP parser

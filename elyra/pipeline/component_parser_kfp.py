@@ -16,7 +16,7 @@
 import copy
 import yaml
 
-from elyra.pipeline.component import ComponentParser, get_id_from_name, set_node_type_data, empty_properties
+from elyra.pipeline.component import Component, ComponentParser, get_id_from_name, set_node_type_data, empty_properties
 
 
 class KfpComponentParser(ComponentParser):
@@ -25,7 +25,15 @@ class KfpComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def get_component_object_from_string(self, component_body):
+    def parse(self, component_name, component_definition):
+        component_yaml = self._read_component_yaml(component_definition)
+
+        component = Component(id = get_id_from_name(component_yaml['name']),
+                              name= component_yaml['name'],
+                              description= ''.join(component_yaml.get('description').split()))
+        return component
+
+    def _read_component_yaml(self, component_body):
         """
         Convert component_body string to YAML object.
         """
@@ -70,7 +78,7 @@ class KfpComponentParser(ComponentParser):
         return ref, desc
 
     def parse_component_details(self, component_body, component_name=None):
-        component_body = self.get_component_object_from_string(component_body)
+        component_body = self._read_component_yaml(component_body)
 
         component_description = ""
         if "description" in component_body:
@@ -95,7 +103,7 @@ class KfpComponentParser(ComponentParser):
         '''
         Build the properties object according to the YAML and return properties.
         '''
-        component_body = self.get_component_object_from_string(component_body)
+        component_body = self._read_component_yaml(component_body)
 
         # Start with empty properties object
         component_parameters = copy.deepcopy(empty_properties)
