@@ -258,11 +258,30 @@ const PipelineWrapper: React.FC<IProps> = ({
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
     const filename = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
-      args.filename
+      args.filename ?? ''
     );
 
     switch (args.propertyID) {
-      case 'filename':
+      case 'dependencies':
+        {
+          const res = await showBrowseFileDialog(
+            browserFactory.defaultBrowser.model.manager,
+            {
+              multiselect: true,
+              includeDir: true,
+              rootPath: PathExt.dirname(filename),
+              filter: (model: any): boolean => {
+                return model.path !== filename;
+              }
+            }
+          );
+
+          if (res.button.accept && res.value.length) {
+            return res.value.map((v: any) => v.path);
+          }
+        }
+        break;
+      default:
         {
           const res = await showBrowseFileDialog(
             browserFactory.defaultBrowser.model.manager,
@@ -288,27 +307,6 @@ const PipelineWrapper: React.FC<IProps> = ({
           }
         }
         break;
-      case 'dependencies':
-        {
-          const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
-            {
-              multiselect: true,
-              includeDir: true,
-              rootPath: PathExt.dirname(filename),
-              filter: (model: any): boolean => {
-                return model.path !== filename;
-              }
-            }
-          );
-
-          if (res.button.accept && res.value.length) {
-            return res.value.map((v: any) => v.path);
-          }
-        }
-        break;
-      default:
-        throw new Error('Unsupported property requesting a filepath.');
     }
 
     return undefined;
