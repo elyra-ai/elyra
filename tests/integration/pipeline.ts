@@ -71,35 +71,6 @@ describe('Pipeline Editor tests', () => {
   //   closePipelineEditor();
   // });
 
-  it('kfp pipeline should display custom components', () => {
-    cy.createKFPPipeline();
-    cy.openPalette();
-
-    const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
-
-    kfpCustomComponents.forEach(component => {
-      cy.findByText(new RegExp(component, 'i')).should('exist');
-    });
-  });
-
-  it('airflow pipeline should display custom components', () => {
-    cy.createAirflowPipeline();
-    cy.openPalette();
-
-    const airflowCustomComponents = [
-      'bash',
-      'email',
-      'HTTP',
-      'spark JDBC',
-      'spark sql',
-      'spark submit'
-    ];
-
-    airflowCustomComponents.forEach(component => {
-      cy.findByText(new RegExp(component, 'i')).should('exist');
-    });
-  });
-
   it('populated editor should have enabled buttons', () => {
     cy.createGenericPipeline();
 
@@ -303,6 +274,59 @@ describe('Pipeline Editor tests', () => {
 
       cy.findByText('BAD=two').should('exist');
     });
+  });
+
+  it('kfp pipeline should display custom components', () => {
+    cy.createKFPPipeline();
+    cy.openPalette();
+
+    const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
+
+    kfpCustomComponents.forEach(component => {
+      cy.findByText(new RegExp(component, 'i')).should('exist');
+    });
+  });
+
+  it('kfp pipeline should display expected export options', () => {
+    cy.createKFPPipeline();
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Validate all export options are available
+    cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
+    cy.findByRole('option', { name: /python/i }).should('not.exist');
+
+    // dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('airflow pipeline should display custom components', () => {
+    cy.createAirflowPipeline();
+    cy.openPalette();
+
+    const airflowCustomComponents = [
+      'bash',
+      'email',
+      'HTTP',
+      'spark JDBC',
+      'spark sql',
+      'spark submit'
+    ];
+
+    airflowCustomComponents.forEach(component => {
+      cy.findByText(new RegExp(component, 'i')).should('exist');
+    });
+  });
+
+  it('airflow pipeline should display expected export options', () => {
+    cy.createAirflowPipeline();
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Validate all export options are available
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
+    cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
   });
 });
 
