@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from traitlets.config import LoggingConfigurable
 from typing import List, Optional
 
@@ -106,8 +106,10 @@ empty_properties = {
 }
 
 
-
 class Property(object):
+    """
+    Represents a single property for a pipeline component
+    """
 
     name: str
     type: str
@@ -117,7 +119,7 @@ class Property(object):
 
 class Component(object):
     """
-    Reoresents a runtime specific component
+    Represents a runtime-specific component
     """
 
     id: str
@@ -126,12 +128,35 @@ class Component(object):
     runtime: str
     properties: List[Property]
 
-    def __init__(self, id: str, name: str, description: str, runtime: Optional[str] = None, properties: List[Property]=None):
+    def __init__(self, id: str, name: str, description: str, runtime: Optional[str] = None, properties:
+                 List[Property] = None):
+        """
+        TODO: Add param info here
+        """
+
+        # TODO: Add error-checking for init parameters
+
         self._id = id
         self._name = name
         self._description = description
         self._runtime = runtime
         self._properties = properties
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def description(self):
+        return self._description
+
+    @property
+    def runtime(self):
+        return self._runtime
 
 
 def get_id_from_name(name):

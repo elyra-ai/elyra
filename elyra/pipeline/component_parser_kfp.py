@@ -28,9 +28,10 @@ class KfpComponentParser(ComponentParser):
     def parse(self, component_name, component_definition):
         component_yaml = self._read_component_yaml(component_definition)
 
-        component = Component(id = get_id_from_name(component_yaml['name']),
-                              name= component_yaml['name'],
-                              description= ''.join(component_yaml.get('description').split()))
+        # TODO May have to adjust description if there are parsing issues
+        component = Component(id=get_id_from_name(component_yaml.get('name')),
+                              name=component_yaml.get('name'),
+                              description=component_yaml.get('description'))
         return component
 
     def _read_component_yaml(self, component_body):

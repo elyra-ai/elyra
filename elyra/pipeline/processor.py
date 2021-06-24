@@ -200,7 +200,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         if self._component_registry:
             if self.type and self.type != 'local':
                 custom_components = self._component_registry.get_all_components()
-                components['categories'].extend(custom_components['categories'])
+                components['categories'].extend(custom_components)
 
         return components
 

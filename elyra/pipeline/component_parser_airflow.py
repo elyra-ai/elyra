@@ -15,12 +15,10 @@
 #
 import ast
 import copy
-import json
 import re
 import yaml
 
 from elyra.pipeline.component import Component, ComponentParser, get_id_from_name, set_node_type_data, empty_properties
-
 
 
 class AirflowComponentParser(ComponentParser):
@@ -30,9 +28,9 @@ class AirflowComponentParser(ComponentParser):
         super().__init__()
 
     def parse(self, component_name, component_definition):
-        component = Component(id = get_id_from_name(component_name),
-                              name= component_name,
-                              description= '')
+        component = Component(id=get_id_from_name(component_name),
+                              name=component_name,
+                              description='')
         return component
 
     def get_component_object_from_string(self, component_body):
