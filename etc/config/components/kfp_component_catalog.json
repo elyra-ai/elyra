@@ -12,7 +12,7 @@
         "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/sample/Shell_script/component.yaml"
       }
     },
-    "serve-model-using-kfserving": {
+    "kubeflow-serve-model-using-kfserving": {
       "name": "Serve Model using KFServing",
       "path": {
         "url": "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/kubeflow/kfserving/component.yaml"

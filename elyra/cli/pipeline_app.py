@@ -20,15 +20,24 @@ import json
 import os
 import warnings
 
-from yaspin import yaspin
 from colorama import Fore, Style
 
 from elyra import __version__
 from elyra.pipeline import PipelineParser, PipelineProcessorManager
-from elyra.metadata import MetadataManager
+from elyra.metadata import MetadataManager, SchemaManager
+
+from typing import Optional
+from yaspin import yaspin
+
+# TODO: Make pipeline version available more widely
+# as today is only available on the pipeline editor
+PIPELINE_CURRENT_VERSION = 3
 
 
-def _get_runtime_type(runtime_config: str) -> str:
+def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
+    if not runtime_config:
+        return None
+
     try:
         metadata_manager = MetadataManager(namespace='runtimes')
         metadata = metadata_manager.get(runtime_config)
@@ -37,13 +46,42 @@ def _get_runtime_type(runtime_config: str) -> str:
         raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
 
 
-def _validate_pipeline_file(pipeline_file):
+def _get_runtime_display_name(runtime_config: Optional[str]) -> Optional[str]:
+    if not runtime_config:
+        return None
+
+    try:
+        schema_manager = SchemaManager.instance()
+        schema_name = _get_runtime_type(runtime_config)
+        schema = schema_manager.get_schema('runtimes', schema_name)
+        return schema['display_name']
+    except Exception as e:
+        raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
+
+
+def _validate_pipeline_runtime(primary_pipeline: dict, runtime: str) -> bool:
+    """
+    Generic pipelines do not have a persisted runtime type, and can be run on any runtime
+    Runtime specific pipeline have a runtime type, and con only be run on matching runtime
+    """
+    is_valid = False
+    pipeline_runtime = primary_pipeline["app_data"].get("runtime")
+    if not pipeline_runtime:
+        is_valid = True
+    else:
+        if runtime and pipeline_runtime == runtime:
+            is_valid = True
+
+    return is_valid
+
+
+def _validate_pipeline_file_extension(pipeline_file: str):
     extension = os.path.splitext(pipeline_file)[1]
     if extension != '.pipeline':
         raise click.ClickException('Pipeline file should be a [.pipeline] file.\n')
 
 
-def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
+def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) -> dict:
     pipeline_path = os.path.expanduser(pipeline_path)
     pipeline_abs_path = os.path.join(os.getcwd(), pipeline_path)
     pipeline_dir = os.path.dirname(pipeline_abs_path)
@@ -63,21 +101,44 @@ def _preprocess_pipeline(pipeline_path, runtime, runtime_config):
     if len(pipeline_definition['pipelines']) == 0:
         raise click.ClickException("Pipeline has zero length 'pipelines' field.")
 
+    primary_pipeline_key = pipeline_definition['primary_pipeline']
+    primary_pipeline = None
     try:
         for pipeline in pipeline_definition["pipelines"]:
+            if pipeline['id'] == primary_pipeline_key:
+                primary_pipeline = pipeline
             for node in pipeline["nodes"]:
                 if 'filename' in node["app_data"]:
                     abs_path = os.path.join(pipeline_dir, node["app_data"]["filename"])
                     node["app_data"]["filename"] = abs_path
 
-        # NOTE: The frontend just set the info for first pipeline, but shouldn't it
-        # search for the primary pipeline and set that?
-        # Setting `pipeline_definition["pipelines"][0]` for consistency.
-        pipeline_definition["pipelines"][0]["app_data"]["name"] = pipeline_name
-        pipeline_definition["pipelines"][0]["app_data"]["runtime"] = runtime
-        pipeline_definition["pipelines"][0]["app_data"]["runtime-config"] = runtime_config
     except Exception as e:
         raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
+
+    assert primary_pipeline is not None, f"No primary pipeline was found in {pipeline_path}"
+
+    pipeline_version = int(primary_pipeline["app_data"]["version"])
+    if pipeline_version < PIPELINE_CURRENT_VERSION:
+        # Pipeline needs to be migrated
+        raise click.ClickException(f'Pipeline version {pipeline_version} is out of date and needs to be migrated '
+                                   f'using the Elyra pipeline editor.')
+    elif pipeline_version > PIPELINE_CURRENT_VERSION:
+        # New version of Elyra is needed
+        raise click.ClickException('Pipeline was last edited in a newer version of Elyra. '
+                                   'Update Elyra to use this pipeline.')
+
+    if not _validate_pipeline_runtime(primary_pipeline, runtime):
+        runtime_description = primary_pipeline['app_data']['ui_data']['runtime']['display_name']
+        runtime_config_display_name = _get_runtime_display_name(runtime_config)
+        raise click.ClickException(
+            f"This pipeline requires an instance of {runtime_description} runtime configuration.\n"
+            f"The specified configuration '{runtime_config}' is for {runtime_config_display_name} runtime.")
+
+    # update pipeline transient fields
+    primary_pipeline["app_data"]["name"] = pipeline_name
+    primary_pipeline["app_data"]["runtime"] = runtime
+    primary_pipeline["app_data"]["runtime-config"] = runtime_config
+    primary_pipeline["app_data"]["source"] = os.path.basename(pipeline_abs_path)
 
     return pipeline_definition
 
@@ -147,7 +208,7 @@ def submit(pipeline_path, runtime_config):
 
     runtime = _get_runtime_type(runtime_config)
 
-    _validate_pipeline_file(pipeline_path)
+    _validate_pipeline_file_extension(pipeline_path)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
@@ -179,7 +240,7 @@ def run(pipeline_path):
 
     print_banner("Elyra Pipeline Local Run")
 
-    _validate_pipeline_file(pipeline_path)
+    _validate_pipeline_file_extension(pipeline_path)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
