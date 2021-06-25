@@ -84,11 +84,11 @@ setup_args = dict(
         'papermill>=2.1.3',
         'python-language-server[all]>=0.36.2',
         'pyyaml>=5.3.1,<6.0',
-        'requests>=2.9.1,<3.0',
+        'requests>=2.25.1,<3.0',
         'rfc3986-validator>=0.1.1',
         'tornado>=6.1.0',
         'traitlets>=4.3.2',
-        'urllib3>=1.24.2',
+        'urllib3>=1.26.5',
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
