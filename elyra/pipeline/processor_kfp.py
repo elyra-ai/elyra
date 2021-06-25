@@ -58,8 +58,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         return self._type
 
     @property
-    def component_catalog(self) -> str:
-        return self._component_catalog_location
+    def component_registry(self) -> str:
+        return self._component_registry_location
 
     @property
     def component_parser(self) -> ComponentParser:
@@ -68,17 +68,17 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, **kwargs)
         # then sys.prefix, where installed files will reside (factory data)
-        self._component_catalog_location =  \
+        self._component_registry_location =  \
             os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0],
                          'components',
                          f"{self._type}_component_catalog.json")
 
-        if not os.path.exists(self._component_catalog_location):
-            raise FileNotFoundError(f'Invalid component catalog path {self._component_catalog_location}'
+        if not os.path.exists(self._component_registry_location):
+            raise FileNotFoundError(f'Invalid component catalog path {self._component_registry_location}'
                                     f' for {self._type} processor')
 
         self._component_parser = KfpComponentParser()
-        self._component_registry = ComponentRegistry(self.component_catalog, self.component_parser)
+        self._component_registry = ComponentRegistry(self.component_registry, self.component_parser)
 
     def process(self, pipeline):
         """Runs a pipeline on Kubeflow Pipelines

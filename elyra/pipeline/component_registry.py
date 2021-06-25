@@ -63,19 +63,27 @@ class ComponentRegistry(LoggingConfigurable):
         UrlComponentReader._type: UrlComponentReader()
     }
 
-    def __init__(self, component_catalog_location: str, parser: ComponentParser):
+    def __init__(self, _component_registry_location: str, parser: ComponentParser):
         super().__init__()
-        self._component_catalog_location = component_catalog_location
+        self._component_registry_location = _component_registry_location
         self._parser = parser
-        self.log.info(f'Creating new registry using {self.catalog_location}')
+        self.log.info(f'Creating new registry using {self.registry_location}')
 
+    @property
+    def registry_location(self) -> str:
+        return self._component_registry_location
+
+    def get_all_components(self):
+        """
+        Retrieve all components from the component registry
+        """
+
+        components: List[Component] = list()
         # Read component catalog to get JSON
-        self._catalog_json = self._read_component_catalog()
-
-        self._components: List[Component] = list()
-        for component_entry in self.component_catalog:
+        component_entries = self._read_component_registry()
+        # Process each component entry
+        for component_name, component_entry in component_entries.items():
             # TODO Check for duplicate components?
-
             self.log.debug(f"Component registry found component {component_entry['name']}")
 
             # Get appropriate reader in order to read component definition
@@ -86,41 +94,23 @@ class ComponentRegistry(LoggingConfigurable):
             # Parse the component definition and add to component object
             component: Component = self._parser.parse(component_entry['name'], component_definition)
             if component:
-                self._components.append(component)
+                components.append(component)
 
-    @property
-    def catalog_location(self) -> str:
-        return self._component_catalog_location
-
-    @property
-    def component_catalog(self) -> list:
-        if self._catalog_json:
-            return list(self._catalog_json.values())
-        else:
-            return list()
-
-    @property
-    def components(self) -> list:
-        return self._components
-
-    def get_all_components(self):
-        """
-        Builds a component palette in the form of a dictionary of components.
-        """
-
-        print(f'Retrieving components from {self.catalog_location}')
-        return self.to_canvas_palette()
+        return components
 
     def get_component(self, component_id):
         """
         Get the body of the component catalog entry with the given id
         """
-        component_entry = next((entry for id, entry in self._catalog_json.items() if component_id == id), None)
+        # Read component catalog to get JSON
+        component_entries = self._read_component_registry()
+        component_entry = next((entry for id, entry in component_entries.items() if component_id == id), None)
+
         if not component_entry:
             self.log.error(f"Component with ID '{component_id}' could not be found in the " +
-                           f"{self._component_catalog_location} component catalog.")
+                           f"{self._component_registry_location} component catalog.")
             raise ValueError(f"Component with ID '{component_id}' could not be found in the " +
-                             f"{self._component_catalog_location} component catalog.")
+                             f"{self._component_registry_location} component catalog.")
 
         return component_entry
 
@@ -130,7 +120,7 @@ class ComponentRegistry(LoggingConfigurable):
         """
 
         # Process component catalog
-        # component_catalog = self._read_component_catalog()
+        # component_registry = self._read_component_registry()
 
         # Find component with given id in component catalog
         component_entry = self.get_component(component_id)
@@ -148,13 +138,14 @@ class ComponentRegistry(LoggingConfigurable):
 
         return properties  # self.to_canvas_properties()
 
-    def to_canvas_palette(self):
+    @staticmethod
+    def to_canvas_palette(components: List[Component]) -> dict:
         """
         Converts registry components into appropriate canvas palette format
         """
         palette_json = list()
 
-        for component in self.components:
+        for component in components:
             component_json = {
                 'label': component.name,
                 'image': "",
@@ -198,18 +189,19 @@ class ComponentRegistry(LoggingConfigurable):
             palette_json.append(component_json)
         return palette_json
 
-    def to_canvas_properties(self):
+    @staticmethod
+    def to_canvas_properties(component: Component) -> dict:
         """
         Converts registry components into appropriate canvas properties format
         """
         raise NotImplementedError()
 
-    def _read_component_catalog(self):
+    def _read_component_registry(self):
         """
         Read a component catalog and return its component definitions.
         """
 
-        with open(self._component_catalog_location, 'r') as catalog_file:
+        with open(self._component_registry_location, 'r') as catalog_file:
             catalog_json = json.load(catalog_file)
 
         if 'components' in catalog_json.keys():
@@ -221,9 +213,12 @@ class ComponentRegistry(LoggingConfigurable):
         """
         Find the proper reader based on the given registry component.
         """
+        if not component:
+            raise ValueError("Invalid null component")
+
         try:
             # Get first (and only) key of 'location' subdictionary
             component_type = next(iter(component.get('location')))
             return self.readers.get(component_type)
         except Exception:
-            raise ValueError("Unsupported registry type.")
+            raise ValueError(f'Unsupported registry type {component_type}.')

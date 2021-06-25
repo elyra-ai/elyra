@@ -160,9 +160,9 @@ class PipelineProcessorResponse(ABC):
 class PipelineProcessor(LoggingConfigurable):  # ABC
 
     _type: str = None
-    _component_catalog_location: str = None
     _component_parser: ComponentParser = None
     _component_registry: ComponentRegistry = None
+    _component_registry_location: str = None
 
     root_dir = Unicode(allow_none=True)
 
@@ -182,7 +182,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     @property
     @abstractmethod
-    def component_catalog(self) -> str:
+    def component_registry(self) -> str:
         raise NotImplementedError()
 
     @property
@@ -200,7 +200,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         if self._component_registry:
             if self.type and self.type != 'local':
                 custom_components = self._component_registry.get_all_components()
-                components['categories'].extend(custom_components)
+                custom_components_json = ComponentRegistry.to_canvas_palette((custom_components))
+                components['categories'].extend(custom_components_json)
 
         return components
 

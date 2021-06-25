@@ -60,7 +60,7 @@ class LocalPipelineProcessor(PipelineProcessor):
         return self._type
 
     @property
-    def component_catalog(self) -> str:
+    def component_registry(self) -> str:
         return None
 
     @property
