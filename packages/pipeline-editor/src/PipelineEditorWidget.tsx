@@ -896,6 +896,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           onError={onError}
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
+          leftPalette={true}
         />
       </Dropzone>
     </ThemeProvider>
