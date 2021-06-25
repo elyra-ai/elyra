@@ -18,31 +18,6 @@ from traitlets.config import LoggingConfigurable
 from typing import List, Optional
 
 
-cardinality = {
-    'min': 0,
-    'max': -1
-}
-
-inputs = {
-    "id": "inPort",
-    "app_data": {
-        "ui_data": {
-            "cardinality": cardinality,
-            "label": "Input Port"
-        }
-    }
-}
-
-outputs = {
-    "id": "outPort",
-    "app_data": {
-        "ui_data": {
-            "cardinality": cardinality,
-            "label": "Output Port"
-        }
-    }
-}
-
 empty_properties = {
     "current_parameters": {"component_source": "", "runtime_image": "", "component_source_type": ""},
     "parameters": [{"id": "component_source"}, {"id": "runtime_image"}, {"id": "component_source_type"}],
@@ -106,15 +81,61 @@ empty_properties = {
 }
 
 
-class Property(object):
+class ComponentProperty(object):
     """
     Represents a single property for a pipeline component
     """
 
+    ref: str
     name: str
     type: str
     value: str
+    description: str
+    control: str
     required: bool
+
+    def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool,
+                 control: str = "custom", control_id: str = "StringControl"):
+        self._ref = ref
+        self._name = name
+        self._type = type
+        self._value = value
+        self._description = description
+        self._required = required
+        self._control = control
+        self._control_id = control_id
+
+    @property
+    def ref(self):
+        return self._ref
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def description(self):
+        return self._description
+
+    @property
+    def required(self):
+        return self._required
+
+    @property
+    def control(self):
+        return self._control
+
+    @property
+    def control_id(self):
+        return self._control_id
 
 
 class Component(object):
@@ -126,10 +147,10 @@ class Component(object):
     name: str
     description: str
     runtime: str
-    properties: List[Property]
+    properties: List[ComponentProperty]
 
     def __init__(self, id: str, name: str, description: str, runtime: Optional[str] = None, properties:
-                 List[Property] = None):
+                 List[ComponentProperty] = None):
         """
         TODO: Add param info here
         """
@@ -157,6 +178,10 @@ class Component(object):
     @property
     def runtime(self):
         return self._runtime
+
+    @property
+    def properties(self):
+        return self._properties
 
 
 def get_id_from_name(name):

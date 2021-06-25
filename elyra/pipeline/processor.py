@@ -229,7 +229,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                     filename_param['description']['default'] = "The path to the notebook file."
         else:
             # Retrieve runtime specific component properties
-            properties = self._component_registry.get_properties(processor_type=self.type, component_id=component)
+            component = self._component_registry.get_component(processor_type=self.type, component_id=component)
+            properties = ComponentRegistry.to_canvas_properties(component)
 
         return properties
 

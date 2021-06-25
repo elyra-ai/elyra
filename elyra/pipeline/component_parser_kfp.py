@@ -15,8 +15,10 @@
 #
 import copy
 import yaml
+from typing import List
 
-from elyra.pipeline.component import Component, ComponentParser, get_id_from_name, set_node_type_data, empty_properties
+from elyra.pipeline.component import Component, ComponentProperty, ComponentParser, get_id_from_name, \
+    set_node_type_data, empty_properties
 
 
 class KfpComponentParser(ComponentParser):
@@ -25,14 +27,97 @@ class KfpComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse(self, component_name, component_definition):
+    def parse(self, component_name, component_definition, properties=None):
         component_yaml = self._read_component_yaml(component_definition)
 
         # TODO May have to adjust description if there are parsing issues
         component = Component(id=get_id_from_name(component_yaml.get('name')),
                               name=component_yaml.get('name'),
-                              description=component_yaml.get('description'))
+                              description=component_yaml.get('description'),
+                              runtime=self._type,
+                              properties=properties)
         return component
+
+    def get_runtime_specific_properties(self, runtime_image, location, source_type):
+        """
+        Define properties that are common to the KFP runtime.
+        """
+        properties: List[ComponentProperty] = list()
+
+        properties.extend([ComponentProperty(ref="runtime_image",
+                                             name="Runtime Image",
+                                             type="string",
+                                             value=runtime_image,
+                                             description="Docker image used as execution environment.",
+                                             control="readonly",
+                                             required=True),
+                          ComponentProperty(ref="component_source",
+                                            name="Path to Component",
+                                            type="string",
+                                            value=location,
+                                            description="The path to the component specification file.",
+                                            control="readonly",
+                                            required=True),
+                          ComponentProperty(ref="component_source_type",
+                                            name="Component Source Type",
+                                            type="string",
+                                            value=source_type,
+                                            description="",
+                                            control="readonly",
+                                            required=True)])
+        return properties
+
+    def parse_properties(self, component_definition, location, source_type):
+        component_yaml = self._read_component_yaml(component_definition)
+        properties: List[ComponentProperty] = list()
+
+        # For KFP we need a property for runtime image, path to component, and component source type
+        runtime_image = component_yaml.get('implementation').get('container').get('image')
+        if not runtime_image:
+            raise RuntimeError("Error accessing runtime image for component.")
+        properties.extend(self.get_runtime_specific_properties(runtime_image, location, source_type))
+
+        # Then loop through and create custom properties
+        for param in component_yaml.get('inputs'):
+
+            # Determine whether parameter is optional
+            required = False
+            if ("optional" in param and not param.get('optional')) \
+                    or ("description" in param and "required" in param.get('description').lower()):
+                required = True
+
+            # Assign type, default to string
+            type = "string"
+            if "type" in param:
+                type = param.get('type')
+
+            # Set description
+            description = ""
+            if "description" in param:
+                description = param.get('description')
+
+            # Change parameter_ref and description to reflect the type of input (inputValue vs inputPath)
+            ref = param.get('name').lower().replace(' ', '_')
+            ref, description = \
+                self.get_adjusted_parameter_fields(component_body=component_yaml,
+                                                   io_object_name=param.get('name'),
+                                                   io_object_type="input",
+                                                   parameter_ref=ref,
+                                                   parameter_type=type,
+                                                   description=description)
+
+            # TODO:Consider adjusting this to return an empty value based on parameter type
+            default_value = ""
+            if "default" in param:
+                default_value = param.get('default')
+
+            properties.append(ComponentProperty(ref=ref,
+                                                name=param.get('name'),
+                                                type=type,
+                                                value=default_value,
+                                                description=description,
+                                                required=required))
+        return properties
 
     def _read_component_yaml(self, component_body):
         """
@@ -51,7 +136,7 @@ class KfpComponentParser(ComponentParser):
                                       parameter_type,
                                       description):
         """
-        TODO: Add docstring
+        TODO: Add docstring and clean up this function
         """
         ref = parameter_ref
         desc = f"{description} (type: {parameter_type})"
@@ -196,6 +281,3 @@ class KfpComponentParser(ComponentParser):
                                                parameter_description, data_object)
 
         return new_parameter
-
-    def parse_component_execution_instructions(self, component_body):
-        pass

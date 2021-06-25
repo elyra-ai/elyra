@@ -16,6 +16,7 @@
 import json
 from http import HTTPStatus
 import os
+from jinja2 import Environment, PackageLoader
 import requests
 
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
@@ -82,23 +83,24 @@ class ComponentRegistry(LoggingConfigurable):
         # Read component catalog to get JSON
         component_entries = self._read_component_registry()
         # Process each component entry
-        for component_name, component_entry in component_entries.items():
+        for component_id, component_entry in component_entries.items():
             # TODO Check for duplicate components?
             self.log.debug(f"Component registry found component {component_entry['name']}")
 
             # Get appropriate reader in order to read component definition
             reader = self._get_reader(component_entry)
-            component_definition = \
-                reader.read_component_definition(component_entry['location'][reader._type])
+
+            component_location = component_entry['location'][reader._type]
+            component_definition = reader.read_component_definition(component_location)
 
             # Parse the component definition and add to component object
-            component: Component = self._parser.parse(component_entry['name'], component_definition)
+            component: Component = self._parser.parse(component_entry.get('name'), component_definition)
             if component:
                 components.append(component)
 
         return components
 
-    def get_component(self, component_id):
+    def get_component_catalog_entry(self, component_id):
         """
         Get the body of the component catalog entry with the given id
         """
@@ -114,29 +116,27 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component_entry
 
-    def get_properties(self, processor_type, component_id):
+    def get_component(self, processor_type, component_id):
         """
         Return the properties JSON for a given component.
         """
 
-        # Process component catalog
-        # component_registry = self._read_component_registry()
-
         # Find component with given id in component catalog
-        component_entry = self.get_component(component_id)
+        component_entry = self.get_component_catalog_entry(component_id)
 
         # Get appropriate reader in order to read component definition
         reader = self._get_reader(component_entry)
 
         component_location = component_entry['location'][reader._type]
-        if reader._type == "filename":
-            component_location = os.path.join(os.path.dirname(__file__), component_location)
+        # if reader._type == "filename":
+        #    component_location = os.path.join(os.path.dirname(__file__), component_location)
 
-        component_body = reader.read_component_definition(component_location)
-        properties = self._parser.parse_component_properties(component_body, component_location)
-        properties['current_parameters']['component_source_type'] = reader._type
+        component_definition = reader.read_component_definition(component_location)
 
-        return properties  # self.to_canvas_properties()
+        properties = self._parser.parse_properties(component_definition, component_location, reader._type)
+        component: Component = self._parser.parse(component_entry.get('name'), component_definition, properties)
+
+        return component
 
     @staticmethod
     def to_canvas_palette(components: List[Component]) -> dict:
@@ -194,7 +194,13 @@ class ComponentRegistry(LoggingConfigurable):
         """
         Converts registry components into appropriate canvas properties format
         """
-        raise NotImplementedError()
+        # Load jinja2 template
+        loader = PackageLoader('elyra', 'templates/components')
+        template_env = Environment(loader=loader)
+        template = template_env.get_template('canvas_properties_template.jinja2')
+
+        return template.render(properties=component.properties,
+                               num_properties=len(component.properties))
 
     def _read_component_registry(self):
         """
