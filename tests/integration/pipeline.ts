@@ -289,9 +289,14 @@ describe('Pipeline Editor tests', () => {
 
   it('kfp pipeline should display expected export options', () => {
     cy.createKFPPipeline();
-    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Open runtimes sidebar
+    cy.findByRole('button', { name: /open runtimes/i }).click();
+    // Create runtime configuration
+    cy.createRuntimeConfig({ type: 'kfp' });
 
     // Validate all export options are available
+    cy.findByRole('button', { name: /export pipeline/i }).click();
     cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
     cy.findByRole('option', { name: /python/i }).should('not.exist');
 
@@ -319,9 +324,14 @@ describe('Pipeline Editor tests', () => {
 
   it('airflow pipeline should display expected export options', () => {
     cy.createAirflowPipeline();
-    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Open runtimes sidebar
+    cy.findByRole('button', { name: /open runtimes/i }).click();
+    // Create runtime configuration
+    cy.createRuntimeConfig();
 
     // Validate all export options are available
+    cy.findByRole('button', { name: /export pipeline/i }).click();
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
     cy.findByRole('option', { name: /yaml/i }).should('not.exist');
 
