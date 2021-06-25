@@ -383,6 +383,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
         cos_username = runtime_configuration.metadata['cos_username']
         cos_password = runtime_configuration.metadata['cos_password']
         cos_secret = runtime_configuration.metadata.get('cos_secret')
+        engine = runtime_configuration.metadata['engine']
 
         if cos_directory is None:
             cos_directory = pipeline_name
@@ -449,6 +450,7 @@ class KfpPipelineProcessor(RuntimePipelineProcess):
                                                         cpu_request=operation.cpu,
                                                         mem_request=operation.memory,
                                                         gpu_limit=operation.gpu,
+                                                        workflow_engine=engine,
                                                         image=operation.runtime_image,
                                                         file_outputs={
                                                             'mlpipeline-metrics':

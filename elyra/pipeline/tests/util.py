@@ -44,6 +44,7 @@ class NodeBase(object):
     # from subclasses
     classifier: str
     filename: str
+    pipeline_name: str  # Set during pipeline construction
 
     def __init__(self, name: str, num_outputs: Optional[int] = 0,
                  input_nodes: Optional[List[Any]] = None,
@@ -74,10 +75,15 @@ class NodeBase(object):
                 os.environ.pop("NODE_FILENAME")
         else:
             self.env_vars.append(f"NODE_FILENAME={self.filename}")
+
         if self.inputs:
             self.env_vars.append(f"INPUT_FILENAMES={';'.join(self.inputs)}")
         if self.outputs:
             self.env_vars.append(f"OUTPUT_FILENAMES={';'.join(self.outputs)}")
+
+        # Convey the pipeline name
+        assert self.pipeline_name is not None, "Pipeline name has not been set during construction!"
+        self.env_vars.append(f"PIPELINE_NAME={self.pipeline_name}")
 
         # Add system-owned here with bogus or no value...
         self.env_vars.append("ELYRA_RUNTIME_ENV=bogus_runtime")
@@ -110,7 +116,7 @@ class PythonNode(NodeBase):
         self.filename = f"{self.name}.py"
 
 
-def construct_pipeline(name: str, nodes: List[NodeBase], location,
+def construct_pipeline(name: str, nodes: List[NodeBase], location: str,
                        runtime_type: Optional[str] = 'local',
                        runtime_config: Optional[str] = 'local') -> Pipeline:
     """Returns an instance of a local Pipeline consisting of each node and populates the
@@ -118,6 +124,7 @@ def construct_pipeline(name: str, nodes: List[NodeBase], location,
     """
     pipeline = Pipeline(str(uuid.uuid4()), name, runtime_type, runtime_config)
     for node in nodes:
+        node.pipeline_name = name
         pipeline.operations[node.id] = node.get_operation()
         # copy the node file into the "working directory"
         if isinstance(node, NotebookNode):
