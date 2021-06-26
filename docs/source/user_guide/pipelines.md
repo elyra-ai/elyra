@@ -14,141 +14,132 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 {% endcomment %}
--->
+-->  
 
-# AI Pipelines
+## Pipelines
 
-Elyra utilizes its [canvas component](https://github.com/elyra-ai/canvas) to enable assembling
-multiple notebooks, Python or R scripts as a workflow.
-Elyra provides a visual editor for building AI pipelines, simplifying the conversion
-of multiple notebooks, Python or R scripts into batch jobs or workflows.  By leveraging cloud-based resources to run their
-experiments faster, data scientists, machine learning engineers and AI developers are then more productive,
-allowing them to spend time utilizing their technical skills.
+### Overview
 
-![Pipeline Editor with pipeline](../images/pipeline-in-editor.png)
+A pipeline comprises of one or more nodes that are (in many cases) connected with each other to define execution dependencies. A node is an instance of a configurable component that typically only implements one unit-of-work. A unit-of-work can represent any task, such as load data, cleanse data, analyze data, train a machine learning model, deploy a model for serving, query a service, or send an email. 
 
-Nodes in a pipeline represent notebooks, Python or R scripts and are connected with each other to define execution dependencies. Each node is configured using properties that define the runtime environment, input dependencies, and outputs.
+![Conceptual pipeline overview](../images/user_guide/pipelines/pipelines-nodes.png)
+
+In fact, multiple components can implement the "same" task. For example, one component might load data from a SQL database, whereas another component might load data from a NoSQL database. Conceptually both components load data, but how they load it is entirely different.
+
+Elyra supports two types of components: generic components and custom components. A pipeline that utilizes only generic components is called a generic pipeline, whereas a pipeline that utilizes generic components and/or custom components is referred to as typed pipeline.
+
+![Conceptual pipeline overview](../images/user_guide/pipelines/pipelines-nodes-components.png)
+
+The [Pipeline components topic in the User Guide](pipeline-components.md) provides a comprehensive component overview.
+
+#### Generic pipelines
+
+A generic pipeline comprises only of nodes that are implemented using generic components.
+This Elyra release includes three generic components that allow for execution of Jupyter notebooks, Python scripts, and R scripts. Generic pipelines are portable, meaning they can run locally in JupyterLab, or remotely on Kubeflow Pipelines or Apache Airflow.
+
+Example of a generic pipeline that processes a Python script and three Jupyter notebooks:
+
+![Generic pipeline](../images/user_guide/pipelines/generic-pipeline.png)
+
+#### Typed pipelines
+
+A typed pipeline is permanently associated with either Kubeflow Pipelines or Apache Airflow. A typed pipeline may include nodes that are implemented using generic components or custom components for that runtime.
+
+![A Kubeflow Pipelines pipeline](../images/user_guide/pipelines/typed-pipeline.png)
+
+Note that it is not possible to convert a pipeline from one type to another.
 
 The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-step instructions for creating and running pipelines.
 
-### Creating a pipeline using the Pipeline Editor
+### Creating pipelines using the Visual Pipeline Editor
 
 To create a pipeline using the editor:
 
-* Open the JupyterLab Launcher, if it is not open.
-* Click the `Pipeline Editor` icon to create an empty pipeline.
-  ![Main Page](../images/elyra-main-page.png)
-* From the sidebar open the JupyterLab File Browser.
-* Drag notebooks, Python or R scripts from the File Browser onto the canvas.
-* Define the dependencies between nodes by connecting them, essentially creating a graph.
-* Associate each node with a comment to document its purpose. 
+1. Open the JupyterLab Launcher and select the desired pipeline editor type (Generic, Kubeflow Pipelines, or Apache Airflow).
 
-  ![Pipeline Editor](../images/pipeline-editor-add-node.gif)
-* Right click on a node to open the associated file in the appropriate editor or define the node's runtime properties.
+   ![Pipeline editor links in launcher](../images/user_guide/pipelines/editor-links.png)
 
-  ![Access node properties](../images/node-context-menu.png)
-* Define the properties for each node in the pipeline.
+1. Define pipeline properties. Pipeline properties include a description and default values for node properties. The specified values can be overridden by node properties. For example, if you set a pipeline default value for `runtime image` to `my-org/my-container-image`, all generic nodes would use this image. To use a different container image `my-org/my-other-container-image` in one of the generic nodes, set the property to a different value in that node.
 
-  ![Pipeline Node Properties](../images/pipeline-editor-properties.png)
+   ![Pipeline properties](../images/user_guide/pipelines/pipeline-properties.png)
 
-  |Property   | Description  | Example |
-  |:---:|:------|:---:|
-  |Runtime Image| The container image you want to use to run your notebook |  `TensorFlow 2.0`   |
-  |File Dependencies|  A list of files to be passed from the `LOCAL` working environment into each respective step of the pipeline. Files should be in the same directory as the notebook it is associated with. Specify one file, directory, or expression per line. Supported patterns are `*` and `?`. | `dependent-script.py` |
-  |Environment Variables| A list of environment variables to be set inside in the container.  Specify one variable/value pair per line, separated by `=`. |  `TOKEN=value` |
-  |Output Files|  A list of files generated by the notebook inside the image to be passed as inputs to the next step of the pipeline.  Specify one file, directory, or expression per line. Supported patterns are `*` and `?`. | `data/*.csv` |
+   Note: Support for pipeline properties varies by release.
 
-### Running a pipeline
+1. Drag and drop components from the palette onto the canvas.
 
-Pipelines run in your local JupyterLab environment or on Kubeflow Pipelines. 
+   ![Add component from palette](../images/user_guide/pipelines/add-component-from-palette.png)
 
-#### Running a pipeline in JupyterLab
+   Note: You can also drag and drop Jupyter notebooks, Python scripts, or R scripts from the JupyterLab _File Browser_ onto the canvas.
 
-To run a pipeline in a sub-process in JupyterLab:
+1. Define the runtime properties for each node. (Right click, `Open Properties`)
 
-* Click the `Run Pipeline` icon in the pipeline editor.
+   Runtime properties are component specific. For generic components (Jupyter notebook, Python script, and R script) the properties are defined as follows:
 
-  ![Open pipeline run wizard](../images/pipeline-editor-run.png)
+   **Runtime Image**
+   - Required. The container image you want to use to run your notebook. 
+   - Example: `TensorFlow 2.0`
+
+   **File Dependencies**
+   - Optional. A list of files to be passed from the `LOCAL` working environment into each respective step of the pipeline. Files should be in the same directory as the notebook it is associated with. Specify one file, directory, or expression per line. Supported patterns are `*` and `?`. 
+   - Example: `dependent-script.py`
+
+   **Environment Variables**
+   - Optional. A list of environment variables to be set inside in the container.  Specify one variable/value pair per line, separated by `=`.
+   - Example: `TOKEN=value`
+
+   **Output Files**
+   - Optional. A list of files generated by the notebook inside the image to be passed as inputs to the next step of the pipeline.  Specify one file, directory, or expression per line. Supported patterns are `*` and `?`.
+   - Example: `data/*.csv`
+
+1. Define the dependencies between nodes by connecting them, essentially creating a graph.
+
+   ![Connect nodes and add comments](../images/user_guide/pipelines/connect-and-comment.gif)
+
+1. Associate each node with a comment to document its purpose.
+
+1. Save the pipeline file.
+
+   Note: You can rename the pipeline file in the JupyterLab _File Browser_.
+
+### Running pipelines
+
+Pipelines can be run from the Visual Pipeline Editor and the `elyra-pipeline` command line interface. Before you can run a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
+
+**Running a pipeline from the Visual Pipeline Editor**
+
+To run a pipeline from the Visual Pipeline Editor:
+1. Click `Run Pipeline`in the editor's tool bar.
+
+   ![Open pipeline run wizard](../images/user_guide/pipelines/pipeline-editor-run.png)
+
+1. If required, select a runtime platform (local, Kubeflow Pipelines, Apache Airflow) and a runtime configuration for that platform.
+
+   Notes:
+    - 
+
 * Assign a name to the run and choose the local runtime configuration.
 * Monitor the run progress in the JupyterLab console. The pipeline editor displays a message when processing is finished. 
 * Access any outputs that notebooks, Python or R scripts produce in the JupyterLab file browser.
 
 Refer to the [local pipeline execution tutorial](/getting_started/tutorials.md) for details.
 
-#### Running a pipeline on Kubeflow Pipelines
+**Running a pipeline from the command line interface**
 
-To run a pipeline on Kubeflow Pipelines:
+The [`elyra-pipeline` command line interface](https://elyra.readthedocs.io/en/latest/user_guide/command-line-interface.html#working-with-pipelines) provides two pipeline execution commands: `run` and `submit`.
 
-* [Create a runtime configuration for your Kubeflow Pipelines](/user_guide/runtime-conf.md)
-* Click the `Run Pipeline` icon in the pipeline editor.
-* Assign a name to the run and choose the Kubeflow Pipelines runtime configuration.
-* After the pipeline run was started open the Kubeflow Pipelines link to monitor the execution progress in the Kubeflow Pipelines UI.
-* After the pipeline was executed use the cloud storage link to access the outputs that notebooks, Python or R scripts have produced.
-
-Refer to the [Kubeflow Pipelines tutorial](/getting_started/tutorials.md) for details.
-
-#### Running a pipeline using the command line
-
-To run a pipeline on your local environment:
+Use the `elyra-pipeline run` command to run a generic pipeline in your JupyterLab environment:
 
 ```bash
-elyra-pipeline run elyra-pipelines/demo-heterogeneous.pipeline
+$ elyra-pipeline run elyra-pipelines/a-notebook.pipeline
 ```
 
-To submit a pipeline to be executed in a external runtime such as Apache Airflow or Kubeflow Pipeline:
+Use the `elyra-pipeline submit` command to run a generic or typed pipeline remotely on Kubeflow Pipelines or Apache Airflow, specifying a compatible runtime configuration as parameter:
 
 ```bash
-elyra-pipeline submit elyra-pipelines/demo-heterogeneous.pipeline \
+$ elyra-pipeline submit elyra-pipelines/a-kubeflow.pipeline \
       --runtime-config kfp-shared-tekton
 ```
 
-The `runtime-config`  should be a valid [runtime configuration](/user_guide/runtime-conf.md).
+### Exporting a pipeline
 
-#### Detecting the runtime from a node
-In some cases, execution nodes are written with the intention of executing within multiple runtime environments, yet need to vary how they operate based on the runtime in which they are currently executing.  For example, a node, while executing within Kubeflow Pipelines, may need to perform an action specific to Kubeflow Pipelines.  While that same node, executing within Apache Airflow, may need to perform an action specific to Apache Airflow.
-
-To help make these distinctions, the Elyra Pipeline Engine will make available an environment variable indicating the runtime in which the node is executing.  This environment variable is `ELYRA_RUNTIME_ENV` and its value is the value of the schema name corresponding to the runtime metadata configuration and associated with the pipeline processor that launched the pipeline.
-
-Current values of `ELYRA_RUNTIME_ENV` are:
-- **kfp**: indicating the node is executing within Kubeflow Pipelines
-- **airflow**: Indicating the node is executing within Apache Airflow
-- **local**: A special case, indicating the node is executing locally
-
-Additional values will be available as more [custom pipeline processors](../developer_guide/pipelines.html#pipeline-processor-customization) are introduced.
-### Distributing Your Pipeline
-Oftentimes you'll want to share or distribute your pipeline (including its notebooks and their dependencies) with colleagues.  This section covers some of the best practices for accomplishing that, but first, it's good to understand the relationships between components of a pipeline.
-
-#### Pipeline Component Relationships
-The primary component of a pipeline is the pipeline file itself.  This JSON file (with a `.pipeline` extension) contains all relationships of the pipeline.  The notebook execution nodes each specify a notebook file (a JSON file with a `.ipynb` extension) who's path is **relative to the pipeline file**.  Each dependency of a given node is relative to the notebook location itself - **not** the pipeline file or the notebook server workspace.  When a pipeline is submitted for processing or export, the pipeline file itself is not sent to the server, only a portion of its contents are sent.
-
-#### Distributing Pipelines - Best Practices
-Prior to distributing your pipeline - which includes preserving the component relationships - it is best to commit these files (and directories) to a GitHub repository.  An alternative approach would be to archive the files using `tar` or `zip`, while, again, preserving the component relationships relative to the pipeline file.
-
-When deploying a shared or distributed pipeline repository or archive, it is **very important** that the pipeline notebooks be extracted into the **same location relative to the pipeline file**.
-
-##### Confirming Notebook Locations
-Pipeline validation checks for the existence of the notebook file associated with each node upon opening the editor and will highlight any nodes with missing files. If a file is missing or in an unexpected location the file location can be changed using the adjacent `Browse` button.
-
-## Pipeline Validation
-Pipeline validation occurs when pipeline files are opened, as well as when pipelines are run or exported. Pipelines are validated for the following:
-- **Circular References** - Circular references cannot exist in any pipeline because it would create an infinite loop. 
-- **Notebook Existence** - The notebook for a given node must exist. 
-- **Incomplete Properties** - Required fields in a given nodes' properties must be present.
-
-## Exporting a pipeline
-
-Elyra pipelines can be exported and manually uploaded to and run on Kubeflow Pipelines.
-
-To export a pipeline from the pipeline editor:
-- Click the `Export Pipeline` icon.
-
-  ![Open pipeline export wizard](../images/pipeline-editor-export.png)
-- Choose a Kubeflow Pipelines run configuration.
-- Select an export file format:
-   - The _YAML-formatted static pipeline configuration_ can be uploaded as is to Kubeflow Pipelines.
-   - The pipeline Python DSL requires compilation into the YAML-formatted static pipeline configuration using the [Kubeflow Pipelines SDK](https://www.kubeflow.org/docs/pipelines/sdk/) before it can be used.
-- Start the export. The operation generates two artifacts: a Kubeflow Pipelines pipeline file and a compressed archive that is uploaded to the cloud storage that's associated with the selected runtime configuration. Note that the exported pipelines file contains unencrypted cloud storage connectivity information.
-
-- Upload the YAML-formatted static pipeline configuration using the Kubeflow Pipelines UI.
-- Create an experiment and run it to execute the pipeline.
-
+Lorem Ipsum
