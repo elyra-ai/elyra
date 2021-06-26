@@ -35,6 +35,17 @@
           "data": {
             "format": "{{ property.type }}",
             "required": {{ property.required|lower }}
+            {% if property.control_id == "EnumControl" %}
+            ,
+            "items": [
+              {% for item in property.items %}
+              "{{ item }}"
+              {% if loop.index != property.items|length %}
+              ,
+              {% endif %}
+              {% endfor %}
+              ]
+            {% endif %}
           }
         }
         {% if loop.index != num_properties %}

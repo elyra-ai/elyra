@@ -92,10 +92,12 @@ class ComponentProperty(object):
     value: str
     description: str
     control: str
+    control_id: str
+    items: list
     required: bool
 
     def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool,
-                 control: str = "custom", control_id: str = "StringControl"):
+                 control: str = "custom", control_id: str = "StringControl", items: list() = []):
         self._ref = ref
         self._name = name
         self._type = type
@@ -104,6 +106,7 @@ class ComponentProperty(object):
         self._required = required
         self._control = control
         self._control_id = control_id
+        self._items = items
 
     @property
     def ref(self):
@@ -137,6 +140,10 @@ class ComponentProperty(object):
     def control_id(self):
         return self._control_id
 
+    @property
+    def items(self):
+        return self._items
+
 
 class Component(object):
     """
@@ -150,7 +157,7 @@ class Component(object):
     properties: List[ComponentProperty]
 
     def __init__(self, id: str, name: str, description: str, runtime: Optional[str] = None, properties:
-                 List[ComponentProperty] = None):
+                 List[ComponentProperty] = None, op: str = None):
         """
         TODO: Add param info here
         """
@@ -162,6 +169,7 @@ class Component(object):
         self._description = description
         self._runtime = runtime
         self._properties = properties
+        self._op = op
 
     @property
     def id(self):
@@ -183,6 +191,13 @@ class Component(object):
     def properties(self):
         return self._properties
 
+    @property
+    def op(self):
+        if self._op:
+            return self._op
+        else:
+            return self._id
+
 
 def get_id_from_name(name):
     """
@@ -197,8 +212,8 @@ def set_node_type_data(id, label, description):
         'id': "",
         'op': id,
         'type': "execution_node",
-        'inputs': [inputs],
-        'outputs': [outputs],
+        'inputs': [],
+        'outputs': [],
         'parameters': {},
         'app_data': {
             'ui-data': {

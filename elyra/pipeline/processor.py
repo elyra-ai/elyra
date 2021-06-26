@@ -192,6 +192,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     def get_components(self):
         # Retrieve components common to all runtimes
+        '''
         common_components_location = os.path.join(os.path.dirname(__file__), 'resources', 'palette.json')
         with io.open(common_components_location, 'r', encoding='utf-8') as f:
             components = json.load(f)
@@ -202,8 +203,17 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                 custom_components = self._component_registry.get_all_components()
                 custom_components_json = ComponentRegistry.to_canvas_palette((custom_components))
                 components['categories'].extend(custom_components_json)
-
         return components
+        '''
+
+        common_components = ComponentRegistry.get_generic_components()
+        custom_components = list()
+        if self._component_registry:
+            if self.type and self.type != "local":
+                custom_components = self._component_registry.get_all_components()
+
+        palette = ComponentRegistry.to_canvas_palette(common_components + custom_components)
+        return palette
 
     def get_component_properties(self, component):
         if self.type == 'local' or component in ('notebooks', 'python-script', 'r-script'):
@@ -229,7 +239,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                     filename_param['description']['default'] = "The path to the notebook file."
         else:
             # Retrieve runtime specific component properties
-            component = self._component_registry.get_component(processor_type=self.type, component_id=component)
+            component = self._component_registry.get_component(component_id=component)
             properties = ComponentRegistry.to_canvas_properties(component)
 
         return properties

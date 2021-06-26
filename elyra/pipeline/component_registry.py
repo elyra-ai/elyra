@@ -78,23 +78,16 @@ class ComponentRegistry(LoggingConfigurable):
         """
         Retrieve all components from the component registry
         """
-
         components: List[Component] = list()
+
         # Read component catalog to get JSON
         component_entries = self._read_component_registry()
-        # Process each component entry
+
         for component_id, component_entry in component_entries.items():
-            # TODO Check for duplicate components?
-            self.log.debug(f"Component registry found component {component_entry['name']}")
+            self.log.debug(f"Component registry found component {component_entry.get('name')}")
 
-            # Get appropriate reader in order to read component definition
-            reader = self._get_reader(component_entry)
-
-            component_location = component_entry['location'][reader._type]
-            component_definition = reader.read_component_definition(component_location)
-
-            # Parse the component definition and add to component object
-            component: Component = self._parser.parse(component_entry.get('name'), component_definition)
+            # Parse component details and add to list
+            component: Component = self.get_component(component_id, component_entry, parse_properties=False)
             if component:
                 components.append(component)
 
@@ -106,8 +99,9 @@ class ComponentRegistry(LoggingConfigurable):
         """
         # Read component catalog to get JSON
         component_entries = self._read_component_registry()
-        component_entry = next((entry for id, entry in component_entries.items() if component_id == id), None)
 
+        # Find entry with the appropriate id, if exists
+        component_entry = next((entry for id, entry in component_entries.items() if component_id == id), None)
         if not component_entry:
             self.log.error(f"Component with ID '{component_id}' could not be found in the " +
                            f"{self._component_registry_location} component catalog.")
@@ -116,15 +110,16 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component_entry
 
-    def get_component(self, processor_type, component_id):
+    def get_component(self, component_id, component_entry=None, parse_properties=True):
         """
         Return the properties JSON for a given component.
         """
 
         # Find component with given id in component catalog
-        component_entry = self.get_component_catalog_entry(component_id)
+        if not component_entry:
+            component_entry = self.get_component_catalog_entry(component_id)
 
-        # Get appropriate reader in order to read component definition
+        # Get appropriate reader to read component definition
         reader = self._get_reader(component_entry)
 
         component_location = component_entry['location'][reader._type]
@@ -133,61 +128,41 @@ class ComponentRegistry(LoggingConfigurable):
 
         component_definition = reader.read_component_definition(component_location)
 
-        properties = self._parser.parse_properties(component_definition, component_location, reader._type)
+        properties = None
+        if parse_properties:
+            properties = self._parser.parse_properties(component_definition, component_location, reader._type)
         component: Component = self._parser.parse(component_entry.get('name'), component_definition, properties)
 
         return component
+
+    @staticmethod
+    def get_generic_components() -> List[Component]:
+        generic_components = [Component(id="notebooks",
+                                        name="Notebook",
+                                        description="Notebook file",
+                                        op="execute-notebook-node"),
+                              Component(id="python-script",
+                                        name="Python Script",
+                                        description="Python Script",
+                                        op="execute-python-node"),
+                              Component(id="r-script",
+                                        name="R Script",
+                                        description="R Script",
+                                        op="execute-r-node")]
+        return generic_components
 
     @staticmethod
     def to_canvas_palette(components: List[Component]) -> dict:
         """
         Converts registry components into appropriate canvas palette format
         """
-        palette_json = list()
+        # Load jinja2 template
+        loader = PackageLoader('elyra', 'templates/components')
+        template_env = Environment(loader=loader)
+        template = template_env.get_template('canvas_palette_template.jinja2')
 
-        for component in components:
-            component_json = {
-                'label': component.name,
-                'image': "",
-                'id': component.id,
-                'description': component.description,
-                'node_types': [{
-                    'id': "",
-                    'op': component.id,
-                    'type': "execution_node",
-                    'inputs': [{
-                        "id": "inPort",
-                        "app_data": {
-                            "ui_data": {
-                                "cardinality": {'min': 0, 'max': -1},
-                                "label": "Input Port"
-                            }
-                        }
-                    }],
-                    'outputs': [{
-                        "id": "outPort",
-                        "app_data": {
-                            "ui_data": {
-                                "cardinality": {'min': 0, 'max': -1},
-                                "label": "Output Port"
-                            }
-                        }
-                    }],
-                    'parameters': {},
-                    'app_data': {
-                        'ui-data': {
-                            'label': component.name,
-                            'description': component.description,
-                            'image': "",
-                            'x_pos': 0,
-                            'y_pos': 0
-                        }
-                    }
-                }]
-            }
-
-            palette_json.append(component_json)
-        return palette_json
+        return template.render(components=components,
+                               num_components=len(components))
 
     @staticmethod
     def to_canvas_properties(component: Component) -> dict:

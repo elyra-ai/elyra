@@ -104,11 +104,11 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         components = await PipelineProcessorManager.instance().get_components(processor)
-        json_msg = json.dumps(components)
+        # json_msg = json.dumps(components)
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_msg)
+        self.finish(components)
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
