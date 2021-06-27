@@ -21,7 +21,8 @@ import pytest
 
 from jsonschema import validate, ValidationError, draft7_format_checker
 from elyra.metadata import Metadata, MetadataManager, MetadataStore, FileMetadataStore, SchemaManager, \
-    MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError, METADATA_TEST_NAMESPACE
+    MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError, METADATA_TEST_NAMESPACE, \
+    FileMetadataCache
 from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, \
     create_instance, get_schema, invalid_no_display_name_json, valid_display_name_json, MockMetadataStore
 
@@ -743,6 +744,73 @@ def test_error_schema_not_found():
         raise SchemaNotFoundError(namespace, resource)
     except SchemaNotFoundError as snfe:
         assert str(snfe) == "No such schema named '{}' was found in the {} namespace.".format(resource, namespace)
+
+
+def test_cache_init():
+    FileMetadataCache.clear_instance()
+    cache = FileMetadataCache.instance()
+    assert cache.max_size == 128
+    FileMetadataCache.clear_instance()
+
+    cache = FileMetadataCache.instance(max_size=3)
+    assert cache.max_size == 3
+    FileMetadataCache.clear_instance()
+
+
+def test_cache_ops():
+    FileMetadataCache.clear_instance()
+    test_items = [
+        ('a', {'a': 1}),
+        ('b', {'b': 2}),
+        ('c', {'c': 3}),
+        ('d', {'d': 4}),
+        ('e', {'e': 5}),
+    ]
+    cache = FileMetadataCache.instance(max_size=3)
+
+    for k, v in test_items:
+        cache.add_item(k, v)
+
+    assert len(cache) == 3
+    assert cache.trims == 2
+    assert cache.get_item('a') is None
+    assert cache.get_item('b') is None
+    assert cache.get_item('c') is not None
+    assert cache.get_item('d') is not None
+    assert cache.get_item('e') is not None
+    assert cache.misses == 2
+    assert cache.hits == 3
+
+    cache.add_item('a', {'a': 1})
+    assert len(cache) == 3
+    assert cache.trims == 3
+    assert cache.get_item('c') is None  # since 'c' was aged out
+    assert cache.get_item('a') is not None
+    assert cache.misses == 3
+    assert cache.hits == 4
+
+    e_val = cache.remove_item('e')
+    assert len(cache) == 2
+    assert e_val.get('e') == 5
+    assert cache.get_item('e') is None
+    assert cache.misses == 4
+    assert cache.hits == 4
+    assert cache.trims == 3
+
+    a_val = cache.remove_item('a')
+    assert len(cache) == 1
+    assert a_val.get('a') == 1
+    assert cache.get_item('a') is None
+    assert cache.misses == 5
+    assert cache.hits == 4
+    assert cache.trims == 3
+
+    d_val = cache.get_item('d')
+    assert len(cache) == 1
+    assert d_val.get('d') == 4
+    assert cache.misses == 5
+    assert cache.hits == 5
+    assert cache.trims == 3
 
 
 def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, expected_count=1):
