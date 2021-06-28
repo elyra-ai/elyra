@@ -35,6 +35,12 @@
       "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py"
       }
+    },
+    "slack-operator": {
+      "name": "Slack Operator",
+      "location": {
+        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/slack_operator.py"
+      }
     }
   }
 }

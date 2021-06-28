@@ -93,7 +93,7 @@ class PipelineProcessorManager(SingletonConfigurable):
         processor = self._get_processor_for_runtime(processor_type)
 
         res = await asyncio.get_event_loop().\
-            run_in_executor(None, functools.partial(processor.get_component_properties, component=component))
+            run_in_executor(None, functools.partial(processor.get_component_properties, component_id=component))
         return res
 
     async def process(self, pipeline):
@@ -206,9 +206,9 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
 
         if component_id not in ('notebooks', 'python-script', 'r-script'):
-            component = self._component_registry.get_component(component_id=component_id)
+            return self._component_registry.get_component(component_id=component_id)
 
-        return component
+        return component_id
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:

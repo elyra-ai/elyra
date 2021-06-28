@@ -25,7 +25,10 @@ class KfpComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse(self, component_name, component_definition, properties=None):
+    def parse_all(self, component_name, component_definition, properties=None):
+        return self.parse(component_name, component_definition, properties)
+
+    def parse(self, component_name, component_definition, properties):
         component_yaml = self._read_component_yaml(component_definition)
 
         # TODO May have to adjust description if there are parsing issues

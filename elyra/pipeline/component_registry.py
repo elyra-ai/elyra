@@ -19,7 +19,7 @@ import os
 from jinja2 import Environment, PackageLoader
 import requests
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 from elyra.pipeline.component import ComponentParser, Component
@@ -109,9 +109,12 @@ class ComponentRegistry(LoggingConfigurable):
             self.log.debug(f"Component registry found component_id {component_entry.get('name')}")
 
             # Parse component_id details and add to list
-            component: Component = self.get_component(component_id, component_entry, parse_properties=False)
+            component = self.get_component(component_id, component_entry, parse_properties=False)
             if component:
-                components.append(component)
+                if isinstance(component, list):
+                    components.extend(component)
+                else:
+                    components.append(component)
 
         return components
 
@@ -139,6 +142,11 @@ class ComponentRegistry(LoggingConfigurable):
 
         # Find component_id with given id in component_id catalog
         if not component_entry:
+            # Parse component_id to get subclass name for Airflow
+            if component_id.startswith("elyra_op_"):
+                component_id = component_id.replace("elyra_op_", "")
+                component_id, component_class = component_id.split('_')
+
             component_entry = self.get_component_catalog_entry(component_id)
 
         # Get appropriate reader to read component_id definition
@@ -153,8 +161,12 @@ class ComponentRegistry(LoggingConfigurable):
 
         properties = None
         if parse_properties:
-            properties = self._parser.parse_properties(component_definition, component_location, reader._type)
-        component: Component = self._parser.parse(component_entry.get('name'), component_definition, properties)
+            properties = self._parser.parse_properties(component_id, component_class, component_definition,
+                                                       component_location, reader._type)
+            component = self._parser.parse(component_entry.get('name'), component_class,
+                                           component_definition, properties)
+        else:
+            component = self._parser.parse_all(component_entry.get('name'), component_definition, properties)
 
         return component
 
