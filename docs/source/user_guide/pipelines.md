@@ -30,7 +30,7 @@ Elyra supports two types of components: generic components and custom components
 
 ![Conceptual pipeline overview](../images/user_guide/pipelines/pipelines-nodes-components.png)
 
-The [Pipeline components topic in the User Guide](pipeline-components.md) provides a comprehensive component overview.
+The [_Pipeline components_ topic in the User Guide](pipeline-components.md) provides a comprehensive component overview. Please review the [_Best practices for file-based pipeline nodes_ topic](best-practices-file-based-nodes.md) if your pipelines include generic components.
 
 Elyra pipelines support three types of runtime platforms:
 - Local/JupyterLab
