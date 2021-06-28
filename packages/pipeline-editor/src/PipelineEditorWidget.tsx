@@ -80,6 +80,67 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
+const createPalette = (categories: any[]): any => {
+  const palette = {
+    version: '3.0' as '3.0',
+    categories: categories ?? []
+  };
+
+  const nodeTypes = categories
+    .map((cat: any) => {
+      return cat.node_types;
+    })
+    .flat();
+  for (const category of categories) {
+    for (const i in category.node_types) {
+      category.node_types[i] = {
+        id: '',
+        op: category.node_types[i].op,
+        type: 'execution_node',
+        inputs: [
+          {
+            id: 'inPort',
+            app_data: {
+              ui_data: {
+                cardinality: {
+                  min: 0,
+                  max: -1
+                },
+                label: 'Input Port'
+              }
+            }
+          }
+        ],
+        outputs: [
+          {
+            id: 'outPort',
+            app_data: {
+              ui_data: {
+                cardinality: {
+                  min: 0,
+                  max: -1
+                },
+                label: 'Output Port'
+              }
+            }
+          }
+        ],
+        parameters: {},
+        app_data: {
+          ui_data: {
+            label: category.node_types[i].label,
+            description: category.node_types[i].description,
+            image: category.node_types[i].image ?? '',
+            x_pos: 0,
+            y_pos: 0
+          }
+        }
+      };
+    }
+  }
+  return palette;
+};
+
 class PipelineEditorWidget extends ReactWidget {
   browserFactory: IFileBrowserFactory;
   shell: ILabShell;
@@ -757,7 +818,6 @@ const PipelineWrapper: React.FC<IProps> = ({
         incLabelWithIcon: 'before',
         enable: false,
         kind: 'tertiary',
-        // TODO: use getRuntimeIcon
         iconEnabled: IconUtil.encode(
           pipelineRuntimeName === 'kfp'
             ? kubeflowIcon
@@ -886,7 +946,15 @@ const PipelineWrapper: React.FC<IProps> = ({
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
-          nodes={nodeDefs}
+          palette={createPalette([
+            {
+              label: 'Generic Nodes',
+              image: IconUtil.encode(pipelineIcon),
+              id: 'nodes',
+              description: 'Nodes',
+              node_types: nodeDefs
+            }
+          ])}
           pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
