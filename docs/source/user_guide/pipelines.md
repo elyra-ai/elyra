@@ -32,6 +32,11 @@ Elyra supports two types of components: generic components and custom components
 
 The [Pipeline components topic in the User Guide](pipeline-components.md) provides a comprehensive component overview.
 
+Elyra pipelines support three types of runtime platforms:
+- Local/JupyterLab
+- [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/) (with Argo or [Tekton](https://github.com/kubeflow/kfp-tekton/) workflow engines)
+- [Apache Airflow](https://airflow.apache.org/)
+
 #### Generic pipelines
 
 A generic pipeline comprises only of nodes that are implemented using generic components.
@@ -59,9 +64,11 @@ To create a pipeline using the editor:
 
    ![Pipeline editor links in launcher](../images/user_guide/pipelines/editor-links.png)
 
-1. Define pipeline properties. Pipeline properties include a description and default values for node properties. The specified values can be overridden by node properties. For example, if you set a pipeline default value for `runtime image` to `my-org/my-container-image`, all generic nodes would use this image. To use a different container image `my-org/my-other-container-image` in one of the generic nodes, set the property to a different value in that node.
+1. Define pipeline properties. Pipeline properties include a description and default values for node properties. 
 
    ![Pipeline properties](../images/user_guide/pipelines/pipeline-properties.png)
+
+   Many pipeline properties values can be overridden by node properties. For example, if you set a pipeline default value for `runtime image` to `my-org/my-container-image`, all generic nodes would use this image. To use a different container image `my-org/my-other-container-image` in one of the generic nodes, set the property to a different value in that node.
 
    Note: Support for pipeline properties varies by release.
 
@@ -112,16 +119,18 @@ To run a pipeline from the Visual Pipeline Editor:
 
    ![Open pipeline run wizard](../images/user_guide/pipelines/pipeline-editor-run.png)
 
-1. If required, select a runtime platform (local, Kubeflow Pipelines, Apache Airflow) and a runtime configuration for that platform.
+1. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, Apache Airflow) and a runtime configuration for that platform. For typed pipelines select a runtime configuration.
 
-   Notes:
-    - 
+   ![Configure pipeline run options](../images/user_guide/pipelines/configure-pipeline-run-options.png)
 
-* Assign a name to the run and choose the local runtime configuration.
-* Monitor the run progress in the JupyterLab console. The pipeline editor displays a message when processing is finished. 
-* Access any outputs that notebooks, Python or R scripts produce in the JupyterLab file browser.
+1. Elyra does not include a pipeline run monitoring interface for pipelines:
+   - For local/JupyterLab execution check the console output.
+   - For Kubeflow Pipelines open the Central Dashboard link.
+   - For Apache Airflow open the web GUI link.
 
-Refer to the [local pipeline execution tutorial](/getting_started/tutorials.md) for details.
+1. The pipeline run output artifacts are stored in the following locations:
+   - For local/JupyterLab execution all artifacts are stored in the local file system.
+   - For Kubeflow Pipelines and Apache Airflow output artifacts for generic components are stored in the runtime configuration's designated object storage bucket.   
 
 **Running a pipeline from the command line interface**
 
@@ -140,6 +149,23 @@ $ elyra-pipeline submit elyra-pipelines/a-kubeflow.pipeline \
       --runtime-config kfp-shared-tekton
 ```
 
+Note: Refer to the [Managing runtime configurations using the Elyra CLI](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli) topic in the _User Guide_ for details on how to list and manage runtime configurations.
+
 ### Exporting a pipeline
 
-Lorem Ipsum
+When you export a pipeline Elyra only prepares it for later execution, but does not upload it to the Kubeflow Pipelines or Apache Airflow server. Export performs two tasks. 
+It packages dependencies for generic components and uploads them to cloud storage and it generates pipeline code for the target runtime. 
+
+Before you can export a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
+
+To export a pipeline from the Visual Pipeline Editor:
+1. Click `Export Pipeline`in the editor's tool bar.
+
+   ![Open pipeline run wizard](../images/user_guide/pipelines/pipeline-editor-export.png)
+
+1. For generic pipelines select a runtime platform (Kubeflow Pipelines or Apache Airflow) and a runtime configuration for that platform. For typed pipelines select a runtime configuration.
+
+1. Select an export format.
+   
+   ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
+ 
