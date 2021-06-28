@@ -154,12 +154,14 @@ def create_file(location, file_name, content):
         f.write(content)
 
 
-def create_instance(metadata_store: MetadataStore, location: str, name: str, content: Any):
+def create_instance(metadata_store: MetadataStore, location: str, name: str, content: Any) -> str:
+    resource = name
     if isinstance(metadata_store, FileMetadataStore):
         if isinstance(content, dict):
             create_json_file(location, name + '.json', content)
         else:
             create_file(location, name + '.json', content)
+        resource = os.path.join(location, name + '.json')
     elif isinstance(metadata_store, MockMetadataStore):
         instances = metadata_store.instances
         if instances is None:
@@ -168,6 +170,7 @@ def create_instance(metadata_store: MetadataStore, location: str, name: str, con
         if not isinstance(content, dict):
             content = {'display_name': name, 'reason': "JSON failed to load for instance '{}'".format(name)}
         instances[name] = content
+    return resource
 
 
 def get_schema(schema_name):

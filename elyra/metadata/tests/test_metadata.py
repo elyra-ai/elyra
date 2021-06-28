@@ -17,8 +17,10 @@ import copy
 import json
 import os
 import shutil
+import time
 import pytest
 
+from collections import OrderedDict
 from jsonschema import validate, ValidationError, draft7_format_checker
 from elyra.metadata import Metadata, MetadataManager, MetadataStore, FileMetadataStore, SchemaManager, \
     MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError, METADATA_TEST_NAMESPACE, \
@@ -757,60 +759,84 @@ def test_cache_init():
     FileMetadataCache.clear_instance()
 
 
-def test_cache_ops():
+def test_cache_ops(tests_manager, namespace_location):
     FileMetadataCache.clear_instance()
-    test_items = [
-        ('a', {'a': 1}),
-        ('b', {'b': 2}),
-        ('c', {'c': 3}),
-        ('d', {'d': 4}),
-        ('e', {'e': 5}),
-    ]
-    cache = FileMetadataCache.instance(max_size=3)
 
-    for k, v in test_items:
-        cache.add_item(k, v)
+    test_items = OrderedDict({'a': 3, 'b': 4, 'c': 5, 'd': 6, 'e': 7})
+    test_resources = {}
+    test_content = {}
+
+    # Setup test data
+    for name, number in test_items.items():
+        content = copy.deepcopy(valid_metadata_json)
+        content['display_name'] = name
+        content['metadata']['number_range_test'] = number
+        resource = create_instance(tests_manager.metadata_store, namespace_location, name, content)
+        test_resources[name] = resource
+        test_content[name] = content
+
+    # Add initial entries
+    cache = FileMetadataCache.instance(max_size=3)
+    for name in test_items:  # Add the items to the cache
+        cache.add_item(test_resources[name], test_content[name])
 
     assert len(cache) == 3
     assert cache.trims == 2
-    assert cache.get_item('a') is None
-    assert cache.get_item('b') is None
-    assert cache.get_item('c') is not None
-    assert cache.get_item('d') is not None
-    assert cache.get_item('e') is not None
+    assert cache.get_item(test_resources.get('a')) is None
+    assert cache.get_item(test_resources.get('b')) is None
+    assert cache.get_item(test_resources.get('c')) is not None
+    assert cache.get_item(test_resources.get('d')) is not None
+    assert cache.get_item(test_resources.get('e')) is not None
     assert cache.misses == 2
     assert cache.hits == 3
 
-    cache.add_item('a', {'a': 1})
+    cache.add_item(test_resources.get('a'), test_content.get('a'))
     assert len(cache) == 3
     assert cache.trims == 3
-    assert cache.get_item('c') is None  # since 'c' was aged out
-    assert cache.get_item('a') is not None
+    assert cache.get_item(test_resources.get('c')) is None  # since 'c' was aged out
+    assert cache.get_item(test_resources.get('a')) is not None
     assert cache.misses == 3
     assert cache.hits == 4
 
-    e_val = cache.remove_item('e')
+    e_val = cache.remove_item(test_resources.get('e'))
     assert len(cache) == 2
-    assert e_val.get('e') == 5
-    assert cache.get_item('e') is None
+    assert e_val['metadata']['number_range_test'] == test_items.get('e')
+    assert cache.get_item(test_resources.get('e')) is None
     assert cache.misses == 4
     assert cache.hits == 4
     assert cache.trims == 3
 
-    a_val = cache.remove_item('a')
+    a_val = cache.remove_item(test_resources.get('a'))
     assert len(cache) == 1
-    assert a_val.get('a') == 1
-    assert cache.get_item('a') is None
+    assert a_val['metadata']['number_range_test'] == test_items.get('a')
+    assert cache.get_item(test_resources.get('a')) is None
     assert cache.misses == 5
     assert cache.hits == 4
     assert cache.trims == 3
 
-    d_val = cache.get_item('d')
+    d_val = cache.get_item(test_resources.get('d'))
     assert len(cache) == 1
-    assert d_val.get('d') == 4
+    assert d_val['metadata']['number_range_test'] == test_items.get('d')
     assert cache.misses == 5
     assert cache.hits == 5
     assert cache.trims == 3
+
+    if isinstance(tests_manager.metadata_store, FileMetadataStore):
+        # Exercise delete from filesystem and ensure cached item is removed
+        assert os.path.exists(test_resources.get('d'))
+        os.remove(test_resources.get('d'))
+        recorded = 0.0
+        for i in range(1, 6):  # allow up to a second for delete to record in cache
+            time.sleep(0.2)    # initial tests are showing only one sub-second delay is necessary
+            recorded += 0.2
+            if len(cache) == 0:
+                break
+        assert len(cache) == 0
+        print(f"\ntest_cache_ops: Delete recorded after {recorded} seconds")
+        assert cache.get_item(test_resources.get('d')) is None
+        assert cache.misses == 6
+        assert cache.hits == 5
+        assert cache.trims == 3
 
 
 def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, expected_count=1):

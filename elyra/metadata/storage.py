@@ -25,6 +25,8 @@ from collections import OrderedDict
 from traitlets import log, Integer
 from traitlets.config import SingletonConfigurable
 from typing import Any, Dict, List, Optional
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 from .error import MetadataNotFoundError, MetadataExistsError
 
@@ -71,6 +73,9 @@ class FileMetadataCache(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._entries: OrderedDict = OrderedDict()
+        self.observer = Observer()
+        self.observer.start()
+        self.observed_dirs = set()  # Tracks which directories are being watched
         self.hits: int = 0
         self.misses: int = 0
         self.trims: int = 0
@@ -88,6 +93,10 @@ class FileMetadataCache(SingletonConfigurable):
         If this causes the cache to grow beyond its max size, the least recently
         used entry is removed.
         """
+        md_dir: str = os.path.dirname(path)
+        if md_dir not in self.observed_dirs and os.path.isdir(md_dir):
+            self.observer.schedule(FileChangeHandler(self), md_dir, recursive=True)
+            self.observed_dirs.add(md_dir)
         self._entries[path] = copy.deepcopy(entry)
         self._entries.move_to_end(path)
         if len(self._entries) > self.max_size:
@@ -110,6 +119,31 @@ class FileMetadataCache(SingletonConfigurable):
             return self._entries.pop(path)
 
         return None
+
+
+class FileChangeHandler(FileSystemEventHandler):
+    """Watchdog handler that filters on .json files within specific metadata directories."""
+
+    def __init__(self, file_metadata_cache: FileMetadataCache, **kwargs):
+        super(FileChangeHandler, self).__init__(**kwargs)
+        self.file_metadata_cache = file_metadata_cache
+        self.log = file_metadata_cache.log
+
+    def dispatch(self, event):
+        """Dispatches delete and modification events pertaining to watched metadata instances. """
+        if event.src_path.endswith(".json"):
+            super(FileChangeHandler, self).dispatch(event)
+
+    def on_deleted(self, event):
+        """Fires when a watched file is deleted, triggering a removal of the corresponding item from the cache."""
+        self.file_metadata_cache.remove_item(event.src_path)
+
+    def on_modified(self, event):
+        """Fires when a watched file is modified.
+
+        On updates, go ahead and remove the item from the cache.  It will be reloaded on next fetch.
+        """
+        self.file_metadata_cache.remove_item(event.src_path)
 
 
 class FileMetadataStore(MetadataStore):
