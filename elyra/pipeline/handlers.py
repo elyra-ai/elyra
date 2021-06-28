@@ -22,6 +22,11 @@ from .processor import PipelineProcessorManager
 from tornado import web
 from ..util.http import HttpErrorMixin
 
+from elyra.pipeline.component import Component
+from elyra.pipeline.component_registry import ComponentRegistry
+
+from typing import List
+
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to export pipelines"""
@@ -103,12 +108,11 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
-        components = await PipelineProcessorManager.instance().get_components(processor)
-        # json_msg = json.dumps(components)
+        components: List[Component] = await PipelineProcessorManager.instance().get_components(processor)
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(components)
+        self.finish(ComponentRegistry.to_canvas_palette(components))
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):

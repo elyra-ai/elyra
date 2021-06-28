@@ -32,7 +32,7 @@ from typing import List, Dict
 from urllib3.exceptions import MaxRetryError
 from minio.error import SignatureDoesNotMatch
 
-from .component import ComponentParser
+from .component import ComponentParser, Component
 from .component_registry import ComponentRegistry
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -192,28 +192,11 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     def get_components(self):
         # Retrieve components common to all runtimes
-        '''
-        common_components_location = os.path.join(os.path.dirname(__file__), 'resources', 'palette.json')
-        with io.open(common_components_location, 'r', encoding='utf-8') as f:
-            components = json.load(f)
-
-        # Retrieve runtime specific components
+        components: List[Component] = ComponentRegistry.get_generic_components()
         if self._component_registry:
-            if self.type and self.type != 'local':
-                custom_components = self._component_registry.get_all_components()
-                custom_components_json = ComponentRegistry.to_canvas_palette((custom_components))
-                components['categories'].extend(custom_components_json)
+            components.extend(self._component_registry.get_all_components())
+
         return components
-        '''
-
-        common_components = ComponentRegistry.get_generic_components()
-        custom_components = list()
-        if self._component_registry:
-            if self.type and self.type != "local":
-                custom_components = self._component_registry.get_all_components()
-
-        palette = ComponentRegistry.to_canvas_palette(common_components + custom_components)
-        return palette
 
     def get_component_properties(self, component):
         if self.type == 'local' or component in ('notebooks', 'python-script', 'r-script'):

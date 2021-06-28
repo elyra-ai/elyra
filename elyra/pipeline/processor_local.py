@@ -27,6 +27,7 @@ from traitlets import log
 from typing import Dict, List
 
 from elyra.pipeline.component import ComponentParser
+from .component_registry import ComponentRegistry
 
 
 class LocalPipelineProcessor(PipelineProcessor):
@@ -66,6 +67,9 @@ class LocalPipelineProcessor(PipelineProcessor):
     @property
     def component_parser(self) -> ComponentParser:
         return None
+
+    def get_components(self):
+        return ComponentRegistry.get_generic_components()
 
     def process(self, pipeline):
         """
