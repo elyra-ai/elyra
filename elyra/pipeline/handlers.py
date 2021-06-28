@@ -100,11 +100,12 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
 
 
 class PipelineComponentHandler(HttpErrorMixin, APIHandler):
-    """Handler to expose method calls to retrieve pipelines editor component configuration"""
+    """Handler to expose method calls to retrieve pipelines editor component_id configuration"""
 
     @web.authenticated
     async def get(self, processor):
         self.log.info(f'Retrieving pipeline components for: {processor} runtime')
+
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
@@ -116,20 +117,21 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
-    """Handler to expose method calls to retrieve pipeline component properties"""
+    """Handler to expose method calls to retrieve pipeline component_id properties"""
 
     @web.authenticated
     async def get(self, processor, component_id):
-        self.log.info(f'Retrieving pipeline component properties for component: {component_id}')
+        self.log.info(f'Retrieving pipeline component_id properties for component_id: {component_id}')
+
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         if not component_id:
-            raise web.HTTPError(400, f"Invalid component ID '{component_id}'")
+            raise web.HTTPError(400, f"Invalid component_id id '{component_id}'")
 
-        component = await PipelineProcessorManager.instance().get_component_properties(processor, component_id)
+        component: List[Component] = \
+            await PipelineProcessorManager.instance().get_component_properties(processor, component_id)
 
         self.set_status(200)
-
         self.set_header("Content-Type", 'application/json')
         self.finish(ComponentRegistry.to_canvas_properties(component))

@@ -58,7 +58,7 @@ export interface IExpandableComponentProps {
 }
 
 /**
- * A React component for expandable containers.
+ * A React component_id for expandable containers.
  */
 export const ExpandableComponent: React.FC<IExpandableComponentProps> = ({
   displayName,

@@ -16,8 +16,6 @@
 import asyncio
 import entrypoints
 import functools
-# import json
-# import io
 import os
 import time
 
@@ -191,7 +189,9 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         raise NotImplementedError()
 
     def get_components(self):
-        # Retrieve components common to all runtimes
+        """
+        Retrieve components common to all runtimes
+        """
         components: List[Component] = ComponentRegistry.get_generic_components()
 
         # Retrieve runtime-specific components
@@ -200,10 +200,13 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
         return components
 
-    def get_component_properties(self, component):
-        # Retrieve runtime-specific component details if component is not one of the generic set
-        if component not in ('notebooks', 'python-script', 'r-script'):
-            component = self._component_registry.get_component(component_id=component)
+    def get_component_properties(self, component_id):
+        """
+        Retrieve runtime-specific component_id details if component_id is not one of the generic set
+        """
+
+        if component_id not in ('notebooks', 'python-script', 'r-script'):
+            component = self._component_registry.get_component(component_id=component_id)
 
         return component
 
@@ -216,7 +219,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         raise NotImplementedError()
 
     def log_pipeline_info(self, pipeline_name: str, action_clause: str, **kwargs):
-        """Produces a formatted log INFO message used entirely for support purposes.
+        """
+        Produces a formatted log INFO message used entirely for support purposes.
 
         This method is intended to be called for any entries that should be captured across aggregated
         log files to identify steps within a given pipeline and each of its operations.  As a result,

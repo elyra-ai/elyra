@@ -43,10 +43,10 @@ class KfpComponentParser(ComponentParser):
         component_yaml = self._read_component_yaml(component_definition)
         properties: List[ComponentProperty] = list()
 
-        # For KFP we need a property for runtime image, path to component, and component source type
+        # For KFP we need a property for runtime image, path to component_id, and component_id source type
         runtime_image = component_yaml.get('implementation').get('container').get('image')
         if not runtime_image:
-            raise RuntimeError("Error accessing runtime image for component.")
+            raise RuntimeError("Error accessing runtime image for component_id.")
         properties.extend(self.get_runtime_specific_properties(runtime_image, location, source_type))
 
         # Then loop through and create custom properties
@@ -102,7 +102,7 @@ class KfpComponentParser(ComponentParser):
                                             name="Path to Component",
                                             type="string",
                                             value=location,
-                                            description="The path to the component specification file.",
+                                            description="The path to the component_id specification file.",
                                             control="readonly",
                                             required=True),
                           ComponentProperty(ref="component_source_type",

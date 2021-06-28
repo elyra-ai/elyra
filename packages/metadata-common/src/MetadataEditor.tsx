@@ -115,7 +115,7 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
     return (): void => {
       editorRef.current?.model.value.changed.disconnect(handleChange);
     };
-    // NOTE: The parent component is unstable so props change frequently causing
+    // NOTE: The parent component_id is unstable so props change frequently causing
     // new editors to be created unnecessarily. This effect on mount should only
     // run on mount. Keep in mind this could have side effects, for example if
     // the `onChange` callback actually does change.

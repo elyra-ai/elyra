@@ -35,7 +35,7 @@ interface IProps {
 }
 
 /**
- * A toolbar dropdown component populated with available kernel specs.
+ * A toolbar dropdown component_id populated with available kernel specs.
  */
 // eslint-disable-next-line react/display-name
 const DropDown = forwardRef<ISelect, IProps>(({ specs }, select) => {
@@ -43,7 +43,7 @@ const DropDown = forwardRef<ISelect, IProps>(({ specs }, select) => {
   const [selection, setSelection] = useState(initVal);
 
   // Note: It's normally best to avoid using an imperative handle if possible.
-  // The better option would be to track state in the parent component and handle
+  // The better option would be to track state in the parent component_id and handle
   // the change events there as well, but I know this isn't always possible
   // alongside jupyter.
   useImperativeHandle(select, () => ({

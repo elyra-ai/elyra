@@ -20,7 +20,7 @@ from typing import List, Optional
 
 class ComponentProperty(object):
     """
-    Represents a single property for a pipeline component
+    Represents a single property for a pipeline component_id
     """
 
     ref: str
@@ -48,9 +48,9 @@ class ComponentProperty(object):
         """
 
         if not ref:
-            raise ValueError("Invalid component: Missing field 'ref'.")
+            raise ValueError("Invalid component_id: Missing field 'ref'.")
         if not name:
-            raise ValueError("Invalid component: Missing field 'name'.")
+            raise ValueError("Invalid component_id: Missing field 'name'.")
 
         self._ref = ref
         self._name = name
@@ -150,7 +150,7 @@ class ComponentProperty(object):
 
 class Component(object):
     """
-    Represents a runtime-specific component
+    Represents a runtime-specific component_id
     """
 
     id: str
@@ -163,19 +163,19 @@ class Component(object):
     def __init__(self, id: str, name: str, description: Optional[str], runtime: Optional[str] = None,
                  properties: Optional[List[ComponentProperty]] = None, op: Optional[str] = None):
         """
-        :param id: Unique identifier for a component
-        :param name: The name of the component for display
-        :param description: The description of the component
-        :param runtime: The runtime of the component (e.g. KFP or Airflow)
-        :param properties: The set of properties for the component
+        :param id: Unique identifier for a component_id
+        :param name: The name of the component_id for display
+        :param description: The description of the component_id
+        :param runtime: The runtime of the component_id (e.g. KFP or Airflow)
+        :param properties: The set of properties for the component_id
         :type properties: List[ComponentProperty]
-        :param op: The operation name of the component; used by generic components in rendering the palette
+        :param op: The operation name of the component_id; used by generic components in rendering the palette
         """
 
         if not id:
-            raise ValueError("Invalid component: Missing field 'id'.")
+            raise ValueError("Invalid component_id: Missing field 'id'.")
         if not name:
-            raise ValueError("Invalid component: Missing field 'name'.")
+            raise ValueError("Invalid component_id: Missing field 'name'.")
 
         self._id = id
         self._name = name
@@ -214,7 +214,7 @@ class Component(object):
 
 def get_id_from_name(name):
     """
-    Takes the lowercase name of a component and removes '-' and redundant spaces by splitting and
+    Takes the lowercase name of a component_id and removes '-' and redundant spaces by splitting and
     then rejoining on spaces. Spaces and underscores are finally replaced with '-'.
     """
     return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-').replace('_', '-')
@@ -231,9 +231,9 @@ class ComponentParser(LoggingConfigurable):  # ABC
         raise NotImplementedError
 
     def parse_component_details(self, component, component_name=None):
-        """Get component name, id, description for palette JSON"""
+        """Get component_id name, id, description for palette JSON"""
         raise NotImplementedError
 
     def parse_component_properties(self, component_body, component_path):
-        """Get component properties for properties JSON"""
+        """Get component_id properties for properties JSON"""
         raise NotImplementedError

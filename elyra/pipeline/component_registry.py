@@ -19,6 +19,7 @@ import os
 from jinja2 import Environment, PackageLoader
 import requests
 
+from abc import ABC, abstractmethod
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 from elyra.pipeline.component import ComponentParser, Component
@@ -26,41 +27,60 @@ from typing import List, Dict
 
 
 class ComponentReader(SingletonConfigurable):
-    _type = 'local'
+    """
+    Abstract class to model component readers that can read components from different locations
+    """
+    _type: str = None
 
-    def read_component_definition(self, location: str, component: str):
+    @property
+    def type(self):
+        return self._type
+
+    @abstractmethod
+    def read_component_definition(self, location: str, component: str) -> str:
         raise NotImplementedError()
 
 
 class FilesystemComponentReader(ComponentReader):
+    """
+    Read a component_id definition from the local filesystem
+    """
     _type = 'filename'
-    _dir_path: str = ''
 
-    def read_component_definition(self, location, component):
-        component_file = os.path.join(os.path.dirname(__file__), location)
+    def read_component_definition(self, location: str, component: str) -> str:
+        component_location = os.path.join(os.path.dirname(__file__), location)
 
-        if not os.path.exists(component_file):
-            self.log.error(f'Invalid location for component {component}: {location}')
-            raise FileNotFoundError(f'Invalid location for component {component}: {location}')
+        if not os.path.exists(component_location):
+            self.log.error(f'Invalid location for component_id {component}: {location}')
+            raise FileNotFoundError(f'Invalid location for component_id {component}: {location}')
 
-        with open(component_file, 'r') as f:
+        with open(component_location, 'r') as f:
             return f.readlines()
 
 
 class UrlComponentReader(ComponentReader):
+    """
+    Read a component_id definition from a url
+    """
     _type = 'url'
-    _url_path: str
 
-    def read_component_definition(self, location, component):
+    def read_component_definition(self, location: str, component: str) -> str:
         res = requests.get(location)
         if res.status_code != HTTPStatus.OK:
-            self.log.error(f'Invalid location for component {component}: {location}')
-            raise FileNotFoundError(f'Invalid location for component {component}: {location}')
+            self.log.error(f'Invalid location for component_id {component}: {location}')
+            raise FileNotFoundError(f'Invalid location for component_id {component}: {location}')
 
         return res.text
 
 
 class ComponentRegistry(LoggingConfigurable):
+    """
+    Component Registry, responsible to provide a list of available components
+    for each runtime. The registry uses component_id readers to read the component_id
+    from the different locations and component_id parser to process the raw components
+    and transform them into a component_id value object.
+    """
+
     readers = {
         FilesystemComponentReader._type: FilesystemComponentReader(),
         UrlComponentReader._type: UrlComponentReader()
@@ -76,19 +96,19 @@ class ComponentRegistry(LoggingConfigurable):
     def registry_location(self) -> str:
         return self._component_registry_location
 
-    def get_all_components(self):
+    def get_all_components(self) -> List[Component]:
         """
-        Retrieve all components from the component registry
+        Retrieve all components from the component_id registry
         """
         components: List[Component] = list()
 
-        # Read component catalog to get JSON
+        # Read component_id catalog to get JSON
         component_entries = self._read_component_registry()
 
         for component_id, component_entry in component_entries.items():
-            self.log.debug(f"Component registry found component {component_entry.get('name')}")
+            self.log.debug(f"Component registry found component_id {component_entry.get('name')}")
 
-            # Parse component details and add to list
+            # Parse component_id details and add to list
             component: Component = self.get_component(component_id, component_entry, parse_properties=False)
             if component:
                 components.append(component)
@@ -97,35 +117,35 @@ class ComponentRegistry(LoggingConfigurable):
 
     def get_component_catalog_entry(self, component_id):
         """
-        Get the body of the component catalog entry with the given id
+        Get the body of the component_id catalog entry with the given id
         """
-        # Read component catalog to get JSON
+        # Read component_id catalog to get JSON
         component_entries = self._read_component_registry()
 
         # Find entry with the appropriate id, if exists
         component_entry = next((entry for id, entry in component_entries.items() if component_id == id), None)
         if not component_entry:
             self.log.error(f"Component with ID '{component_id}' could not be found in the " +
-                           f"{self._component_registry_location} component catalog.")
+                           f"{self._component_registry_location} component_id catalog.")
             raise ValueError(f"Component with ID '{component_id}' could not be found in the " +
-                             f"{self._component_registry_location} component catalog.")
+                             f"{self._component_registry_location} component_id catalog.")
 
         return component_entry
 
     def get_component(self, component_id, component_entry=None, parse_properties=True):
         """
-        Return the properties JSON for a given component.
+        Return the properties JSON for a given component_id.
         """
 
-        # Find component with given id in component catalog
+        # Find component_id with given id in component_id catalog
         if not component_entry:
             component_entry = self.get_component_catalog_entry(component_id)
 
-        # Get appropriate reader to read component definition
+        # Get appropriate reader to read component_id definition
         reader = self._get_reader(component_entry)
 
         component_location = component_entry['location'][reader._type]
-        # TODO test whether the below is necessary, add new component to catalog
+        # TODO test whether the below is necessary, add new component_id to catalog
         # if reader._type == "filename":
         #    component_location = os.path.join(os.path.dirname(__file__), component_location)
 
@@ -174,7 +194,7 @@ class ComponentRegistry(LoggingConfigurable):
         loader = PackageLoader('elyra', 'templates/components')
         template_env = Environment(loader=loader)
 
-        # If component is one of the generic set, render with generic template,
+        # If component_id is one of the generic set, render with generic template,
         # else render with the runtime-specific property template
         if component in ('notebooks', 'python-script', 'r-script'):
             template = template_env.get_template('generic_properties_template.jinja2')
@@ -197,7 +217,7 @@ class ComponentRegistry(LoggingConfigurable):
 
     def _read_component_registry(self) -> Dict:
         """
-        Read a component catalog and return its component definitions.
+        Read a component_id catalog and return its component_id definitions.
         """
 
         with open(self._component_registry_location, 'r') as catalog_file:
@@ -210,10 +230,10 @@ class ComponentRegistry(LoggingConfigurable):
 
     def _get_reader(self, component):
         """
-        Find the proper reader based on the given registry component.
+        Find the proper reader based on the given registry component_id.
         """
         if not component:
-            raise ValueError("Invalid null component")
+            raise ValueError("Invalid null component_id")
 
         try:
             # Get first (and only) key of 'location' subdictionary

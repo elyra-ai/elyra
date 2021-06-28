@@ -38,7 +38,7 @@ export interface ITextFieldProps {
   onChange: (value: string) => any;
 }
 
-// TODO: we seem to reuse this a lot, we should make a component for it.
+// TODO: we seem to reuse this a lot, we should make a component_id for it.
 const CustomTooltip = withStyles(_theme => ({
   tooltip: {
     fontSize: 13

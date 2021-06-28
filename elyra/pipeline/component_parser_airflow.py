@@ -69,7 +69,7 @@ class AirflowComponentParser(ComponentParser):
                 # Get list of parameter:default-value pairs
                 classes[class_name]['args'].extend([x.strip() for x in match.group(1).split(',')])
 
-        # For Airflow we need a property for path to component, component source type, and available operators
+        # For Airflow we need a property for path to component_id, component_id source type, and available operators
         properties.extend(self.get_runtime_specific_properties("", location, source_type, operator_names))
 
         for class_name, values in classes.items():
@@ -142,7 +142,7 @@ class AirflowComponentParser(ComponentParser):
                                             name="Path to Component",
                                             type="string",
                                             value=location,
-                                            description="The path to the component specification file.",
+                                            description="The path to the component_id specification file.",
                                             control="readonly",
                                             required=True),
                           ComponentProperty(ref="component_source_type",

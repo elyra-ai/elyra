@@ -74,7 +74,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                          f"{self._type}_component_catalog.json")
 
         if not os.path.exists(self._component_registry_location):
-            raise FileNotFoundError(f'Invalid component catalog path {self._component_registry_location}'
+            raise FileNotFoundError(f'Invalid component_id catalog path {self._component_registry_location}'
                                     f' for {self._type} processor')
 
         self._component_parser = KfpComponentParser()
@@ -345,7 +345,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             for key, operation in defined_pipeline.items():
                 if operation.classifier not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
                     continue
-                self.log.debug("component :\n "
+                self.log.debug("component_id :\n "
                                "container op name : %s \n "
                                "inputs : %s \n "
                                "outputs : %s \n ",
@@ -425,7 +425,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         emptydir_volume_size = ''
         container_runtime = bool(os.getenv('CRIO_RUNTIME', 'False').lower() == 'true')
 
-        # Create dictionary that maps component Id to its ContainerOp instance
+        # Create dictionary that maps component_id Id to its ContainerOp instance
         notebook_ops = {}
 
         # Sort operations based on dependency graph (topological order)
@@ -458,7 +458,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                self.log.debug("Creating pipeline component_id :\n {op} archive : {archive}".format(
                                op=operation, archive=operation_artifact_archive))
 
                 notebook_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
@@ -508,26 +508,26 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                           cos_directory,
                                                           operation)
 
-            # If operation is a "non-standard" component, load it's spec and create operation with factory function
+            # If operation is a "non-standard" component_id, load it's spec and create operation with factory function
             else:
                 component_source = {}
                 component_source[operation.component_source_type] = operation.component_source
 
-                # Build component task factory
+                # Build component_id task factory
                 try:
                     factory_function = components.load_component(**component_source)
                 except Exception:
                     # TODO Fix error messaging and break exceptions down into categories
-                    self.log.error(f"There was an error while loading component spec for {operation.name}.")
-                    raise RuntimeError(f"There was an error while loading component spec for {operation.name}.")
+                    self.log.error(f"There was an error while loading component_id spec for {operation.name}.")
+                    raise RuntimeError(f"There was an error while loading component_id spec for {operation.name}.")
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
                     notebook_ops[operation.id] = factory_function(**operation.component_params)
                 except Exception:
                     # TODO Fix error messaging and break exceptions down into categories
-                    self.log.error(f"There was an error while constructing component {operation.name}.")
-                    raise RuntimeError(f"There was an error while constructing component {operation.name}.")
+                    self.log.error(f"There was an error while constructing component_id {operation.name}.")
+                    raise RuntimeError(f"There was an error while constructing component_id {operation.name}.")
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():

@@ -66,7 +66,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                          f"{self._type}_component_catalog.json")
 
         if not os.path.exists(self._component_registry_location):
-            raise FileNotFoundError(f'Invalid component catalog path {self._component_registry_location}'
+            raise FileNotFoundError(f'Invalid component_id catalog path {self._component_registry_location}'
                                     f' for {self._type} processor')
 
         self._component_parser = AirflowComponentParser()
@@ -163,7 +163,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
         cos_directory = pipeline_name
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
-        # Create dictionary that maps component Id to its ContainerOp instance
+        # Create dictionary that maps component_id Id to its ContainerOp instance
         notebook_ops = []
 
         self.log_pipeline_info(pipeline_name,
@@ -187,7 +187,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                self.log.debug("Creating pipeline component_id :\n {op} archive : {archive}".format(
                     op=operation, archive=operation_artifact_archive))
 
                 # Collect env variables
