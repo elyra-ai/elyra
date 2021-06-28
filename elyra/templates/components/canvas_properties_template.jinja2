@@ -2,7 +2,7 @@
     "current_parameters": {
 {% for property in properties %}
       "{{ property.ref }}": "{{ property.value }}"
-      {% if loop.index != num_properties %}
+      {% if loop.index != properties|length %}
       ,
       {% endif %}
 {% endfor %}
@@ -12,7 +12,7 @@
       {
         "id": "{{ property.ref }}"
       }
-      {% if loop.index != num_properties %}
+      {% if loop.index != properties|length %}
       ,
       {% endif %}
 {% endfor %}
@@ -48,7 +48,7 @@
             {% endif %}
           }
         }
-        {% if loop.index != num_properties %}
+        {% if loop.index != properties|length %}
         ,
         {% endif %}
 {% endfor %}
@@ -64,7 +64,7 @@
               "type": "controls",
               "parameter_refs": ["{{ property.ref }}"]
             }
-            {% if loop.index != num_properties %}
+            {% if loop.index != properties|length %}
             ,
             {% endif %}
 {% endfor %}

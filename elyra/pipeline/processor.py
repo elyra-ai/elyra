@@ -16,8 +16,8 @@
 import asyncio
 import entrypoints
 import functools
-import json
-import io
+# import json
+# import io
 import os
 import time
 
@@ -193,39 +193,19 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     def get_components(self):
         # Retrieve components common to all runtimes
         components: List[Component] = ComponentRegistry.get_generic_components()
+
+        # Retrieve runtime-specific components
         if self._component_registry:
             components.extend(self._component_registry.get_all_components())
 
         return components
 
     def get_component_properties(self, component):
-        if self.type == 'local' or component in ('notebooks', 'python-script', 'r-script'):
-            # TODO: move this to a common base class when further refactoring
-            # Retrieve component properties common to all runtimes
-            common_properties_location = os.path.join(os.path.dirname(__file__), 'resources', 'properties.json')
-            with io.open(common_properties_location, 'r', encoding='utf-8') as f:
-                properties = json.load(f)
-
-                # Adjust availalbe extensions based on type. Note that filename will always be
-                # in position 0 due to the structure of the properties object
-                index = [param['parameter_ref'] for param in properties['uihints']['parameter_info']].index('filename')
-
-                filename_param = properties['uihints']['parameter_info'][index]
-                if component == "python-script":
-                    filename_param['data']['extensions'] = ['.py']
-                    filename_param['description']['default'] = "The path to the Python file."
-                elif component == "r-script":
-                    filename_param['data']['extensions'] = ['.r']
-                    filename_param['description']['default'] = "The path to the R file."
-                elif component == "notebooks":
-                    filename_param['data']['extensions'] = ['.ipynb']
-                    filename_param['description']['default'] = "The path to the notebook file."
-        else:
-            # Retrieve runtime specific component properties
+        # Retrieve runtime-specific component details if component is not one of the generic set
+        if component not in ('notebooks', 'python-script', 'r-script'):
             component = self._component_registry.get_component(component_id=component)
-            properties = ComponentRegistry.to_canvas_properties(component)
 
-        return properties
+        return component
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:

@@ -18,69 +18,6 @@ from traitlets.config import LoggingConfigurable
 from typing import List, Optional
 
 
-empty_properties = {
-    "current_parameters": {"component_source": "", "runtime_image": "", "component_source_type": ""},
-    "parameters": [{"id": "component_source"}, {"id": "runtime_image"}, {"id": "component_source_type"}],
-    "uihints": {
-        "id": "nodeProperties",
-        "parameter_info": [
-            {
-                "parameter_ref": "component_source",
-                "control": "readonly",
-                "label": {
-                    "default": "Path to Component"
-                },
-                "description": {
-                    "default": "The path to the component specification file.",
-                    "placement": "on_panel"
-                },
-                "data": {
-                    "format": "string"
-                }
-            },
-            {
-                "parameter_ref": "runtime_image",
-                "control": "custom",
-                "custom_control_id": "EnumControl",
-                "label": {
-                    "default": "Runtime Image"
-                },
-                "description": {
-                    "default": "Docker image used as execution environment.",
-                    "placement": "on_panel"
-                },
-                "data": {
-                    "items": [],
-                    "required": True
-                }
-            },
-            {
-                "parameter_ref": "component_source_type",
-                "control": "readonly",
-                "label": {
-                    "default": "Component Source Type"
-                },
-                "data": {
-                    "format": "string"
-                }
-            }
-        ],
-        "group_info": [
-            {
-                "id": "nodeGroupInfo",
-                "type": "panels",
-                "group_info": [
-                    {"id": "component_source", "type": "controls", "parameter_refs": ["component_source"]},
-                    {"id": "runtime_image", "type": "controls", "parameter_refs": ["runtime_image"]},
-                    {"id": "component_source_type", "type": "controls", "parameter_refs": ["component_source_type"]}
-                ]
-            }
-        ]
-    },
-    "resources": {}
-}
-
-
 class ComponentProperty(object):
     """
     Represents a single property for a pipeline component
@@ -96,17 +33,80 @@ class ComponentProperty(object):
     items: list
     required: bool
 
-    def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool,
-                 control: str = "custom", control_id: str = "StringControl", items: list() = []):
+    def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool = False,
+                 control: str = "custom", control_id: str = "StringControl", items: List[str] = []):
+        """
+        :param ref: Unique identifier for a property
+        :param name: The name of the property for display
+        :param type: The type that the property value takes on
+        :param value: The default value of the property
+        :param description: A description of the property for display
+        :param control: The control of the property on the display, e.g. custom or readonly
+        :param control_id: The control type of the property, if the control is 'custom', e.g. StringControl, EnumControl
+        :param items: For properties with a control of 'EnumControl', the items making up the enum
+        :param required: Whether the property is required
+        """
+
+        if not ref:
+            raise ValueError("Invalid component: Missing field 'ref'.")
+        if not name:
+            raise ValueError("Invalid component: Missing field 'name'.")
+
         self._ref = ref
         self._name = name
+
+        # Set default value according to type
+        if type == 'str' or type.lower() == 'string':
+            if not value:
+                value = ''
+        elif type == 'int' or type.lower() == 'integer':
+            if not value:
+                value = 0
+        elif type == 'bool' or type.lower() == 'boolean':
+            if not value:
+                value = False
+        elif type == 'dict' or type.lower() == 'dictionary':
+            if not value:
+                value = ''
+        elif type.lower() == 'list':
+            if not value:
+                value = ''
+        else:
+            type = "string"
+            value = ''
+
         self._type = type
         self._value = value
+
+        # Add type information to description as hint
+        if ref.startswith("elyra_path_"):
+            if type == "string":
+                description += " (type: path)"
+            else:
+                description += f" (type: path to {type})"
+        else:
+            description += f" (type: {type})"
+
         self._description = description
-        self._required = required
         self._control = control
+
+        # Change control id based on type
+        if type.lower() in ["number", "integer", "int"]:
+            control_id = "NumberControl"
+        elif type.lower() in ["bool", "boolean"]:
+            control_id = "BooleanControl"
+
         self._control_id = control_id
         self._items = items
+
+        # Check description for information about 'required' parameter
+        if "not optional" in description.lower() or \
+                ("required" in description.lower() and
+                    "not required" not in description.lower() and
+                    "n't required" not in description.lower()):
+            required = True
+
+        self._required = required
 
     @property
     def ref(self):
@@ -129,10 +129,6 @@ class ComponentProperty(object):
         return self._description
 
     @property
-    def required(self):
-        return self._required
-
-    @property
     def control(self):
         return self._control
 
@@ -143,6 +139,13 @@ class ComponentProperty(object):
     @property
     def items(self):
         return self._items
+
+    @property
+    def required(self):
+        if self._required:
+            return self._required
+        else:
+            return False
 
 
 class Component(object):
@@ -155,14 +158,24 @@ class Component(object):
     description: str
     runtime: str
     properties: List[ComponentProperty]
+    op: str
 
-    def __init__(self, id: str, name: str, description: str, runtime: Optional[str] = None, properties:
-                 List[ComponentProperty] = None, op: str = None):
+    def __init__(self, id: str, name: str, description: Optional[str], runtime: Optional[str] = None,
+                 properties: Optional[List[ComponentProperty]] = None, op: Optional[str] = None):
         """
-        TODO: Add param info here
+        :param id: Unique identifier for a component
+        :param name: The name of the component for display
+        :param description: The description of the component
+        :param runtime: The runtime of the component (e.g. KFP or Airflow)
+        :param properties: The set of properties for the component
+        :type properties: List[ComponentProperty]
+        :param op: The operation name of the component; used by generic components in rendering the palette
         """
 
-        # TODO: Add error-checking for init parameters
+        if not id:
+            raise ValueError("Invalid component: Missing field 'id'.")
+        if not name:
+            raise ValueError("Invalid component: Missing field 'name'.")
 
         self._id = id
         self._name = name
@@ -207,33 +220,15 @@ def get_id_from_name(name):
     return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-').replace('_', '-')
 
 
-def set_node_type_data(id, label, description):
-    node_type = {
-        'id': "",
-        'op': id,
-        'type': "execution_node",
-        'inputs': [],
-        'outputs': [],
-        'parameters': {},
-        'app_data': {
-            'ui-data': {
-                'label': label,
-                'description': description,
-                'image': "",
-                'x_pos': 0,
-                'y_pos': 0
-            }
-        }
-    }
-
-    return node_type
-
-
 class ComponentParser(LoggingConfigurable):  # ABC
 
     @abstractmethod
     def parse(self, component_name, component_definition):
         raise NotImplementedError()
+
+    @abstractmethod
+    def parse_properties(self, component_definition, location, source_type):
+        raise NotImplementedError
 
     def parse_component_details(self, component, component_name=None):
         """Get component name, id, description for palette JSON"""
@@ -242,32 +237,3 @@ class ComponentParser(LoggingConfigurable):  # ABC
     def parse_component_properties(self, component_body, component_path):
         """Get component properties for properties JSON"""
         raise NotImplementedError
-
-    def get_custom_control_id(self, parameter_type):
-        # This may not be applicable in every case
-        if parameter_type in ["number", "integer"]:
-            return "NumberControl"
-        elif parameter_type in ["bool", "boolean"]:
-            return "BooleanControl"
-        # elif "array" in parameter_type:
-        #     return "StringArrayControl"
-        else:
-            return "StringControl"
-
-    def compose_parameter(self, name, control_id, label, description, data):
-        formatted_description = "" if not description else description[0].upper() + description[1:]
-        parameter = {
-            'parameter_ref': name.lower().replace(' ', '_'),
-            'control': "custom",
-            'custom_control_id': control_id,
-            'label': {
-                'default': label
-            },
-            'description': {
-                'default': formatted_description,
-                'placement': "on_panel"
-            },
-            "data": data
-        }
-
-        return parameter

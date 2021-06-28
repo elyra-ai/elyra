@@ -53,7 +53,7 @@
         }
       ]
     }
-    {% if loop.index != num_components %}
+    {% if loop.index != components|length %}
     ,
     {% endif %}
 {% endfor %}

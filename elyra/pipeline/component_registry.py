@@ -22,13 +22,13 @@ import requests
 from traitlets.config import SingletonConfigurable, LoggingConfigurable
 
 from elyra.pipeline.component import ComponentParser, Component
-from typing import List
+from typing import List, Dict
 
 
 class ComponentReader(SingletonConfigurable):
     _type = 'local'
 
-    def read_component_definition(self, location: str):
+    def read_component_definition(self, location: str, component: str):
         raise NotImplementedError()
 
 
@@ -36,11 +36,12 @@ class FilesystemComponentReader(ComponentReader):
     _type = 'filename'
     _dir_path: str = ''
 
-    def read_component_definition(self, location):
+    def read_component_definition(self, location, component):
         component_file = os.path.join(os.path.dirname(__file__), location)
 
         if not os.path.exists(component_file):
-            raise FileNotFoundError(f'Invalid component location: {location}')
+            self.log.error(f'Invalid location for component {component}: {location}')
+            raise FileNotFoundError(f'Invalid location for component {component}: {location}')
 
         with open(component_file, 'r') as f:
             return f.readlines()
@@ -50,10 +51,11 @@ class UrlComponentReader(ComponentReader):
     _type = 'url'
     _url_path: str
 
-    def read_component_definition(self, location):
+    def read_component_definition(self, location, component):
         res = requests.get(location)
         if res.status_code != HTTPStatus.OK:
-            raise FileNotFoundError(f'Invalid component location: {location}')
+            self.log.error(f'Invalid location for component {component}: {location}')
+            raise FileNotFoundError(f'Invalid location for component {component}: {location}')
 
         return res.text
 
@@ -123,10 +125,11 @@ class ComponentRegistry(LoggingConfigurable):
         reader = self._get_reader(component_entry)
 
         component_location = component_entry['location'][reader._type]
+        # TODO test whether the below is necessary, add new component to catalog
         # if reader._type == "filename":
         #    component_location = os.path.join(os.path.dirname(__file__), component_location)
 
-        component_definition = reader.read_component_definition(component_location)
+        component_definition = reader.read_component_definition(component_location, component_id)
 
         properties = None
         if parse_properties:
@@ -161,23 +164,38 @@ class ComponentRegistry(LoggingConfigurable):
         template_env = Environment(loader=loader)
         template = template_env.get_template('canvas_palette_template.jinja2')
 
-        return template.render(components=components,
-                               num_components=len(components))
+        return template.render(components=components)
 
     @staticmethod
     def to_canvas_properties(component: Component) -> dict:
         """
         Converts registry components into appropriate canvas properties format
         """
-        # Load jinja2 template
         loader = PackageLoader('elyra', 'templates/components')
         template_env = Environment(loader=loader)
-        template = template_env.get_template('canvas_properties_template.jinja2')
 
-        return template.render(properties=component.properties,
-                               num_properties=len(component.properties))
+        # If component is one of the generic set, render with generic template,
+        # else render with the runtime-specific property template
+        if component in ('notebooks', 'python-script', 'r-script'):
+            template = template_env.get_template('generic_properties_template.jinja2')
+            if component == "notebooks":
+                component_type = "notebook"
+                file_type = ".ipynb"
+            elif component == "python-script":
+                component_type = "Python"
+                file_type = ".py"
+            elif component == "r-script":
+                component_type = "R"
+                file_type = ".r"
 
-    def _read_component_registry(self):
+            properties_json = template.render(component_type=component_type, file_type=file_type)
+        else:
+            template = template_env.get_template('canvas_properties_template.jinja2')
+            properties_json = template.render(properties=component.properties)
+
+        return properties_json
+
+    def _read_component_registry(self) -> Dict:
         """
         Read a component catalog and return its component definitions.
         """

@@ -127,10 +127,9 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         if not component_id:
             raise web.HTTPError(400, f"Invalid component ID '{component_id}'")
 
-        properties = await PipelineProcessorManager.instance().get_component_properties(processor, component_id)
-        # json_msg = json.dumps(properties)
+        component = await PipelineProcessorManager.instance().get_component_properties(processor, component_id)
 
         self.set_status(200)
 
         self.set_header("Content-Type", 'application/json')
-        self.finish(properties)
+        self.finish(ComponentRegistry.to_canvas_properties(component))
