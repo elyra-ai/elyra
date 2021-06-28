@@ -6760,7 +6760,7 @@ css-loader@2.1.1:
     postcss-value-parser "^3.3.0"
     schema-utils "^1.0.0"
 
-css-loader@^5.0.1:
+css-loader@^5.0.1, css-loader@^5.2.6:
   version "5.2.6"
   resolved "https://registry.yarnpkg.com/css-loader/-/css-loader-5.2.6.tgz#c3c82ab77fea1f360e587d871a6811f4450cc8d1"
   integrity sha512-0wyN5vXMQZu6BvjbrPdUJvkCzGEO24HC7IS7nW4llc6BBFC+zwR9CKtYGv63Puzsg10L/o12inMY5/2ByzfD6w==
@@ -8933,6 +8933,14 @@ file-loader@~6.0.0:
   dependencies:
     loader-utils "^2.0.0"
     schema-utils "^2.6.5"
+
+file-loader@~6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/file-loader/-/file-loader-6.2.0.tgz#baef7cf8e1840df325e4390b4484879480eebe4d"
+  integrity sha512-qo3glqyTa61Ytg4u73GultjHGjdRyig3tG6lPtyX/jOEJvHif9uB0/OCI2Kif6ctF3caQTW2G5gym21oAsI4pw==
+  dependencies:
+    loader-utils "^2.0.0"
+    schema-utils "^3.0.0"
 
 file-uri-to-path@1.0.0:
   version "1.0.0"
@@ -15390,7 +15398,7 @@ raw-body@2.4.0:
     iconv-lite "0.4.24"
     unpipe "1.0.0"
 
-raw-loader@~4.0.0:
+raw-loader@^4.0.2, raw-loader@~4.0.0:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/raw-loader/-/raw-loader-4.0.2.tgz#1aac6b7d1ad1501e66efdac1522c73e59a584eb6"
   integrity sha512-ZnScIV3ag9A4wPX/ZayxL/jZH+euYb6FcUinPcgiQW0+UBtEv0O6Q3lGd3cqJ+GHH+rksEv3Pj99oxJ3u3VIKA==
@@ -17417,6 +17425,14 @@ svg-parser@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/svg-parser/-/svg-parser-2.0.4.tgz#fdc2e29e13951736140b76cb122c8ee6630eb6b5"
   integrity sha512-e4hG1hRwoOdRb37cIMSgzNsxyzKfayW6VOflrwvR+/bzrkyxY/31WkbgnQpgtrNp1SdpJvpUAGTa/ZoiPNDuRQ==
+
+svg-url-loader@^7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/svg-url-loader/-/svg-url-loader-7.1.1.tgz#0cbdb30beb8679cb060c12eaf30085747fa7591f"
+  integrity sha512-NlsMCePODm7FQhU9aEZyGLPx5Xe1QRI1cSEUE6vTq5LJc9l9pStagvXoEIyZ9O3r00w6G3+Wbkimb+SC3DI/Aw==
+  dependencies:
+    file-loader "~6.2.0"
+    loader-utils "~2.0.0"
 
 svg-url-loader@~6.0.0:
   version "6.0.0"

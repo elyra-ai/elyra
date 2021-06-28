@@ -19,7 +19,7 @@ ensured_targets = [
     str(lab_path / "static/style.js")
 ]
 
-labext_name = "elyra_pipeline_editor_extension"
+labext_name = "@elyra/pipeline-editor-extension"
 
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),

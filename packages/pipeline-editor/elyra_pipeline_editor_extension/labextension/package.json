@@ -110,6 +110,11 @@
   "styleModule": "style/index.js",
   "jupyterlab": {
     "extension": true,
-    "outputDir": "elyra_pipeline_editor_extension/labextension"
+    "outputDir": "elyra_pipeline_editor_extension/labextension",
+    "_build": {
+      "load": "static/remoteEntry.843d2aa8067ff427ff13.js",
+      "extension": "./extension",
+      "style": "./style"
+    }
   }
 }
