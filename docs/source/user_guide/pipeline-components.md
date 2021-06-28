@@ -24,13 +24,15 @@ limitations under the License.
 
 ![A basic Kubeflow pipeline](../images/user_guide/pipeline-components/kubeflow-pipeline.png)
 
-The same pipeline could be implemented using a single component that does all these things, but that component might not be as universally re-usable. Consider, for example, that for another project the data resides in a different kind of storage. With fine-granular components you'd only have to replace the load data component with one that supports the other storage type and could retain everything else. 
+The same pipeline could be implemented using a single component that performs all these tasks, but that component might not be as universally re-usable. Consider, for example, that for another project the data resides in a different kind of storage. With fine-granular components you'd only have to replace the load data component with one that supports the other storage type and could retain everything else. 
 
 Elyra includes three _generic components_ that allow for the processing of Jupyter notebooks, Python scripts, and R scripts. These components are called generic because they can be used in all runtime environments that Elyra pipelines currently support: local/JupyterLab, Kubeflow Pipelines, and Apache Airflow.
 
 ![Generic components in the palette](../images/user_guide/pipeline-components/generic-components-in-palette.png)
 
-_Custom components_ are commonly only implemented for Kubeflow Pipelines or Apache Airflow. (The local runtime environment does not support custom components.) 
+Note: Refer to the [_Best practices_ topic in the _User Guide_](best-practices-file-based-nodes.md) to learn more about special considerations for these components.
+
+_Custom components_ are commonly only implemented for one runtime environment. (The local runtime environment does not support custom components.) 
 
 ![Kubeflow components in the palette](../images/user_guide/pipeline-components/custom-kubeflow-components-in-palette.png)
 
