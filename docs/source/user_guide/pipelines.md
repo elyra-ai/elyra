@@ -40,15 +40,15 @@ Elyra pipelines support three types of runtime platforms:
 #### Generic pipelines
 
 A generic pipeline comprises only of nodes that are implemented using generic components.
-This Elyra release includes three generic components that allow for execution of Jupyter notebooks, Python scripts, and R scripts. Generic pipelines are portable, meaning they can run locally in JupyterLab, or remotely on Kubeflow Pipelines or Apache Airflow.
-
-Example of a generic pipeline that processes a Python script and three Jupyter notebooks:
+This Elyra release includes three generic components that allow for execution of Jupyter notebooks, Python scripts, and R scripts. 
 
 ![Generic pipeline](../images/user_guide/pipelines/generic-pipeline.png)
 
+Generic pipelines are portable, meaning they can run locally in JupyterLab, or remotely on Kubeflow Pipelines or Apache Airflow.
+
 #### Typed pipelines
 
-A typed pipeline is permanently associated with either Kubeflow Pipelines or Apache Airflow. A typed pipeline may include nodes that are implemented using generic components or custom components for that runtime.
+A typed pipeline is permanently associated with a runtime platform, such as Kubeflow Pipelines or Apache Airflow. A typed pipeline may include nodes that are implemented using generic components or custom components for that runtime.
 
 ![A Kubeflow Pipelines pipeline](../images/user_guide/pipelines/typed-pipeline.png)
 
