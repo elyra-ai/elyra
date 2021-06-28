@@ -78,7 +78,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     menu: IMainMenu,
     themeManager?: IThemeManager
   ) => {
-    console.log('Elyra - pipeline-editor2 extension is activated!');
+    console.log('Elyra - pipeline-editor extension is activated!');
 
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
