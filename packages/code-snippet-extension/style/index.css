@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@import url('~@elyra/metadata-common/style/index.css');
+
 .elyra-codeSnippet-drag-image {
   border: var(--jp-border-width) solid var(--jp-cell-editor-border-color);
   width: var(--jp-private-notebook-dragImage-width);

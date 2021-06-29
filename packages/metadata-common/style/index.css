@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@import url('~@elyra/ui-components/style/index.css');
+
 /* MetadataWidget CSS */
 .elyra-metadata {
   color: var(--jp-ui-font-color1);

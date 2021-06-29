@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@import url('~@elyra/ui-components/style/index.css');
+
 .elyra-ScriptEditor-OutputArea-error {
   background-color: var(--jp-rendermime-error-background);
 }
