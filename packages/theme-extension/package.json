@@ -61,7 +61,13 @@
   "publishConfig": {
     "access": "public"
   },
+  "sideEffects": [
+    "style/*.css",
+    "style/index.js"
+  ],
+  "styleModule": "style/index.js",
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "outputDir": "elyra_theme_extension/labextension"
   }
 }
