@@ -34,28 +34,35 @@ REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 UPGRADE_STRATEGY?=only-if-needed
 
-develop:
+.PHONY: setup
+setup:
 # Install package in development mode
 	pip install -e .
 # Link your development version of the extension with JupyterLab
 #	jupyter labextension develop . --overwrite
 # Server extension must be manually installed in develop mode
 	jupyter server extension enable elyra
+	
 	yarn lerna run build --stream
-	yarn lerna run watch --stream --parallel
+	yarn lerna exec "pip install -e ." --scope @elyra/*-extension
+	yarn lerna exec "jupyter labextension develop . --overwrite" --scope @elyra/*-extension
 
-
+.PHONY: develop
+develop:
+	yarn lerna run build --stream
+	
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 purge:
-	rm -rf build *.egg-info yarn-error.log
+	rm -rf build yarn-error.log
 	rm -rf node_modules lib dist
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
 	rm -rf $$(find packages -name dist -type d)
 	rm -rf $$(find packages -name lib -type d)
 	rm -rf $$(find . -name __pycache__ -type d)
+	rm -rf $$(find . -name *.egg-info)
 	rm -rf $$(find . -name *.tgz)
 	rm -rf $$(find . -name tsconfig.tsbuildinfo)
 	rm -rf $$(find . -name package-lock.json)

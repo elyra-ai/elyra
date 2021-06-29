@@ -80,37 +80,41 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     const { commands } = app;
     const model = new LauncherModel();
 
-    commands.addCommand(CommandIDs.create, {
-      label: 'New Launcher',
-      execute: (args: any) => {
-        const cwd = args['cwd'] ? String(args['cwd']) : '';
-        const id = `launcher-${Private.id++}`;
-        const callback = (item: Widget): void => {
-          labShell.add(item, 'main', { ref: id });
-        };
+    try {
+      commands.addCommand(CommandIDs.create, {
+        label: 'New Launcher',
+        execute: (args: any) => {
+          const cwd = args['cwd'] ? String(args['cwd']) : '';
+          const id = `launcher-${Private.id++}`;
+          const callback = (item: Widget): void => {
+            labShell.add(item, 'main', { ref: id });
+          };
 
-        const launcher = new Launcher({ model, cwd, callback, commands });
+          const launcher = new Launcher({ model, cwd, callback, commands });
 
-        launcher.model = model;
-        launcher.title.icon = launcherIcon;
-        launcher.title.label = 'Launcher';
+          launcher.model = model;
+          launcher.title.icon = launcherIcon;
+          launcher.title.label = 'Launcher';
 
-        const main = new MainAreaWidget({ content: launcher });
+          const main = new MainAreaWidget({ content: launcher });
 
-        // If there are any other widgets open, remove the launcher close icon.
-        main.title.closable = !!toArray(labShell.widgets('main')).length;
-        main.id = id;
+          // If there are any other widgets open, remove the launcher close icon.
+          main.title.closable = !!toArray(labShell.widgets('main')).length;
+          main.id = id;
 
-        labShell.add(main, 'main', { activate: args['activate'] as boolean });
+          labShell.add(main, 'main', { activate: args['activate'] as boolean });
 
-        labShell.layoutModified.connect(() => {
-          // If there is only a launcher open, remove the close icon.
-          main.title.closable = toArray(labShell.widgets('main')).length > 1;
-        }, main);
+          labShell.layoutModified.connect(() => {
+            // If there is only a launcher open, remove the close icon.
+            main.title.closable = toArray(labShell.widgets('main')).length > 1;
+          }, main);
 
-        return main;
-      }
-    });
+          return main;
+        }
+      });
+    } catch (e) {
+      console.log(e);
+    }
 
     if (palette) {
       palette.addItem({ command: CommandIDs.create, category: 'Launcher' });
