@@ -84,9 +84,9 @@ class ComponentRegistry(LoggingConfigurable):
         UrlComponentReader._type: UrlComponentReader()
     }
 
-    def __init__(self, _component_registry_location: str, parser: ComponentParser):
+    def __init__(self, component_registry_location: str, parser: ComponentParser):
         super().__init__()
-        self._component_registry_location = _component_registry_location
+        self._component_registry_location = component_registry_location
         self._parser = parser
         self.log.info(f'Creating new registry using {self.registry_location}')
 
@@ -247,3 +247,25 @@ class ComponentRegistry(LoggingConfigurable):
             return self.readers.get(component_type)
         except Exception:
             raise ValueError(f'Unsupported registry type {component_type}.')
+
+
+class CachedComponentRegistry(ComponentRegistry):
+    """
+    Cached component registry, builds on top of the vanilla component registry
+    adding a cache layer to optimize catalog reads.
+    """
+
+    _cache: List[Component] = None
+
+    def __init__(self, component_registry_location: str, parser: ComponentParser, cache_ttl: int = 60):
+        super().__init__(component_registry_location, parser)
+        self._cache_ttl = cache_ttl
+
+        # Initialize the cache
+        self.get_all_components()
+
+    def get_all_components(self) -> List[Component]:
+        if not self._cache:
+            self._cache = super().get_all_components()
+
+        return self._cache

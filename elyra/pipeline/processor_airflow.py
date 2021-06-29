@@ -33,7 +33,7 @@ from jinja2 import Environment, PackageLoader
 
 from .component import ComponentParser
 from .component_parser_airflow import AirflowComponentParser
-from .component_registry import ComponentRegistry
+from .component_registry import CachedComponentRegistry
 
 
 class AirflowPipelineProcessor(RuntimePipelineProcessor):
@@ -70,7 +70,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                                     f' for {self._type} processor')
 
         self._component_parser = AirflowComponentParser()
-        self._component_registry = ComponentRegistry(self.component_registry, self.component_parser)
+        self._component_registry = CachedComponentRegistry(self.component_registry, self.component_parser)
 
     def process(self, pipeline):
         t0_all = time.time()

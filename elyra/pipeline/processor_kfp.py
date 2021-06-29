@@ -41,7 +41,7 @@ from urllib3.exceptions import LocationValueError, MaxRetryError
 
 from .component import ComponentParser
 from .component_parser_kfp import KfpComponentParser
-from .component_registry import ComponentRegistry
+from .component_registry import CachedComponentRegistry
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
@@ -78,7 +78,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                     f' for {self._type} processor')
 
         self._component_parser = KfpComponentParser()
-        self._component_registry = ComponentRegistry(self.component_registry, self.component_parser)
+        self._component_registry = CachedComponentRegistry(self.component_registry, self.component_parser)
 
     def process(self, pipeline):
         """Runs a pipeline on Kubeflow Pipelines
