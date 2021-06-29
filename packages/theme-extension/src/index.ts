@@ -29,7 +29,6 @@ import { toArray } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
 
 import { Launcher } from './launcher';
-import '../style/index.css';
 
 const ELYRA_THEME_NAMESPACE = 'elyra-theme-extension';
 

@@ -53,6 +53,7 @@
     "react-dom": "^17.0.1"
   },
   "devDependencies": {
+    "@jupyterlab/builder": "^3.0.9",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "rimraf": "^3.0.2",

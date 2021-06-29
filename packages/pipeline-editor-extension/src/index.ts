@@ -49,8 +49,6 @@ import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
 
-import '../style/index.css';
-
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
 import { codeSnippetIcon } from '@elyra/ui-components';
 
 import {

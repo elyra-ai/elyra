@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
 import { Dialog } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
 

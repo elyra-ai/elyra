@@ -41,7 +41,8 @@ develop:
 #	jupyter labextension develop . --overwrite
 # Server extension must be manually installed in develop mode
 	jupyter server extension enable elyra
-	yarn lerna run watch --scope @elyra/pipeline-editor-extension --stream
+	yarn lerna run build --stream
+	yarn lerna run watch --stream --parallel
 
 
 help:

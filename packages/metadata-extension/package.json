@@ -42,6 +42,7 @@
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
+    "@jupyterlab/builder": "^3.0.9",
     "@elyra/metadata-common": "^2.3.0-dev",
     "@elyra/services": "^2.3.0-dev",
     "@jupyterlab/application": "^3.0.0",
