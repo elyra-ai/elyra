@@ -215,13 +215,5 @@ class Component(object):
 class ComponentParser(LoggingConfigurable):  # ABC
 
     @abstractmethod
-    def get_adjusted_component_id(self, component_id):
+    def parse(self, component_id, component_definition):
         raise NotImplementedError()
-
-    @abstractmethod
-    def parse(self, component_id, component_definition, properties):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def parse_properties(self, component_id, component_definition, location, source_type):
-        raise NotImplementedError
