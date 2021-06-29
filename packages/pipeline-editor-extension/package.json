@@ -11,10 +11,6 @@
   "bugs": {
     "url": "https://github.com/elyra-ai/elyra/issues"
   },
-  "author": {
-    "name": "elyra",
-    "email": ""
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/elyra-ai/elyra"
