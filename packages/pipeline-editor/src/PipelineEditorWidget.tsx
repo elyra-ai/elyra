@@ -932,11 +932,12 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
-  const isGenericNode = (op: string) => {
+  // TODO: use a node field to check if runtime field is specified
+  const isGenericNode = (nodeDef: any) => {
     return (
-      op === 'execute-notebook-node' ||
-      op === 'execute-python-node' ||
-      op === 'execute-r-node'
+      nodeDef.op === 'execute-notebook-node' ||
+      nodeDef.op === 'execute-python-node' ||
+      nodeDef.op === 'execute-r-node'
     );
   };
 
@@ -946,7 +947,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       image: IconUtil.encode(pipelineIcon),
       id: 'genericNodes',
       description: 'Nodes',
-      node_types: nodeDefs.filter((nodeDef: any) => isGenericNode(nodeDef.op))
+      node_types: nodeDefs.filter(isGenericNode)
     }
   ];
 
@@ -962,7 +963,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       ),
       id: `${pipelineRuntimeName}Nodes`,
       description: `${pipelineRuntimeDisplayName} Nodes`,
-      node_types: nodeDefs.filter((nodeDef: any) => !isGenericNode(nodeDef.op))
+      node_types: nodeDefs.filter((nodeDef: any) => !isGenericNode(nodeDef))
     });
   }
 
