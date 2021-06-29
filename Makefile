@@ -34,23 +34,13 @@ REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 UPGRADE_STRATEGY?=only-if-needed
 
-.PHONY: setup
-setup:
-# Install package in development mode
-	pip install -e .
-# Link your development version of the extension with JupyterLab
-#	jupyter labextension develop . --overwrite
-# Server extension must be manually installed in develop mode
-	jupyter server extension enable elyra
-	
-	yarn lerna run build --stream
-	yarn lerna exec "pip install -e ." --scope @elyra/*-extension
-	yarn lerna exec "jupyter labextension develop . --overwrite" --scope @elyra/*-extension
-
 .PHONY: develop
 develop:
+	pip install -e .
+	jupyter server extension enable elyra
 	yarn lerna run build --stream
-	
+	yarn lerna run install:extension
+
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
