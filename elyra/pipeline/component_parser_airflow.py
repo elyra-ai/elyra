@@ -26,13 +26,18 @@ class AirflowComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse(self, component_id, component_name, component_definition, properties):
+    def get_adjusted_component_id(self, component_id):
+        # Component ids are structure differently in Airflow to handle the case
+        # where there are multiple classes in one operator file. The id queried
+        # must be adjusted to match the id expected in the component catalog.
+        return component_id.replace("elyra_op_", "").split('_')[0]
+
+    def parse(self, component_id, component_definition, properties=None):
         components: List[Component] = list()
 
         # Adjust name to include operator and classname
         if component_id.startswith("elyra_op_"):
             component_op, component_class = component_id.replace("elyra_op_", "").split('_')
-
             components.append(Component(id=component_id,
                                         name=component_class,
                                         description='',
@@ -59,7 +64,7 @@ class AirflowComponentParser(ComponentParser):
         for line in component_definition.split('\n'):
             # Remove any inline comments (must follow the '2 preceding spaces and one following space'
             # rule). This avoids the case where the default value of an __init__ arg contains '#'.
-            line = re.sub(r"  # .*\n?", "", line)  # .decode("utf-8"))
+            line = re.sub(r"  # .*\n?", "", line)
             match = class_regex.search(line)
             if match:
                 class_name = match.group(1)

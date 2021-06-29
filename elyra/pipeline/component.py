@@ -212,28 +212,16 @@ class Component(object):
             return self._id
 
 
-def get_id_from_name(name):
-    """
-    Takes the lowercase name of a component_id and removes '-' and redundant spaces by splitting and
-    then rejoining on spaces. Spaces and underscores are finally replaced with '-'.
-    """
-    return ' '.join(name.lower().replace('-', '').split()).replace(' ', '-').replace('_', '-')
-
-
 class ComponentParser(LoggingConfigurable):  # ABC
 
     @abstractmethod
-    def parse(self, component_name, component_definition):
+    def get_adjusted_component_id(self, component_id):
         raise NotImplementedError()
 
     @abstractmethod
-    def parse_properties(self, component_definition, location, source_type):
-        raise NotImplementedError
+    def parse(self, component_id, component_definition, properties):
+        raise NotImplementedError()
 
-    def parse_component_details(self, component, component_name=None):
-        """Get component_id name, id, description for palette JSON"""
-        raise NotImplementedError
-
-    def parse_component_properties(self, component_body, component_path):
-        """Get component_id properties for properties JSON"""
+    @abstractmethod
+    def parse_properties(self, component_id, component_definition, location, source_type):
         raise NotImplementedError

@@ -48,14 +48,12 @@ class FilesystemComponentReader(ComponentReader):
     _type = 'filename'
 
     def read_component_definition(self, location: str, component: str) -> str:
-        component_location = os.path.join(os.path.dirname(__file__), location)
-
-        if not os.path.exists(component_location):
+        if not os.path.exists(location):
             self.log.error(f'Invalid location for component_id {component}: {location}')
             raise FileNotFoundError(f'Invalid location for component_id {component}: {location}')
 
-        with open(component_location, 'r') as f:
-            return f.readlines()
+        with open(location, 'r') as f:
+            return f.read()
 
 
 class UrlComponentReader(ComponentReader):
@@ -108,8 +106,18 @@ class ComponentRegistry(LoggingConfigurable):
         for component_id, component_entry in component_entries.items():
             self.log.debug(f"Component registry found component_id {component_entry.get('name')}")
 
+            # Get appropriate reader to read component_id definition
+            reader = self._get_reader(component_entry)
+
+            component_location = component_entry['location'][reader._type]
+            # Adjust location to dislay full path
+            if reader._type == "filename":
+                component_location = os.path.join(os.path.dirname(__file__), component_location)
+
+            component_definition = reader.read_component_definition(component_location, component_id)
+
             # Parse component_id details and add to list
-            component = self.get_component(component_id, component_entry, parse_properties=False)
+            component = self._parser.parse(component_id, component_definition)
             if component:
                 components.extend(component)
 
@@ -132,36 +140,27 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component_entry
 
-    def get_component(self, component_id, component_entry=None, parse_properties=True):
+    def get_component(self, component_id):
         """
         Return the properties JSON for a given component_id.
         """
-        # Find component_id with given id in component_id catalog
-        if not component_entry:
-            # Parse component_id to get subclass name for Airflow
-            if component_id.startswith("elyra_op_"):
-                id = component_id.replace("elyra_op_", "").split('_')[0]
-            else:
-                id = component_id
-
-            component_entry = self.get_component_catalog_entry(id)
+        # Read component catalog to get component with given id
+        adjusted_id = self._parser.get_adjusted_component_id(component_id)
+        component_entry = self.get_component_catalog_entry(adjusted_id)
 
         # Get appropriate reader to read component_id definition
         reader = self._get_reader(component_entry)
 
         component_location = component_entry['location'][reader._type]
-        # TODO test whether the below is necessary, add new component_id to catalog
-        # if reader._type == "filename":
-        #    component_location = os.path.join(os.path.dirname(__file__), component_location)
+        # Adjust location to dislay full path
+        if reader._type == "filename":
+            component_location = os.path.join(os.path.dirname(__file__), component_location)
 
         component_definition = reader.read_component_definition(component_location, component_id)
 
-        properties = None
-        if parse_properties:
-            properties = self._parser.parse_properties(component_id, component_definition,
-                                                       component_location, reader._type)
-        component = self._parser.parse(component_id, component_entry.get('name'),
-                                       component_definition, properties)
+        properties = self._parser.parse_properties(component_id, component_definition,
+                                                   component_location, reader._type)
+        component = self._parser.parse(component_id, component_definition, properties)
 
         return component
 
@@ -172,11 +171,11 @@ class ComponentRegistry(LoggingConfigurable):
                                         description="Notebook file",
                                         op="execute-notebook-node"),
                               Component(id="python-script",
-                                        name="Python Script",
+                                        name="Python",
                                         description="Python Script",
                                         op="execute-python-node"),
                               Component(id="r-script",
-                                        name="R Script",
+                                        name="R",
                                         description="R Script",
                                         op="execute-r-node")]
         return generic_components
