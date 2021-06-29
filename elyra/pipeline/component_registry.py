@@ -20,13 +20,13 @@ from jinja2 import Environment, PackageLoader
 import requests
 
 from abc import abstractmethod
-from traitlets.config import SingletonConfigurable, LoggingConfigurable
+from traitlets.config import LoggingConfigurable
 
 from elyra.pipeline.component import ComponentParser, Component
 from typing import List, Dict
 
 
-class ComponentReader(SingletonConfigurable):
+class ComponentReader(LoggingConfigurable):
     """
     Abstract class to model component readers that can read components from different locations
     """
