@@ -932,6 +932,40 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
+  const isGenericNode = (op: string) => {
+    return (
+      op === 'execute-notebook-node' ||
+      op === 'execute-python-node' ||
+      op === 'execute-r-node'
+    );
+  };
+
+  const categories = [
+    {
+      label: 'Generic Nodes',
+      image: IconUtil.encode(pipelineIcon),
+      id: 'genericNodes',
+      description: 'Nodes',
+      node_types: nodeDefs.filter((nodeDef: any) => isGenericNode(nodeDef.op))
+    }
+  ];
+
+  if (pipelineRuntimeDisplayName) {
+    categories.push({
+      label: `${pipelineRuntimeDisplayName} Nodes`,
+      image: IconUtil.encode(
+        pipelineRuntimeName === 'kfp'
+          ? kubeflowIcon
+          : pipelineRuntimeName === 'airflow'
+          ? airflowIcon
+          : pipelineIcon
+      ),
+      id: `${pipelineRuntimeName}Nodes`,
+      description: `${pipelineRuntimeDisplayName} Nodes`,
+      node_types: nodeDefs.filter((nodeDef: any) => !isGenericNode(nodeDef.op))
+    });
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -946,15 +980,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
-          palette={createPalette([
-            {
-              label: 'Generic Nodes',
-              image: IconUtil.encode(pipelineIcon),
-              id: 'nodes',
-              description: 'Nodes',
-              node_types: nodeDefs
-            }
-          ])}
+          palette={createPalette(categories)}
           pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
