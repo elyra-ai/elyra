@@ -22,7 +22,7 @@ import time
 
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from traitlets import log, Integer
+from traitlets import log, Bool, Integer
 from traitlets.config import SingletonConfigurable
 from typing import Any, Dict, List, Optional
 from watchdog.observers import Observer
@@ -57,6 +57,15 @@ class MetadataStore(ABC):
         pass
 
 
+def caching_enabled(func):
+    """Checks if file store cache is enabled.  If not, just return, else perform function."""
+    def wrapped(self, *args, **kwargs):
+        if not self.enabled:
+            return
+        return func(self, *args, **kwargs)
+    return wrapped
+
+
 class FileMetadataCache(SingletonConfigurable):
     """FileMetadataCache is used exclusively by FileMetadataStore to cache file-based metadata instances.
 
@@ -70,15 +79,20 @@ class FileMetadataCache(SingletonConfigurable):
     max_size = Integer(min=1, max=1024, default_value=128, config=True,
                        help="The maximum number of entries allowed in the cache.")
 
+    enabled = Bool(default_value=True, config=True,
+                   help="Caching is enabled (True) or disabled (False).")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._entries: OrderedDict = OrderedDict()
-        self.observer = Observer()
-        self.observer.start()
-        self.observed_dirs = set()  # Tracks which directories are being watched
+
         self.hits: int = 0
         self.misses: int = 0
         self.trims: int = 0
+        self._entries: OrderedDict = OrderedDict()
+        if self.enabled:  # Only create and start an observer when enabled
+            self.observed_dirs = set()  # Tracks which directories are being watched
+            self.observer = Observer()
+            self.observer.start()
 
     def __len__(self) -> int:
         """Return the number of running kernels."""
@@ -87,6 +101,7 @@ class FileMetadataCache(SingletonConfigurable):
     def __contains__(self, path: str) -> bool:
         return path in self._entries
 
+    @caching_enabled
     def add_item(self, path: str, entry: Dict[str, Any]) -> None:
         """Adds the named entry and its entry to the cache.
 
@@ -103,6 +118,7 @@ class FileMetadataCache(SingletonConfigurable):
             self.trims += 1
             self._entries.popitem(last=False)  # pop LRU entry
 
+    @caching_enabled
     def get_item(self, path: str) -> Optional[Dict[str, Any]]:
         """Gets the named entry and returns its value or None if not present."""
         if path in self._entries:
@@ -113,6 +129,7 @@ class FileMetadataCache(SingletonConfigurable):
         self.misses += 1
         return None
 
+    @caching_enabled
     def remove_item(self, path: str) -> Optional[Dict[str, Any]]:
         """Removes the named entry and returns its value or None if not present."""
         if path in self._entries:

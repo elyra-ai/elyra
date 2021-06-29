@@ -839,6 +839,42 @@ def test_cache_ops(tests_manager, namespace_location):
         assert cache.trims == 3
 
 
+def test_cache_disabled(tests_manager, namespace_location):
+    FileMetadataCache.clear_instance()
+
+    test_items = OrderedDict({'a': 3, 'b': 4, 'c': 5, 'd': 6, 'e': 7})
+    test_resources = {}
+    test_content = {}
+
+    # Setup test data
+    for name, number in test_items.items():
+        content = copy.deepcopy(valid_metadata_json)
+        content['display_name'] = name
+        content['metadata']['number_range_test'] = number
+        resource = create_instance(tests_manager.metadata_store, namespace_location, name, content)
+        test_resources[name] = resource
+        test_content[name] = content
+
+    # Add initial entries
+    cache = FileMetadataCache.instance(max_size=3, enabled=False)
+
+    assert hasattr(cache, 'observer') is False
+    assert hasattr(cache, 'observed_dirs') is False
+
+    for name in test_items:  # Add the items to the cache
+        cache.add_item(test_resources[name], test_content[name])
+
+    assert len(cache) == 0
+    assert cache.trims == 0
+    assert cache.get_item(test_resources.get('a')) is None
+    assert cache.get_item(test_resources.get('b')) is None
+    assert cache.get_item(test_resources.get('c')) is None
+    assert cache.get_item(test_resources.get('d')) is None
+    assert cache.get_item(test_resources.get('e')) is None
+    assert cache.misses == 0
+    assert cache.hits == 0
+
+
 def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, expected_count=1):
     """Because updates can trigger the copy of the original, this methods ensures that
        only the named instance (`name`) exists after the operation.  The expected_count
