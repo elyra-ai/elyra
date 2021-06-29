@@ -203,7 +203,7 @@ export class PipelineService {
     return RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
-      this.getWaitDialog('Packaging and submitting pipeline ...') as any
+      this.getWaitDialog('Packaging and submitting pipeline ...')
     ).then(response => {
       let dialogTitle;
       let dialogBody;
@@ -295,7 +295,7 @@ export class PipelineService {
     return RequestHandler.makePostRequest(
       'elyra/pipeline/export',
       JSON.stringify(body),
-      this.getWaitDialog('Generating pipeline artifacts ...') as any
+      this.getWaitDialog('Generating pipeline artifacts ...')
     ).then(response => {
       return showDialog({
         title: 'Pipeline export succeeded',
