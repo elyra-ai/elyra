@@ -145,6 +145,11 @@ class PipelineParser(LoggingConfigurable):
         if super_node:  # gather parent-links tied to embedded nodes inputs
             parent_operations.extend(PipelineParser._get_parent_operation_links(super_node, node_id))
 
+        node_op = node.get('op')
+        component_class = None
+        if node_op.startswith("elyra_op_"):
+            component_class = node_op.replace("elyra_op_", "").split('_')[-1]
+
         return Operation(
             id=node_id,
             type=node.get('type'),
@@ -163,7 +168,7 @@ class PipelineParser(LoggingConfigurable):
             parent_operations=parent_operations,
             component_source=PipelineParser._get_app_data_field(node, 'component_source'),
             component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type'),
-            component_class=PipelineParser._get_app_data_field(node, 'elyra_airflow_class_name'),
+            component_class=component_class,
             component_params=self._get_remaining_component_params(node))
 
     @staticmethod
@@ -259,18 +264,13 @@ class PipelineParser(LoggingConfigurable):
                     continue
                 # Do not include any of the standard set of parameters
                 if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
-                           "include_subdirectories", "ui_data", "component_source", "component_source_type",
-                           "elyra_airflow_class_name"]:
+                           "include_subdirectories", "ui_data", "component_source", "component_source_type"]:
                     continue
-                # For Airflow inputs, remove class name information from key
-                class_name = PipelineParser._get_app_data_field(node, 'elyra_airflow_class_name')
-                if class_name and not key.startswith(class_name.lower().replace(' ', '_')):
-                    # Skip if the class name does not match that selected
-                    continue
-                elif class_name and key.startswith(class_name.lower()):
-                    key = key.replace(class_name.lower() + "_", "")
+                # For Airflow inputs, remove runtime information from key
+                if key.startswith("elyra_airflow_"):
                     # TODO Add try/except clause here to catch user-entered incorrect values and
                     # display error
+                    key = key.replace("elyra_airflow_", "")
                     if "elyra_dict_" in key:
                         key = key.replace("elyra_dict_", "")
                         value = ast.literal_eval(value)
@@ -282,6 +282,7 @@ class PipelineParser(LoggingConfigurable):
                     # not appear as string instances
                     elif isinstance(value, str):
                         value = json.dumps(value)
+
                 # For KFP path inputs and outputs, grab the content in order to pass to contructor
                 if key.startswith("elyra_path_"):
                     key = key.replace("elyra_path_", "")

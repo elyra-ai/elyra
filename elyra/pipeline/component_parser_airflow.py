@@ -17,7 +17,7 @@ import ast
 import re
 from typing import List
 
-from elyra.pipeline.component import Component, ComponentProperty, ComponentParser, get_id_from_name
+from elyra.pipeline.component import Component, ComponentProperty, ComponentParser
 
 
 class AirflowComponentParser(ComponentParser):
@@ -26,27 +26,28 @@ class AirflowComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse(self, component_name, class_name, component_definition, properties):
-        component_name = component_name.replace(" ", "-").lower()
-        # Adjust name to include operator and classname
-        component = Component(id=f"elyra_op_{component_name}_{get_id_from_name(class_name)}",
-                              name=class_name,
-                              description='',
-                              runtime=self._type,
-                              properties=properties)
-        return component
-
-    def parse_all(self, component_name, component_definition, properties):
+    def parse(self, component_id, component_name, component_definition, properties):
         components: List[Component] = list()
-        component_name = component_name.replace(" ", "-").lower()
+
         # Adjust name to include operator and classname
-        classes = self.get_all_classes(component_definition).keys()
-        for class_name in classes:
-            components.append(Component(id=f"elyra_op_{component_name}_{get_id_from_name(class_name)}",
-                                        name=class_name,
+        if component_id.startswith("elyra_op_"):
+            component_op, component_class = component_id.replace("elyra_op_", "").split('_')
+
+            components.append(Component(id=component_id,
+                                        name=component_class,
                                         description='',
                                         runtime=self._type,
                                         properties=properties))
+
+        else:
+            component_classes = self.get_all_classes(component_definition)
+            for component_class in component_classes.keys():
+                components.append(Component(id=f"elyra_op_{component_id}_{component_class}",
+                                            name=component_class,
+                                            description='',
+                                            runtime=self._type,
+                                            properties=properties))
+
         return components
 
     def get_all_classes(self, component_definition):
@@ -71,43 +72,44 @@ class AirflowComponentParser(ComponentParser):
     def get_class_with_classname(self, classname, component_definition):
         classes = self.get_all_classes(component_definition)
 
-        if classname not in [x.lower() for x in classes.keys()]:
+        if classname not in classes.keys():
             raise ValueError("Not found")
 
         # Loop through classes to find init function for each class; grab init parameters as properties
         init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*\s\#.\\\/:?]*)\):")
         for class_name in classes:
-            if class_name.lower() != classname:
+            if class_name != classname:
                 continue
 
-            classname = class_name
             # Concatenate class body and search for __init__ function
             class_content = ''.join(classes[class_name]['content'])
             for match in init_regex.finditer(class_content):
                 # Get list of parameter:default-value pairs
-                classes[class_name]['args'].extend([x.strip() for x in match.group(1).split(',')])
+                classes[class_name]['args'] = [x.strip() for x in match.group(1).split(',')]
 
         return classes[classname]
 
-    def parse_properties(self, op_name, class_name, component_definition, location, source_type):
+    def parse_properties(self, component_id, component_definition, location, source_type):
         properties: List[ComponentProperty] = list()
 
-        operator_names = []
-        # For Airflow we need a property for path to component_id, component_id source type, and available operators
-        properties.extend(self.get_runtime_specific_properties("", location, source_type, operator_names))
+        component_op, component_class = component_id.replace("elyra_op_", "").split('_')
 
-        component_definition = self.get_class_with_classname(class_name, component_definition)
+        # For Airflow we need a property for path to component_id and component_id source type
+        properties.extend(self.get_runtime_specific_properties("", location, source_type))
+
+        component_definition = self.get_class_with_classname(component_class, component_definition)
         class_content = ''.join(component_definition.get('content'))
         for arg in component_definition.get('args'):
             # For each argument to the init function, build a new parameter and add to existing
             if arg in ['self', '*args', '**kwargs']:
                 continue
 
-            # TODO: Fix default values that wrap lines or consider omitting altogether.
             default_value = ""
             if '=' in arg:
                 arg, default_value = arg.split('=', 1)[:2]
                 default_value = ast.literal_eval(default_value)
+                if default_value and "\n" in str(default_value):
+                    default_value = default_value.replace("\n", " ")
 
             # Search for :param [param] in class doctring to get description
             description = ""
@@ -135,7 +137,7 @@ class AirflowComponentParser(ComponentParser):
                 elif "int" in match.group(1).strip():
                     name_adjust = "elyra_int_"
 
-            ref = f"elyra_op_{op_name}_elyra_class_{class_name}_{name_adjust}{arg}"
+            ref = f"elyra_airflow_{name_adjust}{arg}"
             properties.append(ComponentProperty(ref=ref,
                                                 name=arg,
                                                 type=type,
@@ -144,45 +146,30 @@ class AirflowComponentParser(ComponentParser):
                                                 control_id=control_id))
         return properties
 
-    def get_runtime_specific_properties(self, runtime_image, location, source_type, class_names):
+    def get_runtime_specific_properties(self, runtime_image, location, source_type):
         """
         Define properties that are common to the Airflow runtime.
         """
-        properties: List[ComponentProperty] = list()
-
-        classname_description = "List of operators available in the given operator specification file. \
-                                 Select the operator that you wish to execute from the drop down menu \
-                                 and include the appropriate parameter values below."
-
-        properties.extend([ComponentProperty(ref="runtime_image",
-                                             name="Runtime Image",
-                                             type="string",
-                                             value=runtime_image,
-                                             description="Docker image used as execution environment.",
-                                             control="custom",
-                                             control_id="EnumControl",
-                                             required=True),
-                          ComponentProperty(ref="component_source",
-                                            name="Path to Component",
-                                            type="string",
-                                            value=location,
-                                            description="The path to the component_id specification file.",
-                                            control="readonly",
-                                            required=True),
-                          ComponentProperty(ref="component_source_type",
-                                            name="Component Source Type",
-                                            type="string",
-                                            value=source_type,
-                                            description="",
-                                            control="readonly",
-                                            required=True),
-                          ComponentProperty(ref="elyra_airflow_class_name",
-                                            name="Available Operators",
-                                            type="string",
-                                            value="",
-                                            description=classname_description,
-                                            control="custom",
-                                            control_id="EnumControl",
-                                            items=class_names,
-                                            required=True)])
+        properties = [ComponentProperty(ref="runtime_image",
+                                        name="Runtime Image",
+                                        type="string",
+                                        value=runtime_image,
+                                        description="Docker image used as execution environment.",
+                                        control="custom",
+                                        control_id="EnumControl",
+                                        required=True),
+                      ComponentProperty(ref="component_source",
+                                        name="Path to Component",
+                                        type="string",
+                                        value=location,
+                                        description="The path to the component_id specification file.",
+                                        control="readonly",
+                                        required=True),
+                      ComponentProperty(ref="component_source_type",
+                                        name="Component Source Type",
+                                        type="string",
+                                        value=source_type,
+                                        description="",
+                                        control="readonly",
+                                        required=True)]
         return properties

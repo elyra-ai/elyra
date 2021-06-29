@@ -16,7 +16,7 @@
 import yaml
 from typing import List
 
-from elyra.pipeline.component import Component, ComponentProperty, ComponentParser, get_id_from_name
+from elyra.pipeline.component import Component, ComponentProperty, ComponentParser
 
 
 class KfpComponentParser(ComponentParser):
@@ -25,24 +25,22 @@ class KfpComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse_all(self, component_name, component_definition, properties=None):
-        return self.parse(component_name, component_definition, properties)
-
-    def parse(self, component_name, component_definition, properties):
+    def parse(self, component_id, component_name, component_definition, properties):
         component_yaml = self._read_component_yaml(component_definition)
 
         # TODO May have to adjust description if there are parsing issues
         description = ""
         if component_yaml.get('description'):
             description = ' '.join(component_yaml.get('description').split())
-        component = Component(id=get_id_from_name(component_yaml.get('name')),
+
+        component = Component(id=component_id,
                               name=component_yaml.get('name'),
                               description=description,
                               runtime=self._type,
                               properties=properties)
-        return component
+        return [component]
 
-    def parse_properties(self, component_definition, location, source_type):
+    def parse_properties(self, component_id, component_definition, location, source_type):
         component_yaml = self._read_component_yaml(component_definition)
         properties: List[ComponentProperty] = list()
 
@@ -92,29 +90,27 @@ class KfpComponentParser(ComponentParser):
         """
         Define properties that are common to the KFP runtime.
         """
-        properties: List[ComponentProperty] = list()
-
-        properties.extend([ComponentProperty(ref="runtime_image",
-                                             name="Runtime Image",
-                                             type="string",
-                                             value=runtime_image,
-                                             description="Docker image used as execution environment.",
-                                             control="readonly",
-                                             required=True),
-                          ComponentProperty(ref="component_source",
-                                            name="Path to Component",
-                                            type="string",
-                                            value=location,
-                                            description="The path to the component_id specification file.",
-                                            control="readonly",
-                                            required=True),
-                          ComponentProperty(ref="component_source_type",
-                                            name="Component Source Type",
-                                            type="string",
-                                            value=source_type,
-                                            description="",
-                                            control="readonly",
-                                            required=True)])
+        properties = [ComponentProperty(ref="runtime_image",
+                                        name="Runtime Image",
+                                        type="string",
+                                        value=runtime_image,
+                                        description="Docker image used as execution environment.",
+                                        control="readonly",
+                                        required=True),
+                      ComponentProperty(ref="component_source",
+                                        name="Path to Component",
+                                        type="string",
+                                        value=location,
+                                        description="The path to the component_id specification file.",
+                                        control="readonly",
+                                        required=True),
+                      ComponentProperty(ref="component_source_type",
+                                        name="Component Source Type",
+                                        type="string",
+                                        value=source_type,
+                                        description="",
+                                        control="readonly",
+                                        required=True)]
         return properties
 
     def _read_component_yaml(self, component_body):

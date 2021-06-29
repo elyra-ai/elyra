@@ -206,7 +206,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
 
         if component_id not in ('notebooks', 'python-script', 'r-script'):
-            return self._component_registry.get_component(component_id=component_id)
+            return self._component_registry.get_component(component_id=component_id)[0]
 
         return component_id
 
