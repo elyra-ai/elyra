@@ -96,7 +96,7 @@ def test_parse_airflow_bash_component_url():
     }
     registry_entry = SimpleNamespace(**entry)
     component = parser.parse(registry_entry)[0]
-    
+
     properties = ComponentRegistry.to_canvas_properties(component)
     properties_json = json.loads(properties)
 
