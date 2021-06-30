@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import ast
 import os
 import requests
 
@@ -60,20 +61,26 @@ class ComponentProperty(object):
         self._name = name
 
         # Set default value according to type
-        if type == 'str' or type.lower() == 'string':
+        type_lowered = type.lower()
+        if type_lowered in ['str', 'string']:
+            control_id = "StringControl"
             type = 'string'
             if not value:
                 value = ''
-        elif type == 'int' or type.lower() == 'integer':
+        elif type_lowered in ['int', 'integer', 'number']:
+            control_id = "NumberControl"
             if not value:
                 value = 0
-        elif type == 'bool' or type.lower() == 'boolean':
+        elif type_lowered in ['bool', 'boolean']:
+            control_id = "BooleanControl"
             if not value:
                 value = False
-        elif type == 'dict' or type.lower() == 'dictionary':
+            else:
+                value = ast.literal_eval(str(value))
+        elif type_lowered in ['dict', 'dictionary']:
             if not value:
                 value = ''
-        elif type.lower() == 'list':
+        elif type_lowered in ['list']:
             if not value:
                 value = ''
         else:
@@ -95,13 +102,6 @@ class ComponentProperty(object):
 
         self._description = description
         self._control = control
-
-        # Change control id based on type
-        if type.lower() in ["number", "integer", "int"]:
-            control_id = "NumberControl"
-        elif type.lower() in ["bool", "boolean"]:
-            control_id = "BooleanControl"
-
         self._control_id = control_id
         self._items = items
 

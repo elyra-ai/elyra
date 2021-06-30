@@ -14,28 +14,23 @@
 # limitations under the License.
 #
 import json
-import requests
-
-import jupyter_core.paths
 import os
 
+import jupyter_core.paths
+
+from elyra.pipeline.component import FilesystemComponentReader, UrlComponentReader
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.component_registry import ComponentRegistry
+from types import SimpleNamespace
 
 COMPONENT_CATALOG_DIRECORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
 
 
-def _read_component_resource(component_filename):
+def _get_resource_path(filename):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    resource_path = os.path.join(root, 'resources', 'components', component_filename)
+    resource_path = os.path.join(root, 'resources', 'components', filename)
 
-    with open(resource_path, 'rb') as f:
-        return f.read().decode()
-
-
-def _read_component_resource_from_url(component_url):
-    res = requests.get(component_url)
-    return res.text
+    return resource_path
 
 
 def test_component_registry_can_load_components_from_catalog():
@@ -48,74 +43,53 @@ def test_component_registry_can_load_components_from_catalog():
 
 
 def test_parse_kfp_component_file():
-    parser = KfpComponentParser()
-
-    test_filename = 'kfp_test_operator.yaml'
-    component_definition = _read_component_resource(test_filename)
-
-    # properties_obj = parser.parse_properties("elyra_op_test-operator_TestOperator",
-    #                                          component_definition, test_filename, "filename")
-    component = parser.parse("elyra_op_test-operator_TestOperator", component_definition)[0]
-    properties = ComponentRegistry.to_canvas_properties(component)
-
-    properties_json = json.loads(properties)
-
-    assert properties_json['current_parameters']['elyra_airflow_test_string_no_default'] == ''
-    assert properties_json['current_parameters']['elyra_airflow_test_bool_default'] is False
-    assert properties_json['current_parameters']['elyra_airflow_elyra_int_test_int_default'] == 0
-    assert properties_json['current_parameters']['elyra_airflow_elyra_dict_test_dict_default'] == ''  # {}
-    assert properties_json['current_parameters']['elyra_airflow_test_list_default'] == ''  # []
-
-    assert properties_json['current_parameters']['elyra_airflow_test_string_default_value'] == 'default'
-    assert properties_json['current_parameters']['elyra_airflow_test_string_default_empty'] == ''
-
-    assert properties_json['current_parameters']['elyra_airflow_test_bool_false'] is False
-    assert properties_json['current_parameters']['elyra_airflow_test_bool_true'] is True
-
-    assert properties_json['current_parameters']['elyra_airflow_elyra_int_test_int_zero'] == 0
-    assert properties_json['current_parameters']['elyra_airflow_elyra_int_test_int_non_zero'] == 1
-
-
-def test_parse_kfp_bash_component_url():
-    parser = KfpComponentParser()
-
-    test_url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'
-    test_filename = 'bash_operator.py'
-    kfp_component = _read_component_resource_from_url(test_url)
-
-    properties_obj = parser.parse_properties("elyra_op_bash-operator_BashOperator",
-                                             kfp_component, test_filename, "url")
-    component = parser.parse("elyra_op_bash-operator_BashOperator", kfp_component, properties_obj)[0]
-    properties = ComponentRegistry.to_canvas_properties(component)
-
-    properties_json = json.loads(properties)
-
-    assert properties_json['current_parameters']['elyra_airflow_bash_command'] == ''
-    assert properties_json['current_parameters']['elyra_airflow_xcom_push'] is False
-    assert properties_json['current_parameters']['elyra_airflow_elyra_dict_env'] == ''  # {}
-    assert properties_json['current_parameters']['elyra_airflow_output_encoding'] == 'utf-8'
-
-
-def test_parse_all_kfp_sample_components():
-    components = {
-        'Bash Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
-        'Email Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py',  # noqa: E501
-        'Spark JDBC Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_jdbc_operator.py',  # noqa: E501
-        'Spark Sql Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py',  # noqa: E501
-        'Spark Submit Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py',  # noqa: E501
+    entry = {
+        'id': 'elyra_op_test-operator_TestOperator',
+        'name': 'Test Operator',
+        'type': FilesystemComponentReader._type,
+        'location': _get_resource_path('kfp_test_operator.yaml'),
+        'adjusted_id': ''
     }
+    component_entry = SimpleNamespace(**entry)
+
     parser = KfpComponentParser()
+    component = parser.parse(component_entry)[0]
+    properties = ComponentRegistry.to_canvas_properties(component)
 
-    for component_file_name, component_url in components.items():
-        kfp_component = _read_component_resource_from_url(component_url)
+    properties_json = json.loads(properties)
 
-        op_name = component_file_name.replace(" ", "-").lower()
-        class_name = component_file_name.replace(" ", "")
+    assert properties_json['current_parameters']['test_string_no_default'] == ''
+    assert properties_json['current_parameters']['test_string_default_value'] == 'default'
+    assert properties_json['current_parameters']['test_string_default_empty'] == ''
 
-        properties_obj = parser.parse_properties(f"elyra_op_{op_name}_{class_name}",
-                                                 kfp_component, component_url, "url")
-        component = parser.parse(f"elyra_op_{op_name}_{class_name}", kfp_component, properties_obj)[0]
-        properties = ComponentRegistry.to_canvas_properties(component)
-        properties_json = json.loads(properties)
+    assert properties_json['current_parameters']['test_bool_default'] is False
+    assert properties_json['current_parameters']['test_bool_false'] is False
+    assert properties_json['current_parameters']['test_bool_true'] is True
 
-        assert len(properties_json['current_parameters']) > 0
+    assert properties_json['current_parameters']['test_int_default'] == 0
+    assert properties_json['current_parameters']['test_int_zero'] == 0
+    assert properties_json['current_parameters']['test_int_non_zero'] == 1
+
+    assert properties_json['current_parameters']['test_dict_default'] == ''  # {}
+    assert properties_json['current_parameters']['test_list_default'] == ''  # []
+
+
+def test_parse_kfp_component_url():
+    entry = {
+        'id': 'run-notebook-using-papermill',
+        'name': 'Run Notebook Using Papermill',
+        'type': UrlComponentReader._type,
+        'location': 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml',  # noqa: E501
+        'adjusted_id': ''
+    }
+    component_entry = SimpleNamespace(**entry)
+    parser = KfpComponentParser()
+    component = parser.parse(component_entry)[0]
+    properties = ComponentRegistry.to_canvas_properties(component)
+
+    properties_json = json.loads(properties)
+
+    assert properties_json['current_parameters']['elyra_path_notebook'] == ''
+    assert properties_json['current_parameters']['parameters'] == '{}'
+    assert properties_json['current_parameters']['packages_to_install'] == ''  # {}
+    assert properties_json['current_parameters']['input_data'] == ''

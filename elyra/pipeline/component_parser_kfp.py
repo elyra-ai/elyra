@@ -66,6 +66,11 @@ class KfpComponentParser(ComponentParser):
 
         # Then loop through and create custom properties
         for param in component_yaml.get('inputs'):
+            # Set description
+            description = ""
+            if "description" in param:
+                description = param.get('description')
+
             # Determine whether parameter is optional
             required = False
             if "optional" in param and not param.get('optional'):
@@ -76,18 +81,13 @@ class KfpComponentParser(ComponentParser):
             if "type" in param:
                 type = param.get('type')
 
-            # Set description
-            description = ""
-            if "description" in param:
-                description = param.get('description')
-
             # Change parameter_ref and description to reflect the type of input (inputValue vs inputPath)
             ref = self._get_adjusted_parameter_fields(component_body=component_yaml,
                                                       io_object_name=param.get('name'),
                                                       io_object_type="input",
                                                       parameter_ref=param.get('name').lower().replace(' ', '_'))
 
-            default_value = ""
+            default_value = ''
             if "default" in param:
                 default_value = param.get('default')
 
