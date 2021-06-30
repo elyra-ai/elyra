@@ -18,6 +18,7 @@ import jupyter_core.paths
 import json
 import os
 import re
+import ast
 import tempfile
 import time
 import requests
@@ -27,7 +28,7 @@ from datetime import datetime
 from elyra._version import __version__
 from elyra.metadata import MetadataManager
 from elyra.pipeline import RuntimePipelineProcessor, PipelineProcessor, PipelineProcessorResponse, Operation
-from elyra.util.path import get_absolute_path
+from elyra.util.path import get_absolute_path, get_expanded_path
 from jinja2 import Environment, PackageLoader
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
@@ -512,6 +513,28 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             else:
                 component_source = {}
                 component_source[operation.component_source_type] = operation.component_source
+
+                # Change value of variables according to their type. Path variables should include
+                # the contents of the specified file and dictionary values must be converted from strings.
+                component = self._component_registry.get_component(operation.classifier)
+                for property in component.properties:
+                    if property.ref in ['runtime_image', 'component_source', 'component_source_type']:
+                        continue
+                    if property.type == "file":
+                        # Get corresponding property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(property.ref)
+                        filename = get_absolute_path(get_expanded_path(self.root_dir), op_property)
+                        try:
+                            with open(filename) as f:
+                                operation.component_params[property.ref] = f.read()
+                        except Exception:
+                            # If file can't be found locally, assume a remote file location was entered.
+                            # This may cause the pipeline run to fail; the user must debug in this case.
+                            pass
+                    elif property.type in ['dict', 'dictionary']:
+                        # Get corresponding property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(property.ref)
+                        operation.component_params[property.ref] = ast.literal_eval(op_property)
 
                 # Build component_id task factory
                 try:

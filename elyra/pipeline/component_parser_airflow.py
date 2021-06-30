@@ -31,7 +31,7 @@ class AirflowComponentParser(ComponentParser):
         # Component ids are structure differently in Airflow to handle the case
         # where there are multiple classes in one operator file. The id queried
         # must be adjusted to match the id expected in the component_entry catalog.
-        return component_id.replace("elyra_op_", "").split('_')[0]
+        return component_id.split('_')[0]
 
     def parse(self, registry_entry: dict) -> List[Component]:
         components: List[Component] = list()
@@ -45,8 +45,8 @@ class AirflowComponentParser(ComponentParser):
 
         # If id is prepended with elyra_op_, only parse for the class specified in the id.
         # Else, parse the component definition for all classes
-        if registry_entry.adjusted_id.startswith("elyra_op_"):
-            component_class = registry_entry.adjusted_id.replace("elyra_op_", "").split('_')[-1]
+        if registry_entry.adjusted_id:
+            component_class = registry_entry.adjusted_id.split('_')[-1]
             component_properties = self._parse_properties(registry_entry, component_definition,
                                                           component_class)
             components.append(Component(id=registry_entry.adjusted_id,
@@ -59,7 +59,7 @@ class AirflowComponentParser(ComponentParser):
             for component_class in component_classes.keys():
                 component_properties = self._parse_properties(registry_entry, component_definition,
                                                               component_class)
-                components.append(Component(id=f"elyra_op_{registry_entry.id}_{component_class}",
+                components.append(Component(id=f"{registry_entry.id}_{component_class}",
                                             name=component_class,
                                             description='',
                                             runtime=self._type,
@@ -138,20 +138,14 @@ class AirflowComponentParser(ComponentParser):
             # Set default type to string
             type = "string"
             control_id = "StringControl"
-            name_adjust = ""
 
             # Search for :type [param] information in class docstring
             type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''))")
             match = type_regex.search(class_content)
             if match:
                 type = match.group(1).strip()
-                if "dict" in match.group(1).strip():
-                    name_adjust = "elyra_dict_"
-                elif "int" in match.group(1).strip():
-                    name_adjust = "elyra_int_"
 
-            ref = f"elyra_airflow_{name_adjust}{arg}"
-            properties.append(ComponentProperty(ref=ref,
+            properties.append(ComponentProperty(ref=arg,
                                                 name=arg,
                                                 type=type,
                                                 value=default_value,

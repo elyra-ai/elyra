@@ -18,6 +18,7 @@ import jupyter_core.paths
 import json
 import os
 import re
+import ast
 import tempfile
 import time
 
@@ -243,6 +244,25 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                                                           operation)
 
             else:
+                # Change value of variables according to their type. String variables must include
+                # quotation marks in order to render properly in the jinja template and dictionary
+                # values must be converted from strings.
+                component = self._component_registry.get_component(operation.classifier)
+                for property in component.properties:
+                    if property.ref in ['runtime_image', 'component_source', 'component_source_type']:
+                        continue
+                    if property.type == "string":
+                        # Get corresponding property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(property.ref)
+                        operation.component_params[property.ref] = json.dumps(op_property)
+                    elif property.type in ['dict', 'dictionary']:
+                        # Get corresponding property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(property.ref)
+                        operation.component_params[property.ref] = ast.literal_eval(op_property)
+
+                # Get component class from operation name
+                component_class = operation.classifier.split('_')[-1]
+
                 # TODO Change this name
                 notebook = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
                             'id': operation.id,
@@ -252,7 +272,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                             'component_source': operation.component_source,
                             'component_source_type': operation.component_source_type,
                             'component_params': operation.component_params,
-                            'name': operation.component_class,
+                            'name': component_class,
                             }
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
                                             'spark-sql-operator', 'ssh-operator']:

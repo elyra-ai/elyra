@@ -147,7 +147,7 @@ class ComponentRegistry(LoggingConfigurable):
                         "name": component_entry["name"],
                         "type": component_type,
                         "location": component_entry["location"][component_type],
-                        "adjusted_id": ""
+                        "adjusted_id": None
                     }
                     component_entries.append(SimpleNamespace(**entry))
 
@@ -191,3 +191,10 @@ class CachedComponentRegistry(ComponentRegistry):
             self._cache = super().get_all_components()
 
         return self._cache
+
+    def get_component(self, component_id: str) -> List[Component]:
+        if not self._cache:
+            self._cache = super().get_all_components()
+
+        cached_component = next((component for component in self._cache if component.id == component_id), None)
+        return cached_component

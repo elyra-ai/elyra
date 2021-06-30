@@ -83,6 +83,9 @@ class ComponentProperty(object):
         elif type_lowered in ['list']:
             if not value:
                 value = ''
+        elif type_lowered in ['file']:
+            if not value:
+                value = ''
         else:
             type = 'string'
             if not value:

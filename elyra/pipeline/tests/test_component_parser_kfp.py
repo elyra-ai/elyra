@@ -89,7 +89,7 @@ def test_parse_kfp_component_url():
 
     properties_json = json.loads(properties)
 
-    assert properties_json['current_parameters']['elyra_path_notebook'] == ''
+    assert properties_json['current_parameters']['notebook'] == ''
     assert properties_json['current_parameters']['parameters'] == '{}'
     assert properties_json['current_parameters']['packages_to_install'] == ''  # {}
     assert properties_json['current_parameters']['input_data'] == ''

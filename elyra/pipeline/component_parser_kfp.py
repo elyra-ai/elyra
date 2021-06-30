@@ -81,16 +81,17 @@ class KfpComponentParser(ComponentParser):
             if "type" in param:
                 type = param.get('type')
 
-            # Change parameter_ref and description to reflect the type of input (inputValue vs inputPath)
-            ref = self._get_adjusted_parameter_fields(component_body=component_yaml,
-                                                      io_object_name=param.get('name'),
-                                                      io_object_type="input",
-                                                      parameter_ref=param.get('name').lower().replace(' ', '_'))
+            # Change type to reflect the type of input (inputValue vs inputPath)
+            type = self._get_adjusted_parameter_fields(component_body=component_yaml,
+                                                       io_object_name=param.get('name'),
+                                                       io_object_type="input",
+                                                       parameter_type=type)
 
             default_value = ''
             if "default" in param:
                 default_value = param.get('default')
 
+            ref = param.get('name').lower().replace(' ', '_')
             properties.append(ComponentProperty(ref=ref,
                                                 name=param.get('name'),
                                                 type=type,
@@ -143,21 +144,21 @@ class KfpComponentParser(ComponentParser):
                                        component_body,
                                        io_object_name,
                                        io_object_type,
-                                       parameter_ref):
+                                       parameter_type):
         """
         Change the parameter ref according if it is a KFP path parameter (as opposed to a value parameter)
         """
-        ref = parameter_ref
+        type = parameter_type
         if "implementation" in component_body and "container" in component_body['implementation']:
             if "command" in component_body['implementation']['container']:
                 for command in component_body['implementation']['container']['command']:
                     if isinstance(command, dict) and list(command.values())[0] == io_object_name and \
                             list(command.keys())[0] == f"{io_object_type}Path":
-                        ref = f"elyra_path_{parameter_ref}"
+                        type = "file"
             if "args" in component_body['implementation']['container']:
                 for arg in component_body['implementation']['container']['args']:
                     if isinstance(arg, dict) and list(arg.values())[0] == io_object_name and \
                             list(arg.keys())[0] == f"{io_object_type}Path":
-                        ref = f"elyra_path_{parameter_ref}"
+                        type = "file"
 
-        return ref
+        return type

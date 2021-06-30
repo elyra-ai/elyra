@@ -44,7 +44,7 @@ def test_component_registry_can_load_components_from_catalog():
 
 def test_parse_airflow_component_file():
     entry = {
-        'id': 'elyra_op_test-operator_TestOperator',
+        'id': 'test-operator_TestOperator',
         'name': 'Test Operator',
         'type': FilesystemComponentReader._type,
         'location': _get_resource_path('airflow_test_operator.py'),
@@ -58,25 +58,25 @@ def test_parse_airflow_component_file():
 
     properties_json = json.loads(properties)
 
-    assert properties_json['current_parameters']['elyra_airflow_test_string_no_default'] == ''
-    assert properties_json['current_parameters']['elyra_airflow_test_bool_default'] is False
-    assert properties_json['current_parameters']['elyra_airflow_elyra_int_test_int_default'] == 0
-    assert properties_json['current_parameters']['elyra_airflow_elyra_dict_test_dict_default'] == ''  # {}
-    assert properties_json['current_parameters']['elyra_airflow_test_list_default'] == ''  # []
+    assert properties_json['current_parameters']['test_string_no_default'] == ''
+    assert properties_json['current_parameters']['test_bool_default'] is False
+    assert properties_json['current_parameters']['test_int_default'] == 0
+    assert properties_json['current_parameters']['test_dict_default'] == ''  # {}
+    assert properties_json['current_parameters']['test_list_default'] == ''  # []
 
-    assert properties_json['current_parameters']['elyra_airflow_test_string_default_value'] == 'default'
-    assert properties_json['current_parameters']['elyra_airflow_test_string_default_empty'] == ''
+    assert properties_json['current_parameters']['test_string_default_value'] == 'default'
+    assert properties_json['current_parameters']['test_string_default_empty'] == ''
 
-    assert properties_json['current_parameters']['elyra_airflow_test_bool_false'] is False
-    assert properties_json['current_parameters']['elyra_airflow_test_bool_true'] is True
+    assert properties_json['current_parameters']['test_bool_false'] is False
+    assert properties_json['current_parameters']['test_bool_true'] is True
 
-    assert properties_json['current_parameters']['elyra_airflow_elyra_int_test_int_zero'] == 0
-    assert properties_json['current_parameters']['elyra_airflow_elyra_int_test_int_non_zero'] == 1
+    assert properties_json['current_parameters']['test_int_zero'] == 0
+    assert properties_json['current_parameters']['test_int_non_zero'] == 1
 
 
 def test_parse_airflow_component_url():
     entry = {
-        'id': 'elyra_op_bash-operator_BashOperator',
+        'id': 'bash-operator_BashOperator',
         'name': 'Bash Operator',
         'type': UrlComponentReader._type,
         'location': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
@@ -90,7 +90,7 @@ def test_parse_airflow_component_url():
 
     properties_json = json.loads(properties)
 
-    assert properties_json['current_parameters']['elyra_airflow_bash_command'] == ''
-    assert properties_json['current_parameters']['elyra_airflow_xcom_push'] is False
-    assert properties_json['current_parameters']['elyra_airflow_elyra_dict_env'] == ''  # {}
-    assert properties_json['current_parameters']['elyra_airflow_output_encoding'] == 'utf-8'
+    assert properties_json['current_parameters']['bash_command'] == ''
+    assert properties_json['current_parameters']['xcom_push'] is False
+    assert properties_json['current_parameters']['env'] == ''  # {}
+    assert properties_json['current_parameters']['output_encoding'] == 'utf-8'
