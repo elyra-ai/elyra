@@ -1,7 +1,13 @@
 {
     "current_parameters": {
 {% for property in properties %}
+      {% if property.type == "bool" or property.type|lower == "boolean" %}
+      "{{ property.ref }}": {{ property.value|lower }}
+      {% elif property.type == "int" or property.type|lower == "integer" %}
+      "{{ property.ref }}": {{ property.value }}
+      {% else %}
       "{{ property.ref }}": "{{ property.value }}"
+      {% endif %}
       {% if loop.index != properties|length %}
       ,
       {% endif %}

@@ -57,6 +57,7 @@ class ComponentProperty(object):
 
         # Set default value according to type
         if type == 'str' or type.lower() == 'string':
+            type = 'string'
             if not value:
                 value = ''
         elif type == 'int' or type.lower() == 'integer':
@@ -72,8 +73,9 @@ class ComponentProperty(object):
             if not value:
                 value = ''
         else:
-            type = "string"
-            value = ''
+            type = 'string'
+            if not value:
+                value = ''
 
         self._type = type
         self._value = value

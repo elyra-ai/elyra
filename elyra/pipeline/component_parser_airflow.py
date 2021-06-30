@@ -78,7 +78,7 @@ class AirflowComponentParser(ComponentParser):
         classes = self.get_all_classes(component_definition)
 
         if classname not in classes.keys():
-            raise ValueError("Not found")
+            raise ValueError(f"Component with class name {classname} not found")
 
         # Loop through classes to find init function for each class; grab init parameters as properties
         init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*\s\#.\\\/:?]*)\):")
@@ -109,7 +109,7 @@ class AirflowComponentParser(ComponentParser):
             if arg in ['self', '*args', '**kwargs']:
                 continue
 
-            default_value = ""
+            default_value = None
             if '=' in arg:
                 arg, default_value = arg.split('=', 1)[:2]
                 default_value = ast.literal_eval(default_value)
@@ -135,8 +135,7 @@ class AirflowComponentParser(ComponentParser):
             if match:
                 # TODO: Determine where this field is used -- does it need to be set?
                 # TODO: Add some more robust type-checking here
-                if "str" not in match.group(1).strip():
-                    type = match.group(1).strip()
+                type = match.group(1).strip()
                 if "dict" in match.group(1).strip():
                     name_adjust = "elyra_dict_"
                 elif "int" in match.group(1).strip():
