@@ -14,75 +14,21 @@
 # limitations under the License.
 #
 import json
-from http import HTTPStatus
-import os
 from jinja2 import Environment, PackageLoader
-import requests
 
-from abc import abstractmethod
 from traitlets.config import LoggingConfigurable
 
 from elyra.pipeline.component import ComponentParser, Component
+from types import SimpleNamespace
 from typing import List, Dict
-
-
-class ComponentReader(LoggingConfigurable):
-    """
-    Abstract class to model component readers that can read components from different locations
-    """
-    _type: str = None
-
-    @property
-    def type(self):
-        return self._type
-
-    @abstractmethod
-    def read_component_definition(self, location: str, component: str) -> str:
-        raise NotImplementedError()
-
-
-class FilesystemComponentReader(ComponentReader):
-    """
-    Read a component_id definition from the local filesystem
-    """
-    _type = 'filename'
-
-    def read_component_definition(self, location: str, component: str) -> str:
-        if not os.path.exists(location):
-            self.log.error(f'Invalid location for component_id {component}: {location}')
-            raise FileNotFoundError(f'Invalid location for component_id {component}: {location}')
-
-        with open(location, 'r') as f:
-            return f.read()
-
-
-class UrlComponentReader(ComponentReader):
-    """
-    Read a component_id definition from a url
-    """
-    _type = 'url'
-
-    def read_component_definition(self, location: str, component: str) -> str:
-        res = requests.get(location)
-        if res.status_code != HTTPStatus.OK:
-            self.log.error(f'Invalid location for component_id {component}: {location}')
-            raise FileNotFoundError(f'Invalid location for component_id {component}: {location}')
-
-        return res.text
 
 
 class ComponentRegistry(LoggingConfigurable):
     """
     Component Registry, responsible to provide a list of available components
-    for each runtime. The registry uses component_id readers to read the component_id
-    from the different locations and component_id parser to process the raw components
-    and transform them into a component_id value object.
+    for each runtime. The registry uses component parser to read and parse each
+    component entry from the catalog and transform them into a component value object.
     """
-
-    readers = {
-        FilesystemComponentReader._type: FilesystemComponentReader(),
-        UrlComponentReader._type: UrlComponentReader()
-    }
 
     def __init__(self, component_registry_location: str, parser: ComponentParser):
         super().__init__()
@@ -103,64 +49,24 @@ class ComponentRegistry(LoggingConfigurable):
         # Read component_id catalog to get JSON
         component_entries = self._read_component_registry()
 
-        for component_id, component_entry in component_entries.items():
-            self.log.debug(f"Component registry found component_id {component_entry.get('name')}")
-
-            # Get appropriate reader to read component_id definition
-            reader = self._get_reader(component_entry)
-
-            component_location = component_entry['location'][reader._type]
-            # Adjust location to dislay full path
-            if reader._type == "filename":
-                component_location = os.path.join(os.path.dirname(__file__), component_location)
-
-            component_definition = reader.read_component_definition(component_location, component_id)
-
+        for component_entry in component_entries:
             # Parse component_id details and add to list
-            component = self._parser.parse(component_id, component_definition)
+            component = self._parser.parse(component_entry)
             if component:
                 components.extend(component)
 
         return components
 
-    def get_component_catalog_entry(self, component_id):
-        """
-        Get the body of the component_id catalog entry with the given id
-        """
-        # Read component_id catalog to get JSON
-        component_entries = self._read_component_registry()
-
-        # Find entry with the appropriate id, if exists
-        component_entry = next((entry for id, entry in component_entries.items() if component_id == id), None)
-        if not component_entry:
-            self.log.error(f"Component with ID '{component_id}' could not be found in the " +
-                           f"{self._component_registry_location} component_id catalog.")
-            raise ValueError(f"Component with ID '{component_id}' could not be found in the " +
-                             f"{self._component_registry_location} component_id catalog.")
-
-        return component_entry
-
     def get_component(self, component_id):
         """
         Return the properties JSON for a given component_id.
         """
-        # Read component catalog to get component with given id
+        # Read component_entry catalog to get component_entry with given id
         adjusted_id = self._parser.get_adjusted_component_id(component_id)
-        component_entry = self.get_component_catalog_entry(adjusted_id)
+        component_entry = self._get_component_registry_entry(adjusted_id)
 
         # Get appropriate reader to read component_id definition
-        reader = self._get_reader(component_entry)
-
-        component_location = component_entry['location'][reader._type]
-        # Adjust location to dislay full path
-        if reader._type == "filename":
-            component_location = os.path.join(os.path.dirname(__file__), component_location)
-
-        component_definition = reader.read_component_definition(component_location, component_id)
-
-        properties = self._parser.parse_properties(component_id, component_definition,
-                                                   component_location, reader._type)
-        component = self._parser.parse(component_id, component_definition, properties)
+        component = self._parser.parse(component_entry)
 
         return component
 
@@ -226,32 +132,45 @@ class ComponentRegistry(LoggingConfigurable):
         Read a component_id catalog and return its component_id definitions.
         """
 
+        component_entries: list = list()
         with open(self._component_registry_location, 'r') as catalog_file:
             catalog_json = json.load(catalog_file)
+            if 'components' in catalog_json.keys():
+                for component_id, component_entry in catalog_json['components'].items():
+                    self.log.debug(f"Component registry: processing component {component_entry.get('name')}")
 
-        if 'components' in catalog_json.keys():
-            return catalog_json['components']
-        else:
-            return dict()
+                    component_type = next(iter(component_entry.get('location')))
+                    entry = {
+                        "id": component_id,
+                        "name": component_entry["name"],
+                        "type": component_type,
+                        "location": component_entry["location"][component_type],
+                    }
+                    component_entries.append(SimpleNamespace(**entry))
 
-    def _get_reader(self, component):
+        return component_entries
+
+    def _get_component_registry_entry(self, component_id):
         """
-        Find the proper reader based on the given registry component_id.
+        Get the body of the component_id catalog entry with the given id
         """
-        if not component:
-            raise ValueError("Invalid null component_id")
+        # Read component_id catalog to get JSON
+        component_entries = self._read_component_registry()
 
-        try:
-            # Get first (and only) key of 'location' subdictionary
-            component_type = next(iter(component.get('location')))
-            return self.readers.get(component_type)
-        except Exception:
-            raise ValueError(f'Unsupported registry type {component_type}.')
+        # Find entry with the appropriate id, if exists
+        component_entry = next((entry for id, entry in component_entries.items() if component_id == id), None)
+        if not component_entry:
+            self.log.error(f"Component with ID '{component_id}' could not be found in the " +
+                           f"{self._component_registry_location} component_id catalog.")
+            raise ValueError(f"Component with ID '{component_id}' could not be found in the " +
+                             f"{self._component_registry_location} component_id catalog.")
+
+        return component_entry
 
 
 class CachedComponentRegistry(ComponentRegistry):
     """
-    Cached component registry, builds on top of the vanilla component registry
+    Cached component_entry registry, builds on top of the vanilla component_entry registry
     adding a cache layer to optimize catalog reads.
     """
 

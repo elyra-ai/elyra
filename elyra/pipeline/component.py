@@ -13,7 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+import requests
+
 from abc import abstractmethod
+from http import HTTPStatus
 from traitlets.config import LoggingConfigurable
 from typing import List, Optional
 
@@ -214,8 +218,69 @@ class Component(object):
             return self._id
 
 
-class ComponentParser(LoggingConfigurable):  # ABC
+class ComponentReader(LoggingConfigurable):
+    """
+    Abstract class to model component_entry readers that can read components from different locations
+    """
+    _type: str = None
+
+    @property
+    def type(self):
+        return self._type
 
     @abstractmethod
-    def parse(self, component_id, component_definition):
+    def read_component_definition(self, component_id: str, location: str) -> str:
         raise NotImplementedError()
+
+
+class FilesystemComponentReader(ComponentReader):
+    """
+    Read a component_id definition from the local filesystem
+    """
+    _type = 'filename'
+
+    def read_component_definition(self, component_id: str, location: str) -> str:
+        if not os.path.exists(location):
+            self.log.error(f'Invalid location for component_id {component_id}: {location}')
+            raise FileNotFoundError(f'Invalid location for component_id {component_id}: {location}')
+
+        with open(location, 'r') as f:
+            return f.read()
+
+
+class UrlComponentReader(ComponentReader):
+    """
+    Read a component_id definition from a url
+    """
+    _type = 'url'
+
+    def read_component_definition(self, component_id: str, location: str) -> str:
+        res = requests.get(location)
+        if res.status_code != HTTPStatus.OK:
+            self.log.error(f'Invalid location for component_id {component_id}: {location}')
+            raise FileNotFoundError(f'Invalid location for component_id {component_id}: {location}')
+
+        return res.text
+
+
+class ComponentParser(LoggingConfigurable):  # ABC
+    readers = {
+        FilesystemComponentReader._type: FilesystemComponentReader(),
+        UrlComponentReader._type: UrlComponentReader()
+    }
+
+    @abstractmethod
+    def parse(self, registry_entry: dict) -> List[Component]:
+        raise NotImplementedError()
+
+    def _get_reader(self, component_entry):
+        """
+        Find the proper reader based on the given registry component_id.
+        """
+        if not component_entry:
+            raise ValueError("Invalid null component_id")
+
+        try:
+            return self.readers.get(component_entry.type)
+        except Exception:
+            raise ValueError(f'Unsupported registry type {component_entry.type}.')

@@ -158,9 +158,10 @@ class PipelineProcessorResponse(ABC):
 class PipelineProcessor(LoggingConfigurable):  # ABC
 
     _type: str = None
+    _component_registry_location: str = None
+
     _component_parser: ComponentParser = None
     _component_registry: ComponentRegistry = None
-    _component_registry_location: str = None
 
     root_dir = Unicode(allow_none=True)
 

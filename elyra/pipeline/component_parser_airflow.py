@@ -29,33 +29,36 @@ class AirflowComponentParser(ComponentParser):
     def get_adjusted_component_id(self, component_id):
         # Component ids are structure differently in Airflow to handle the case
         # where there are multiple classes in one operator file. The id queried
-        # must be adjusted to match the id expected in the component catalog.
+        # must be adjusted to match the id expected in the component_entry catalog.
         return component_id.replace("elyra_op_", "").split('_')[0]
 
-    def parse(self, component_id, component_definition, properties=None):
+    def parse(self, registry_entry: dict) -> List[Component]:
         components: List[Component] = list()
 
+        component_definition = self._read_component_definition(registry_entry)
+        component_properties = self._parse_properties(registry_entry, component_definition)
+
         # Adjust name to include operator and classname
-        if component_id.startswith("elyra_op_"):
-            component_op, component_class = component_id.replace("elyra_op_", "").split('_')
-            components.append(Component(id=component_id,
+        if registry_entry.id.startswith("elyra_op_"):
+            component_op, component_class = registry_entry.id.replace("elyra_op_", "").split('_')
+            components.append(Component(id=registry_entry.id,
                                         name=component_class,
                                         description='',
                                         runtime=self._type,
-                                        properties=properties))
+                                        properties=component_properties))
 
         else:
-            component_classes = self.get_all_classes(component_definition)
+            component_classes = self._get_all_classes(registry_entry, component_definition)
             for component_class in component_classes.keys():
-                components.append(Component(id=f"elyra_op_{component_id}_{component_class}",
+                components.append(Component(id=f"elyra_op_{registry_entry.id}_{component_class}",
                                             name=component_class,
                                             description='',
                                             runtime=self._type,
-                                            properties=properties))
+                                            properties=component_properties))
 
         return components
 
-    def get_all_classes(self, component_definition):
+    def _get_all_classes(self, registry_entry, component_definition):
         # Organize lines according to the class to which they belong
         classes = {}
         class_name = "no_class"
@@ -74,7 +77,7 @@ class AirflowComponentParser(ComponentParser):
         classes.pop("no_class")
         return classes
 
-    def get_class_with_classname(self, classname, component_definition):
+    def _get_class_with_classname(self, classname, component_definition):
         classes = self.get_all_classes(component_definition)
 
         if classname not in classes.keys():
@@ -94,15 +97,16 @@ class AirflowComponentParser(ComponentParser):
 
         return classes[classname]
 
-    def parse_properties(self, component_id, component_definition, location, source_type):
+    def _parse_properties(self, registry_entry, component_definition):
         properties: List[ComponentProperty] = list()
 
-        component_op, component_class = component_id.replace("elyra_op_", "").split('_')
+        component_op, component_class = registry_entry.id.replace("elyra_op_", "").split('_')
 
         # For Airflow we need a property for path to component_id and component_id source type
-        properties.extend(self.get_runtime_specific_properties("", location, source_type))
+        properties.extend(
+            self.get_runtime_specific_properties("", registry_entry.location, registry_entry.type))
 
-        component_definition = self.get_class_with_classname(component_class, component_definition)
+        component_definition = self._get_class_with_classname(component_class, component_definition)
         class_content = ''.join(component_definition.get('content'))
         for arg in component_definition.get('args'):
             # For each argument to the init function, build a new parameter and add to existing
@@ -129,7 +133,7 @@ class AirflowComponentParser(ComponentParser):
             name_adjust = ""
 
             # Search for :type [param] information in class docstring
-            # TODO Move the below into a get_adjusted_parameter_fields() function (see KFP)
+            # TODO Move the below into a _get_adjusted_parameter_fields() function (see KFP)
             type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''))")
             match = type_regex.search(class_content)
             if match:
@@ -177,3 +181,13 @@ class AirflowComponentParser(ComponentParser):
                                         control="readonly",
                                         required=True)]
         return properties
+
+    def _read_component_definition(self, registry_entry):
+        """
+
+        """
+        reader = self._get_reader(registry_entry)
+        component_definition = \
+            reader.read_component_definition(registry_entry.id, registry_entry.location)
+
+        return component_definition

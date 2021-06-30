@@ -19,7 +19,7 @@ import requests
 import jupyter_core.paths
 import os
 
-from elyra.pipeline.component_parser_airflow import AirflowComponentParser
+from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.component_registry import ComponentRegistry
 
 COMPONENT_CATALOG_DIRECORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
@@ -39,24 +39,23 @@ def _read_component_resource_from_url(component_url):
 
 
 def test_component_registry_can_load_components_from_catalog():
-    component_catalog = os.path.join(COMPONENT_CATALOG_DIRECORY, 'airflow_component_catalog.json')
-    component_parser = AirflowComponentParser()
+    component_catalog = os.path.join(COMPONENT_CATALOG_DIRECORY, 'kfp_component_catalog.json')
+    component_parser = KfpComponentParser()
     component_registry = ComponentRegistry(component_catalog, component_parser)
 
     components = component_registry.get_all_components()
-    print(json.dumps(ComponentRegistry.to_canvas_palette(components), indent=2))
     assert len(components) > 0
 
 
-def test_parse_airflow_component_file():
-    parser = AirflowComponentParser()
+def test_parse_kfp_component_file():
+    parser = KfpComponentParser()
 
-    test_filename = 'airflow_test_operator.py'
-    airflow_component = _read_component_resource(test_filename)
+    test_filename = 'kfp_test_operator.yaml'
+    component_definition = _read_component_resource(test_filename)
 
-    properties_obj = parser.parse_properties("elyra_op_test-operator_TestOperator",
-                                             airflow_component, test_filename, "filename")
-    component = parser.parse("elyra_op_test-operator_TestOperator", airflow_component, properties_obj)[0]
+    # properties_obj = parser.parse_properties("elyra_op_test-operator_TestOperator",
+    #                                          component_definition, test_filename, "filename")
+    component = parser.parse("elyra_op_test-operator_TestOperator", component_definition)[0]
     properties = ComponentRegistry.to_canvas_properties(component)
 
     properties_json = json.loads(properties)
@@ -77,16 +76,16 @@ def test_parse_airflow_component_file():
     assert properties_json['current_parameters']['elyra_airflow_elyra_int_test_int_non_zero'] == 1
 
 
-def test_parse_airflow_bash_component_url():
-    parser = AirflowComponentParser()
+def test_parse_kfp_bash_component_url():
+    parser = KfpComponentParser()
 
     test_url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'
     test_filename = 'bash_operator.py'
-    airflow_component = _read_component_resource_from_url(test_url)
+    kfp_component = _read_component_resource_from_url(test_url)
 
     properties_obj = parser.parse_properties("elyra_op_bash-operator_BashOperator",
-                                             airflow_component, test_filename, "url")
-    component = parser.parse("elyra_op_bash-operator_BashOperator", airflow_component, properties_obj)[0]
+                                             kfp_component, test_filename, "url")
+    component = parser.parse("elyra_op_bash-operator_BashOperator", kfp_component, properties_obj)[0]
     properties = ComponentRegistry.to_canvas_properties(component)
 
     properties_json = json.loads(properties)
@@ -97,7 +96,7 @@ def test_parse_airflow_bash_component_url():
     assert properties_json['current_parameters']['elyra_airflow_output_encoding'] == 'utf-8'
 
 
-def test_parse_all_airflow_sample_components():
+def test_parse_all_kfp_sample_components():
     components = {
         'Bash Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
         'Email Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py',  # noqa: E501
@@ -105,17 +104,17 @@ def test_parse_all_airflow_sample_components():
         'Spark Sql Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py',  # noqa: E501
         'Spark Submit Operator': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py',  # noqa: E501
     }
-    parser = AirflowComponentParser()
+    parser = KfpComponentParser()
 
     for component_file_name, component_url in components.items():
-        airflow_component = _read_component_resource_from_url(component_url)
+        kfp_component = _read_component_resource_from_url(component_url)
 
         op_name = component_file_name.replace(" ", "-").lower()
         class_name = component_file_name.replace(" ", "")
 
         properties_obj = parser.parse_properties(f"elyra_op_{op_name}_{class_name}",
-                                                 airflow_component, component_url, "url")
-        component = parser.parse(f"elyra_op_{op_name}_{class_name}", airflow_component, properties_obj)[0]
+                                                 kfp_component, component_url, "url")
+        component = parser.parse(f"elyra_op_{op_name}_{class_name}", kfp_component, properties_obj)[0]
         properties = ComponentRegistry.to_canvas_properties(component)
         properties_json = json.loads(properties)
 

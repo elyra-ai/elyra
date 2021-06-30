@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 import yaml
+
 from typing import List
 
 from elyra.pipeline.component import Component, ComponentProperty, ComponentParser
@@ -28,34 +30,42 @@ class KfpComponentParser(ComponentParser):
     def get_adjusted_component_id(self, component_id):
         return component_id
 
-    def parse(self, component_id, component_definition, properties=None):
-        component_yaml = self._read_component_yaml(component_definition)
+    def parse(self, registry_entry: dict) -> List[Component]:
+        component_yaml = self._read_component_yaml(registry_entry)
+
+        if registry_entry.type == "filename":
+            registry_entry.location = os.path.join(os.path.dirname(__file__),
+                                                   registry_entry.location)
 
         # TODO May have to adjust description if there are parsing issues
         description = ""
         if component_yaml.get('description'):
             description = ' '.join(component_yaml.get('description').split())
 
-        component = Component(id=component_id,
+        component_properties = self._parse_properties(registry_entry, component_yaml)
+
+        component = Component(id=registry_entry.id,
                               name=component_yaml.get('name'),
                               description=description,
                               runtime=self._type,
-                              properties=properties)
+                              properties=component_properties)
         return [component]
 
-    def parse_properties(self, component_id, component_definition, location, source_type):
-        component_yaml = self._read_component_yaml(component_definition)
+    def _parse_properties(self, registry_entry, component_yaml):
         properties: List[ComponentProperty] = list()
 
         # For KFP we need a property for runtime image, path to component_id, and component_id source type
         runtime_image = component_yaml.get('implementation').get('container').get('image')
         if not runtime_image:
             raise RuntimeError("Error accessing runtime image for component_id.")
-        properties.extend(self.get_runtime_specific_properties(runtime_image, location, source_type))
+
+        properties.extend(
+            self.get_runtime_specific_properties(runtime_image,
+                                                 registry_entry.location,
+                                                 registry_entry.type))
 
         # Then loop through and create custom properties
         for param in component_yaml.get('inputs'):
-
             # Determine whether parameter is optional
             required = False
             if "optional" in param and not param.get('optional'):
@@ -72,10 +82,10 @@ class KfpComponentParser(ComponentParser):
                 description = param.get('description')
 
             # Change parameter_ref and description to reflect the type of input (inputValue vs inputPath)
-            ref = self.get_adjusted_parameter_fields(component_body=component_yaml,
-                                                     io_object_name=param.get('name'),
-                                                     io_object_type="input",
-                                                     parameter_ref=param.get('name').lower().replace(' ', '_'))
+            ref = self._get_adjusted_parameter_fields(component_body=component_yaml,
+                                                      io_object_name=param.get('name'),
+                                                      io_object_type="input",
+                                                      parameter_ref=param.get('name').lower().replace(' ', '_'))
 
             default_value = ""
             if "default" in param:
@@ -116,20 +126,24 @@ class KfpComponentParser(ComponentParser):
                                         required=True)]
         return properties
 
-    def _read_component_yaml(self, component_body):
+    def _read_component_yaml(self, registry_entry):
         """
         Convert component_body string to YAML object.
         """
         try:
-            return yaml.safe_load(component_body)
+            reader = self._get_reader(registry_entry)
+            component_definition = \
+                reader.read_component_definition(registry_entry.id, registry_entry.location)
+
+            return yaml.safe_load(component_definition)
         except yaml.YAMLError as e:
             raise RuntimeError from e
 
-    def get_adjusted_parameter_fields(self,
-                                      component_body,
-                                      io_object_name,
-                                      io_object_type,
-                                      parameter_ref):
+    def _get_adjusted_parameter_fields(self,
+                                       component_body,
+                                       io_object_name,
+                                       io_object_type,
+                                       parameter_ref):
         """
         Change the parameter ref according if it is a KFP path parameter (as opposed to a value parameter)
         """
