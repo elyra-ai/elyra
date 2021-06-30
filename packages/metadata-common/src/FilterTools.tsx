@@ -18,107 +18,29 @@ import { InputGroup, checkIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
 
-interface IFilterMetadataProps {
-  tags: string[];
-  onFilter: (searchValue: string, filterTags: string[]) => void;
-  namespaceId: string;
+interface ITagProps {
+  value: string;
+  selected: boolean;
+  id?: string;
+  onToggle: (value: string) => any;
 }
 
-interface IFilterMetadataState {
-  show: boolean;
-  selectedTags: string[];
-  searchValue: string;
-}
+const Tag: React.FC<ITagProps> = ({ value, selected, onToggle, ...rest }) => {
+  const selectedSelector = selected ? 'applied-tag' : 'unapplied-tag';
 
-const FILTER_OPTION = 'elyra-filter-option';
-const FILTER_TAGS = 'elyra-filter-tags';
-const FILTER_TAG = 'elyra-filter-tag';
-const FILTER_TAG_LABEL = 'elyra-filter-tag-label';
-const FILTER_CHECK = 'elyra-filter-check';
-const FILTER_TOOLS = 'elyra-filterTools';
-const FILTER_SEARCHBAR = 'elyra-searchbar';
-const FILTER_SEARCHWRAPPER = 'elyra-searchwrapper';
-const FILTER_CLASS = 'elyra-filter';
-const FILTER_BUTTON = 'elyra-filter-btn';
-const FILTER_EMPTY = 'elyra-filter-empty';
-
-export class FilterTools extends React.Component<
-  IFilterMetadataProps,
-  IFilterMetadataState
-> {
-  constructor(props: IFilterMetadataProps) {
-    super(props);
-    this.state = { show: false, selectedTags: [], searchValue: '' };
-    this.createFilterBox = this.createFilterBox.bind(this);
-    this.renderFilterOption = this.renderFilterOption.bind(this);
-    this.renderTags = this.renderTags.bind(this);
-    this.renderAppliedTag = this.renderAppliedTag.bind(this);
-    this.renderUnappliedTag = this.renderUnappliedTag.bind(this);
-    this.handleClick = this.handleClick.bind(this);
-    this.filterMetadata = this.filterMetadata.bind(this);
-  }
-
-  componentDidMount(): void {
-    this.setState({
-      show: false,
-      selectedTags: [],
-      searchValue: ''
-    });
-  }
-
-  componentDidUpdate(prevProps: IFilterMetadataProps): void {
-    if (prevProps !== this.props) {
-      this.setState(state => ({
-        selectedTags: state.selectedTags
-          .filter(tag => this.props.tags.includes(tag))
-          .sort()
-      }));
-    }
-  }
-
-  createFilterBox(): void {
-    const filterOption = document.querySelector(
-      `#${this.props.namespaceId} .${FILTER_OPTION}`
-    );
-
-    filterOption?.classList.toggle('idle');
-
-    this.filterMetadata();
-  }
-
-  renderTags(): JSX.Element {
-    if (!this.props.tags.length) {
-      return (
-        <div className={FILTER_TAGS}>
-          <p className={FILTER_EMPTY}>No tags defined</p>
-        </div>
-      );
-    }
-    return (
-      <div className={FILTER_TAGS}>
-        {this.props.tags.sort().map((tag: string, index: number) => {
-          if (this.state.selectedTags.includes(tag)) {
-            return this.renderAppliedTag(tag, index.toString());
-          } else {
-            return this.renderUnappliedTag(tag, index.toString());
-          }
-        })}
-      </div>
-    );
-  }
-
-  renderAppliedTag(tag: string, index: string): JSX.Element {
-    return (
-      <button
-        className={`${FILTER_TAG} tag applied-tag`}
-        id={'filter' + '-' + tag + '-' + index}
-        key={'filter' + '-' + tag + '-' + index}
-        title={tag}
-        onClick={this.handleClick}
-      >
-        <span className={FILTER_TAG_LABEL}>{tag}</span>
+  return (
+    <button
+      className={`elyra-filter-tag tag ${selectedSelector}`}
+      title={value}
+      onClick={(): void => {
+        onToggle(value);
+      }}
+      {...rest}
+    >
+      <span className="elyra-filter-tag-label">{value}</span>
+      {selected && (
         <checkIcon.react
-          className={FILTER_CHECK}
+          className="elyra-filter-check"
           tag="span"
           elementPosition="center"
           height="18px"
@@ -126,96 +48,116 @@ export class FilterTools extends React.Component<
           marginLeft="5px"
           marginRight="-3px"
         />
-      </button>
-    );
+      )}
+    </button>
+  );
+};
+
+interface ITagsProps {
+  tags: string[];
+  selected: string[];
+  onToggle: (value: string) => any;
+}
+
+const TagFilter: React.FC<ITagsProps> = ({ tags, selected, ...rest }) => {
+  if (!tags.length) {
+    return <p className="elyra-filter-empty">No tags defined</p>;
   }
 
-  renderUnappliedTag(tag: string, index: string): JSX.Element {
-    return (
-      <button
-        className={`${FILTER_TAG} tag unapplied-tag`}
-        id={'filter' + '-' + tag + '-' + index}
-        key={'filter' + '-' + tag + '-' + index}
-        title={tag}
-        onClick={this.handleClick}
-      >
-        <span className={FILTER_TAG_LABEL}>{tag}</span>
-      </button>
-    );
-  }
+  // make sure:
+  // - there aren't any duplicate tags
+  // - if a selected tag is deleted, it is still de-selectable
+  const cleanedTags = [...new Set([...tags, ...selected])].sort();
 
-  handleClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-    const target = event.target as HTMLElement;
-    const clickedTag = target.textContent ?? '';
+  return (
+    <React.Fragment>
+      {cleanedTags.map(tag => {
+        return (
+          <Tag
+            id={tag}
+            key={tag}
+            value={tag}
+            selected={selected.includes(tag)}
+            {...rest}
+          />
+        );
+      })}
+    </React.Fragment>
+  );
+};
 
-    this.setState(
-      state => ({
-        selectedTags: this.updateTagsCss(target, state.selectedTags, clickedTag)
-      }),
-      this.filterMetadata
-    );
-  }
+interface IProps {
+  tags: string[];
+  namespaceId: string;
+  onFilter: (searchValue: string, filterTags: string[]) => void;
+}
 
-  updateTagsCss(
-    target: HTMLElement,
-    currentTags: string[],
-    clickedTag: string
-  ): string[] {
-    if (target.classList.contains('unapplied-tag')) {
-      target.classList.replace('unapplied-tag', 'applied-tag');
+// TODO
+// we should hoist the query outside of the component so we have a single source
+// of truth for selected tags and search
+export const FilterTools: React.FC<IProps> = ({
+  tags,
+  namespaceId,
+  onFilter
+}) => {
+  const [show, setShow] = React.useState(false);
+  const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+  const [searchValue, setSearchValue] = React.useState('');
 
-      currentTags.splice(-1, 0, clickedTag);
-    } else if (target.classList.contains('applied-tag')) {
-      target.classList.replace('applied-tag', 'unapplied-tag');
-
-      const idx = currentTags.indexOf(clickedTag);
-      currentTags.splice(idx, 1);
-    }
-    return currentTags.sort();
-  }
-
-  handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    this.setState({ searchValue: event.target.value }, this.filterMetadata);
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value;
+    setSearchValue(value);
+    onFilter(value, selectedTags);
   };
 
-  filterMetadata(): void {
-    const isTagFilterOpen = document
-      .querySelector(`#${this.props.namespaceId} .${FILTER_OPTION}`)
-      ?.classList.contains('idle');
-    this.props.onFilter(
-      this.state.searchValue,
-      isTagFilterOpen ? [] : this.state.selectedTags
-    );
-  }
+  const handleToggleTag = (value: string): void => {
+    let newSelected;
+    if (selectedTags.includes(value)) {
+      // remove tag from selected list if it's already there
+      newSelected = selectedTags.filter(t => t !== value);
+    } else {
+      // otherwise add the tag to the selected list
+      newSelected = [...selectedTags];
+      newSelected.push(value);
+    }
 
-  renderFilterOption(): JSX.Element {
-    return <div className={`${FILTER_OPTION} idle`}>{this.renderTags()}</div>;
-  }
+    onFilter(searchValue, newSelected);
 
-  render(): JSX.Element {
-    return (
-      <div className={FILTER_TOOLS}>
-        <div className={FILTER_SEARCHBAR}>
-          <InputGroup
-            className={FILTER_SEARCHWRAPPER}
-            type="text"
-            placeholder="Search..."
-            onChange={this.handleSearch}
-            rightIcon="ui-components:search"
-            value={this.state.searchValue}
-          />
-        </div>
-        <div className={FILTER_CLASS} id={this.props.namespaceId}>
-          <button
-            title="Filter by tag"
-            className={FILTER_BUTTON}
-            onClick={this.createFilterBox}
-          >
-            <tagIcon.react />
-          </button>
-          {this.renderFilterOption()}
+    setSelectedTags(newSelected);
+  };
+
+  return (
+    <div className="elyra-filterTools">
+      <div className="elyra-searchbar">
+        <InputGroup
+          className="elyra-searchwrapper"
+          type="text"
+          placeholder="Search..."
+          onChange={handleSearch}
+          rightIcon="ui-components:search"
+          value={searchValue}
+        />
+      </div>
+      <div className="elyra-filter" id={namespaceId}>
+        <button
+          title="Filter by tag"
+          className="elyra-filter-btn"
+          onClick={(): void => {
+            setShow(s => !s);
+          }}
+        >
+          <tagIcon.react />
+        </button>
+        <div className={`elyra-filter-option ${show ? '' : 'idle'}`}>
+          <div className="elyra-filter-tag">
+            <TagFilter
+              tags={tags}
+              selected={selectedTags}
+              onToggle={handleToggleTag}
+            />
+          </div>
         </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
