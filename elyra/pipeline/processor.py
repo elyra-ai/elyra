@@ -43,7 +43,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         super().__init__()
 
     def add_processor(self, processor):
-        self.log.debug('Registering processor {}'.format(processor.type))
+        self.log.debug(f'Registering processor {processor.type}')
         self._processors[processor.type] = processor
 
     def get_processor(self, processor_type: str):
@@ -69,7 +69,7 @@ class PipelineProcessorManager(SingletonConfigurable):
             try:
                 # instantiate an actual instance of the processor
                 processor_instance = processor.load()(self.root_dir, parent=self)  # Load an instance
-                self.log.info('Registering processor "{}" with type -> {}'.format(processor, processor_instance.type))
+                self.log.info(f'Registering processor "{processor}" with type -> {processor_instance.type}')
                 self._registry.add_processor(processor_instance)
             except Exception as err:
                 # log and ignore initialization errors
