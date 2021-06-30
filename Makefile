@@ -36,8 +36,8 @@ UPGRADE_STRATEGY?=only-if-needed
 
 .PHONY: develop
 develop:
-	pip install -e .
-	jupyter server extension enable elyra
+	yarn
+	pip install .
 	yarn lerna run build --stream
 	yarn lerna run install:extension
 
