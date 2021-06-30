@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import json
+from types import SimpleNamespace
 import requests
 
 import jupyter_core.paths
@@ -50,14 +51,19 @@ def test_component_registry_can_load_components_from_catalog():
 def test_parse_airflow_component_file():
     parser = AirflowComponentParser()
 
-    test_filename = 'airflow_test_operator.py'
-    component_definition = _read_component_resource(test_filename)
+    test_filename = 'tests/resources/components/airflow_test_operator.py'
 
-    properties_obj = parser.parse_properties("elyra_op_test-operator_TestOperator",
-                                             component_definition, test_filename, "filename")
-    component = parser.parse("elyra_op_test-operator_TestOperator", component_definition, properties_obj)[0]
+    entry = {
+        "id": "test-operator",
+        "name": "TestOperator",
+        "type": "filename",
+        "location": test_filename,
+        "adjusted_id": "elyra_op_test-operator_TestOperator"
+    }
+    registry_entry = SimpleNamespace(**entry)
+    component = parser.parse(registry_entry)[0]
+
     properties = ComponentRegistry.to_canvas_properties(component)
-
     properties_json = json.loads(properties)
 
     assert properties_json['current_parameters']['elyra_airflow_test_string_no_default'] == ''
@@ -80,14 +86,18 @@ def test_parse_airflow_bash_component_url():
     parser = AirflowComponentParser()
 
     test_url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'
-    test_filename = 'bash_operator.py'
-    airflow_component = _read_component_resource_from_url(test_url)
 
-    properties_obj = parser.parse_properties("elyra_op_bash-operator_BashOperator",
-                                             airflow_component, test_filename, "url")
-    component = parser.parse("elyra_op_bash-operator_BashOperator", airflow_component, properties_obj)[0]
+    entry = {
+        "id": "bash-operator",
+        "name": "BashOperator",
+        "type": "url",
+        "location": test_url,
+        "adjusted_id": "elyra_op_bash-operator_BashOperator"
+    }
+    registry_entry = SimpleNamespace(**entry)
+    component = parser.parse(registry_entry)[0]
+    
     properties = ComponentRegistry.to_canvas_properties(component)
-
     properties_json = json.loads(properties)
 
     assert properties_json['current_parameters']['elyra_airflow_bash_command'] == ''
@@ -107,14 +117,19 @@ def test_parse_all_airflow_sample_components():
     parser = AirflowComponentParser()
 
     for component_file_name, component_url in components.items():
-        airflow_component = _read_component_resource_from_url(component_url)
-
         op_name = component_file_name.replace(" ", "-").lower()
         class_name = component_file_name.replace(" ", "")
 
-        properties_obj = parser.parse_properties(f"elyra_op_{op_name}_{class_name}",
-                                                 airflow_component, component_url, "url")
-        component = parser.parse(f"elyra_op_{op_name}_{class_name}", airflow_component, properties_obj)[0]
+        entry = {
+            "id": op_name,
+            "name": class_name,
+            "type": "url",
+            "location": component_url,
+            "adjusted_id": f"elyra_op_{op_name}_{class_name}"
+        }
+        registry_entry = SimpleNamespace(**entry)
+        component = parser.parse(registry_entry)[0]
+
         properties = ComponentRegistry.to_canvas_properties(component)
         properties_json = json.loads(properties)
 
