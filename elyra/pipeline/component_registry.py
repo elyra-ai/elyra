@@ -65,9 +65,11 @@ class ComponentRegistry(LoggingConfigurable):
         adjusted_id = self._parser.get_adjusted_component_id(component_id)
         component_entry = self._get_component_registry_entry(adjusted_id)
 
-        # Get appropriate reader to read component_id definition
-        component = self._parser.parse(component_entry)
+        # Assign adjusted id for the use of parsers if prefixes have been added
+        if adjusted_id != component_id:
+            component_entry.adjusted_id = component_id
 
+        component = self._parser.parse(component_entry)[0]
         return component
 
     @staticmethod
@@ -145,6 +147,7 @@ class ComponentRegistry(LoggingConfigurable):
                         "name": component_entry["name"],
                         "type": component_type,
                         "location": component_entry["location"][component_type],
+                        "adjusted_id": ""
                     }
                     component_entries.append(SimpleNamespace(**entry))
 
@@ -158,7 +161,7 @@ class ComponentRegistry(LoggingConfigurable):
         component_entries = self._read_component_registry()
 
         # Find entry with the appropriate id, if exists
-        component_entry = next((entry for id, entry in component_entries.items() if component_id == id), None)
+        component_entry = next((entry for entry in component_entries if entry.id == component_id), None)
         if not component_entry:
             self.log.error(f"Component with ID '{component_id}' could not be found in the " +
                            f"{self._component_registry_location} component_id catalog.")

@@ -33,11 +33,11 @@ class KfpComponentParser(ComponentParser):
     def parse(self, registry_entry: dict) -> List[Component]:
         component_yaml = self._read_component_yaml(registry_entry)
 
+        # Adjust filename for display on frontend
         if registry_entry.type == "filename":
             registry_entry.location = os.path.join(os.path.dirname(__file__),
                                                    registry_entry.location)
 
-        # TODO May have to adjust description if there are parsing issues
         description = ""
         if component_yaml.get('description'):
             description = ' '.join(component_yaml.get('description').split())
