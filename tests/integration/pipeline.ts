@@ -71,6 +71,37 @@ describe('Pipeline Editor tests', () => {
   //   closePipelineEditor();
   // });
 
+  it('kfp pipeline should display custom components', () => {
+    cy.createKFPPipeline();
+    cy.openPalette();
+
+    const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
+
+    kfpCustomComponents.forEach(component => {
+      cy.findByText(new RegExp(component, 'i')).should('exist');
+    });
+  });
+
+  it('airflow pipeline should display custom components', () => {
+    cy.createAirflowPipeline();
+    cy.openPalette();
+
+    const airflowCustomComponents = [
+      'BashOperator',
+      'EmailOperator',
+      'SimpleHTTPOperator',
+      'SparkJDBCOperator',
+      'SparkSqlOperator',
+      'SparkSubmitOperator',
+      'SlackAPIOperator',
+      'SlackAPIPostOperator'
+    ];
+
+    airflowCustomComponents.forEach(component => {
+      cy.findByText(new RegExp(component, 'i')).should('exist');
+    });
+  });
+
   it('populated editor should have enabled buttons', () => {
     cy.createPipeline();
 
