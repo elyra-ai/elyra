@@ -19,9 +19,9 @@ limitations under the License.
 
 [Generic pipelines and typed pipelines](pipelines.md) support natively file-based nodes for  Jupyter notebooks, Python scripts, and R scripts. In order to support heterogeneous execution - that is making them runnable in any runtime environment (JupyterLab, Kubeflow Pipelines, and Apache Airflow) - follow the guidelines listed below.
 
-### Container image
+### Runtime image
 
-On Kubeflow Pipelines and Apache Airflow notebooks and scripts are executed in containers. Elyra ships with a few example container images to get you started, but you should consider utilizing purpose-built [container images](../recipes/creating-a-custom-runtime-image.md) instead. If possible, pre-install all software prerequisites in the container image you are using instead of installing them on the fly (e.g. by running `pip install my-package==1.2.3` in a notebook cell).
+On Kubeflow Pipelines and Apache Airflow notebooks and scripts are executed in containers. Elyra provides [example runtime images](runtime-image-conf.md) to get you started, but you should consider utilizing [purpose-built images](../recipes/creating-a-custom-runtime-image.md) instead. If possible, pre-install all software prerequisites in the runtime image you are using instead of installing them on the fly (e.g. by running `pip install my-package==1.2.3` in a notebook cell).
 
 ### File I/O 
 

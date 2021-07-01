@@ -17,7 +17,7 @@ limitations under the License.
 -->
 ## Runtime Image Configuration
 
-A runtime image configuration identifies a container image that Elyra can utilize to run Jupyter notebooks on a container platform, such as Kubernetes.
+A runtime image configuration identifies a container image that Elyra can utilize to run Jupyter notebooks or scripts on a container platform, such as Kubernetes.
 
 ### Prerequisites
 
