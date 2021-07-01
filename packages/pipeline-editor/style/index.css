@@ -312,6 +312,11 @@ span.bx--list-box__label {
   .palette-flyout-search
   input {
   background-color: var(--jp-layout-color1);
+  color: var(--jp-content-font-color1);
+}
+
+.elyra-PipelineEditor .palette-flyout-div {
+  border-right: 1px solid var(--jp-layout-color3);
 }
 
 .elyra-PipelineEditor .palette-flyout-content .palette-list-item:hover {
@@ -333,6 +338,13 @@ span.bx--list-box__label {
 .tip-palette-label,
 .tip-palette-desc {
   color: var(--elyra-color-tooltip-text) !important;
+}
+
+.elyra-PipelineEditor
+  .palette-flyout-category
+  .elyra-PipelineEditor
+  .palette-content-list {
+  border-bottom: 1px solid var(--jp-content-font-color0);
 }
 
 /* tabs */

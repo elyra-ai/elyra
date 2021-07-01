@@ -940,9 +940,9 @@ const PipelineWrapper: React.FC<IProps> = ({
   const categories = [
     {
       label: 'Generic Nodes',
-      image: IconUtil.encode(pipelineIcon),
+      image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
       id: 'genericNodes',
-      description: 'Nodes',
+      description: 'Nodes that can be run with any runtime',
       node_types: nodeDefs.filter(isGenericNode)
     }
   ];
@@ -958,7 +958,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           : pipelineIcon
       ),
       id: `${pipelineRuntimeName}Nodes`,
-      description: `${pipelineRuntimeDisplayName} Nodes`,
+      description: `Nodes that can only be run on ${pipelineRuntimeDisplayName}`,
       node_types: nodeDefs.filter((nodeDef: any) => !isGenericNode(nodeDef))
     });
   }
