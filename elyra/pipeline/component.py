@@ -225,11 +225,11 @@ class ComponentReader(LoggingConfigurable):
     """
     Abstract class to model component_entry readers that can read components from different locations
     """
-    _type: str = None
+    type: str = None
 
     @property
-    def type(self):
-        return self._type
+    def type(self) -> str:
+        return self.type
 
     @abstractmethod
     def read_component_definition(self, component_id: str, location: str) -> str:
@@ -240,7 +240,7 @@ class FilesystemComponentReader(ComponentReader):
     """
     Read a component_id definition from the local filesystem
     """
-    _type = 'filename'
+    type = 'filesystem'
 
     def read_component_definition(self, component_id: str, location: str) -> str:
         component_location = os.path.join(os.path.dirname(__file__), location)
@@ -256,7 +256,7 @@ class UrlComponentReader(ComponentReader):
     """
     Read a component_id definition from a url
     """
-    _type = 'url'
+    type = 'url'
 
     def read_component_definition(self, component_id: str, location: str) -> str:
         res = requests.get(location)
@@ -268,9 +268,9 @@ class UrlComponentReader(ComponentReader):
 
 
 class ComponentParser(LoggingConfigurable):  # ABC
-    readers = {
-        FilesystemComponentReader._type: FilesystemComponentReader(),
-        UrlComponentReader._type: UrlComponentReader()
+    _readers = {
+        FilesystemComponentReader.type: FilesystemComponentReader(),
+        UrlComponentReader.type: UrlComponentReader()
     }
 
     @abstractmethod
@@ -285,6 +285,6 @@ class ComponentParser(LoggingConfigurable):  # ABC
             raise ValueError("Invalid null component_id")
 
         try:
-            return self.readers.get(component_entry.type)
+            return self._readers.get(component_entry.type)
         except Exception:
             raise ValueError(f'Unsupported registry type {component_entry.type}.')

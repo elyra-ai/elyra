@@ -46,7 +46,7 @@ def test_parse_kfp_component_file():
     entry = {
         'id': 'elyra_op_test-operator_TestOperator',
         'name': 'Test Operator',
-        'type': FilesystemComponentReader._type,
+        'type': FilesystemComponentReader.type,
         'location': _get_resource_path('kfp_test_operator.yaml'),
         'adjusted_id': ''
     }
@@ -78,7 +78,7 @@ def test_parse_kfp_component_url():
     entry = {
         'id': 'run-notebook-using-papermill',
         'name': 'Run Notebook Using Papermill',
-        'type': UrlComponentReader._type,
+        'type': UrlComponentReader.type,
         'location': 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml',  # noqa: E501
         'adjusted_id': ''
     }
