@@ -92,7 +92,7 @@ interface IProps {
   onFilter: (searchValue: string, filterTags: string[]) => void;
 }
 
-// TODO
+// TODO: Nick
 // we should hoist the query outside of the component so we have a single source
 // of truth for selected tags and search
 export const FilterTools: React.FC<IProps> = ({

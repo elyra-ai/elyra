@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
-
-export * from './MetadataEditor';
-export * from './MetadataList';
+export { MetadataEditor } from './MetadataEditor';
+export { MetadataEditorWidget } from './MetadataEditorWidget';

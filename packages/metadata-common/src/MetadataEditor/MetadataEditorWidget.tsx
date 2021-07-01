@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-import '../style/index.css';
+import { ReactWidget } from '@jupyterlab/apputils';
+import * as React from 'react';
 
-export * from './MetadataEditor';
-export * from './MetadataList';
+import { IMetadataEditorProps, MetadataEditor } from './MetadataEditor';
+
+export class MetadataEditorWidget extends ReactWidget {
+  constructor(private options: IMetadataEditorProps) {
+    super();
+  }
+
+  render(): React.ReactElement | null {
+    return <MetadataEditor {...this.options} />;
+  }
+}

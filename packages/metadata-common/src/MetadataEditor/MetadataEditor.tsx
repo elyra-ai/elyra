@@ -34,22 +34,25 @@ import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { find } from '@lumino/algorithm';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
-import {
-  InputLabel,
-  FormHelperText,
-  Button,
-  Link,
-  styled
-} from '@material-ui/core';
+import { InputLabel, Button, Link, styled } from '@material-ui/core';
 
 import * as React from 'react';
 
-import { MetadataEditorTags } from './MetadataEditorTags';
+import { CodeBlock } from './CodeBlock';
+import { TagEditor } from './TagEditor';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
-interface IMetadataEditorProps {
+const SaveButton = styled(Button)({
+  borderColor: 'var(--jp-border-color0)',
+  color: 'var(--jp-ui-font-color1)',
+  '&:hover': {
+    borderColor: ' var(--jp-ui-font-color1)'
+  }
+});
+
+export interface IMetadataEditorProps {
   schema: string;
   namespace: string;
   name?: string;
@@ -60,104 +63,89 @@ interface IMetadataEditorProps {
   themeManager?: IThemeManager;
 }
 
-interface ICodeBlockProps {
-  editorServices: IEditorServices;
-  defaultValue: string;
-  language: string;
-  onChange?: (value: string) => any;
-  defaultError: boolean;
-  label: string;
-  required: boolean;
-}
-
-const CodeBlock: React.FC<ICodeBlockProps> = ({
+export const MetadataEditor: React.FC<IMetadataEditorProps> = ({
+  schema,
+  namespace,
+  name,
+  code,
+  onSave,
   editorServices,
-  defaultValue,
-  language,
-  onChange,
-  defaultError,
-  label,
-  required
+  status,
+  themeManager
 }) => {
-  const [error, setError] = React.useState(defaultError);
-
-  const codeBlockRef = React.useRef<HTMLDivElement>(null);
-  const editorRef = React.useRef<CodeEditor.IEditor>();
-
-  // `editorServices` should never change so make it a ref.
-  const servicesRef = React.useRef(editorServices);
-
-  // This is necessary to rerender with error when clicking the save button.
-  React.useEffect(() => {
-    setError(defaultError);
-  }, [defaultError]);
-
-  React.useEffect(() => {
-    const handleChange = (args: any): void => {
-      setError(required && args.text === '');
-      onChange?.(args.text.split('\n'));
-    };
-
-    if (codeBlockRef.current !== null) {
-      editorRef.current = servicesRef.current.factoryService.newInlineEditor({
-        host: codeBlockRef.current,
-        model: new CodeEditor.Model({
-          value: defaultValue,
-          mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
-            name: language,
-            codemirror_mode: language
-          })
-        })
-      });
-      editorRef.current?.model.value.changed.connect(handleChange);
-    }
-
-    return (): void => {
-      editorRef.current?.model.value.changed.disconnect(handleChange);
-    };
-    // NOTE: The parent component is unstable so props change frequently causing
-    // new editors to be created unnecessarily. This effect on mount should only
-    // run on mount. Keep in mind this could have side effects, for example if
-    // the `onChange` callback actually does change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  React.useEffect(() => {
-    if (editorRef.current !== undefined) {
-      editorRef.current.model.mimeType = servicesRef.current.mimeTypeService.getMimeTypeByLanguage(
-        {
-          name: language,
-          codemirror_mode: language
-        }
+  const inputElements = [];
+  for (const category in schemaPropertiesByCategory) {
+    if (category !== '_noCategory') {
+      inputElements.push(
+        <h4
+          style={{ flexBasis: '100%', padding: '10px' }}
+          key={`${category}Category`}
+        >
+          {category}
+        </h4>
       );
     }
-  }, [language]);
-
+    for (const schemaProperty of schemaPropertiesByCategory[category]) {
+      inputElements.push(renderField(schemaProperty));
+    }
+  }
+  let headerText = `Edit "${displayName}"`;
+  if (!name) {
+    headerText = `Add new ${schemaDisplayName}`;
+  }
+  const error = displayName === '' && invalidForm;
   return (
-    <div>
-      <InputLabel error={error} required={required}>
-        {label}
-      </InputLabel>
-      <div ref={codeBlockRef} className="elyra-form-code" />
-      {error === true && (
-        <FormHelperText error>This field is required.</FormHelperText>
-      )}
-    </div>
+    <ThemeProvider themeManager={themeManager}>
+      <div className={ELYRA_METADATA_EDITOR_CLASS}>
+        <h3> {headerText} </h3>
+        <p style={{ width: '100%', marginBottom: '10px' }}>
+          All fields marked with an asterisk are required.&nbsp;
+          {referenceURL ? (
+            <Link href={referenceURL} target="_blank" rel="noreferrer noopener">
+              [Learn more ...]
+            </Link>
+          ) : null}
+        </p>
+        {displayName !== undefined ? (
+          <TextInput
+            label="Name"
+            key="displayNameTextInput"
+            fieldName="display_name"
+            defaultValue={displayName}
+            required={true}
+            secure={false}
+            defaultError={error}
+            onChange={(value): void => {
+              handleTextInputChange('display_name', value);
+            }}
+          />
+        ) : null}
+        {inputElements}
+        <div
+          className={
+            'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
+          }
+          key={'SaveButton'}
+        >
+          <SaveButton
+            variant="outlined"
+            color="primary"
+            onClick={(): void => {
+              saveMetadata();
+            }}
+          >
+            Save & Close
+          </SaveButton>
+        </div>
+      </div>
+    </ThemeProvider>
   );
 };
-
-const SaveButton = styled(Button)({
-  borderColor: 'var(--jp-border-color0)',
-  color: 'var(--jp-ui-font-color1)',
-  '&:hover': {
-    borderColor: ' var(--jp-ui-font-color1)'
-  }
-});
 
 /**
  * Metadata editor widget
  */
-export class MetadataEditor extends ReactWidget {
+export class XMetadataEditor extends ReactWidget {
   onSave: () => void;
   editorServices: IEditorServices | null;
   status: ILabStatus;
@@ -545,7 +533,7 @@ export class MetadataEditor extends ReactWidget {
           key={`${fieldName}TagList`}
         >
           <InputLabel> Tags </InputLabel>
-          <MetadataEditorTags
+          <TagEditor
             selectedTags={this.metadata.tags}
             tags={this.allTags}
             handleChange={this.handleChangeOnTag}
@@ -561,79 +549,5 @@ export class MetadataEditor extends ReactWidget {
     this.handleDirtyState(true);
     this.metadata.tags = selectedTags;
     this.allTags = allTags;
-  }
-
-  render(): React.ReactElement {
-    const inputElements = [];
-    for (const category in this.schemaPropertiesByCategory) {
-      if (category !== '_noCategory') {
-        inputElements.push(
-          <h4
-            style={{ flexBasis: '100%', padding: '10px' }}
-            key={`${category}Category`}
-          >
-            {category}
-          </h4>
-        );
-      }
-      for (const schemaProperty of this.schemaPropertiesByCategory[category]) {
-        inputElements.push(this.renderField(schemaProperty));
-      }
-    }
-    let headerText = `Edit "${this.displayName}"`;
-    if (!this.name) {
-      headerText = `Add new ${this.schemaDisplayName}`;
-    }
-    const error = this.displayName === '' && this.invalidForm;
-    return (
-      <ThemeProvider themeManager={this.themeManager}>
-        <div className={ELYRA_METADATA_EDITOR_CLASS}>
-          <h3> {headerText} </h3>
-          <p style={{ width: '100%', marginBottom: '10px' }}>
-            All fields marked with an asterisk are required.&nbsp;
-            {this.referenceURL ? (
-              <Link
-                href={this.referenceURL}
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                [Learn more ...]
-              </Link>
-            ) : null}
-          </p>
-          {this.displayName !== undefined ? (
-            <TextInput
-              label="Name"
-              key="displayNameTextInput"
-              fieldName="display_name"
-              defaultValue={this.displayName}
-              required={true}
-              secure={false}
-              defaultError={error}
-              onChange={(value): void => {
-                this.handleTextInputChange('display_name', value);
-              }}
-            />
-          ) : null}
-          {inputElements}
-          <div
-            className={
-              'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
-            }
-            key={'SaveButton'}
-          >
-            <SaveButton
-              variant="outlined"
-              color="primary"
-              onClick={(): void => {
-                this.saveMetadata();
-              }}
-            >
-              Save & Close
-            </SaveButton>
-          </div>
-        </div>
-      </ThemeProvider>
-    );
   }
 }
