@@ -46,7 +46,7 @@ def test_parse_airflow_component_file():
     entry = {
         'id': 'test-operator_TestOperator',
         'name': 'Test Operator',
-        'type': FilesystemComponentReader._type,
+        'type': FilesystemComponentReader.type,
         'location': _get_resource_path('airflow_test_operator.py'),
         'adjusted_id': ''
     }
@@ -78,7 +78,7 @@ def test_parse_airflow_component_url():
     entry = {
         'id': 'bash-operator_BashOperator',
         'name': 'Bash Operator',
-        'type': UrlComponentReader._type,
+        'type': UrlComponentReader.type,
         'location': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
         'adjusted_id': ''
     }
