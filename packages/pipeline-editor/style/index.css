@@ -306,6 +306,28 @@ span.bx--list-box__label {
   display: none;
 }
 
+.elyra-PipelineEditor .palette-flyout-div,
+.elyra-PipelineEditor
+  .palette-flyout-search-container
+  .palette-flyout-search
+  input {
+  background-color: var(--jp-layout-color1);
+}
+
+.elyra-PipelineEditor .palette-flyout-content .palette-list-item:hover {
+  background-color: var(--jp-border-color1);
+}
+
+.elyra-PipelineEditor .bx--search-magnifier {
+  stroke: var(--jp-inverse-layout-color1);
+}
+
+.elyra-PipelineEditor svg.palette-flyout-category-caret,
+.elyra-PipelineEditor .palette-flyout-category-item-icon {
+  background: none;
+  fill: var(--jp-inverse-layout-color1);
+}
+
 /* tabs */
 .elyra-tabPanel > .elyra-actionBar {
   padding: 0 8px;

@@ -929,7 +929,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   }
 
   // TODO: use a node field to check if runtime field is specified
-  const isGenericNode = (nodeDef: any) => {
+  const isGenericNode = (nodeDef: any): boolean => {
     return (
       nodeDef.op === 'execute-notebook-node' ||
       nodeDef.op === 'execute-python-node' ||
