@@ -57,7 +57,7 @@ class ComponentRegistry(LoggingConfigurable):
 
         return components
 
-    def get_component(self, component_id):
+    def get_component(self, component_id) -> Component:
         """
         Return the properties JSON for a given component_id.
         """
@@ -193,7 +193,7 @@ class CachedComponentRegistry(ComponentRegistry):
 
         return self._cache
 
-    def get_component(self, component_id: str) -> List[Component]:
+    def get_component(self, component_id: str) -> Component:
         if self._is_cache_expired():
             self._update_cache()
 

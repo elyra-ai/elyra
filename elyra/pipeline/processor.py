@@ -89,11 +89,11 @@ class PipelineProcessorManager(SingletonConfigurable):
         res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
         return res
 
-    async def get_component_properties(self, processor_type, component):
+    async def get_component(self, processor_type, component_id):
         processor = self._get_processor_for_runtime(processor_type)
 
         res = await asyncio.get_event_loop().\
-            run_in_executor(None, functools.partial(processor.get_component_properties, component_id=component))
+            run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
         return res
 
     async def process(self, pipeline):
@@ -189,7 +189,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     def component_parser(self) -> ComponentParser:
         raise NotImplementedError()
 
-    def get_components(self):
+    def get_components(self) -> List[Component]:
         """
         Retrieve components common to all runtimes
         """
@@ -201,7 +201,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
         return components
 
-    def get_component_properties(self, component_id):
+    def get_component(self, component_id: str) -> Component:
         """
         Retrieve runtime-specific component_id details if component_id is not one of the generic set
         """

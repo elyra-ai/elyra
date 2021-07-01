@@ -129,8 +129,8 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         if not component_id:
             raise web.HTTPError(400, f"Invalid component_id id '{component_id}'")
 
-        component: List[Component] = \
-            await PipelineProcessorManager.instance().get_component_properties(processor, component_id)
+        component: Component = \
+            await PipelineProcessorManager.instance().get_component(processor, component_id)
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
