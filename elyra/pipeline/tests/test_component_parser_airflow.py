@@ -34,9 +34,9 @@ def _get_resource_path(filename):
 
 
 def test_component_registry_can_load_components_from_catalog():
-    component_catalog = os.path.join(COMPONENT_CATALOG_DIRECORY, 'airflow_component_catalog.json')
+    component_registry_location = os.path.join(COMPONENT_CATALOG_DIRECORY, 'airflow_component_catalog.json')
     component_parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(component_catalog, component_parser)
+    component_registry = ComponentRegistry(component_registry_location, component_parser)
 
     components = component_registry.get_all_components()
     assert len(components) > 0

@@ -51,7 +51,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
         return self._type
 
     @property
-    def component_registry(self) -> str:
+    def registry_location(self) -> str:
         return self._component_registry_location
 
     @property
@@ -71,7 +71,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                                     f' for {self._type} processor')
 
         self._component_parser = AirflowComponentParser()
-        self._component_registry = CachedComponentRegistry(self.component_registry, self.component_parser)
+        self._component_registry = CachedComponentRegistry(self.registry_location, self.component_parser)
 
     def process(self, pipeline):
         t0_all = time.time()

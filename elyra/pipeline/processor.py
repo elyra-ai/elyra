@@ -181,7 +181,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     @property
     @abstractmethod
-    def component_registry(self) -> str:
+    def registry_location(self) -> str:
         raise NotImplementedError()
 
     @property
