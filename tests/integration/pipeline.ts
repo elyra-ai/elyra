@@ -75,35 +75,6 @@ describe('Pipeline Editor tests', () => {
   //   closePipelineEditor();
   // });
 
-  it('kfp pipeline should display custom components', () => {
-    cy.createPipeline({ type: 'kfp' });
-    cy.openPalette();
-
-    const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
-
-    kfpCustomComponents.forEach(component => {
-      cy.findByText(new RegExp(component, 'i')).should('exist');
-    });
-  });
-
-  it('airflow pipeline should display custom components', () => {
-    cy.createPipeline({ type: 'airflow' });
-    cy.openPalette();
-
-    const airflowCustomComponents = [
-      'bash',
-      'email',
-      'HTTP',
-      'spark JDBC',
-      'spark sql',
-      'spark submit'
-    ];
-
-    airflowCustomComponents.forEach(component => {
-      cy.findByText(new RegExp(component, 'i')).should('exist');
-    });
-  });
-
   it('populated editor should have enabled buttons', () => {
     cy.createPipeline();
 
@@ -298,8 +269,7 @@ describe('Pipeline Editor tests', () => {
 
   it('should save runtime configuration', () => {
     cy.createPipeline();
-    // Open runtimes sidebar
-    cy.findByRole('button', { name: /open runtimes/i }).click();
+
     // Create runtime configuration
     cy.createRuntimeConfig();
 
