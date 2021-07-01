@@ -335,12 +335,14 @@ describe('Pipeline Editor tests', () => {
     cy.openPalette();
 
     const airflowCustomComponents = [
-      'bash',
-      'email',
-      'HTTP',
-      'spark JDBC',
-      'spark sql',
-      'spark submit'
+      'BashOperator',
+      'EmailOperator',
+      'SimpleHTTPOperator',
+      'SparkJDBCOperator',
+      'SparkSqlOperator',
+      'SparkSubmitOperator',
+      'SlackAPIOperator',
+      'SlackAPIPostOperator'
     ];
 
     airflowCustomComponents.forEach(component => {
