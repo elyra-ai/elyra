@@ -25,6 +25,7 @@ import {
   savePipelineIcon,
   showBrowseFileDialog,
   runtimesIcon,
+  containerIcon,
   Dropzone,
   RequestErrors,
   showFormDialog,
@@ -61,7 +62,8 @@ import {
   IRuntime,
   ISchema,
   PipelineService,
-  RUNTIMES_NAMESPACE
+  RUNTIMES_NAMESPACE,
+  RUNTIME_IMAGES_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
@@ -680,6 +682,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         case 'openRuntimes':
           shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
           break;
+        case 'openRuntimeImages':
+          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
+          break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, { path: args.payload });
           break;
@@ -731,6 +736,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         enable: true,
         iconEnabled: IconUtil.encode(runtimesIcon),
         iconDisabled: IconUtil.encode(runtimesIcon)
+      },
+      {
+        action: 'openRuntimeImages',
+        label: 'Open Runtime Images',
+        enable: true,
+        iconEnabled: IconUtil.encode(containerIcon),
+        iconDisabled: IconUtil.encode(containerIcon)
       },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },
