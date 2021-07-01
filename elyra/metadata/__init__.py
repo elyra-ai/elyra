@@ -17,4 +17,4 @@ from .error import MetadataNotFoundError, MetadataExistsError, SchemaNotFoundErr
 from .manager import MetadataManager
 from .metadata import Metadata
 from .schema import SchemaManager, METADATA_TEST_NAMESPACE
-from .storage import FileMetadataStore, MetadataStore
+from .storage import FileMetadataStore, MetadataStore, FileMetadataCache
