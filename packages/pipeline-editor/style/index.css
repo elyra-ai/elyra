@@ -328,6 +328,13 @@ span.bx--list-box__label {
   fill: var(--jp-inverse-layout-color1);
 }
 
+.tip-palette-item,
+.tip-palette-category,
+.tip-palette-label,
+.tip-palette-desc {
+  color: var(--elyra-color-tooltip-text) !important;
+}
+
 /* tabs */
 .elyra-tabPanel > .elyra-actionBar {
   padding: 0 8px;
