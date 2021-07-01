@@ -245,8 +245,8 @@ class FilesystemComponentReader(ComponentReader):
     def read_component_definition(self, component_id: str, location: str) -> str:
         component_location = os.path.join(os.path.dirname(__file__), location)
         if not os.path.exists(component_location):
-            self.log.error(f'Invalid location for component_id {component_id}: {component_location}')
-            raise FileNotFoundError(f'Invalid location for component_id {component_id}: {component_location}')
+            self.log.error(f'Invalid location for component: {component_id} -> {component_location}')
+            raise FileNotFoundError(f'Invalid location for component: {component_id} -> {component_location}')
 
         with open(component_location, 'r') as f:
             return f.read()
@@ -261,8 +261,8 @@ class UrlComponentReader(ComponentReader):
     def read_component_definition(self, component_id: str, location: str) -> str:
         res = requests.get(location)
         if res.status_code != HTTPStatus.OK:
-            self.log.error(f'Invalid location for component_id {component_id}: {location}')
-            raise FileNotFoundError(f'Invalid location for component_id {component_id}: {location}')
+            self.log.error(f'Invalid location for component: {component_id} -> {location}')
+            raise FileNotFoundError(f'Invalid location for component: {component_id} -> {location}')
 
         return res.text
 

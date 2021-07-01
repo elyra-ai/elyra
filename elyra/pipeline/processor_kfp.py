@@ -75,8 +75,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                          f"{self._type}_component_catalog.json")
 
         if not os.path.exists(self._component_registry_location):
-            raise FileNotFoundError(f'Invalid component_id catalog path {self._component_registry_location}'
-                                    f' for {self._type} processor')
+            raise FileNotFoundError(f'Invalid component registry location: {self._component_registry_location}'
+                                    f' for "{self._type}" processor')
 
         self._component_parser = KfpComponentParser()
         self._component_registry = CachedComponentRegistry(self.registry_location, self.component_parser)
