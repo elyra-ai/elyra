@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 import json
+import time
+
 from jinja2 import Environment, PackageLoader
-
-from traitlets.config import LoggingConfigurable
-
 from elyra.pipeline.component import ComponentParser, Component
+from traitlets.config import LoggingConfigurable
 from types import SimpleNamespace
 from typing import List, Dict
 
@@ -177,24 +177,39 @@ class CachedComponentRegistry(ComponentRegistry):
     adding a cache layer to optimize catalog reads.
     """
 
-    _cache: List[Component] = None
+    _cache: List[Component] = list()
+    _last_updated = None
 
-    def __init__(self, component_registry_location: str, parser: ComponentParser, cache_ttl: int = 60):
+    def __init__(self, component_registry_location: str, parser: ComponentParser, cache_ttl_in_seconds: int = 60):
         super().__init__(component_registry_location, parser)
-        self._cache_ttl = cache_ttl
+        self.cache_ttl_in_seconds = cache_ttl_in_seconds
 
         # Initialize the cache
         self.get_all_components()
 
     def get_all_components(self) -> List[Component]:
-        if not self._cache:
-            self._cache = super().get_all_components()
+        if self._is_cache_expired():
+            self._update_cache()
 
         return self._cache
 
     def get_component(self, component_id: str) -> List[Component]:
-        if not self._cache:
-            self._cache = super().get_all_components()
+        if self._is_cache_expired():
+            self._update_cache()
 
         cached_component = next((component for component in self._cache if component.id == component_id), None)
         return cached_component
+
+    def _update_cache(self):
+        self._cache = super().get_all_components()
+        self._last_updated = time.time()
+
+    def _is_cache_expired(self):
+        is_expired = True
+        if self._last_updated:
+            now = time.time()
+            elapsed = int(now - self._last_updated)
+            if elapsed < self.cache_ttl_in_seconds:
+                is_expired = False
+
+        return is_expired
