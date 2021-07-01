@@ -21,7 +21,7 @@ limitations under the License.
 
 ### Runtime image
 
-On Kubeflow Pipelines and Apache Airflow notebooks and scripts are executed in containers. Elyra provides [example runtime images](runtime-image-conf.md) to get you started, but you should consider utilizing [purpose-built images](../recipes/creating-a-custom-runtime-image.md) instead. If possible, pre-install all software prerequisites in the runtime image you are using instead of installing them on the fly (e.g. by running `pip install my-package==1.2.3` in a notebook cell).
+On Kubeflow Pipelines and Apache Airflow, notebooks and scripts are executed in containers. Elyra provides [example runtime images](runtime-image-conf.md) to get you started, but you should consider utilizing [purpose-built images](../recipes/creating-a-custom-runtime-image.md) instead. If possible, pre-install all software prerequisites in the runtime image you are using instead of installing them on the fly (e.g. by running `pip install my-package==1.2.3` in a notebook cell).
 
 ### File I/O 
 
