@@ -248,19 +248,19 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 # quotation marks in order to render properly in the jinja template and dictionary
                 # values must be converted from strings.
                 component = self._component_registry.get_component(operation.classifier)
-                for property in component.properties:
-                    if property.ref in ['runtime_image', 'component_source', 'component_source_type']:
+                for component_property in component.properties:
+                    if component_property.ref in ['runtime_image', 'component_source', 'component_source_type']:
                         continue
-                    if property.ref not in operation.component_params.keys():
+                    if component_property.ref not in operation.component_params.keys():
                         continue
-                    if property.type == "string":
-                        # Get corresponding property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(property.ref)
-                        operation.component_params[property.ref] = json.dumps(op_property)
-                    elif property.type in ['dict', 'dictionary', 'list']:
-                        # Get corresponding property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(property.ref)
-                        operation.component_params[property.ref] = ast.literal_eval(op_property)
+                    if component_property.type == "string":
+                        # Get corresponding component_property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(component_property.ref)
+                        operation.component_params[component_property.ref] = json.dumps(op_property)
+                    elif component_property.type in ['dict', 'dictionary', 'list']:
+                        # Get corresponding component_property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(component_property.ref)
+                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
 
                 # Get component class from operation name
                 component_class = operation.classifier.split('_')[-1]
