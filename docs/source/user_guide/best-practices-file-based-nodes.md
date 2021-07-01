@@ -17,7 +17,7 @@ limitations under the License.
 -->
 ## Best practices for file-based pipeline nodes
 
-Generic pipelines and runtime specific pipelines support natively file-based nodes for  Jupyter notebooks, Python scripts, and R scripts. In order to support heterogeneous execution - that is making them runnable in any runtime environment (JupyterLab, Kubeflow Pipelines, and Apache Airflow) - follow the guidelines listed below.
+[Generic pipelines and typed pipelines](pipelines.md) support natively file-based nodes for  Jupyter notebooks, Python scripts, and R scripts. In order to support heterogeneous execution - that is making them runnable in any runtime environment (JupyterLab, Kubeflow Pipelines, and Apache Airflow) - follow the guidelines listed below.
 
 ### Container image
 
@@ -29,11 +29,11 @@ In runtime environments (like Kubeflow Pipelines and Apache Airflow) where conta
 
 #### File input
 
-If a notebook/script requires access to files that are stored on you local system, those files must be declared as input dependencies. Elyra collects declared files and uploads them to cloud storage and makes them available to the notebook/script at runtime.
+If a notebook/script requires access to files that are stored on you local system, those files must be declared as _File dependencies_. Elyra collects declared files and uploads them to cloud storage and makes them available to the notebook/script at runtime.
 
-![Define input files](../images/user_guide/vpe-node-input-files.png)
+![Define file dependencies](../images/user_guide/vpe-node-input-files.png)
 
-Input dependencies must be located in the pipeline file directory or a subdirectory of that location. Symlinks can be used to avoid the need to maintain multiple copies if files are shared among pipelines.
+File dependencies must be located in the notebook/script file directory or a subdirectory of that location. Symlinks can be used to avoid the need to maintain multiple copies if files are shared among pipelines.
 
 Valid directory layout examples:
 
