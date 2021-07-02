@@ -59,15 +59,15 @@ class ComponentRegistry(LoggingConfigurable):
 
     def get_all_components(self) -> List[Component]:
         """
-        Retrieve all components from the component_id registry
+        Retrieve all components from the component registry
         """
         components: List[Component] = list()
 
-        # Read component_id catalog to get JSON
+        # Read registry to find list of components
         component_entries = self._read_component_registry()
 
         for component_entry in component_entries:
-            # Parse component_id details and add to list
+            # Parse component details and add to list
             component = self._parser.parse(component_entry)
             if component:
                 components.extend(component)
@@ -130,7 +130,7 @@ class ComponentRegistry(LoggingConfigurable):
 
     def _read_component_registry(self) -> List:
         """
-        Read a component_id catalog and return its component_id definitions.
+        Read a component registry and return a list of component definitions.
         """
 
         component_entries: list = list()
@@ -154,9 +154,9 @@ class ComponentRegistry(LoggingConfigurable):
 
     def _get_component_registry_entry(self, component_id):
         """
-        Get the body of the component_id catalog entry with the given id
+        Get the body of the component registry entry with the given id
         """
-        # Read component_id catalog to get JSON
+        # Read registry to find list of components
         component_entries = self._read_component_registry()
 
         # Find entry with the appropriate id, if exists

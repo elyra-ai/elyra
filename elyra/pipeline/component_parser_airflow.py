@@ -109,7 +109,7 @@ class AirflowComponentParser(ComponentParser):
     def _parse_properties(self, registry_entry, component_definition, component_class):
         properties: List[ComponentProperty] = list()
 
-        # For Airflow we need a property for path to component_id and component_id source type
+        # For Airflow we need a property for path to component source and component source type
         properties.extend(
             self.get_runtime_specific_properties("", registry_entry.location, registry_entry.type))
 

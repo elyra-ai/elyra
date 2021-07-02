@@ -100,7 +100,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
 
 
 class PipelineComponentHandler(HttpErrorMixin, APIHandler):
-    """Handler to expose method calls to retrieve pipelines editor component_id configuration"""
+    """Handler to expose method calls to retrieve pipelines editor component configuration"""
 
     @web.authenticated
     async def get(self, processor):
@@ -121,7 +121,7 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self, processor, component_id):
-        self.log.info(f'Retrieving pipeline component_id properties for component_id: {component_id}')
+        self.log.info(f'Retrieving pipeline component properties for component: {component_id}')
 
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")

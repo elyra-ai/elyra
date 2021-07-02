@@ -246,7 +246,7 @@ class PipelineParser(LoggingConfigurable):
         """
         Builds a dictionary of the parameters for a given node that do not have a corresponding
         property in the Operation object. These parameters will be used by the appropriate processor when
-        loading and running a component_id that is not one of the standard notebook or script operations.
+        loading and running a component that is not one of the standard notebook or script operations.
         """
         component_params = {}
         if node.get('op') not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:

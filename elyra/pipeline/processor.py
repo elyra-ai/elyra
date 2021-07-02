@@ -192,7 +192,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     def get_component(self, component_id: str) -> Component:
         """
-        Retrieve runtime-specific component_id details if component_id is not one of the generic set
+        Retrieve runtime-specific component details if component_id is not one of the generic set
         """
 
         if component_id not in ('notebooks', 'python-script', 'r-script'):

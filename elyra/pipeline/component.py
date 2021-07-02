@@ -25,7 +25,7 @@ from typing import List, Optional
 
 class ComponentProperty(object):
     """
-    Represents a single property for a pipeline component_id
+    Represents a single property for a pipeline component
     """
 
     ref: str
@@ -53,9 +53,9 @@ class ComponentProperty(object):
         """
 
         if not ref:
-            raise ValueError("Invalid component_id: Missing field 'ref'.")
+            raise ValueError("Invalid component: Missing field 'ref'.")
         if not name:
-            raise ValueError("Invalid component_id: Missing field 'name'.")
+            raise ValueError("Invalid component: Missing field 'name'.")
 
         self._ref = ref
         self._name = name
@@ -159,7 +159,7 @@ class ComponentProperty(object):
 
 class Component(object):
     """
-    Represents a runtime-specific component_id
+    Represents a runtime-specific component
     """
 
     id: str
@@ -174,21 +174,21 @@ class Component(object):
                  properties: Optional[List[ComponentProperty]] = None, op: Optional[str] = None,
                  extension: str = None):
         """
-        :param id: Unique identifier for a component_id
-        :param name: The name of the component_id for display
-        :param description: The description of the component_id
-        :param runtime: The runtime of the component_id (e.g. KFP or Airflow)
-        :param properties: The set of properties for the component_id
+        :param id: Unique identifier for a component
+        :param name: The name of the component for display
+        :param description: The description of the component
+        :param runtime: The runtime of the component (e.g. KFP or Airflow)
+        :param properties: The set of properties for the component
         :type properties: List[ComponentProperty]
-        :param op: The operation name of the component_id; used by generic components in rendering the palette
+        :param op: The operation name of the component; used by generic components in rendering the palette
         :param extension: The file extension used by the component
         :type extension: str
         """
 
         if not id:
-            raise ValueError("Invalid component_id: Missing field 'id'.")
+            raise ValueError("Invalid component: Missing field 'id'.")
         if not name:
-            raise ValueError("Invalid component_id: Missing field 'name'.")
+            raise ValueError("Invalid component: Missing field 'name'.")
 
         self._id = id
         self._name = name
@@ -247,7 +247,7 @@ class ComponentReader(LoggingConfigurable):
 
 class FilesystemComponentReader(ComponentReader):
     """
-    Read a component_id definition from the local filesystem
+    Read a component definition from the local filesystem
     """
     type = 'filesystem'
 
@@ -263,7 +263,7 @@ class FilesystemComponentReader(ComponentReader):
 
 class UrlComponentReader(ComponentReader):
     """
-    Read a component_id definition from a url
+    Read a component definition from a url
     """
     type = 'url'
 
@@ -288,10 +288,10 @@ class ComponentParser(LoggingConfigurable):  # ABC
 
     def _get_reader(self, component_entry):
         """
-        Find the proper reader based on the given registry component_id.
+        Find the proper reader based on the given registry component entry.
         """
         if not component_entry:
-            raise ValueError("Invalid null component_id")
+            raise ValueError("Missing component entry.")
 
         try:
             return self._readers.get(component_entry.type)

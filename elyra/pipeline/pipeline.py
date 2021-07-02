@@ -51,7 +51,7 @@ class Operation(object):
         :param cpu: number of cpus requested to run the operation
         :param memory: amount of memory requested to run the operation (in Gi)
         :param gpu: number of gpus requested to run the operation
-        :param component_source_type: source type of a non-standard component_id, either filepath or url
+        :param component_source_type: source type of a non-standard component, either filepath or url
         :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
                                  a non-standard operation instance
         """

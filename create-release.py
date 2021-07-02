@@ -158,7 +158,7 @@ def update_version_to_release() -> None:
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
             f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra")
 
-        # Update UI component_id versions
+        # Update UI component versions
         sed(_source('README.md'),
             rf"v{old_npm_version}",
             f"v{new_version}")
@@ -234,7 +234,7 @@ def update_version_to_dev() -> None:
             rf"\&\& git checkout tags/v{new_version} -b v{new_version} ",
             f"")
 
-        # Update UI component_id versions
+        # Update UI component versions
         sed(_source('README.md'),
             rf"extension v{new_version}",
             f"extension v{dev_npm_version}")
