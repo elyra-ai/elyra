@@ -30,7 +30,7 @@ class KfpComponentParser(ComponentParser):
     def get_adjusted_component_id(self, component_id):
         return component_id
 
-    def parse(self, registry_entry: dict) -> List[Component]:
+    def parse(self, registry_entry) -> List[Component]:
         component_yaml = self._read_component_yaml(registry_entry)
 
         # Adjust filename for display on frontend

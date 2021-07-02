@@ -283,7 +283,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
     }
 
     @abstractmethod
-    def parse(self, registry_entry: dict) -> List[Component]:
+    def parse(self, registry_entry) -> List[Component]:
         raise NotImplementedError()
 
     def _get_reader(self, component_entry):

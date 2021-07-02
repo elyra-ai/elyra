@@ -33,7 +33,7 @@ class AirflowComponentParser(ComponentParser):
         # must be adjusted to match the id expected in the component_entry catalog.
         return component_id.split('_')[0]
 
-    def parse(self, registry_entry: dict) -> List[Component]:
+    def parse(self, registry_entry) -> List[Component]:
         components: List[Component] = list()
 
         component_definition = self._read_component_definition(registry_entry)
