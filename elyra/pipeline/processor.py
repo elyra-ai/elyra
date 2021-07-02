@@ -198,7 +198,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         if component_id not in ('notebooks', 'python-script', 'r-script'):
             return self._component_registry.get_component(component_id=component_id)
 
-        return component_id
+        return ComponentRegistry.get_generic_component(component_id)
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:

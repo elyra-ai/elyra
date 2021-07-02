@@ -26,7 +26,6 @@ from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
 from typing import Dict, List
 
-from elyra.pipeline.component import ComponentParser
 from .component_registry import ComponentRegistry
 
 

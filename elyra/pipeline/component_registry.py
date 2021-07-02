@@ -30,6 +30,20 @@ class ComponentRegistry(LoggingConfigurable):
     component entry from the catalog and transform them into a component value object.
     """
 
+    _generic_components: Dict[str, Component] = {
+        "notebooks": Component(id="notebooks",
+                               name="Notebook",
+                               description="Notebook file",
+                               op="execute-notebook-node"),
+        "python-script": Component(id="python-script",
+                                   name="Python",
+                                   description="Python Script",
+                                   op="execute-python-node"),
+        "r-script": Component(id="r-script",
+                              name="R",
+                              description="R Script",
+                              op="execute-r-node")}
+
     def __init__(self, component_registry_location: str, parser: ComponentParser):
         super().__init__()
         self._component_registry_location = component_registry_location
@@ -74,19 +88,11 @@ class ComponentRegistry(LoggingConfigurable):
 
     @staticmethod
     def get_generic_components() -> List[Component]:
-        generic_components = [Component(id="notebooks",
-                                        name="Notebook",
-                                        description="Notebook file",
-                                        op="execute-notebook-node"),
-                              Component(id="python-script",
-                                        name="Python",
-                                        description="Python Script",
-                                        op="execute-python-node"),
-                              Component(id="r-script",
-                                        name="R",
-                                        description="R Script",
-                                        op="execute-r-node")]
-        return generic_components
+        return list(ComponentRegistry._generic_components.values())
+
+    @staticmethod
+    def get_generic_component(component_id: str) -> Component:
+        return ComponentRegistry._generic_components.get(component_id)
 
     @staticmethod
     def to_canvas_palette(components: List[Component]) -> dict:
