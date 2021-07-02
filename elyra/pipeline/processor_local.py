@@ -60,14 +60,6 @@ class LocalPipelineProcessor(PipelineProcessor):
     def type(self):
         return self._type
 
-    @property
-    def registry_location(self) -> str:
-        return None
-
-    @property
-    def component_parser(self) -> ComponentParser:
-        return None
-
     def get_components(self):
         return ComponentRegistry.get_generic_components()
 

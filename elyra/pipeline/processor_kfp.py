@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import autopep8
-import jupyter_core.paths
 import json
 import os
 import re
@@ -40,9 +39,7 @@ from kfp_server_api.exceptions import ApiException
 from typing import Dict
 from urllib3.exceptions import LocationValueError, MaxRetryError
 
-from .component import ComponentParser
 from .component_parser_kfp import KfpComponentParser
-from .component_registry import CachedComponentRegistry
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
@@ -58,28 +55,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     def type(self):
         return self._type
 
-    @property
-    def registry_location(self) -> str:
-        return self._component_registry_location
-
-    @property
-    def component_parser(self) -> ComponentParser:
-        return self._component_parser
-
     def __init__(self, root_dir, **kwargs):
-        super().__init__(root_dir, **kwargs)
-        # then sys.prefix, where installed files will reside (factory data)
-        self._component_registry_location =  \
-            os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0],
-                         'components',
-                         f"{self._type}_component_catalog.json")
-
-        if not os.path.exists(self._component_registry_location):
-            raise FileNotFoundError(f'Invalid component registry location: {self._component_registry_location}'
-                                    f' for "{self._type}" processor')
-
-        self._component_parser = KfpComponentParser()
-        self._component_registry = CachedComponentRegistry(self.registry_location, self.component_parser)
+        super().__init__(root_dir, component_parser=KfpComponentParser(), **kwargs)
 
     def process(self, pipeline):
         """Runs a pipeline on Kubeflow Pipelines

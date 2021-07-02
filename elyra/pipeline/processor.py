@@ -25,13 +25,14 @@ from elyra.pipeline.parser import Pipeline, Operation
 from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
+from jupyter_core.paths import ENV_JUPYTER_PATH
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
 from typing import List, Dict
 from urllib3.exceptions import MaxRetryError
 from minio.error import SignatureDoesNotMatch
 
 from .component import ComponentParser, Component
-from .component_registry import ComponentRegistry
+from .component_registry import ComponentRegistry, CachedComponentRegistry
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
@@ -158,9 +159,7 @@ class PipelineProcessorResponse(ABC):
 class PipelineProcessor(LoggingConfigurable):  # ABC
 
     _type: str = None
-    _component_registry_location: str = None
 
-    _component_parser: ComponentParser = None
     _component_registry: ComponentRegistry = None
 
     root_dir = Unicode(allow_none=True)
@@ -177,16 +176,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     @property
     @abstractmethod
     def type(self) -> str:
-        raise NotImplementedError()
-
-    @property
-    @abstractmethod
-    def registry_location(self) -> str:
-        raise NotImplementedError()
-
-    @property
-    @abstractmethod
-    def component_parser(self) -> ComponentParser:
         raise NotImplementedError()
 
     def get_components(self) -> List[Component]:
@@ -299,6 +288,28 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
 
 class RuntimePipelineProcessor(PipelineProcessor):
+
+    @property
+    def registry_location(self) -> str:
+        return self._component_registry_location
+
+    @property
+    def component_parser(self) -> ComponentParser:
+        return self._component_parser
+
+    def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
+        super().__init__(root_dir, **kwargs)
+
+        # then sys.prefix, where installed files will reside (factory data)
+        self._component_registry_location = \
+            os.path.join(ENV_JUPYTER_PATH[0], 'components', f"{self._type}_component_catalog.json")
+
+        if not os.path.exists(self._component_registry_location):
+            raise FileNotFoundError(f'Invalid component registry location: {self._component_registry_location}'
+                                    f' for "{self._type}" processor')
+
+        self._component_parser = component_parser
+        self._component_registry = CachedComponentRegistry(self.registry_location, component_parser)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)
