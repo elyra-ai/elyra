@@ -116,15 +116,16 @@ class ComponentRegistry(LoggingConfigurable):
 
         # If component_id is one of the generic set, render with generic template,
         # else render with the runtime-specific property template
-        if component in ('notebooks', 'python-script', 'r-script'):
+        if component.id in ('notebooks', 'python-script', 'r-script'):
             template = template_env.get_template('generic_properties_template.jinja2')
-            if component == "notebooks":
+            # FIXME - this could be cleaned up nicely if the template parameters were available on Component
+            if component.id == "notebooks":
                 component_type = "notebook"
                 file_type = ".ipynb"
-            elif component == "python-script":
+            elif component.id == "python-script":
                 component_type = "Python"
                 file_type = ".py"
-            elif component == "r-script":
+            elif component.id == "r-script":
                 component_type = "R"
                 file_type = ".r"
 
