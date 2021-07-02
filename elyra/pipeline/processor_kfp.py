@@ -494,24 +494,24 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Change value of variables according to their type. Path variables should include
                 # the contents of the specified file and dictionary values must be converted from strings.
                 component = self._component_registry.get_component(operation.classifier)
-                for property in component.properties:
-                    if property.ref in ['runtime_image', 'component_source', 'component_source_type']:
+                for component_property in component.properties:
+                    if component_property.ref in ['runtime_image', 'component_source', 'component_source_type']:
                         continue
-                    if property.type == "file":
+                    if component_property.type == "file":
                         # Get corresponding property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(property.ref)
+                        op_property = operation.component_params.get(component_property.ref)
                         filename = get_absolute_path(get_expanded_path(self.root_dir), op_property)
                         try:
                             with open(filename) as f:
-                                operation.component_params[property.ref] = f.read()
+                                operation.component_params[component_property.ref] = f.read()
                         except Exception:
                             # If file can't be found locally, assume a remote file location was entered.
                             # This may cause the pipeline run to fail; the user must debug in this case.
                             pass
-                    elif property.type in ['dict', 'dictionary']:
+                    elif component_property.type in ['dict', 'dictionary']:
                         # Get corresponding property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(property.ref)
-                        operation.component_params[property.ref] = ast.literal_eval(op_property)
+                        op_property = operation.component_params.get(component_property.ref)
+                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
 
                 # Build component_id task factory
                 try:
