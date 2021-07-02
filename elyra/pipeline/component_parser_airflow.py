@@ -161,7 +161,7 @@ class AirflowComponentParser(ComponentParser):
                                         name="Runtime Image",
                                         type="string",
                                         value=runtime_image,
-                                        description="Docker image used as execution environment.",
+                                        description="Container image used as execution environment.",
                                         control="custom",
                                         control_id="EnumControl",
                                         required=True),
@@ -169,21 +169,21 @@ class AirflowComponentParser(ComponentParser):
                                         name="Path to Component",
                                         type="string",
                                         value=location,
-                                        description="The path to the component_id specification file.",
+                                        description="The path to the component specification file.",
                                         control="readonly",
                                         required=True),
                       ComponentProperty(ref="component_source_type",
                                         name="Component Source Type",
                                         type="string",
                                         value=source_type,
-                                        description="",
+                                        description="The type of component",
                                         control="readonly",
                                         required=True)]
         return properties
 
     def _read_component_definition(self, registry_entry):
         """
-
+        Delegate to ComponentReader to read component definition
         """
         reader = self._get_reader(registry_entry)
         component_definition = \
