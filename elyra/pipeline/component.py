@@ -270,8 +270,10 @@ class UrlComponentReader(ComponentReader):
     def read_component_definition(self, component_id: str, location: str) -> str:
         res = requests.get(location)
         if res.status_code != HTTPStatus.OK:
-            self.log.error(f'Invalid location for component: {component_id} -> {location}')
-            raise FileNotFoundError(f'Invalid location for component: {component_id} -> {location}')
+            self.log.error\
+                (f'Invalid location for component: {component_id} -> {location} (HTTP code {res.status_code})')
+            raise FileNotFoundError\
+                (f'Invalid location for component: {component_id} -> {location} (HTTP code {res.status_code})')
 
         return res.text
 
