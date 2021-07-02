@@ -102,7 +102,7 @@ describe('Pipeline Editor tests', () => {
     checkEnabledToolbarButtons(enabledButtons);
   });
 
-  it.only('matches complex pipeline snapshot', () => {
+  it('matches complex pipeline snapshot', () => {
     cy.bootstrapFile('pipelines/consumer.ipynb');
     cy.bootstrapFile('pipelines/create-source-files.py');
     cy.bootstrapFile('pipelines/producer-script.py');
