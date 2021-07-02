@@ -128,7 +128,7 @@ class ComponentRegistry(LoggingConfigurable):
 
         return properties_json
 
-    def _read_component_registry(self) -> Dict:
+    def _read_component_registry(self) -> List:
         """
         Read a component_id catalog and return its component_id definitions.
         """
