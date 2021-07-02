@@ -34,15 +34,18 @@ class ComponentRegistry(LoggingConfigurable):
         "notebooks": Component(id="notebooks",
                                name="Notebook",
                                description="Notebook file",
-                               op="execute-notebook-node"),
+                               op="execute-notebook-node",
+                               extension=".ipynb"),
         "python-script": Component(id="python-script",
                                    name="Python",
                                    description="Python Script",
-                                   op="execute-python-node"),
+                                   op="execute-python-node",
+                                   extension=".py"),
         "r-script": Component(id="r-script",
                               name="R",
                               description="R Script",
-                              op="execute-r-node")}
+                              op="execute-r-node",
+                              extension=".r")}
 
     def __init__(self, component_registry_location: str, parser: ComponentParser):
         super().__init__()
@@ -118,18 +121,7 @@ class ComponentRegistry(LoggingConfigurable):
         # else render with the runtime-specific property template
         if component.id in ('notebooks', 'python-script', 'r-script'):
             template = template_env.get_template('generic_properties_template.jinja2')
-            # FIXME - this could be cleaned up nicely if the template parameters were available on Component
-            if component.id == "notebooks":
-                component_type = "notebook"
-                file_type = ".ipynb"
-            elif component.id == "python-script":
-                component_type = "Python"
-                file_type = ".py"
-            elif component.id == "r-script":
-                component_type = "R"
-                file_type = ".r"
-
-            properties_json = template.render(component_type=component_type, file_type=file_type)
+            properties_json = template.render(component=component)
         else:
             template = template_env.get_template('canvas_properties_template.jinja2')
             properties_json = template.render(properties=component.properties)

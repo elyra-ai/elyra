@@ -168,9 +168,11 @@ class Component(object):
     runtime: str
     properties: List[ComponentProperty]
     op: str
+    extension: str
 
     def __init__(self, id: str, name: str, description: Optional[str], runtime: Optional[str] = None,
-                 properties: Optional[List[ComponentProperty]] = None, op: Optional[str] = None):
+                 properties: Optional[List[ComponentProperty]] = None, op: Optional[str] = None,
+                 extension: str = None):
         """
         :param id: Unique identifier for a component_id
         :param name: The name of the component_id for display
@@ -192,6 +194,7 @@ class Component(object):
         self._runtime = runtime
         self._properties = properties
         self._op = op
+        self._extension = extension
 
     @property
     def id(self):
@@ -219,6 +222,10 @@ class Component(object):
             return self._op
         else:
             return self._id
+
+    @property
+    def extension(self):
+        return self._extension
 
 
 class ComponentReader(LoggingConfigurable):
