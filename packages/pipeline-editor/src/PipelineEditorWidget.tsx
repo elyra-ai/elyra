@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-import { PipelineEditor, ThemeProvider } from '@elyra/pipeline-editor';
-import { validate } from '@elyra/pipeline-services';
+import {
+  PipelineEditor,
+  PipelineOutOfDateError,
+  ThemeProvider
+} from '@elyra/pipeline-editor';
+import { migrate, validate } from '@elyra/pipeline-services';
 import { ContentParser } from '@elyra/services';
 import {
   IconUtil,
@@ -243,16 +247,48 @@ const PipelineWrapper: React.FC<IProps> = ({
     [runtimeImages]
   );
 
-  const onError = (error?: Error): void => {
-    showDialog({
-      title: 'Load pipeline failed!',
-      body: <p> {error || ''} </p>,
-      buttons: [Dialog.okButton()]
-    }).then(() => {
-      if (shell.currentWidget) {
-        shell.currentWidget.close();
-      }
-    });
+  const onError = async (error?: Error): Promise<void> => {
+    if (error instanceof PipelineOutOfDateError) {
+      await showDialog({
+        title: 'Migrate pipeline?',
+        body: (
+          <p>
+            This pipeline corresponds to an older version of Elyra and needs to
+            be migrated.
+            <br />
+            Although the pipeline can be further edited and/or submitted after
+            its update,
+            <br />
+            the migration will not be completed until the pipeline has been
+            saved within the editor.
+            <br />
+            <br />
+            Proceed with migration?
+          </p>
+        ),
+        buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      }).then(result => {
+        if (result.button.accept) {
+          // proceed with migration
+          console.log('migrating');
+          setPipeline(migrate(pipeline));
+        } else {
+          if (shell.currentWidget) {
+            shell.currentWidget.close();
+          }
+        }
+      });
+    } else {
+      showDialog({
+        title: 'Load pipeline failed!',
+        body: <p> {error || ''} </p>,
+        buttons: [Dialog.okButton()]
+      }).then(() => {
+        if (shell.currentWidget) {
+          shell.currentWidget.close();
+        }
+      });
+    }
   };
 
   const onFileRequested = (args: any): Promise<string> => {
