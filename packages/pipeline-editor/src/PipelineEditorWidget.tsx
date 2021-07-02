@@ -187,6 +187,12 @@ const PipelineWrapper: React.FC<IProps> = ({
               node.app_data.runtime_image = image.display_name;
             }
           }
+
+          for (const [key, val] of Object.entries(node?.app_data)) {
+            if (val === null) {
+              node.app_data[key] = undefined;
+            }
+          }
         }
       }
       if (pipelineJson?.pipelines?.[0]?.app_data) {
