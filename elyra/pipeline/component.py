@@ -181,6 +181,8 @@ class Component(object):
         :param properties: The set of properties for the component_id
         :type properties: List[ComponentProperty]
         :param op: The operation name of the component_id; used by generic components in rendering the palette
+        :param extension: The file extension used by the component
+        :type extension: str
         """
 
         if not id:
