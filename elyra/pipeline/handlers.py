@@ -127,7 +127,7 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         if not component_id:
-            raise web.HTTPError(400, f"Missing component ID. ")
+            raise web.HTTPError(400, "Missing component ID")
 
         component: Component = \
             await PipelineProcessorManager.instance().get_component(processor, component_id)
