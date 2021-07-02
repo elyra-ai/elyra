@@ -19,16 +19,13 @@ Object {
       "nodes": Array [
         Object {
           "app_data": Object {
-            "cpu": "",
             "dependencies": Array [],
             "env_vars": Array [
               "NB_USER=",
             ],
             "filename": "producer.ipynb",
-            "gpu": "",
             "include_subdirectories": false,
             "label": "",
-            "memory": "",
             "outputs": Array [
               "output-1.csv",
               "output-2.csv",
@@ -76,14 +73,11 @@ Object {
         },
         Object {
           "app_data": Object {
-            "cpu": "",
             "dependencies": Array [],
             "env_vars": Array [],
             "filename": "consumer.ipynb",
-            "gpu": "",
             "include_subdirectories": false,
             "label": "",
-            "memory": "",
             "outputs": Array [],
             "runtime_image": "continuumio/anaconda3:2020.07",
             "ui_data": Object {
@@ -128,16 +122,13 @@ Object {
         },
         Object {
           "app_data": Object {
-            "cpu": "",
             "dependencies": Array [
               "setup.txt",
             ],
             "env_vars": Array [],
             "filename": "../scripts/setup.py",
-            "gpu": "",
             "include_subdirectories": false,
             "label": "",
-            "memory": "",
             "outputs": Array [],
             "runtime_image": "continuumio/anaconda3:2020.07",
             "ui_data": Object {
@@ -182,14 +173,11 @@ Object {
         },
         Object {
           "app_data": Object {
-            "cpu": "",
             "dependencies": Array [],
             "env_vars": Array [],
             "filename": "create-source-files.py",
-            "gpu": "",
             "include_subdirectories": false,
             "label": "",
-            "memory": "",
             "outputs": Array [
               "input-1.csv",
               "input-2.csv",
@@ -237,14 +225,11 @@ Object {
         },
         Object {
           "app_data": Object {
-            "cpu": "",
             "dependencies": Array [],
             "env_vars": Array [],
             "filename": "producer-script.py",
-            "gpu": "",
             "include_subdirectories": false,
             "label": "",
-            "memory": "",
             "outputs": Array [
               "output-3.csv",
               "output-4.csv",
