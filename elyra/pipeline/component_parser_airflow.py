@@ -189,6 +189,6 @@ class AirflowComponentParser(ComponentParser):
         """
         reader = self._get_reader(registry_entry)
         component_definition = \
-            reader.read_component_definition(registry_entry.id, registry_entry.location)
+            reader.read_component_definition(registry_entry.id, registry_entry.location, self._type)
 
         return component_definition

@@ -242,7 +242,7 @@ class ComponentReader(LoggingConfigurable):
         return self.type
 
     @abstractmethod
-    def read_component_definition(self, component_id: str, location: str) -> str:
+    def read_component_definition(self, component_id: str, location: str, runtime_type: str) -> str:
         raise NotImplementedError()
 
 
@@ -252,8 +252,9 @@ class FilesystemComponentReader(ComponentReader):
     """
     type = 'filename'
 
-    def read_component_definition(self, component_id: str, location: str) -> str:
-        component_location = os.path.join(os.path.dirname(__file__), location)
+    def read_component_definition(self, component_id: str, location: str, runtime_type: str) -> str:
+        component_resource_dir = "resources/" + runtime_type
+        component_location = os.path.join(os.path.dirname(__file__), component_resource_dir, location)
         if not os.path.exists(component_location):
             self.log.error(f'Invalid location for component: {component_id} -> {component_location}')
             raise FileNotFoundError(f'Invalid location for component: {component_id} -> {component_location}')
@@ -268,7 +269,7 @@ class UrlComponentReader(ComponentReader):
     """
     type = 'url'
 
-    def read_component_definition(self, component_id: str, location: str) -> str:
+    def read_component_definition(self, component_id: str, location: str, runtime_type: str) -> str:
         res = requests.get(location)
         if res.status_code != HTTPStatus.OK:
             self.log.error (f'Invalid location for component: {component_id} -> {location} (HTTP code {res.status_code})')  # noqa: E211 E501
