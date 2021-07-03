@@ -16,14 +16,17 @@
 
 from jsonschema import ValidationError
 from jupyter_server.base.handlers import APIHandler
-from jupyter_server.utils import url_unescape, url_path_join
+from jupyter_server.utils import url_path_join
+from jupyter_server.utils import url_unescape
 from tornado import web
 
-from .error import MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError
-from .metadata import Metadata
-from .manager import MetadataManager
-from .schema import SchemaManager
-from ..util.http import HttpErrorMixin
+from elyra.metadata.error import MetadataExistsError
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.error import SchemaNotFoundError
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schema import SchemaManager
+from elyra.util.http import HttpErrorMixin
 
 
 class MetadataHandler(HttpErrorMixin, APIHandler):

@@ -17,12 +17,12 @@ import copy
 import io
 import json
 import os
+from typing import Optional
 import warnings
 
 from traitlets.config import SingletonConfigurable
-from typing import Optional
 
-from .error import SchemaNotFoundError
+from elyra.metadata.error import SchemaNotFoundError
 
 
 METADATA_TEST_NAMESPACE = "metadata-tests"  # exposed via METADATA_TESTING env

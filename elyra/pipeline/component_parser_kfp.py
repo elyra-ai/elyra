@@ -14,11 +14,14 @@
 # limitations under the License.
 #
 import os
-import yaml
-
 from typing import List
 
-from elyra.pipeline.component import Component, ComponentProperty, ComponentParser, FilesystemComponentReader
+import yaml
+
+from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.component import ComponentProperty
+from elyra.pipeline.component import FilesystemComponentReader
 
 
 class KfpComponentParser(ComponentParser):

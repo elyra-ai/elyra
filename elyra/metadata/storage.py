@@ -13,22 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from abc import ABC
+from abc import abstractmethod
+from collections import OrderedDict
 import copy
 import io
 import json
-import jupyter_core.paths
 import os
 import time
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from abc import ABC, abstractmethod
-from collections import OrderedDict
-from traitlets import log, Bool, Integer
-from traitlets.config import SingletonConfigurable
-from typing import Any, Dict, List, Optional
-from watchdog.observers import Observer
+import jupyter_core.paths
+from traitlets import log  # noqa H306
+from traitlets.config import SingletonConfigurable  # noqa H306
+from traitlets.traitlets import Bool
+from traitlets.traitlets import Integer
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
-from .error import MetadataNotFoundError, MetadataExistsError
+from elyra.metadata.error import MetadataExistsError
+from elyra.metadata.error import MetadataNotFoundError
 
 
 class MetadataStore(ABC):

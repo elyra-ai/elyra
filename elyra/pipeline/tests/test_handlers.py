@@ -15,7 +15,10 @@
 #
 
 import json
+
 import pytest
+
+from elyra.pipeline import resources
 
 # from jupyter_server.tests.utils import expected_http_error
 # from tornado.httpclient import HTTPClientError
@@ -25,8 +28,6 @@ try:
 except ImportError:
     # Try backported to PY<37 `importlib_resources`.
     import importlib_resources as pkg_resources
-
-from .. import resources
 
 
 # Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)

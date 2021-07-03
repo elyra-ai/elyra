@@ -18,7 +18,8 @@
 from papermill.clientwrap import PapermillNotebookClient
 from papermill.engines import NBClientEngine
 from papermill.log import logger
-from papermill.utils import merge_kwargs, remove_args
+from papermill.utils import merge_kwargs
+from papermill.utils import remove_args
 
 
 class ElyraEngine(NBClientEngine):

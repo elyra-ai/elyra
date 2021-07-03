@@ -15,11 +15,13 @@
 #
 
 import json
+from typing import Any
+from typing import Type
+from typing import TypeVar
 
 from ipython_genutils.importstring import import_item
-from typing import Type, TypeVar, Any
 
-from .schema import SchemaManager
+from elyra.metadata.schema import SchemaManager
 
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
