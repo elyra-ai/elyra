@@ -15,12 +15,16 @@
 #
 import json
 import time
-
-from jinja2 import Environment, PackageLoader
-from elyra.pipeline.component import ComponentParser, Component
-from traitlets.config import LoggingConfigurable
 from types import SimpleNamespace
-from typing import List, Dict
+from typing import Dict
+from typing import List
+
+from jinja2 import Environment
+from jinja2 import PackageLoader
+from traitlets.config import LoggingConfigurable
+
+from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParser
 
 
 class ComponentRegistry(LoggingConfigurable):

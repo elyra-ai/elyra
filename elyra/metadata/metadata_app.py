@@ -17,11 +17,15 @@ import sys
 
 from jsonschema import ValidationError
 
-from .error import MetadataNotFoundError
-from .metadata_app_utils import AppBase, CliOption, Flag, SchemaProperty, MetadataSchemaProperty
-from .metadata import Metadata
-from .manager import MetadataManager
-from .schema import SchemaManager
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.metadata_app_utils import AppBase
+from elyra.metadata.metadata_app_utils import CliOption
+from elyra.metadata.metadata_app_utils import Flag
+from elyra.metadata.metadata_app_utils import MetadataSchemaProperty
+from elyra.metadata.metadata_app_utils import SchemaProperty
+from elyra.metadata.schema import SchemaManager
 
 
 class NamespaceBase(AppBase):

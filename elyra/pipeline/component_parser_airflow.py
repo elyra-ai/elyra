@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 import ast
+import os
 import re
 from typing import List
 
-from elyra.pipeline.component import Component, ComponentProperty, ComponentParser
+from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.component import ComponentProperty
 
 
 class AirflowComponentParser(ComponentParser):

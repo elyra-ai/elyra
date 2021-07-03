@@ -14,18 +14,17 @@
 # limitations under the License.
 #
 import json
+from typing import List
 
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
-from .parser import PipelineParser
-from .processor import PipelineProcessorManager
 from tornado import web
-from ..util.http import HttpErrorMixin
 
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_registry import ComponentRegistry
-
-from typing import List
+from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.util.http import HttpErrorMixin
 
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):

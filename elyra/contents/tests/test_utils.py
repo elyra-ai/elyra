@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 import errno
+import os
 
 
 def create_dir(location, dir_name):

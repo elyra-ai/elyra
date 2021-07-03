@@ -13,25 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import autopep8
+import ast
+from collections import OrderedDict
+from datetime import datetime
 import json
 import os
 import re
-import ast
 import tempfile
 import time
 
-from black import format_str, FileMode
-from collections import OrderedDict
-from datetime import datetime
-from elyra._version import __version__
-from elyra.metadata import MetadataManager
-from elyra.pipeline import RuntimePipelineProcessor, PipelineProcessor, PipelineProcessorResponse
-from elyra.util.path import get_absolute_path
-from elyra.util.git import GithubClient
-from jinja2 import Environment, PackageLoader
+import autopep8
+from black import FileMode
+from black import format_str
+from jinja2 import Environment
+from jinja2 import PackageLoader
 
-from .component_parser_airflow import AirflowComponentParser
+from elyra._version import __version__
+from elyra.metadata.manager import MetadataManager
+from elyra.pipeline.component_parser_airflow import AirflowComponentParser
+from elyra.pipeline.processor import PipelineProcessor
+from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.pipeline.processor import RuntimePipelineProcessor
+from elyra.util.git import GithubClient
+from elyra.util.path import get_absolute_path
 
 
 class AirflowPipelineProcessor(RuntimePipelineProcessor):

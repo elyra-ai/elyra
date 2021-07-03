@@ -17,16 +17,20 @@ import io
 import json
 import os
 import re
+from typing import Any
+from typing import List
 
-from jsonschema import validate, ValidationError, draft7_format_checker
-from traitlets import Type
-from traitlets.config import LoggingConfigurable
-from typing import List, Any
+from jsonschema import draft7_format_checker
+from jsonschema import validate
+from jsonschema import ValidationError
+from traitlets import Type  # noqa H306
+from traitlets.config import LoggingConfigurable  # noqa H306
 
-from .error import SchemaNotFoundError
-from .metadata import Metadata
-from .schema import SchemaManager
-from .storage import MetadataStore, FileMetadataStore
+from elyra.metadata.error import SchemaNotFoundError
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schema import SchemaManager
+from elyra.metadata.storage import FileMetadataStore
+from elyra.metadata.storage import MetadataStore
 
 
 class MetadataManager(LoggingConfigurable):

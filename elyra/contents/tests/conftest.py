@@ -13,11 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import pytest
 import json
 
-from .test_utils import create_dir, create_file, text_content, notebook_content, python_content, r_content, \
-    empty_notebook_content
+import pytest
+
+from elyra.contents.tests.test_utils import create_dir
+from elyra.contents.tests.test_utils import create_file
+from elyra.contents.tests.test_utils import empty_notebook_content
+from elyra.contents.tests.test_utils import notebook_content
+from elyra.contents.tests.test_utils import python_content
+from elyra.contents.tests.test_utils import r_content
+from elyra.contents.tests.test_utils import text_content
 
 
 @pytest.fixture
