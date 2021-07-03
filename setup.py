@@ -56,8 +56,7 @@ setup_args = dict(
     long_description=long_desc,
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
-    data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
-                ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
+    data_files=[('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path)),
                 ('share/jupyter/components', glob(components_path)),
                 ('share/jupyter/lab/settings', glob(settings_path))],
@@ -120,6 +119,7 @@ setup_args = dict(
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
             'elyra-pipeline = elyra.cli.pipeline_app:pipeline',
+            'jupyter-elyra = elyra.elyra_app:launch_instance'
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
