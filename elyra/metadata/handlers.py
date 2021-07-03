@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from jsonschema import ValidationError
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
