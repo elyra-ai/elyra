@@ -34,7 +34,7 @@ class KfpComponentParser(ComponentParser):
         component_yaml = self._read_component_yaml(registry_entry)
 
         # Adjust filename for display on frontend
-        if registry_entry.type == FilesystemComponentReader.type :
+        if registry_entry.type == FilesystemComponentReader.type:
             registry_entry.location = os.path.join(os.path.dirname(__file__),
                                                    registry_entry.location)
 
