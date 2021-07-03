@@ -249,7 +249,7 @@ class FilesystemComponentReader(ComponentReader):
     """
     Read a component definition from the local filesystem
     """
-    type = 'filesystem'
+    type = 'filename'
 
     def read_component_definition(self, component_id: str, location: str) -> str:
         component_location = os.path.join(os.path.dirname(__file__), location)
