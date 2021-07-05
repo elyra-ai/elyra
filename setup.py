@@ -38,7 +38,7 @@ metadata_path = './etc/config/metadata/runtime-images/*.json'
 settings_path = './etc/config/settings/*.json'
 
 # kfp_packages = [
-#     'kfp-notebook~=0.24.0',
+#     'kfp-notebook~=0.25.0',
 #     'kfp==1.3.0',
 #     'kfp-tekton==0.6.0',
 #     ]
@@ -73,26 +73,27 @@ setup_args = dict(
         'jupyter_client>=6.1.7',
         'jupyter_server>=1.7.0',
         'jupyterlab>=3.0.0',
-        'jupyterlab-git==0.30.0',
-        'jupyterlab-lsp>=3.0.0',
+        'jupyterlab-git~=0.30',
+        'jupyterlab-lsp>=3.7.0',
         'jupyter-resource-usage>=0.5.1',
         'minio>=5.0.7,<7.0.0',
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1,<6.0',
-        'nbdime>=3.0.0.b1',
+        'nbdime~=3.1',
         'nbformat>=5.1.2',
         'papermill>=2.1.3',
         'python-language-server[all]>=0.36.2',
         'pyyaml>=5.3.1,<6.0',
-        'requests>=2.9.1,<3.0',
+        'requests>=2.25.1,<3.0',
         'rfc3986-validator>=0.1.1',
         'tornado>=6.1.0',
         'traitlets>=4.3.2',
-        'urllib3>=1.24.2',
+        'urllib3>=1.26.5',
+        'watchdog>=2.1.3',
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp-notebook~=0.24.0',
+        'kfp-notebook~=0.25.0',
         'kfp==1.4.0',
         'kfp-tekton==0.7.0',
         # Airflow runtime dependencies

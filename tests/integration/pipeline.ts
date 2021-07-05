@@ -72,7 +72,7 @@ describe('Pipeline Editor tests', () => {
   // });
 
   it('populated editor should have enabled buttons', () => {
-    cy.createPipelineEditor();
+    cy.createPipeline();
 
     cy.checkTabMenuOptions('Pipeline');
 
@@ -99,7 +99,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should open notebook on double-click', () => {
-    cy.createPipelineEditor();
+    cy.createPipeline();
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
@@ -112,9 +112,8 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should save runtime configuration', () => {
-    cy.createPipelineEditor();
-    // Open runtimes sidebar
-    cy.findByRole('button', { name: /open runtimes/i }).click();
+    cy.createPipeline();
+
     // Create runtime configuration
     cy.createRuntimeConfig();
 
@@ -135,7 +134,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should run pipeline after adding runtime image', () => {
-    cy.createPipelineEditor();
+    cy.createPipeline();
 
     cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
@@ -151,7 +150,7 @@ describe('Pipeline Editor tests', () => {
       cy.findByRole('option', { name: /anaconda/i }).click();
     });
 
-    cy.findByRole('button', { name: /save pipeline/i }).click();
+    cy.savePipeline();
 
     // can take a moment to register as saved in ci
     cy.wait(1000);
@@ -208,8 +207,6 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should export pipeline', () => {
-    cy.findByRole('tab', { name: /runtimes/i }).click();
-
     // Create runtime configuration
     cy.createRuntimeConfig({ type: 'kfp' });
 
@@ -274,6 +271,67 @@ describe('Pipeline Editor tests', () => {
 
       cy.findByText('BAD=two').should('exist');
     });
+  });
+
+  it('kfp pipeline should display custom components', () => {
+    cy.createPipeline({ type: 'kfp' });
+    cy.openPalette();
+
+    const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
+
+    kfpCustomComponents.forEach(component => {
+      cy.findByText(new RegExp(component, 'i')).should('exist');
+    });
+  });
+
+  it('kfp pipeline should display expected export options', () => {
+    cy.createPipeline({ type: 'kfp' });
+    cy.savePipeline();
+
+    cy.createRuntimeConfig({ type: 'kfp' });
+
+    // Validate all export options are available
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+    cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
+    cy.findByRole('option', { name: /python/i }).should('not.exist');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('airflow pipeline should display custom components', () => {
+    cy.createPipeline({ type: 'airflow' });
+    cy.openPalette();
+
+    const airflowCustomComponents = [
+      'BashOperator',
+      'EmailOperator',
+      'SimpleHTTPOperator',
+      'SparkJDBCOperator',
+      'SparkSqlOperator',
+      'SparkSubmitOperator',
+      'SlackAPIOperator',
+      'SlackAPIPostOperator'
+    ];
+
+    airflowCustomComponents.forEach(component => {
+      cy.findByText(new RegExp(component, 'i')).should('exist');
+    });
+  });
+
+  it('airflow pipeline should display expected export options', () => {
+    cy.createPipeline({ type: 'airflow' });
+    cy.savePipeline();
+
+    cy.createRuntimeConfig();
+
+    // Validate all export options are available
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
+    cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
   });
 });
 

@@ -29,7 +29,7 @@ class NodeFile(object):
 class InputNodeFile(NodeFile):
     """Given a filename, it ensures the file exists and can read its contents."""
     def __init__(self, filename: str) -> None:
-        super(InputNodeFile, self).__init__(filename)
+        super().__init__(filename)
         self.data = None
 
         if not os.path.exists(self.filename):
@@ -47,7 +47,7 @@ class InputNodeFile(NodeFile):
 class OutputNodeFile(NodeFile):
     """Given a filename, it ensures the file does not exist and will write data to that file."""
     def __init__(self, filename: str) -> None:
-        super(OutputNodeFile, self).__init__(filename)
+        super().__init__(filename)
 
         # Don't enforce output file existence here - break idempotency
         # if os.path.exists(self.filename):
@@ -91,9 +91,20 @@ class ExecutionNode(ABC):
     def perform_experiment(self) -> None:
         """Emulates the experiment to run."""
         print(f"NODE_NAME: {self.node_name}")
+
         runtime_env = os.getenv("ELYRA_RUNTIME_ENV")
-        print(f"ELYRA_RUNTIME_ENV: {runtime_env}")
         assert runtime_env == "local", "ELYRA_RUNTIME_ENV has not been set to 'local'!"
+        print(f"ELYRA_RUNTIME_ENV: {runtime_env}")
+
+        run_name = os.getenv("ELYRA_RUN_NAME")
+        assert run_name is not None, "ELYRA_RUN_NAME is not set!"
+        print(f"ELYRA_RUN_NAME: {run_name}")
+
+        pipeline_name = os.getenv("PIPELINE_NAME")
+        print(f"PIPELINE_NAME: {pipeline_name}")
+        assert pipeline_name is not None, "PIPELINE_NAME is not set!"
+
+        assert run_name.startswith(pipeline_name), "ELYRA_RUN_NAME does not start with pipeline name!"
 
     def process_inputs(self, env_var: str) -> List[InputNodeFile]:
         """Given an environment variable `env_var`, that contains a SEMI-COLON-separated
@@ -108,7 +119,9 @@ class ExecutionNode(ABC):
                 inputs.append(InputNodeFile(filename))
 
         for input_file in inputs:
-            print("FROM: {}".format(input_file.read()))
+            payload = json.loads(input_file.read())
+            print(f"FROM: {payload.get('node')}")
+            assert payload.get('run_name') == os.getenv("ELYRA_RUN_NAME")
 
         return inputs
 
@@ -124,8 +137,10 @@ class ExecutionNode(ABC):
             if filename:
                 outputs.append(OutputNodeFile(filename))
 
+        # Include ELYRA_RUN_NAME in all outputs - which are verified when used as inputs
+        payload = {"node": self.node_name, "run_name": os.getenv("ELYRA_RUN_NAME")}
         for output_file in outputs:
-            output_file.write(self.node_name)
+            output_file.write(json.dumps(payload))
 
         return outputs
 
@@ -148,7 +163,7 @@ class NotebookNode(ExecutionNode):
 
     def validate(self) -> None:
         """For notebooks, we can also ensure the file can be loaded as JSON."""
-        super(NotebookNode, self).validate()
+        super().validate()
 
         # Confirm file can be loaded as JSON
         with open(self.filename) as f:

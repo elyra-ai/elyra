@@ -2,56 +2,44 @@
   "components": {
     "bash-operator": {
       "name": "Bash Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py"
-      }
-    },
-    "docker-operator": {
-      "name": "Docker Operator",
-      "path": {
-        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/docker_operator.py"
       }
     },
     "email-operator": {
       "name": "Email Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py"
       }
     },
     "http-operator": {
       "name": "HTTP Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/http_operator.py"
-      }
-    },
-    "kubernetes-pod-operator": {
-      "name": "Kubernetes Pod Operator",
-      "path": {
-        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/kubernetes_pod_operator.py"
       }
     },
     "spark-jdbc-operator": {
       "name": "Spark JDBC Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_jdbc_operator.py"
       }
     },
     "spark-sql-operator": {
       "name": "Spark Sql Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py"
       }
     },
     "spark-submit-operator": {
       "name": "Spark Submit Operator",
-      "path": {
+      "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py"
       }
     },
-    "ssh-operator": {
-      "name": "SSH Operator",
-      "path": {
-        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/ssh_operator.py"
+    "slack-operator": {
+      "name": "Slack Operator",
+      "location": {
+        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/slack_operator.py"
       }
     }
   }

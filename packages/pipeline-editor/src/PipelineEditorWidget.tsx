@@ -25,6 +25,7 @@ import {
   savePipelineIcon,
   showBrowseFileDialog,
   runtimesIcon,
+  containerIcon,
   Dropzone,
   RequestErrors,
   showFormDialog,
@@ -61,7 +62,8 @@ import {
   IRuntime,
   ISchema,
   PipelineService,
-  RUNTIMES_NAMESPACE
+  RUNTIMES_NAMESPACE,
+  RUNTIME_IMAGES_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
@@ -132,15 +134,17 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [pipeline, setPipeline] = useState<any>(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState('');
-  const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.runtime
-    ? {
-        name: pipeline?.pipelines?.[0]?.app_data?.runtime,
-        display_name:
-          pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.display_name
-      }
-    : null;
+  // const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.runtime
+  //   ? {
+  //       name: pipeline?.pipelines?.[0]?.app_data?.runtime,
+  //       display_name:
+  //         pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.display_name
+  //     }
+  //   : null;
 
   const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
+  const pipelineRuntimeDisplayName =
+    pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.display_name;
 
   const { data: nodeDefs, error: nodeDefsError } = useNodeDefs(
     pipelineRuntimeName
@@ -383,17 +387,20 @@ const PipelineWrapper: React.FC<IProps> = ({
     );
 
     let title = 'Export pipeline';
-    if (pipelineRuntime) {
-      title = `Export pipeline for ${pipelineRuntime.display_name}`;
+    if (
+      pipelineRuntimeDisplayName !== undefined &&
+      pipelineRuntimeName !== undefined
+    ) {
+      title = `Export pipeline for ${pipelineRuntimeDisplayName}`;
       const filteredRuntimeOptions = PipelineService.filterRuntimes(
         runtimes,
-        pipelineRuntime.name
+        pipelineRuntimeName
       );
       if (filteredRuntimeOptions.length === 0) {
         const runtimes = await RequestErrors.noMetadataError(
           'runtime',
           'export pipeline.',
-          pipelineRuntime.display_name
+          pipelineRuntimeDisplayName
         );
         if (Utils.isDialogResult(runtimes)) {
           if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
@@ -411,7 +418,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       body: formDialogWidget(
         <PipelineExportDialog
           runtimes={runtimes}
-          runtime={pipelineRuntime?.name}
+          runtime={pipelineRuntimeName}
           schema={schema}
         />
       ),
@@ -472,7 +479,14 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [cleanNullProperties, context.model, nodeDefs, pipelineRuntime, shell]);
+  }, [
+    cleanNullProperties,
+    context.model,
+    nodeDefs,
+    pipelineRuntimeDisplayName,
+    pipelineRuntimeName,
+    shell
+  ]);
 
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
@@ -532,17 +546,20 @@ const PipelineWrapper: React.FC<IProps> = ({
     schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 
     let title = 'Run pipeline';
-    if (pipelineRuntime) {
-      title = `Run pipeline on ${pipelineRuntime.display_name}`;
+    if (
+      pipelineRuntimeDisplayName !== undefined &&
+      pipelineRuntimeName !== undefined
+    ) {
+      title = `Run pipeline on ${pipelineRuntimeDisplayName}`;
       const filteredRuntimeOptions = PipelineService.filterRuntimes(
         runtimes,
-        pipelineRuntime.name
+        pipelineRuntimeName
       );
       if (filteredRuntimeOptions.length === 0) {
         const runtimes = await RequestErrors.noMetadataError(
           'runtime',
           'run pipeline.',
-          pipelineRuntime.display_name
+          pipelineRuntimeDisplayName
         );
         if (Utils.isDialogResult(runtimes)) {
           if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
@@ -561,7 +578,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineSubmissionDialog
           name={pipelineName}
           runtimes={runtimes}
-          runtime={pipelineRuntime?.name}
+          runtime={pipelineRuntimeName}
           schema={schema}
         />
       ),
@@ -607,7 +624,14 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0],
       contextRef.current.path
     );
-  }, [cleanNullProperties, context.model, nodeDefs, pipelineRuntime, shell]);
+  }, [
+    cleanNullProperties,
+    context.model,
+    nodeDefs,
+    pipelineRuntimeDisplayName,
+    pipelineRuntimeName,
+    shell
+  ]);
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
     return showDialog({
@@ -616,8 +640,20 @@ const PipelineWrapper: React.FC<IProps> = ({
       buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
     }).then(result => {
       if (result.button.accept) {
-        // select all canvas elements
-        contextRef.current.model.fromString('');
+        const newPipeline: any = contextRef.current.model.toJSON();
+        if (newPipeline?.pipelines?.[0]?.nodes?.length > 0) {
+          newPipeline.pipelines[0].nodes = [];
+        }
+        const pipelineProperties =
+          newPipeline?.pipelines?.[0]?.app_data?.properties;
+        if (pipelineProperties) {
+          // Remove all fields of pipeline properties except for the name/runtime (readonly)
+          newPipeline.pipelines[0].app_data.properties = {
+            name: pipelineProperties.name,
+            runtime: pipelineProperties.runtime
+          };
+        }
+        contextRef.current.model.fromJSON(newPipeline);
       }
     });
   }, []);
@@ -645,6 +681,9 @@ const PipelineWrapper: React.FC<IProps> = ({
           break;
         case 'openRuntimes':
           shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+          break;
+        case 'openRuntimeImages':
+          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
           break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, { path: args.payload });
@@ -698,6 +737,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         iconEnabled: IconUtil.encode(runtimesIcon),
         iconDisabled: IconUtil.encode(runtimesIcon)
       },
+      {
+        action: 'openRuntimeImages',
+        label: 'Open Runtime Images',
+        enable: true,
+        iconEnabled: IconUtil.encode(containerIcon),
+        iconDisabled: IconUtil.encode(containerIcon)
+      },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },
       { action: 'cut', label: 'Cut' },
@@ -719,15 +765,15 @@ const PipelineWrapper: React.FC<IProps> = ({
     rightBar: [
       {
         action: '',
-        label: `Runtime: ${pipelineRuntime?.display_name ?? 'Generic'}`,
+        label: `Runtime: ${pipelineRuntimeDisplayName ?? 'Generic'}`,
         incLabelWithIcon: 'before',
         enable: false,
         kind: 'tertiary',
         // TODO: use getRuntimeIcon
         iconEnabled: IconUtil.encode(
-          pipelineRuntime?.name === 'kfp'
+          pipelineRuntimeName === 'kfp'
             ? kubeflowIcon
-            : pipelineRuntime?.name === 'airflow'
+            : pipelineRuntimeName === 'airflow'
             ? airflowIcon
             : pipelineIcon
         )
