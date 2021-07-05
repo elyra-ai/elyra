@@ -73,14 +73,9 @@ export const PipelineExportDialog: React.FC<IProps> = ({
 
   const handleUpdate = React.useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>): void => {
-      const selectedPlatform = event.target.value;
-      const filteredRuntimes = PipelineService.filterRuntimes(
-        runtimes,
-        selectedPlatform
-      );
       setPlatformSelection(event.target.value);
     },
-    [runtimes, runtime]
+    []
   );
 
   const runtimeOptions = React.useMemo(
