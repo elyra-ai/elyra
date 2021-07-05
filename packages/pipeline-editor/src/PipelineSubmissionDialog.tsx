@@ -51,11 +51,6 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
     [runtime, runtimes, schema, runtimePlatform]
   );
 
-  // React.useEffect((): void => {
-  //   const schemas = PipelineService.filterValidSchema(runtimes, schema);
-  //   setValidSchemas(schemas);
-  // }, [runtimes, schema]);
-
   const validSchemas = React.useMemo(
     (): ISchema[] => PipelineService.filterValidSchema(runtimes, schema),
     [runtimes, schema]

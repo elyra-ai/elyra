@@ -101,7 +101,7 @@ export const PipelineExportDialog: React.FC<IProps> = ({
 
   const platformSelection = React.useMemo(
     (): string => runtime ?? (validSchemas[0] && validSchemas[0].name),
-    [validSchemas]
+    [runtime, validSchemas]
   );
 
   const filteredRuntimes = React.useMemo(
@@ -116,7 +116,7 @@ export const PipelineExportDialog: React.FC<IProps> = ({
 
   React.useEffect((): void => {
     setFileTypes(getFileTypes(platformSelection, runtime ?? ''));
-  }, [getFileTypes, platformSelection, runtime]);
+  }, [platformSelection, runtime]);
 
   return (
     <form className="elyra-dialog-form">
