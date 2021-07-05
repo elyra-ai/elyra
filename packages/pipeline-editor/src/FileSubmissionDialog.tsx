@@ -36,50 +36,32 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
   runtimes,
   schema
 }) => {
-  const [includeDependency, setIncludeDependency] = React.useState(true);
-  const [runtimeOptions, setRuntimeOptions] = React.useState(
-    new Array<IRuntime>()
-  );
-  const handleDependency = (): void => {
-    setIncludeDependency(!includeDependency);
-  };
-
-  const handleUpdateRuntime = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ): void => {
-    const platformSelection = event.target.value;
-    setRuntimeOptions(filterRuntimeOptions(platformSelection));
-  };
-
-  const filterRuntimeOptions = React.useCallback(
-    (platformSelection: string): IRuntime[] =>
-      PipelineService.filterRuntimes(runtimes, platformSelection),
-    [runtimes]
-  );
-
-  // React.useEffect((): void => {
-  //   const schemas = PipelineService.filterValidSchema(runtimes, schema);
-  //   if (schemas) {
-  //     const platformSelection = schemas[0] && schemas[0].name;
-  //     const filteredRuntimeOptions = filterRuntimeOptions(platformSelection);
-  //     setRuntimeOptions(filteredRuntimeOptions);
-  //     setValidSchemas(schemas);
-  //   }
-  // }, [filterRuntimeOptions, runtimes, schema]);
-
   const validSchemas = React.useMemo(
     (): ISchema[] => PipelineService.filterValidSchema(runtimes, schema),
     [runtimes, schema]
   );
 
-  const platformSelection = React.useMemo(
-    (): string => (validSchemas && validSchemas[0]?.name) ?? '',
-    [validSchemas]
+  const [includeDependency, setIncludeDependency] = React.useState(true);
+  const [platformSelection, setPlatformSelection] = React.useState(
+    (validSchemas && validSchemas[0]?.name) ?? ''
   );
 
-  React.useEffect((): void => {
-    setRuntimeOptions(filterRuntimeOptions(platformSelection));
-  }, [filterRuntimeOptions, platformSelection]);
+  const handleDependency = React.useCallback((): void => {
+    setIncludeDependency(!includeDependency);
+  }, [includeDependency]);
+
+  const handleUpdateRuntime = React.useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>): void => {
+      setPlatformSelection(event.target.value);
+    },
+    []
+  );
+
+  const runtimeOptions = React.useMemo(
+    (): IRuntime[] =>
+      PipelineService.filterRuntimes(runtimes, platformSelection),
+    [runtimes, platformSelection]
+  );
 
   return (
     <form className="elyra-dialog-form">
