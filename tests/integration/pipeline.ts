@@ -432,7 +432,7 @@ describe('Pipeline Editor tests', () => {
 
     const kfpCustomComponents = [
       'run-notebook-using-papermill',
-      'filter-text-using-shell-and-grep',
+      'filter-text',
       'kubeflow-serve-model-using-kfserving'
     ];
 

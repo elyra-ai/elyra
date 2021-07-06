@@ -15,9 +15,12 @@
 #
 import json
 import time
+
 from types import SimpleNamespace
 from typing import Dict
 from typing import List
+
+import os
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
@@ -145,16 +148,27 @@ class ComponentRegistry(LoggingConfigurable):
                     self.log.debug(f"Component registry: processing component {component_entry.get('name')}")
 
                     component_type = next(iter(component_entry.get('location')))
+                    component_location = self._get_absolute_location(component_type,
+                                                                     component_entry["location"][component_type])
                     entry = {
                         "id": component_id,
                         "name": component_entry["name"],
                         "type": component_type,
-                        "location": component_entry["location"][component_type],
+                        "location": component_location,
                         "adjusted_id": None
                     }
                     component_entries.append(SimpleNamespace(**entry))
 
         return component_entries
+
+    def _get_absolute_location(self, component_type: str, component_path: str):
+        """
+        Gets the absolute path for a component from a file-based registry
+        """
+        if component_type == "filename":
+            component_resource_dir = "resources/" + self._parser._type
+            component_path = os.path.join(os.path.dirname(__file__), component_resource_dir, component_path)
+        return component_path
 
     def _get_component_registry_entry(self, component_id):
         """

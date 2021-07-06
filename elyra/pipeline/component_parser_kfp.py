@@ -36,11 +36,6 @@ class KfpComponentParser(ComponentParser):
     def parse(self, registry_entry) -> List[Component]:
         component_yaml = self._read_component_yaml(registry_entry)
 
-        # Adjust filename for display on frontend
-        if registry_entry.type == FilesystemComponentReader.type:
-            registry_entry.location = os.path.join(os.path.dirname(__file__),
-                                                   registry_entry.location)
-
         description = ""
         if component_yaml.get('description'):
             description = ' '.join(component_yaml.get('description').split())
@@ -136,8 +131,7 @@ class KfpComponentParser(ComponentParser):
         """
         try:
             reader = self._get_reader(registry_entry)
-            component_definition = \
-                reader.read_component_definition(registry_entry.id, registry_entry.location, self._type)
+            component_definition = reader.read_component_definition(registry_entry)
 
             return yaml.safe_load(component_definition)
         except yaml.YAMLError as e:

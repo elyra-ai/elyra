@@ -264,6 +264,7 @@ class PipelineParser(LoggingConfigurable):
                 if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
                            "include_subdirectories", "ui_data", "component_source", "component_source_type", "label",
                            "image", "description", "properties", "invalidNodeError", "runtime"]:
+
                     continue
 
                 component_params[key] = value
