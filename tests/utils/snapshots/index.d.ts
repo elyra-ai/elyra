@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-module.exports = {
-  plugins: ['cypress', 'mocha'],
-  env: {
-    'cypress/globals': true,
-    node: true
-  },
-  rules: {
-    'mocha/no-exclusive-tests': 'warn'
+declare namespace Cypress {
+  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+  interface Chainable {
+    matchesSnapshot(): Chainable<void>;
   }
-};
+
+  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+  interface ResolvedConfigOptions {
+    snapshotsFolder: string;
+  }
+}

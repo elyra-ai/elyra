@@ -26,6 +26,8 @@ from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
 from typing import Dict, List
 
+from .component_registry import ComponentRegistry
+
 
 class LocalPipelineProcessor(PipelineProcessor):
     """
@@ -56,6 +58,9 @@ class LocalPipelineProcessor(PipelineProcessor):
     @property
     def type(self):
         return self._type
+
+    def get_components(self):
+        return ComponentRegistry.get_generic_components()
 
     def process(self, pipeline):
         """

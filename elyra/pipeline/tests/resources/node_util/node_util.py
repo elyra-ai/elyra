@@ -29,7 +29,7 @@ class NodeFile(object):
 class InputNodeFile(NodeFile):
     """Given a filename, it ensures the file exists and can read its contents."""
     def __init__(self, filename: str) -> None:
-        super(InputNodeFile, self).__init__(filename)
+        super().__init__(filename)
         self.data = None
 
         if not os.path.exists(self.filename):
@@ -47,7 +47,7 @@ class InputNodeFile(NodeFile):
 class OutputNodeFile(NodeFile):
     """Given a filename, it ensures the file does not exist and will write data to that file."""
     def __init__(self, filename: str) -> None:
-        super(OutputNodeFile, self).__init__(filename)
+        super().__init__(filename)
 
         # Don't enforce output file existence here - break idempotency
         # if os.path.exists(self.filename):
@@ -163,7 +163,7 @@ class NotebookNode(ExecutionNode):
 
     def validate(self) -> None:
         """For notebooks, we can also ensure the file can be loaded as JSON."""
-        super(NotebookNode, self).validate()
+        super().validate()
 
         # Confirm file can be loaded as JSON
         with open(self.filename) as f:

@@ -87,10 +87,10 @@ export class PipelineService {
    */
   static async getComponentProperties(
     runtimeName: string,
-    componentCategory: string
+    componentId: string
   ): Promise<any> {
     return RequestHandler.makeGetRequest(
-      `elyra/pipeline/components/${runtimeName}/${componentCategory}/properties`
+      `elyra/pipeline/components/${runtimeName}/${componentId}/properties`
     );
   }
 
