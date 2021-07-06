@@ -34,7 +34,8 @@ class FileReader(LoggingConfigurable):
     their own parser member variable according to their implementation language.
     """
 
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str, **kwargs):
+        super().__init__(**kwargs)
         self._filepath = filepath
 
     @property
@@ -62,8 +63,8 @@ class FileReader(LoggingConfigurable):
 
 
 class NotebookReader(FileReader):
-    def __init__(self, filepath: str):
-        super().__init__(filepath)
+    def __init__(self, filepath: str, **kwargs):
+        super().__init__(filepath, **kwargs)
 
         with open(self._filepath) as f:
             self._notebook = nbformat.read(f, as_version=4)
@@ -86,7 +87,7 @@ class NotebookReader(FileReader):
                 yield cell.source.split('\n')
 
 
-class ScriptParser():
+class ScriptParser:
     """
     Base class for parsing individual lines of code. Subclasses implement a search_expressions()
     function that returns language-specific regexes to match against code lines.
@@ -116,6 +117,7 @@ class ScriptParser():
 
 
 class PythonScriptParser(ScriptParser):
+
     def search_expressions(self) -> Dict[str, List]:
         # TODO: add more key:list-of-regex pairs to parse for additional resources
         regex_dict = dict()
@@ -132,6 +134,7 @@ class PythonScriptParser(ScriptParser):
 
 
 class RScriptParser(ScriptParser):
+
     def search_expressions(self) -> Dict[str, List]:
         # TODO: add more key:list-of-regex pairs to parse for additional resources
         regex_dict = dict()

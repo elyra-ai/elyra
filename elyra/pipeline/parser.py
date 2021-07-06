@@ -31,6 +31,7 @@ DEFAULT_FILETYPE = "tar.gz"
 class PipelineParser(LoggingConfigurable):
 
     def __init__(self, root_dir="", **kwargs):
+        super().__init__(**kwargs)
         self.root_dir = root_dir
 
     def parse(self, pipeline_definitions: Dict) -> Pipeline:

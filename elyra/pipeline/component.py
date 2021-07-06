@@ -237,9 +237,8 @@ class ComponentReader(LoggingConfigurable):
     """
     type: str = None
 
-    @property
-    def type(self) -> str:
-        return self.type
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @abstractmethod
     def read_component_definition(self, component_id: str, location: str) -> str:
@@ -271,8 +270,9 @@ class UrlComponentReader(ComponentReader):
     def read_component_definition(self, component_id: str, location: str) -> str:
         res = requests.get(location)
         if res.status_code != HTTPStatus.OK:
-            self.log.error (f'Invalid location for component: {component_id} -> {location} (HTTP code {res.status_code})')  # noqa: E211 E501
-            raise FileNotFoundError (f'Invalid location for component: {component_id} -> {location} (HTTP code {res.status_code})')  # noqa: E211 E501
+            msg = f"Invalid location for component: {component_id} -> {location} (HTTP code {res.status_code})"
+            self.log.error(msg)
+            raise FileNotFoundError(msg)
 
         return res.text
 
@@ -282,6 +282,9 @@ class ComponentParser(LoggingConfigurable):  # ABC
         FilesystemComponentReader.type: FilesystemComponentReader(),
         UrlComponentReader.type: UrlComponentReader()
     }
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @abstractmethod
     def parse(self, registry_entry) -> List[Component]:

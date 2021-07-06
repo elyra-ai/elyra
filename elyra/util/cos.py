@@ -27,8 +27,8 @@ from traitlets.config import LoggingConfigurable
 class CosClient(LoggingConfigurable):
     client = None
 
-    def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, bucket=None):
-        super().__init__()
+    def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, bucket=None, **kwargs):
+        super().__init__(**kwargs)
         if config:
             self.endpoint = urlparse(config.metadata['cos_endpoint'])
             self.access_key = config.metadata['cos_username']

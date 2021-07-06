@@ -31,9 +31,10 @@ from elyra.metadata.storage import FileMetadataCache
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
-from elyra.pipeline.handlers import PipelineProcessorManager
 from elyra.pipeline.handlers import PipelineSchedulerHandler
 from elyra.pipeline.processor import PipelineProcessor
+from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.processor import PipelineProcessorRegistry
 
 
 DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
@@ -87,6 +88,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         self.log.info('Config {}'.format(self.config))
         # Instantiate singletons with appropriate parent to enable configurability, and convey
         # root_dir to PipelineProcessorManager.
+        PipelineProcessorRegistry.instance(root_dir=self.settings['server_root_dir'], parent=self)
         PipelineProcessorManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
         FileMetadataCache.instance(parent=self)
         SchemaManager.instance(parent=self)
