@@ -72,7 +72,7 @@ class Metadata(object):
         """Creates an appropriate instance of Metadata from a dictionary instance """
 
         # Get the schema and look for metadata_class entry and use that, else Metadata.
-        metadata_class_name = 'elyra.metadata.Metadata'
+        metadata_class_name = 'elyra.metadata.metadata.Metadata'
         schema_name = metadata_dict.get('schema_name')
         if schema_name:
             schema = SchemaManager.instance().get_schema(namespace, schema_name)
