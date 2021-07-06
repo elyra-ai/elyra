@@ -1,0 +1,82 @@
+{
+    "current_parameters": {
+{% for property in properties %}
+      {% if property.type|lower == "bool" or property.type|lower == "boolean" %}
+      "{{ property.ref }}": {{ property.value|lower }}
+      {% elif property.type|lower == "int" or property.type|lower == "integer" or property.type|lower == "number" %}
+      "{{ property.ref }}": {{ property.value }}
+      {% else %}
+      "{{ property.ref }}": "{{ property.value }}"
+      {% endif %}
+      {% if loop.index != properties|length %}
+      ,
+      {% endif %}
+{% endfor %}
+    },
+    "parameters": [
+{% for property in properties %}
+      {
+        "id": "{{ property.ref }}"
+      }
+      {% if loop.index != properties|length %}
+      ,
+      {% endif %}
+{% endfor %}
+    ],
+    "uihints": {
+      "id": "nodeProperties",
+      "parameter_info": [
+{% for property in properties %}
+        {
+          "parameter_ref": "{{ property.ref }}",
+          "control": "{{ property.control }}",
+          "custom_control_id": "{{ property.control_id }}",
+          "label": {
+            "default": "{{ property.name }}"
+          },
+          "description": {
+            "default": "{{ property.description }}",
+            "placement": "on_panel"
+          },
+          "data": {
+            "format": "{{ property.type }}",
+            "required": {{ property.required|lower }}
+            {% if property.control_id == "EnumControl" %}
+            ,
+            "items": [
+              {% for item in property.items %}
+              "{{ item }}"
+              {% if loop.index != property.items|length %}
+              ,
+              {% endif %}
+              {% endfor %}
+              ]
+            {% endif %}
+          }
+        }
+        {% if loop.index != properties|length %}
+        ,
+        {% endif %}
+{% endfor %}
+      ],
+      "group_info": [
+        {
+          "id": "nodeGroupInfo",
+          "type": "panels",
+          "group_info": [
+{% for property in properties %}
+            {
+              "id": "{{ property.ref }}",
+              "type": "controls",
+              "parameter_refs": ["{{ property.ref }}"]
+            }
+            {% if loop.index != properties|length %}
+            ,
+            {% endif %}
+{% endfor %}
+          ]
+        }
+      ]
+    },
+    "resources": {}
+  }

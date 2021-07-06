@@ -32,8 +32,9 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def get(self, namespace):
         namespace = url_unescape(namespace)
+        parent = self.settings.get('serverapp')
         try:
-            metadata_manager = MetadataManager(namespace=namespace)
+            metadata_manager = MetadataManager(namespace=namespace, parent=parent)
             metadata = metadata_manager.get_all()
         except (ValidationError, ValueError) as err:
             raise web.HTTPError(400, str(err)) from err
@@ -51,11 +52,12 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
     async def post(self, namespace):
 
         namespace = url_unescape(namespace)
+        parent = self.settings.get('serverapp')
         try:
             instance = self._validate_body(namespace)
             self.log.debug("MetadataHandler: Creating metadata instance '{}' in namespace '{}'...".
                            format(instance.name, namespace))
-            metadata_manager = MetadataManager(namespace=namespace)
+            metadata_manager = MetadataManager(namespace=namespace, parent=parent)
             metadata = metadata_manager.create(instance.name, instance)
         except (ValidationError, ValueError, SyntaxError) as err:
             raise web.HTTPError(400, str(err)) from err
@@ -102,9 +104,10 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     async def get(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
+        parent = self.settings.get('serverapp')
 
         try:
-            metadata_manager = MetadataManager(namespace=namespace)
+            metadata_manager = MetadataManager(namespace=namespace, parent=parent)
             metadata = metadata_manager.get(resource)
         except (ValidationError, ValueError, NotImplementedError) as err:
             raise web.HTTPError(400, str(err)) from err
@@ -120,11 +123,12 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     async def put(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
+        parent = self.settings.get('serverapp')
 
         try:
             payload = self.get_json_body()
             # Get the current resource to ensure its pre-existence
-            metadata_manager = MetadataManager(namespace=namespace)
+            metadata_manager = MetadataManager(namespace=namespace, parent=parent)
             metadata_manager.get(resource)
             # Check if name is in the payload and varies from resource, if so, raise 400
             if 'name' in payload and payload['name'] != resource:
@@ -149,11 +153,12 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     async def delete(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
+        parent = self.settings.get('serverapp')
 
         try:
             self.log.debug("MetadataHandler: Deleting metadata instance '{}' in namespace '{}'...".
                            format(resource, namespace))
-            metadata_manager = MetadataManager(namespace=namespace)
+            metadata_manager = MetadataManager(namespace=namespace, parent=parent)
             metadata_manager.remove(resource)
         except (ValidationError, ValueError) as err:
             raise web.HTTPError(400, str(err)) from err
@@ -174,8 +179,9 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def get(self, namespace):
         namespace = url_unescape(namespace)
-        schema_manager = SchemaManager()
+
         try:
+            schema_manager = SchemaManager.instance()
             schemas = schema_manager.get_namespace_schemas(namespace)
         except (ValidationError, ValueError, SchemaNotFoundError) as err:
             raise web.HTTPError(404, str(err)) from err
@@ -195,8 +201,9 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
     async def get(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
-        schema_manager = SchemaManager()
+
         try:
+            schema_manager = SchemaManager.instance()
             schema = schema_manager.get_schema(namespace, resource)
         except (ValidationError, ValueError, SchemaNotFoundError) as err:
             raise web.HTTPError(404, str(err)) from err
@@ -212,8 +219,9 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self):
-        schema_manager = SchemaManager()
+
         try:
+            schema_manager = SchemaManager.instance()
             namespaces = schema_manager.get_namespaces()
         except (ValidationError, ValueError) as err:
             raise web.HTTPError(404, str(err)) from err

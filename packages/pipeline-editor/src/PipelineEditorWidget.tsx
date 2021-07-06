@@ -25,6 +25,7 @@ import {
   savePipelineIcon,
   showBrowseFileDialog,
   runtimesIcon,
+  containerIcon,
   Dropzone,
   RequestErrors,
   showFormDialog,
@@ -61,7 +62,8 @@ import {
   IRuntime,
   ISchema,
   PipelineService,
-  RUNTIMES_NAMESPACE
+  RUNTIMES_NAMESPACE,
+  RUNTIME_IMAGES_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
@@ -248,6 +250,12 @@ const PipelineWrapper: React.FC<IProps> = ({
               node.app_data.runtime_image = image.display_name;
             }
           }
+
+          for (const [key, val] of Object.entries(node?.app_data)) {
+            if (val === null) {
+              node.app_data[key] = undefined;
+            }
+          }
         }
       }
       if (pipelineJson?.pipelines?.[0]?.app_data) {
@@ -316,29 +324,61 @@ const PipelineWrapper: React.FC<IProps> = ({
     });
   };
 
-  const onFileRequested = (args: any): Promise<string> => {
-    let currentExt = '';
-    if (args && args.filters && args.filters.File) {
-      currentExt = args.filters.File[0];
-    }
+  const onFileRequested = async (args: any): Promise<string[] | undefined> => {
     const filename = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
-      ''
+      args.filename ?? ''
     );
-    return showBrowseFileDialog(browserFactory.defaultBrowser.model.manager, {
-      startPath: PathExt.dirname(filename),
-      multiselect: args.canSelectMany,
-      filter: (model: any): boolean => {
-        const ext = PathExt.extname(model.path);
-        return currentExt === '' || currentExt === ext;
-      }
-    }).then((result: any) => {
-      if (result.button.accept && result.value.length) {
-        return result.value.map((val: any) => {
-          return val.path;
-        });
-      }
-    });
+
+    switch (args.propertyID) {
+      case 'dependencies':
+        {
+          const res = await showBrowseFileDialog(
+            browserFactory.defaultBrowser.model.manager,
+            {
+              multiselect: true,
+              includeDir: true,
+              rootPath: PathExt.dirname(filename),
+              filter: (model: any): boolean => {
+                return model.path !== filename;
+              }
+            }
+          );
+
+          if (res.button.accept && res.value.length) {
+            return res.value.map((v: any) => v.path);
+          }
+        }
+        break;
+      default:
+        {
+          const res = await showBrowseFileDialog(
+            browserFactory.defaultBrowser.model.manager,
+            {
+              startPath: PathExt.dirname(filename),
+              filter: (model: any): boolean => {
+                if (args.filters?.File === undefined) {
+                  return true;
+                }
+
+                const ext = PathExt.extname(model.path);
+                return args.filters.File.includes(ext);
+              }
+            }
+          );
+
+          if (res.button.accept && res.value.length) {
+            const file = PipelineService.getPipelineRelativeNodePath(
+              contextRef.current.path,
+              res.value[0].path
+            );
+            return [file];
+          }
+        }
+        break;
+    }
+
+    return undefined;
   };
 
   const onPropertiesUpdateRequested = async (args: any): Promise<any> => {
@@ -741,6 +781,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         case 'openRuntimes':
           shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
           break;
+        case 'openRuntimeImages':
+          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
+          break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, { path: args.payload });
           break;
@@ -792,6 +835,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         enable: true,
         iconEnabled: IconUtil.encode(runtimesIcon),
         iconDisabled: IconUtil.encode(runtimesIcon)
+      },
+      {
+        action: 'openRuntimeImages',
+        label: 'Open Runtime Images',
+        enable: true,
+        iconEnabled: IconUtil.encode(containerIcon),
+        iconDisabled: IconUtil.encode(containerIcon)
       },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },

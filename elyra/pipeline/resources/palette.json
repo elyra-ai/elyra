@@ -5,7 +5,7 @@
       "label": "Notebook",
       "image": "",
       "id": "notebooks",
-      "description": "Notebook",
+      "description": "Notebook file",
       "node_types": [
         {
           "id": "",
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "label": "Python Script",
+      "label": "Python",
       "image": "",
       "id": "python-script",
       "description": "Python Script",
@@ -104,7 +104,7 @@
       ]
     },
     {
-      "label": "R Script",
+      "label": "R",
       "image": "",
       "id": "r-script",
       "description": "R Script",

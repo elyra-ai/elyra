@@ -20,6 +20,7 @@ from jupyter_server.utils import url_path_join
 from .api.handlers import YamlSpecHandler
 from .metadata.handlers import MetadataHandler, MetadataResourceHandler, SchemaHandler, SchemaResourceHandler, \
     NamespaceHandler
+from .metadata import SchemaManager, FileMetadataCache
 from .pipeline import PipelineExportHandler, PipelineSchedulerHandler, PipelineProcessorManager, \
     PipelineComponentHandler, PipelineComponentPropertiesHandler
 from .contents.handlers import ContentHandler
@@ -60,8 +61,12 @@ def _load_jupyter_server_extension(nb_server_app):
          ContentHandler),
 
     ])
-    # Create PipelineProcessorManager instance passing root directory
+    # Instantiate singletons with appropriate parent to enable configurability, and convey
+    # root_dir to PipelineProcessorManager.
     PipelineProcessorManager.instance(root_dir=web_app.settings['server_root_dir'], parent=nb_server_app)
+    FileMetadataCache.instance(parent=nb_server_app)
+    SchemaManager.instance(parent=nb_server_app)
+
 
 # For backward compatibility
 load_jupyter_server_extension = _load_jupyter_server_extension

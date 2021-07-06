@@ -15,6 +15,7 @@
 #
 import asyncio
 import entrypoints
+import functools
 import os
 import time
 
@@ -24,12 +25,14 @@ from elyra.pipeline.parser import Pipeline, Operation
 from elyra.util.cos import CosClient
 from elyra.util.archive import create_temp_archive
 from elyra.util.path import get_expanded_path
+from jupyter_core.paths import ENV_JUPYTER_PATH
 from traitlets.config import SingletonConfigurable, LoggingConfigurable, Unicode, Bool
 from typing import List, Dict
 from urllib3.exceptions import MaxRetryError
 from minio.error import SignatureDoesNotMatch
 
-from .registry import ComponentRegistry
+from .component import ComponentParser, Component
+from .component_registry import ComponentRegistry, CachedComponentRegistry
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
@@ -38,10 +41,10 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     _processors = {}
 
     def __init__(self):
-        super(PipelineProcessorRegistry, self).__init__()
+        super().__init__()
 
     def add_processor(self, processor):
-        self.log.debug('Registering processor {}'.format(processor.type))
+        self.log.debug(f'Registering processor {processor.type}')
         self._processors[processor.type] = processor
 
     def get_processor(self, processor_type: str):
@@ -58,7 +61,7 @@ class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
     def __init__(self, **kwargs):
-        super(PipelineProcessorManager, self).__init__()
+        super().__init__()
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
 
         self._registry = PipelineProcessorRegistry.instance()
@@ -67,24 +70,31 @@ class PipelineProcessorManager(SingletonConfigurable):
             try:
                 # instantiate an actual instance of the processor
                 processor_instance = processor.load()(self.root_dir, parent=self)  # Load an instance
-                self.log.info('Registering processor "{}" with type -> {}'.format(processor, processor_instance.type))
+                self.log.info(f'Registering processor "{processor}" with type -> {processor_instance.type}')
                 self._registry.add_processor(processor_instance)
             except Exception as err:
                 # log and ignore initialization errors
                 self.log.error('Error registering processor "{}" - {}'.format(processor, err))
-
-    def is_supported_runtime(self, processor_type: str) -> bool:
-        return self._registry.is_valid_processor(processor_type)
 
     def _get_processor_for_runtime(self, processor_type: str):
         processor = self._registry.get_processor(processor_type)
 
         return processor
 
+    def is_supported_runtime(self, processor_type: str) -> bool:
+        return self._registry.is_valid_processor(processor_type)
+
     async def get_components(self, processor_type):
         processor = self._get_processor_for_runtime(processor_type)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
+        return res
+
+    async def get_component(self, processor_type, component_id):
+        processor = self._get_processor_for_runtime(processor_type)
+
+        res = await asyncio.get_event_loop().\
+            run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
         return res
 
     async def process(self, pipeline):
@@ -148,11 +158,11 @@ class PipelineProcessorResponse(ABC):
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
 
-    _type = None
+    _type: str = None
+
+    _component_registry: ComponentRegistry = None
 
     root_dir = Unicode(allow_none=True)
-
-    component_registry: ComponentRegistry = ComponentRegistry()
 
     enable_pipeline_info = Bool(config=True,
                                 default_value=(os.getenv('ELYRA_ENABLE_PIPELINE_INFO', 'true').lower() == 'true'),
@@ -160,17 +170,35 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                                 (default=True). (ELYRA_ENABLE_PIPELINE_INFO env var)""")
 
     def __init__(self, root_dir, **kwargs):
-        super(PipelineProcessor, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.root_dir = root_dir
 
     @property
     @abstractmethod
-    def type(self):
+    def type(self) -> str:
         raise NotImplementedError()
 
-    def get_components(self):
-        components = self.component_registry.get_all_components(processor_type=self.type)
+    def get_components(self) -> List[Component]:
+        """
+        Retrieve components common to all runtimes
+        """
+        components: List[Component] = ComponentRegistry.get_generic_components()
+
+        # Retrieve runtime-specific components
+        if self._component_registry:
+            components.extend(self._component_registry.get_all_components())
+
         return components
+
+    def get_component(self, component_id: str) -> Component:
+        """
+        Retrieve runtime-specific component details if component_id is not one of the generic set
+        """
+
+        if component_id not in ('notebooks', 'python-script', 'r-script'):
+            return self._component_registry.get_component(component_id=component_id)
+
+        return ComponentRegistry.get_generic_component(component_id)
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:
@@ -181,7 +209,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         raise NotImplementedError()
 
     def log_pipeline_info(self, pipeline_name: str, action_clause: str, **kwargs):
-        """Produces a formatted log INFO message used entirely for support purposes.
+        """
+        Produces a formatted log INFO message used entirely for support purposes.
 
         This method is intended to be called for any entries that should be captured across aggregated
         log files to identify steps within a given pipeline and each of its operations.  As a result,
@@ -258,7 +287,29 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             ordered_operations.append(operation)
 
 
-class RuntimePipelineProcess(PipelineProcessor):
+class RuntimePipelineProcessor(PipelineProcessor):
+
+    @property
+    def registry_location(self) -> str:
+        return self._component_registry_location
+
+    @property
+    def component_parser(self) -> ComponentParser:
+        return self._component_parser
+
+    def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
+        super().__init__(root_dir, **kwargs)
+
+        # then sys.prefix, where installed files will reside (factory data)
+        self._component_registry_location = \
+            os.path.join(ENV_JUPYTER_PATH[0], 'components', f"{self._type}_component_catalog.json")
+
+        if not os.path.exists(self._component_registry_location):
+            raise FileNotFoundError(f'Invalid component registry location: {self._component_registry_location}'
+                                    f' for "{self._type}" processor')
+
+        self._component_parser = component_parser
+        self._component_registry = CachedComponentRegistry(self.registry_location, component_parser)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)
