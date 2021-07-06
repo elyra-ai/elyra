@@ -13,56 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { checkIcon, addIcon } from '@jupyterlab/ui-components';
 
-import React, { useState } from 'react';
-
-interface IMetadataEditorTagProps {
-  selectedTags: string[];
-  tags: string[];
-  handleChange: (selectedTags: string[], allTags: string[]) => void;
-}
-
-interface IMetadataEditorTagState {
-  selectedTags: string[];
-  tags: string[];
-  plusIconShouldHide: boolean;
-  addingNewTag: boolean;
-}
-
-/**
- * CSS STYLING
- */
-const METADATA_EDITOR_TAG = 'elyra-editor-tag';
-const METADATA_EDITOR_TAG_PLUS_ICON = 'elyra-editor-tag-plusIcon';
-const METADATA_EDITOR_TAG_LIST = 'elyra-editor-tagList';
-const METADATA_EDITOR_INPUT_TAG = 'elyra-inputTag';
+import * as React from 'react';
 
 interface IInputBoxProps {
-  addingNewTag: boolean;
+  onCreateTag(tag: string): any;
 }
 
-const InputBox: React.FC<IInputBoxProps> = ({ addingNewTag }) => {
-  if (addingNewTag) {
+const InputBox: React.FC<IInputBoxProps> = ({ onCreateTag }) => {
+  const [width, setWidth] = React.useState<string>();
+  const [value, setValue] = React.useState('');
+  const [isEditing, setIsEditing] = React.useState(false);
+
+  const handleTagClick: React.MouseEventHandler = () => {
+    setIsEditing(false);
+    if (value === 'Add Tag') {
+      setValue('');
+      setWidth('62px');
+    }
+  };
+
+  const handleKeyDown: React.KeyboardEventHandler = e => {
+    const newTag = (e.target as HTMLInputElement).value.trim();
+    // TODO: Nick
+    // setValue?
+
+    if (newTag !== '' && e.key === 'Enter') {
+      setIsEditing(false);
+      onCreateTag(newTag);
+    }
+  };
+
+  const handleTagBlur: React.FocusEventHandler = () => {
+    setWidth('50px');
+    // TODO: Nick
+    // Why do they blur onBlur?
+    // inputElement.blur();
+    setValue('Add Tag');
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
     return (
-      <ul
-        className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-        key={'editor-new-tag'}
-      >
+      <ul className="elyra-editor-tag tag unapplied-tag">
         <input
-          className={`${METADATA_EDITOR_INPUT_TAG}`}
-          onClick={(
-            event: React.MouseEvent<HTMLInputElement, MouseEvent>
-          ): void => this.addTagOnClick(event)}
-          onKeyDown={async (
-            event: React.KeyboardEvent<HTMLInputElement>
-          ): Promise<void> => {
-            await this.addTagOnKeyDown(event);
+          className="elyra-inputTag"
+          value={value}
+          style={{
+            width,
+            minWidth: width
           }}
-          onBlur={(event: React.FocusEvent<HTMLInputElement>): void =>
-            this.addTagOnBlur(event)
-          }
+          onClick={handleTagClick}
+          onKeyDown={handleKeyDown}
+          onBlur={handleTagBlur}
           autoFocus
         />
       </ul>
@@ -71,13 +77,15 @@ const InputBox: React.FC<IInputBoxProps> = ({ addingNewTag }) => {
 
   return (
     <button
-      onClick={(): void => this.setState({ addingNewTag: true })}
-      className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
+      onClick={(): void => {
+        setIsEditing(true);
+      }}
+      className="elyra-editor-tag tag unapplied-tag"
     >
       Add Tag
       <addIcon.react
         tag="span"
-        className={METADATA_EDITOR_TAG_PLUS_ICON}
+        className="elyra-editor-tag-plusIcon"
         elementPosition="center"
         height="16px"
         width="16px"
@@ -93,185 +101,65 @@ interface IProps {
   handleChange: (selectedTags: string[], allTags: string[]) => void;
 }
 
-export const TagEditor: React.FC<IProps> = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const hasTags = this.state.tags;
+export const TagEditor: React.FC<IProps> = ({
+  tags,
+  selectedTags,
+  handleChange
+}) => {
+  const handleCreateTag = (tag: string): void => {
+    // TODO: Nick
+    // This should probably be hoisted into the editor
+    if (tags.includes(tag)) {
+      // TODO: Nick
+      // Make sure this still works when not awaited
+      // e.preventDefault();
+      showDialog({
+        title: 'A tag with this label already exists.',
+        buttons: [Dialog.okButton()]
+      });
+      return;
+    }
+    // TODO: Nick
+    // broadcast changes
+    // handleChange(selectedTags, allTags);
+  };
+
+  const handleToggle = (): void => {
+    // TODO
+  };
 
   return (
     <div>
-      <li className={METADATA_EDITOR_TAG_LIST}>
-        {hasTags
-          ? this.state.tags.map((tag: string, index: number) => {
-              if (!this.state.selectedTags) {
-                return (
-                  <button
-                    onClick={this.handleClick}
-                    className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                    id={'editor' + '-' + tag + '-' + index}
-                    key={'editor' + '-' + tag + '-' + index}
-                  >
-                    {tag}
-                  </button>
-                );
-              }
+      <li className="elyra-editor-tagList">
+        {tags !== undefined &&
+          tags.map((tag: string, index: number) => {
+            const isSelected = selectedTags.includes(tag);
 
-              if (this.state.selectedTags.includes(tag)) {
-                return (
-                  <button
-                    onClick={this.handleClick}
-                    className={`${METADATA_EDITOR_TAG} tag applied-tag`}
-                    id={'editor' + '-' + tag + '-' + index}
-                    key={'editor' + '-' + tag + '-' + index}
-                  >
-                    {tag}
-                    <checkIcon.react
-                      tag="span"
-                      elementPosition="center"
-                      height="18px"
-                      width="18px"
-                      marginLeft="5px"
-                      marginRight="-3px"
-                    />
-                  </button>
-                );
-              } else {
-                return (
-                  <button
-                    onClick={this.handleClick}
-                    className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                    id={'editor' + '-' + tag + '-' + index}
-                    key={'editor' + '-' + tag + '-' + index}
-                  >
-                    {tag}
-                  </button>
-                );
-              }
-            })
-          : null}
-        <InputBox addingNewTag={isEditing} />
+            return (
+              <button
+                onClick={handleToggle}
+                className={`elyra-editor-tag tag ${
+                  isSelected ? 'applied-tag' : 'unapplied-tag'
+                }`}
+                id={'editor' + '-' + tag + '-' + index}
+                key={'editor' + '-' + tag + '-' + index}
+              >
+                {tag}
+                {isSelected && (
+                  <checkIcon.react
+                    tag="span"
+                    elementPosition="center"
+                    height="18px"
+                    width="18px"
+                    marginLeft="5px"
+                    marginRight="-3px"
+                  />
+                )}
+              </button>
+            );
+          })}
+        <InputBox onCreateTag={handleCreateTag} />
       </li>
     </div>
   );
 };
-
-export class MetadataEditorTags extends React.Component<
-  IMetadataEditorTagProps,
-  IMetadataEditorTagState
-> {
-  constructor(props: IMetadataEditorTagProps) {
-    super(props);
-    this.state = {
-      selectedTags: [],
-      tags: [],
-      plusIconShouldHide: false,
-      addingNewTag: false
-    };
-    this.renderTags = this.renderTags.bind(this);
-    this.handleClick = this.handleClick.bind(this);
-  }
-
-  componentDidMount(): void {
-    this.setState({
-      selectedTags: this.props.selectedTags ? this.props.selectedTags : [],
-      tags: this.props.tags ? this.props.tags.sort() : [],
-      plusIconShouldHide: false,
-      addingNewTag: false
-    });
-  }
-
-  componentDidUpdate(prevProps: IMetadataEditorTagProps): void {
-    if (prevProps !== this.props) {
-      this.setState({
-        selectedTags: this.props.selectedTags ? this.props.selectedTags : [],
-        tags: this.props.tags ? this.props.tags : []
-      });
-    }
-  }
-
-  handleClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-    const target = event.target as HTMLElement;
-    const clickedTag = target.innerText;
-
-    this.setState(
-      state => ({
-        selectedTags: this.updateTagsCss(
-          target,
-          state.selectedTags ? state.selectedTags : [],
-          clickedTag
-        )
-      }),
-      this.handleOnChange
-    );
-  }
-
-  handleOnChange(): void {
-    this.props.handleChange(this.state.selectedTags, this.state.tags);
-  }
-
-  updateTagsCss(
-    target: HTMLElement,
-    tags: string[],
-    clickedTag: string
-  ): string[] {
-    const currentTags = tags.slice();
-    if (target.classList.contains('unapplied-tag')) {
-      target.classList.replace('unapplied-tag', 'applied-tag');
-      currentTags.splice(-1, 0, clickedTag);
-    } else if (target.classList.contains('applied-tag')) {
-      target.classList.replace('applied-tag', 'unapplied-tag');
-
-      const idx = currentTags.indexOf(clickedTag);
-      currentTags.splice(idx, 1);
-    }
-    return currentTags;
-  }
-
-  addTagOnClick(event: React.MouseEvent<HTMLInputElement>): void {
-    this.setState({ plusIconShouldHide: true, addingNewTag: true });
-    const inputElement = event.target as HTMLInputElement;
-    if (inputElement.value === 'Add Tag') {
-      inputElement.value = '';
-      inputElement.style.width = '62px';
-      inputElement.style.minWidth = '62px';
-    }
-  }
-
-  async addTagOnKeyDown(
-    event: React.KeyboardEvent<HTMLInputElement>
-  ): Promise<void> {
-    const inputElement = event.target as HTMLInputElement;
-
-    if (inputElement.value !== '' && event.keyCode === 13) {
-      if (this.state.tags.includes(inputElement.value)) {
-        event.preventDefault();
-        await showDialog({
-          title: 'A tag with this label already exists.',
-          buttons: [Dialog.okButton()]
-        });
-        return;
-      }
-
-      const newTag = inputElement.value;
-
-      // update state all tag and selected tag
-      this.setState(
-        state => ({
-          selectedTags: [...state.selectedTags, newTag],
-          tags: [...state.tags, newTag],
-          plusIconShouldHide: false,
-          addingNewTag: false
-        }),
-        this.handleOnChange
-      );
-    }
-  }
-
-  addTagOnBlur(event: React.FocusEvent<HTMLInputElement>): void {
-    const inputElement = event.target as HTMLInputElement;
-    inputElement.value = 'Add Tag';
-    inputElement.style.width = '50px';
-    inputElement.style.minWidth = '50px';
-    inputElement.blur();
-    this.setState({ plusIconShouldHide: false, addingNewTag: false });
-  }
-}
