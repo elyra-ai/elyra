@@ -111,7 +111,7 @@ yarn-install:
 	yarn install
 
 build-ui: # Build packages
-	yarn lerna run build --stream
+	yarn && lerna run build --stream
 
 build-server: # Build backend
 	python setup.py bdist_wheel sdist
