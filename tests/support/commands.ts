@@ -144,6 +144,5 @@ Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
 });
 
 Cypress.Commands.add('openPalette', (): void => {
-  cy.get('[aria-label="Open Panel"]').click();
-  cy.get('[title="Add nodes to pipeline"]').click();
+  cy.get('[aria-label="Palette"]').click();
 });

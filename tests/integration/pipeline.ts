@@ -429,6 +429,7 @@ describe('Pipeline Editor tests', () => {
   it('kfp pipeline should display custom components', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.openPalette();
+    cy.get('.palette-flyout-category[value="Kubeflow Pipelines Nodes"]');
 
     const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
 
