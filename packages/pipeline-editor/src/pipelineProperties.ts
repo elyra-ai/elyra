@@ -15,63 +15,61 @@
  */
 
 const pipelineProperties = {
-  properties: {
-    current_parameters: {
-      name: '',
-      runtime: '',
-      description: ''
-    },
-    parameters: [{ id: 'name' }, { id: 'runtime' }, { id: 'description' }],
-    uihints: {
-      id: 'nodeProperties',
-      parameter_info: [
-        {
-          control: 'custom',
-          custom_control_id: 'DisplayControl',
-          parameter_ref: 'name',
-          label: { default: 'Pipeline Name' }
-        },
-        {
-          control: 'custom',
-          custom_control_id: 'DisplayControl',
-          parameter_ref: 'runtime',
-          label: { default: 'Pipeline Runtime' }
-        },
-        {
-          control: 'custom',
-          custom_control_id: 'StringControl',
-          parameter_ref: 'description',
-          label: { default: 'Pipeline Description' },
-          data: {
-            placeholder: 'Pipeline description',
-            format: 'multiline'
+  current_parameters: {
+    name: '',
+    runtime: '',
+    description: ''
+  },
+  parameters: [{ id: 'name' }, { id: 'runtime' }, { id: 'description' }],
+  uihints: {
+    id: 'nodeProperties',
+    parameter_info: [
+      {
+        control: 'custom',
+        custom_control_id: 'DisplayControl',
+        parameter_ref: 'name',
+        label: { default: 'Pipeline Name' }
+      },
+      {
+        control: 'custom',
+        custom_control_id: 'DisplayControl',
+        parameter_ref: 'runtime',
+        label: { default: 'Pipeline Runtime' }
+      },
+      {
+        control: 'custom',
+        custom_control_id: 'StringControl',
+        parameter_ref: 'description',
+        label: { default: 'Pipeline Description' },
+        data: {
+          placeholder: 'Pipeline description',
+          format: 'multiline'
+        }
+      }
+    ],
+    group_info: [
+      {
+        id: 'nodeGroupInfo',
+        type: 'panels',
+        group_info: [
+          {
+            id: 'name',
+            type: 'controls',
+            parameter_refs: ['name']
+          },
+          {
+            id: 'runtime',
+            type: 'controls',
+            parameter_refs: ['runtime']
+          },
+          {
+            id: 'description',
+            type: 'controls',
+            parameter_refs: ['description']
           }
-        }
-      ],
-      group_info: [
-        {
-          id: 'nodeGroupInfo',
-          type: 'panels',
-          group_info: [
-            {
-              id: 'name',
-              type: 'controls',
-              parameter_refs: ['name']
-            },
-            {
-              id: 'runtime',
-              type: 'controls',
-              parameter_refs: ['runtime']
-            },
-            {
-              id: 'description',
-              type: 'controls',
-              parameter_refs: ['description']
-            }
-          ]
-        }
-      ]
-    }
+        ]
+      }
+    ]
   }
 };
 
