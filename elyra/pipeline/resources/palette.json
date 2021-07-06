@@ -6,6 +6,7 @@
       "image": "",
       "id": "notebooks",
       "description": "Run notebook file",
+      "extensions": [".ipynb"],
       "node_types": [
         {
           "id": "",
