@@ -15,12 +15,13 @@
 #
 
 import os
-import nbformat
 import re
+from typing import Dict
+from typing import List
+from typing import TypeVar
 
+import nbformat
 from traitlets.config import LoggingConfigurable
-
-from typing import TypeVar, List, Dict
 
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612

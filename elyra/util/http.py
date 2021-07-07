@@ -15,11 +15,11 @@
 
 """Mixins for Tornado handlers."""
 
+from datetime import datetime
+from http.client import responses
 import json
 import traceback
 
-from datetime import datetime
-from http.client import responses
 from tornado import web
 
 

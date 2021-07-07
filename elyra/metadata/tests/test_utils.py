@@ -17,11 +17,18 @@ import errno
 import io
 import json
 import os
+from typing import Any
+from typing import List
+from typing import Optional
 
 from jsonschema import ValidationError
-from elyra.metadata import METADATA_TEST_NAMESPACE, Metadata, MetadataStore, FileMetadataStore, \
-    MetadataNotFoundError, MetadataExistsError
-from typing import Optional, List, Any
+
+from elyra.metadata.error import MetadataExistsError
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.storage import FileMetadataStore
+from elyra.metadata.storage import MetadataStore
 
 
 valid_metadata_json = {

@@ -15,19 +15,21 @@
 #
 
 import asyncio
-import click
 import json
 import os
+from typing import Optional
 import warnings
 
-from colorama import Fore, Style
-
-from elyra import __version__
-from elyra.pipeline import PipelineParser, PipelineProcessorManager
-from elyra.metadata import MetadataManager, SchemaManager
-
-from typing import Optional
+import click
+from colorama import Fore
+from colorama import Style
 from yaspin import yaspin
+
+from elyra._version import __version__
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schema import SchemaManager
+from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.processor import PipelineProcessorManager
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor

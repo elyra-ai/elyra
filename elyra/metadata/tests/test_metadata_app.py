@@ -17,13 +17,21 @@
 """Tests for elyra-metadata application"""
 import json
 import os
-import pytest
 import shutil
 from tempfile import mkdtemp
-from elyra.metadata import Metadata, MetadataManager, METADATA_TEST_NAMESPACE
-from .test_utils import PropertyTester, create_json_file, valid_metadata_json, \
-    another_metadata_json, invalid_metadata_json, invalid_no_display_name_json, \
-    invalid_schema_name_json
+
+import pytest
+
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.tests.test_utils import another_metadata_json
+from elyra.metadata.tests.test_utils import create_json_file
+from elyra.metadata.tests.test_utils import invalid_metadata_json
+from elyra.metadata.tests.test_utils import invalid_no_display_name_json
+from elyra.metadata.tests.test_utils import invalid_schema_name_json
+from elyra.metadata.tests.test_utils import PropertyTester
+from elyra.metadata.tests.test_utils import valid_metadata_json
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
 

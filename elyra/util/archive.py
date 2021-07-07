@@ -14,10 +14,10 @@
 # limitations under the License.
 #
 
+import fnmatch
 import os
 import tarfile
 import tempfile
-import fnmatch
 
 
 WILDCARDS = ['*', '?', '[']

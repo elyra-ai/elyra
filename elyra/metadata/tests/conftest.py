@@ -15,10 +15,17 @@
 #
 import pytest
 
-from elyra.metadata import MetadataManager, SchemaManager, METADATA_TEST_NAMESPACE  # noqa: F401
-
-from .test_utils import valid_metadata_json, invalid_metadata_json, another_metadata_json, byo_metadata_json, \
-    invalid_json, invalid_schema_name_json, create_json_file, create_instance
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.schema import SchemaManager
+from elyra.metadata.tests.test_utils import another_metadata_json
+from elyra.metadata.tests.test_utils import byo_metadata_json
+from elyra.metadata.tests.test_utils import create_instance
+from elyra.metadata.tests.test_utils import create_json_file
+from elyra.metadata.tests.test_utils import invalid_json
+from elyra.metadata.tests.test_utils import invalid_metadata_json
+from elyra.metadata.tests.test_utils import invalid_schema_name_json
+from elyra.metadata.tests.test_utils import valid_metadata_json
 
 
 def mkdir(tmp_path, *parts):
@@ -62,7 +69,7 @@ def store_manager(tests_manager):
 
 
 @pytest.fixture(params=["elyra.metadata.storage.FileMetadataStore",
-                        "elyra.metadata.tests.MockMetadataStore"])  # Add types as needed
+                        "elyra.metadata.tests.test_utils.MockMetadataStore"])  # Add types as needed
 def tests_manager(jp_environ, namespace_location, request):
     metadata_mgr = MetadataManager(namespace=METADATA_TEST_NAMESPACE, metadata_store_class=request.param)
     store_mgr = metadata_mgr.metadata_store

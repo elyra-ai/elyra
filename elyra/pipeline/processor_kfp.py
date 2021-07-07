@@ -13,33 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import autopep8
+import ast
+from datetime import datetime
 import json
 import os
 import re
-import ast
 import tempfile
 import time
-import requests
+from typing import Dict
 
-from black import format_str, FileMode
-from datetime import datetime
-from elyra._version import __version__
-from elyra.metadata import MetadataManager
-from elyra.pipeline import RuntimePipelineProcessor, PipelineProcessor, PipelineProcessorResponse, Operation
-from elyra.util.path import get_absolute_path, get_expanded_path
-from jinja2 import Environment, PackageLoader
+import autopep8
+from black import FileMode
+from black import format_str
+from jinja2 import Environment
+from jinja2 import PackageLoader
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
-from kfp.aws import use_aws_secret
-from kfp_tekton import TektonClient, compiler as kfp_tekton_compiler
+from kfp.aws import use_aws_secret  # noqa H306
 from kfp_notebook.pipeline import NotebookOp
 from kfp_server_api.exceptions import ApiException
-from typing import Dict
-from urllib3.exceptions import LocationValueError, MaxRetryError
+from kfp_tekton import compiler as kfp_tekton_compiler
+from kfp_tekton import TektonClient
+import requests
+from urllib3.exceptions import LocationValueError
+from urllib3.exceptions import MaxRetryError
 
-from .component_parser_kfp import KfpComponentParser
+from elyra._version import __version__
+from elyra.metadata.manager import MetadataManager
+from elyra.pipeline.component_parser_kfp import KfpComponentParser
+from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.processor import PipelineProcessor
+from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.pipeline.processor import RuntimePipelineProcessor
+from elyra.util.path import get_absolute_path
+from elyra.util.path import get_expanded_path
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):

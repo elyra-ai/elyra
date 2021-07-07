@@ -14,9 +14,13 @@
 # limitations under the License.
 #
 import os
-from minio import Minio
-from minio.error import ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists, SignatureDoesNotMatch
 from urllib.parse import urlparse
+
+from minio.api import Minio
+from minio.error import BucketAlreadyExists
+from minio.error import BucketAlreadyOwnedByYou
+from minio.error import ResponseError
+from minio.error import SignatureDoesNotMatch
 from traitlets.config import LoggingConfigurable
 
 

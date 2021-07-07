@@ -13,16 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from datetime import datetime
 import os
-import pytest
 import shutil
 import tarfile
 import tempfile
 import unittest
 
-from datetime import datetime
+import pytest
 
-from elyra.util import create_temp_archive
+from elyra.util.archive import create_temp_archive
 
 
 class ArchiveTestCase(unittest.TestCase):
