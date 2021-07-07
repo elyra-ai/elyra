@@ -20,11 +20,11 @@ limitations under the License.
 
 ### Overview
 
-A pipeline comprises of one or more nodes that are (in many cases) connected with each other to define execution dependencies. A node is an instance of a configurable component that typically only implements one unit-of-work. A unit-of-work can represent any task, such as load data, cleanse data, analyze data, train a machine learning model, deploy a model for serving, query a service, or send an email. 
+A pipeline comprises of one or more nodes that are (in many cases) connected with each other to define execution dependencies. A node is an instance of a configurable component that typically only implements one unit of work. A unit of work can represent any task, such as load data, cleanse data, analyze data, train a machine learning model, deploy a model for serving, query a service, or send an email. 
 
 ![Conceptual pipeline overview](../images/user_guide/pipelines/pipelines-nodes.png)
 
-In fact, multiple components can implement the "same" task. For example, one component might load data from a SQL database, whereas another component might load data from a NoSQL database. Conceptually both components load data, but how they load it is entirely different.
+Note though that multiple components might implement the "same" task. For example, one component might load data from a SQL database, whereas another component might load data from a NoSQL database. Conceptually both components load data, but how they load it is entirely different.
 
 Elyra supports two types of components: generic components and custom components. A pipeline that utilizes only generic components is called a generic pipeline, whereas a pipeline that utilizes generic components and/or custom components is referred to as typed pipeline.
 
