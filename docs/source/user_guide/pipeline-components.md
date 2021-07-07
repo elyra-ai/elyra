@@ -40,13 +40,13 @@ There are many example custom components available that you can utilize in pipel
 
 #### Example custom components
 
-For illustrative purposes Elyra includes a few custom components and pipelines that you can use to get started. 
+For illustrative purposes the Elyra component registry includes a few custom components that you can use to get started. 
 
 ![Example pipeline for the HTTP component](../images/user_guide/pipeline-components/example-components-pipeline.png)
 
-Details can be found in the `https://github.com/elyra-ai/examples` repository:
-- [Kubeflow Pipeline components and pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/kubeflow_pipelines_component_examples)
-- [Apache Airflow components and pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/airflow_component_examples)
+Component details and demo pipelines can be found in the `https://github.com/elyra-ai/examples` repository:
+- [Kubeflow Pipeline components](https://github.com/elyra-ai/examples/tree/master/pipelines/kubeflow_pipelines_component_examples)
+- [Apache Airflow components](https://github.com/elyra-ai/examples/tree/master/pipelines/airflow_component_examples)
 
 Note that example components are provided as is. Unless indicated otherwise they are not maintained by the Elyra community.
 
