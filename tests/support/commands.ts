@@ -143,6 +143,18 @@ Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
   cy.get('[aria-label="Canvas"]').click({ force: true });
 });
 
-Cypress.Commands.add('openPalette', (): void => {
-  cy.get('[aria-label="Palette"]').click();
+Cypress.Commands.add('expandPaletteCategory', ({ type } = {}): void => {
+  switch (type) {
+    case 'kfp':
+      cy.get(
+        '.palette-flyout-category[value="Kubeflow Pipelines Nodes"]'
+      ).click();
+      break;
+    case 'airflow':
+      cy.get('.palette-flyout-category[value="Apache Airflow Nodes"]').click();
+      break;
+    default:
+      cy.get('.palette-flyout-category[value="Generic Nodes"]').click();
+      break;
+  }
 });

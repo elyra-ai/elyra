@@ -29,6 +29,8 @@ declare namespace Cypress {
     bootstrapFile(fileName: string): Chainable<void>;
     resetJupyterLab(): Chainable<void>;
     checkTabMenuOptions(fileType: string): Chainable<void>;
-    openPalette(): Chainable<void>;
+    expandPaletteCategory(options?: {
+      type?: 'kfp' | 'airflow' | 'generic';
+    }): Chainable<void>;
   }
 }
