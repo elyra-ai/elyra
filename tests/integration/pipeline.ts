@@ -428,12 +428,16 @@ describe('Pipeline Editor tests', () => {
 
   it('kfp pipeline should display custom components', () => {
     cy.createPipeline({ type: 'kfp' });
-    cy.openPalette();
+    cy.expandPaletteCategory({ type: 'kfp' });
 
-    const kfpCustomComponents = ['papermill', 'filter text', 'kfserving'];
+    const kfpCustomComponents = [
+      'run-notebook-using-papermill',
+      'filter-text-using-shell-and-grep',
+      'kubeflow-serve-model-using-kfserving'
+    ];
 
     kfpCustomComponents.forEach(component => {
-      cy.findByText(new RegExp(component, 'i')).should('exist');
+      cy.get(`#${component}`).should('exist');
     });
   });
 
@@ -454,21 +458,21 @@ describe('Pipeline Editor tests', () => {
 
   it('airflow pipeline should display custom components', () => {
     cy.createPipeline({ type: 'airflow' });
-    cy.openPalette();
+    cy.expandPaletteCategory({ type: 'airflow' });
 
     const airflowCustomComponents = [
-      'BashOperator',
-      'EmailOperator',
-      'SimpleHTTPOperator',
-      'SparkJDBCOperator',
-      'SparkSqlOperator',
-      'SparkSubmitOperator',
-      'SlackAPIOperator',
-      'SlackAPIPostOperator'
+      'bash-operator_BashOperator',
+      'email-operator_EmailOperator',
+      'http-operator_SimpleHttpOperator',
+      'spark-jdbc-operator_SparkJDBCOperator',
+      'spark-sql-operator_SparkSqlOperator',
+      'spark-submit-operator_SparkSubmitOperator',
+      'slack-operator_SlackAPIOperator',
+      'slack-operator_SlackAPIPostOperator'
     ];
 
     airflowCustomComponents.forEach(component => {
-      cy.findByText(new RegExp(component, 'i')).should('exist');
+      cy.get(`#${component}`).should('exist');
     });
   });
 
