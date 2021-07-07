@@ -58,8 +58,6 @@ describe('Script Editor tests', () => {
   });
 
   it('click the Run as Pipeline button should display dialog', () => {
-    // Open runtimes sidebar
-    cy.findByRole('tab', { name: /runtimes/i }).click();
     // Create runtime configuration
     cy.createRuntimeConfig();
     // Validate it is now available

@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-import os
 import autopep8
 import json
+import os
 import re
+import ast
 import tempfile
 import time
 
@@ -26,13 +26,15 @@ from collections import OrderedDict
 from datetime import datetime
 from elyra._version import __version__
 from elyra.metadata import MetadataManager
-from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelineProcessorResponse
+from elyra.pipeline import RuntimePipelineProcessor, PipelineProcessor, PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
 from elyra.util.git import GithubClient
 from jinja2 import Environment, PackageLoader
 
+from .component_parser_airflow import AirflowComponentParser
 
-class AirflowPipelineProcessor(RuntimePipelineProcess):
+
+class AirflowPipelineProcessor(RuntimePipelineProcessor):
     _type = 'airflow'
 
     # Provide users with the ability to identify a writable directory in the
@@ -44,6 +46,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
     @property
     def type(self):
         return self._type
+
+    def __init__(self, root_dir, **kwargs):
+        super().__init__(root_dir, component_parser=AirflowComponentParser(), **kwargs)
 
     def process(self, pipeline):
         t0_all = time.time()
@@ -160,7 +165,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
                     op=operation, archive=operation_artifact_archive))
 
                 # Collect env variables
@@ -168,6 +173,18 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                                    cos_secret=cos_secret,
                                                    cos_username=cos_username,
                                                    cos_password=cos_password)
+
+                # Generate unique ELYRA_RUN_NAME value and expose it as an
+                # environment variable in the container.
+                # Notebook | script nodes are implemented using the kubernetes_pod_operator
+                # (https://airflow.apache.org/docs/apache-airflow/1.10.12/_api/airflow/contrib/operators/kubernetes_pod_operator/index.html)
+                # Environment variables that are passed to this operator are
+                # pre-processed by Airflow at runtime and placeholder values (expressed as '{{ xyz }}'
+                #  - see https://airflow.apache.org/docs/apache-airflow/1.10.12/macros-ref#default-variables)
+                # replaced.
+                if pipeline_envs is None:
+                    pipeline_envs = {}
+                pipeline_envs['ELYRA_RUN_NAME'] = f'{pipeline_name}-{{{{ ts_nodash }}}}'
 
                 image_pull_policy = None
                 for image_instance in image_namespace:
@@ -204,6 +221,27 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                                           operation)
 
             else:
+                # Change value of variables according to their type. String variables must include
+                # quotation marks in order to render properly in the jinja template and dictionary
+                # values must be converted from strings.
+                component = self._component_registry.get_component(operation.classifier)
+                for component_property in component.properties:
+                    if component_property.ref in ['runtime_image', 'component_source', 'component_source_type']:
+                        continue
+                    if component_property.ref not in operation.component_params.keys():
+                        continue
+                    if component_property.type == "string":
+                        # Get corresponding component_property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(component_property.ref)
+                        operation.component_params[component_property.ref] = json.dumps(op_property)
+                    elif component_property.type in ['dict', 'dictionary', 'list']:
+                        # Get corresponding component_property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(component_property.ref)
+                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
+
+                # Get component class from operation name
+                component_class = operation.classifier.split('_')[-1]
+
                 # TODO Change this name
                 notebook = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
                             'id': operation.id,
@@ -213,7 +251,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                             'component_source': operation.component_source,
                             'component_source_type': operation.component_source_type,
                             'component_params': operation.component_params,
-                            'name': operation.component_class,
+                            'name': component_class,
                             }
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
                                             'spark-sql-operator', 'ssh-operator']:

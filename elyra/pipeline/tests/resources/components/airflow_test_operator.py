@@ -60,4 +60,4 @@ class TestOperator(BaseOperator):
                  test_int_non_zero=1,
                  *args, **kwargs):
 
-        super(TestOperator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)

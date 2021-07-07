@@ -18,12 +18,15 @@ import papermill
 import time
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
 from elyra.util.path import get_absolute_path
 from jupyter_server.gateway.managers import GatewayClient
 from subprocess import run, CalledProcessError, PIPE
 from traitlets import log
 from typing import Dict, List
+
+from .component_registry import ComponentRegistry
 
 
 class LocalPipelineProcessor(PipelineProcessor):
@@ -56,6 +59,9 @@ class LocalPipelineProcessor(PipelineProcessor):
     def type(self):
         return self._type
 
+    def get_components(self):
+        return ComponentRegistry.get_generic_components()
+
     def process(self, pipeline):
         """
         Process a pipeline locally.
@@ -67,13 +73,23 @@ class LocalPipelineProcessor(PipelineProcessor):
         self.log_pipeline_info(pipeline.name, "processing pipeline")
         t0_all = time.time()
 
+        # This unique run identifier is made available to all
+        # notebooks | scripts in environment variable ELYRA_RUN_NAME
+        # during pipeline execution. The id itself is not persisted
+        # after the run completes.
+        # The motivation is that notebooks | scripts might want to generate
+        # artifact names that are unique for each run to avoid overwriting.
+        # For example, a saved model file might be named
+        # `my-trained-model-{ELYRA_RUN_NAME}.ext`.
+        elyra_run_name = f'{pipeline.name}-{datetime.now().strftime("%m%d%H%M%S")}'
+
         # Sort operations based on dependency graph (topological order)
         operations = PipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
             try:
                 t0 = time.time()
                 operation_processor = self._operation_processor_registry[operation.classifier]
-                operation_processor.process(operation)
+                operation_processor.process(operation, elyra_run_name)
                 self.log_pipeline_info(pipeline.name, f"completed {operation.filename}",
                                        operation_name=operation.name,
                                        duration=(time.time() - t0))
@@ -112,14 +128,15 @@ class OperationProcessor(ABC):
         return self._operation_name
 
     @abstractmethod
-    def process(self, operation: Operation):
+    def process(self, operation: Operation, elyra_run_name: str):
         raise NotImplementedError
 
     @staticmethod
-    def _collect_envs(operation: Operation) -> Dict:
+    def _collect_envs(operation: Operation, elyra_run_name: str) -> Dict:
         envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
         envs.update(operation.env_vars_as_dict())
         envs['ELYRA_RUNTIME_ENV'] = "local"  # Special case
+        envs['ELYRA_RUN_NAME'] = elyra_run_name
         return envs
 
 
@@ -136,7 +153,7 @@ class FileOperationProcessor(OperationProcessor):
         return self._operation_name
 
     @abstractmethod
-    def process(self, operation: Operation):
+    def process(self, operation: Operation, elyra_run_name: str):
         raise NotImplementedError
 
     def get_valid_filepath(self, op_filename: str) -> str:
@@ -179,7 +196,7 @@ class FileOperationProcessor(OperationProcessor):
 class NotebookOperationProcessor(FileOperationProcessor):
     _operation_name = 'execute-notebook-node'
 
-    def process(self, operation: Operation):
+    def process(self, operation: Operation, elyra_run_name: str):
         filepath = self.get_valid_filepath(operation.filename)
 
         file_dir = os.path.dirname(filepath)
@@ -198,7 +215,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         additional_kwargs['engine_name'] = "ElyraEngine"
         additional_kwargs['cwd'] = file_dir  # For local operations, papermill runs from this dir
         additional_kwargs['kernel_cwd'] = file_dir
-        additional_kwargs['kernel_env'] = OperationProcessor._collect_envs(operation)
+        additional_kwargs['kernel_env'] = OperationProcessor._collect_envs(operation, elyra_run_name)
         if GatewayClient.instance().gateway_enabled:
             additional_kwargs['kernel_manager_class'] = 'jupyter_server.gateway.managers.GatewayKernelManager'
 
@@ -229,7 +246,7 @@ class ScriptOperationProcessor(FileOperationProcessor):
     def get_argv(self, filepath) -> List[str]:
         raise NotImplementedError
 
-    def process(self, operation: Operation):
+    def process(self, operation: Operation, elyra_run_name: str):
         filepath = self.get_valid_filepath(operation.filename)
 
         file_dir = os.path.dirname(filepath)
@@ -238,7 +255,7 @@ class ScriptOperationProcessor(FileOperationProcessor):
         self.log.debug(f'Processing {self._script_type} script: {filepath}')
 
         argv = self.get_argv(filepath)
-        envs = OperationProcessor._collect_envs(operation)
+        envs = OperationProcessor._collect_envs(operation, elyra_run_name)
         t0 = time.time()
         try:
             run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)

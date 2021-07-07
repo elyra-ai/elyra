@@ -1363,14 +1363,14 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@elyra/canvas@10.9.0":
-  version "10.9.0"
-  resolved "https://registry.yarnpkg.com/@elyra/canvas/-/canvas-10.9.0.tgz#d07414d6d01c9613e5d44cc024cca93ddd26d9ca"
-  integrity sha512-gIQHSPWNZHLglsyoboYBkNib5T0b1qIt4fAc/67JYWC8akqykI0/zPNUSrjeJcdLbsHSyxW7Y6UP/4aAFkjA5g==
+"@elyra/canvas@11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@elyra/canvas/-/canvas-11.0.0.tgz#7c8955be9d55fc2988b6a3159b0f788eb9c0de09"
+  integrity sha512-zQTkw/IR9UzAEFe7zgfFrcZs1sljHVM9qn3D6evTFlxO/HfjxKtnfka/CISuzNXvOi1EmD2HyCUw75yQky37Yw==
   dependencies:
     "@carbon/icons-react" "10.33.0"
     "@carbon/themes" "10.36.0"
-    "@elyra/pipeline-schemas" "^3.0.41"
+    "@elyra/pipeline-schemas" "^3.0.42"
     carbon-components "10.37.0"
     carbon-components-react "7.37.0"
     carbon-icons "7.0.7"
@@ -1393,13 +1393,13 @@
     seedrandom "3.0.5"
     uuid "8.3.0"
 
-"@elyra/pipeline-editor@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-0.7.0.tgz#98d944fdc4f3cf18c7b1f6d2c996c68822732458"
-  integrity sha512-U296tuj1P0MM0Hp/t97Ugoq10CzjoQc34BuxEoZM1U0BygJNIzKijise/kYEgwmiM8m2yWlI6716XJCzhpKfDw==
+"@elyra/pipeline-editor@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-0.9.0.tgz#4effdc90d83c815d6e30e368828a7546c83dcaad"
+  integrity sha512-NNPLEZXBSHwq03GluOI+np6a7Rd5GVGuqMmkefmbmj5fn0gbdeXntz9mZThYhjQCbaUL1H62IZJu538wYrhO+Q==
   dependencies:
-    "@elyra/canvas" "10.9.0"
-    "@elyra/pipeline-services" "^0.7.0"
+    "@elyra/canvas" "11.0.0"
+    "@elyra/pipeline-services" "^0.9.0"
     downshift "^6.1.2"
     immer "^8.0.1"
     nanoid "^3.1.20"
@@ -1409,15 +1409,15 @@
     redux "^4.0.5"
     styled-components "^5.2.1"
 
-"@elyra/pipeline-schemas@^3.0.41":
+"@elyra/pipeline-schemas@^3.0.42":
   version "3.0.42"
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.42.tgz#d1e681022cd033234a8e0fe4febb0e58d8a7683e"
   integrity sha512-DF34KqUocckJWTJBUqS0diKgqgqAbCWljx3O5v1ZKHYoiz5UvSz5/67U/5oaJXIlPqwbmL47rWvIA/u6M7DCZw==
 
-"@elyra/pipeline-services@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-0.7.0.tgz#f6e932f852566da27aa3bbaa83332843ff510fa7"
-  integrity sha512-AovQ8LIlJFp7ivSyBCYo8uYKMCwjQ16hfjfT4ueBxDCsaFpuXp6DfoZX+u/C+UjS6zmpcaDwZZxu24ExlCMZ5w==
+"@elyra/pipeline-services@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-0.9.0.tgz#ad6d5bea8ae83d17b89cd3a2274984651657c8e8"
+  integrity sha512-8H96JbXRUW3yFJ0GdxM+cLQcTjfscuTHP8rA1blAe+SyBf0N/NzQ0ctkc9rF++gkePfACJLXNAzFQ9x62OUwWQ==
   dependencies:
     immer "^8.0.1"
     jsonc-parser "^3.0.0"
@@ -3856,6 +3856,11 @@
   integrity sha512-MPtoySlAZQ37VoLaPcTHCu1RWJ4llDkULYZIzOYxlhxBqYPB0RsRlmMU0R6tahtFe27mIdkHV+551ZWV4PLmVw==
   dependencies:
     "@types/node" "*"
+
+"@types/lodash@^4.14.170":
+  version "4.14.170"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.170.tgz#0d67711d4bf7f4ca5147e9091b847479b87925d6"
+  integrity sha512-bpcvu/MKHHeYX+qeEN8GE7DIravODWdACVA1ctevD8CN24RhPZIKMn9ntfAsrvLfSX3cR5RrBKAbYm9bGs0A+Q==
 
 "@types/minimatch@*":
   version "3.0.4"
@@ -8025,6 +8030,14 @@ eslint-plugin-jsx-a11y@6.2.1:
     has "^1.0.3"
     jsx-ast-utils "^2.0.1"
 
+eslint-plugin-mocha@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-mocha/-/eslint-plugin-mocha-9.0.0.tgz#b4457d066941eecb070dc06ed301c527d9c61b60"
+  integrity sha512-d7knAcQj1jPCzZf3caeBIn3BnW6ikcvfz0kSqQpwPYcVGLoJV5sz0l0OJB2LR8I7dvTDbqq1oV6ylhSgzA10zg==
+  dependencies:
+    eslint-utils "^3.0.0"
+    ramda "^0.27.1"
+
 eslint-plugin-prettier@^3.1.2:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-3.3.1.tgz#7079cfa2497078905011e6f82e8dd8453d1371b7"
@@ -8104,10 +8117,22 @@ eslint-utils@^1.3.1, eslint-utils@^1.4.3:
   dependencies:
     eslint-visitor-keys "^1.1.0"
 
+eslint-utils@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-utils/-/eslint-utils-3.0.0.tgz#8aebaface7345bb33559db0a1f13a1d2d48c3672"
+  integrity sha512-uuQC43IGctw68pJA1RgbQS8/NP7rch6Cwd4j3ZBtgo4/8Flj4eGE7ZYSZRN3iq5pVUv6GPdW5Z1RFleo84uLDA==
+  dependencies:
+    eslint-visitor-keys "^2.0.0"
+
 eslint-visitor-keys@^1.0.0, eslint-visitor-keys@^1.1.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-1.3.0.tgz#30ebd1ef7c2fdff01c3a4f151044af25fab0523e"
   integrity sha512-6J72N8UNa462wa/KFODt/PJ3IU60SDpC3QXC1Hjc1BXXpfL2C9R5+AU7jhe0F6GREqVMh4Juu+NY7xn+6dipUQ==
+
+eslint-visitor-keys@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-2.1.0.tgz#f65328259305927392c938ed44eb0a5c9b2bd303"
+  integrity sha512-0rSmRBzXgDzIsD6mGdJgevzgezI534Cer5L/vyMX0kHzT/jiB43jRhd9YUlMGYLQy2zprNmoT8qasCGtY+QaKw==
 
 eslint@^5.16.0:
   version "5.16.0"
@@ -14802,7 +14827,7 @@ raf@^3.4.1:
   dependencies:
     performance-now "^2.1.0"
 
-ramda@~0.27.1:
+ramda@^0.27.1, ramda@~0.27.1:
   version "0.27.1"
   resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.27.1.tgz#66fc2df3ef873874ffc2da6aa8984658abacf5c9"
   integrity sha512-PgIdVpn5y5Yns8vqb8FzBUEYn98V3xcPgawAkkgj0YJ0qDsnHCiNmZYfOGMgOvoB0eWFLpYbhxUR3mxfDIMvpw==

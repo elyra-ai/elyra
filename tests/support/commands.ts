@@ -16,9 +16,12 @@
 
 import '@testing-library/cypress/add-commands';
 
+import './../utils/snapshots/add-commands';
+
 // TODO: we shouldn't have to fill out the form for any test that isn't specifically
 // testing filling out forms.
 Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
+  cy.findByRole('tab', { name: /runtimes/i }).click();
   cy.findByRole('button', { name: /create new runtime/i }).click();
 
   if (type === 'kfp') {
@@ -62,36 +65,39 @@ Cypress.Commands.add('deleteFile', (name: string): void => {
   });
 });
 
-Cypress.Commands.add('createGenericPipeline', (): void => {
-  // TODO: find a better way to access this.
-  cy.get(
-    '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
-  ).click();
+Cypress.Commands.add('createPipeline', ({ name, type } = {}): void => {
+  if (name === undefined) {
+    switch (type) {
+      case 'kfp':
+        cy.get(
+          '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]'
+        ).click();
+        break;
+      case 'airflow':
+        cy.get(
+          '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]'
+        ).click();
+        break;
+      default:
+        cy.get(
+          '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
+        ).click();
+        break;
+    }
+  } else {
+    cy.writeFile(`build/cypress-tests/${name}`, '');
+    cy.openFile(name);
+  }
+
   cy.get('.common-canvas-drop-div');
   // wait an additional 300ms for the list of items to settle
   cy.wait(300);
 });
 
-Cypress.Commands.add('createKFPPipeline', (): void => {
-  cy.get(
-    '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]'
-  ).click();
-  cy.get('.common-canvas-drop-div');
-  // wait an additional 1000ms for the list of items and custom components to settle
-  cy.wait(1000);
-  // pipeline toolbar label should be kfp
-  cy.get('.toolbar-icon-label').contains('Runtime: Kubeflow Pipelines');
-});
-
-Cypress.Commands.add('createAirflowPipeline', (): void => {
-  cy.get(
-    '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]'
-  ).click();
-  cy.get('.common-canvas-drop-div');
-  // wait an additional 1000ms for the list of items and custom components to settle
-  cy.wait(1000);
-  // pipeline toolbar label should be airflow
-  cy.get('.toolbar-icon-label').contains('Runtime: Apache Airflow');
+Cypress.Commands.add('openDirectory', (name: string): void => {
+  cy.findByRole('listitem', {
+    name: (n, _el) => n.includes(name)
+  }).dblclick();
 });
 
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {
@@ -99,6 +105,12 @@ Cypress.Commands.add('addFileToPipeline', (name: string): void => {
     name: (n, _el) => n.includes(name)
   }).rightclick();
   cy.findByRole('menuitem', { name: /add file to pipeline/i }).click();
+});
+
+Cypress.Commands.add('savePipeline', (): void => {
+  cy.findByRole('button', { name: /save pipeline/i }).click();
+  // can take a moment to register as saved in ci
+  cy.wait(1000);
 });
 
 Cypress.Commands.add('openFile', (name: string): void => {
