@@ -18,6 +18,7 @@ import os
 from jupyter_server.extension.application import ExtensionApp
 from jupyter_server.extension.application import ExtensionAppJinjaMixin
 
+from elyra._version import __version__
 from elyra.api.handlers import YamlSpecHandler
 from elyra.contents.handlers import ContentHandler
 from elyra.metadata.handlers import MetadataHandler
@@ -45,6 +46,8 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
 
     # The name of the extension.
     name = "elyra"
+    version = __version__
+    description = "Elyra Server"
     extension_url = '/lab'
     load_other_extensions = True
 
