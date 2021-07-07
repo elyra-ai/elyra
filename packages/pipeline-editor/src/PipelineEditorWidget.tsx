@@ -82,6 +82,30 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
+const getAllPaletteNodes = (palette: any): any[] => {
+  if (palette.categories === undefined) {
+    return [];
+  }
+
+  const nodes = [];
+  for (const c of palette.categories) {
+    if (c.node_types) {
+      nodes.push(...c.node_types);
+    }
+  }
+
+  return nodes;
+};
+
+// TODO: use a node field to check if runtime field is specified
+const isGenericNode = (nodeDef: any): boolean => {
+  return (
+    nodeDef.op === 'execute-notebook-node' ||
+    nodeDef.op === 'execute-python-node' ||
+    nodeDef.op === 'execute-r-node'
+  );
+};
+
 const createPalette = (categories: any[]): any => {
   const palette = {
     version: '3.0' as '3.0',
@@ -433,6 +457,35 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
   }, [pipeline?.pipelines]);
 
+  const categories = [
+    {
+      label: 'Generic Nodes',
+      image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
+      id: 'genericNodes',
+      description: 'Nodes that can be run with any runtime',
+      node_types: nodeDefs?.filter(isGenericNode) ?? []
+    }
+  ];
+
+  if (pipelineRuntimeDisplayName) {
+    categories.push({
+      label: `${pipelineRuntimeDisplayName} Nodes`,
+      image: IconUtil.encode(
+        pipelineRuntimeName === 'kfp'
+          ? kubeflowIcon
+          : pipelineRuntimeName === 'airflow'
+          ? airflowIcon
+          : pipelineIcon
+      ),
+      id: `${pipelineRuntimeName}Nodes`,
+      description: `Nodes that can only be run on ${pipelineRuntimeDisplayName}`,
+      node_types:
+        nodeDefs?.filter((nodeDef: any) => !isGenericNode(nodeDef)) ?? []
+    });
+  }
+
+  const palette = createPalette(categories);
+
   const handleExportPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // prepare pipeline submission details
@@ -441,7 +494,10 @@ const PipelineWrapper: React.FC<IProps> = ({
       setAlert('Failed export: Cannot export empty pipelines.');
       return;
     }
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodeDefs);
+    const errorMessages = validate(
+      JSON.stringify(pipelineJson),
+      getAllPaletteNodes(palette)
+    );
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -581,7 +637,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [
     cleanNullProperties,
     context.model,
-    nodeDefs,
+    palette,
     pipelineRuntimeDisplayName,
     pipelineRuntimeName,
     shell
@@ -590,7 +646,10 @@ const PipelineWrapper: React.FC<IProps> = ({
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // Check that all nodes are valid
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodeDefs);
+    const errorMessages = validate(
+      JSON.stringify(pipelineJson),
+      getAllPaletteNodes(palette)
+    );
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -726,7 +785,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [
     cleanNullProperties,
     context.model,
-    nodeDefs,
+    palette,
     pipelineRuntimeDisplayName,
     pipelineRuntimeName,
     shell
@@ -982,41 +1041,6 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
-  // TODO: use a node field to check if runtime field is specified
-  const isGenericNode = (nodeDef: any): boolean => {
-    return (
-      nodeDef.op === 'execute-notebook-node' ||
-      nodeDef.op === 'execute-python-node' ||
-      nodeDef.op === 'execute-r-node'
-    );
-  };
-
-  const categories = [
-    {
-      label: 'Generic Nodes',
-      image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
-      id: 'genericNodes',
-      description: 'Nodes that can be run with any runtime',
-      node_types: nodeDefs.filter(isGenericNode)
-    }
-  ];
-
-  if (pipelineRuntimeDisplayName) {
-    categories.push({
-      label: `${pipelineRuntimeDisplayName} Nodes`,
-      image: IconUtil.encode(
-        pipelineRuntimeName === 'kfp'
-          ? kubeflowIcon
-          : pipelineRuntimeName === 'airflow'
-          ? airflowIcon
-          : pipelineIcon
-      ),
-      id: `${pipelineRuntimeName}Nodes`,
-      description: `Nodes that can only be run on ${pipelineRuntimeDisplayName}`,
-      node_types: nodeDefs.filter((nodeDef: any) => !isGenericNode(nodeDef))
-    });
-  }
-
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -1031,7 +1055,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
-          palette={createPalette(categories)}
+          palette={palette}
           pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
