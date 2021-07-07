@@ -67,7 +67,7 @@
           "default": "Filename"
         },
         "description": {
-          "default": "The path to the Notebook file.",
+          "default": "The path to the Notebook.",
           "placement": "on_panel"
         },
         "data": {
