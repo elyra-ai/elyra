@@ -66,7 +66,7 @@ interface IRuntimeComponent {
   image: string;
   id: string;
   description: string;
-  runtime: string;
+  runtime?: string;
   node_types: {
     op: string;
     type: 'execution_node';
@@ -107,7 +107,7 @@ interface INodeDef {
   op: string;
   image: string;
   description: string;
-  runtime: string;
+  runtime?: string;
   properties: IComponentPropertiesResponse;
 }
 
