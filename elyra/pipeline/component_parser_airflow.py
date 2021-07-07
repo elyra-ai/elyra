@@ -38,6 +38,8 @@ class AirflowComponentParser(ComponentParser):
         components: List[Component] = list()
 
         component_definition = self._read_component_definition(registry_entry)
+        if not component_definition:
+            return None
 
         # If id is prepended with elyra_op_, only parse for the class specified in the id.
         # Else, parse the component definition for all classes

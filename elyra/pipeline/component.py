@@ -255,7 +255,7 @@ class FilesystemComponentReader(ComponentReader):
     def read_component_definition(self, registry_entry: dict) -> str:
         if not os.path.exists(registry_entry.location):
             self.log.error(f'Invalid location for component: {registry_entry.id} -> {registry_entry.location}')
-            raise FileNotFoundError(f'Invalid location for component: {registry_entry.id} -> {registry_entry.location}')
+            return None
 
         with open(registry_entry.location, 'r') as f:
             return f.read()
@@ -271,7 +271,7 @@ class UrlComponentReader(ComponentReader):
         res = requests.get(registry_entry.location)
         if res.status_code != HTTPStatus.OK:
             self.log.error (f'Invalid location for component: {registry_entry.id} -> {registry_entry.location} (HTTP code {res.status_code})')  # noqa: E211 E501
-            raise FileNotFoundError (f'Invalid location for component: {registry_entry.id} -> {registry_entry.location} (HTTP code {res.status_code})')  # noqa: E211 E501
+            return None
 
         return res.text
 

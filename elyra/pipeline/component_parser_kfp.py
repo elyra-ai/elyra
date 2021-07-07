@@ -33,6 +33,8 @@ class KfpComponentParser(ComponentParser):
 
     def parse(self, registry_entry) -> List[Component]:
         component_yaml = self._read_component_yaml(registry_entry)
+        if not component_yaml:
+            return None
 
         description = ""
         if component_yaml.get('description'):
@@ -132,8 +134,8 @@ class KfpComponentParser(ComponentParser):
             component_definition = reader.read_component_definition(registry_entry)
 
             return yaml.safe_load(component_definition)
-        except yaml.YAMLError as e:
-            raise RuntimeError from e
+        except Exception:
+            return None
 
     def _get_adjusted_parameter_fields(self,
                                        component_body,
