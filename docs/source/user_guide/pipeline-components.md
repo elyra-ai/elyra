@@ -30,25 +30,25 @@ Elyra includes three _generic components_ that allow for the processing of Jupyt
 
 ![Generic components in the palette](../images/user_guide/pipeline-components/generic-components-in-palette.png)
 
-Note: Refer to the [_Best practices_ topic in the _User Guide_](best-practices-file-based-nodes.md) to learn more about special considerations for these components.
+Note: Refer to the [_Best practices_ topic in the _User Guide_](best-practices-file-based-nodes.md) to learn more about special considerations for generic components.
 
-_Custom components_ are commonly only implemented for one runtime environment. (The local runtime environment does not support custom components.) 
+_Custom components_ are commonly only implemented for Kubeflow Pipelines or Apache Airflow, but not both.
 
 ![Kubeflow components in the palette](../images/user_guide/pipeline-components/custom-kubeflow-components-in-palette.png)
 
-There are many ready-to-use custom components available that you can utilize in pipelines, but you can also create your own. Details on how to create a component can be found in the [Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/components/pipelines/sdk/component-development/) and the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html). Do note that in Apache Airflow components are called operators, but for the sake of consistency the Elyra documentation refers to them as components.
-
-
+There are many example custom components available that you can utilize in pipelines, but you can also create your own. Details on how to create a component can be found in the [Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/components/pipelines/sdk/component-development/) and the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html). Do note that in Apache Airflow components are called operators, but for the sake of consistency the Elyra documentation refers to them as components.
 
 #### Example custom components
 
 For illustrative purposes Elyra includes a few custom components and pipelines that you can use to get started. 
 
-![Example pipeline for the HTTP component](../images/user_guide/pipeline-components/http-component-pipeline.png)
+![Example pipeline for the HTTP component](../images/user_guide/pipeline-components/example-components-pipeline.png)
 
 Details can be found in the `https://github.com/elyra-ai/examples` repository:
 - [Kubeflow Pipeline components and pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/kubeflow_pipelines_component_examples)
 - [Apache Airflow components and pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/airflow_component_examples)
+
+Note that example components are provided as is. Unless indicated otherwise they are not maintained by the Elyra community.
 
 ### Managing custom components
 
