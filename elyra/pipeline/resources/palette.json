@@ -5,7 +5,7 @@
       "label": "Notebook",
       "image": "",
       "id": "notebooks",
-      "description": "Notebook file",
+      "description": "Run notebook file",
       "node_types": [
         {
           "id": "",
@@ -43,7 +43,7 @@
           "app_data": {
             "ui_data": {
               "label": "Notebook",
-              "description": "Notebook file",
+              "description": "Run notebook file",
               "image": "",
               "x_pos": 0,
               "y_pos": 0
@@ -53,10 +53,10 @@
       ]
     },
     {
-      "label": "Python",
+      "label": "Python Script",
       "image": "",
       "id": "python-script",
-      "description": "Python Script",
+      "description": "Run Python script",
       "node_types": [
         {
           "id": "",
@@ -93,8 +93,8 @@
           "parameters": {},
           "app_data": {
             "ui_data": {
-              "label": "Python",
-              "description": "Python Script",
+              "label": "Python Script",
+              "description": "Run Python script",
               "image": "",
               "x_pos": 0,
               "y_pos": 0
@@ -104,10 +104,10 @@
       ]
     },
     {
-      "label": "R",
+      "label": "R Script",
       "image": "",
       "id": "r-script",
-      "description": "R Script",
+      "description": "Run R script",
       "node_types": [
         {
           "id": "",
@@ -144,8 +144,8 @@
           "parameters": {},
           "app_data": {
             "ui_data": {
-              "label": "R",
-              "description": "R Script",
+              "label": "R Script",
+              "description": "Run R script",
               "image": "",
               "x_pos": 0,
               "y_pos": 0
