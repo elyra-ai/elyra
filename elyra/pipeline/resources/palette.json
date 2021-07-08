@@ -6,6 +6,7 @@
       "image": "",
       "id": "notebooks",
       "description": "Run notebook file",
+      "extensions": [".ipynb"],
       "node_types": [
         {
           "id": "",
@@ -57,6 +58,7 @@
       "image": "",
       "id": "python-script",
       "description": "Run Python script",
+      "extensions": [".py"],
       "node_types": [
         {
           "id": "",
@@ -108,6 +110,7 @@
       "image": "",
       "id": "r-script",
       "description": "Run R script",
+      "extensions": [".r"],
       "node_types": [
         {
           "id": "",

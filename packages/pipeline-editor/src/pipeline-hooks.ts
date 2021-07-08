@@ -74,6 +74,7 @@ interface IRuntimeComponent {
     outputs: { app_data: any }[];
     app_data: any;
   }[];
+  extensions?: string[];
 }
 
 interface IComponentPropertiesResponse {
@@ -109,6 +110,7 @@ interface INodeDef {
   description: string;
   runtime?: string;
   properties: IComponentPropertiesResponse;
+  extensions?: string[];
 }
 
 const componentFetcher = async (
@@ -136,6 +138,7 @@ const componentFetcher = async (
       label: component.label,
       description: component.description,
       runtime: component.runtime,
+      extensions: component.extensions,
       properties: prop
     };
   });
