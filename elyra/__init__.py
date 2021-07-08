@@ -21,3 +21,6 @@ def _jupyter_server_extension_points():
         'module': 'elyra.elyra_app',
         'app': ElyraApp
     }]
+
+
+load_jupyter_server_extension = ElyraApp.load_classic_server_extension
