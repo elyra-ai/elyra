@@ -329,7 +329,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             for key, operation in defined_pipeline.items():
-                if operation.classifier not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
+                if operation.component_source != "elyra":
                     continue
                 self.log.debug("component:\n "
                                "container op name : %s \n "
@@ -440,8 +440,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             # Create pipeline operation
             # If operation is one of the "standard" set of NBs or scripts, construct custom NotebookOp
-            if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
-
+            if operation.component_source == "elyra":
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
@@ -503,8 +502,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # the contents of the specified file and dictionary values must be converted from strings.
                 component = self._component_registry.get_component(operation.classifier)
                 for component_property in component.properties:
-                    if component_property.ref in ['runtime_image', 'component_source', 'component_source_type']:
-                        continue
                     if component_property.type == "file":
                         # Get corresponding property value from parsed pipeline and convert
                         op_property = operation.component_params.get(component_property.ref)
@@ -524,18 +521,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Build component task factory
                 try:
                     factory_function = components.load_component(**component_source)
-                except Exception:
+                except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
-                    self.log.error(f"There was an error while loading component spec for {operation.name}.")
-                    raise RuntimeError(f"There was an error while loading component spec for {operation.name}.")
+                    self.log.error(f"Error loading component spec for {operation.name}: {str(e)}")
+                    raise RuntimeError(f"Error loading component spec for {operation.name}.")
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
                     notebook_ops[operation.id] = factory_function(**operation.component_params)
-                except Exception:
+                except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
-                    self.log.error(f"There was an error while constructing component {operation.name}.")
-                    raise RuntimeError(f"There was an error while constructing component {operation.name}.")
+                    self.log.error(f"Error constructing component {operation.name}: {str(e)}")
+                    raise RuntimeError(f"Error constructing component {operation.name}.")
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():

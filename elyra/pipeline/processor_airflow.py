@@ -166,7 +166,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
         for operation in sorted_operations:
 
-            if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
+            if operation.component_source == "elyra":
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
@@ -230,8 +230,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 # values must be converted from strings.
                 component = self._component_registry.get_component(operation.classifier)
                 for component_property in component.properties:
-                    if component_property.ref in ['runtime_image', 'component_source', 'component_source_type']:
-                        continue
+                    # Skip properties for which no value was given
                     if component_property.ref not in operation.component_params.keys():
                         continue
                     if component_property.type == "string":

@@ -25,9 +25,7 @@ class Operation(object):
     Represents a single operation in a pipeline
     """
 
-    standard_node_types = ["execute-notebook-node", "execute-python-node", "exeucute-r-node"]
-
-    def __init__(self, id, type, name, classifier, filename, runtime_image, memory=None, cpu=None, gpu=None,
+    def __init__(self, id, type, name, classifier, filename=None, runtime_image=None, memory=None, cpu=None, gpu=None,
                  dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
                  parent_operations=None, component_source=None, component_source_type=None, component_params=None):
         """
@@ -56,7 +54,7 @@ class Operation(object):
                                  a non-standard operation instance
         """
 
-        # validate that the operation has all required properties
+        # Validate that the operation has all required properties
         if not id:
             raise ValueError("Invalid pipeline operation: Missing field 'operation id'.")
         if not type:
@@ -65,35 +63,41 @@ class Operation(object):
             raise ValueError("Invalid pipeline operation: Missing field 'operation classifier'.")
         if not name:
             raise ValueError("Invalid pipeline operation: Missing field 'operation name'.")
-        if not filename and classifier in self.standard_node_types:
-            raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
-        if not runtime_image:
-            raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
-        if cpu and not _validate_range(cpu, min_value=1):
-            raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
-        if gpu and not _validate_range(gpu, min_value=0):
-            raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
-        if memory and not _validate_range(memory, min_value=1):
-            raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
 
         self._id = id
         self._type = type
         self._classifier = classifier
         self._name = name
-        self._filename = filename
-        self._runtime_image = runtime_image
-        self._dependencies = dependencies or []
-        self._include_subdirectories = include_subdirectories
-        self._env_vars = env_vars or []
-        self._inputs = inputs or []
-        self._outputs = outputs or []
+        
         self._parent_operations = parent_operations or []
-        self._cpu = cpu
-        self._gpu = gpu
-        self._memory = memory
         self._component_source = component_source
         self._component_source_type = component_source_type
         self._component_params = component_params
+        
+        if component_source == "elyra":
+            if not component_params.filename:
+                raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
+            if not component_params.runtime_image:
+                raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
+            if component_params.cpu and not _validate_range(component_params.cpu, min_value=1):
+                raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
+            if component_params.gpu and not _validate_range(component_params.gpu, min_value=0):
+                raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
+            if component_params.memory and not _validate_range(component_params.memory, min_value=1):
+                raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
+
+            # Set generic node properties
+            # TODO: Remove these and have processors access component_params instead
+            self._filename = component_params.get('filename')
+            self._runtime_image = component_params.get('runtime_image')
+            self._dependencies = component_params.get('dependencies', [])
+            self._include_subdirectories = component_params.get('include_subdirectories', False)
+            self._env_vars = component_params.get('env_vars', [])
+            self._inputs = component_params.get('inputs', [])
+            self._outputs = component_params.get('outputs', [])
+            self._cpu = component_params.get('cpu')
+            self._gpu = component_params.get('gpu')
+            self._memory = component_params.get('memory')
 
     @property
     def id(self):

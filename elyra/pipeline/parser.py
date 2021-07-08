@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import json
 from typing import Any
 from typing import Dict
 from typing import List
@@ -154,19 +154,10 @@ class PipelineParser(LoggingConfigurable):
             classifier=node.get('op'),
             name=PipelineParser._get_ui_data_field(node, 'label',
                                                    default_value=PipelineParser._get_app_data_field(node, 'filename')),
-            cpu=PipelineParser._get_app_data_field(node, 'cpu'),
-            gpu=PipelineParser._get_app_data_field(node, 'gpu'),
-            memory=PipelineParser._get_app_data_field(node, 'memory'),
-            filename=PipelineParser._get_app_data_field(node, 'filename'),
-            runtime_image=PipelineParser._get_app_data_field(node, 'runtime_image'),
-            dependencies=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'dependencies', [])),
-            include_subdirectories=PipelineParser._get_app_data_field(node, 'include_subdirectories', False),
-            env_vars=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'env_vars', [])),
-            outputs=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'outputs', [])),
             parent_operations=parent_operations,
-            component_source=PipelineParser._get_app_data_field(node, 'component_source'),
-            component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type'),
-            component_params=self._get_remaining_component_params(node))
+            component_source=PipelineParser._get_app_data_field(node, 'component_source', 'elyra'),
+            component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type', 'elyra'),
+            component_params=PipelineParser._get_component_params(node))
 
     @staticmethod
     def _get_child_field(obj: Dict, child: str, field_name: str, default_value: Any = None) -> Any:
@@ -178,6 +169,12 @@ class PipelineParser(LoggingConfigurable):
         if child in obj.keys():
             return_value = obj[child].get(field_name, default_value)
         return return_value
+
+    @staticmethod
+    def _get_component_parameter_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:
+        """Helper method to pull the field's value from the component_parameter child of object obj."""
+        parameters = PipelineParser._get_app_data_field(obj, 'component_parameters', {})
+        return PipelineParser._get_child_field(parameters, field_name, default_value=default_value)
 
     @staticmethod
     def _get_app_data_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:
@@ -235,38 +232,3 @@ class PipelineParser(LoggingConfigurable):
                 else:
                     links.extend(PipelineParser._get_input_node_ids(node_input))
         return links
-
-    @staticmethod
-    def _scrub_list(dirty: Optional[List[Optional[str]]]) -> List[str]:
-        """
-        Clean an existing list by filtering out None and empty string values
-        :param dirty: a List of values
-        :return: a clean list without None or empty string values
-        """
-        if not dirty:
-            return []
-        return [clean for clean in dirty if clean]
-
-    def _get_remaining_component_params(self, node: Dict):
-        """
-        Builds a dictionary of the parameters for a given node that do not have a corresponding
-        property in the Operation object. These parameters will be used by the appropriate processor when
-        loading and running a component that is not one of the standard notebook or script operations.
-        """
-        component_params = {}
-        if node.get('op') not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
-            for key, value in node['app_data'].items():
-                # Do not include any null values
-                if not value or value == "None":
-                    continue
-
-                # Do not include any of the standard set of parameters
-                if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
-                           "include_subdirectories", "ui_data", "component_source", "component_source_type", "label",
-                           "image", "description", "properties", "invalidNodeError", "runtime"]:
-
-                    continue
-
-                component_params[key] = value
-
-        return component_params
