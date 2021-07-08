@@ -26,7 +26,7 @@ npm config set prefix ~/.npm-global
 export PATH=$(pwd)/.npm-global/bin/:$PATH
 
 # Download and install Yarn Package Manager using npm
-npm install -g yarn lerna
+npm install -g yarn
 
 # Build Elyra Distribution
 make release

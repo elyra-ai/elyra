@@ -111,7 +111,7 @@ yarn-install:
 	yarn install
 
 build-ui: # Build packages
-	yarn && lerna run build --stream
+	yarn lerna run build --stream
 
 build-server: # Build backend
 	python setup.py bdist_wheel sdist
@@ -170,7 +170,7 @@ docs-dependencies:
 docs: docs-dependencies ## Build docs
 	make -C docs clean html
 
-dist-ui: build-ui
+dist-ui: yarn-install build-ui
 	mkdir -p dist
 	$(call PACKAGE_LAB_EXTENSION,theme)
 	$(call PACKAGE_LAB_EXTENSION,code-snippet)

@@ -37,17 +37,17 @@ class ComponentRegistry(LoggingConfigurable):
     _generic_components: Dict[str, Component] = {
         "notebooks": Component(id="notebooks",
                                name="Notebook",
-                               description="Notebook file",
+                               description="Run notebook file",
                                op="execute-notebook-node",
                                extension=".ipynb"),
         "python-script": Component(id="python-script",
-                                   name="Python",
-                                   description="Python Script",
+                                   name="Python Script",
+                                   description="Run Python script",
                                    op="execute-python-node",
                                    extension=".py"),
         "r-script": Component(id="r-script",
-                              name="R",
-                              description="R Script",
+                              name="R Script",
+                              description="Run R script",
                               op="execute-r-node",
                               extension=".r")}
 

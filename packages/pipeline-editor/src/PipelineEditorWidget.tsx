@@ -97,13 +97,8 @@ const getAllPaletteNodes = (palette: any): any[] => {
   return nodes;
 };
 
-// TODO: use a node field to check if runtime field is specified
 const isGenericNode = (nodeDef: any): boolean => {
-  return (
-    nodeDef.op === 'execute-notebook-node' ||
-    nodeDef.op === 'execute-python-node' ||
-    nodeDef.op === 'execute-r-node'
-  );
+  return !nodeDef.runtime;
 };
 
 const createPalette = (categories: any[]): any => {
