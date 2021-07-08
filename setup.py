@@ -39,8 +39,8 @@ settings_path = './etc/config/settings/*.json'
 
 # kfp_packages = [
 #     'kfp-notebook~=0.26.0',
-#     'kfp==1.3.0',
-#     'kfp-tekton==0.6.0',
+#     'kfp==1.6.3',
+#     'kfp-tekton==0.8.1',
 #     ]
 #
 # airflow_packages = [
@@ -94,8 +94,8 @@ setup_args = dict(
         'yaspin',
         # KFP runtime dependencies
         'kfp-notebook~=0.26.0',
-        'kfp==1.4.0',
-        'kfp-tekton==0.7.0',
+        'kfp==1.6.3',
+        'kfp-tekton==0.8.1',
         # Airflow runtime dependencies
         'pygithub',
         'black'
@@ -105,9 +105,6 @@ setup_args = dict(
     },
     include_package_data=True,
     classifiers=(
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering',
@@ -115,6 +112,9 @@ setup_args = dict(
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ),
     entry_points={
         'console_scripts': [
