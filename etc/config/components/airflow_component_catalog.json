@@ -18,12 +18,6 @@
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/http_operator.py"
       }
     },
-    "spark-jdbc-operator": {
-      "name": "Spark JDBC Operator",
-      "location": {
-        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_jdbc_operator.py"
-      }
-    },
     "spark-sql-operator": {
       "name": "Spark Sql Operator",
       "location": {
@@ -39,7 +33,7 @@
     "slack-operator": {
       "name": "Slack Operator",
       "location": {
-        "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/slack_operator.py"
+        "filename": "slack_operator.py"
       }
     }
   }
