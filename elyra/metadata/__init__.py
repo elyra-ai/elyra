@@ -13,8 +13,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .error import MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError
-from .manager import MetadataManager
-from .metadata import Metadata
-from .schema import SchemaManager, METADATA_TEST_NAMESPACE
-from .storage import FileMetadataStore, MetadataStore

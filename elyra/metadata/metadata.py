@@ -15,11 +15,13 @@
 #
 
 import json
+from typing import Any
+from typing import Type
+from typing import TypeVar
 
 from ipython_genutils.importstring import import_item
-from typing import Type, TypeVar, Any
 
-from .schema import SchemaManager
+from elyra.metadata.schema import SchemaManager
 
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
@@ -70,7 +72,7 @@ class Metadata(object):
         """Creates an appropriate instance of Metadata from a dictionary instance """
 
         # Get the schema and look for metadata_class entry and use that, else Metadata.
-        metadata_class_name = 'elyra.metadata.Metadata'
+        metadata_class_name = 'elyra.metadata.metadata.Metadata'
         schema_name = metadata_dict.get('schema_name')
         if schema_name:
             schema = SchemaManager.instance().get_schema(namespace, schema_name)

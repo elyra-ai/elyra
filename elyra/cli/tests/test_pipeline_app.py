@@ -15,9 +15,11 @@
 #
 """Tests for elyra-pipeline application"""
 import os
+
+from click.testing import CliRunner
+
 import elyra.cli.pipeline_app as pipeline_app
 from elyra.cli.pipeline_app import pipeline
-from click.testing import CliRunner
 
 SUB_COMMANDS = ['run', 'submit']
 

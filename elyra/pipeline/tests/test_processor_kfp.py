@@ -15,11 +15,13 @@
 #
 
 import os
-import pytest
 import tarfile
-from elyra.pipeline.processor_kfp import KfpPipelineProcessor
-from elyra.pipeline.pipeline import Operation as Op
+
+import pytest
+
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline import Operation as Op
+from elyra.pipeline.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 
 

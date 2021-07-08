@@ -69,6 +69,6 @@ describe('Submit Notebook Button tests', () => {
 
 const openNewNotebookFile = (): void => {
   cy.get(
-    '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
+    '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible'
   ).click();
 };

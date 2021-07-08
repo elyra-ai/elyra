@@ -13,18 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import papermill
-import time
-
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from datetime import datetime
-from elyra.pipeline import PipelineProcessor, PipelineProcessorResponse, Operation
-from elyra.util.path import get_absolute_path
+import os
+from subprocess import CalledProcessError
+from subprocess import PIPE
+from subprocess import run
+import time
+from typing import Dict
+from typing import List
+
 from jupyter_server.gateway.managers import GatewayClient
-from subprocess import run, CalledProcessError, PIPE
+import papermill
 from traitlets import log
-from typing import Dict, List
+
+from elyra.pipeline.component_registry import ComponentRegistry
+from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.processor import PipelineProcessor
+from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.util.path import get_absolute_path
 
 
 class LocalPipelineProcessor(PipelineProcessor):
@@ -56,6 +64,9 @@ class LocalPipelineProcessor(PipelineProcessor):
     @property
     def type(self):
         return self._type
+
+    def get_components(self):
+        return ComponentRegistry.get_generic_components()
 
     def process(self, pipeline):
         """

@@ -1,0 +1,254 @@
+{
+    "current_parameters": {
+      "label": "",
+      "filename": "",
+      "runtime_image": "",
+      "cpu": null,
+      "gpu": null,
+      "memory": null,
+      "outputs": [],
+      "env_vars": [],
+      "dependencies": [],
+      "include_subdirectories": false
+    },
+    "parameters": [
+      {
+        "id": "label"
+      },
+      {
+        "id": "filename"
+      },
+      {
+        "id": "runtime_image"
+      },
+      {
+        "id": "cpu"
+      },
+      {
+        "id": "gpu"
+      },
+      {
+        "id": "memory"
+      },
+      {
+        "id": "dependencies"
+      },
+      {
+        "id": "include_subdirectories"
+      },
+      {
+        "id": "env_vars"
+      },
+      {
+        "id": "outputs"
+      }
+    ],
+    "uihints": {
+      "id": "nodeProperties",
+      "parameter_info": [
+        {
+          "parameter_ref": "label",
+          "control": "custom",
+          "custom_control_id": "StringControl",
+          "label": {
+            "default": "Label"
+          },
+          "description": {
+            "default": "A custom label for the node.",
+            "placement": "on_panel"
+          },
+          "data": {}
+        },
+        {
+          "parameter_ref": "filename",
+          "control": "custom",
+          "custom_control_id": "StringControl",
+          "label": {
+            "default": "Filename"
+          },
+          "description": {
+            "default": "The path to the {{ component.name }}.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "format": "file",
+            "required": true,
+            "extensions": ["{{ component.extension }}"]
+          }
+        },
+        {
+          "parameter_ref": "runtime_image",
+          "control": "custom",
+          "custom_control_id": "EnumControl",
+          "label": {
+            "default": "Runtime Image"
+          },
+          "description": {
+            "default": "Docker image used as execution environment.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "items": [],
+            "required": true
+          }
+        },
+        {
+          "parameter_ref": "cpu",
+          "control": "custom",
+          "custom_control_id": "NumberControl",
+          "label": {
+            "default": "CPU"
+          },
+          "description": {
+            "default": "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
+            "placement": "on_panel"
+          },
+          "data": {
+            "minimum": 0,
+            "maximum": 99
+          }
+        },
+        {
+          "parameter_ref": "gpu",
+          "control": "custom",
+          "custom_control_id": "NumberControl",
+          "label": {
+            "default": "GPU"
+          },
+          "description": {
+            "default": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "minimum": 0,
+            "maximum": 99
+          }
+        },
+        {
+          "parameter_ref": "memory",
+          "control": "custom",
+          "custom_control_id": "NumberControl",
+          "label": {
+            "default": "RAM(GB)"
+          },
+          "description": {
+            "default": "The total amount of RAM specified.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "minimum": 0,
+            "maximum": 99
+          }
+        },
+        {
+          "parameter_ref": "dependencies",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "File Dependencies"
+          },
+          "description": {
+            "default": "Local file dependencies that need to be copied to remote execution environment.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "placeholder": "*.py",
+            "format": "file"
+          }
+        },
+        {
+          "parameter_ref": "include_subdirectories",
+          "control": "custom",
+          "custom_control_id": "BooleanControl",
+          "label": {
+            "default": "Include Subdirectories",
+            "placement": "on_panel"
+          },
+          "data": {
+            "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time)."
+          }
+        },
+        {
+          "parameter_ref": "env_vars",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Environment Variables"
+          },
+          "description": {
+            "default": "Environment variables to be set on the execution environment.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "placeholder": "env_var=VALUE",
+            "canRefresh": true
+          }
+        },
+        {
+          "parameter_ref": "outputs",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Output Files"
+          },
+          "description": {
+            "default": "Files generated during execution that will become available to all subsequent pipeline steps.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "placeholder": "*.csv"
+          }
+        }
+      ],
+      "group_info": [
+        {
+          "id": "nodeGroupInfo",
+          "type": "panels",
+          "group_info": [
+            {
+              "id": "label",
+              "type": "controls",
+              "parameter_refs": ["label"]
+            },
+            {
+              "id": "filename",
+              "type": "controls",
+              "parameter_refs": ["filename"]
+            },
+            {
+              "id": "runtime_image",
+              "type": "controls",
+              "parameter_refs": ["runtime_image"]
+            },
+            {
+              "id": "resources",
+              "type": "controls",
+              "parameter_refs": ["cpu", "gpu", "memory"]
+            },
+            {
+              "id": "dependencies",
+              "type": "controls",
+              "parameter_refs": ["dependencies"]
+            },
+            {
+              "id": "include_subdirectories",
+              "type": "controls",
+              "parameter_refs": ["include_subdirectories"]
+            },
+            {
+              "id": "env_vars",
+              "type": "controls",
+              "parameter_refs": ["env_vars"]
+            },
+            {
+              "id": "outputs",
+              "type": "controls",
+              "parameter_refs": ["outputs"]
+            }
+          ]
+        }
+      ]
+    },
+    "resources": {}
+  }
+  

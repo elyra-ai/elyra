@@ -89,6 +89,7 @@ setup_args = dict(
         'tornado>=6.1.0',
         'traitlets>=4.3.2',
         'urllib3>=1.26.5',
+        'watchdog>=2.1.3',
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies

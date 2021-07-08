@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-module.exports = (_on, _config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
+import { register } from './../utils/snapshots/plugin';
+
+export default (on: any, config: any): void => {
+  register(on, config);
 };

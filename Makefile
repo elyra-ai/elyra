@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui prettier-ui flake lint-server-dependencies
+.PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui prettier-ui flake lint-server-dependencies dev-link dev-unlink
 .PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
@@ -100,6 +100,13 @@ dev-link:
 	cd node_modules/@elyra/pipeline-editor && jupyter labextension link --no-build .
 	cd node_modules/@elyra/pipeline-services && jupyter labextension link --no-build .
 
+dev-unlink:
+	yarn unlink @elyra/pipeline-services
+	yarn unlink @elyra/pipeline-editor
+	jupyter labextension uninstall @elyra/pipeline-services
+	jupyter labextension uninstall @elyra/pipeline-editor
+	yarn install --force
+
 yarn-install:
 	yarn install
 
@@ -163,7 +170,7 @@ docs-dependencies:
 docs: docs-dependencies ## Build docs
 	make -C docs clean html
 
-dist-ui: build-ui
+dist-ui: yarn-install build-ui
 	mkdir -p dist
 	$(call PACKAGE_LAB_EXTENSION,theme)
 	$(call PACKAGE_LAB_EXTENSION,code-snippet)

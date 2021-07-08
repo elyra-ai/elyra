@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from logging import Logger
 import os
 import sys
-
-from logging import Logger
-from typing import Dict, Optional
+from typing import Dict
+from typing import Optional
 
 
 class Operation(object):
@@ -29,8 +29,7 @@ class Operation(object):
 
     def __init__(self, id, type, name, classifier, filename, runtime_image, memory=None, cpu=None, gpu=None,
                  dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
-                 parent_operations=None, component_source=None, component_source_type=None, component_class=None,
-                 component_params=None):
+                 parent_operations=None, component_source=None, component_source_type=None, component_params=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -94,7 +93,6 @@ class Operation(object):
         self._memory = memory
         self._component_source = component_source
         self._component_source_type = component_source_type
-        self._component_class = component_class
         self._component_params = component_params
 
     @property

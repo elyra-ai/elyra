@@ -16,6 +16,8 @@
 
 import '@testing-library/cypress/add-commands';
 
+import './../utils/snapshots/add-commands';
+
 // TODO: we shouldn't have to fill out the form for any test that isn't specifically
 // testing filling out forms.
 Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
@@ -63,27 +65,39 @@ Cypress.Commands.add('deleteFile', (name: string): void => {
   });
 });
 
-Cypress.Commands.add('createPipeline', ({ type } = {}): void => {
-  switch (type) {
-    case 'kfp':
-      cy.get(
-        '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]'
-      ).click();
-      cy.get('.toolbar-icon-label').contains('Runtime: Kubeflow Pipelines');
-      break;
-    case 'airflow':
-      cy.get(
-        '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]'
-      ).click();
-      cy.get('.toolbar-icon-label').contains('Runtime: Apache Airflow');
-      break;
-    default:
-      cy.get(
-        '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
-      ).click();
-      cy.get('.toolbar-icon-label').contains('Runtime: Generic');
-      break;
+Cypress.Commands.add('createPipeline', ({ name, type } = {}): void => {
+  if (name === undefined) {
+    switch (type) {
+      case 'kfp':
+        cy.get(
+          '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]'
+        ).click();
+        break;
+      case 'airflow':
+        cy.get(
+          '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]'
+        ).click();
+        break;
+      default:
+        cy.get(
+          '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
+        ).click();
+        break;
+    }
+  } else {
+    cy.writeFile(`build/cypress-tests/${name}`, '');
+    cy.openFile(name);
   }
+
+  cy.get('.common-canvas-drop-div');
+  // wait an additional 300ms for the list of items to settle
+  cy.wait(300);
+});
+
+Cypress.Commands.add('openDirectory', (name: string): void => {
+  cy.findByRole('listitem', {
+    name: (n, _el) => n.includes(name)
+  }).dblclick();
 });
 
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {
@@ -129,7 +143,18 @@ Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
   cy.get('[aria-label="Canvas"]').click({ force: true });
 });
 
-Cypress.Commands.add('openPalette', (): void => {
-  cy.get('[aria-label="Open Panel"]').click();
-  cy.get('[title="Add nodes to pipeline"]').click();
+Cypress.Commands.add('expandPaletteCategory', ({ type } = {}): void => {
+  switch (type) {
+    case 'kfp':
+      cy.get(
+        '.palette-flyout-category[value="Kubeflow Pipelines Nodes"]'
+      ).click();
+      break;
+    case 'airflow':
+      cy.get('.palette-flyout-category[value="Apache Airflow Nodes"]').click();
+      break;
+    default:
+      cy.get('.palette-flyout-category[value="Generic Nodes"]').click();
+      break;
+  }
 });

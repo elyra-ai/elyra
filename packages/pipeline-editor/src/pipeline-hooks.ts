@@ -66,6 +66,7 @@ interface IRuntimeComponent {
   image: string;
   id: string;
   description: string;
+  runtime?: string;
   node_types: {
     op: string;
     type: 'execution_node';
@@ -73,6 +74,7 @@ interface IRuntimeComponent {
     outputs: { app_data: any }[];
     app_data: any;
   }[];
+  extensions?: string[];
 }
 
 interface IComponentPropertiesResponse {
@@ -106,7 +108,9 @@ interface INodeDef {
   op: string;
   image: string;
   description: string;
+  runtime?: string;
   properties: IComponentPropertiesResponse;
+  extensions?: string[];
 }
 
 const componentFetcher = async (
@@ -133,6 +137,8 @@ const componentFetcher = async (
       image: component.image,
       label: component.label,
       description: component.description,
+      runtime: component.runtime,
+      extensions: component.extensions,
       properties: prop
     };
   });

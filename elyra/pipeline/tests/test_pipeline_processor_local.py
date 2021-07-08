@@ -13,13 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import nbformat
 import os
+
+import nbformat
 import pytest
 
-from elyra.pipeline import PipelineParser
+from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor_local import LocalPipelineProcessor
-from .util import _read_pipeline_resource, NotebookNode, PythonNode, construct_pipeline
+from elyra.pipeline.tests.util import _read_pipeline_resource
+from elyra.pipeline.tests.util import construct_pipeline
+from elyra.pipeline.tests.util import NotebookNode
+from elyra.pipeline.tests.util import PythonNode
 
 
 @pytest.fixture
