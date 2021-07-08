@@ -14,13 +14,11 @@
 # limitations under the License.
 #
 import json
+import os
 import time
-
 from types import SimpleNamespace
 from typing import Dict
 from typing import List
-
-import os
 
 from jinja2 import Environment
 from jinja2 import PackageLoader

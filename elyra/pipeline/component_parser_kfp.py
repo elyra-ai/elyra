@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 from typing import List
 
 import yaml
@@ -21,7 +20,6 @@ import yaml
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ComponentProperty
-from elyra.pipeline.component import FilesystemComponentReader
 
 
 class KfpComponentParser(ComponentParser):
