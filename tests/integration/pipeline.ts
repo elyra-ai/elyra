@@ -464,7 +464,6 @@ describe('Pipeline Editor tests', () => {
       'bash-operator_BashOperator',
       'email-operator_EmailOperator',
       'http-operator_SimpleHttpOperator',
-      'spark-jdbc-operator_SparkJDBCOperator',
       'spark-sql-operator_SparkSqlOperator',
       'spark-submit-operator_SparkSubmitOperator',
       'slack-operator_SlackAPIOperator',
