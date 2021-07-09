@@ -358,15 +358,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         if (result.button.accept) {
           // proceed with migration
           console.log('migrating pipeline');
-          setPipeline(
-            migrate(pipeline, pipeline =>
-              PipelineService.setNodePathsRelativeToPipeline(
-                pipeline,
-                contextRef.current.path
-              )
+          const migratedPipeline = migrate(pipeline, pipeline =>
+            PipelineService.setNodePathsRelativeToPipeline(
+              pipeline,
+              contextRef.current.path
             )
           );
-          contextRef.current.model.dirty = true;
+          contextRef.current.model.fromString(JSON.stringify(migratedPipeline));
         } else {
           if (shell.currentWidget) {
             shell.currentWidget.close();

@@ -88,7 +88,7 @@ prettier-ui:
 	yarn prettier
 
 eslint-ui:
-	yarn eslint
+	yarn eslint --max-warnings=0
 
 lint-ui: prettier-ui eslint-ui
 
