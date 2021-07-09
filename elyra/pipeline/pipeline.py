@@ -119,7 +119,7 @@ class Operation(object):
     @property
     def name(self):
         if self._component_type == "elyra" and \
-                self._name == os.path.basename(self._filename):
+                self._name == os.path.basename(self._component_params.filename):
             self._name = os.path.basename(self._name).split(".")[0]
         return self._name
 

@@ -22,16 +22,18 @@ from elyra.pipeline.tests.util import _read_pipeline_resource
 
 @pytest.fixture
 def valid_operation():
+    component_parameters = {
+        'filename': '{{filename}}',
+        'runtime_image': '{{runtime_image}}',
+        'env_vars': ["var1=var1", "var2=var2"],
+        'dependencies': ["a.txt", "b.txt", "c.txt"],
+        'outputs': ["d.txt", "e.txt", "f.txt"]
+    }
     return Operation(id='{{uuid}}',
                      type='execution_node',
                      classifier='execute-notebook-node',
                      name='{{label}}',
-                     filename='{{filename}}',
-                     runtime_image='{{runtime_image}}',
-                     env_vars=["var1=var1", "var2=var2"],
-                     dependencies=["a.txt", "b.txt", "c.txt"],
-                     outputs=["d.txt", "e.txt", "f.txt"],
-                     )
+                     component_params=component_parameters)
 
 
 def test_valid_pipeline(valid_operation):
