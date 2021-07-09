@@ -18,7 +18,7 @@ import { IThemeManager } from '@jupyterlab/apputils';
 
 import {
   StylesProvider,
-  createMuiTheme,
+  createTheme,
   ThemeProvider as MuiThemeProvider
 } from '@material-ui/core';
 
@@ -101,7 +101,7 @@ const overrides = {
 };
 
 if (window.ELYRA_darkTheme === undefined) {
-  window.ELYRA_darkTheme = createMuiTheme({
+  window.ELYRA_darkTheme = createTheme({
     palette: {
       type: 'dark'
     },
@@ -110,7 +110,7 @@ if (window.ELYRA_darkTheme === undefined) {
 }
 
 if (window.ELYRA_lightTheme === undefined) {
-  window.ELYRA_lightTheme = createMuiTheme({
+  window.ELYRA_lightTheme = createTheme({
     palette: {
       type: 'light'
     },

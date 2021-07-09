@@ -14,10 +14,15 @@
 # limitations under the License.
 #
 
-from traitlets.config import LoggingConfigurable
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from .pipeline import Pipeline, Operation
+from traitlets.config import LoggingConfigurable
+
+from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import Pipeline
 
 
 DEFAULT_FILETYPE = "tar.gz"
@@ -257,7 +262,8 @@ class PipelineParser(LoggingConfigurable):
 
                 # Do not include any of the standard set of parameters
                 if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
-                           "include_subdirectories", "ui_data", "component_source", "component_source_type"]:
+                           "include_subdirectories", "ui_data", "component_source", "component_source_type", "label",
+                           "image", "description", "properties", "invalidNodeError", "runtime"]:
                     continue
 
                 component_params[key] = value

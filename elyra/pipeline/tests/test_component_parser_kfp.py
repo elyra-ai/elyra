@@ -15,13 +15,14 @@
 #
 import json
 import os
+from types import SimpleNamespace
 
 import jupyter_core.paths
 
-from elyra.pipeline.component import FilesystemComponentReader, UrlComponentReader
+from elyra.pipeline.component import FilesystemComponentReader
+from elyra.pipeline.component import UrlComponentReader
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.component_registry import ComponentRegistry
-from types import SimpleNamespace
 
 COMPONENT_CATALOG_DIRECORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
 

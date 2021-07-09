@@ -18,6 +18,7 @@
 
 import argparse
 import elyra
+import elyra._version
 import git
 import io
 import os
@@ -534,7 +535,7 @@ def initialize_config(args=None) -> SimpleNamespace:
     if not args:
         raise ValueError("Invalid command line arguments")
 
-    v = re.search(VERSION_REG_EX, elyra.__version__)
+    v = re.search(VERSION_REG_EX, elyra._version.__version__)
 
     configuration = {
         'goal': args.goal,
@@ -546,7 +547,7 @@ def initialize_config(args=None) -> SimpleNamespace:
         'base_dir': os.getcwd(),
         'work_dir': os.path.join(os.getcwd(), DEFAULT_BUILD_DIR),
         'source_dir': os.path.join(os.getcwd(), DEFAULT_BUILD_DIR, 'elyra'),
-        'old_version': elyra.__version__,
+        'old_version': elyra._version.__version__,
         'old_npm_version': f"{v['major']}.{v['minor']}.{v['patch']}-dev",
         'new_version': args.version if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta)) else f'{args.version}rc{args.rc}' if args.rc else f'{args.version}b{args.beta}',
         'new_npm_version': args.version if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta)) else f'{args.version}-rc.{args.rc}' if args.rc else f'{args.version}-beta.{args.beta}',

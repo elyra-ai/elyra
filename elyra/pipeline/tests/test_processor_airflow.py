@@ -13,19 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import github
 import os
-import pytest
+from pathlib import Path
 import tempfile
+from unittest import mock
 
-from elyra.pipeline.processor_airflow import AirflowPipelineProcessor
+import github
+import pytest
+
+from elyra.metadata.metadata import Metadata
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
-from elyra.metadata.metadata import Metadata
 from elyra.util import git
-from pathlib import Path
-from unittest import mock
 
 PIPELINE_FILE = 'resources/sample_pipelines/pipeline_dependency_complex.json'
 

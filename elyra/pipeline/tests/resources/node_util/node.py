@@ -31,8 +31,10 @@ dialog of the pipeline:
   to exist, but will be created as a function of the notebook's execution.
 """
 import os
-import requests  # reference an import not in the stardard python builtins  # noqa
-from node_util import PythonNode
+import requests  # noqa
+
+from elyra.pipeline.tests.resources.node_util.node_util import PythonNode
+
 
 # These getenv calls are here to help seed the environment variables
 # dialog in the node properties of the pipeline editor

@@ -13,13 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 import json
+import os
 import shutil
+from typing import Any
+from typing import List
+from typing import Optional
 import uuid
 
-from typing import Optional, List, Any
-from elyra.pipeline.pipeline import Operation, Pipeline
+from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import Pipeline
 
 
 def _read_pipeline_resource(pipeline_filename):
