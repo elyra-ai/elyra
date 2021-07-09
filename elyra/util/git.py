@@ -14,9 +14,11 @@
 # limitations under the License.
 #
 
-from github import Github, GithubException
-from traitlets.config import LoggingConfigurable
 from typing import Optional
+
+from github import Github
+from github import GithubException
+from traitlets.config import LoggingConfigurable
 from urllib3.util import parse_url
 
 

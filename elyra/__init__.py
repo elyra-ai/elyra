@@ -13,17 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from ._version import __version__
-
 from jupyter_server.utils import url_path_join
 
-from .api.handlers import YamlSpecHandler
-from .metadata.handlers import MetadataHandler, MetadataResourceHandler, SchemaHandler, SchemaResourceHandler, \
-    NamespaceHandler
-from .metadata import SchemaManager, FileMetadataCache
-from .pipeline import PipelineExportHandler, PipelineSchedulerHandler, PipelineProcessorManager, \
-    PipelineComponentHandler, PipelineComponentPropertiesHandler
-from .contents.handlers import ContentHandler
+from elyra.api.handlers import YamlSpecHandler
+from elyra.contents.handlers import ContentHandler
+from elyra.metadata.storage import FileMetadataCache
+from elyra.metadata.schema import SchemaManager
+from elyra.metadata.handlers import MetadataHandler
+from elyra.metadata.handlers import MetadataResourceHandler
+from elyra.metadata.handlers import NamespaceHandler
+from elyra.metadata.handlers import SchemaHandler
+from elyra.metadata.handlers import SchemaResourceHandler
+from elyra.pipeline.handlers import PipelineComponentHandler
+from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
+from elyra.pipeline.handlers import PipelineExportHandler
+from elyra.pipeline.handlers import PipelineProcessorManager
+from elyra.pipeline.handlers import PipelineSchedulerHandler
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"

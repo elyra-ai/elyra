@@ -7,6 +7,12 @@
       "image": "",
       "id": "{{ component.id }}",
       "description": "{{ component.description }}",
+    {% if component.runtime %}
+      "runtime": "{{ component.runtime }}",
+    {% endif %}
+    {% if component.extension %}
+      "extensions": ["{{ component.extension }}"],
+    {% endif %}
       "node_types": [
         {
           "id": "",

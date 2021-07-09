@@ -13,20 +13,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from collections import OrderedDict
 import copy
 import json
 import os
 import shutil
 import time
+
+from jsonschema import draft7_format_checker
+from jsonschema import validate
+from jsonschema import ValidationError
 import pytest
 
-from collections import OrderedDict
-from jsonschema import validate, ValidationError, draft7_format_checker
-from elyra.metadata import Metadata, MetadataManager, MetadataStore, FileMetadataStore, SchemaManager, \
-    MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError, METADATA_TEST_NAMESPACE, \
-    FileMetadataCache
-from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, \
-    create_instance, get_schema, invalid_no_display_name_json, valid_display_name_json, MockMetadataStore
+from elyra.metadata.error import MetadataExistsError
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.error import SchemaNotFoundError
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.manager import SchemaManager
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.storage import FileMetadataCache
+from elyra.metadata.storage import FileMetadataStore
+from elyra.metadata.storage import MetadataStore
+from elyra.metadata.tests.test_utils import byo_metadata_json
+from elyra.metadata.tests.test_utils import create_instance
+from elyra.metadata.tests.test_utils import create_json_file
+from elyra.metadata.tests.test_utils import get_schema
+from elyra.metadata.tests.test_utils import invalid_metadata_json
+from elyra.metadata.tests.test_utils import invalid_no_display_name_json
+from elyra.metadata.tests.test_utils import MockMetadataStore
+from elyra.metadata.tests.test_utils import valid_display_name_json
+from elyra.metadata.tests.test_utils import valid_metadata_json
 
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace

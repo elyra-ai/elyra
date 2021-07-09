@@ -20,9 +20,10 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_unescape
 from tornado import web
 
-from elyra.contents import ContentParser
-from elyra.util import get_expanded_path, get_absolute_path
+from elyra.contents.parser import ContentParser
 from elyra.util.http import HttpErrorMixin
+from elyra.util.path import get_absolute_path
+from elyra.util.path import get_expanded_path
 
 
 class ContentHandler(HttpErrorMixin, APIHandler):

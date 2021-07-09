@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import pytest
 import json
 
-from tornado.httpclient import HTTPClientError
 from jupyter_server.tests.utils import expected_http_error
-from .test_utils import expected_response, expected_response_empty
+import pytest
+from tornado.httpclient import HTTPClientError
+
+from elyra.contents.tests.test_utils import expected_response
+from elyra.contents.tests.test_utils import expected_response_empty
 
 
 async def test_file_not_found(jp_fetch):

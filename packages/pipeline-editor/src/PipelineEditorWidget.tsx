@@ -82,6 +82,85 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node'
 };
 
+const getAllPaletteNodes = (palette: any): any[] => {
+  if (palette.categories === undefined) {
+    return [];
+  }
+
+  const nodes = [];
+  for (const c of palette.categories) {
+    if (c.node_types) {
+      nodes.push(...c.node_types);
+    }
+  }
+
+  return nodes;
+};
+
+const isGenericNode = (nodeDef: any): boolean => {
+  return !nodeDef.runtime;
+};
+
+const createPalette = (categories: any[]): any => {
+  const palette = {
+    version: '3.0' as '3.0',
+    categories: categories ?? []
+  };
+
+  for (const category of categories) {
+    for (const i in category.node_types) {
+      const { op, label, image, ...rest } = category.node_types[i];
+      category.node_types[i] = {
+        op,
+        id: op,
+        label,
+        image,
+        type: 'execution_node',
+        inputs: [
+          {
+            id: 'inPort',
+            app_data: {
+              ui_data: {
+                cardinality: {
+                  min: 0,
+                  max: -1
+                },
+                label: 'Input Port'
+              }
+            }
+          }
+        ],
+        outputs: [
+          {
+            id: 'outPort',
+            app_data: {
+              ui_data: {
+                cardinality: {
+                  min: 0,
+                  max: -1
+                },
+                label: 'Output Port'
+              }
+            }
+          }
+        ],
+        parameters: {},
+        app_data: {
+          image: image ?? '',
+          ...rest,
+          ui_data: {
+            label,
+            image: image ?? '',
+            x_pos: 0,
+            y_pos: 0
+          }
+        }
+      };
+    }
+  }
+  return palette;
+};
+
 class PipelineEditorWidget extends ReactWidget {
   browserFactory: IFileBrowserFactory;
   shell: ILabShell;
@@ -372,6 +451,35 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
   }, [pipeline?.pipelines]);
 
+  const categories = [
+    {
+      label: 'Generic Nodes',
+      image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
+      id: 'genericNodes',
+      description: 'Nodes that can be run with any runtime',
+      node_types: nodeDefs?.filter(isGenericNode) ?? []
+    }
+  ];
+
+  if (pipelineRuntimeDisplayName) {
+    categories.push({
+      label: `${pipelineRuntimeDisplayName} Nodes`,
+      image: IconUtil.encode(
+        pipelineRuntimeName === 'kfp'
+          ? kubeflowIcon
+          : pipelineRuntimeName === 'airflow'
+          ? airflowIcon
+          : pipelineIcon
+      ),
+      id: `${pipelineRuntimeName}Nodes`,
+      description: `Nodes that can only be run on ${pipelineRuntimeDisplayName}`,
+      node_types:
+        nodeDefs?.filter((nodeDef: any) => !isGenericNode(nodeDef)) ?? []
+    });
+  }
+
+  const palette = createPalette(categories);
+
   const handleExportPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // prepare pipeline submission details
@@ -380,7 +488,10 @@ const PipelineWrapper: React.FC<IProps> = ({
       setAlert('Failed export: Cannot export empty pipelines.');
       return;
     }
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodeDefs);
+    const errorMessages = validate(
+      JSON.stringify(pipelineJson),
+      getAllPaletteNodes(palette)
+    );
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -520,7 +631,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [
     cleanNullProperties,
     context.model,
-    nodeDefs,
+    palette,
     pipelineRuntimeDisplayName,
     pipelineRuntimeName,
     shell
@@ -529,7 +640,10 @@ const PipelineWrapper: React.FC<IProps> = ({
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // Check that all nodes are valid
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodeDefs);
+    const errorMessages = validate(
+      JSON.stringify(pipelineJson),
+      getAllPaletteNodes(palette)
+    );
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -665,7 +779,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [
     cleanNullProperties,
     context.model,
-    nodeDefs,
+    palette,
     pipelineRuntimeDisplayName,
     pipelineRuntimeName,
     shell
@@ -807,7 +921,6 @@ const PipelineWrapper: React.FC<IProps> = ({
         incLabelWithIcon: 'before',
         enable: false,
         kind: 'tertiary',
-        // TODO: use getRuntimeIcon
         iconEnabled: IconUtil.encode(
           pipelineRuntimeName === 'kfp'
             ? kubeflowIcon
@@ -936,7 +1049,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
-          nodes={nodeDefs}
+          palette={palette}
           pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
@@ -946,6 +1059,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           onError={onError}
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
+          leftPalette={true}
         />
       </Dropzone>
     </ThemeProvider>

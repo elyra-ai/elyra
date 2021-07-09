@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ast
-import os
-import requests
-
 from abc import abstractmethod
+import ast
 from http import HTTPStatus
+import os
+from typing import List
+from typing import Optional
+
+import requests
 from traitlets.config import LoggingConfigurable
-from typing import List, Optional
 
 
 class ComponentProperty(object):
