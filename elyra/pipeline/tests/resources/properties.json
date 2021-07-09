@@ -1,15 +1,20 @@
 {
   "current_parameters": {
     "label": "",
-    "filename": "",
-    "runtime_image": "",
-    "cpu": null,
-    "gpu": null,
-    "memory": null,
-    "outputs": [],
-    "env_vars": [],
-    "dependencies": [],
-    "include_subdirectories": false
+    "component_source": "elyra",
+    "component_source_type": "elyra",
+    "component_parameters": {
+      "label": "",
+      "filename": "",
+      "runtime_image": "",
+      "cpu": null,
+      "gpu": null,
+      "memory": null,
+      "outputs": [],
+      "env_vars": [],
+      "dependencies": [],
+      "include_subdirectories": false
+    }
   },
   "parameters": [
     {

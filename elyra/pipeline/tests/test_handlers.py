@@ -18,7 +18,7 @@ import json
 
 import pytest
 
-from elyra.pipeline import resources
+from elyra.pipeline.tests import resources
 
 # from jupyter_server.tests.utils import expected_http_error
 # from tornado.httpclient import HTTPClientError
