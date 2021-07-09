@@ -20,7 +20,7 @@ limitations under the License.
 
 ### Overview
 
-[Pipelines](pipelines.md) comprise of nodes that are implemented using components. A component typically only implements one unit-of-work, such as load data, prepare data, train a model, or deploy a model for serving. The following depicts a basic pipeline in the Visual Pipeline Editor, which utilizes components to load a data file, split the file, truncates the resulting files, and counts the number of records in each file.
+[Pipelines](pipelines.md) comprise of nodes that are implemented using components. A component typically only implements one unit-of-work, such as loading data, transforming data, training a model, or deploying a model to serve. The following depicts a basic pipeline in the Visual Pipeline Editor, which utilizes components to load a data file, split the file, truncates the resulting files, and counts the number of records in each file.
 
 ![A basic Kubeflow pipeline](../images/user_guide/pipeline-components/kubeflow-pipeline.png)
 
@@ -65,4 +65,3 @@ This feature is currently not available.
 #### Deleting a component from the registry
 
 This feature is currently not available.
-
