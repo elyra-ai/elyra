@@ -16,6 +16,7 @@
 from logging import Logger
 import os
 import sys
+from types import SimpleNamespace
 from typing import Dict
 from typing import Optional
 
@@ -25,9 +26,8 @@ class Operation(object):
     Represents a single operation in a pipeline
     """
 
-    def __init__(self, id, type, name, classifier, filename=None, runtime_image=None, memory=None, cpu=None, gpu=None,
-                 dependencies=None, include_subdirectories: bool = False, env_vars=None, inputs=None, outputs=None,
-                 parent_operations=None, component_source=None, component_source_type=None, component_params=None):
+    def __init__(self, id, type, name, classifier, parent_operations=None, component_source_type=None,
+                 component_source=None, component_params=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -68,36 +68,39 @@ class Operation(object):
         self._type = type
         self._classifier = classifier
         self._name = name
-        
+
         self._parent_operations = parent_operations or []
         self._component_source = component_source
         self._component_source_type = component_source_type
-        self._component_params = component_params
-        
+
         if component_source == "elyra":
-            if not component_params.filename:
+            if not component_params.get('filename'):
                 raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
-            if not component_params.runtime_image:
+            if not component_params.get('runtime_image'):
                 raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
-            if component_params.cpu and not _validate_range(component_params.cpu, min_value=1):
+            if component_params.get('cpu') and not _validate_range(component_params.get('cpu'), min_value=1):
                 raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
-            if component_params.gpu and not _validate_range(component_params.gpu, min_value=0):
+            if component_params.get('gpu') and not _validate_range(component_params.get('gpu'), min_value=0):
                 raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
-            if component_params.memory and not _validate_range(component_params.memory, min_value=1):
+            if component_params.get('memory') and not _validate_range(component_params.get('memory'), min_value=1):
                 raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
 
-            # Set generic node properties
-            # TODO: Remove these and have processors access component_params instead
-            self._filename = component_params.get('filename')
-            self._runtime_image = component_params.get('runtime_image')
-            self._dependencies = component_params.get('dependencies', [])
-            self._include_subdirectories = component_params.get('include_subdirectories', False)
-            self._env_vars = component_params.get('env_vars', [])
-            self._inputs = component_params.get('inputs', [])
-            self._outputs = component_params.get('outputs', [])
-            self._cpu = component_params.get('cpu')
-            self._gpu = component_params.get('gpu')
-            self._memory = component_params.get('memory')
+            # Re-build object to include default values
+            component_params = {
+                "filename": component_params.get('filename'),
+                "runtime_image": component_params.get('runtime_image'),
+                "dependencies": component_params.get('dependencies', []),
+                "include_subdirectories": component_params.get('include_subdirectories', False),
+                "env_vars": component_params.get('env_vars', []),
+                "inputs": component_params.get('inputs', []),
+                "outputs": component_params.get('outputs', []),
+                "cpu": component_params.get('cpu'),
+                "gpu": component_params.get('gpu'),
+                "memory": component_params.get('memory')
+            }
+
+        # IDEA Feed a dictionary and convert to attributes; consider SimpleNamespace object
+        self._component_params = SimpleNamespace(**component_params)
 
     @property
     def id(self):
@@ -113,42 +116,50 @@ class Operation(object):
 
     @property
     def name(self):
-        if self._classifier in self.standard_node_types and \
+        if self._component_source == "elyra" and \
                 self._name == os.path.basename(self._filename):
             self._name = os.path.basename(self._name).split(".")[0]
         return self._name
 
     @property
     def filename(self):
-        return self._filename
+        # return self._filename
+        return self._component_params.filename
 
     @property
     def runtime_image(self):
-        return self._runtime_image
+        # return self._runtime_image
+        return self._component_params.runtime_image
 
     @property
     def dependencies(self):
-        return self._dependencies
+        # return self._dependencies
+        return self._component_params.dependencies
 
     @property
     def include_subdirectories(self):
-        return self._include_subdirectories
+        # return self._include_subdirectories
+        return self._component_params.include_subdirectories
 
     @property
     def env_vars(self):
-        return self._env_vars
+        # return self._env_vars
+        return self._component_params.env_vars
 
     @property
     def cpu(self):
-        return self._cpu
+        # return self._cpu
+        return self._component_params.cpu
 
     @property
     def memory(self):
-        return self._memory
+        # return self._memory
+        return self._component_params.memory
 
     @property
     def gpu(self):
-        return self._gpu
+        # return self._gpu
+        return self._component_params.gpu
 
     def env_vars_as_dict(self, logger: Optional[Logger] = None) -> Dict:
         """
@@ -158,7 +169,7 @@ class Operation(object):
         configured on the Operation are converted to dictionary entries and returned.
         """
         envs = {}
-        for nv in self.env_vars:
+        for nv in self._component_params.env_vars:
             if nv:
                 nv_pair = nv.split("=", 1)
                 if len(nv_pair) == 2 and nv_pair[0].strip():
@@ -189,19 +200,23 @@ class Operation(object):
 
     @property
     def inputs(self):
-        return self._inputs
+        # return self._inputs
+        return self._component_params.inputs
 
     @inputs.setter
     def inputs(self, value):
-        self._inputs = value
+        # self._inputs = value
+        self._component_params.inputs = value
 
     @property
     def outputs(self):
-        return self._outputs
+        # return self._outputs
+        return self._component_params.outputs
 
     @outputs.setter
     def outputs(self, value):
-        self._outputs = value
+        # self._outputs = value
+        self._component_params.outputs = value
 
     @property
     def parent_operations(self):
@@ -216,12 +231,12 @@ class Operation(object):
         return self._component_source_type
 
     @property
-    def component_class(self):
-        return self._component_class
-
-    @property
     def component_params(self):
         return self._component_params
+
+    @property
+    def component_params_as_dict(self):
+        return self._component_params.__dict__
 
     def __eq__(self, other: object) -> bool:
         if isinstance(self, other.__class__):
@@ -229,43 +244,25 @@ class Operation(object):
                 self.type == other.type and \
                 self.classifier == other.classifier and \
                 self.name == other.name and \
-                self.filename == other.filename and \
-                self.runtime_image == other.runtime_image and \
-                self.env_vars == other.env_vars and \
-                self.dependencies == other.dependencies and \
-                self.include_subdirectories == other.include_subdirectories and \
-                self.outputs == other.outputs and \
-                self.inputs == other.inputs and \
-                self.parent_operations == other.parent_operations and \
-                self.cpu == other.cpu and \
-                self.gpu == other.gpu and \
-                self.memory == other.memory
+                self.component_params.__eq__(other.component_params)
         return False
 
     def __str__(self) -> str:
+        params = ""
+        for key, value in self.component_params_as_dict.items():
+            params += f"\t{key}: {value}, \n"
+
         return "componentID : {id} \n " \
-               "name : {name} \n " \
-               "parent_operations : {parent_op} \n " \
-               "dependencies : {depends} \n " \
-               "dependencies include subdirectories : {inc_subdirs} \n " \
-               "filename : {filename} \n " \
-               "inputs : {inputs} \n " \
-               "outputs : {outputs} \n " \
-               "image : {image} \n " \
-               "gpu: {gpu} \n " \
-               "memory: {memory} \n " \
-               "cpu : {cpu} \n ".format(id=self.id,
-                                        name=self.name,
-                                        parent_op=self.parent_operations,
-                                        depends=self.dependencies,
-                                        inc_subdirs=self.include_subdirectories,
-                                        filename=self.filename,
-                                        inputs=self.inputs,
-                                        outputs=self.outputs,
-                                        image=self.runtime_image,
-                                        gpu=self.gpu,
-                                        cpu=self.cpu,
-                                        memory=self.memory)
+            "name : {name} \n " \
+            "parent_operations : {parent_op} \n " \
+            "component_source_type: {source_type} \n " \
+            "component_source: {source} \n " \
+            "component_parameters: {{\n{params}}} \n ".format(id=self.id,
+                                                              name=self.name,
+                                                              parent_op=self.parent_operations,
+                                                              source_type=self.component_source_type,
+                                                              source=self.component_source,
+                                                              params=params)
 
 
 class Pipeline(object):

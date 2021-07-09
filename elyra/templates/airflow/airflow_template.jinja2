@@ -35,17 +35,17 @@ env_var_secret_key = Secret(deploy_type='env',
 {% for key, operation in operations_list.items() %}
     {% if operation.component_source %}
         {% if operation.is_contrib_operator %}
-from airflow.contrib.operators.{{operation.filename}} import {{ operation.name }}
+from airflow.contrib.operators.{{operation.filename}} import {{ operation.class_name }}
         {% else %}
-from airflow.operators.{{operation.filename}} import {{ operation.name }}
+from airflow.operators.{{operation.filename}} import {{ operation.class_name }}
         {% endif %}
-op_{{ operation.id|regex_replace }} = {{ operation.name }}(namespace='{{ namespace }}',
+op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(namespace='{{ namespace }}',
                                                            task_id='{{ operation.notebook|regex_replace }}',
         {% for param, value in operation.component_params.items() %}
                                                                     {{ param }}={{ value }},
         {% endfor %}
     {% else %}
-op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|regex_replace }}',
+op_{{ operation.id|regex_replace }} = NotebookOp(class_name='{{ operation.notebook|regex_replace }}',
                                                           namespace='{{ namespace }}',
                                                           task_id='{{ operation.notebook|regex_replace }}',
                                                           notebook='{{ operation.filename }}',

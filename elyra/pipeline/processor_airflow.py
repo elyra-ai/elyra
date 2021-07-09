@@ -253,8 +253,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                             'parent_operations': operation.parent_operations,
                             'component_source': operation.component_source,
                             'component_source_type': operation.component_source_type,
-                            'component_params': operation.component_params,
-                            'name': component_class,
+                            'component_params': operation.component_params_as_dict,
+                            'class_name': component_class
                             }
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
                                             'spark-sql-operator', 'ssh-operator']:
