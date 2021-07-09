@@ -110,9 +110,9 @@ def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) 
             if pipeline['id'] == primary_pipeline_key:
                 primary_pipeline = pipeline
             for node in pipeline["nodes"]:
-                if 'filename' in node["app_data"]:
-                    abs_path = os.path.join(pipeline_dir, node["app_data"]["filename"])
-                    node["app_data"]["filename"] = abs_path
+                if 'filename' in node["app_data"]["component_parameters"]:
+                    abs_path = os.path.join(pipeline_dir, node["app_data"]["component_parameters"]["filename"])
+                    node["app_data"]["component_parameters"]["filename"] = abs_path
 
     except Exception as e:
         raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
