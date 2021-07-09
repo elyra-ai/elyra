@@ -59,20 +59,22 @@ def test_parse_airflow_component_file():
 
     properties_json = json.loads(properties)
 
-    assert properties_json['current_parameters']['component_parameters']['test_string_no_default'] == ''
-    assert properties_json['current_parameters']['component_parameters']['test_string_default_value'] == 'default'
-    assert properties_json['current_parameters']['component_parameters']['test_string_default_empty'] == ''
+    # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
+    assert properties_json['current_parameters']['label'] == ''
+    assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
+    assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
+    assert properties_json['current_parameters']['elyra_test_string_default_empty'] == ''
 
-    assert properties_json['current_parameters']['component_parameters']['test_bool_default'] is False
-    assert properties_json['current_parameters']['component_parameters']['test_bool_false'] is False
-    assert properties_json['current_parameters']['component_parameters']['test_bool_true'] is True
+    assert properties_json['current_parameters']['elyra_test_bool_default'] is False
+    assert properties_json['current_parameters']['elyra_test_bool_false'] is False
+    assert properties_json['current_parameters']['elyra_test_bool_true'] is True
 
-    assert properties_json['current_parameters']['component_parameters']['test_int_default'] == 0
-    assert properties_json['current_parameters']['component_parameters']['test_int_zero'] == 0
-    assert properties_json['current_parameters']['component_parameters']['test_int_non_zero'] == 1
+    assert properties_json['current_parameters']['elyra_test_int_default'] == 0
+    assert properties_json['current_parameters']['elyra_test_int_zero'] == 0
+    assert properties_json['current_parameters']['elyra_test_int_non_zero'] == 1
 
-    assert properties_json['current_parameters']['component_parameters']['test_dict_default'] == ''  # {}
-    assert properties_json['current_parameters']['component_parameters']['test_list_default'] == ''  # []
+    assert properties_json['current_parameters']['elyra_test_dict_default'] == ''  # {}
+    assert properties_json['current_parameters']['elyra_test_list_default'] == ''  # []
 
 
 def test_parse_airflow_component_url():
@@ -91,10 +93,12 @@ def test_parse_airflow_component_url():
 
     properties_json = json.loads(properties)
 
-    assert properties_json['current_parameters']['component_parameters']['bash_command'] == ''
-    assert properties_json['current_parameters']['component_parameters']['xcom_push'] is False
-    assert properties_json['current_parameters']['component_parameters']['env'] == ''  # {}
-    assert properties_json['current_parameters']['component_parameters']['output_encoding'] == 'utf-8'
+    # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
+    assert properties_json['current_parameters']['label'] == ''
+    assert properties_json['current_parameters']['elyra_bash_command'] == ''
+    assert properties_json['current_parameters']['elyra_xcom_push'] is False
+    assert properties_json['current_parameters']['elyra_env'] == ''  # {}
+    assert properties_json['current_parameters']['elyra_output_encoding'] == 'utf-8'
 
 
 async def test_parse_components_invalid_location():
