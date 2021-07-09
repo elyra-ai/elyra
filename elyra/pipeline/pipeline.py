@@ -26,8 +26,9 @@ class Operation(object):
     Represents a single operation in a pipeline
     """
 
-    def __init__(self, id, type, name, classifier, parent_operations=None, component_source_type=None,
-                 component_source=None, component_params=None):
+    standard_node_types = ["execute-notebook-node", "execute-python-node", "exeucute-r-node"]
+
+    def __init__(self, id, type, name, classifier, parent_operations=None, component_params=None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -70,10 +71,11 @@ class Operation(object):
         self._name = name
 
         self._parent_operations = parent_operations or []
-        self._component_source = component_source
-        self._component_source_type = component_source_type
 
-        if component_source == "elyra":
+        if classifier in self.standard_node_types:
+            self._component_type = "elyra"
+
+        if self._component_type == "elyra":
             if not component_params.get('filename'):
                 raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
             if not component_params.get('runtime_image'):
@@ -116,49 +118,41 @@ class Operation(object):
 
     @property
     def name(self):
-        if self._component_source == "elyra" and \
+        if self._component_type == "elyra" and \
                 self._name == os.path.basename(self._filename):
             self._name = os.path.basename(self._name).split(".")[0]
         return self._name
 
     @property
     def filename(self):
-        # return self._filename
         return self._component_params.filename
 
     @property
     def runtime_image(self):
-        # return self._runtime_image
         return self._component_params.runtime_image
 
     @property
     def dependencies(self):
-        # return self._dependencies
         return self._component_params.dependencies
 
     @property
     def include_subdirectories(self):
-        # return self._include_subdirectories
         return self._component_params.include_subdirectories
 
     @property
     def env_vars(self):
-        # return self._env_vars
         return self._component_params.env_vars
 
     @property
     def cpu(self):
-        # return self._cpu
         return self._component_params.cpu
 
     @property
     def memory(self):
-        # return self._memory
         return self._component_params.memory
 
     @property
     def gpu(self):
-        # return self._gpu
         return self._component_params.gpu
 
     def env_vars_as_dict(self, logger: Optional[Logger] = None) -> Dict:
@@ -200,22 +194,18 @@ class Operation(object):
 
     @property
     def inputs(self):
-        # return self._inputs
         return self._component_params.inputs
 
     @inputs.setter
     def inputs(self, value):
-        # self._inputs = value
         self._component_params.inputs = value
 
     @property
     def outputs(self):
-        # return self._outputs
         return self._component_params.outputs
 
     @outputs.setter
     def outputs(self, value):
-        # self._outputs = value
         self._component_params.outputs = value
 
     @property
@@ -223,8 +213,11 @@ class Operation(object):
         return self._parent_operations
 
     @property
-    def component_source(self):
-        return self._component_source
+    def component_type(self):
+        if self._component_type:
+            return self._component_type
+        else:
+            return None
 
     @property
     def component_source_type(self):

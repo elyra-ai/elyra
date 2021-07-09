@@ -166,7 +166,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
         for operation in sorted_operations:
 
-            if operation.component_source == "elyra":
+            if operation.component_type == "elyra":
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
@@ -225,10 +225,12 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                                                           operation)
 
             else:
+                # Retrieve component from cache
+                component = self._component_registry.get_component(operation.classifier)
+
                 # Change value of variables according to their type. String variables must include
                 # quotation marks in order to render properly in the jinja template and dictionary
                 # values must be converted from strings.
-                component = self._component_registry.get_component(operation.classifier)
                 for component_property in component.properties:
                     # Skip properties for which no value was given
                     if component_property.ref not in operation.component_params.keys():
@@ -248,11 +250,11 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 # TODO Change this name
                 notebook = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
                             'id': operation.id,
-                            'filename': operation.component_source.rsplit('/', 1)[-1].split('.')[0],
+                            'filename': component.component_source.rsplit('/', 1)[-1].split('.')[0],
                             'runtime_image': operation.runtime_image,
                             'parent_operations': operation.parent_operations,
-                            'component_source': operation.component_source,
-                            'component_source_type': operation.component_source_type,
+                            'component_source': component.component_source,
+                            'component_source_type': component.component_source_type,
                             'component_params': operation.component_params_as_dict,
                             'class_name': component_class
                             }

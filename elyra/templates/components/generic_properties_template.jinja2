@@ -1,56 +1,46 @@
 {
     "current_parameters": {
       "label": "",
-      "component_source_type": "{{ component.source_type }}",
-      "component_source": "{{ component.source }}",
-      "component_parameters": {
-        "filename": "",
-        "runtime_image": "",
-        "cpu": null,
-        "gpu": null,
-        "memory": null,
-        "outputs": [],
-        "env_vars": [],
-        "dependencies": [],
-        "include_subdirectories": false
-      }
+      "elyra_filename": "",
+      "elyra_runtime_image": "",
+      "elyra_cpu": null,
+      "elyra_gpu": null,
+      "elyra_memory": null,
+      "elyra_outputs": [],
+      "elyra_env_vars": [],
+      "elyra_dependencies": [],
+      "elyra_include_subdirectories": false
     },
     "parameters": [
       {
         "id": "label"
       },
       {
-        "id": "component_source_type"
+        "id": "elyra_filename"
       },
       {
-        "id": "component_source"
+        "id": "elyra_runtime_image"
       },
       {
-        "id": "filename"
+        "id": "elyra_cpu"
       },
       {
-        "id": "runtime_image"
+        "id": "elyra_gpu"
       },
       {
-        "id": "cpu"
+        "id": "elyra_memory"
       },
       {
-        "id": "gpu"
+        "id": "elyra_dependencies"
       },
       {
-        "id": "memory"
+        "id": "elyra_include_subdirectories"
       },
       {
-        "id": "dependencies"
+        "id": "elyra_env_vars"
       },
       {
-        "id": "include_subdirectories"
-      },
-      {
-        "id": "env_vars"
-      },
-      {
-        "id": "outputs"
+        "id": "elyra_outputs"
       }
     ],
     "uihints": {
@@ -70,35 +60,7 @@
           "data": {}
         },
         {
-          "parameter_ref": "component_source_type",
-          "control": "readonly",
-          "label": {
-            "default": "Component Source Type"
-          },
-          "description": {
-            "default": "The source of the componenet specification file ('filename' or 'url').",
-            "placement": "on_panel"
-          },
-          "data": {
-            "required": true
-          }
-        },
-        {
-          "parameter_ref": "component_source",
-          "control": "readonly",
-          "label": {
-            "default": "Path to Component"
-          },
-          "description": {
-            "default": "The path to the component specification file.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "required": true
-          }
-        },
-        {
-          "parameter_ref": "filename",
+          "parameter_ref": "elyra_filename",
           "control": "custom",
           "custom_control_id": "StringControl",
           "label": {
@@ -115,7 +77,7 @@
           }
         },
         {
-          "parameter_ref": "runtime_image",
+          "parameter_ref": "elyra_runtime_image",
           "control": "custom",
           "custom_control_id": "EnumControl",
           "label": {
@@ -131,7 +93,7 @@
           }
         },
         {
-          "parameter_ref": "cpu",
+          "parameter_ref": "elyra_cpu",
           "control": "custom",
           "custom_control_id": "NumberControl",
           "label": {
@@ -147,7 +109,7 @@
           }
         },
         {
-          "parameter_ref": "gpu",
+          "parameter_ref": "elyra_gpu",
           "control": "custom",
           "custom_control_id": "NumberControl",
           "label": {
@@ -163,7 +125,7 @@
           }
         },
         {
-          "parameter_ref": "memory",
+          "parameter_ref": "elyra_memory",
           "control": "custom",
           "custom_control_id": "NumberControl",
           "label": {
@@ -179,7 +141,7 @@
           }
         },
         {
-          "parameter_ref": "dependencies",
+          "parameter_ref": "elyra_dependencies",
           "control": "custom",
           "custom_control_id": "StringArrayControl",
           "label": {
@@ -195,7 +157,7 @@
           }
         },
         {
-          "parameter_ref": "include_subdirectories",
+          "parameter_ref": "elyra_include_subdirectories",
           "control": "custom",
           "custom_control_id": "BooleanControl",
           "label": {
@@ -207,7 +169,7 @@
           }
         },
         {
-          "parameter_ref": "env_vars",
+          "parameter_ref": "elyra_env_vars",
           "control": "custom",
           "custom_control_id": "StringArrayControl",
           "label": {
@@ -223,7 +185,7 @@
           }
         },
         {
-          "parameter_ref": "outputs",
+          "parameter_ref": "elyra_outputs",
           "control": "custom",
           "custom_control_id": "StringArrayControl",
           "label": {
@@ -251,37 +213,37 @@
             {
               "id": "filename",
               "type": "controls",
-              "parameter_refs": ["filename"]
+              "parameter_refs": ["elyra_filename"]
             },
             {
               "id": "runtime_image",
               "type": "controls",
-              "parameter_refs": ["runtime_image"]
+              "parameter_refs": ["elyra_runtime_image"]
             },
             {
               "id": "resources",
               "type": "controls",
-              "parameter_refs": ["cpu", "gpu", "memory"]
+              "parameter_refs": ["elyra_cpu", "elyra_gpu", "elyra_memory"]
             },
             {
               "id": "dependencies",
               "type": "controls",
-              "parameter_refs": ["dependencies"]
+              "parameter_refs": ["elyra_dependencies"]
             },
             {
               "id": "include_subdirectories",
               "type": "controls",
-              "parameter_refs": ["include_subdirectories"]
+              "parameter_refs": ["elyra_include_subdirectories"]
             },
             {
               "id": "env_vars",
               "type": "controls",
-              "parameter_refs": ["env_vars"]
+              "parameter_refs": ["elyra_env_vars"]
             },
             {
               "id": "outputs",
               "type": "controls",
-              "parameter_refs": ["outputs"]
+              "parameter_refs": ["elyra_outputs"]
             }
           ]
         }

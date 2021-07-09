@@ -329,7 +329,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             for key, operation in defined_pipeline.items():
-                if operation.component_source != "elyra":
+                if operation.component_type != "elyra":
                     continue
                 self.log.debug("component:\n "
                                "container op name : %s \n "
@@ -440,7 +440,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             # Create pipeline operation
             # If operation is one of the "standard" set of NBs or scripts, construct custom NotebookOp
-            if operation.component_source == "elyra":
+            if operation.component_type == "elyra":
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
@@ -495,12 +495,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             # If operation is a "non-standard" component, load it's spec and create operation with factory function
             else:
-                component_source = {}
-                component_source[operation.component_source_type] = operation.component_source
+                # Retrieve component from cache
+                component = self._component_registry.get_component(operation.classifier)
 
                 # Change value of variables according to their type. Path variables should include
                 # the contents of the specified file and dictionary values must be converted from strings.
-                component = self._component_registry.get_component(operation.classifier)
                 for component_property in component.properties:
                     if component_property.type == "file":
                         # Get corresponding property value from parsed pipeline and convert
@@ -517,6 +516,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         # Get corresponding property value from parsed pipeline and convert
                         op_property = operation.component_params.get(component_property.ref)
                         operation.component_params[component_property.ref] = ast.literal_eval(op_property)
+
+                component_source = {}
+                component_source[component.component_source_type] = component.component_source
 
                 # Build component task factory
                 try:

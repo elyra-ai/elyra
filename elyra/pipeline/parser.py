@@ -152,11 +152,8 @@ class PipelineParser(LoggingConfigurable):
             id=node_id,
             type=node.get('type'),
             classifier=node.get('op'),
-            name=PipelineParser._get_ui_data_field(node, 'label',
-                                                   default_value=PipelineParser._get_app_data_field(node, 'filename')),
+            name=PipelineParser._get_app_data_field(node, 'label'),  # Consider adding a default value here
             parent_operations=parent_operations,
-            component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type', 'elyra'),
-            component_source=PipelineParser._get_app_data_field(node, 'component_source', 'elyra'),
             component_params=PipelineParser._get_component_params(node))
 
     @staticmethod
@@ -169,13 +166,6 @@ class PipelineParser(LoggingConfigurable):
         if child in obj.keys():
             return_value = obj[child].get(field_name, default_value)
         return return_value
-
-    @staticmethod
-    # TODO Remove this function
-    def _get_component_parameter_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:
-        """Helper method to pull the field's value from the component_parameter child of object obj."""
-        parameters = PipelineParser._get_app_data_field(obj, 'component_parameters', {})
-        return PipelineParser._get_child_field(parameters, field_name, default_value=default_value)
 
     @staticmethod
     def _get_app_data_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:

@@ -1,36 +1,26 @@
 {
     "current_parameters": {
       "label": "",
-      "component_source_type": "{{ component.source_type }}",
-      "component_source": "{{ component.source }}",
-      "component_parameters": {
 {% for property in component.properties %}
     {% if property.type|lower == "bool" or property.type|lower == "boolean" %}
-      "{{ property.ref }}": {{ property.value|lower }}
+      "elyra_{{ property.ref }}": {{ property.value|lower }}
     {% elif property.type|lower == "int" or property.type|lower == "integer" or property.type|lower == "number" %}
-      "{{ property.ref }}": {{ property.value }}
+      "elyra_{{ property.ref }}": {{ property.value }}
     {% else %}
-      "{{ property.ref }}": "{{ property.value }}"
+      "elyra_{{ property.ref }}": "{{ property.value }}"
     {% endif %}
     {% if loop.index != component.properties|length %}
       ,
     {% endif %}
 {% endfor %}
-      }
     },
     "parameters": [
       {
         "id": "label"
       },
-      {
-        "id": "component_source_type"
-      },
-      {
-        "id": "component_source"
-      },
 {% for property in component.properties %}
       {
-        "id": "{{ property.ref }}"
+        "id": "elyra_{{ property.ref }}"
       }
     {% if loop.index != component.properties|length %}
       ,
@@ -40,7 +30,7 @@
     "uihints": {
       "id": "nodeProperties",
       "parameter_info": [
-      {
+        {
           "parameter_ref": "label",
           "control": "custom",
           "custom_control_id": "StringControl",
@@ -53,37 +43,9 @@
           },
           "data": {}
         },
-        {
-          "parameter_ref": "component_source_type",
-          "control": "readonly",
-          "label": {
-            "default": "Component Source Type"
-          },
-          "description": {
-            "default": "The source of the componenet specification file ('filename' or 'url').",
-            "placement": "on_panel"
-          },
-          "data": {
-            "required": true
-          }
-        },
-        {
-          "parameter_ref": "component_source",
-          "control": "readonly",
-          "label": {
-            "default": "Path to Component"
-          },
-          "description": {
-            "default": "The path to the component specification file.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "required": true
-          }
-        },
 {% for property in component.properties %}
         {
-          "parameter_ref": "{{ property.ref }}",
+          "parameter_ref": "elyra_{{ property.ref }}",
           "control": "{{ property.control }}",
           "custom_control_id": "{{ property.control_id }}",
           "label": {
@@ -121,9 +83,9 @@
           "group_info": [
 {% for property in component.properties %}
             {
-              "id": "{{ property.ref }}",
+              "id": "elyra_{{ property.ref }}",
               "type": "controls",
-              "parameter_refs": ["{{ property.ref }}"]
+              "parameter_refs": ["elyra_{{ property.ref }}"]
             }
           {% if loop.index != component.properties|length %}
             ,
