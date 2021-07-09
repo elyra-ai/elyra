@@ -24,7 +24,7 @@ import requests
 from traitlets.config import LoggingConfigurable
 
 
-class ComponentProperty(object):
+class ComponentParameter(object):
     """
     Represents a single property for a pipeline component
     """
@@ -166,21 +166,23 @@ class Component(object):
     id: str
     name: str
     description: str
+    source_type: str
+    source: str
     runtime: str
-    properties: List[ComponentProperty]
     op: str
+    properties: List[ComponentParameter]
     extension: str
 
-    def __init__(self, id: str, name: str, description: Optional[str], runtime: Optional[str] = None,
-                 properties: Optional[List[ComponentProperty]] = None, op: Optional[str] = None,
-                 extension: str = None):
+    def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
+                 source: str, runtime: Optional[str] = None, op: Optional[str] = None,
+                 properties: Optional[List[ComponentParameter]] = None, extension: str = None):
         """
         :param id: Unique identifier for a component
         :param name: The name of the component for display
         :param description: The description of the component
         :param runtime: The runtime of the component (e.g. KFP or Airflow)
         :param properties: The set of properties for the component
-        :type properties: List[ComponentProperty]
+        :type properties: List[ComponentParameter]
         :param op: The operation name of the component; used by generic components in rendering the palette
         :param extension: The file extension used by the component
         :type extension: str
@@ -194,9 +196,12 @@ class Component(object):
         self._id = id
         self._name = name
         self._description = description
+        self._source_type = source_type
+        self._source = source
+
         self._runtime = runtime
-        self._properties = properties
         self._op = op
+        self._properties = properties
         self._extension = extension
 
     @property
@@ -212,12 +217,16 @@ class Component(object):
         return self._description
 
     @property
-    def runtime(self):
-        return self._runtime
+    def source_type(self):
+        return self._source_type
 
     @property
-    def properties(self):
-        return self._properties
+    def source(self):
+        return self._source
+
+    @property
+    def runtime(self):
+        return self._runtime
 
     @property
     def op(self):
@@ -225,6 +234,10 @@ class Component(object):
             return self._op
         else:
             return self._id
+
+    @property
+    def properties(self):
+        return self._properties
 
     @property
     def extension(self):

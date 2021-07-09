@@ -40,16 +40,22 @@ class ComponentRegistry(LoggingConfigurable):
                                name="Notebook",
                                description="Run notebook file",
                                op="execute-notebook-node",
+                               source_type="elyra",
+                               source="elyra",
                                extension=".ipynb"),
         "python-script": Component(id="python-script",
                                    name="Python Script",
                                    description="Run Python script",
                                    op="execute-python-node",
+                                   source_type="elyra",
+                                   source="elyra",
                                    extension=".py"),
         "r-script": Component(id="r-script",
                               name="R Script",
                               description="Run R script",
                               op="execute-r-node",
+                              source_type="elyra",
+                              source="elyra",
                               extension=".r")}
 
     def __init__(self, component_registry_location: str, parser: ComponentParser):
@@ -128,11 +134,9 @@ class ComponentRegistry(LoggingConfigurable):
         # else render with the runtime-specific property template
         if component.id in ('notebooks', 'python-script', 'r-script'):
             template = template_env.get_template('generic_properties_template.jinja2')
-            properties_json = template.render(component=component)
         else:
             template = template_env.get_template('canvas_properties_template.jinja2')
-            properties_json = template.render(properties=component.properties)
-
+        properties_json = template.render(component=component)
         return properties_json
 
     def _read_component_registry(self) -> List:

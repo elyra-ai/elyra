@@ -1,19 +1,29 @@
 {
     "current_parameters": {
       "label": "",
-      "filename": "",
-      "runtime_image": "",
-      "cpu": null,
-      "gpu": null,
-      "memory": null,
-      "outputs": [],
-      "env_vars": [],
-      "dependencies": [],
-      "include_subdirectories": false
+      "component_source_type": "{{ component.source_type }}",
+      "component_source": "{{ component.source }}",
+      "component_parameters": {
+        "filename": "",
+        "runtime_image": "",
+        "cpu": null,
+        "gpu": null,
+        "memory": null,
+        "outputs": [],
+        "env_vars": [],
+        "dependencies": [],
+        "include_subdirectories": false
+      }
     },
     "parameters": [
       {
         "id": "label"
+      },
+      {
+        "id": "component_source_type"
+      },
+      {
+        "id": "component_source"
       },
       {
         "id": "filename"
@@ -58,6 +68,34 @@
             "placement": "on_panel"
           },
           "data": {}
+        },
+        {
+          "parameter_ref": "component_source_type",
+          "control": "readonly",
+          "label": {
+            "default": "Component Source Type"
+          },
+          "description": {
+            "default": "The source of the componenet specification file ('filename' or 'url').",
+            "placement": "on_panel"
+          },
+          "data": {
+            "required": true
+          }
+        },
+        {
+          "parameter_ref": "component_source",
+          "control": "readonly",
+          "label": {
+            "default": "Path to Component"
+          },
+          "description": {
+            "default": "The path to the component specification file.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "required": true
+          }
         },
         {
           "parameter_ref": "filename",
