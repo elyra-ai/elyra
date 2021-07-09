@@ -235,7 +235,7 @@ def test_invalid_node_type():
 
 def test_missing_operation_filename():
     pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data'].pop('filename')
+    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data']['component_parameters'].pop('filename')
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_definitions)
@@ -245,7 +245,7 @@ def test_missing_operation_filename():
 
 def test_missing_operation_image():
     pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data'].pop('runtime_image')
+    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data']['component_parameters'].pop('runtime_image')
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_definitions)

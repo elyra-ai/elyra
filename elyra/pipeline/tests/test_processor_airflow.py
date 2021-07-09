@@ -183,6 +183,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
 
         # For every node in the original pipeline json
         for node in pipeline_json['pipelines'][0]['nodes']:
+            component_parameters = node['app_data']['component_parameters']
             for i in range(len(file_as_lines)):
                 # Matches an op with a node ID
                 if "notebook_op_" + node['id'].replace("-", "_") + " = NotebookOp(" in file_as_lines[i]:
@@ -198,11 +199,11 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                         elif 'name=' in line:
                             assert node['app_data']['ui_data']['label'] == read_key_pair(line)['value']
                         elif 'notebook=' in line:
-                            assert node['app_data']['filename'] == read_key_pair(line)['value']
+                            assert component_parameters['filename'] == read_key_pair(line)['value']
                         elif 'image=' in line:
-                            assert node['app_data']['runtime_image'] == read_key_pair(line)['value']
+                            assert component_parameters['runtime_image'] == read_key_pair(line)['value']
                         elif 'env_vars=' in line:
-                            for env in node['app_data']['env_vars']:
+                            for env in component_parameters['env_vars']:
                                 var, value = env.split("=")
                                 # Gets sub-list slice starting where the env vars starts
                                 for env_line in file_as_lines[i + sub_list_line_counter + 2:]:
@@ -217,11 +218,11 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                                         assert value == read_key_pair(env_line, sep=':')['value']
                                     elif env_line.strip() == '},':  # end of env vars
                                         break
-                        elif 'pipeline_inputs=' in line and node['app_data'].get('inputs'):
-                            for input in node['app_data']['inputs']:
+                        elif 'pipeline_inputs=' in line and component_parameters.get('inputs'):
+                            for input in component_parameters['inputs']:
                                 assert input in string_to_list(read_key_pair(line)['value'])
-                        elif 'pipeline_outputs=' in line and node['app_data'].get('outputs'):
-                            for output in node['app_data']['outputs']:
+                        elif 'pipeline_outputs=' in line and component_parameters.get('outputs'):
+                            for output in component_parameters['outputs']:
                                 assert output in string_to_list(read_key_pair(line)['value'])
                         elif line == ')':  # End of this Notebook Op
                             break
@@ -282,12 +283,13 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
     for key in ordered_dict.keys():
         for node in pipeline_json['pipelines'][0]['nodes']:
             if node['id'] == key:
-                assert ordered_dict[key]['runtime_image'] == node['app_data']['runtime_image']
+                component_parameters = node['app_data']['component_parameters']
+                assert ordered_dict[key]['runtime_image'] == component_parameters['runtime_image']
                 for image in sample_image_metadata:
                     if ordered_dict[key]['runtime_image'] == image.metadata['image_name']:
                         assert ordered_dict[key]['image_pull_policy'] == image.metadata['pull_policy']
-                assert ordered_dict[key]['filename'] == node['app_data']['filename']
-                for env in node['app_data']['env_vars']:
+                assert ordered_dict[key]['filename'] == component_parameters['filename']
+                for env in component_parameters['env_vars']:
                     var, value = env.split("=")
                     assert ordered_dict[key]['pipeline_envs'][var] == value
                 assert ordered_dict[key]['cos_endpoint'] == sample_metadata['cos_endpoint']
