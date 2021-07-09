@@ -23,12 +23,15 @@ from elyra.pipeline.pipeline import Pipeline
 
 @pytest.fixture
 def good_operation():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
     return test_operation
 
 
@@ -46,7 +49,7 @@ def test_create_operation_minimal(good_operation):
 
     assert test_operation.id == 'test-id'
     assert test_operation.type == 'test'
-    assert test_operation.classifier == 'execution-node'
+    assert test_operation.classifier == 'execute-notebook-node'
     assert test_operation.name == 'test'
     assert test_operation.filename == 'elyra/pipeline/tests/resources/archive/test.ipynb'
     assert test_operation.runtime_image == 'tensorflow/tensorflow:latest'
@@ -56,13 +59,16 @@ def test_create_operation_minimal(good_operation):
 def test_create_operation_with_dependencies():
     dependencies = ['elyra/pipline/tests/resources', 'elyra/pipline/tests/resources/archive']
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'dependencies': dependencies,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               dependencies=dependencies,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.dependencies == dependencies
 
@@ -70,13 +76,16 @@ def test_create_operation_with_dependencies():
 def test_create_operation_include_subdirectories():
     include_subdirectories = True
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'include_subdirectories': include_subdirectories,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execution-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               include_subdirectories=include_subdirectories,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.include_subdirectories == include_subdirectories
 
@@ -84,13 +93,16 @@ def test_create_operation_include_subdirectories():
 def test_create_operation_with_environmental_variables():
     env_variables = ['FOO="Bar"', 'BAR="Foo']
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'env_vars': env_variables,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               env_vars=env_variables,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.env_vars == env_variables
 
@@ -98,13 +110,16 @@ def test_create_operation_with_environmental_variables():
 def test_create_operation_with_inputs():
     inputs = ["input1.txt", "input2.txt"]
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'inputs': inputs,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               inputs=inputs,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.inputs == inputs
 
@@ -112,13 +127,16 @@ def test_create_operation_with_inputs():
 def test_create_operation_with_outputs():
     outputs = ["output1.txt", "output2.txt"]
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'outputs': outputs,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               outputs=outputs,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.outputs == outputs
 
@@ -126,13 +144,16 @@ def test_create_operation_with_outputs():
 def test_create_operation_with_parent_operations():
     parent_operation_ids = ['id-123123-123123-123123', 'id-456456-456456-456456']
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                parent_operations=parent_operation_ids,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.parent_operations == parent_operation_ids
 
@@ -141,81 +162,105 @@ def test_create_operation_correct_naming():
     label = 'test.ipynb'
     filename = 'elyra/pipeline/tests/resources/archive/' + label
 
+    component_parameters = {
+        'filename': filename,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
                                classifier='execute-notebook-node',
                                name=label,
-                               filename=filename,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.name == label.split('.')[0]
 
 
 def test_fail_create_operation_missing_id():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(TypeError):
         Operation(type='test',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)
 
 
 def test_fail_create_operation_missing_type():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(TypeError):
         Operation(id='test-id',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)
 
 
 def test_fail_create_operation_missing_classifier():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(TypeError):
         Operation(id='test-id',
                   type='test',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)
 
 
 def test_fail_create_operation_missing_runtime_image():
-    with pytest.raises(TypeError):
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb'
+    }
+    with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb')
+                  component_params=component_parameters)
 
 
 def test_fail_create_operation_missing_name():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(TypeError):
         Operation(id='test-id',
                   type='test',
-                  classifier='execution-node',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  classifier='execute-notebook-node',
+                  component_params=component_parameters)
 
 
 def test_fail_operations_are_equal(good_operation):
     parent_operation_ids = ['id-123123-123123-123123', 'id-456456-456456-456456']
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     compare_operation = Operation(id='test-id',
                                   type='test',
-                                  classifier='execution-node',
+                                  classifier='execute-notebook-node',
                                   name='test',
-                                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
                                   parent_operations=parent_operation_ids,
-                                  runtime_image='tensorflow/tensorflow:latest')
+                                  component_params=component_parameters)
     with pytest.raises(AssertionError):
         assert compare_operation == good_operation
 
 
 def test_operations_are_equal(good_operation):
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     compare_operation = Operation(id='test-id',
                                   type='test',
-                                  classifier='execution-node',
+                                  classifier='execute-notebook-node',
                                   name='test',
-                                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                                  runtime_image='tensorflow/tensorflow:latest')
+                                  component_params=component_parameters)
 
     assert compare_operation == good_operation
 
@@ -287,28 +332,34 @@ def test_env_list_to_dict_function():
                      'NO_VALUE=', 'KEY2=value2', 'TWO_EQUALS=KEY=value', '==']
     env_variables_dict = {"KEY": "value", "KEY2": "value2", "EMPTY_VALUE": "  ", "TWO_EQUALS": "KEY=value"}
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'env_vars': env_variables,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               env_vars=env_variables,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.env_vars_as_dict() == env_variables_dict
 
 
 def test_validate_resource_values():
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'cpu': '4',
+        'gpu': '6',
+        'memory': '10',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               cpu='4',
-                               gpu='6',
-                               memory='10',
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.cpu == '4'
     assert test_operation.gpu == '6'
@@ -317,12 +368,15 @@ def test_validate_resource_values():
 
 def test_validate_resource_values_as_none():
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.cpu is None
     assert test_operation.gpu is None
@@ -331,15 +385,18 @@ def test_validate_resource_values_as_none():
 
 def test_validate_gpu_accepts_zero_as_value():
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'cpu': '4',
+        'gpu': '0',
+        'memory': '10',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               cpu='4',
-                               gpu='0',
-                               memory='10',
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.gpu == '0'
 
@@ -347,13 +404,16 @@ def test_validate_gpu_accepts_zero_as_value():
 def test_validate_max_resource_value():
     system_max_size = str(sys.maxsize - 1)
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'memory': system_max_size,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='test-id',
                                type='test',
-                               classifier='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                               memory=system_max_size,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     assert test_operation.memory == system_max_size
 
@@ -361,66 +421,84 @@ def test_validate_max_resource_value():
 def test_fail_validate_max_resource_value_exceeded():
     system_max_size = str(sys.maxsize)
 
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'memory': system_max_size,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  memory=system_max_size,
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_negative_gpu_resources():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'gpu': '-1',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  gpu='-1',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_0_cpu_resources():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'cpu': '0',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  cpu='0',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_negative_cpu_resources():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'cpu': '-1',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  cpu='-1',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_0_memory_resources():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'memory': '0',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  memory='0',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_negative_memory_resources():
+    component_parameters = {
+        'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
+        'memory': '-1',
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     with pytest.raises(ValueError):
         Operation(id='test-id',
                   type='test',
-                  classifier='execution-node',
+                  classifier='execute-notebook-node',
                   name='test',
-                  filename='elyra/pipeline/tests/resources/archive/test.ipynb',
-                  memory='-1',
-                  runtime_image='tensorflow/tensorflow:latest')
+                  component_params=component_parameters)

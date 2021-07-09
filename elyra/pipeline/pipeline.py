@@ -72,6 +72,7 @@ class Operation(object):
 
         self._parent_operations = parent_operations or []
 
+        self._component_type = "other"
         if classifier in self.standard_node_types:
             self._component_type = "elyra"
 
@@ -231,13 +232,14 @@ class Operation(object):
     def component_params_as_dict(self):
         return self._component_params.__dict__
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: 'Operation') -> bool:
         if isinstance(self, other.__class__):
             return self.id == other.id and \
                 self.type == other.type and \
                 self.classifier == other.classifier and \
                 self.name == other.name and \
-                self.component_params.__eq__(other.component_params)
+                self.parent_operations == other.parent_operations and \
+            self.component_params.__eq__(other.component_params)
         return False
 
     def __str__(self) -> str:
