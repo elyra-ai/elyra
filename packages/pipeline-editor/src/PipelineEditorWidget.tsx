@@ -335,9 +335,9 @@ const PipelineWrapper: React.FC<IProps> = ({
     [runtimeImages]
   );
 
-  const onError = async (error?: Error): Promise<void> => {
+  const onError = (error?: Error): void => {
     if (error instanceof PipelineOutOfDateError) {
-      await showDialog({
+      showDialog({
         title: 'Migrate pipeline?',
         body: (
           <p>
@@ -358,8 +358,16 @@ const PipelineWrapper: React.FC<IProps> = ({
       }).then(result => {
         if (result.button.accept) {
           // proceed with migration
-          console.log('migrating');
-          setPipeline(migrate(pipeline));
+          console.log('migrating pipeline');
+          setPipeline(
+            migrate(pipeline, pipeline =>
+              PipelineService.setNodePathsRelativeToPipeline(
+                pipeline,
+                contextRef.current.path
+              )
+            )
+          );
+          contextRef.current.model.dirty = true;
         } else {
           if (shell.currentWidget) {
             shell.currentWidget.close();

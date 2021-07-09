@@ -85,10 +85,10 @@ lint-server: test-dependencies
 	flake8 elyra
 
 prettier-ui:
-	yarn prettier:check
+	yarn prettier
 
 eslint-ui:
-	yarn eslint:check --max-warnings=0
+	yarn eslint
 
 lint-ui: prettier-ui eslint-ui
 

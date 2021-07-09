@@ -33,7 +33,7 @@ from elyra.pipeline.processor import PipelineProcessorManager
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
-PIPELINE_CURRENT_VERSION = 3
+PIPELINE_CURRENT_VERSION = 4
 
 
 def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
