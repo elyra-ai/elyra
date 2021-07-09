@@ -150,7 +150,6 @@ const createPalette = (categories: any[]): any => {
         ],
         parameters: {},
         app_data: {
-          label,
           image: image ?? '',
           ...rest,
           ui_data: {

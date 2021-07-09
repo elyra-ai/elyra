@@ -262,7 +262,8 @@ class PipelineParser(LoggingConfigurable):
 
                 # Do not include any of the standard set of parameters
                 if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
-                           "include_subdirectories", "ui_data", "component_source", "component_source_type"]:
+                           "include_subdirectories", "ui_data", "component_source", "component_source_type", "label",
+                           "image", "description", "properties", "invalidNodeError", "runtime"]:
                     continue
 
                 component_params[key] = value
