@@ -239,7 +239,7 @@ class Operation(object):
                 self.classifier == other.classifier and \
                 self.name == other.name and \
                 self.parent_operations == other.parent_operations and \
-            self.component_params.__eq__(other.component_params)
+                self.component_params.__eq__(other.component_params)
         return False
 
     def __str__(self) -> str:
