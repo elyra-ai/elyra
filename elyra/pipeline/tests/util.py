@@ -91,10 +91,17 @@ class NodeBase(object):
         # Add system-owned here with bogus or no value...
         self.env_vars.append("ELYRA_RUNTIME_ENV=bogus_runtime")
 
-        return Operation(self.id, 'execution_node', self.name, self.classifier, self.filename, self.image_name or "NA",
-                         dependencies=self.dependencies, env_vars=self.env_vars,
-                         inputs=self.inputs, outputs=self.outputs,
-                         parent_operations=self.parent_operations)
+        component_parameters = {
+            'filename': self.filename,
+            'runtime_image': self.image_name or "NA",
+            'dependencies': self.dependencies,
+            'env_vars': self.env_vars,
+            'inputs': self.inputs,
+            'outputs': self.outputs
+        }
+        return Operation(self.id, 'execution_node', self.name, self.classifier,
+                         parent_operations=self.parent_operations,
+                         component_params=component_parameters)
 
 
 class NotebookNode(NodeBase):

@@ -253,10 +253,3 @@ def test_missing_operation_image():
         PipelineParser().parse(pipeline_definitions)
 
     assert "Missing field 'operation runtime image'" in str(e.value)
-
-
-def test_scrub_list_function():
-    env_variables_input = ['FOO=Bar', 'BAR=Foo', None, '']
-    env_variables_output = ['FOO=Bar', 'BAR=Foo']
-
-    assert PipelineParser()._scrub_list(env_variables_input) == env_variables_output

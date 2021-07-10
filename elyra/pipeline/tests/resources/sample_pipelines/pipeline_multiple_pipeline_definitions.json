@@ -13,11 +13,13 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "outputs": ["community_contributions.csv"],
-            "dependencies": ["contributors.csv"],
-            "filename": "elyra-pipelines/generate-contributions.ipynb",
-            "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": []
+            "component_parameters": {
+              "outputs": ["community_contributions.csv"],
+              "dependencies": ["contributors.csv"],
+              "filename": "elyra-pipelines/generate-contributions.ipynb",
+              "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+              "env_vars": []
+            }
           },
           "inputs": [
             {
@@ -53,11 +55,13 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "outputs": ["community_stats.csv"],
-            "dependencies": ["contributors.csv"],
-            "filename": "elyra-pipelines/generate-stats.ipynb",
-            "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-            "env_vars": []
+            "component_parameters": {
+              "outputs": ["community_stats.csv"],
+              "dependencies": ["contributors.csv"],
+              "filename": "elyra-pipelines/generate-stats.ipynb",
+              "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+              "env_vars": []
+            }
           },
           "inputs": [
             {
@@ -85,8 +89,10 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "filename": "elyra-pipelines/overview.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            "component_parameters": {
+              "filename": "elyra-pipelines/overview.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            }
           },
           "inputs": [
             {
@@ -135,9 +141,11 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "filename": "elyra-pipelines/overview.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3",
-            "env_vars": []
+            "component_parameters": {
+              "filename": "elyra-pipelines/overview.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3",
+              "env_vars": []
+            }
           },
           "inputs": [
             {

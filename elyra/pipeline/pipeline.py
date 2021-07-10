@@ -16,8 +16,8 @@
 from logging import Logger
 import os
 import sys
-from types import SimpleNamespace
 from typing import Dict
+from typing import List
 from typing import Optional
 
 
@@ -33,26 +33,30 @@ class Operation(object):
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
         :param type: The type of node e.g. execution_node
-        :param classifier: classifier for processor execution e.g. Argo
+        :param classifier: indicates the operation's class
         :param name: The name of the operation
-        :param filename: The relative path to the source file in the users local environment
-                         to be executed e.g. path/to/file.ext
-        :param runtime_image: The DockerHub image to be used for the operation
-                               e.g. user/docker_image_name:tag
-        :param dependencies: List of local files/directories needed for the operation to run
-                             and packaged into each operation's dependency archive
-        :param include_subdirectories: Include or Exclude subdirectories when packaging our 'dependencies'
-        :param env_vars: List of Environmental variables to set in the docker image
-                         e.g. FOO="BAR"
-        :param inputs: List of files to be consumed by this operation, produced by parent operation(s)
-        :param outputs: List of files produced by this operation to be included in a child operation(s)
         :param parent_operations: List of parent operation 'ids' required to execute prior to this operation
-        :param cpu: number of cpus requested to run the operation
-        :param memory: amount of memory requested to run the operation (in Gi)
-        :param gpu: number of gpus requested to run the operation
-        :param component_source_type: source type of a non-standard component, either filepath or url
         :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
                                  a non-standard operation instance
+
+        Component_params for "generic components" (i.e., those with one of the following classifier values:
+        ["execute-notebook-node", "execute-python-node", "exeucute-r-node"]) can expect to have the following
+        entries.
+                filename: The relative path to the source file in the users local environment
+                         to be executed e.g. path/to/file.ext
+                runtime_image: The DockerHub image to be used for the operation
+                               e.g. user/docker_image_name:tag
+                dependencies: List of local files/directories needed for the operation to run
+                             and packaged into each operation's dependency archive
+                include_subdirectories: Include or Exclude subdirectories when packaging our 'dependencies'
+                env_vars: List of Environmental variables to set in the docker image
+                         e.g. FOO="BAR"
+                inputs: List of files to be consumed by this operation, produced by parent operation(s)
+                outputs: List of files produced by this operation to be included in a child operation(s)
+                cpu: number of cpus requested to run the operation
+                memory: amount of memory requested to run the operation (in Gi)
+                gpu: number of gpus requested to run the operation
+        Entries for other (non-built-in) component types are a function of the respective component.
         """
 
         # Validate that the operation has all required properties
@@ -76,6 +80,7 @@ class Operation(object):
         if classifier in self.standard_node_types:
             self._component_type = "elyra"
 
+        self._component_params = {}
         if self._component_type == "elyra":
             if not component_params.get('filename'):
                 raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
@@ -89,21 +94,18 @@ class Operation(object):
                 raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
 
             # Re-build object to include default values
-            component_params = {
+            self._component_params = {
                 "filename": component_params.get('filename'),
                 "runtime_image": component_params.get('runtime_image'),
-                "dependencies": component_params.get('dependencies', []),
+                "dependencies": Operation._scrub_list(component_params.get('dependencies', [])),
                 "include_subdirectories": component_params.get('include_subdirectories', False),
-                "env_vars": component_params.get('env_vars', []),
-                "inputs": component_params.get('inputs', []),
-                "outputs": component_params.get('outputs', []),
+                "env_vars": Operation._scrub_list(component_params.get('env_vars', [])),
+                "inputs": Operation._scrub_list(component_params.get('inputs', [])),
+                "outputs": Operation._scrub_list(component_params.get('outputs', [])),
                 "cpu": component_params.get('cpu'),
                 "gpu": component_params.get('gpu'),
                 "memory": component_params.get('memory')
             }
-
-        # IDEA Feed a dictionary and convert to attributes; consider SimpleNamespace object
-        self._component_params = SimpleNamespace(**component_params)
 
     @property
     def id(self):
@@ -120,41 +122,41 @@ class Operation(object):
     @property
     def name(self):
         if self._component_type == "elyra" and \
-                self._name == os.path.basename(self._component_params.filename):
+                self._name == os.path.basename(self.filename):
             self._name = os.path.basename(self._name).split(".")[0]
         return self._name
 
     @property
     def filename(self):
-        return self._component_params.filename
+        return self._component_params.get('filename')
 
     @property
     def runtime_image(self):
-        return self._component_params.runtime_image
+        return self._component_params.get('runtime_image')
 
     @property
     def dependencies(self):
-        return self._component_params.dependencies
+        return self._component_params.get('dependencies')
 
     @property
     def include_subdirectories(self):
-        return self._component_params.include_subdirectories
+        return self._component_params.get('include_subdirectories')
 
     @property
     def env_vars(self):
-        return self._component_params.env_vars
+        return self._component_params.get('env_vars')
 
     @property
     def cpu(self):
-        return self._component_params.cpu
+        return self._component_params.get('cpu')
 
     @property
     def memory(self):
-        return self._component_params.memory
+        return self._component_params.get('memory')
 
     @property
     def gpu(self):
-        return self._component_params.gpu
+        return self._component_params.get('gpu')
 
     def env_vars_as_dict(self, logger: Optional[Logger] = None) -> Dict:
         """
@@ -164,7 +166,7 @@ class Operation(object):
         configured on the Operation are converted to dictionary entries and returned.
         """
         envs = {}
-        for nv in self._component_params.env_vars:
+        for nv in self.env_vars:
             if nv:
                 nv_pair = nv.split("=", 1)
                 if len(nv_pair) == 2 and nv_pair[0].strip():
@@ -195,19 +197,19 @@ class Operation(object):
 
     @property
     def inputs(self):
-        return self._component_params.inputs
+        return self._component_params.get('inputs')
 
     @inputs.setter
     def inputs(self, value):
-        self._component_params.inputs = value
+        self._component_params['inputs'] = value
 
     @property
     def outputs(self):
-        return self._component_params.outputs
+        return self._component_params.get('outputs')
 
     @outputs.setter
     def outputs(self, value):
-        self._component_params.outputs = value
+        self._component_params['outputs'] = value
 
     @property
     def parent_operations(self):
@@ -230,7 +232,7 @@ class Operation(object):
 
     @property
     def component_params_as_dict(self):
-        return self._component_params.__dict__
+        return self._component_params
 
     def __eq__(self, other: 'Operation') -> bool:
         if isinstance(self, other.__class__):
@@ -239,7 +241,7 @@ class Operation(object):
                 self.classifier == other.classifier and \
                 self.name == other.name and \
                 self.parent_operations == other.parent_operations and \
-                self.component_params.__eq__(other.component_params)
+                self.component_params == other.component_params
         return False
 
     def __str__(self) -> str:
@@ -250,14 +252,21 @@ class Operation(object):
         return "componentID : {id} \n " \
             "name : {name} \n " \
             "parent_operations : {parent_op} \n " \
-            "component_source_type: {source_type} \n " \
-            "component_source: {source} \n " \
             "component_parameters: {{\n{params}}} \n ".format(id=self.id,
                                                               name=self.name,
                                                               parent_op=self.parent_operations,
-                                                              source_type=self.component_source_type,
-                                                              source=self.component_source,
                                                               params=params)
+
+    @staticmethod
+    def _scrub_list(dirty: Optional[List[Optional[str]]]) -> List[str]:
+        """
+        Clean an existing list by filtering out None and empty string values
+        :param dirty: a List of values
+        :return: a clean list without None or empty string values
+        """
+        if not dirty:
+            return []
+        return [clean for clean in dirty if clean]
 
 
 class Pipeline(object):
@@ -321,7 +330,7 @@ class Pipeline(object):
     def operations(self):
         return self._operations
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: 'Pipeline') -> bool:
         if isinstance(self, other.__class__):
             return self.id == other.id and \
                 self.name == other.name and \

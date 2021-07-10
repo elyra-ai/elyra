@@ -315,14 +315,16 @@ def test_collect_envs(processor):
                       'USER_EMPTY_VALUE=  ',
                       'USER_TWO_EQUALS=KEY=value',
                       'USER_NO_VALUE=']
-
+    component_parameters = {
+        'filename': pipelines_test_file,
+        'env_vars': operation_envs,
+        'runtime_image': 'tensorflow/tensorflow:latest'
+    }
     test_operation = Operation(id='this-is-a-test-id',
                                type='execution-node',
-                               classifier='airflow',
+                               classifier='execute-notebook-node',
                                name='test',
-                               filename=pipelines_test_file,
-                               env_vars=operation_envs,
-                               runtime_image='tensorflow/tensorflow:latest')
+                               component_params=component_parameters)
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username='Alice', cos_password='secret')
 

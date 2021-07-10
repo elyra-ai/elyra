@@ -28,7 +28,7 @@ def good_operation():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -48,7 +48,7 @@ def test_create_operation_minimal(good_operation):
     test_operation = good_operation
 
     assert test_operation.id == 'test-id'
-    assert test_operation.type == 'test'
+    assert test_operation.type == 'execution-node'
     assert test_operation.classifier == 'execute-notebook-node'
     assert test_operation.name == 'test'
     assert test_operation.filename == 'elyra/pipeline/tests/resources/archive/test.ipynb'
@@ -65,8 +65,8 @@ def test_create_operation_with_dependencies():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
-                               classifier='execution-node',
+                               type='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
 
@@ -82,8 +82,8 @@ def test_create_operation_include_subdirectories():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
-                               classifier='execution-node',
+                               type='execution-node',
+                               classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
 
@@ -99,7 +99,7 @@ def test_create_operation_with_environmental_variables():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -116,7 +116,7 @@ def test_create_operation_with_inputs():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -133,7 +133,7 @@ def test_create_operation_with_outputs():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -149,7 +149,7 @@ def test_create_operation_with_parent_operations():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                parent_operations=parent_operation_ids,
@@ -167,7 +167,7 @@ def test_create_operation_correct_naming():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name=label,
                                component_params=component_parameters)
@@ -181,7 +181,7 @@ def test_fail_create_operation_missing_id():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(TypeError):
-        Operation(type='test',
+        Operation(type='execution-node',
                   classifier='execute-notebook-node',
                   name='test',
                   component_params=component_parameters)
@@ -206,7 +206,7 @@ def test_fail_create_operation_missing_classifier():
     }
     with pytest.raises(TypeError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   name='test',
                   component_params=component_parameters)
 
@@ -217,7 +217,7 @@ def test_fail_create_operation_missing_runtime_image():
     }
     with pytest.raises(ValueError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   classifier='execute-notebook-node',
                   name='test',
                   component_params=component_parameters)
@@ -230,7 +230,7 @@ def test_fail_create_operation_missing_name():
     }
     with pytest.raises(TypeError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   classifier='execute-notebook-node',
                   component_params=component_parameters)
 
@@ -242,7 +242,7 @@ def test_fail_operations_are_equal(good_operation):
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     compare_operation = Operation(id='test-id',
-                                  type='test',
+                                  type='execution-node',
                                   classifier='execute-notebook-node',
                                   name='test',
                                   parent_operations=parent_operation_ids,
@@ -257,7 +257,7 @@ def test_operations_are_equal(good_operation):
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     compare_operation = Operation(id='test-id',
-                                  type='test',
+                                  type='execution-node',
                                   classifier='execute-notebook-node',
                                   name='test',
                                   component_params=component_parameters)
@@ -338,7 +338,7 @@ def test_env_list_to_dict_function():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -356,7 +356,7 @@ def test_validate_resource_values():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -373,7 +373,7 @@ def test_validate_resource_values_as_none():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -393,7 +393,7 @@ def test_validate_gpu_accepts_zero_as_value():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -410,7 +410,7 @@ def test_validate_max_resource_value():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     test_operation = Operation(id='test-id',
-                               type='test',
+                               type='execution-node',
                                classifier='execute-notebook-node',
                                name='test',
                                component_params=component_parameters)
@@ -428,7 +428,7 @@ def test_fail_validate_max_resource_value_exceeded():
     }
     with pytest.raises(ValueError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   classifier='execute-notebook-node',
                   name='test',
                   component_params=component_parameters)
@@ -442,7 +442,7 @@ def test_fail_creating_operation_with_negative_gpu_resources():
     }
     with pytest.raises(ValueError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   classifier='execute-notebook-node',
                   name='test',
                   component_params=component_parameters)
@@ -456,7 +456,7 @@ def test_fail_creating_operation_with_0_cpu_resources():
     }
     with pytest.raises(ValueError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   classifier='execute-notebook-node',
                   name='test',
                   component_params=component_parameters)
@@ -470,7 +470,7 @@ def test_fail_creating_operation_with_negative_cpu_resources():
     }
     with pytest.raises(ValueError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   classifier='execute-notebook-node',
                   name='test',
                   component_params=component_parameters)
@@ -484,7 +484,7 @@ def test_fail_creating_operation_with_0_memory_resources():
     }
     with pytest.raises(ValueError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   classifier='execute-notebook-node',
                   name='test',
                   component_params=component_parameters)
@@ -498,7 +498,14 @@ def test_fail_creating_operation_with_negative_memory_resources():
     }
     with pytest.raises(ValueError):
         Operation(id='test-id',
-                  type='test',
+                  type='execution-node',
                   classifier='execute-notebook-node',
                   name='test',
                   component_params=component_parameters)
+
+
+def test_scrub_list_function():
+    env_variables_input = ['FOO=Bar', 'BAR=Foo', None, '']
+    env_variables_output = ['FOO=Bar', 'BAR=Foo']
+
+    assert Operation._scrub_list(env_variables_input) == env_variables_output
