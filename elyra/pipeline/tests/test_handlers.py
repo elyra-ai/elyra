@@ -60,7 +60,7 @@ async def test_get_components(jp_fetch):
 
 async def test_get_component_properties_config(jp_fetch):
     # Ensure all valid component_entry properties can be found
-    response = await jp_fetch('elyra', 'pipeline', 'components', 'local', 'notebooks', 'properties')
+    response = await jp_fetch('elyra', 'pipeline', 'components', 'local', 'notebook', 'properties')
     assert response.code == 200
     payload = json.loads(response.body.decode())
     properties = json.loads(pkg_resources.read_text(resources, 'properties.json'))

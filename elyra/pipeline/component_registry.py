@@ -36,13 +36,13 @@ class ComponentRegistry(LoggingConfigurable):
     """
 
     _generic_components: Dict[str, Component] = {
-        "notebooks": Component(id="notebooks",
-                               name="Notebook",
-                               description="Run notebook file",
-                               op="execute-notebook-node",
-                               source_type="elyra",
-                               source="elyra",
-                               extension=".ipynb"),
+        "notebook": Component(id="notebook",
+                              name="Notebook",
+                              description="Run notebook file",
+                              op="execute-notebook-node",
+                              source_type="elyra",
+                              source="elyra",
+                              extension=".ipynb"),
         "python-script": Component(id="python-script",
                                    name="Python Script",
                                    description="Run Python script",
@@ -132,7 +132,7 @@ class ComponentRegistry(LoggingConfigurable):
 
         # If component_id is one of the generic set, render with generic template,
         # else render with the runtime-specific property template
-        if component.id in ('notebooks', 'python-script', 'r-script'):
+        if component.id in ('notebook', 'python-script', 'r-script'):
             template = template_env.get_template('generic_properties_template.jinja2')
         else:
             template = template_env.get_template('canvas_properties_template.jinja2')

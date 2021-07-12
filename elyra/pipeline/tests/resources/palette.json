@@ -4,7 +4,7 @@
     {
       "label": "Notebook",
       "image": "",
-      "id": "notebooks",
+      "id": "notebook",
       "description": "Run notebook file",
       "extensions": [".ipynb"],
       "node_types": [
