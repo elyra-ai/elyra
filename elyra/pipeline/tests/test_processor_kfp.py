@@ -20,7 +20,7 @@ import tarfile
 import pytest
 
 from elyra.pipeline.parser import PipelineParser
-from elyra.pipeline.pipeline import Operation as Op
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 
@@ -52,11 +52,11 @@ def test_generate_dependency_archive(processor):
         'dependencies': pipeline_dependencies,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Op(id='123e4567-e89b-12d3-a456-426614174000',
-                        type='execution-node',
-                        classifier='execute-notebook-node',
-                        name='test',
-                        component_params=component_parameters)
+    test_operation = GenericOperation(id='123e4567-e89b-12d3-a456-426614174000',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     archive_location = processor._generate_dependency_archive(test_operation)
 
@@ -78,11 +78,11 @@ def test_fail_generate_dependency_archive(processor):
         'dependencies': pipeline_dependencies,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Op(id='123e4567-e89b-12d3-a456-426614174000',
-                        type='execution-node',
-                        classifier='execute-notebook-node',
-                        name='test',
-                        component_params=component_parameters)
+    test_operation = GenericOperation(id='123e4567-e89b-12d3-a456-426614174000',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     with pytest.raises(Exception):
         processor._generate_dependency_archive(test_operation)
@@ -96,11 +96,11 @@ def test_get_dependency_source_dir(processor):
         'filename': pipelines_test_file,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Op(id='123e4567-e89b-12d3-a456-426614174000',
-                        type='execution-node',
-                        classifier='execute-notebook-node',
-                        name='test',
-                        component_params=component_parameters)
+    test_operation = GenericOperation(id='123e4567-e89b-12d3-a456-426614174000',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     filepath = processor._get_dependency_source_dir(test_operation)
 
@@ -114,11 +114,11 @@ def test_get_dependency_archive_name(processor):
         'filename': pipelines_test_file,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Op(id='this-is-a-test-id',
-                        type='execution-node',
-                        classifier='execute-notebook-node',
-                        name='test',
-                        component_params=component_parameters)
+    test_operation = GenericOperation(id='this-is-a-test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     filename = processor._get_dependency_archive_name(test_operation)
 
@@ -144,11 +144,11 @@ def test_collect_envs(processor):
         'env_vars': operation_envs,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Op(id='this-is-a-test-id',
-                        type='execution-node',
-                        classifier='execute-notebook-node',
-                        name='test',
-                        component_params=component_parameters)
+    test_operation = GenericOperation(id='this-is-a-test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username='Alice', cos_password='secret')
 

@@ -36,8 +36,9 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_registry import CachedComponentRegistry
 from elyra.pipeline.component_registry import ComponentRegistry
-from elyra.pipeline.parser import Operation
-from elyra.pipeline.parser import Pipeline
+from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import Pipeline
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from elyra.util.path import get_expanded_path
@@ -253,7 +254,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
         for operation in sorted_operations:
             parent_io = set()  # gathers inputs & outputs relative to parent
-            for parent_operation_id in operation.parent_operations:
+            for parent_operation_id in operation.parent_operation_ids:
                 parent_operation = pipeline.operations[parent_operation_id]
                 if parent_operation.inputs:
                     parent_io.update(parent_operation.inputs)
@@ -286,7 +287,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         # Optimization: check if already processed
         if operation not in ordered_operations:
             # process each of the dependencies that needs to be executed first
-            for parent_operation_id in operation.parent_operations:
+            for parent_operation_id in operation.parent_operation_ids:
                 parent_operation = operations_by_id[parent_operation_id]
                 if parent_operation not in ordered_operations:
                     PipelineProcessor._sort_operation_dependencies(operations_by_id,
@@ -398,7 +399,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
             self.log.error('Error retrieving metadata configuration for {}'.format(name), exc_info=True)
             raise RuntimeError('Error retrieving metadata configuration for {}', err) from err
 
-    def _collect_envs(self, operation: Operation, **kwargs) -> Dict:
+    def _collect_envs(self, operation: GenericOperation, **kwargs) -> Dict:
         """
         Collect the envs stored on the Operation and set the system-defined ELYRA_RUNTIME_ENV
 

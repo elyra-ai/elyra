@@ -42,6 +42,7 @@ from urllib3.exceptions import MaxRetryError
 from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
@@ -296,7 +297,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 pipeline_function = lambda: self._cc_pipeline(pipeline,
                                                               pipeline_name,
                                                               cos_directory=cos_directory)  # nopep8
-
                 if 'Tekton' == engine:
                     self.log.info("Compiling pipeline for Tekton engine")
                     kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
@@ -439,8 +439,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             sanitized_operation_name = self._sanitize_operation_name(operation.name)
 
             # Create pipeline operation
-            # If operation is one of the "standard" set of NBs or scripts, construct custom NotebookOp
-            if operation.component_type == "elyra":
+            # If operation is one of the "generic" set of NBs or scripts, construct custom NotebookOp
+            if isinstance(operation, GenericOperation):
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
@@ -539,7 +539,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
             op = notebook_ops[operation.id]
-            for parent_operation_id in operation.parent_operations:
+            for parent_operation_id in operation.parent_operation_ids:
                 parent_op = notebook_ops[parent_operation_id]  # Parent Operation
                 op.after(parent_op)
 

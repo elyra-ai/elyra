@@ -16,7 +16,7 @@
 import pytest
 
 from elyra.pipeline.parser import PipelineParser
-from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.tests.util import _read_pipeline_resource
 
 
@@ -29,11 +29,11 @@ def valid_operation():
         'dependencies': ["a.txt", "b.txt", "c.txt"],
         'outputs': ["d.txt", "e.txt", "f.txt"]
     }
-    return Operation(id='{{uuid}}',
-                     type='execution_node',
-                     classifier='execute-notebook-node',
-                     name='{{label}}',
-                     component_params=component_parameters)
+    return GenericOperation(id='{{uuid}}',
+                            type='execution_node',
+                            classifier='execute-notebook-node',
+                            name='{{label}}',
+                            component_params=component_parameters)
 
 
 def test_valid_pipeline(valid_operation):
@@ -122,18 +122,18 @@ def test_supernode_pipeline():
     for node_id in pipeline.operations:
         # Validate operations list
         if node_id in external_input_node_ids:
-            # These are input nodes, ensure parent_operations are empty
-            assert len(pipeline.operations[node_id].parent_operations) == 0
+            # These are input nodes, ensure parent_operation_ids are empty
+            assert len(pipeline.operations[node_id].parent_operation_ids) == 0
             continue
         if node_id == supernode_excution_node_id:
             # Node within supernode, should have two parent_ops matching external_input_node_ids
-            assert len(pipeline.operations[node_id].parent_operations) == 2
-            assert set(pipeline.operations[node_id].parent_operations) == set(external_input_node_ids)
+            assert len(pipeline.operations[node_id].parent_operation_ids) == 2
+            assert set(pipeline.operations[node_id].parent_operation_ids) == set(external_input_node_ids)
             continue
         if node_id == external_node_id:
             # Final external node, should have super_node embedded node as parent op.
-            assert len(pipeline.operations[node_id].parent_operations) == 1
-            assert pipeline.operations[node_id].parent_operations[0] == supernode_excution_node_id
+            assert len(pipeline.operations[node_id].parent_operation_ids) == 1
+            assert pipeline.operations[node_id].parent_operation_ids[0] == supernode_excution_node_id
             continue
         assert False, "Invalid node_id encountered in pipeline operations!"
 
@@ -163,7 +163,7 @@ def test_pipeline_with_dependencies():
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
-    assert len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].parent_operations) == 2
+    assert len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].parent_operation_ids) == 2
 
 
 def test_pipeline_global_attributes():

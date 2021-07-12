@@ -17,6 +17,7 @@ import sys
 
 import pytest
 
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 
@@ -27,11 +28,11 @@ def good_operation():
         'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
     return test_operation
 
 
@@ -64,11 +65,11 @@ def test_create_operation_with_dependencies():
         'dependencies': dependencies,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.dependencies == dependencies
 
@@ -81,11 +82,11 @@ def test_create_operation_include_subdirectories():
         'include_subdirectories': include_subdirectories,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.include_subdirectories == include_subdirectories
 
@@ -98,11 +99,11 @@ def test_create_operation_with_environmental_variables():
         'env_vars': env_variables,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.env_vars == env_variables
 
@@ -115,11 +116,11 @@ def test_create_operation_with_inputs():
         'inputs': inputs,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.inputs == inputs
 
@@ -132,11 +133,11 @@ def test_create_operation_with_outputs():
         'outputs': outputs,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.outputs == outputs
 
@@ -148,14 +149,14 @@ def test_create_operation_with_parent_operations():
         'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               parent_operations=parent_operation_ids,
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      parent_operation_ids=parent_operation_ids,
+                                      component_params=component_parameters)
 
-    assert test_operation.parent_operations == parent_operation_ids
+    assert test_operation.parent_operation_ids == parent_operation_ids
 
 
 def test_create_operation_correct_naming():
@@ -166,11 +167,11 @@ def test_create_operation_correct_naming():
         'filename': filename,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name=label,
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name=label,
+                                      component_params=component_parameters)
 
     assert test_operation.name == label.split('.')[0]
 
@@ -193,10 +194,10 @@ def test_fail_create_operation_missing_type():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(TypeError):
-        Operation(id='test-id',
-                  classifier='execute-notebook-node',
-                  name='test',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         classifier='execute-notebook-node',
+                         name='test',
+                         component_params=component_parameters)
 
 
 def test_fail_create_operation_missing_classifier():
@@ -216,11 +217,11 @@ def test_fail_create_operation_missing_runtime_image():
         'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb'
     }
     with pytest.raises(ValueError):
-        Operation(id='test-id',
-                  type='execution-node',
-                  classifier='execute-notebook-node',
-                  name='test',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         type='execution-node',
+                         classifier='execute-notebook-node',
+                         name='test',
+                         component_params=component_parameters)
 
 
 def test_fail_create_operation_missing_name():
@@ -229,10 +230,10 @@ def test_fail_create_operation_missing_name():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(TypeError):
-        Operation(id='test-id',
-                  type='execution-node',
-                  classifier='execute-notebook-node',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         type='execution-node',
+                         classifier='execute-notebook-node',
+                         component_params=component_parameters)
 
 
 def test_fail_operations_are_equal(good_operation):
@@ -241,12 +242,12 @@ def test_fail_operations_are_equal(good_operation):
         'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    compare_operation = Operation(id='test-id',
-                                  type='execution-node',
-                                  classifier='execute-notebook-node',
-                                  name='test',
-                                  parent_operations=parent_operation_ids,
-                                  component_params=component_parameters)
+    compare_operation = GenericOperation(id='test-id',
+                                         type='execution-node',
+                                         classifier='execute-notebook-node',
+                                         name='test',
+                                         parent_operation_ids=parent_operation_ids,
+                                         component_params=component_parameters)
     with pytest.raises(AssertionError):
         assert compare_operation == good_operation
 
@@ -256,11 +257,11 @@ def test_operations_are_equal(good_operation):
         'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    compare_operation = Operation(id='test-id',
-                                  type='execution-node',
-                                  classifier='execute-notebook-node',
-                                  name='test',
-                                  component_params=component_parameters)
+    compare_operation = GenericOperation(id='test-id',
+                                         type='execution-node',
+                                         classifier='execute-notebook-node',
+                                         name='test',
+                                         component_params=component_parameters)
 
     assert compare_operation == good_operation
 
@@ -337,11 +338,11 @@ def test_env_list_to_dict_function():
         'env_vars': env_variables,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.env_vars_as_dict() == env_variables_dict
 
@@ -355,11 +356,11 @@ def test_validate_resource_values():
         'memory': '10',
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.cpu == '4'
     assert test_operation.gpu == '6'
@@ -372,11 +373,11 @@ def test_validate_resource_values_as_none():
         'filename': 'elyra/pipeline/tests/resources/archive/test.ipynb',
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.cpu is None
     assert test_operation.gpu is None
@@ -392,11 +393,11 @@ def test_validate_gpu_accepts_zero_as_value():
         'memory': '10',
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.gpu == '0'
 
@@ -409,11 +410,11 @@ def test_validate_max_resource_value():
         'memory': system_max_size,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     assert test_operation.memory == system_max_size
 
@@ -427,11 +428,11 @@ def test_fail_validate_max_resource_value_exceeded():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(ValueError):
-        Operation(id='test-id',
-                  type='execution-node',
-                  classifier='execute-notebook-node',
-                  name='test',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         type='execution-node',
+                         classifier='execute-notebook-node',
+                         name='test',
+                         component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_negative_gpu_resources():
@@ -441,11 +442,11 @@ def test_fail_creating_operation_with_negative_gpu_resources():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(ValueError):
-        Operation(id='test-id',
-                  type='execution-node',
-                  classifier='execute-notebook-node',
-                  name='test',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         type='execution-node',
+                         classifier='execute-notebook-node',
+                         name='test',
+                         component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_0_cpu_resources():
@@ -455,11 +456,11 @@ def test_fail_creating_operation_with_0_cpu_resources():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(ValueError):
-        Operation(id='test-id',
-                  type='execution-node',
-                  classifier='execute-notebook-node',
-                  name='test',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         type='execution-node',
+                         classifier='execute-notebook-node',
+                         name='test',
+                         component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_negative_cpu_resources():
@@ -469,11 +470,11 @@ def test_fail_creating_operation_with_negative_cpu_resources():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(ValueError):
-        Operation(id='test-id',
-                  type='execution-node',
-                  classifier='execute-notebook-node',
-                  name='test',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         type='execution-node',
+                         classifier='execute-notebook-node',
+                         name='test',
+                         component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_0_memory_resources():
@@ -483,11 +484,11 @@ def test_fail_creating_operation_with_0_memory_resources():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(ValueError):
-        Operation(id='test-id',
-                  type='execution-node',
-                  classifier='execute-notebook-node',
-                  name='test',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         type='execution-node',
+                         classifier='execute-notebook-node',
+                         name='test',
+                         component_params=component_parameters)
 
 
 def test_fail_creating_operation_with_negative_memory_resources():
@@ -497,11 +498,11 @@ def test_fail_creating_operation_with_negative_memory_resources():
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
     with pytest.raises(ValueError):
-        Operation(id='test-id',
-                  type='execution-node',
-                  classifier='execute-notebook-node',
-                  name='test',
-                  component_params=component_parameters)
+        GenericOperation(id='test-id',
+                         type='execution-node',
+                         classifier='execute-notebook-node',
+                         name='test',
+                         component_params=component_parameters)
 
 
 def test_scrub_list_function():

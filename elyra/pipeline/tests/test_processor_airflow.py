@@ -23,7 +23,7 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.parser import PipelineParser
-from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 from elyra.util import git
@@ -260,25 +260,26 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
     assert len(ordered_dict.keys()) == len(pipeline_json['pipelines'][0]['nodes'])
 
     # Verify tree structure is correct
-    assert not ordered_dict['cded6818-e601-4fd8-b6b9-c9fdf1fd1fca'].get('parent_operations')
+    assert not ordered_dict['cded6818-e601-4fd8-b6b9-c9fdf1fd1fca'].get('parent_operation_ids')
     assert ordered_dict['bb9606ca-29ec-4133-a36a-67bd2a1f6dc3'].get(
-        'parent_operations').pop() == 'cded6818-e601-4fd8-b6b9-c9fdf1fd1fca'
+        'parent_operation_ids').pop() == 'cded6818-e601-4fd8-b6b9-c9fdf1fd1fca'
     assert ordered_dict['6f5c2ece-1977-48a1-847f-099b327c6ed1'].get(
-        'parent_operations').pop() == 'cded6818-e601-4fd8-b6b9-c9fdf1fd1fca'
+        'parent_operation_ids').pop() == 'cded6818-e601-4fd8-b6b9-c9fdf1fd1fca'
     assert ordered_dict['4ef63a48-a27c-4d1e-a0ee-2fbbdbe3be74'].get(
-        'parent_operations').pop() == 'cded6818-e601-4fd8-b6b9-c9fdf1fd1fca'
+        'parent_operation_ids').pop() == 'cded6818-e601-4fd8-b6b9-c9fdf1fd1fca'
     assert ordered_dict['4f7ae91b-682e-476c-8664-58412336b31f'].get(
-        'parent_operations').pop() == 'bb9606ca-29ec-4133-a36a-67bd2a1f6dc3'
+        'parent_operation_ids').pop() == 'bb9606ca-29ec-4133-a36a-67bd2a1f6dc3'
     assert ordered_dict['f82c4699-b392-4a3e-92b0-45d9e11126fe'].get(
-        'parent_operations').pop() == 'bb9606ca-29ec-4133-a36a-67bd2a1f6dc3'
+        'parent_operation_ids').pop() == 'bb9606ca-29ec-4133-a36a-67bd2a1f6dc3'
     assert ordered_dict['137d3d2f-4224-42d9-b8c6-cbee9ff2872d'].get(
-        'parent_operations') == ['4ef63a48-a27c-4d1e-a0ee-2fbbdbe3be74', '0a7eff92-fe2a-411c-92a6-73d6f3810516']
-    assert not ordered_dict['779c2630-64bf-47ca-8a98-9ac8a60e85f7'].get('parent_operations')
+        'parent_operation_ids') == ['4ef63a48-a27c-4d1e-a0ee-2fbbdbe3be74', '0a7eff92-fe2a-411c-92a6-73d6f3810516']
+    assert not ordered_dict['779c2630-64bf-47ca-8a98-9ac8a60e85f7'].get('parent_operation_ids')
     assert ordered_dict['0a7eff92-fe2a-411c-92a6-73d6f3810516'].get(
-        'parent_operations').pop() == '779c2630-64bf-47ca-8a98-9ac8a60e85f7'
+        'parent_operation_ids').pop() == '779c2630-64bf-47ca-8a98-9ac8a60e85f7'
     assert ordered_dict['92a7a247-1131-489c-8c3e-1e2389d4c673'].get(
-        'parent_operations') == ['f82c4699-b392-4a3e-92b0-45d9e11126fe', "137d3d2f-4224-42d9-b8c6-cbee9ff2872d",
-                                 '6f5c2ece-1977-48a1-847f-099b327c6ed1']
+        'parent_operation_ids') == ['f82c4699-b392-4a3e-92b0-45d9e11126fe',
+                                    "137d3d2f-4224-42d9-b8c6-cbee9ff2872d",
+                                    "6f5c2ece-1977-48a1-847f-099b327c6ed1"]
 
     for key in ordered_dict.keys():
         for node in pipeline_json['pipelines'][0]['nodes']:
@@ -320,11 +321,11 @@ def test_collect_envs(processor):
         'env_vars': operation_envs,
         'runtime_image': 'tensorflow/tensorflow:latest'
     }
-    test_operation = Operation(id='this-is-a-test-id',
-                               type='execution-node',
-                               classifier='execute-notebook-node',
-                               name='test',
-                               component_params=component_parameters)
+    test_operation = GenericOperation(id='this-is-a-test-id',
+                                      type='execution-node',
+                                      classifier='execute-notebook-node',
+                                      name='test',
+                                      component_params=component_parameters)
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username='Alice', cos_password='secret')
 

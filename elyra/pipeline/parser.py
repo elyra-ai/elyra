@@ -30,6 +30,7 @@ DEFAULT_FILETYPE = "tar.gz"
 class PipelineParser(LoggingConfigurable):
 
     def __init__(self, root_dir="", **kwargs):
+        super().__init__(**kwargs)
         self.root_dir = root_dir
 
     def parse(self, pipeline_definitions: Dict) -> Pipeline:
@@ -69,7 +70,7 @@ class PipelineParser(LoggingConfigurable):
 
         source = PipelineParser._get_app_data_field(primary_pipeline, 'source')
 
-        pipeline_object = Pipeline(id=id,
+        pipeline_object = Pipeline(id=primary_pipeline_id,
                                    name=PipelineParser._get_app_data_field(primary_pipeline, 'name', 'untitled'),
                                    runtime=runtime,
                                    runtime_config=runtime_config,
@@ -110,7 +111,7 @@ class PipelineParser(LoggingConfigurable):
 
             # parse each node as a pipeline operation
             operation = self._create_pipeline_operation(node, super_node)
-            self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.filename, pipeline_object.name))
+            self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.name, pipeline_object.name))
             pipeline_object.operations[operation.id] = operation
 
     def _super_node_to_operations(self,
@@ -136,10 +137,10 @@ class PipelineParser(LoggingConfigurable):
                 return p
         return None
 
-    def _create_pipeline_operation(self, node: Dict, super_node: Optional[Dict] = None):
+    def _create_pipeline_operation(self, node: Dict, super_node: Optional[Dict] = None) -> Operation:
         """
         Creates a pipeline operation instance from the given node.
-        The node and super_node are used to build the list of parent_operations (links) to
+        The node and super_node are used to build the list of parent_operation_ids (links) to
         the node (operation dependencies).
         """
         node_id = node.get('id')
@@ -147,12 +148,12 @@ class PipelineParser(LoggingConfigurable):
         if super_node:  # gather parent-links tied to embedded nodes inputs
             parent_operations.extend(PipelineParser._get_parent_operation_links(super_node, node_id))
 
-        return Operation(
+        return Operation.create_instance(
             id=node_id,
             type=node.get('type'),
             classifier=node.get('op'),
             name=PipelineParser._get_app_data_field(node, 'label'),  # Consider adding a default value here
-            parent_operations=parent_operations,
+            parent_operation_ids=parent_operations,
             component_params=PipelineParser._get_component_params(node))
 
     @staticmethod
@@ -207,7 +208,7 @@ class PipelineParser(LoggingConfigurable):
         return input_node_ids
 
     @staticmethod
-    def _get_parent_operation_links(node: Dict, embedded_node_id: Optional[str] = None) -> List[List[str]]:
+    def _get_parent_operation_links(node: Dict, embedded_node_id: Optional[str] = None) -> List[str]:
         """
         Gets a list nodes_ids corresponding to parent nodes (outputs directed to this node).
         For super_nodes, the node to use has an id of the embedded_node_id suffixed with '_inPort'.

@@ -21,7 +21,7 @@ from typing import List
 from typing import Optional
 import uuid
 
-from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Pipeline
 
 
@@ -70,7 +70,7 @@ class NodeBase(object):
 
         self.dependencies = ['node_util/*']
 
-    def get_operation(self) -> Operation:
+    def get_operation(self) -> GenericOperation:
 
         self.env_vars = []
         if self.fail:  # NODE_FILENAME is required, so skip if triggering failure
@@ -99,9 +99,9 @@ class NodeBase(object):
             'inputs': self.inputs,
             'outputs': self.outputs
         }
-        return Operation(self.id, 'execution_node', self.name, self.classifier,
-                         parent_operations=self.parent_operations,
-                         component_params=component_parameters)
+        return GenericOperation(self.id, 'execution_node', self.name, self.classifier,
+                                parent_operation_ids=self.parent_operations,
+                                component_params=component_parameters)
 
 
 class NotebookNode(NodeBase):

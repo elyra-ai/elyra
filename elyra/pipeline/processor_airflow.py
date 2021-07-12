@@ -31,6 +31,7 @@ from jinja2 import PackageLoader
 from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component_parser_airflow import AirflowComponentParser
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
@@ -146,7 +147,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         # Create dictionary that maps component Id to its ContainerOp instance
-        notebook_ops = []
+        target_ops = []
 
         self.log_pipeline_info(pipeline_name,
                                f"processing pipeline dependencies to: {cos_endpoint} "
@@ -166,7 +167,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
         for operation in sorted_operations:
 
-            if operation.component_type == "elyra":
+            if isinstance(operation, GenericOperation):
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
@@ -196,25 +197,25 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                             image_instance.metadata.get('pull_policy'):
                         image_pull_policy = image_instance.metadata['pull_policy']
 
-                notebook = {'notebook': operation.name,
-                            'id': operation.id,
-                            'filename': operation.filename,
-                            'runtime_image': operation.runtime_image,
-                            'cos_endpoint': cos_endpoint,
-                            'cos_bucket': cos_bucket,
-                            'cos_directory': cos_directory,
-                            'cos_dependencies_archive': operation_artifact_archive,
-                            'pipeline_outputs': operation.outputs,
-                            'pipeline_inputs': operation.inputs,
-                            'pipeline_envs': pipeline_envs,
-                            'parent_operations': operation.parent_operations,
-                            'image_pull_policy': image_pull_policy,
-                            'cpu_request': operation.cpu,
-                            'mem_request': operation.memory,
-                            'gpu_request': operation.gpu
-                            }
+                target_op = {'notebook': operation.name,
+                             'id': operation.id,
+                             'filename': operation.filename,
+                             'runtime_image': operation.runtime_image,
+                             'cos_endpoint': cos_endpoint,
+                             'cos_bucket': cos_bucket,
+                             'cos_directory': cos_directory,
+                             'cos_dependencies_archive': operation_artifact_archive,
+                             'pipeline_outputs': operation.outputs,
+                             'pipeline_inputs': operation.inputs,
+                             'pipeline_envs': pipeline_envs,
+                             'parent_operation_ids': operation.parent_operation_ids,
+                             'image_pull_policy': image_pull_policy,
+                             'cpu_request': operation.cpu,
+                             'mem_request': operation.memory,
+                             'gpu_request': operation.gpu
+                             }
 
-                notebook_ops.append(notebook)
+                target_ops.append(target_op)
 
                 self.log_pipeline_info(pipeline_name,
                                        f"processing operation dependencies for id: {operation.id}",
@@ -247,40 +248,39 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 # Get component class from operation name
                 component_class = operation.classifier.split('_')[-1]
 
-                # TODO Change this name
-                notebook = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
-                            'id': operation.id,
-                            'filename': component.component_source.rsplit('/', 1)[-1].split('.')[0],
-                            'runtime_image': operation.runtime_image,
-                            'parent_operations': operation.parent_operations,
-                            'component_source': component.component_source,
-                            'component_source_type': component.component_source_type,
-                            'component_params': operation.component_params_as_dict,
-                            'class_name': component_class
-                            }
+                target_op = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
+                             'id': operation.id,
+                             'filename': component.component_source.rsplit('/', 1)[-1].split('.')[0],
+                             'runtime_image': operation.runtime_image,
+                             'parent_operation_ids': operation.parent_operation_ids,
+                             'component_source': component.component_source,
+                             'component_source_type': component.component_source_type,
+                             'component_params': operation.component_params_as_dict,
+                             'class_name': component_class
+                             }
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
                                             'spark-sql-operator', 'ssh-operator']:
-                    notebook['is_contrib_operator'] = True
+                    target_op['is_contrib_operator'] = True
 
-                notebook_ops.append(notebook)
+                target_ops.append(target_op)
 
-        ordered_notebook_ops = OrderedDict()
+        ordered_target_ops = OrderedDict()
 
-        while notebook_ops:
-            for i in range(len(notebook_ops)):
-                notebook = notebook_ops.pop(0)
-                if not notebook['parent_operations']:
-                    ordered_notebook_ops[notebook['id']] = notebook
-                    self.log.debug("Root Node added : %s", ordered_notebook_ops[notebook['id']])
-                elif all(deps in ordered_notebook_ops.keys() for deps in notebook['parent_operations']):
-                    ordered_notebook_ops[notebook['id']] = notebook
-                    self.log.debug("Dependent Node added : %s", ordered_notebook_ops[notebook['id']])
+        while target_ops:
+            for i in range(len(target_ops)):
+                target_op = target_ops.pop(0)
+                if not target_op['parent_operation_ids']:
+                    ordered_target_ops[target_op['id']] = target_op
+                    self.log.debug("Root Node added : %s", ordered_target_ops[target_op['id']])
+                elif all(deps in ordered_target_ops.keys() for deps in target_op['parent_operation_ids']):
+                    ordered_target_ops[target_op['id']] = target_op
+                    self.log.debug("Dependent Node added : %s", ordered_target_ops[target_op['id']])
                 else:
-                    notebook_ops.append(notebook)
+                    target_ops.append(target_op)
 
         self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration=(time.time() - t0_all))
 
-        return ordered_notebook_ops
+        return ordered_target_ops
 
     def create_pipeline_file(self, pipeline, pipeline_export_format, pipeline_export_path, pipeline_name):
 
