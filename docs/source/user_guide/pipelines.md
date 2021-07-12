@@ -20,19 +20,21 @@ limitations under the License.
 
 ### Overview
 
-A pipeline comprises of one or more nodes that are (in many cases) connected with each other to define execution dependencies. A node is an instance of a configurable component that typically only implements one unit of work. A unit of work can represent any task, such as load data, cleanse data, analyze data, train a machine learning model, deploy a model for serving, query a service, or send an email. 
+A _pipeline_ comprises one or more _nodes_ that are (in many cases) connected with each other to define execution _dependencies_. A node is an instance of a configurable _[component](pipeline-components.md)_ that commonly only implements a single unit of work to make it reusable. A unit of work can represent any task, such as loading data, pre-processing data, analyzing data, training a machine learning model, deploying a model for serving, querying a service, or sending an email. 
 
 ![Conceptual pipeline overview](../images/user_guide/pipelines/pipelines-nodes.png)
 
-Note though that multiple components might implement the "same" task. For example, one component might load data from a SQL database, whereas another component might load data from a NoSQL database. Conceptually both components load data, but how they load it is entirely different.
+Note though that multiple components might implement the "same" task. For example, one component might load data from a SQL database, whereas another component might download data from S3 storage. Conceptually both components load data, but how they load it is entirely different.
 
 Elyra supports two types of components: generic components and custom components. A pipeline that utilizes only generic components is called a generic pipeline, whereas a pipeline that utilizes generic components and/or custom components is referred to as typed pipeline.
 
-![Conceptual pipeline overview](../images/user_guide/pipelines/pipelines-nodes-components.png)
+Pipelines are assembled using the Visual Pipeline Editor. The editor includes a palette, the canvas, and a properties panel, shown on the left, in the center, and the right, respectively.
 
-The [_Pipeline components_ topic in the User Guide](pipeline-components.md) provides a comprehensive component overview. Please review the [_Best practices for file-based pipeline nodes_ topic](best-practices-file-based-nodes.md) if your pipelines include generic components.
+![The Visual Pipeline Editor is used to assemble pipelines](../images/user_guide/pipelines/pipeline-editor.png)
 
-Elyra pipelines support three types of runtime platforms:
+Please review the [_Best practices for file-based pipeline nodes_ topic in the _User Guide_](best-practices-file-based-nodes.md) if your pipelines include generic components.
+
+Elyra pipelines support three runtime platforms:
 - Local/JupyterLab
 - [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/) (with Argo or [Tekton](https://github.com/kubeflow/kfp-tekton/) workflow engines)
 - [Apache Airflow](https://airflow.apache.org/)
@@ -52,42 +54,49 @@ A typed pipeline is permanently associated with a runtime platform, such as Kube
 
 ![A Kubeflow Pipelines pipeline](../images/user_guide/pipelines/typed-pipeline.png)
 
-Note that it is not possible to convert a pipeline from one type to another.
+For illustrative purposes the Elyra component registry includes a couple example custom components. You can add your own components as outlined in [_Managing custom components_](https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#managing-custom-components).
 
-The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-step instructions for creating and running pipelines.
+Note that it is not possible to convert a generic pipeline to a typed pipeline or a typed pipeline from one type to another.
 
 ### Creating pipelines using the Visual Pipeline Editor
 
-To create a pipeline using the editor:
+The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-step instructions for creating and running pipelines. To create a pipeline using the editor:
 
 1. Open the JupyterLab Launcher and select the desired pipeline editor type (Generic, Kubeflow Pipelines, or Apache Airflow).
 
    ![Pipeline editor links in launcher](../images/user_guide/pipelines/editor-links.png)
 
-1. Define pipeline properties. Pipeline properties include a description and default values for node properties. 
+1. Expand the properties panel and define the pipeline properties. Pipeline properties include a description and default values for node properties. (Support for pipeline properties varies by release.)
 
    ![Pipeline properties](../images/user_guide/pipelines/pipeline-properties.png)
 
-   Many pipeline properties values can be overridden by node properties. For example, if you set a pipeline default value for `runtime image` to `my-org/my-container-image`, all generic nodes would use this image. To use a different container image `my-org/my-other-container-image` in one of the generic nodes, set the property to a different value in that node.
+1. Drag and drop components from the palette onto the canvas or double click on a palette entry.
 
-   Note: Support for pipeline properties varies by release.
+   ![Add components from palette](../images/user_guide/pipelines/add-components-from-palette.gif)
 
-1. Drag and drop components from the palette onto the canvas.
+   You can also drag and drop Jupyter notebooks, Python scripts, or R scripts from the JupyterLab _File Browser_ onto the canvas.
 
-   ![Add component from palette](../images/user_guide/pipelines/add-component-from-palette.png)
+   ![Add generic components from file browser](../images/user_guide/pipelines/add-components-from-file-browser.gif)
 
-   Note: You can also drag and drop Jupyter notebooks, Python scripts, or R scripts from the JupyterLab _File Browser_ onto the canvas.
+1. Define the dependencies between nodes by connecting them, essentially creating an execution graph.
 
-1. Define the runtime properties for each node. (Right click, `Open Properties`)
+   ![Connect nodes](../images/user_guide/pipelines/connect-nodes.gif)
+
+1. Define the runtime properties for each node. Highlight a node, right click, and select `Open Properties`. Runtime properties configure a component and govern its execution behavior.
+
+   ![Configure node](../images/user_guide/pipelines/configure-node.gif)
 
    Runtime properties are component specific. For generic components (Jupyter notebook, Python script, and R script) the properties are defined as follows:
 
    **Runtime Image**
-   - Required. The container image you want to use to run your notebook. 
+   - Required. The container image you want to use to run the notebook or script. 
    - Example: `TensorFlow 2.0`
 
+   **CPU, GPU, and RAM**
+   - Optional. Resources that the notebook or script requires. 
+
    **File Dependencies**
-   - Optional. A list of files to be passed from the `LOCAL` working environment into each respective step of the pipeline. Files should be in the same directory as the notebook it is associated with. Specify one file, directory, or expression per line. Supported patterns are `*` and `?`. 
+   - Optional. A list of files to be passed from the local working environment into each respective step of the pipeline. Files should be in the same directory (or subdirectory thereof) as the file it is associated with. Specify one file, directory, or expression per line. Supported patterns are `*` and `?`. 
    - Example: `dependent-script.py`
 
    **Environment Variables**
@@ -98,15 +107,13 @@ To create a pipeline using the editor:
    - Optional. A list of files generated by the notebook inside the image to be passed as inputs to the next step of the pipeline.  Specify one file, directory, or expression per line. Supported patterns are `*` and `?`.
    - Example: `data/*.csv`
 
-1. Define the dependencies between nodes by connecting them, essentially creating a graph.
-
-   ![Connect nodes and add comments](../images/user_guide/pipelines/connect-and-comment.gif)
-
 1. Associate each node with a comment to document its purpose.
+
+   ![Add comment to node](../images/user_guide/pipelines/add-comment-to-node.gif)
 
 1. Save the pipeline file.
 
-   Note: You can rename the pipeline file in the JupyterLab _File Browser_.
+Note: You can rename the pipeline file in the JupyterLab _File Browser_.
 
 ### Running pipelines
 
@@ -115,7 +122,7 @@ Pipelines can be run from the Visual Pipeline Editor and the `elyra-pipeline` co
 **Running a pipeline from the Visual Pipeline Editor**
 
 To run a pipeline from the Visual Pipeline Editor:
-1. Click `Run Pipeline`in the editor's tool bar.
+1. Click `Run Pipeline` in the editor's tool bar.
 
    ![Open pipeline run wizard](../images/user_guide/pipelines/pipeline-editor-run.png)
 
@@ -168,4 +175,6 @@ To export a pipeline from the Visual Pipeline Editor:
 1. Select an export format.
    
    ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
+
+1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is utilizing.   
  
