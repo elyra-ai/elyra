@@ -70,7 +70,6 @@ class Operation(object):
         self._classifier = classifier
         self._name = name
         self._parent_operation_ids = parent_operation_ids or []
-        self._component_type = "other"
         self._component_params = component_params
 
         # Scrub the inputs and outputs lists
@@ -96,10 +95,6 @@ class Operation(object):
     @property
     def parent_operation_ids(self) -> List[str]:
         return self._parent_operation_ids
-
-    @property
-    def component_type(self) -> Optional[str]:
-        return self._component_type
 
     @property
     def component_params(self) -> Optional[Dict[str, Any]]:
@@ -211,7 +206,6 @@ class GenericOperation(Operation):
 
         super().__init__(id, type, name, classifier,
                          parent_operation_ids=parent_operation_ids, component_params=component_params)
-        self._component_type = "elyra"
 
         if not component_params.get('filename'):
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
@@ -373,4 +367,3 @@ class Pipeline(object):
                 self.runtime == other.runtime and \
                 self.runtime_config == other.runtime_config and \
                 self.operations == other.operations
-

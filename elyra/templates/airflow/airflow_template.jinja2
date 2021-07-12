@@ -33,11 +33,11 @@ env_var_secret_key = Secret(deploy_type='env',
 {% endif %}
 
 {% for key, operation in operations_list.items() %}
-    {% if operation.component_source %}
+    {% if not operation.is_generic_operator %}
         {% if operation.is_contrib_operator %}
-from airflow.contrib.operators.{{operation.filename}} import {{ operation.class_name }}
+from airflow.contrib.operators.{{operation.module_name}} import {{ operation.class_name }}
         {% else %}
-from airflow.operators.{{operation.filename}} import {{ operation.class_name }}
+from airflow.operators.{{operation.module_name}} import {{ operation.class_name }}
         {% endif %}
 op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(namespace='{{ namespace }}',
                                                            task_id='{{ operation.notebook|regex_replace }}',
@@ -68,12 +68,12 @@ op_{{ operation.id|regex_replace }} = NotebookOp(class_name='{{ operation.notebo
                                                                        'limit_gpu': '{{ operation.cpu_request }}',
             {% endif %}
         },
+                                                          image='{{ operation.runtime_image }}',
         {% endif %}
     {% endif %}
     {% if cos_secret %}
                                                           secrets=[env_var_secret_id, env_var_secret_key],
-    {% endif %}
-                                                          image='{{ operation.runtime_image }}',
+    {% endif %}                                                        
                                                           in_cluster={{ in_cluster }},
                                                           config_file="{{ kube_config_path }}",
                                                           dag=dag)
@@ -81,9 +81,9 @@ op_{{ operation.id|regex_replace }} = NotebookOp(class_name='{{ operation.notebo
         op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
     {% endif %}
 
-    {% if operation.parent_operations %}
-        {% for parent_operation in operation.parent_operations %}
-            op_{{ operation.id|regex_replace }} << op_{{ parent_operation|regex_replace }}
+    {% if operation.parent_operations_ids %}
+        {% for parent_operation in operation.parent_operations_ids %}
+            op_{{ operation.id|regex_replace }} << op_{{ parent_operation_ids|regex_replace }}
         {% endfor %}
     {% endif %}
 {% endfor %}

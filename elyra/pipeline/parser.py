@@ -154,7 +154,7 @@ class PipelineParser(LoggingConfigurable):
             classifier=node.get('op'),
             name=PipelineParser._get_app_data_field(node, 'label'),  # Consider adding a default value here
             parent_operation_ids=parent_operations,
-            component_params=PipelineParser._get_component_params(node))
+            component_params=PipelineParser._get_app_data_field(node, "component_parameters", {}))
 
     @staticmethod
     def _get_child_field(obj: Dict, child: str, field_name: str, default_value: Any = None) -> Any:

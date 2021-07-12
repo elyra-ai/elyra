@@ -212,7 +212,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                              'image_pull_policy': image_pull_policy,
                              'cpu_request': operation.cpu,
                              'mem_request': operation.memory,
-                             'gpu_request': operation.gpu
+                             'gpu_request': operation.gpu,
+                             'is_generic_operator': True
                              }
 
                 target_ops.append(target_op)
@@ -250,13 +251,11 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
                 target_op = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
                              'id': operation.id,
-                             'filename': component.component_source.rsplit('/', 1)[-1].split('.')[0],
-                             'runtime_image': operation.runtime_image,
+                             'module_name': component.source.rsplit('/', 1)[-1].split('.')[0],
+                             'class_name': component_class,
                              'parent_operation_ids': operation.parent_operation_ids,
-                             'component_source': component.component_source,
-                             'component_source_type': component.component_source_type,
                              'component_params': operation.component_params_as_dict,
-                             'class_name': component_class
+                             'is_generic_operator': False
                              }
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
                                             'spark-sql-operator', 'ssh-operator']:

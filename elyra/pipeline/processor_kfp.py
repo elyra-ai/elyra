@@ -329,7 +329,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             for key, operation in defined_pipeline.items():
-                if operation.component_type != "elyra":
+                if not isinstance(operation, GenericOperation):
                     continue
                 self.log.debug("component:\n "
                                "container op name : %s \n "
