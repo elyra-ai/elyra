@@ -93,20 +93,6 @@ class Operation(object):
     def name(self) -> str:
         return self._name
 
-    @staticmethod
-    def _log_info(msg: str, logger: Optional[Logger] = None):
-        if logger:
-            logger.info(msg)
-        else:
-            print(msg)
-
-    @staticmethod
-    def _log_warning(msg: str, logger: Optional[Logger] = None):
-        if logger:
-            logger.warning(msg)
-        else:
-            print(f"WARNING: {msg}")
-
     @property
     def parent_operation_ids(self) -> List[str]:
         return self._parent_operation_ids
@@ -124,19 +110,19 @@ class Operation(object):
         return self._component_params or {}
 
     @property
-    def inputs(self):
+    def inputs(self) -> Optional[List[str]]:
         return self._component_params.get('inputs')
 
     @inputs.setter
-    def inputs(self, value):
+    def inputs(self, value: List[str]):
         self._component_params['inputs'] = value
 
     @property
-    def outputs(self):
+    def outputs(self) -> Optional[List[str]]:
         return self._component_params.get('outputs')
 
     @outputs.setter
-    def outputs(self, value):
+    def outputs(self, value: List[str]):
         self._component_params['outputs'] = value
 
     def __eq__(self, other: 'Operation') -> bool:
@@ -158,6 +144,20 @@ class Operation(object):
             f"name : {self.name} \n " \
             f"parent_operation_ids : {self.parent_operation_ids} \n " \
             f"component_parameters: {{\n{params}}} \n"
+
+    @staticmethod
+    def _log_info(msg: str, logger: Optional[Logger] = None):
+        if logger:
+            logger.info(msg)
+        else:
+            print(msg)
+
+    @staticmethod
+    def _log_warning(msg: str, logger: Optional[Logger] = None):
+        if logger:
+            logger.warning(msg)
+        else:
+            print(f"WARNING: {msg}")
 
     @staticmethod
     def _scrub_list(dirty: Optional[List[Optional[str]]]) -> List[str]:
@@ -217,11 +217,11 @@ class GenericOperation(Operation):
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
         if not component_params.get('runtime_image'):
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
-        if component_params.get('cpu') and not _validate_range(component_params.get('cpu'), min_value=1):
+        if component_params.get('cpu') and not self._validate_range(component_params.get('cpu'), min_value=1):
             raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
-        if component_params.get('gpu') and not _validate_range(component_params.get('gpu'), min_value=0):
+        if component_params.get('gpu') and not self._validate_range(component_params.get('gpu'), min_value=0):
             raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
-        if component_params.get('memory') and not _validate_range(component_params.get('memory'), min_value=1):
+        if component_params.get('memory') and not self._validate_range(component_params.get('memory'), min_value=1):
             raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
 
         # Re-build object to include default values
@@ -235,41 +235,41 @@ class GenericOperation(Operation):
         self._component_params["memory"] = component_params.get('memory')
 
     @property
-    def name(self):
+    def name(self) -> str:
         if self._name == os.path.basename(self.filename):
             self._name = os.path.basename(self._name).split(".")[0]
         return self._name
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         return self._component_params.get('filename')
 
     @property
-    def runtime_image(self):
+    def runtime_image(self) -> str:
         return self._component_params.get('runtime_image')
 
     @property
-    def dependencies(self):
+    def dependencies(self) -> Optional[List[str]]:
         return self._component_params.get('dependencies')
 
     @property
-    def include_subdirectories(self):
+    def include_subdirectories(self) -> Optional[bool]:
         return self._component_params.get('include_subdirectories')
 
     @property
-    def env_vars(self):
+    def env_vars(self) -> Optional[List[str]]:
         return self._component_params.get('env_vars')
 
     @property
-    def cpu(self):
+    def cpu(self) -> Optional[str]:
         return self._component_params.get('cpu')
 
     @property
-    def memory(self):
+    def memory(self) -> Optional[str]:
         return self._component_params.get('memory')
 
     @property
-    def gpu(self):
+    def gpu(self) -> Optional[str]:
         return self._component_params.get('gpu')
 
     def __eq__(self, other: 'GenericOperation') -> bool:
@@ -277,7 +277,10 @@ class GenericOperation(Operation):
             return super().__eq__(other)
         return False
 
-    def env_vars_as_dict(self, logger: Optional[Logger] = None) -> Dict:
+    def _validate_range(self, value: str, min_value: int = 0, max_value: int = sys.maxsize) -> bool:
+        return int(value) in range(min_value, max_value)
+
+    def env_vars_as_dict(self, logger: Optional[Logger] = None) -> Dict[str, str]:
         """
         Operation stores environment variables in a list of name=value pairs, while
         subprocess.run() requires a dictionary - so we must convert.  If no envs are
@@ -371,17 +374,3 @@ class Pipeline(object):
                 self.runtime_config == other.runtime_config and \
                 self.operations == other.operations
 
-###########################
-# Utility functions
-###########################
-
-
-def _validate_range(value: str, min_value=0, max_value=sys.maxsize) -> bool:
-    is_valid = False
-
-    if value is None:
-        is_valid = True
-    elif int(value) in range(min_value, max_value):
-        is_valid = True
-
-    return is_valid
