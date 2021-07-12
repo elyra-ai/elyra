@@ -24,6 +24,7 @@ import * as React from 'react';
 
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_NAMESPACE = 'runtimes';
+export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 export const COMPONENTS_NAMESPACE = 'components';
 
 export interface IRuntime {
@@ -86,10 +87,10 @@ export class PipelineService {
    */
   static async getComponentProperties(
     runtimeName: string,
-    componentCategory: string
+    componentId: string
   ): Promise<any> {
     return RequestHandler.makeGetRequest(
-      `elyra/pipeline/components/${runtimeName}/${componentCategory}/properties`
+      `elyra/pipeline/components/${runtimeName}/${componentId}/properties`
     );
   }
 

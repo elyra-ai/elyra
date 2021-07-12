@@ -5,7 +5,8 @@
       "label": "Notebook",
       "image": "",
       "id": "notebooks",
-      "description": "Notebook",
+      "description": "Run notebook file",
+      "extensions": [".ipynb"],
       "node_types": [
         {
           "id": "",
@@ -43,7 +44,7 @@
           "app_data": {
             "ui_data": {
               "label": "Notebook",
-              "description": "Notebook file",
+              "description": "Run notebook file",
               "image": "",
               "x_pos": 0,
               "y_pos": 0
@@ -56,7 +57,8 @@
       "label": "Python Script",
       "image": "",
       "id": "python-script",
-      "description": "Python Script",
+      "description": "Run Python script",
+      "extensions": [".py"],
       "node_types": [
         {
           "id": "",
@@ -93,8 +95,8 @@
           "parameters": {},
           "app_data": {
             "ui_data": {
-              "label": "Python",
-              "description": "Python Script",
+              "label": "Python Script",
+              "description": "Run Python script",
               "image": "",
               "x_pos": 0,
               "y_pos": 0
@@ -107,7 +109,8 @@
       "label": "R Script",
       "image": "",
       "id": "r-script",
-      "description": "R Script",
+      "description": "Run R script",
+      "extensions": [".r"],
       "node_types": [
         {
           "id": "",
@@ -144,8 +147,8 @@
           "parameters": {},
           "app_data": {
             "ui_data": {
-              "label": "R",
-              "description": "R Script",
+              "label": "R Script",
+              "description": "Run R script",
               "image": "",
               "x_pos": 0,
               "y_pos": 0

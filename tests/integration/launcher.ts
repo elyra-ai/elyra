@@ -25,7 +25,7 @@ describe('Elyra launcher is in use', () => {
     // });
     // Jupyter notebook default kernel is available
     cy.get(
-      '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
+      '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible'
     );
     // Generic Pipeline editor extension is available
     cy.get(

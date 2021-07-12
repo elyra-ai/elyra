@@ -38,9 +38,9 @@ metadata_path = './etc/config/metadata/runtime-images/*.json'
 settings_path = './etc/config/settings/*.json'
 
 # kfp_packages = [
-#     'kfp-notebook~=0.25.0',
-#     'kfp==1.3.0',
-#     'kfp-tekton==0.6.0',
+#     'kfp-notebook~=0.26.0',
+#     'kfp==1.6.3',
+#     'kfp-tekton==0.8.1',
 #     ]
 #
 # airflow_packages = [
@@ -84,17 +84,18 @@ setup_args = dict(
         'papermill>=2.1.3',
         'python-language-server[all]>=0.36.2',
         'pyyaml>=5.3.1,<6.0',
-        'requests>=2.9.1,<3.0',
+        'requests>=2.25.1,<3.0',
         'rfc3986-validator>=0.1.1',
         'tornado>=6.1.0',
         'traitlets>=4.3.2',
-        'urllib3>=1.24.2',
+        'urllib3>=1.26.5',
+        'watchdog>=2.1.3',
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp-notebook~=0.25.0',
-        'kfp==1.4.0',
-        'kfp-tekton==0.7.0',
+        'kfp-notebook~=0.26.0',
+        'kfp==1.6.3',
+        'kfp-tekton==0.8.1',
         # Airflow runtime dependencies
         'pygithub',
         'black'
@@ -104,9 +105,6 @@ setup_args = dict(
     },
     include_package_data=True,
     classifiers=(
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering',
@@ -114,6 +112,9 @@ setup_args = dict(
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ),
     entry_points={
         'console_scripts': [

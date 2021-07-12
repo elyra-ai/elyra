@@ -1,6 +1,6 @@
 {
   "name": "elyra",
-  "version": "2.3.0-dev",
+  "version": "3.0.0-dev",
   "private": true,
   "workspaces": {
     "packages": [
@@ -44,6 +44,7 @@
     "@jupyterlab/testutils": "3.0.0",
     "@testing-library/cypress": "^7.0.4",
     "@types/jest": "^26.0.20",
+    "@types/lodash": "^4.14.170",
     "@types/node": "^15.0.1",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
@@ -56,6 +57,7 @@
     "eslint-plugin-cypress": "^2.11.2",
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-react": "^7.18.3",
     "eslint-plugin-react-hooks": "^4.1.2",

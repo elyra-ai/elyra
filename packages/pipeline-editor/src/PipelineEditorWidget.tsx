@@ -25,6 +25,7 @@ import {
   savePipelineIcon,
   showBrowseFileDialog,
   runtimesIcon,
+  containerIcon,
   Dropzone,
   RequestErrors,
   showFormDialog,
@@ -61,7 +62,8 @@ import {
   IRuntime,
   ISchema,
   PipelineService,
-  RUNTIMES_NAMESPACE
+  RUNTIMES_NAMESPACE,
+  RUNTIME_IMAGES_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
@@ -78,6 +80,85 @@ export const commandIDs = {
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
+};
+
+const getAllPaletteNodes = (palette: any): any[] => {
+  if (palette.categories === undefined) {
+    return [];
+  }
+
+  const nodes = [];
+  for (const c of palette.categories) {
+    if (c.node_types) {
+      nodes.push(...c.node_types);
+    }
+  }
+
+  return nodes;
+};
+
+const isGenericNode = (nodeDef: any): boolean => {
+  return !nodeDef.runtime;
+};
+
+const createPalette = (categories: any[]): any => {
+  const palette = {
+    version: '3.0' as '3.0',
+    categories: categories ?? []
+  };
+
+  for (const category of categories) {
+    for (const i in category.node_types) {
+      const { op, label, image, ...rest } = category.node_types[i];
+      category.node_types[i] = {
+        op,
+        id: op,
+        label,
+        image,
+        type: 'execution_node',
+        inputs: [
+          {
+            id: 'inPort',
+            app_data: {
+              ui_data: {
+                cardinality: {
+                  min: 0,
+                  max: -1
+                },
+                label: 'Input Port'
+              }
+            }
+          }
+        ],
+        outputs: [
+          {
+            id: 'outPort',
+            app_data: {
+              ui_data: {
+                cardinality: {
+                  min: 0,
+                  max: -1
+                },
+                label: 'Output Port'
+              }
+            }
+          }
+        ],
+        parameters: {},
+        app_data: {
+          image: image ?? '',
+          ...rest,
+          ui_data: {
+            label,
+            image: image ?? '',
+            x_pos: 0,
+            y_pos: 0
+          }
+        }
+      };
+    }
+  }
+  return palette;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -187,6 +268,12 @@ const PipelineWrapper: React.FC<IProps> = ({
               node.app_data.runtime_image = image.display_name;
             }
           }
+
+          for (const [key, val] of Object.entries(node?.app_data)) {
+            if (val === null) {
+              node.app_data[key] = undefined;
+            }
+          }
         }
       }
       if (pipelineJson?.pipelines?.[0]?.app_data) {
@@ -255,29 +342,61 @@ const PipelineWrapper: React.FC<IProps> = ({
     });
   };
 
-  const onFileRequested = (args: any): Promise<string> => {
-    let currentExt = '';
-    if (args && args.filters && args.filters.File) {
-      currentExt = args.filters.File[0];
-    }
+  const onFileRequested = async (args: any): Promise<string[] | undefined> => {
     const filename = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
-      ''
+      args.filename ?? ''
     );
-    return showBrowseFileDialog(browserFactory.defaultBrowser.model.manager, {
-      startPath: PathExt.dirname(filename),
-      multiselect: args.canSelectMany,
-      filter: (model: any): boolean => {
-        const ext = PathExt.extname(model.path);
-        return currentExt === '' || currentExt === ext;
-      }
-    }).then((result: any) => {
-      if (result.button.accept && result.value.length) {
-        return result.value.map((val: any) => {
-          return val.path;
-        });
-      }
-    });
+
+    switch (args.propertyID) {
+      case 'dependencies':
+        {
+          const res = await showBrowseFileDialog(
+            browserFactory.defaultBrowser.model.manager,
+            {
+              multiselect: true,
+              includeDir: true,
+              rootPath: PathExt.dirname(filename),
+              filter: (model: any): boolean => {
+                return model.path !== filename;
+              }
+            }
+          );
+
+          if (res.button.accept && res.value.length) {
+            return res.value.map((v: any) => v.path);
+          }
+        }
+        break;
+      default:
+        {
+          const res = await showBrowseFileDialog(
+            browserFactory.defaultBrowser.model.manager,
+            {
+              startPath: PathExt.dirname(filename),
+              filter: (model: any): boolean => {
+                if (args.filters?.File === undefined) {
+                  return true;
+                }
+
+                const ext = PathExt.extname(model.path);
+                return args.filters.File.includes(ext);
+              }
+            }
+          );
+
+          if (res.button.accept && res.value.length) {
+            const file = PipelineService.getPipelineRelativeNodePath(
+              contextRef.current.path,
+              res.value[0].path
+            );
+            return [file];
+          }
+        }
+        break;
+    }
+
+    return undefined;
   };
 
   const onPropertiesUpdateRequested = async (args: any): Promise<any> => {
@@ -332,6 +451,35 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
   }, [pipeline?.pipelines]);
 
+  const categories = [
+    {
+      label: 'Generic Nodes',
+      image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
+      id: 'genericNodes',
+      description: 'Nodes that can be run with any runtime',
+      node_types: nodeDefs?.filter(isGenericNode) ?? []
+    }
+  ];
+
+  if (pipelineRuntimeDisplayName) {
+    categories.push({
+      label: `${pipelineRuntimeDisplayName} Nodes`,
+      image: IconUtil.encode(
+        pipelineRuntimeName === 'kfp'
+          ? kubeflowIcon
+          : pipelineRuntimeName === 'airflow'
+          ? airflowIcon
+          : pipelineIcon
+      ),
+      id: `${pipelineRuntimeName}Nodes`,
+      description: `Nodes that can only be run on ${pipelineRuntimeDisplayName}`,
+      node_types:
+        nodeDefs?.filter((nodeDef: any) => !isGenericNode(nodeDef)) ?? []
+    });
+  }
+
+  const palette = createPalette(categories);
+
   const handleExportPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // prepare pipeline submission details
@@ -340,7 +488,10 @@ const PipelineWrapper: React.FC<IProps> = ({
       setAlert('Failed export: Cannot export empty pipelines.');
       return;
     }
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodeDefs);
+    const errorMessages = validate(
+      JSON.stringify(pipelineJson),
+      getAllPaletteNodes(palette)
+    );
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -480,7 +631,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [
     cleanNullProperties,
     context.model,
-    nodeDefs,
+    palette,
     pipelineRuntimeDisplayName,
     pipelineRuntimeName,
     shell
@@ -489,7 +640,10 @@ const PipelineWrapper: React.FC<IProps> = ({
   const handleRunPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // Check that all nodes are valid
-    const errorMessages = validate(JSON.stringify(pipelineJson), nodeDefs);
+    const errorMessages = validate(
+      JSON.stringify(pipelineJson),
+      getAllPaletteNodes(palette)
+    );
     if (errorMessages && errorMessages.length > 0) {
       let errorMessage = '';
       for (const error of errorMessages) {
@@ -625,7 +779,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [
     cleanNullProperties,
     context.model,
-    nodeDefs,
+    palette,
     pipelineRuntimeDisplayName,
     pipelineRuntimeName,
     shell
@@ -680,6 +834,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         case 'openRuntimes':
           shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
           break;
+        case 'openRuntimeImages':
+          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
+          break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, { path: args.payload });
           break;
@@ -732,6 +889,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         iconEnabled: IconUtil.encode(runtimesIcon),
         iconDisabled: IconUtil.encode(runtimesIcon)
       },
+      {
+        action: 'openRuntimeImages',
+        label: 'Open Runtime Images',
+        enable: true,
+        iconEnabled: IconUtil.encode(containerIcon),
+        iconDisabled: IconUtil.encode(containerIcon)
+      },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },
       { action: 'cut', label: 'Cut' },
@@ -757,7 +921,6 @@ const PipelineWrapper: React.FC<IProps> = ({
         incLabelWithIcon: 'before',
         enable: false,
         kind: 'tertiary',
-        // TODO: use getRuntimeIcon
         iconEnabled: IconUtil.encode(
           pipelineRuntimeName === 'kfp'
             ? kubeflowIcon
@@ -886,7 +1049,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
-          nodes={nodeDefs}
+          palette={palette}
           pipelineProperties={pipelineProperties}
           toolbar={toolbar}
           pipeline={pipeline}
@@ -896,6 +1059,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           onError={onError}
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
+          leftPalette={true}
         />
       </Dropzone>
     </ThemeProvider>

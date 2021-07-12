@@ -13,16 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from ._version import __version__
-
 from jupyter_server.utils import url_path_join
 
-from .api.handlers import YamlSpecHandler
-from .metadata.handlers import MetadataHandler, MetadataResourceHandler, SchemaHandler, SchemaResourceHandler, \
-    NamespaceHandler
-from .pipeline import PipelineExportHandler, PipelineSchedulerHandler, PipelineProcessorManager, \
-    PipelineComponentHandler, PipelineComponentPropertiesHandler
-from .contents.handlers import ContentHandler
+from elyra.api.handlers import YamlSpecHandler
+from elyra.contents.handlers import ContentHandler
+from elyra.metadata.storage import FileMetadataCache
+from elyra.metadata.schema import SchemaManager
+from elyra.metadata.handlers import MetadataHandler
+from elyra.metadata.handlers import MetadataResourceHandler
+from elyra.metadata.handlers import NamespaceHandler
+from elyra.metadata.handlers import SchemaHandler
+from elyra.metadata.handlers import SchemaResourceHandler
+from elyra.pipeline.handlers import PipelineComponentHandler
+from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
+from elyra.pipeline.handlers import PipelineExportHandler
+from elyra.pipeline.handlers import PipelineProcessorManager
+from elyra.pipeline.handlers import PipelineSchedulerHandler
 
 namespace_regex = r"(?P<namespace>[\w\.\-]+)"
 resource_regex = r"(?P<resource>[\w\.\-]+)"
@@ -60,8 +66,12 @@ def _load_jupyter_server_extension(nb_server_app):
          ContentHandler),
 
     ])
-    # Create PipelineProcessorManager instance passing root directory
+    # Instantiate singletons with appropriate parent to enable configurability, and convey
+    # root_dir to PipelineProcessorManager.
     PipelineProcessorManager.instance(root_dir=web_app.settings['server_root_dir'], parent=nb_server_app)
+    FileMetadataCache.instance(parent=nb_server_app)
+    SchemaManager.instance(parent=nb_server_app)
+
 
 # For backward compatibility
 load_jupyter_server_extension = _load_jupyter_server_extension

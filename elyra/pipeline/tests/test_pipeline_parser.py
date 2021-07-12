@@ -15,8 +15,9 @@
 #
 import pytest
 
-from elyra.pipeline import PipelineParser, Operation
-from .util import _read_pipeline_resource
+from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.tests.util import _read_pipeline_resource
 
 
 @pytest.fixture

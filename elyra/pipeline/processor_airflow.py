@@ -13,26 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-import os
-import autopep8
+import ast
+from collections import OrderedDict
+from datetime import datetime
 import json
+import os
 import re
 import tempfile
 import time
 
-from black import format_str, FileMode
-from collections import OrderedDict
-from datetime import datetime
+import autopep8
+from black import FileMode
+from black import format_str
+from jinja2 import Environment
+from jinja2 import PackageLoader
+
 from elyra._version import __version__
-from elyra.metadata import MetadataManager
-from elyra.pipeline import RuntimePipelineProcess, PipelineProcessor, PipelineProcessorResponse
-from elyra.util.path import get_absolute_path
+from elyra.metadata.manager import MetadataManager
+from elyra.pipeline.component_parser_airflow import AirflowComponentParser
+from elyra.pipeline.processor import PipelineProcessor
+from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.util.git import GithubClient
-from jinja2 import Environment, PackageLoader
+from elyra.util.path import get_absolute_path
 
 
-class AirflowPipelineProcessor(RuntimePipelineProcess):
+class AirflowPipelineProcessor(RuntimePipelineProcessor):
     _type = 'airflow'
 
     # Provide users with the ability to identify a writable directory in the
@@ -44,6 +50,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
     @property
     def type(self):
         return self._type
+
+    def __init__(self, root_dir, **kwargs):
+        super().__init__(root_dir, component_parser=AirflowComponentParser(), **kwargs)
 
     def process(self, pipeline):
         t0_all = time.time()
@@ -160,7 +169,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
             if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug("Creating pipeline component :\n {op} archive : {archive}".format(
+                self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
                     op=operation, archive=operation_artifact_archive))
 
                 # Collect env variables
@@ -216,6 +225,27 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                                                           operation)
 
             else:
+                # Change value of variables according to their type. String variables must include
+                # quotation marks in order to render properly in the jinja template and dictionary
+                # values must be converted from strings.
+                component = self._component_registry.get_component(operation.classifier)
+                for component_property in component.properties:
+                    if component_property.ref in ['runtime_image', 'component_source', 'component_source_type']:
+                        continue
+                    if component_property.ref not in operation.component_params.keys():
+                        continue
+                    if component_property.type == "string":
+                        # Get corresponding component_property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(component_property.ref)
+                        operation.component_params[component_property.ref] = json.dumps(op_property)
+                    elif component_property.type in ['dict', 'dictionary', 'list']:
+                        # Get corresponding component_property value from parsed pipeline and convert
+                        op_property = operation.component_params.get(component_property.ref)
+                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
+
+                # Get component class from operation name
+                component_class = operation.classifier.split('_')[-1]
+
                 # TODO Change this name
                 notebook = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
                             'id': operation.id,
@@ -225,7 +255,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcess):
                             'component_source': operation.component_source,
                             'component_source_type': operation.component_source_type,
                             'component_params': operation.component_params,
-                            'name': operation.component_class,
+                            'name': component_class,
                             }
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
                                             'spark-sql-operator', 'ssh-operator']:

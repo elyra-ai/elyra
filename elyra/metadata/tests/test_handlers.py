@@ -16,16 +16,19 @@
 import copy
 import json
 import os
-import pytest
 import shutil
 
-from elyra.metadata import METADATA_TEST_NAMESPACE
-from jupyter_server.utils import url_path_join
 from jupyter_server.tests.utils import expected_http_error
+from jupyter_server.utils import url_path_join
+import pytest
 from tornado.httpclient import HTTPClientError
 
-from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, \
-    create_json_file, get_instance
+from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.tests.test_utils import byo_metadata_json
+from elyra.metadata.tests.test_utils import create_json_file
+from elyra.metadata.tests.test_utils import get_instance
+from elyra.metadata.tests.test_utils import invalid_metadata_json
+from elyra.metadata.tests.test_utils import valid_metadata_json
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
 

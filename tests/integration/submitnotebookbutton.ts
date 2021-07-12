@@ -37,8 +37,6 @@ describe('Submit Notebook Button tests', () => {
   });
 
   it('click the "Run as Pipeline" button should display dialog', () => {
-    // Open runtimes sidebar
-    cy.findByRole('tab', { name: /runtimes/i }).click();
     // Create runtime configuration
     cy.createRuntimeConfig();
 
@@ -71,6 +69,6 @@ describe('Submit Notebook Button tests', () => {
 
 const openNewNotebookFile = (): void => {
   cy.get(
-    '.jp-LauncherCard[data-category="Notebook"][title="Python 3"]:visible'
+    '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible'
   ).click();
 };

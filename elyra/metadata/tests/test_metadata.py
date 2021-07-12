@@ -13,17 +13,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from collections import OrderedDict
 import copy
 import json
 import os
 import shutil
+import time
+
+from jsonschema import draft7_format_checker
+from jsonschema import validate
+from jsonschema import ValidationError
 import pytest
 
-from jsonschema import validate, ValidationError, draft7_format_checker
-from elyra.metadata import Metadata, MetadataManager, MetadataStore, FileMetadataStore, SchemaManager, \
-    MetadataNotFoundError, MetadataExistsError, SchemaNotFoundError, METADATA_TEST_NAMESPACE
-from .test_utils import valid_metadata_json, invalid_metadata_json, byo_metadata_json, create_json_file, \
-    create_instance, get_schema, invalid_no_display_name_json, valid_display_name_json, MockMetadataStore
+from elyra.metadata.error import MetadataExistsError
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.error import SchemaNotFoundError
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.manager import SchemaManager
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.storage import FileMetadataCache
+from elyra.metadata.storage import FileMetadataStore
+from elyra.metadata.storage import MetadataStore
+from elyra.metadata.tests.test_utils import byo_metadata_json
+from elyra.metadata.tests.test_utils import create_instance
+from elyra.metadata.tests.test_utils import create_json_file
+from elyra.metadata.tests.test_utils import get_schema
+from elyra.metadata.tests.test_utils import invalid_metadata_json
+from elyra.metadata.tests.test_utils import invalid_no_display_name_json
+from elyra.metadata.tests.test_utils import MockMetadataStore
+from elyra.metadata.tests.test_utils import valid_display_name_json
+from elyra.metadata.tests.test_utils import valid_metadata_json
 
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
@@ -743,6 +763,133 @@ def test_error_schema_not_found():
         raise SchemaNotFoundError(namespace, resource)
     except SchemaNotFoundError as snfe:
         assert str(snfe) == "No such schema named '{}' was found in the {} namespace.".format(resource, namespace)
+
+
+def test_cache_init():
+    FileMetadataCache.clear_instance()
+    cache = FileMetadataCache.instance()
+    assert cache.max_size == 128
+    FileMetadataCache.clear_instance()
+
+    cache = FileMetadataCache.instance(max_size=3)
+    assert cache.max_size == 3
+    FileMetadataCache.clear_instance()
+
+
+def test_cache_ops(tests_manager, namespace_location):
+    FileMetadataCache.clear_instance()
+
+    test_items = OrderedDict({'a': 3, 'b': 4, 'c': 5, 'd': 6, 'e': 7})
+    test_resources = {}
+    test_content = {}
+
+    # Setup test data
+    for name, number in test_items.items():
+        content = copy.deepcopy(valid_metadata_json)
+        content['display_name'] = name
+        content['metadata']['number_range_test'] = number
+        resource = create_instance(tests_manager.metadata_store, namespace_location, name, content)
+        test_resources[name] = resource
+        test_content[name] = content
+
+    # Add initial entries
+    cache = FileMetadataCache.instance(max_size=3)
+    for name in test_items:  # Add the items to the cache
+        cache.add_item(test_resources[name], test_content[name])
+
+    assert len(cache) == 3
+    assert cache.trims == 2
+    assert cache.get_item(test_resources.get('a')) is None
+    assert cache.get_item(test_resources.get('b')) is None
+    assert cache.get_item(test_resources.get('c')) is not None
+    assert cache.get_item(test_resources.get('d')) is not None
+    assert cache.get_item(test_resources.get('e')) is not None
+    assert cache.misses == 2
+    assert cache.hits == 3
+
+    cache.add_item(test_resources.get('a'), test_content.get('a'))
+    assert len(cache) == 3
+    assert cache.trims == 3
+    assert cache.get_item(test_resources.get('c')) is None  # since 'c' was aged out
+    assert cache.get_item(test_resources.get('a')) is not None
+    assert cache.misses == 3
+    assert cache.hits == 4
+
+    e_val = cache.remove_item(test_resources.get('e'))
+    assert len(cache) == 2
+    assert e_val['metadata']['number_range_test'] == test_items.get('e')
+    assert cache.get_item(test_resources.get('e')) is None
+    assert cache.misses == 4
+    assert cache.hits == 4
+    assert cache.trims == 3
+
+    a_val = cache.remove_item(test_resources.get('a'))
+    assert len(cache) == 1
+    assert a_val['metadata']['number_range_test'] == test_items.get('a')
+    assert cache.get_item(test_resources.get('a')) is None
+    assert cache.misses == 5
+    assert cache.hits == 4
+    assert cache.trims == 3
+
+    d_val = cache.get_item(test_resources.get('d'))
+    assert len(cache) == 1
+    assert d_val['metadata']['number_range_test'] == test_items.get('d')
+    assert cache.misses == 5
+    assert cache.hits == 5
+    assert cache.trims == 3
+
+    if isinstance(tests_manager.metadata_store, FileMetadataStore):
+        # Exercise delete from filesystem and ensure cached item is removed
+        assert os.path.exists(test_resources.get('d'))
+        os.remove(test_resources.get('d'))
+        recorded = 0.0
+        for i in range(1, 6):  # allow up to a second for delete to record in cache
+            time.sleep(0.2)    # initial tests are showing only one sub-second delay is necessary
+            recorded += 0.2
+            if len(cache) == 0:
+                break
+        assert len(cache) == 0
+        print(f"\ntest_cache_ops: Delete recorded after {recorded} seconds")
+        assert cache.get_item(test_resources.get('d')) is None
+        assert cache.misses == 6
+        assert cache.hits == 5
+        assert cache.trims == 3
+
+
+def test_cache_disabled(tests_manager, namespace_location):
+    FileMetadataCache.clear_instance()
+
+    test_items = OrderedDict({'a': 3, 'b': 4, 'c': 5, 'd': 6, 'e': 7})
+    test_resources = {}
+    test_content = {}
+
+    # Setup test data
+    for name, number in test_items.items():
+        content = copy.deepcopy(valid_metadata_json)
+        content['display_name'] = name
+        content['metadata']['number_range_test'] = number
+        resource = create_instance(tests_manager.metadata_store, namespace_location, name, content)
+        test_resources[name] = resource
+        test_content[name] = content
+
+    # Add initial entries
+    cache = FileMetadataCache.instance(max_size=3, enabled=False)
+
+    assert hasattr(cache, 'observer') is False
+    assert hasattr(cache, 'observed_dirs') is False
+
+    for name in test_items:  # Add the items to the cache
+        cache.add_item(test_resources[name], test_content[name])
+
+    assert len(cache) == 0
+    assert cache.trims == 0
+    assert cache.get_item(test_resources.get('a')) is None
+    assert cache.get_item(test_resources.get('b')) is None
+    assert cache.get_item(test_resources.get('c')) is None
+    assert cache.get_item(test_resources.get('d')) is None
+    assert cache.get_item(test_resources.get('e')) is None
+    assert cache.misses == 0
+    assert cache.hits == 0
 
 
 def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, expected_count=1):

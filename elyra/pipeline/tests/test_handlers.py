@@ -15,7 +15,10 @@
 #
 
 import json
+
 import pytest
+
+from elyra.pipeline import resources
 
 # from jupyter_server.tests.utils import expected_http_error
 # from tornado.httpclient import HTTPClientError
@@ -25,8 +28,6 @@ try:
 except ImportError:
     # Try backported to PY<37 `importlib_resources`.
     import importlib_resources as pkg_resources
-
-from .. import resources
 
 
 # Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)
@@ -49,7 +50,7 @@ def jp_server_config():
 
 
 async def test_get_components(jp_fetch):
-    # Ensure all valid metadata can be found
+    # Ensure all valid components can be found
     response = await jp_fetch('elyra', 'pipeline', 'components', 'local')
     assert response.code == 200
     payload = json.loads(response.body.decode())
@@ -58,8 +59,8 @@ async def test_get_components(jp_fetch):
 
 
 async def test_get_component_properties_config(jp_fetch):
-    # Ensure all valid metadata can be found
-    response = await jp_fetch('elyra', 'pipeline', 'components', 'kfp', 'notebooks', 'properties')
+    # Ensure all valid component_entry properties can be found
+    response = await jp_fetch('elyra', 'pipeline', 'components', 'local', 'notebooks', 'properties')
     assert response.code == 200
     payload = json.loads(response.body.decode())
     properties = json.loads(pkg_resources.read_text(resources, 'properties.json'))

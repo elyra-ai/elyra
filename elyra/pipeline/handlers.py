@@ -14,15 +14,17 @@
 # limitations under the License.
 #
 import json
+from typing import List
 
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
-from .parser import PipelineParser
-from .processor import PipelineProcessorManager
 from tornado import web
-from ..util.http import HttpErrorMixin
 
-from .registry import ComponentRegistry
+from elyra.pipeline.component import Component
+from elyra.pipeline.component_registry import ComponentRegistry
+from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.util.http import HttpErrorMixin
 
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
@@ -101,33 +103,34 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self, processor):
-        self.log.info(f'Retrieving pipeline components for {processor}')
+        self.log.info(f'Retrieving pipeline components for: {processor} runtime')
+
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
-        components = await PipelineProcessorManager.instance().get_components(processor)
-        json_msg = json.dumps(components)
+        components: List[Component] = await PipelineProcessorManager.instance().get_components(processor)
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_msg)
+        self.finish(ComponentRegistry.to_canvas_palette(components))
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
-    """Handler to expose method calls to retrieve pipeline component properties"""
-
-    component_registry: ComponentRegistry = ComponentRegistry()
+    """Handler to expose method calls to retrieve pipeline component_id properties"""
 
     @web.authenticated
     async def get(self, processor, component_id):
-        self.log.info(f'Retrieving pipeline component properties for component {component_id}')
+        self.log.info(f'Retrieving pipeline component properties for component: {component_id}')
+
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
-        properties = ComponentRegistry().get_properties(processor, component_id)
-        json_msg = json.dumps(properties)
+        if not component_id:
+            raise web.HTTPError(400, "Missing component ID")
+
+        component: Component = \
+            await PipelineProcessorManager.instance().get_component(processor, component_id)
 
         self.set_status(200)
-
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_msg)
+        self.finish(ComponentRegistry.to_canvas_properties(component))
