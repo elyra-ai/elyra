@@ -31,7 +31,7 @@ In runtime environments (like Kubeflow Pipelines and Apache Airflow) where conta
 
 If a notebook/script requires access to files that are stored on you local system, those files must be declared as _File dependencies_. Elyra collects declared files and uploads them to cloud storage and makes them available to the notebook/script at runtime.
 
-![Define file dependencies](../images/user_guide/vpe-node-input-files.png)
+![Define file dependencies](../images/user_guide/best-practices-file-based-nodes/vpe-node-input-files.png)
 
 File dependencies must be located in the notebook/script file directory or a subdirectory of that location. Symlinks can be used to avoid the need to maintain multiple copies if files are shared among pipelines.
 
@@ -61,13 +61,13 @@ Invalid directory layout examples:
 
 All changes to the file system (e.g. new files or modified files) are discarded after processing of the notebook/script has completed. To retain these files you must store those files on cloud storage, or declare those files as output files in the notebook/script node properties. 
 
-![Define output files](../images/user_guide/vpe-node-output-files.png)
+![Define output files](../images/user_guide/best-practices-file-based-nodes/vpe-node-output-files.png)
 
 ### Environment variables
 
 You can customize notebooks/scripts by setting environment variables in the pipeline node. Environment variable values are not shared across nodes belonging to the same pipeline.
 
-![Define environment variables](../images/user_guide/vpe-node-env-vars.png)
+![Define environment variables](../images/user_guide/best-practices-file-based-nodes/vpe-node-env-vars.png)
 
 The Visual Pipeline Editor can detect which environment variables notebooks/scripts are accessing and automatically adds those variables to the runtime properties if the following approaches are used to read variable values:
 
@@ -85,7 +85,7 @@ Refer to the next section for a list of proprietary environment variables that c
 
 Elyra makes a set of proprietary environment variables available to notebooks and scripts during execution. Unless indicated otherwise, these variables are defined in all runtime environments.
 
-![Access proprietary environment variables](../images/user_guide/elyra-env-vars.png)
+![Access proprietary environment variables](../images/user_guide/best-practices-file-based-nodes/elyra-env-vars.png)
 
 #### ELYRA_RUN_NAME
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## Release 3.0.0rc1 - 07/09/2021
+
+- Add 'Pipeline components' topic to the user guide docs - [1839](https://github.com/elyra-ai/elyra/pull/1839)
+- Fix icon related console warnings and errors - [1897](https://github.com/elyra-ai/elyra/pull/1897)
+- Move doc images to proper directory location - [1898](https://github.com/elyra-ai/elyra/pull/1898)
+- Run lint in fix mode when building, but in check mode in CI - [1894](https://github.com/elyra-ai/elyra/pull/1894)
+- Update Pipeline Editor to 0.10.1 - [1891](https://github.com/elyra-ai/elyra/pull/1891)
+- Update material-ui version to 4.12.1 and fix console error - [1885](https://github.com/elyra-ai/elyra/pull/1885)
+- Update list of component parameters to avoid parsing errors - [1887](https://github.com/elyra-ai/elyra/pull/1887)
+- Update to KFP v1.6.3 and KFP-Tekton v0.8.1 - [1884](https://github.com/elyra-ai/elyra/pull/1884)
+- Update KFP Notebook to 0.26.0
+- [HOTFIX] Fix version import in release script - [1883](https://github.com/elyra-ai/elyra/pull/1883)
+
 ## Release 3.0.0rc0 - 07/07/2021
 
 - Add ‘extensions’ to palette for Pipeline generic components - [1828](https://github.com/elyra-ai/elyra/pull/1828)
