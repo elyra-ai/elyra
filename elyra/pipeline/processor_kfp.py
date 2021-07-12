@@ -412,7 +412,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         container_runtime = bool(os.getenv('CRIO_RUNTIME', 'False').lower() == 'true')
 
         # Create dictionary that maps component Id to its ContainerOp instance
-        notebook_ops = {}
+        target_ops = {}
 
         # Sort operations based on dependency graph (topological order)
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
@@ -446,43 +446,43 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
                                op=operation, archive=operation_artifact_archive))
 
-                notebook_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
-                                                        pipeline_name=pipeline_name,
-                                                        experiment_name=experiment_name,
-                                                        notebook=operation.filename,
-                                                        cos_endpoint=cos_endpoint,
-                                                        cos_bucket=cos_bucket,
-                                                        cos_directory=cos_directory,
-                                                        cos_dependencies_archive=operation_artifact_archive,
-                                                        pipeline_version=pipeline_version,
-                                                        pipeline_source=pipeline.source,
-                                                        pipeline_inputs=operation.inputs,
-                                                        pipeline_outputs=operation.outputs,
-                                                        pipeline_envs=pipeline_envs,
-                                                        emptydir_volume_size=emptydir_volume_size,
-                                                        cpu_request=operation.cpu,
-                                                        mem_request=operation.memory,
-                                                        gpu_limit=operation.gpu,
-                                                        workflow_engine=engine,
-                                                        image=operation.runtime_image,
-                                                        file_outputs={
-                                                            'mlpipeline-metrics':
-                                                                '{}/mlpipeline-metrics.json'
-                                                                .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),
-                                                            'mlpipeline-ui-metadata':
-                                                                '{}/mlpipeline-ui-metadata.json'
-                                                                .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])
-                                                        })
+                target_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
+                                                      pipeline_name=pipeline_name,
+                                                      experiment_name=experiment_name,
+                                                      notebook=operation.filename,
+                                                      cos_endpoint=cos_endpoint,
+                                                      cos_bucket=cos_bucket,
+                                                      cos_directory=cos_directory,
+                                                      cos_dependencies_archive=operation_artifact_archive,
+                                                      pipeline_version=pipeline_version,
+                                                      pipeline_source=pipeline.source,
+                                                      pipeline_inputs=operation.inputs,
+                                                      pipeline_outputs=operation.outputs,
+                                                      pipeline_envs=pipeline_envs,
+                                                      emptydir_volume_size=emptydir_volume_size,
+                                                      cpu_request=operation.cpu,
+                                                      mem_request=operation.memory,
+                                                      gpu_limit=operation.gpu,
+                                                      workflow_engine=engine,
+                                                      image=operation.runtime_image,
+                                                      file_outputs={
+                                                          'mlpipeline-metrics':
+                                                              '{}/mlpipeline-metrics.json'
+                                                              .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),
+                                                          'mlpipeline-ui-metadata':
+                                                              '{}/mlpipeline-ui-metadata.json'
+                                                              .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])
+                                                      })
 
                 # TODO Can we move all of this to apply to non-standard components as well? Test when servers are up
                 if cos_secret and not export:
-                    notebook_ops[operation.id].apply(use_aws_secret(cos_secret))
+                    target_ops[operation.id].apply(use_aws_secret(cos_secret))
 
                 image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
                 for image_instance in image_namespace:
                     if image_instance.metadata['image_name'] == operation.runtime_image and \
                             image_instance.metadata.get('pull_policy'):
-                        notebook_ops[operation.id].container. \
+                        target_ops[operation.id].container. \
                             set_image_pull_policy(image_instance.metadata['pull_policy'])
 
                 self.log_pipeline_info(pipeline_name,
@@ -530,7 +530,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
-                    notebook_ops[operation.id] = factory_function(**operation.component_params_as_dict)
+                    target_ops[operation.id] = factory_function(**operation.component_params_as_dict)
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
                     self.log.error(f"Error constructing component {operation.name}: {str(e)}")
@@ -538,14 +538,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
-            op = notebook_ops[operation.id]
+            op = target_ops[operation.id]
             for parent_operation_id in operation.parent_operation_ids:
-                parent_op = notebook_ops[parent_operation_id]  # Parent Operation
+                parent_op = target_ops[parent_operation_id]  # Parent Operation
                 op.after(parent_op)
 
         self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration=(time.time() - t0_all))
 
-        return notebook_ops
+        return target_ops
 
     @staticmethod
     def _sanitize_operation_name(name: str) -> str:

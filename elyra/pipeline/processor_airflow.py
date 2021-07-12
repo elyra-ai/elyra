@@ -298,7 +298,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
             template = template_env.get_template('airflow_template.jinja2')
 
-            notebook_ops = self._cc_pipeline(pipeline, pipeline_name)
+            target_ops = self._cc_pipeline(pipeline, pipeline_name)
             runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                      name=pipeline.runtime_config)
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
@@ -306,7 +306,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
             description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
-            python_output = template.render(operations_list=notebook_ops,
+            python_output = template.render(operations_list=target_ops,
                                             pipeline_name=pipeline_name,
                                             namespace=user_namespace,
                                             cos_secret=cos_secret,
