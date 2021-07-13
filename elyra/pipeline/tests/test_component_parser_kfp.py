@@ -106,8 +106,7 @@ async def test_parse_components_invalid_location():
     components = component_registry.get_all_components()
     assert len(components) == 0
 
-    palette = ComponentRegistry.to_canvas_palette(components)
-    palette_json = json.loads(palette)
+    palette_json = ComponentRegistry.to_canvas_palette(components)
     empty_palette = {
         "version": "3.0",
         "categories": []
