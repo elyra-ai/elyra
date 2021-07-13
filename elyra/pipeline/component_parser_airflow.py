@@ -110,7 +110,8 @@ class AirflowComponentParser(ComponentParser):
     def _parse_properties(self, component_definition, component_class):
         properties: List[ComponentParameter] = list()
 
-        # For Airflow we need a property for path to component source and component source type
+        # NOTE: Currently no runtime-specific properties are needed, including runtime image. See
+        # justification here: https://github.com/elyra-ai/elyra/issues/1912#issuecomment-879424452
         # properties.extend(self.get_runtime_specific_properties())
 
         # Retrieve the content of the specified class only
@@ -153,14 +154,14 @@ class AirflowComponentParser(ComponentParser):
                                                  control_id=control_id))
         return properties
 
-    def get_runtime_specific_properties(self, runtime_image):
+    def get_runtime_specific_properties(self):
         """
         Define properties that are common to the Airflow runtime.
         """
         properties = [ComponentParameter(ref="runtime_image",
                                          name="Runtime Image",
                                          type="string",
-                                         value=runtime_image,
+                                         value="",
                                          description="Container image used as execution environment.",
                                          control="custom",
                                          control_id="EnumControl",

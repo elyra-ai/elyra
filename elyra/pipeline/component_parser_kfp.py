@@ -52,12 +52,8 @@ class KfpComponentParser(ComponentParser):
     def _parse_properties(self, component_yaml):
         properties: List[ComponentParameter] = list()
 
-        # TODO Figure out if we want to display runtime image; it doesn't really have a use as a parameter otherwise
-        # For KFP we need a property for runtime image, path to component source, and component source type
-        # runtime_image = component_yaml.get('implementation').get('container').get('image')
-        # if not runtime_image:
-        #    raise RuntimeError(f"Invalid component: Missing runtime image for component {registry_entry.id}.")
-        # properties.extend(self.get_runtime_specific_properties(runtime_image)
+        # NOTE: Currently no runtime-specific properties are needed
+        # properties.extend(self.get_runtime_specific_properties())
 
         # Then loop through and create custom properties
         for param in component_yaml.get('inputs'):
@@ -95,14 +91,14 @@ class KfpComponentParser(ComponentParser):
                                                  required=required))
         return properties
 
-    def get_runtime_specific_properties(self, runtime_image, location, source_type):
+    def get_runtime_specific_properties(self):
         """
         Define properties that are common to the KFP runtime.
         """
         properties = [ComponentParameter(ref="runtime_image",
                                          name="Runtime Image",
                                          type="string",
-                                         value=runtime_image,
+                                         value="",
                                          description="Docker image used as execution environment.",
                                          control="readonly",
                                          required=True)]
