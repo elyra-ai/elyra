@@ -24,7 +24,7 @@ from elyra.pipeline.component import UrlComponentReader
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.component_registry import ComponentRegistry
 
-COMPONENT_CATALOG_DIRECORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
+COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
 
 
 def _get_resource_path(filename):
@@ -35,7 +35,7 @@ def _get_resource_path(filename):
 
 
 def test_component_registry_can_load_components_from_catalog():
-    component_registry_location = os.path.join(COMPONENT_CATALOG_DIRECORY, 'kfp_component_catalog.json')
+    component_registry_location = os.path.join(COMPONENT_CATALOG_DIRECTORY, 'kfp_component_catalog.json')
     component_parser = KfpComponentParser()
     component_registry = ComponentRegistry(component_registry_location, component_parser)
 
@@ -94,3 +94,23 @@ def test_parse_kfp_component_url():
     assert properties_json['current_parameters']['parameters'] == '{}'
     assert properties_json['current_parameters']['packages_to_install'] == ''  # {}
     assert properties_json['current_parameters']['input_data'] == ''
+
+
+async def test_parse_components_invalid_location():
+    # Ensure a component with an invalid location is not returned
+    component_registry_location = os.path.join(os.path.dirname(__file__),
+                                               'resources/components',
+                                               'kfp_component_catalog_invalid.json')
+    component_parser = KfpComponentParser()
+    component_registry = ComponentRegistry(component_registry_location, component_parser)
+
+    components = component_registry.get_all_components()
+    assert len(components) == 0
+
+    palette = ComponentRegistry.to_canvas_palette(components)
+    palette_json = json.loads(palette)
+    empty_palette = {
+        "version": "3.0",
+        "categories": []
+    }
+    assert palette_json == empty_palette

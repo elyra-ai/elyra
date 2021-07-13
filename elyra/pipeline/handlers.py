@@ -103,7 +103,7 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self, processor):
-        self.log.info(f'Retrieving pipeline components for: {processor} runtime')
+        self.log.debug(f'Retrieving pipeline components for: {processor} runtime')
 
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
@@ -120,7 +120,7 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self, processor, component_id):
-        self.log.info(f'Retrieving pipeline component properties for component: {component_id}')
+        self.log.debug(f'Retrieving pipeline component properties for component: {component_id}')
 
         if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")

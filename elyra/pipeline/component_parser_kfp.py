@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 from typing import List
+from typing import Optional
 
 import yaml
 
@@ -31,8 +32,10 @@ class KfpComponentParser(ComponentParser):
     def get_adjusted_component_id(self, component_id):
         return component_id
 
-    def parse(self, registry_entry) -> List[Component]:
+    def parse(self, registry_entry) -> Optional[List[Component]]:
         component_yaml = self._read_component_yaml(registry_entry)
+        if not component_yaml:
+            return None
 
         description = ""
         if component_yaml.get('description'):
@@ -132,8 +135,9 @@ class KfpComponentParser(ComponentParser):
             component_definition = reader.read_component_definition(registry_entry)
 
             return yaml.safe_load(component_definition)
-        except yaml.YAMLError as e:
-            raise RuntimeError from e
+        except Exception as e:
+            self.log.debug(f"Could not read definition for component: {registry_entry.id} -> {str(e)}")
+            return None
 
     def _get_adjusted_parameter_fields(self,
                                        component_body,

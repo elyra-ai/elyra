@@ -1,0 +1,22 @@
+{
+  "components": {
+    "bash-operator": {
+      "name": "Bash Operator",
+      "location": {
+        "url": "https://nourl.py"
+      }
+    },
+    "email-operator": {
+      "name": "Email Operator",
+      "location": {
+        "filename": "/path/to/invalid.py"
+      }
+    },
+    "http-operator": {
+      "name": "HTTP Operator",
+      "location": {
+        "filename": "/path/to/invalid.py"
+      }
+    }
+  }
+}

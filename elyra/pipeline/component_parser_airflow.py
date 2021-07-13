@@ -16,6 +16,7 @@
 import ast
 import re
 from typing import List
+from typing import Optional
 
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
@@ -34,10 +35,12 @@ class AirflowComponentParser(ComponentParser):
         # must be adjusted to match the id expected in the component_entry catalog.
         return component_id.split('_')[0]
 
-    def parse(self, registry_entry) -> List[Component]:
+    def parse(self, registry_entry) -> Optional[List[Component]]:
         components: List[Component] = list()
 
         component_definition = self._read_component_definition(registry_entry)
+        if not component_definition:
+            return None
 
         # If id is prepended with elyra_op_, only parse for the class specified in the id.
         # Else, parse the component definition for all classes
