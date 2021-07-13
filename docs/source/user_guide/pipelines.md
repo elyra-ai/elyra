@@ -26,7 +26,7 @@ A _pipeline_ comprises one or more _nodes_ that are (in many cases) connected wi
 
 Note though that multiple components might implement the "same" task. For example, one component might load data from a SQL database, whereas another component might download data from S3 storage. Conceptually both components load data, but how they load it is entirely different.
 
-Elyra supports two types of components: generic components and custom components. A pipeline that utilizes only generic components is called a generic pipeline, whereas a pipeline that utilizes generic components and/or custom components is referred to as typed pipeline.
+Elyra supports two types of components: generic components and custom components. A pipeline that utilizes only generic components is called a _generic pipeline_, whereas a pipeline that utilizes generic components and/or custom components is referred to as _runtime-specific pipeline_.
 
 Pipelines are assembled using the Visual Pipeline Editor. The editor includes a palette, the canvas, and a properties panel, shown on the left, in the center, and the right, respectively.
 
@@ -48,15 +48,15 @@ This Elyra release includes three generic components that allow for execution of
 
 Generic pipelines are portable, meaning they can run locally in JupyterLab, or remotely on Kubeflow Pipelines or Apache Airflow.
 
-#### Typed pipelines
+#### Runtime-specific pipelines
 
-A typed pipeline is permanently associated with a runtime platform, such as Kubeflow Pipelines or Apache Airflow. A typed pipeline may include nodes that are implemented using generic components or custom components for that runtime.
+A runtime-specific pipeline is permanently associated with a runtime platform, such as Kubeflow Pipelines or Apache Airflow. A runtime-specific pipeline may include nodes that are implemented using generic components or custom components for that runtime.
 
-![A Kubeflow Pipelines pipeline](../images/user_guide/pipelines/typed-pipeline.png)
+![A Kubeflow Pipelines pipeline](../images/user_guide/pipelines/runtime-specific-pipeline.png)
 
 For illustrative purposes the Elyra component registry includes a couple example custom components. You can add your own components as outlined in [_Managing custom components_](https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#managing-custom-components).
 
-Note that it is not possible to convert a generic pipeline to a typed pipeline or a typed pipeline from one type to another.
+Note that it is not possible to convert a generic pipeline to a runtime-specific pipeline or a runtime-specific pipeline from one type to another.
 
 ### Creating pipelines using the Visual Pipeline Editor
 
@@ -126,7 +126,7 @@ To run a pipeline from the Visual Pipeline Editor:
 
    ![Open pipeline run wizard](../images/user_guide/pipelines/pipeline-editor-run.png)
 
-1. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, Apache Airflow) and a runtime configuration for that platform. For typed pipelines select a runtime configuration.
+1. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, Apache Airflow) and a runtime configuration for that platform. For runtime-specific  pipelines select a runtime configuration.
 
    ![Configure pipeline run options](../images/user_guide/pipelines/configure-pipeline-run-options.png)
 
@@ -149,7 +149,7 @@ Use the `elyra-pipeline run` command to run a generic pipeline in your JupyterLa
 $ elyra-pipeline run elyra-pipelines/a-notebook.pipeline
 ```
 
-Use the `elyra-pipeline submit` command to run a generic or typed pipeline remotely on Kubeflow Pipelines or Apache Airflow, specifying a compatible runtime configuration as parameter:
+Use the `elyra-pipeline submit` command to run a generic or runtime-specific pipeline remotely on Kubeflow Pipelines or Apache Airflow, specifying a compatible runtime configuration as parameter:
 
 ```bash
 $ elyra-pipeline submit elyra-pipelines/a-kubeflow.pipeline \
@@ -166,15 +166,15 @@ It packages dependencies for generic components and uploads them to cloud storag
 Before you can export a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
 
 To export a pipeline from the Visual Pipeline Editor:
-1. Click `Export Pipeline`in the editor's tool bar.
+1. Click `Export Pipeline` in the editor's tool bar.
 
    ![Open pipeline run wizard](../images/user_guide/pipelines/pipeline-editor-export.png)
 
-1. For generic pipelines select a runtime platform (Kubeflow Pipelines or Apache Airflow) and a runtime configuration for that platform. For typed pipelines select a runtime configuration.
+1. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, or Apache Airflow) and a runtime configuration for that platform. For runtime-specific pipelines select a runtime configuration.
 
 1. Select an export format.
    
    ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
 
-1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is utilizing.   
+1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is monitoring.   
  
