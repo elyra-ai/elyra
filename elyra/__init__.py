@@ -17,13 +17,13 @@ from jupyter_server.utils import url_path_join
 
 from elyra.api.handlers import YamlSpecHandler
 from elyra.contents.handlers import ContentHandler
-from elyra.metadata.storage import FileMetadataCache
-from elyra.metadata.schema import SchemaManager
 from elyra.metadata.handlers import MetadataHandler
 from elyra.metadata.handlers import MetadataResourceHandler
 from elyra.metadata.handlers import NamespaceHandler
 from elyra.metadata.handlers import SchemaHandler
 from elyra.metadata.handlers import SchemaResourceHandler
+from elyra.metadata.schema import SchemaManager
+from elyra.metadata.storage import FileMetadataCache
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
@@ -58,10 +58,10 @@ def _load_jupyter_server_extension(nb_server_app):
         (url_path_join(web_app.settings['base_url'], r'/elyra/namespace'), NamespaceHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/schedule'), PipelineSchedulerHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/export'), PipelineExportHandler),
-        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/components/%s' % (processor_regex)),
-        PipelineComponentHandler),
-        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/components/%s/%s/properties' % (processor_regex, \
-            component_regex)), PipelineComponentPropertiesHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/components/%s' %
+                       (processor_regex)), PipelineComponentHandler),
+        (url_path_join(web_app.settings['base_url'], r'/elyra/pipeline/components/%s/%s/properties' %
+                       (processor_regex, component_regex)), PipelineComponentPropertiesHandler),
         (url_path_join(web_app.settings['base_url'], r'/elyra/contents/properties/%s' % (path_regex)),
          ContentHandler),
 
