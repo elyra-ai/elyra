@@ -306,6 +306,9 @@ class ComponentParser(LoggingConfigurable):  # ABC
     def parse(self, registry_entry) -> List[Component]:
         raise NotImplementedError()
 
+    def get_adjusted_component_id(self, component_id):
+        return component_id
+
     def _get_reader(self, component_entry):
         """
         Find the proper reader based on the given registry component entry.

@@ -29,9 +29,6 @@ class KfpComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def get_adjusted_component_id(self, component_id):
-        return component_id
-
     def parse(self, registry_entry) -> Optional[List[Component]]:
         component_yaml = self._read_component_yaml(registry_entry)
         if not component_yaml:

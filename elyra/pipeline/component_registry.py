@@ -111,7 +111,7 @@ class ComponentRegistry(LoggingConfigurable):
         return ComponentRegistry._generic_components.get(component_id)
 
     @staticmethod
-    def to_canvas_palette(components: List[Component]) -> dict:
+    def to_canvas_palette(components: List[Component]) -> Dict:
         """
         Converts registry components into appropriate canvas palette format
         """
@@ -120,10 +120,12 @@ class ComponentRegistry(LoggingConfigurable):
         template_env = Environment(loader=loader)
         template = template_env.get_template('canvas_palette_template.jinja2')
 
-        return template.render(components=components)
+        canvas_palette = template.render(components=components)
+        palette_json = json.loads(canvas_palette)
+        return palette_json
 
     @staticmethod
-    def to_canvas_properties(component: Component) -> dict:
+    def to_canvas_properties(component: Component) -> Dict:
         """
         Converts registry components into appropriate canvas properties format
         """
@@ -136,7 +138,9 @@ class ComponentRegistry(LoggingConfigurable):
             template = template_env.get_template('generic_properties_template.jinja2')
         else:
             template = template_env.get_template('canvas_properties_template.jinja2')
-        properties_json = template.render(component=component)
+
+        canvas_properties = template.render(component=component)
+        properties_json = json.loads(canvas_properties)
         return properties_json
 
     def _read_component_registry(self) -> List:

@@ -109,10 +109,10 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         components: List[Component] = await PipelineProcessorManager.instance().get_components(processor)
-
+        palette_json = ComponentRegistry.to_canvas_palette(components)
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(ComponentRegistry.to_canvas_palette(components))
+        self.finish(palette_json)
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
@@ -130,7 +130,8 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
 
         component: Component = \
             await PipelineProcessorManager.instance().get_component(processor, component_id)
+        properties_json = ComponentRegistry.to_canvas_properties(component)
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(ComponentRegistry.to_canvas_properties(component))
+        self.finish(properties_json)

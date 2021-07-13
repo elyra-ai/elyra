@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 import os
 from types import SimpleNamespace
 
@@ -55,11 +54,9 @@ def test_parse_airflow_component_file():
 
     parser = AirflowComponentParser()
     component = parser.parse(component_entry)[0]
-    properties = ComponentRegistry.to_canvas_properties(component)
+    properties_json = ComponentRegistry.to_canvas_properties(component)
 
-    properties_json = json.loads(properties)
-
-    # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
+    # Ensure component parameters are prefixed (and system parameters are not), and hold correct values
     assert properties_json['current_parameters']['label'] == ''
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
     assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
@@ -89,11 +86,9 @@ def test_parse_airflow_component_url():
 
     parser = AirflowComponentParser()
     component = parser.parse(component_entry)[0]
-    properties = ComponentRegistry.to_canvas_properties(component)
+    properties_json = ComponentRegistry.to_canvas_properties(component)
 
-    properties_json = json.loads(properties)
-
-    # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
+    # Ensure component parameters are prefixed, and system parameters are not, and hold correct values
     assert properties_json['current_parameters']['label'] == ''
     assert properties_json['current_parameters']['elyra_bash_command'] == ''
     assert properties_json['current_parameters']['elyra_xcom_push'] is False

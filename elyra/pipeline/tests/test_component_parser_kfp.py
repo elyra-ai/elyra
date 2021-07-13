@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 import os
 from types import SimpleNamespace
 
@@ -55,9 +54,7 @@ def test_parse_kfp_component_file():
 
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
-    properties = ComponentRegistry.to_canvas_properties(component)
-
-    properties_json = json.loads(properties)
+    properties_json = ComponentRegistry.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
@@ -88,9 +85,7 @@ def test_parse_kfp_component_url():
     component_entry = SimpleNamespace(**entry)
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
-    properties = ComponentRegistry.to_canvas_properties(component)
-
-    properties_json = json.loads(properties)
+    properties_json = ComponentRegistry.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
