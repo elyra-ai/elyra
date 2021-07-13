@@ -1,0 +1,59 @@
+# Copyright 2019 kubeflow.org
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Component source location: https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/kubeflow/kfserving/component.yaml
+# Component details: https://github.com/kubeflow/pipelines/blob/master/components/kubeflow/kfserving/README.md
+name: Kubeflow - Serve model using KFServing
+description: Serve Models using Kubeflow KFServing
+inputs:
+  - {name: Action,                          optional: false, type: String, default: 'create',   description: 'Action to execute on KFServing'}
+  - {name: Model Name,                      optional: false, type: String, default: '',         description: 'Name to give to the deployed model'}
+  - {name: Default Model URI,               optional: false, type: String, default: '',         description: 'Path of the S3 or GCS compatible directory containing default model.'}
+  - {name: Canary Model URI,                optional: true, type: String, default: '',         description: 'Optional Path of the S3 or GCS compatible directory containing canary model.'}
+  - {name: Canary Model Traffic Percentage, optional: true, type: String, default: '0',        description: 'Optional Traffic to be sent to default model'}
+  - {name: Namespace,                       optional: false, type: String, default: 'anonymous', description: 'Kubernetes namespace where the KFServing service is deployed.'}
+  - {name: Framework,                       optional: false, type: String, default: 'tensorflow', description: 'Machine Learning Framework for Model Serving.'}
+  - {name: Default Custom Model Spec,       optional: true, type: String, default: '{}', description: 'Custom runtime default custom model container spec.'}
+  - {name: Canary Custom Model Spec,        optional: true, type: String, default: '{}', description: 'Custom runtime canary custom model container spec.'}
+  - {name: Autoscaling Target,              optional: true, type: String, default: '0',        description: 'Autoscaling Target Number'}
+  - {name: KFServing Endpoint,              optional: true, type: String, default: '', description: 'KFServing remote deployer API endpoint'}
+  - {name: Service Account,                 optional: false, type: String, default: '', description: 'Model Service Account'}
+  - {name: Enable Istio Sidecar,            optional: true, type: Bool,   default: 'True',     description: 'Whether to enable istio sidecar injection'}
+  - {name: InferenceService YAML,           optional: true, type: String, default: '{}',         description: 'Raw InferenceService serialized YAML for deployment'}
+  - {name: Watch Timeout,                   optional: true, type: String, default: '120', description: "Timeout seconds for watching until InferenceService becomes ready."}
+outputs:
+  - {name: Service Endpoint URI, type: String,                      description: 'URI of the deployed prediction service..'}
+implementation:
+  container:
+    image: aipipeline/kfserving-component:v0.3.0
+    command: ['python']
+    args: [
+      -u, kfservingdeployer.py,
+      --action,                   {inputValue: Action},
+      --model-name,               {inputValue: Model Name},
+      --default-model-uri,        {inputValue: Default Model URI},
+      --canary-model-uri,         {inputValue: Canary Model URI},
+      --canary-model-traffic,     {inputValue: Canary Model Traffic Percentage},
+      --namespace,                {inputValue: Namespace},
+      --framework,                {inputValue: Framework},
+      --default-custom-model-spec,{inputValue: Default Custom Model Spec},
+      --canary-custom-model-spec, {inputValue: Canary Custom Model Spec},
+      --kfserving-endpoint,       {inputValue: KFServing Endpoint},
+      --autoscaling-target,       {inputValue: Autoscaling Target},
+      --service-account,          {inputValue: Service Account},
+      --enable-istio-sidecar,     {inputValue: Enable Istio Sidecar},
+      --output-path,              {outputPath: Service Endpoint URI},
+      --inferenceservice_yaml,    {inputValue: InferenceService YAML},
+      --watch-timeout,            {inputValue: Watch Timeout}
+    ]
