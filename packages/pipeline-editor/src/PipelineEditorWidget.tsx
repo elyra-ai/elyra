@@ -963,14 +963,6 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       toArray(fileBrowser.selectedItems()).map((item: any): void => {
         if (PipelineService.isSupportedNode(item)) {
-          // read the file contents
-          // create a notebook widget to get a string with the node content then dispose of it
-          // let itemContent: string;
-          if (item.type == 'notebook') {
-            const fileWidget = fileBrowser.model.manager.open(item.path);
-            // itemContent = (fileWidget as NotebookPanel).content.model.toString();
-            fileWidget?.dispose();
-          }
           item.op = PipelineService.getNodeType(item.path);
           item.path = PipelineService.getPipelineRelativeNodePath(
             contextRef.current.path,
@@ -979,7 +971,14 @@ const PipelineWrapper: React.FC<IProps> = ({
           item.x = (location?.x ?? 0) + position;
           item.y = (location?.y ?? 0) + position;
 
-          const success = ref.current?.addFile(item);
+          const success = ref.current?.addFile({
+            nodeTemplate: {
+              op: item.op
+            },
+            offsetX: item.x,
+            offsetY: item.y,
+            path: item.path
+          });
 
           if (success) {
             position += 20;

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 from typing import List
 
 import yaml
@@ -21,7 +20,6 @@ import yaml
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ComponentProperty
-from elyra.pipeline.component import FilesystemComponentReader
 
 
 class KfpComponentParser(ComponentParser):
@@ -35,11 +33,6 @@ class KfpComponentParser(ComponentParser):
 
     def parse(self, registry_entry) -> List[Component]:
         component_yaml = self._read_component_yaml(registry_entry)
-
-        # Adjust filename for display on frontend
-        if registry_entry.type == FilesystemComponentReader.type:
-            registry_entry.location = os.path.join(os.path.dirname(__file__),
-                                                   registry_entry.location)
 
         description = ""
         if component_yaml.get('description'):
@@ -136,8 +129,7 @@ class KfpComponentParser(ComponentParser):
         """
         try:
             reader = self._get_reader(registry_entry)
-            component_definition = \
-                reader.read_component_definition(registry_entry.id, registry_entry.location)
+            component_definition = reader.read_component_definition(registry_entry)
 
             return yaml.safe_load(component_definition)
         except yaml.YAMLError as e:
