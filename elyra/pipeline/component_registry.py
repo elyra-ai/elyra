@@ -91,7 +91,9 @@ class ComponentRegistry(LoggingConfigurable):
         if adjusted_id != component_id:
             component_entry.adjusted_id = component_id
 
-        component = self._parser.parse(component_entry)[0]
+        component = self._parser.parse(component_entry)
+        if component:
+            component = next(iter(component), None)
         return component
 
     @staticmethod
