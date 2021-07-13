@@ -42,12 +42,15 @@ For more details on the **pipeline json definition** see it's [json schema](http
 			"id": "db9f3f5b-b2e3-4824-aadd-c1c6bf652534",
 			"type": "execution_node",
 			"app_data": {
-				"filename": "demo-pipelines/generate-contributions.ipynb",
-				"runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-				"outputs": ["community_contributions.csv"],
-				"env_vars": ["GITHUB_TOKEN=xxxx"],
-				"dependencies": ["contributors.csv"],
-                                "include_subdirectories": false,
+				"label": "generate-contributions",
+				"component_parameters": {
+					"filename": "demo-pipelines/generate-contributions.ipynb",
+					"runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+					"outputs": ["community_contributions.csv"],
+					"env_vars": ["GITHUB_TOKEN=xxxx"],
+					"dependencies": ["contributors.csv"],
+					"include_subdirectories": false
+				},
 				"ui_data": {
 					"label": "generate-contributions",
 					"x_pos": 387,
@@ -83,12 +86,15 @@ For more details on the **pipeline json definition** see it's [json schema](http
 			"id": "f6584209-6f22-434f-9820-41327b6c749d",
 			"type": "execution_node",
 			"app_data": {
-				"filename": "demo-pipelines/generate-stats.ipynb",
-				"runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-				"outputs": ["community_stats.csv"],
-				"env_vars": ["GITHUB_TOKEN=xxxx"],
-				"dependencies": ["contributors.csv"],
-                                "include_subdirectories": false,
+				"label": "generate-stats",
+				"component_parameters": {
+					"filename": "demo-pipelines/generate-stats.ipynb",
+					"runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+					"outputs": ["community_stats.csv"],
+					"env_vars": ["GITHUB_TOKEN=xxxx"],
+					"dependencies": ["contributors.csv"],
+					"include_subdirectories": false
+				},
 				"ui_data": {
 					"label": "generate-stats",
 					"x_pos": 77,
@@ -116,9 +122,12 @@ For more details on the **pipeline json definition** see it's [json schema](http
 			"id": "079c0e12-eb5f-4fcc-983b-09e011869fee",
 			"type": "execution_node",
 			"app_data": {
-				"filename": "demo-pipelines/overview.ipynb",
-				"runtime_image": "elyra/tensorflow:1.15.2-py3",
-                                "include_subdirectories": false,
+				"label": "overview",
+				"component_parameters": {
+					"filename": "demo-pipelines/overview.ipynb",
+					"runtime_image": "elyra/tensorflow:1.15.2-py3",
+					"include_subdirectories": false
+				},
 				"ui_data": {
 					"label": "overview",
 					"x_pos": 318,
@@ -194,7 +203,7 @@ The pipeline processor should be registered using **entry_points** with a _name_
 Entrypoint definitions are typically found in the package's **setup.py** or **setup.cfg** files similar to the following example:
 
 ```python
-    entry_points={
+    entry_points = {
         'elyra.pipeline.processors': [
             'my_runtime = acme.my_runtime:MyRuntimePipelineProcessor'
         ]
