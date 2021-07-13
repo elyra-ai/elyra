@@ -37,8 +37,8 @@
   },
   "dependencies": {
     "@elyra/metadata-common": "^3.0.0-dev",
-    "@elyra/pipeline-editor": "^0.10.1",
-    "@elyra/pipeline-services": "^0.10.1",
+    "@elyra/pipeline-editor": "0.10.3",
+    "@elyra/pipeline-services": "0.10.3",
     "@elyra/services": "^3.0.0-dev",
     "@elyra/ui-components": "^3.0.0-dev",
     "@jupyterlab/application": "^3.0.0",
