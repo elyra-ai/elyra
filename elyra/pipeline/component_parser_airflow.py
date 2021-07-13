@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import ast
-import os
 import re
 from typing import List
 
@@ -39,11 +38,6 @@ class AirflowComponentParser(ComponentParser):
         components: List[Component] = list()
 
         component_definition = self._read_component_definition(registry_entry)
-
-        # Adjust filename for display on frontend
-        if registry_entry.type == "filename":
-            registry_entry.location = os.path.join(os.path.dirname(__file__),
-                                                   registry_entry.location)
 
         # If id is prepended with elyra_op_, only parse for the class specified in the id.
         # Else, parse the component definition for all classes
@@ -188,7 +182,6 @@ class AirflowComponentParser(ComponentParser):
         Delegate to ComponentReader to read component definition
         """
         reader = self._get_reader(registry_entry)
-        component_definition = \
-            reader.read_component_definition(registry_entry.id, registry_entry.location)
+        component_definition = reader.read_component_definition(registry_entry)
 
         return component_definition
