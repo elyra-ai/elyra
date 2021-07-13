@@ -113,7 +113,7 @@ const createPalette = (categories: any[]): any => {
 
   for (const category of categories) {
     for (const i in category.node_types) {
-      const { op, label, image, ...rest } = category.node_types[i];
+      const { op, label, image, description, ...rest } = category.node_types[i];
       category.node_types[i] = {
         op,
         id: op,
@@ -154,6 +154,7 @@ const createPalette = (categories: any[]): any => {
           ...rest,
           ui_data: {
             label,
+            description,
             image: image ?? '',
             x_pos: 0,
             y_pos: 0
