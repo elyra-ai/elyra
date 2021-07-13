@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
+import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
+
 import { LabShell } from '@jupyterlab/application';
 import { PathExt } from '@jupyterlab/coreutils';
 
 import uuid4 from 'uuid/v4';
 
-import { PIPELINE_CURRENT_VERSION } from './constants';
 import pipeline_template from './pipeline-template.json';
 
 /**
