@@ -518,7 +518,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         operation.component_params[component_property.ref] = ast.literal_eval(op_property)
 
                 component_source = {}
-                component_source[component.component_source_type] = component.component_source
+                component_source[component.source_type] = component.source
 
                 # Build component task factory
                 try:
