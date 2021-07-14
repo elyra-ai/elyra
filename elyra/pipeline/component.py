@@ -266,11 +266,12 @@ class FilesystemComponentReader(ComponentReader):
     type = 'filename'
 
     def read_component_definition(self, registry_entry: dict) -> Optional[str]:
-        if not os.path.exists(registry_entry.location):
-            self.log.warning(f"Invalid location for component: {registry_entry.id} -> {registry_entry.location}")
+        component_path = os.path.join(os.path.dirname(__file__), "resources", registry_entry.location)
+        if not os.path.exists(component_path):
+            self.log.warning(f"Invalid location for component: {registry_entry.id} -> {component_path}")
             return None
 
-        with open(registry_entry.location, 'r') as f:
+        with open(component_path, 'r') as f:
             return f.read()
 
 

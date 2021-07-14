@@ -58,6 +58,7 @@ def test_parse_airflow_component_file():
 
     # Ensure component parameters are prefixed (and system parameters are not), and hold correct values
     assert properties_json['current_parameters']['label'] == ''
+    assert properties_json['current_parameters']['component_source'] == entry.location
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
     assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
     assert properties_json['current_parameters']['elyra_test_string_default_empty'] == ''
@@ -90,6 +91,7 @@ def test_parse_airflow_component_url():
 
     # Ensure component parameters are prefixed, and system parameters are not, and hold correct values
     assert properties_json['current_parameters']['label'] == ''
+    assert properties_json['current_parameters']['component_source'] == entry.location
     assert properties_json['current_parameters']['elyra_bash_command'] == ''
     assert properties_json['current_parameters']['elyra_xcom_push'] is False
     assert properties_json['current_parameters']['elyra_env'] == ''  # {}
