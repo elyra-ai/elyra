@@ -1,0 +1,22 @@
+ipykernel==5.3.0
+ipython==7.15.0
+ipython-genutils==0.2.0
+#jedi==0.17.0
+#Jinja2==2.11.2
+#jsonschema==3.2.0
+jupyter-client==6.1.6
+jupyter-core==4.6.3
+minio==6.0.2
+nbclient==0.4.1
+nbconvert==5.6.1
+nbformat==5.0.7
+papermill==2.1.2
+prompt-toolkit==3.0.5
+pyarrow==0.17.0
+pyzmq==19.0.1
+requests==2.25.1
+text-extensions-for-pandas @ git+https://github.com/frreiss/text-extensions-for-pandas@3de5ce17ab0493dcdf88b51e8727f580c08d6997
+tornado==6.0.4
+traitlets==4.3.3
+urllib3==1.26.5
+zebra===0.1.32

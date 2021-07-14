@@ -38,7 +38,6 @@ metadata_path = './etc/config/metadata/runtime-images/*.json'
 settings_path = './etc/config/settings/*.json'
 
 # kfp_packages = [
-#     'kfp-notebook~=0.26.0',
 #     'kfp==1.6.3',
 #     'kfp-tekton==0.8.1',
 #     ]
@@ -93,7 +92,6 @@ setup_args = dict(
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp-notebook~=0.26.0',
         'kfp==1.6.3',
         'kfp-tekton==0.8.1',
         # Airflow runtime dependencies

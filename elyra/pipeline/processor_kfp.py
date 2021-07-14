@@ -31,7 +31,6 @@ from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
 from kfp.aws import use_aws_secret  # noqa H306
-from kfp_notebook.pipeline import NotebookOp
 from kfp_server_api.exceptions import ApiException
 from kfp_tekton import compiler as kfp_tekton_compiler
 from kfp_tekton import TektonClient
@@ -40,6 +39,7 @@ from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
 
 from elyra._version import __version__
+from elyra.kfp.operator import NotebookOp
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.pipeline import Operation
