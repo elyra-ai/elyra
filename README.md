@@ -30,7 +30,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
 Elyra currently includes the following functionality:
 
-- [AI Pipelines visual editor](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ai-pipelines-visual-editor)
+- [Visual Pipeline Editor](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ai-pipelines-visual-editor)
 - [Ability to run a notebook, Python or R script as a batch job](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#ability-to-run-a-notebook-python-or-r-script-as-a-batch-job)
 - [Reusable Code Snippets](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#reusable-code-snippets)
 - [Hybrid runtime support](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#hybrid-runtime-support) based on [Jupyter Enterprise Gateway](https://github.com/jupyter/enterprise_gateway)
@@ -40,7 +40,7 @@ Elyra currently includes the following functionality:
 - [Language Server Protocol integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#language-server-protocol-integration)
 - [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#version-control-using-git-integration)
 
-![Elyra](docs/source/images/elyra-main-page.png)
+![Elyra](docs/source/images/github-repo/elyra-main-page.png)
 
 The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting_started/overview.html)
 includes more details on these features.
