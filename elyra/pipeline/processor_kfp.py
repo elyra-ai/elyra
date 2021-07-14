@@ -39,7 +39,7 @@ from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
 
 from elyra._version import __version__
-from elyra.kfp.operator import NotebookOp
+from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.pipeline import Operation
@@ -439,7 +439,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             sanitized_operation_name = self._sanitize_operation_name(operation.name)
 
             # Create pipeline operation
-            # If operation is one of the "standard" set of NBs or scripts, construct custom NotebookOp
+            # If operation is one of the "standard" set of NBs or scripts, construct custom ExecuteFileOp
             if operation.classifier in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
 
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
@@ -447,33 +447,33 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
                                op=operation, archive=operation_artifact_archive))
 
-                notebook_ops[operation.id] = NotebookOp(name=sanitized_operation_name,
-                                                        pipeline_name=pipeline_name,
-                                                        experiment_name=experiment_name,
-                                                        notebook=operation.filename,
-                                                        cos_endpoint=cos_endpoint,
-                                                        cos_bucket=cos_bucket,
-                                                        cos_directory=cos_directory,
-                                                        cos_dependencies_archive=operation_artifact_archive,
-                                                        pipeline_version=pipeline_version,
-                                                        pipeline_source=pipeline.source,
-                                                        pipeline_inputs=operation.inputs,
-                                                        pipeline_outputs=operation.outputs,
-                                                        pipeline_envs=pipeline_envs,
-                                                        emptydir_volume_size=emptydir_volume_size,
-                                                        cpu_request=operation.cpu,
-                                                        mem_request=operation.memory,
-                                                        gpu_limit=operation.gpu,
-                                                        workflow_engine=engine,
-                                                        image=operation.runtime_image,
-                                                        file_outputs={
-                                                            'mlpipeline-metrics':
-                                                                '{}/mlpipeline-metrics.json'
-                                                                .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),
-                                                            'mlpipeline-ui-metadata':
-                                                                '{}/mlpipeline-ui-metadata.json'
-                                                                .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])
-                                                        })
+                notebook_ops[operation.id] = ExecuteFileOp(name=sanitized_operation_name,
+                                                           pipeline_name=pipeline_name,
+                                                           experiment_name=experiment_name,
+                                                           notebook=operation.filename,
+                                                           cos_endpoint=cos_endpoint,
+                                                           cos_bucket=cos_bucket,
+                                                           cos_directory=cos_directory,
+                                                           cos_dependencies_archive=operation_artifact_archive,
+                                                           pipeline_version=pipeline_version,
+                                                           pipeline_source=pipeline.source,
+                                                           pipeline_inputs=operation.inputs,
+                                                           pipeline_outputs=operation.outputs,
+                                                           pipeline_envs=pipeline_envs,
+                                                           emptydir_volume_size=emptydir_volume_size,
+                                                           cpu_request=operation.cpu,
+                                                           mem_request=operation.memory,
+                                                           gpu_limit=operation.gpu,
+                                                           workflow_engine=engine,
+                                                           image=operation.runtime_image,
+                                                           file_outputs={
+                                                               'mlpipeline-metrics':
+                                                                   '{}/mlpipeline-metrics.json'
+                                                                   .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),  # noqa
+                                                               'mlpipeline-ui-metadata':
+                                                                   '{}/mlpipeline-ui-metadata.json'
+                                                                   .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])  # noqa
+                                                           })
 
                 # TODO Can we move all of this to apply to non-standard components as well? Test when servers are up
                 if cos_secret and not export:

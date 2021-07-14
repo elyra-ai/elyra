@@ -168,7 +168,7 @@ class FileOpBase(ABC):
         # Notebooks | scripts might (but don't have to) produce this file
         # as documented in
         # https://www.kubeflow.org/docs/pipelines/sdk/output-viewer/
-        # Each NotebookOp must declare this as an output file or
+        # Each ExecuteFileOp must declare this as an output file or
         # the KFP UI won't pick up the information.
         kfp_ui_metadata_filename = 'mlpipeline-ui-metadata.json'
 
@@ -176,7 +176,7 @@ class FileOpBase(ABC):
         # Notebooks | scripts might (but don't have to) produce this file
         # as documented in
         # https://www.kubeflow.org/docs/pipelines/sdk/pipelines-metrics/
-        # Each NotebookOp must declare this as an output file or
+        # Each ExecuteFileOp must declare this as an output file or
         # the KFP UI won't pick up the information.
         kfp_metrics_filename = 'mlpipeline-metrics.json'
 
