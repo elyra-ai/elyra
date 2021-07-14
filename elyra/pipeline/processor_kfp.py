@@ -517,8 +517,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         op_property = operation.component_params.get(component_property.ref)
                         operation.component_params[component_property.ref] = ast.literal_eval(op_property)
 
+                # Get absolute path of component source
+                component_path = os.path.join(os.path.dirname(__file__), "resources", component.source)
                 component_source = {}
-                component_source[component.source_type] = component.source
+                component_source[component.source_type] = component_path
 
                 # Build component task factory
                 try:

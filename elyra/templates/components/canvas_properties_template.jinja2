@@ -1,6 +1,7 @@
 {
     "current_parameters": {
       "label": "",
+      "component_source": "{{ component.source }}",
 {% for property in component.properties %}
     {% if property.type|lower == "bool" or property.type|lower == "boolean" %}
       "elyra_{{ property.ref }}": {{ property.value|lower }}
@@ -17,6 +18,9 @@
     "parameters": [
       {
         "id": "label"
+      },
+      {
+        "component_source"
       },
 {% for property in component.properties %}
       {
@@ -39,6 +43,18 @@
           },
           "description": {
             "default": "A custom label for the node.",
+            "placement": "on_panel"
+          },
+          "data": {}
+        },
+        {
+          "parameter_ref": "component_source",
+          "control": "readonly",
+          "label": {
+            "default": "Component Source"
+          },
+          "description": {
+            "default": "The path to the component specification file.",
             "placement": "on_panel"
           },
           "data": {}
