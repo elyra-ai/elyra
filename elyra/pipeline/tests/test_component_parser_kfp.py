@@ -74,6 +74,20 @@ def test_parse_kfp_component_file():
     assert properties_json['current_parameters']['test_dict_default'] == ''  # {}
     assert properties_json['current_parameters']['test_list_default'] == ''  # []
 
+    # Ensure that the 'required' attribute was set correctly. KFP components default to required
+    # unless explicitly marked otherwise in component YAML.
+    required_property = next(prop for prop in properties_json['uihints']['parameter_info'] \
+                            if prop.get('parameter_ref') == 'test_required_property')
+    assert required_property['data']['required'] is True
+
+    optional_property = next(prop for prop in properties_json['uihints']['parameter_info'] \
+                            if prop.get('parameter_ref') == 'test_optional_property')
+    assert optional_property['data']['required'] is False
+
+    default_required_property = next(prop for prop in properties_json['uihints']['parameter_info'] \
+                                    if prop.get('parameter_ref') == 'test_required_property_default')
+    assert default_required_property['data']['required'] is True
+
 
 def test_parse_kfp_component_url():
     entry = {
