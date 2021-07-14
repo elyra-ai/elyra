@@ -178,4 +178,4 @@ time.sleep(2)
 
 ### Conflicting package dependencies
 
-Elyra installs additional packages in the container prior to notebook processing. If a pre-installed package is not compatible with the version requirements defined in [requirements-elyra.txt](https://github.com/elyra-ai/kfp-notebook/blob/master/etc/requirements-elyra.txt), it is replaced. You should review any version discrepancies as they might lead to unexpected processing results.
+Elyra installs additional packages in the container prior to notebook processing. If a pre-installed package is not compatible with the version requirements defined in [requirements-elyra.txt](https://github.com/elyra-ai/elyra/blob/master/etc/kfp/requirements-elyra.txt), it is replaced. You should review any version discrepancies as they might lead to unexpected processing results.
