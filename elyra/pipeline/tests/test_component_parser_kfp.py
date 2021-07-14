@@ -58,7 +58,7 @@ def test_parse_kfp_component_file():
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
-    assert properties_json['current_parameters']['component_source'] == entry.location
+    assert properties_json['current_parameters']['component_source'] == entry['location']
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
     assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
     assert properties_json['current_parameters']['elyra_test_string_default_empty'] == ''
@@ -90,7 +90,7 @@ def test_parse_kfp_component_url():
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
-    assert properties_json['current_parameters']['component_source'] == entry.location
+    assert properties_json['current_parameters']['component_source'] == entry['location']
     assert properties_json['current_parameters']['elyra_notebook'] == ''
     assert properties_json['current_parameters']['elyra_parameters'] == '{}'
     assert properties_json['current_parameters']['elyra_packages_to_install'] == ''  # {}
