@@ -41,21 +41,21 @@ class ComponentRegistry(LoggingConfigurable):
                               op="execute-notebook-node",
                               source_type="elyra",
                               source="elyra",
-                              extension=".ipynb"),
+                              extensions=".ipynb"),
         "python-script": Component(id="python-script",
                                    name="Python Script",
                                    description="Run Python script",
                                    op="execute-python-node",
                                    source_type="elyra",
                                    source="elyra",
-                                   extension=".py"),
+                                   extensions=".py"),
         "r-script": Component(id="r-script",
                               name="R Script",
                               description="Run R script",
                               op="execute-r-node",
                               source_type="elyra",
                               source="elyra",
-                              extension=".r")}
+                              extensions=".r")}
 
     def __init__(self, component_registry_location: str, parser: ComponentParser):
         super().__init__()

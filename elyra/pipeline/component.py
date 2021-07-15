@@ -171,11 +171,13 @@ class Component(object):
     runtime: str
     op: str
     properties: List[ComponentParameter]
-    extension: str
+    extensions: str
+    filehandler_parameter_ref: str
 
     def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
                  source: str, runtime: Optional[str] = None, op: Optional[str] = None,
-                 properties: Optional[List[ComponentParameter]] = None, extension: str = None):
+                 properties: Optional[List[ComponentParameter]] = None, extensions: Optional[str] = None,
+                 filehandler_parameter_ref: Optional[str] = None):
         """
         :param id: Unique identifier for a component
         :param name: The name of the component for display
@@ -202,7 +204,20 @@ class Component(object):
         self._runtime = runtime
         self._op = op
         self._properties = properties
-        self._extension = extension
+
+        # Error checking for extensions & filehandler_parameter_ref depends on the component source type
+        if self._source_type == "elyra":
+            if not extensions:
+                raise ValueError("Invalid generic component: Missing field 'extensions'.")
+            filehandler_parameter_ref = "filename"
+        else:
+            if extensions and not filehandler_parameter_ref:
+                raise ValueError("Invalid component: A component for which file extensions are \
+                                 supplied must include the parameter_ref of the first parameter \
+                                 that is associated with that extensinon.")
+
+        self._extensions = extensions
+        self._filehandler_parameter_ref = filehandler_parameter_ref
 
     @property
     def id(self):
@@ -240,8 +255,12 @@ class Component(object):
         return self._properties
 
     @property
-    def extension(self):
-        return self._extension
+    def extensions(self):
+        return self._extensions
+
+    @property
+    def filehandler_parameter_ref(self):
+        return self._filehandler_parameter_ref
 
 
 class ComponentReader(LoggingConfigurable):

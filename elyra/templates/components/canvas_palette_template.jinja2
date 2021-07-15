@@ -10,8 +10,9 @@
     {% if component.runtime %}
       "runtime": "{{ component.runtime }}",
     {% endif %}
-    {% if component.extension %}
-      "extensions": ["{{ component.extension }}"],
+    {% if component.extensions %}
+      "extensions": ["{{ component.extensions }}"],
+      "filehandler_parameter_ref": "{{ component.filehandler_parameter_ref }}",
     {% endif %}
       "node_types": [
         {
