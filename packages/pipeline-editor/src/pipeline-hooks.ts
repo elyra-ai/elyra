@@ -193,7 +193,7 @@ export const useNodeDefs = (
 
       // update runtime images
       const param = draft.properties.uihints.parameter_info.find(
-        p => p.parameter_ref === 'runtime_image'
+        p => p.parameter_ref === 'elyra_runtime_image'
       );
 
       const displayNames = (runtimeImages ?? []).map(i => i.display_name);

@@ -359,9 +359,9 @@ export class PipelineService {
         node.op === 'execute-python-node' ||
         node.op === 'execute-r-node'
       ) {
-        node.app_data.filename = this.getPipelineRelativeNodePath(
+        node.app_data.component_parameters.filename = this.getPipelineRelativeNodePath(
           pipelinePath,
-          node.app_data.filename
+          node.app_data.component_parameters.filename
         );
       }
     }
@@ -378,9 +378,9 @@ export class PipelineService {
         node.op === 'execute-python-node' ||
         node.op === 'execute-r-node'
       ) {
-        node.app_data.filename = this.getWorkspaceRelativeNodePath(
+        node.app_data.component_parameters.filename = this.getWorkspaceRelativeNodePath(
           pipelinePath,
-          node.app_data.filename
+          node.app_data.component_parameters.filename
         );
       }
     }

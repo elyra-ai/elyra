@@ -265,18 +265,25 @@ const PipelineWrapper: React.FC<IProps> = ({
       const nodes = pipelineJson?.pipelines?.[0]?.nodes;
       if (nodes?.length > 0) {
         for (const node of nodes) {
-          if (node?.app_data?.runtime_image) {
+          if (node?.app_data?.component_parameters?.runtime_image) {
             const image = runtimeImages?.find(
-              i => i.metadata.image_name === node.app_data.runtime_image
+              i =>
+                i.metadata.image_name ===
+                node.app_data.component_parameters.runtime_image
             );
             if (image) {
-              node.app_data.runtime_image = image.display_name;
+              node.app_data.component_parameters.runtime_image =
+                image.display_name;
             }
           }
 
-          for (const [key, val] of Object.entries(node?.app_data)) {
-            if (val === null) {
-              node.app_data[key] = undefined;
+          if (node?.app_data?.component_parameters) {
+            for (const [key, val] of Object.entries(
+              node?.app_data?.component_parameters
+            )) {
+              if (val === null) {
+                node.app_data.component_parameters[key] = undefined;
+              }
             }
           }
         }
@@ -315,12 +322,15 @@ const PipelineWrapper: React.FC<IProps> = ({
           const nodes = pipelineJson?.pipelines?.[0]?.nodes;
           if (nodes?.length > 0) {
             for (const node of nodes) {
-              if (node?.app_data?.runtime_image) {
+              if (node?.app_data?.component_parameters?.runtime_image) {
                 const image = runtimeImages?.find(
-                  i => i.display_name === node.app_data.runtime_image
+                  i =>
+                    i.display_name ===
+                    node.app_data.component_parameters.runtime_image
                 );
                 if (image) {
-                  node.app_data.runtime_image = image.metadata.image_name;
+                  node.app_data.component_parameters.runtime_image =
+                    image.metadata.image_name;
                 }
               }
             }
@@ -359,12 +369,17 @@ const PipelineWrapper: React.FC<IProps> = ({
         if (result.button.accept) {
           // proceed with migration
           console.log('migrating pipeline');
-          const migratedPipeline = migrate(pipeline, pipeline =>
-            PipelineService.setNodePathsRelativeToPipeline(
-              pipeline,
-              contextRef.current.path
-            )
-          );
+          const migratedPipeline = migrate(pipeline, pipeline => {
+            // function for updating to relative paths in v2
+            // uses location of filename as expected in v1
+            for (const node of pipeline.nodes) {
+              node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                contextRef.current.path,
+                node.app_data.filename
+              );
+            }
+            return pipeline;
+          });
           contextRef.current.model.fromString(JSON.stringify(migratedPipeline));
         } else {
           if (shell.currentWidget) {
@@ -468,12 +483,17 @@ const PipelineWrapper: React.FC<IProps> = ({
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
       );
-      if (!node || !node.app_data || !node.app_data.filename) {
+      if (
+        !node ||
+        !node.app_data ||
+        !node.app_data.component_parameters ||
+        !node.app_data.component_parameters.filename
+      ) {
         continue;
       }
       const path = PipelineService.getWorkspaceRelativeNodePath(
         contextRef.current.path,
-        node.app_data.filename
+        node.app_data.component_parameters.filename
       );
       commands.execute(commandIDs.openDocManager, { path });
     }
@@ -482,14 +502,14 @@ const PipelineWrapper: React.FC<IProps> = ({
   const cleanNullProperties = React.useCallback((): void => {
     // Delete optional fields that have null value
     for (const node of pipeline?.pipelines[0].nodes) {
-      if (node.app_data.cpu === null) {
-        delete node.app_data.cpu;
+      if (node.app_data.component_parameters.cpu === null) {
+        delete node.app_data.component_parameters.cpu;
       }
-      if (node.app_data.memory === null) {
-        delete node.app_data.memory;
+      if (node.app_data.component_parameters.memory === null) {
+        delete node.app_data.component_parameters.memory;
       }
-      if (node.app_data.gpu === null) {
-        delete node.app_data.gpu;
+      if (node.app_data.component_parameters.gpu === null) {
+        delete node.app_data.component_parameters.gpu;
       }
     }
   }, [pipeline?.pipelines]);
