@@ -23,9 +23,9 @@ The community maintains a set of official tutorials and examples for many Elyra 
 
 The following tutorials highlight key features of Elyra.
 
-#### Running notebook pipelines in JupyterLab
+#### Run generic pipelines in JupyterLab
 
-Learn how to [create a notebook pipeline and run it in your local JupyterLab environment](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world).
+Learn how to [create a generic pipeline and run it in your local JupyterLab environment](https://github.com/elyra-ai/examples/tree/master/pipelines/introduction-to-generic-pipelines).
 
 #### Running notebook pipelines on Kubeflow Pipelines
 
