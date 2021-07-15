@@ -39,16 +39,6 @@ components_airflow_path = './etc/config/components/airflow/*.py'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 settings_path = './etc/config/settings/*.json'
 
-# kfp_packages = [
-#     'kfp==1.6.3',
-#     'kfp-tekton==0.8.1',
-#     ]
-#
-# airflow_packages = [
-#     'pygithub',
-#     'black'
-# ]
-
 setup_args = dict(
     name="elyra",
     version=version_ns['__version__'],
@@ -142,17 +132,6 @@ if "--dev" not in sys.argv:
     setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
 else:
     sys.argv.remove("--dev")
-
-# TODO: @akchin document this
-# if "--airflow" not in sys.argv:
-#     setup_args["install_requires"].append(kfp_packages)
-#     setup_args["entry_points"]['elyra.pipeline.processors'].append(
-#         'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor')
-# else:
-#     setup_args["install_requires"].append(airflow_packages)
-#     setup_args["entry_points"]['elyra.pipeline.processors'].append(
-#         'airflow = elyra.pipeline.processor_airflow:AirflowPipelineProcessor')
-#     sys.argv.remove("--airflow")
 
 if __name__ == '__main__':
     setup(**setup_args)
