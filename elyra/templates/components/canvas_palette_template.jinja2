@@ -12,7 +12,7 @@
     {% endif %}
     {% if component.extensions %}
       "extensions": {{ component.extensions|tojson }},
-      "filehandler_parameter_ref": "{{ component.filehandler_parameter_ref }}",
+      "parameter_refs": {{ component.parameter_refs|tojson }},
     {% endif %}
       "node_types": [
         {

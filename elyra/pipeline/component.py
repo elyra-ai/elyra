@@ -143,10 +143,7 @@ class ComponentParameter(object):
 
     @property
     def required(self) -> bool:
-        if self._required:
-            return self._required
-        else:
-            return False
+        return bool(self._required)
 
 
 class Component(object):
@@ -158,7 +155,7 @@ class Component(object):
                  source: str, runtime: Optional[str] = None, op: Optional[str] = None,
                  properties: Optional[List[ComponentParameter]] = None,
                  extensions: Optional[List[str]] = None,
-                 filehandler_parameter_ref: Optional[str] = None):
+                 parameter_refs: Optional[dict] = None):
         """
         :param id: Unique identifier for a component
         :param name: The name of the component for display
@@ -186,16 +183,18 @@ class Component(object):
         self._op = op
         self._properties = properties
 
-        if self._source_type == "elyra" and not filehandler_parameter_ref:
-            filehandler_parameter_ref = "filename"
+        if self._source_type == "elyra" and not parameter_refs:
+            parameter_refs = {
+                "filehandler": "filename"
+            }
 
-        if extensions and not filehandler_parameter_ref:
+        if extensions and not parameter_refs:
             Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
                                    no 'filehandler_parameter_ref' value and cannot participate in \
                                    drag and drop functionality as a result.")
 
         self._extensions = extensions
-        self._filehandler_parameter_ref = filehandler_parameter_ref
+        self._parameter_refs = parameter_refs
 
     @property
     def id(self) -> str:
@@ -206,7 +205,7 @@ class Component(object):
         return self._name
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         return self._description
 
     @property
@@ -237,8 +236,11 @@ class Component(object):
         return self._extensions
 
     @property
-    def filehandler_parameter_ref(self) -> Optional[str]:
-        return self._filehandler_parameter_ref
+    def parameter_refs(self) -> Optional[dict]:
+        if self._parameter_refs:
+            return self._parameter_refs
+        else:
+            return dict()
 
     @staticmethod
     def _log_warning(msg: str, logger: Optional[Logger] = None):

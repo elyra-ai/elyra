@@ -7,7 +7,9 @@
       "id": "notebook",
       "description": "Run notebook file",
       "extensions": [".ipynb"],
-      "filehandler_parameter_ref": "filename",
+      "parameter_refs": {
+        "filehandler": "filename"
+      },
       "node_types": [
         {
           "id": "",
@@ -60,7 +62,9 @@
       "id": "python-script",
       "description": "Run Python script",
       "extensions": [".py"],
-      "filehandler_parameter_ref": "filename",
+      "parameter_refs": {
+        "filehandler": "filename"
+      },
       "node_types": [
         {
           "id": "",
@@ -113,7 +117,9 @@
       "id": "r-script",
       "description": "Run R script",
       "extensions": [".r"],
-      "filehandler_parameter_ref": "filename",
+      "parameter_refs": {
+        "filehandler": "filename"
+      },
       "node_types": [
         {
           "id": "",
