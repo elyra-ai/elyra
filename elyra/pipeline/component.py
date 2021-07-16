@@ -183,15 +183,18 @@ class Component(object):
         self._op = op
         self._properties = properties
 
-        if self._source_type == "elyra" and not parameter_refs:
-            parameter_refs = {
-                "filehandler": "filename"
-            }
+        if not parameter_refs:
+            if self._source_type == "elyra":
+                parameter_refs = {
+                    "filehandler": "filename"
+                }
+            else:
+                parameter_refs = {}
 
-        if extensions and not parameter_refs:
+        if extensions and not parameter_refs.get('filehandler'):
             Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
-                                   no 'filehandler_parameter_ref' value and cannot participate in \
-                                   drag and drop functionality as a result.")
+                                   no entry in the 'parameter_ref' dictionary for 'filehandler' and \
+                                   cannot participate in drag and drop functionality as a result.")
 
         self._extensions = extensions
         self._parameter_refs = parameter_refs
@@ -236,11 +239,8 @@ class Component(object):
         return self._extensions
 
     @property
-    def parameter_refs(self) -> Optional[dict]:
-        if self._parameter_refs:
-            return self._parameter_refs
-        else:
-            return dict()
+    def parameter_refs(self) -> dict:
+        return self._parameter_refs
 
     @staticmethod
     def _log_warning(msg: str, logger: Optional[Logger] = None):
