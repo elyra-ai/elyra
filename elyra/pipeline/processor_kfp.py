@@ -328,14 +328,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
-            for key, operation in defined_pipeline.items():
-                self.log.debug("component:\n "
-                               "container op name : %s \n "
-                               "inputs : %s \n "
-                               "outputs : %s \n ",
-                               operation.name,
-                               operation.inputs,
-                               operation.outputs)
+            if self.log.isEnabledFor(logging.DEBUG):
+                for key, operation in defined_pipeline.items():
+                    self.log.debug("component:\n "
+                                   f"container op name : {operation.name} \n "
+                                   f"inputs : {operation.inputs} \n "
+                                   f"outputs : {operation.outputs} \n ")
 
             # The exported pipeline is by default associated with
             # an experiment.
