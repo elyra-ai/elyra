@@ -77,7 +77,7 @@ def test_parse_kfp_component_file():
     # Ensure that the 'required' attribute was set correctly. KFP components default to required
     # unless explicitly marked otherwise in component YAML.
     required_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                         if prop.get('parameter_ref') == 'elyra_test_required_property')
+                             if prop.get('parameter_ref') == 'elyra_test_required_property')
     assert required_property['data']['required'] is True
 
     optional_property = next(prop for prop in properties_json['uihints']['parameter_info']
