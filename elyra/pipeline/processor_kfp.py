@@ -330,9 +330,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             if self.log.isEnabledFor(logging.DEBUG):
+                self.log.debug(f"Exporting pipeline {pipeline_name} with components: \n")
                 for key, operation in defined_pipeline.items():
                     self.log.debug("component:\n "
-                                   f"container op name : {operation.name} \n "
+                                   f"operation name : {operation.name} \n "
                                    f"inputs : {operation.inputs} \n "
                                    f"outputs : {operation.outputs} \n ")
 
