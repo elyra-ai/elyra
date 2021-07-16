@@ -30,16 +30,6 @@ class ComponentParameter(object):
     Represents a single property for a pipeline component
     """
 
-    ref: str
-    name: str
-    type: str
-    value: str
-    description: str
-    control: str
-    control_id: str
-    items: list
-    required: bool
-
     def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool = False,
                  control: str = "custom", control_id: str = "StringControl", items: List[str] = []):
         """
@@ -120,39 +110,39 @@ class ComponentParameter(object):
         self._required = required
 
     @property
-    def ref(self):
+    def ref(self) -> str:
         return self._ref
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def type(self):
+    def type(self) -> str:
         return self._type
 
     @property
-    def value(self):
+    def value(self) -> str:
         return self._value
 
     @property
-    def description(self):
+    def description(self) -> str:
         return self._description
 
     @property
-    def control(self):
+    def control(self) -> str:
         return self._control
 
     @property
-    def control_id(self):
+    def control_id(self) -> str:
         return self._control_id
 
     @property
-    def items(self):
+    def items(self) -> List[str]:
         return self._items
 
     @property
-    def required(self):
+    def required(self) -> bool:
         if self._required:
             return self._required
         else:
@@ -164,20 +154,10 @@ class Component(object):
     Represents a runtime-specific component
     """
 
-    id: str
-    name: str
-    description: str
-    source_type: str
-    source: str
-    runtime: str
-    op: str
-    properties: List[ComponentParameter]
-    extensions: Optional[List[str]]
-    filehandler_parameter_ref: str
-
     def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
                  source: str, runtime: Optional[str] = None, op: Optional[str] = None,
-                 properties: Optional[List[ComponentParameter]] = None, extensions: Optional[List[str]] = None,
+                 properties: Optional[List[ComponentParameter]] = None,
+                 extensions: Optional[List[str]] = None,
                  filehandler_parameter_ref: Optional[str] = None):
         """
         :param id: Unique identifier for a component
@@ -208,7 +188,7 @@ class Component(object):
 
         if self._source_type == "elyra" and not filehandler_parameter_ref:
             filehandler_parameter_ref = "filename"
-        
+
         if extensions and not filehandler_parameter_ref:
             Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
                                    no 'filehandler_parameter_ref' value and cannot participate in \
@@ -218,46 +198,46 @@ class Component(object):
         self._filehandler_parameter_ref = filehandler_parameter_ref
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self._id
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def description(self):
+    def description(self) -> str:
         return self._description
 
     @property
-    def source_type(self):
+    def source_type(self) -> str:
         return self._source_type
 
     @property
-    def source(self):
+    def source(self) -> str:
         return self._source
 
     @property
-    def runtime(self):
+    def runtime(self) -> Optional[str]:
         return self._runtime
 
     @property
-    def op(self):
+    def op(self) -> Optional[str]:
         if self._op:
             return self._op
         else:
             return self._id
 
     @property
-    def properties(self):
+    def properties(self) -> Optional[List[ComponentParameter]]:
         return self._properties
 
     @property
-    def extensions(self):
+    def extensions(self) -> Optional[List[str]]:
         return self._extensions
 
     @property
-    def filehandler_parameter_ref(self):
+    def filehandler_parameter_ref(self) -> Optional[str]:
         return self._filehandler_parameter_ref
 
     @staticmethod
@@ -266,6 +246,7 @@ class Component(object):
             logger.warning(msg)
         else:
             print(f"WARNING: {msg}")
+
 
 class ComponentReader(LoggingConfigurable):
     """
@@ -327,13 +308,13 @@ class ComponentParser(LoggingConfigurable):  # ABC
     }
 
     @abstractmethod
-    def parse(self, registry_entry) -> List[Component]:
+    def parse(self, registry_entry: dict) -> List[Component]:
         raise NotImplementedError()
 
-    def get_adjusted_component_id(self, component_id):
+    def get_adjusted_component_id(self, component_id: str) -> str:
         return component_id
 
-    def _get_reader(self, component_entry):
+    def _get_reader(self, component_entry: dict) -> ComponentReader:
         """
         Find the proper reader based on the given registry component entry.
         """
