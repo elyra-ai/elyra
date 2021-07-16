@@ -73,7 +73,7 @@
           "data": {
             "format": "file",
             "required": true,
-            "extensions": ["{{ component.extensions }}"]
+            "extensions": {{ component.extensions|tojson }}
           }
         },
         {
