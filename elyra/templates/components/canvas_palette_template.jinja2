@@ -11,7 +11,7 @@
       "runtime": "{{ component.runtime }}",
     {% endif %}
     {% if component.extensions %}
-      "extensions": ["{{ component.extensions }}"],
+      "extensions": {{ component.extensions|tojson }},
       "filehandler_parameter_ref": "{{ component.filehandler_parameter_ref }}",
     {% endif %}
       "node_types": [

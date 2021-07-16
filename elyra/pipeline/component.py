@@ -16,6 +16,7 @@
 from abc import abstractmethod
 import ast
 from http import HTTPStatus
+from logging import Logger
 import os
 from typing import List
 from typing import Optional
@@ -171,12 +172,12 @@ class Component(object):
     runtime: str
     op: str
     properties: List[ComponentParameter]
-    extensions: str
+    extensions: Optional[List[str]]
     filehandler_parameter_ref: str
 
     def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
                  source: str, runtime: Optional[str] = None, op: Optional[str] = None,
-                 properties: Optional[List[ComponentParameter]] = None, extensions: Optional[str] = None,
+                 properties: Optional[List[ComponentParameter]] = None, extensions: Optional[List[str]] = None,
                  filehandler_parameter_ref: Optional[str] = None):
         """
         :param id: Unique identifier for a component
@@ -205,16 +206,13 @@ class Component(object):
         self._op = op
         self._properties = properties
 
-        # Error checking for extensions & filehandler_parameter_ref depends on the component source type
-        if self._source_type == "elyra":
-            if not extensions:
-                raise ValueError("Invalid generic component: Missing field 'extensions'.")
+        if self._source_type == "elyra" and not filehandler_parameter_ref:
             filehandler_parameter_ref = "filename"
-        else:
-            if extensions and not filehandler_parameter_ref:
-                raise ValueError("Invalid component: A component for which file extensions are \
-                                 supplied must include the parameter_ref of the first parameter \
-                                 that is associated with that extensinon.")
+        
+        if extensions and not filehandler_parameter_ref:
+            Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
+                                   no 'filehandler_parameter_ref' value and cannot participate in \
+                                   drag and drop functionality as a result.")
 
         self._extensions = extensions
         self._filehandler_parameter_ref = filehandler_parameter_ref
@@ -262,6 +260,12 @@ class Component(object):
     def filehandler_parameter_ref(self):
         return self._filehandler_parameter_ref
 
+    @staticmethod
+    def _log_warning(msg: str, logger: Optional[Logger] = None):
+        if logger:
+            logger.warning(msg)
+        else:
+            print(f"WARNING: {msg}")
 
 class ComponentReader(LoggingConfigurable):
     """
