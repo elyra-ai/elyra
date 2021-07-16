@@ -62,10 +62,11 @@ class KfpComponentParser(ComponentParser):
             if "description" in param:
                 description = param.get('description')
 
-            # Determine whether parameter is optional
-            required = False
-            if "optional" in param and not param.get('optional'):
-                required = True
+            # KFP components default to being required unless otherwise stated.
+            # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
+            required = True
+            if "optional" in param and param.get('optional') is True:
+                required = False
 
             # Assign type, default to string
             type = "string"

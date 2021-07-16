@@ -11,6 +11,9 @@ inputs:
 - {name: test_int_non_zero, description: 'The test command description', type: Integer, default: '1'}
 - {name: test_dict_default, description: 'The test command description', type: Dict}
 - {name: test_list_default, description: 'The test command description', type: List}
+- {name: test_required_property, description: 'The test command description', type: String, optional: false}
+- {name: test_optional_property, description: 'The test command description', type: String, optional: true}
+- {name: test_required_property_default, description: 'The test command description', type: String}
 outputs:
 - {name: Filtered text}
 implementation:
