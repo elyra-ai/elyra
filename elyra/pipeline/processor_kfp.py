@@ -329,8 +329,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
             for key, operation in defined_pipeline.items():
-                if operation.classifier not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
-                    continue
                 self.log.debug("component:\n "
                                "container op name : %s \n "
                                "inputs : %s \n "
