@@ -16,6 +16,7 @@
 import ast
 from datetime import datetime
 import json
+import logging
 import os
 import re
 import tempfile
@@ -328,16 +329,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
 
-            for key, operation in defined_pipeline.items():
-                if operation.classifier not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
-                    continue
-                self.log.debug("component:\n "
-                               "container op name : %s \n "
-                               "inputs : %s \n "
-                               "outputs : %s \n ",
-                               operation.name,
-                               operation.inputs,
-                               operation.outputs)
+            if self.log.isEnabledFor(logging.DEBUG):
+                self.log.debug(f"Exporting pipeline {pipeline_name} with components: \n")
+                for key, operation in defined_pipeline.items():
+                    self.log.debug("component:\n "
+                                   f"operation name : {operation.name} \n "
+                                   f"inputs : {operation.inputs} \n "
+                                   f"outputs : {operation.outputs} \n ")
 
             # The exported pipeline is by default associated with
             # an experiment.
