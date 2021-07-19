@@ -105,7 +105,36 @@ const isGenericNode = (nodeDef: any): boolean => {
   return !nodeDef.runtime;
 };
 
-const createPalette = (categories: any[]): any => {
+const createPalette = (nodeDefs: any[] | undefined): any => {
+  console.log(nodeDefs);
+
+  const categories = [
+    {
+      label: 'Generic Nodes',
+      image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
+      id: 'genericNodes',
+      description: 'Nodes that can be run with any runtime',
+      node_types: nodeDefs?.filter(isGenericNode) ?? []
+    }
+  ];
+
+  // if (pipelineRuntimeDisplayName) {
+  //   categories.push({
+  //     label: `${pipelineRuntimeDisplayName} Nodes`,
+  //     image: IconUtil.encode(
+  //       pipelineRuntimeName === 'kfp'
+  //         ? kubeflowIcon
+  //         : pipelineRuntimeName === 'airflow'
+  //         ? airflowIcon
+  //         : pipelineIcon
+  //     ),
+  //     id: `${pipelineRuntimeName}Nodes`,
+  //     description: `Nodes that can only be run on ${pipelineRuntimeDisplayName}`,
+  //     node_types:
+  //       nodeDefs?.filter((nodeDef: any) => !isGenericNode(nodeDef)) ?? []
+  //   });
+  // }
+
   const palette = {
     version: '3.0' as '3.0',
     categories: categories ?? []
@@ -514,34 +543,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
   }, [pipeline?.pipelines]);
 
-  const categories = [
-    {
-      label: 'Generic Nodes',
-      image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
-      id: 'genericNodes',
-      description: 'Nodes that can be run with any runtime',
-      node_types: nodeDefs?.filter(isGenericNode) ?? []
-    }
-  ];
-
-  if (pipelineRuntimeDisplayName) {
-    categories.push({
-      label: `${pipelineRuntimeDisplayName} Nodes`,
-      image: IconUtil.encode(
-        pipelineRuntimeName === 'kfp'
-          ? kubeflowIcon
-          : pipelineRuntimeName === 'airflow'
-          ? airflowIcon
-          : pipelineIcon
-      ),
-      id: `${pipelineRuntimeName}Nodes`,
-      description: `Nodes that can only be run on ${pipelineRuntimeDisplayName}`,
-      node_types:
-        nodeDefs?.filter((nodeDef: any) => !isGenericNode(nodeDef)) ?? []
-    });
-  }
-
-  const palette = createPalette(categories);
+  const palette = createPalette(nodeDefs);
 
   const handleExportPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
