@@ -18,7 +18,8 @@ import ast
 from http import HTTPStatus
 import os
 import re
-from typing import Any, List
+from typing import Any
+from typing import List
 from typing import Optional
 
 import requests
