@@ -345,60 +345,65 @@ const PipelineWrapper: React.FC<IProps> = ({
     [runtimeImages]
   );
 
-  const onError = (error?: Error): void => {
-    if (error instanceof PipelineOutOfDateError) {
-      showDialog({
-        title: 'Migrate pipeline?',
-        body: (
-          <p>
-            This pipeline corresponds to an older version of Elyra and needs to
-            be migrated.
-            <br />
-            Although the pipeline can be further edited and/or submitted after
-            its update,
-            <br />
-            the migration will not be completed until the pipeline has been
-            saved within the editor.
-            <br />
-            <br />
-            Proceed with migration?
-          </p>
-        ),
-        buttons: [Dialog.cancelButton(), Dialog.okButton()]
-      }).then(result => {
-        if (result.button.accept) {
-          // proceed with migration
-          console.log('migrating pipeline');
-          const migratedPipeline = migrate(pipeline, pipeline => {
-            // function for updating to relative paths in v2
-            // uses location of filename as expected in v1
-            for (const node of pipeline.nodes) {
-              node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                contextRef.current.path,
-                node.app_data.filename
-              );
+  const onError = useCallback(
+    (error?: Error): void => {
+      if (error instanceof PipelineOutOfDateError) {
+        showDialog({
+          title: 'Migrate pipeline?',
+          body: (
+            <p>
+              This pipeline corresponds to an older version of Elyra and needs
+              to be migrated.
+              <br />
+              Although the pipeline can be further edited and/or submitted after
+              its update,
+              <br />
+              the migration will not be completed until the pipeline has been
+              saved within the editor.
+              <br />
+              <br />
+              Proceed with migration?
+            </p>
+          ),
+          buttons: [Dialog.cancelButton(), Dialog.okButton()]
+        }).then(result => {
+          if (result.button.accept) {
+            // proceed with migration
+            console.log('migrating pipeline');
+            const migratedPipeline = migrate(pipeline, pipeline => {
+              // function for updating to relative paths in v2
+              // uses location of filename as expected in v1
+              for (const node of pipeline.nodes) {
+                node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                  contextRef.current.path,
+                  node.app_data.filename
+                );
+              }
+              return pipeline;
+            });
+            contextRef.current.model.fromString(
+              JSON.stringify(migratedPipeline)
+            );
+          } else {
+            if (shell.currentWidget) {
+              shell.currentWidget.close();
             }
-            return pipeline;
-          });
-          contextRef.current.model.fromString(JSON.stringify(migratedPipeline));
-        } else {
+          }
+        });
+      } else {
+        showDialog({
+          title: 'Load pipeline failed!',
+          body: <p> {error || ''} </p>,
+          buttons: [Dialog.okButton()]
+        }).then(() => {
           if (shell.currentWidget) {
             shell.currentWidget.close();
           }
-        }
-      });
-    } else {
-      showDialog({
-        title: 'Load pipeline failed!',
-        body: <p> {error || ''} </p>,
-        buttons: [Dialog.okButton()]
-      }).then(() => {
-        if (shell.currentWidget) {
-          shell.currentWidget.close();
-        }
-      });
-    }
-  };
+        });
+      }
+    },
+    [pipeline, shell.currentWidget]
+  );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
     const filename = PipelineService.getWorkspaceRelativeNodePath(
