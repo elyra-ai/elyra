@@ -27,7 +27,7 @@ class Operation(object):
     Represents a single operation in a pipeline representing a third-party component
     """
 
-    generic_node_types = ["execute-notebook-node", "execute-python-node", "exeucute-r-node"]
+    generic_node_types = ["execute-notebook-node", "execute-python-node", "execute-r-node"]
 
     @classmethod
     def create_instance(cls, id: str, type: str, name: str, classifier: str,
