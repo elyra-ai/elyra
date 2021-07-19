@@ -65,11 +65,6 @@ class KfpComponentParser(ComponentParser):
 
         # Then loop through and create custom properties
         for param in component_yaml.get('inputs'):
-            # Set description
-            description = ""
-            if "description" in param:
-                description = param.get('description')
-
             # KFP components default to being required unless otherwise stated.
             # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
             required = True
@@ -81,21 +76,27 @@ class KfpComponentParser(ComponentParser):
             if "type" in param:
                 type = param.get('type')
 
+            # Set description and include parsed type information
+            description = self._get_description_with_type_hint(param.get('description'), type)
+
             # Change type to reflect the type of input (inputValue vs inputPath)
             type = self._get_adjusted_parameter_fields(component_body=component_yaml,
                                                        io_object_name=param.get('name'),
                                                        io_object_type="input",
                                                        parameter_type=type)
 
-            default_value = ''
+            type, control_id, default_value = self.determine_type_information(type)
+
+            value = ''
             if "default" in param:
-                default_value = param.get('default')
+                value = param.get('default')
 
             ref = param.get('name').lower().replace(' ', '_')
             properties.append(ComponentProperty(ref=ref,
                                                 name=param.get('name'),
                                                 type=type,
-                                                value=default_value,
+                                                control_id=control_id,
+                                                value=(value or default_value),
                                                 description=description,
                                                 required=required))
         return properties

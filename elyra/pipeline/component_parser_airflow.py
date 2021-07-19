@@ -120,12 +120,18 @@ class AirflowComponentParser(ComponentParser):
             if arg in ['self', '*args', '**kwargs']:
                 continue
 
-            default_value = None
+            value = None
             if '=' in arg:
-                arg, default_value = arg.split('=', 1)[:2]
-                default_value = ast.literal_eval(default_value)
-                if default_value and "\n" in str(default_value):
-                    default_value = default_value.replace("\n", " ")
+                arg, value = arg.split('=', 1)[:2]
+                value = ast.literal_eval(value)
+                if value and "\n" in str(value):
+                    value = value.replace("\n", " ")
+
+            # Search for :type [param] information in class docstring
+            type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
+            match = type_regex.search(class_content)
+            if match:
+                type = match.group(1).strip()
 
             # Search for :param [param] in class doctring to get description
             description = ""
@@ -134,22 +140,17 @@ class AirflowComponentParser(ComponentParser):
             if match:
                 description = match.group(1).strip().replace("\"", "'")
 
-            # Set default type to string
-            type = "string"
-            control_id = "StringControl"
+            # Amend description to include type information
+            description = self._get_description_with_type_hint(description, type)
 
-            # Search for :type [param] information in class docstring
-            type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''))")
-            match = type_regex.search(class_content)
-            if match:
-                type = match.group(1).strip()
+            type, control_id, default_value = self.determine_type_information(type)
 
             properties.append(ComponentProperty(ref=arg,
                                                 name=arg,
                                                 type=type,
-                                                value=default_value,
-                                                description=description,
-                                                control_id=control_id))
+                                                control_id=control_id,
+                                                value=(value or default_value),
+                                                description=description))
         return properties
 
     def get_runtime_specific_properties(self, runtime_image, location, source_type):

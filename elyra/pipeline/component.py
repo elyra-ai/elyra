@@ -17,7 +17,8 @@ from abc import abstractmethod
 import ast
 from http import HTTPStatus
 import os
-from typing import List
+import re
+from typing import Any, List
 from typing import Optional
 
 import requests
@@ -39,7 +40,7 @@ class ComponentProperty(object):
     items: list
     required: bool
 
-    def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool = False,
+    def __init__(self, ref: str, name: str, type: str, value: Any, description: str, required: bool = False,
                  control: str = "custom", control_id: str = "StringControl", items: List[str] = []):
         """
         :param ref: Unique identifier for a property
@@ -61,48 +62,14 @@ class ComponentProperty(object):
         self._ref = ref
         self._name = name
 
-        # Set default value according to type
-        type_lowered = type.lower()
-        if type_lowered in ['str', 'string']:
-            control_id = "StringControl"
-            type = 'string'
-            if not value:
-                value = ''
-        elif type_lowered in ['int', 'integer', 'number']:
-            control_id = "NumberControl"
-            if not value:
-                value = 0
-        elif type_lowered in ['bool', 'boolean']:
-            control_id = "BooleanControl"
+        if control_id == "BooleanControl":
             if not value:
                 value = False
             else:
                 value = ast.literal_eval(str(value))
-        elif type_lowered in ['dict', 'dictionary']:
-            if not value:
-                value = ''
-        elif type_lowered in ['list']:
-            if not value:
-                value = ''
-        elif type_lowered in ['file']:
-            if not value:
-                value = ''
-        else:
-            type = 'string'
-            if not value:
-                value = ''
 
         self._type = type
         self._value = value
-
-        # Add type information to description as hint
-        if ref.startswith("elyra_path_"):
-            if type == "string":
-                description += " (type: path)"
-            else:
-                description += f" (type: path to {type})"
-        else:
-            description += f" (type: {type})"
 
         self._description = description
         self._control = control
@@ -304,3 +271,63 @@ class ComponentParser(LoggingConfigurable):  # ABC
             return self._readers.get(component_entry.type)
         except Exception:
             raise ValueError(f'Unsupported registry type {component_entry.type}.')
+
+    def _get_description_with_type_hint(self, description, type):
+        """
+        Adds type information parsed from component specification to parameter description.
+        """
+        if description:
+            return f"{description} (type: {type})"
+        else:
+            return f"(type: {type})"
+
+    def determine_type_information(self, type: str):
+        """
+        Takes the type information of a component parameter as parsed from the component
+        specification and returns a new type that is one of several standard options.
+
+        """
+        type_lowered = type.lower()
+        type_options = ['dictionary', 'dict', 'set', 'list', 'array', 'arr']
+
+        # Prefer types that occur in a clause of the form "[type] of ..."
+        # E.g. "a dictionary of key/value pairs" will produce the type "dictionary"
+        if any(word + " of " in type_lowered for word in type_options):
+            for option in type_options:
+                reg = re.compile(f"({option}) of ")
+                match = reg.search(type_lowered)
+                if match:
+                    type_lowered = option
+                    break
+        else:
+            for option in type_options:
+                if option in type_lowered:
+                    type_lowered = option
+                    break
+
+        # Set control id and default value for UI rendering purposes
+        control_id = "StringControl"
+        default_value = ''
+        if any(word in type_lowered for word in ["str", "string"]):
+            type_lowered = "string"
+            default_value = ''
+        elif any(word in type_lowered for word in ['int', 'integer', 'number']):
+            type_lowered = "number"
+            control_id = "NumberControl"
+            default_value = 0
+        elif any(word in type_lowered for word in ['bool', 'boolean']):
+            type_lowered = "boolean"
+            control_id = "BooleanControl"
+            default_value = False
+        elif type_lowered in ['dict', 'dictionary']:
+            type_lowered = "dictionary"
+            default_value = ''
+        elif type_lowered in ['list', 'set', 'array', 'arr']:
+            type_lowered = "list"
+            default_value = ''
+        elif type_lowered in ['file']:
+            default_value = ''
+        else:
+            type_lowered = "string"
+
+        return type_lowered, control_id, default_value
