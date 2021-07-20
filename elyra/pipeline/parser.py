@@ -148,11 +148,16 @@ class PipelineParser(LoggingConfigurable):
         if super_node:  # gather parent-links tied to embedded nodes inputs
             parent_operations.extend(PipelineParser._get_parent_operation_links(super_node, node_id))
 
+        operation_name = PipelineParser._get_app_data_field(node, 'label')
+        # If label is not set, default to using the label from ui_data
+        if not operation_name:
+            operation_name = PipelineParser._get_ui_data_field(node, 'label')
+
         return Operation.create_instance(
             id=node_id,
             type=node.get('type'),
             classifier=node.get('op'),
-            name=PipelineParser._get_app_data_field(node, 'label'),  # Consider adding a default value here
+            name=operation_name,
             parent_operation_ids=parent_operations,
             component_params=PipelineParser._get_app_data_field(node, "component_parameters", {}))
 
