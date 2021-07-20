@@ -259,15 +259,16 @@ describe('Pipeline Editor tests', () => {
     cy.openFile('helloworld.pipeline');
 
     // Open notebook node with double-click
-    cy.get('#jp-main-dock-panel').within(() => {
+    cy.get('.common-canvas-drop-div').within(() => {
       cy.findByText('helloworld.ipynb').dblclick();
     });
 
     cy.findAllByRole('tab', { name: 'helloworld.ipynb' }).should('exist');
 
-    cy.closeTab();
-    // dismiss 'save your work' dialog
+    // close tabs
+    cy.closeTab(-1); // notebook tab
     cy.findByRole('button', { name: /discard/i }).click();
+    cy.closeTab(-1); // pipeline tab
 
     // Open a pipeline in a subfolder
     cy.bootstrapFile('pipelines/producer.ipynb');
@@ -277,6 +278,7 @@ describe('Pipeline Editor tests', () => {
     cy.get('.common-canvas-drop-div');
     cy.wait(300);
     cy.addFileToPipeline('producer.ipynb');
+    cy.wait(300);
 
     // Open notebook node with double-click
     cy.get('#jp-main-dock-panel').within(() => {
@@ -284,10 +286,6 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
-
-    cy.closeTab();
-    // dismiss 'save your work' dialog
-    cy.findByRole('button', { name: /discard/i }).click();
   });
 
   it('should open notebook from node right-click menu', () => {
@@ -302,9 +300,10 @@ describe('Pipeline Editor tests', () => {
 
     cy.findAllByRole('tab', { name: 'helloworld.ipynb' }).should('exist');
 
-    cy.closeTab();
-    // dismiss 'save your work' dialog
+    // close tabs
+    cy.closeTab(-1); // notebook tab
     cy.findByRole('button', { name: /discard/i }).click();
+    cy.closeTab(-1); // pipeline tab
 
     // Open a pipeline in a subfolder
     cy.bootstrapFile('pipelines/producer.ipynb');
@@ -322,7 +321,7 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
-    cy.closeTab();
+    cy.closeTab(-1);
     // dismiss 'save your work' dialog
     cy.findByRole('button', { name: /discard/i }).click();
   });
