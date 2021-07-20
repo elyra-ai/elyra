@@ -1,7 +1,7 @@
 {
   "categories": {
     "airflow": {
-      "label": "Airflow Components",
+      "label": "Apache Airflow Components",
       "image": "",
       "description": "Components that are supported by Apache Airflow"
     }
