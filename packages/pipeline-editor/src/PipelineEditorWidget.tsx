@@ -366,7 +366,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     );
 
     switch (args.propertyID) {
-      case 'dependencies':
+      case 'elyra_dependencies':
         {
           const res = await showBrowseFileDialog(
             browserFactory.defaultBrowser.model.manager,
@@ -434,7 +434,9 @@ const PipelineWrapper: React.FC<IProps> = ({
       )
     ];
 
-    return { env_vars: merged_env_vars.filter(Boolean) };
+    return {
+      component_parameters: { env_vars: merged_env_vars.filter(Boolean) }
+    };
   };
 
   const handleOpenFile = (data: any): void => {
