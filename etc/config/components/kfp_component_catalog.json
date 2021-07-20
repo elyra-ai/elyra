@@ -3,7 +3,7 @@
     "kfp": {
       "label": "Kubeflow Pipeline Components",
       "image": "",
-      "description": "<KFP_CATEGORY_DESCRIPTION>"
+      "description": "Components that are supported by Kubeflow Pipelines"
     }
   },
   "components": {

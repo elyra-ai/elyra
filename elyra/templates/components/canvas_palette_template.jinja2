@@ -10,7 +10,7 @@
       "node_types": [
 {% set ns = namespace(first_match=true) %}
 {% for component in components %}
-  {% if component.category == category.id %}
+  {% if component.category_id == category.id %}
   {% if not ns.first_match %},{% endif %}
   {% set ns.first_match = False %}
         {

@@ -21,6 +21,7 @@ import os
 import time
 from typing import Dict
 from typing import List
+from typing import Optional
 
 import entrypoints
 from jupyter_core.paths import ENV_JUPYTER_PATH
@@ -205,7 +206,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
         return components
 
-    def get_component(self, component_id: str) -> Component:
+    def get_component(self, component_id: str) -> Optional[Component]:
         """
         Retrieve runtime-specific component details if component_id is not one of the generic set
         """
@@ -215,8 +216,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
         return ComponentRegistry.get_generic_component(component_id)
 
-    def get_categories(self) -> list:
-        categories: list = [ComponentRegistry.get_generic_category()]
+    def get_categories(self) -> List[Dict]:
+        categories: List[Dict] = [ComponentRegistry.get_generic_category()]
 
         if self._component_registry:
             categories.extend(self._component_registry.get_categories())

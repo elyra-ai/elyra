@@ -3,7 +3,7 @@
     "airflow": {
       "label": "Airflow Components",
       "image": "",
-      "description": "<AIRFLOW_CATEGORY_DESCRIPTION>"
+      "description": "Components that are supported by Apache Airflow"
     }
   },
   "components": {
