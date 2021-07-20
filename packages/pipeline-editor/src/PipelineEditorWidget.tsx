@@ -366,7 +366,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     );
 
     switch (args.propertyID) {
-      case 'dependencies':
+      case 'elyra_dependencies':
         {
           const res = await showBrowseFileDialog(
             browserFactory.defaultBrowser.model.manager,
@@ -434,7 +434,9 @@ const PipelineWrapper: React.FC<IProps> = ({
       )
     ];
 
-    return { env_vars: merged_env_vars.filter(Boolean) };
+    return {
+      component_parameters: { env_vars: merged_env_vars.filter(Boolean) }
+    };
   };
 
   const handleOpenFile = (data: any): void => {
@@ -442,12 +444,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
       );
-      if (
-        !node ||
-        !node.app_data ||
-        !node.app_data.component_parameters ||
-        !node.app_data.component_parameters.filename
-      ) {
+      if (!node?.app_data?.component_parameters?.filename) {
         continue;
       }
       const path = PipelineService.getWorkspaceRelativeNodePath(
