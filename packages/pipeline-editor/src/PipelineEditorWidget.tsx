@@ -442,12 +442,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
       );
-      if (
-        !node ||
-        !node.app_data ||
-        !node.app_data.component_parameters ||
-        !node.app_data.component_parameters.filename
-      ) {
+      if (!node?.app_data?.component_parameters?.filename) {
         continue;
       }
       const path = PipelineService.getWorkspaceRelativeNodePath(
