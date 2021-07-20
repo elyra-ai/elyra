@@ -59,7 +59,11 @@ import Alert from '@material-ui/lab/Alert';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
-import { useNodeDefs, useRuntimeImages } from './pipeline-hooks';
+import {
+  usePalette,
+  useRuntimeImages,
+  useRuntimesSchema
+} from './pipeline-hooks';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import pipelineProperties from './pipelineProperties';
 import {
@@ -101,20 +105,12 @@ const getAllPaletteNodes = (palette: any): any[] => {
   return nodes;
 };
 
-// TODO: We need to get this info from the server.
 const getRuntimeDisplayName = (
+  schemas: { name: string; display_name: string }[] | undefined,
   runtime: string | undefined
 ): string | undefined => {
-  switch (runtime) {
-    case 'kfp':
-      return 'Kubeflow Pipelines';
-    case 'airflow':
-      return 'Apache Airflow';
-    default:
-      // The UI expects this to be undefined...
-      // return 'Generic';
-      return undefined;
-  }
+  const schema = schemas?.find(s => s.name === runtime);
+  return schema?.display_name;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -171,13 +167,22 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [alert, setAlert] = React.useState('');
 
   const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
-  const pipelineRuntimeDisplayName = getRuntimeDisplayName(pipelineRuntimeName);
 
-  const { data: palette, error: nodeDefsError } = useNodeDefs(
+  const { data: palette, error: paletteError } = usePalette(
     pipelineRuntimeName
   );
 
   const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
+
+  const {
+    data: runtimesSchema,
+    error: runtimesSchemaError
+  } = useRuntimesSchema();
+
+  const pipelineRuntimeDisplayName = getRuntimeDisplayName(
+    runtimesSchema,
+    pipelineRuntimeName
+  );
 
   useEffect(() => {
     if (runtimeImages?.length === 0) {
@@ -186,16 +191,22 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [runtimeImages?.length]);
 
   useEffect(() => {
-    if (nodeDefsError) {
-      RequestErrors.serverError(nodeDefsError);
+    if (paletteError) {
+      RequestErrors.serverError(paletteError);
     }
-  }, [nodeDefsError]);
+  }, [paletteError]);
 
   useEffect(() => {
     if (runtimeImagesError) {
       RequestErrors.serverError(runtimeImagesError);
     }
   }, [runtimeImagesError]);
+
+  useEffect(() => {
+    if (runtimesSchemaError) {
+      RequestErrors.serverError(runtimesSchemaError);
+    }
+  }, [runtimesSchemaError]);
 
   const contextRef = useRef(context);
   useEffect(() => {
@@ -243,8 +254,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         );
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
         pipelineJson.pipelines[0].app_data.properties.runtime =
-          getRuntimeDisplayName(pipelineJson.pipelines[0].app_data.runtime) ??
-          'Generic';
+          pipelineRuntimeDisplayName ?? 'Generic';
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -256,7 +266,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [runtimeImages]);
+  }, [pipelineRuntimeDisplayName, runtimeImages]);
 
   const onChange = useCallback(
     (pipelineJson: any): void => {

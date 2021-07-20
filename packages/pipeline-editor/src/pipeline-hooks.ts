@@ -20,8 +20,7 @@ import {
   kubeflowIcon,
   airflowIcon,
   pyIcon,
-  rIcon,
-  IconUtil
+  rIcon
 } from '@elyra/ui-components';
 import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
@@ -53,6 +52,17 @@ export const useRuntimeImages = (): IReturn<IRuntimeImagesResponse> => {
   );
 
   data?.sort((a, b) => 0 - (a.name > b.name ? -1 : 1));
+
+  return { data, error };
+};
+
+const schemaFetcher = async <T>(key: string): Promise<T> => {
+  return await MetadataService.getSchema(key);
+};
+
+// TODO: type this
+export const useRuntimesSchema = (): IReturn<any> => {
+  const { data, error } = useSWR<any>('runtimes', schemaFetcher);
 
   return { data, error };
 };
@@ -103,20 +113,6 @@ interface IComponentPropertiesResponse {
   }[];
 }
 
-type INodeDefsResponse = INodeDef[];
-
-interface INodeDef {
-  label: string;
-  op: string;
-  image: string;
-  description: string;
-  runtime?: string;
-  properties: IComponentPropertiesResponse;
-  extensions?: string[];
-}
-
-const HACK = false;
-
 // TODO: We should decouple components and properties to support lazy loading.
 // TODO: type this
 const componentFetcher = async (runtime: string): Promise<any> => {
@@ -124,16 +120,11 @@ const componentFetcher = async (runtime: string): Promise<any> => {
     IRuntimeComponentsResponse
   >(`elyra/pipeline/components/${runtime}`);
 
+  // Gather list of component IDs to fetch properties for.
   const componentList: string[] = [];
-  if (HACK) {
-    for (const category of palette.categories) {
-      componentList.push(category.id);
-    }
-  } else {
-    for (const category of palette.categories) {
-      for (const node of category.node_types) {
-        componentList.push(node.id);
-      }
+  for (const category of palette.categories) {
+    for (const node of category.node_types) {
+      componentList.push(node.id);
     }
   }
 
@@ -150,42 +141,6 @@ const componentFetcher = async (runtime: string): Promise<any> => {
   // load all of the properties in parallel instead of serially
   const properties = await Promise.all(propertiesPromises);
 
-  if (HACK) {
-    const node_types = palette.categories
-      .map((c: any) => {
-        return c.node_types.map((n: any) => {
-          return {
-            op: n.op,
-            description: c.description,
-            id: c.id,
-            image: c.id,
-            label: c.id,
-            type: n.type,
-            inputs: n.inputs,
-            outputs: n.outputs,
-            parameters: n.parameters,
-            app_data: {
-              parameter_refs: c.parameter_refs,
-              extensions: c.extensions,
-              image: c.image,
-              ui_data: n.app_data.ui_data
-            }
-          };
-        });
-      })
-      .flat();
-    // Ignore groups until backend returns full palette
-    palette.categories = [
-      {
-        label: 'Nodes',
-        image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
-        id: 'nodes',
-        description: 'List of all available nodes',
-        node_types: node_types
-      }
-    ];
-  }
-
   // inject properties
   for (const category of palette.categories) {
     for (const node of category.node_types) {
@@ -197,6 +152,7 @@ const componentFetcher = async (runtime: string): Promise<any> => {
   return palette;
 };
 
+// TODO: This should be enabled through `extensions`
 const NodeIcons: Map<string, string> = new Map([
   [
     'execute-notebook-node',
@@ -222,10 +178,10 @@ export const getRuntimeIcon = (runtime?: string): LabIcon => {
   return pipelineIcon;
 };
 
-export const useNodeDefs = (pipelineRuntime = 'local'): IReturn<any> => {
+export const usePalette = (pipelineRuntime = 'local'): IReturn<any> => {
   const { data: runtimeImages, error: runtimeError } = useRuntimeImages();
 
-  const { data: palette, error: nodeDefError } = useSWR(
+  const { data: palette, error: paletteError } = useSWR(
     pipelineRuntime,
     componentFetcher
   );
@@ -265,5 +221,5 @@ export const useNodeDefs = (pipelineRuntime = 'local'): IReturn<any> => {
     });
   }
 
-  return { data: updatedPalette, error: runtimeError ?? nodeDefError };
+  return { data: updatedPalette, error: runtimeError ?? paletteError };
 };
