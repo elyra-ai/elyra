@@ -48,7 +48,8 @@ def test_parse_kfp_component_file():
         'name': 'Test Operator',
         'type': FilesystemComponentReader.type,
         'location': _get_resource_path('kfp_test_operator.yaml'),
-        'adjusted_id': ''
+        'adjusted_id': '',
+        'category_id': 'kfp'
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -95,7 +96,8 @@ def test_parse_kfp_component_url():
         'name': 'Run Notebook Using Papermill',
         'type': UrlComponentReader.type,
         'location': 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml',  # noqa: E501
-        'adjusted_id': ''
+        'adjusted_id': '',
+        'category_id': 'kfp'
     }
     component_entry = SimpleNamespace(**entry)
     parser = KfpComponentParser()
@@ -119,10 +121,10 @@ async def test_parse_components_invalid_location():
     component_parser = KfpComponentParser()
     component_registry = ComponentRegistry(component_registry_location, component_parser)
 
-    components = component_registry.get_all_components()
+    components, categories = component_registry.get_all_components()
     assert len(components) == 0
 
-    palette_json = ComponentRegistry.to_canvas_palette(components)
+    palette_json = ComponentRegistry.to_canvas_palette(components, categories)
     empty_palette = {
         "version": "3.0",
         "categories": []
