@@ -64,7 +64,7 @@ class ComponentRegistry(LoggingConfigurable):
 
     _generic_category: dict = SimpleNamespace(**({
         "id": "generic",
-        "label": "Generic Components",
+        "label": "Generic",
         "image": "",
         "description": "Components that are supported by all runtimes"
     }))

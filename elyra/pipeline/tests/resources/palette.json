@@ -2,7 +2,7 @@
   "version": "3.0",
   "categories": [
     {
-      "label": "Generic Components",
+      "label": "Generic",
       "image": "",
       "id": "generic",
       "description": "Components that are supported by all runtimes",

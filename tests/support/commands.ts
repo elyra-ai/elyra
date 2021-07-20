@@ -146,17 +146,13 @@ Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
 Cypress.Commands.add('expandPaletteCategory', ({ type } = {}): void => {
   switch (type) {
     case 'kfp':
-      cy.get(
-        '.palette-flyout-category[value="Kubeflow Pipelines Components"]'
-      ).click();
+      cy.get('.palette-flyout-category[value="Kubeflow Pipelines"]').click();
       break;
     case 'airflow':
-      cy.get(
-        '.palette-flyout-category[value="Apache Airflow Components"]'
-      ).click();
+      cy.get('.palette-flyout-category[value="Apache Airflow"]').click();
       break;
     default:
-      cy.get('.palette-flyout-category[value="Generic Components"]').click();
+      cy.get('.palette-flyout-category[value="Generic"]').click();
       break;
   }
 });
