@@ -53,7 +53,8 @@ class AirflowComponentParser(ComponentParser):
                                         runtime=self._type,
                                         source_type=registry_entry.type,
                                         source=registry_entry.location,
-                                        properties=component_properties))
+                                        properties=component_properties,
+                                        category=registry_entry.category))
         else:
             component_classes = self._get_all_classes(component_definition)
             for component_class in component_classes.keys():
@@ -64,7 +65,8 @@ class AirflowComponentParser(ComponentParser):
                                             runtime=self._type,
                                             source_type=registry_entry.type,
                                             source=registry_entry.location,
-                                            properties=component_properties))
+                                            properties=component_properties,
+                                            category=registry_entry.category))
 
         return components
 

@@ -41,21 +41,31 @@ class ComponentRegistry(LoggingConfigurable):
                               op="execute-notebook-node",
                               source_type="elyra",
                               source="elyra",
-                              extensions=[".ipynb"]),
+                              extensions=[".ipynb"],
+                              category="generic"),
         "python-script": Component(id="python-script",
                                    name="Python Script",
                                    description="Run Python script",
                                    op="execute-python-node",
                                    source_type="elyra",
                                    source="elyra",
-                                   extensions=[".py"]),
+                                   extensions=[".py"],
+                                   category="generic"),
         "r-script": Component(id="r-script",
                               name="R Script",
                               description="Run R script",
                               op="execute-r-node",
                               source_type="elyra",
                               source="elyra",
-                              extensions=[".r"])}
+                              extensions=[".r"],
+                              category="generic")}
+
+    _generic_category: dict = SimpleNamespace(**({
+        "id": "generic",
+        "label": "Generic Components",
+        "image": "",
+        "description": "<GENERIC_CATEGORY_DESCRIPTION>"
+    }))
 
     def __init__(self, component_registry_location: str, parser: ComponentParser):
         super().__init__()
@@ -101,6 +111,23 @@ class ComponentRegistry(LoggingConfigurable):
             component = next(iter(component), None)
         return component
 
+    def get_categories(self) -> List[dict]:
+        category_entries: list = list()
+        with open(self._component_registry_location, 'r') as catalog_file:
+            catalog_json = json.load(catalog_file)
+
+            if 'categories' in catalog_json.keys():
+                for category_id, category_metadata in catalog_json['categories'].items():
+
+                    category_entry = {
+                        "id": category_id,
+                        "label": category_metadata["label"],
+                        "image": category_metadata["image"],
+                        "description": category_metadata["description"]
+                    }
+                    category_entries.append(SimpleNamespace(**category_entry))
+        return category_entries
+
     @staticmethod
     def get_generic_components() -> List[Component]:
         return list(ComponentRegistry._generic_components.values())
@@ -110,7 +137,11 @@ class ComponentRegistry(LoggingConfigurable):
         return ComponentRegistry._generic_components.get(component_id)
 
     @staticmethod
-    def to_canvas_palette(components: List[Component]) -> Dict:
+    def get_generic_category() -> dict:
+        return ComponentRegistry._generic_category
+
+    @staticmethod
+    def to_canvas_palette(components: List[Component], categories: list) -> Dict:
         """
         Converts registry components into appropriate canvas palette format
         """
@@ -119,7 +150,7 @@ class ComponentRegistry(LoggingConfigurable):
         template_env = Environment(loader=loader)
         template = template_env.get_template('canvas_palette_template.jinja2')
 
-        canvas_palette = template.render(components=components)
+        canvas_palette = template.render(components=components, categories=categories)
         palette_json = json.loads(canvas_palette)
         return palette_json
 
@@ -157,12 +188,15 @@ class ComponentRegistry(LoggingConfigurable):
                     component_type = next(iter(component_entry.get('location')))
                     component_location = self._get_relative_location(component_type,
                                                                      component_entry["location"][component_type])
+
+                    # TODO Add error checking for category here or elsewhere
                     entry = {
                         "id": component_id,
                         "name": component_entry["name"],
                         "type": component_type,
                         "location": component_location,
-                        "adjusted_id": None
+                        "adjusted_id": None,
+                        "category": component_entry["category"]
                     }
                     component_entries.append(SimpleNamespace(**entry))
 
@@ -202,6 +236,7 @@ class CachedComponentRegistry(ComponentRegistry):
 
     _cache: List[Component] = list()
     _last_updated = None
+    _categories: list = list()
 
     def __init__(self, component_registry_location: str, parser: ComponentParser, cache_ttl_in_seconds: int = 60):
         super().__init__(component_registry_location, parser)
@@ -209,6 +244,7 @@ class CachedComponentRegistry(ComponentRegistry):
 
         # Initialize the cache
         self.get_all_components()
+        self.get_categories()
 
     def get_all_components(self) -> List[Component]:
         if self._is_cache_expired():
@@ -223,8 +259,15 @@ class CachedComponentRegistry(ComponentRegistry):
         cached_component = next((component for component in self._cache if component.id == component_id), None)
         return cached_component
 
+    def get_categories(self) -> list:
+        if self._is_cache_expired():
+            self._update_cache()
+
+        return self._categories
+
     def _update_cache(self):
         self._cache = super().get_all_components()
+        self._categories = super().get_categories()
         self._last_updated = time.time()
 
     def _is_cache_expired(self):

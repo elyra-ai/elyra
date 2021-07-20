@@ -115,7 +115,7 @@ interface INodeDef {
   extensions?: string[];
 }
 
-const HACK = true;
+const HACK = false;
 
 // TODO: We should decouple components and properties to support lazy loading.
 // TODO: type this

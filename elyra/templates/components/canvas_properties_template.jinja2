@@ -97,6 +97,16 @@
           "id": "nodeGroupInfo",
           "type": "panels",
           "group_info": [
+            {
+              "id": "label",
+              "type": "controls",
+              "parameter_refs": ["label"]
+            },
+            {
+              "id": "component_source",
+              "type": "controls",
+              "parameter_refs": ["component_source"]
+            },
 {% for property in component.properties %}
             {
               "id": "elyra_{{ property.ref }}",

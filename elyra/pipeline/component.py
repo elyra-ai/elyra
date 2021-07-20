@@ -153,7 +153,7 @@ class Component(object):
 
     def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
                  source: str, runtime: Optional[str] = None, op: Optional[str] = None,
-                 properties: Optional[List[ComponentParameter]] = None,
+                 category: str = None, properties: Optional[List[ComponentParameter]] = None,
                  extensions: Optional[List[str]] = None,
                  parameter_refs: Optional[dict] = None):
         """
@@ -181,6 +181,7 @@ class Component(object):
 
         self._runtime = runtime
         self._op = op
+        self._category = category
         self._properties = properties
 
         if not parameter_refs:
@@ -229,6 +230,10 @@ class Component(object):
             return self._op
         else:
             return self._id
+
+    @property
+    def category(self) -> str:
+        return self._category
 
     @property
     def properties(self) -> Optional[List[ComponentParameter]]:

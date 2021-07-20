@@ -106,6 +106,12 @@ class PipelineProcessorManager(SingletonConfigurable):
             run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
         return res
 
+    async def get_categories(self, processor_type):
+        processor = self._get_processor_for_runtime(processor_type)
+
+        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_categories)
+        return res
+
     async def process(self, pipeline):
         processor = self._get_processor_for_runtime(pipeline.runtime)
 
@@ -208,6 +214,14 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             return self._component_registry.get_component(component_id=component_id)
 
         return ComponentRegistry.get_generic_component(component_id)
+
+    def get_categories(self) -> list:
+        categories: list = [ComponentRegistry.get_generic_category()]
+
+        if self._component_registry:
+            categories.extend(self._component_registry.get_categories())
+
+        return categories
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:

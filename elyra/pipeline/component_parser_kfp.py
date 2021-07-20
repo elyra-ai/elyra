@@ -46,7 +46,8 @@ class KfpComponentParser(ComponentParser):
                               runtime=self._type,
                               source_type=registry_entry.type,
                               source=registry_entry.location,
-                              properties=component_properties)
+                              properties=component_properties,
+                              category=registry_entry.category)
         return [component]
 
     def _parse_properties(self, component_yaml):
