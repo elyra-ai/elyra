@@ -1,7 +1,7 @@
 {
   "categories": {
     "kfp": {
-      "label": "Kubeflow Pipeline Components",
+      "label": "Kubeflow Pipelines Components",
       "image": "",
       "description": "Components that are supported by Kubeflow Pipelines"
     }
