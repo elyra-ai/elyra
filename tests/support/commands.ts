@@ -158,3 +158,9 @@ Cypress.Commands.add('expandPaletteCategory', ({ type } = {}): void => {
       break;
   }
 });
+
+Cypress.Commands.add('closeTab', (index: number): void => {
+  cy.get('.lm-TabBar-tabCloseIcon:visible')
+    .eq(index)
+    .click();
+});
