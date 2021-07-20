@@ -323,7 +323,8 @@
       "app_data": {
         "ui_data": {
           "comments": []
-        }
+        },
+        "version": 4
       },
       "runtime_ref": ""
     }

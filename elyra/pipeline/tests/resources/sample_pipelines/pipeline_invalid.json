@@ -25,7 +25,8 @@
         "runtime-config": "{{runtime-config}}",
         "ui_data": {
           "comments": []
-        }
+        },
+        "version": 4
       }
     }
   ],

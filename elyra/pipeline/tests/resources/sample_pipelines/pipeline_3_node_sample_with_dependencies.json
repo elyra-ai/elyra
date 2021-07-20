@@ -158,7 +158,8 @@
               "associated_id_refs": []
             }
           ]
-        }
+        },
+        "version": 4
       },
       "runtime_ref": ""
     }

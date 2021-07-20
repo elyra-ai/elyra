@@ -206,7 +206,8 @@
         "name": "test-definition",
         "ui_data": {
           "comments": []
-        }
+        },
+        "version": 4
       },
       "runtime_ref": ""
     }

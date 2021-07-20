@@ -576,7 +576,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 1,
+        "version": 4,
         "runtime": "kfp",
         "runtime-config": "kfp-yukked1",
         "source": "pipeline_dependency_complex.json"
