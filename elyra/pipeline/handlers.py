@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 import json
+from typing import Dict
 from typing import List
+from typing import Optional
 
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
@@ -109,7 +111,7 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         components: List[Component] = await PipelineProcessorManager.instance().get_components(processor)
-        categories: list = await PipelineProcessorManager.instance().get_categories(processor)
+        categories: List[Dict] = await PipelineProcessorManager.instance().get_categories(processor)
         palette_json = ComponentRegistry.to_canvas_palette(components=components, categories=categories)
 
         self.set_status(200)
@@ -130,7 +132,7 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         if not component_id:
             raise web.HTTPError(400, "Missing component ID")
 
-        component: Component = \
+        component: Optional[Component] = \
             await PipelineProcessorManager.instance().get_component(processor, component_id)
         properties_json = ComponentRegistry.to_canvas_properties(component)
 
