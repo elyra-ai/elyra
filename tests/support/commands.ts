@@ -147,14 +147,16 @@ Cypress.Commands.add('expandPaletteCategory', ({ type } = {}): void => {
   switch (type) {
     case 'kfp':
       cy.get(
-        '.palette-flyout-category[value="Kubeflow Pipelines Nodes"]'
+        '.palette-flyout-category[value="Kubeflow Pipelines Components"]'
       ).click();
       break;
     case 'airflow':
-      cy.get('.palette-flyout-category[value="Apache Airflow Nodes"]').click();
+      cy.get(
+        '.palette-flyout-category[value="Apache Airflow Components"]'
+      ).click();
       break;
     default:
-      cy.get('.palette-flyout-category[value="Generic Nodes"]').click();
+      cy.get('.palette-flyout-category[value="Generic Components"]').click();
       break;
   }
 });
