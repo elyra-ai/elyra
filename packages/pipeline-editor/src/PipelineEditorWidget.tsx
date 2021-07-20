@@ -101,98 +101,20 @@ const getAllPaletteNodes = (palette: any): any[] => {
   return nodes;
 };
 
-const isGenericNode = (nodeDef: any): boolean => {
-  return !nodeDef.runtime;
-};
-
-const createPalette = (nodeDefs: any[] | undefined): any => {
-  console.log(nodeDefs);
-
-  const categories = [
-    {
-      label: 'Generic Nodes',
-      image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
-      id: 'genericNodes',
-      description: 'Nodes that can be run with any runtime',
-      node_types: nodeDefs?.filter(isGenericNode) ?? []
-    }
-  ];
-
-  // if (pipelineRuntimeDisplayName) {
-  //   categories.push({
-  //     label: `${pipelineRuntimeDisplayName} Nodes`,
-  //     image: IconUtil.encode(
-  //       pipelineRuntimeName === 'kfp'
-  //         ? kubeflowIcon
-  //         : pipelineRuntimeName === 'airflow'
-  //         ? airflowIcon
-  //         : pipelineIcon
-  //     ),
-  //     id: `${pipelineRuntimeName}Nodes`,
-  //     description: `Nodes that can only be run on ${pipelineRuntimeDisplayName}`,
-  //     node_types:
-  //       nodeDefs?.filter((nodeDef: any) => !isGenericNode(nodeDef)) ?? []
-  //   });
-  // }
-
-  const palette = {
-    version: '3.0' as '3.0',
-    categories: categories ?? []
-  };
-
-  for (const category of categories) {
-    for (const i in category.node_types) {
-      const { op, label, image, description, ...rest } = category.node_types[i];
-      category.node_types[i] = {
-        op,
-        id: op,
-        label,
-        image,
-        type: 'execution_node',
-        inputs: [
-          {
-            id: 'inPort',
-            app_data: {
-              ui_data: {
-                cardinality: {
-                  min: 0,
-                  max: -1
-                },
-                label: 'Input Port'
-              }
-            }
-          }
-        ],
-        outputs: [
-          {
-            id: 'outPort',
-            app_data: {
-              ui_data: {
-                cardinality: {
-                  min: 0,
-                  max: -1
-                },
-                label: 'Output Port'
-              }
-            }
-          }
-        ],
-        parameters: {},
-        app_data: {
-          image: image ?? '',
-          ...rest,
-          ui_data: {
-            label,
-            description,
-            image: image ?? '',
-            x_pos: 0,
-            y_pos: 0
-          }
-        }
-      };
-    }
+// TODO: We need to get this info from the server.
+const getRuntimeDisplayName = (
+  runtime: string | undefined
+): string | undefined => {
+  switch (runtime) {
+    case 'kfp':
+      return 'Kubeflow Pipelines';
+    case 'airflow':
+      return 'Apache Airflow';
+    default:
+      // The UI expects this to be undefined...
+      // return 'Generic';
+      return undefined;
   }
-  return palette;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -247,19 +169,11 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [pipeline, setPipeline] = useState<any>(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState('');
-  // const pipelineRuntime = pipeline?.pipelines?.[0]?.app_data?.runtime
-  //   ? {
-  //       name: pipeline?.pipelines?.[0]?.app_data?.runtime,
-  //       display_name:
-  //         pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.display_name
-  //     }
-  //   : null;
 
   const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
-  const pipelineRuntimeDisplayName =
-    pipeline?.pipelines?.[0]?.app_data?.ui_data?.runtime?.display_name;
+  const pipelineRuntimeDisplayName = getRuntimeDisplayName(pipelineRuntimeName);
 
-  const { data: nodeDefs, error: nodeDefsError } = useNodeDefs(
+  const { data: palette, error: nodeDefsError } = useNodeDefs(
     pipelineRuntimeName
   );
 
@@ -317,6 +231,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           }
         }
       }
+      // TODO: don't persist this, but this will break things right now
       if (pipelineJson?.pipelines?.[0]?.app_data) {
         if (!pipelineJson.pipelines[0].app_data.properties) {
           pipelineJson.pipelines[0].app_data.properties = {};
@@ -328,7 +243,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         );
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
         pipelineJson.pipelines[0].app_data.properties.runtime =
-          pipelineJson.pipelines[0].app_data.ui_data?.runtime?.display_name ??
+          getRuntimeDisplayName(pipelineJson.pipelines[0].app_data.runtime) ??
           'Generic';
       }
       setPipeline(pipelineJson);
@@ -547,8 +462,6 @@ const PipelineWrapper: React.FC<IProps> = ({
       }
     }
   }, [pipeline?.pipelines]);
-
-  const palette = createPalette(nodeDefs);
 
   const handleExportPipeline = useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
@@ -1100,7 +1013,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     setAlert('');
   };
 
-  if (loading || nodeDefs === undefined) {
+  if (loading || palette === undefined) {
     return <div className="elyra-loader"></div>;
   }
 

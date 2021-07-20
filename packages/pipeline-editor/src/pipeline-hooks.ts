@@ -20,7 +20,8 @@ import {
   kubeflowIcon,
   airflowIcon,
   pyIcon,
-  rIcon
+  rIcon,
+  IconUtil
 } from '@elyra/ui-components';
 import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
@@ -69,6 +70,7 @@ interface IRuntimeComponent {
   runtime?: string;
   node_types: {
     op: string;
+    id: string;
     type: 'execution_node';
     inputs: { app_data: any }[];
     outputs: { app_data: any }[];
@@ -113,35 +115,86 @@ interface INodeDef {
   extensions?: string[];
 }
 
-const componentFetcher = async (
-  runtime: string
-): Promise<INodeDefsResponse> => {
-  const components = await RequestHandler.makeGetRequest<
+const HACK = true;
+
+// TODO: We should decouple components and properties to support lazy loading.
+// TODO: type this
+const componentFetcher = async (runtime: string): Promise<any> => {
+  const palette = await RequestHandler.makeGetRequest<
     IRuntimeComponentsResponse
   >(`elyra/pipeline/components/${runtime}`);
 
-  const propertiesPromises = components.categories.map(category =>
-    RequestHandler.makeGetRequest<IComponentPropertiesResponse>(
-      `elyra/pipeline/components/${runtime}/${category.id}/properties`
-    )
-  );
+  const componentList: string[] = [];
+  if (HACK) {
+    for (const category of palette.categories) {
+      componentList.push(category.id);
+    }
+  } else {
+    for (const category of palette.categories) {
+      for (const node of category.node_types) {
+        componentList.push(node.id);
+      }
+    }
+  }
+
+  const propertiesPromises = componentList.map(async componentID => {
+    const res = await RequestHandler.makeGetRequest<
+      IComponentPropertiesResponse
+    >(`elyra/pipeline/components/${runtime}/${componentID}/properties`);
+    return {
+      id: componentID,
+      properties: res
+    };
+  });
 
   // load all of the properties in parallel instead of serially
   const properties = await Promise.all(propertiesPromises);
 
-  // zip together properties and components
-  return properties.map((prop, i) => {
-    const component = components.categories[i];
-    return {
-      op: component.node_types[0].op,
-      image: component.image,
-      label: component.label,
-      description: component.description,
-      runtime: component.runtime,
-      extensions: component.extensions,
-      properties: prop
-    };
-  });
+  if (HACK) {
+    const node_types = palette.categories
+      .map((c: any) => {
+        return c.node_types.map((n: any) => {
+          return {
+            op: n.op,
+            description: c.description,
+            id: c.id,
+            image: c.id,
+            label: c.id,
+            type: n.type,
+            inputs: n.inputs,
+            outputs: n.outputs,
+            parameters: n.parameters,
+            app_data: {
+              parameter_refs: c.parameter_refs,
+              extensions: c.extensions,
+              image: c.image,
+              ui_data: n.app_data.ui_data
+            }
+          };
+        });
+      })
+      .flat();
+    // Ignore groups until backend returns full palette
+    palette.categories = [
+      {
+        label: 'Nodes',
+        image: IconUtil.encode(IconUtil.colorize(pipelineIcon, '#808080')),
+        id: 'nodes',
+        description: 'List of all available nodes',
+        node_types: node_types
+      }
+    ];
+  }
+
+  // inject properties
+  for (const category of palette.categories) {
+    for (const node of category.node_types) {
+      const prop = properties.find(p => p.id === node.id);
+      node.app_data.properties = prop?.properties;
+    }
+  }
+
+  return palette;
 };
 
 const NodeIcons: Map<string, string> = new Map([
@@ -169,44 +222,48 @@ export const getRuntimeIcon = (runtime?: string): LabIcon => {
   return pipelineIcon;
 };
 
-export const useNodeDefs = (
-  pipelineRuntime = 'local'
-): IReturn<INodeDefsResponse> => {
+export const useNodeDefs = (pipelineRuntime = 'local'): IReturn<any> => {
   const { data: runtimeImages, error: runtimeError } = useRuntimeImages();
 
-  const { data: nodeDefs, error: nodeDefError } = useSWR<INodeDefsResponse>(
+  const { data: palette, error: nodeDefError } = useSWR(
     pipelineRuntime,
     componentFetcher
   );
 
-  const updatedDefs = nodeDefs?.map(def =>
-    produce(def, draft => {
-      // update icon
-      const nodeIcon = NodeIcons.get(draft.op);
-      if (!nodeIcon || nodeIcon === '') {
-        draft.image =
-          'data:image/svg+xml;utf8,' +
-          encodeURIComponent(getRuntimeIcon(pipelineRuntime).svgstr);
-      } else {
-        draft.image = nodeIcon;
+  let updatedPalette;
+  if (palette !== undefined) {
+    updatedPalette = produce(palette, (draft: any) => {
+      for (const category of draft.categories) {
+        for (const node of category.node_types) {
+          // update icon
+          let nodeIcon = NodeIcons.get(node.op);
+          if (nodeIcon === undefined || nodeIcon === '') {
+            nodeIcon =
+              'data:image/svg+xml;utf8,' +
+              encodeURIComponent(getRuntimeIcon(pipelineRuntime).svgstr);
+          }
+
+          // Not sure which is needed...
+          node.image = nodeIcon;
+          node.app_data.image = nodeIcon;
+          node.app_data.ui_data.image = nodeIcon;
+
+          // update runtime images
+          const runtimeImageIndex = node.app_data.properties.uihints.parameter_info.findIndex(
+            (p: any) => p.parameter_ref === 'elyra_runtime_image'
+          );
+
+          const displayNames = (runtimeImages ?? []).map(i => i.display_name);
+
+          if (runtimeImageIndex !== -1) {
+            node.app_data.properties.uihints.parameter_info[
+              runtimeImageIndex
+            ].data.items = displayNames;
+          }
+        }
       }
+    });
+  }
 
-      // update runtime images
-      const param = draft.properties.uihints.parameter_info.find(
-        p => p.parameter_ref === 'elyra_runtime_image'
-      );
-
-      const displayNames = (runtimeImages ?? []).map(i => i.display_name);
-
-      if (param?.data) {
-        param.data.items = displayNames;
-      } else {
-        param!.data = {
-          items: displayNames
-        };
-      }
-    })
-  );
-
-  return { data: updatedDefs, error: runtimeError ?? nodeDefError };
+  return { data: updatedPalette, error: runtimeError ?? nodeDefError };
 };
