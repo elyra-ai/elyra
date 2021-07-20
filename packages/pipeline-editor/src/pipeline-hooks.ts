@@ -20,7 +20,8 @@ import {
   kubeflowIcon,
   airflowIcon,
   pyIcon,
-  rIcon
+  rIcon,
+  IconUtil
 } from '@elyra/ui-components';
 import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
@@ -143,6 +144,21 @@ const componentFetcher = async (runtime: string): Promise<any> => {
 
   // inject properties
   for (const category of palette.categories) {
+    // TODO: The server will provide this in a later release
+    switch (category.id) {
+      case 'kfp':
+        category.image = IconUtil.encode(kubeflowIcon);
+        break;
+      case 'airflow':
+        category.image = IconUtil.encode(airflowIcon);
+        break;
+      default:
+        category.image = IconUtil.encode(
+          IconUtil.colorize(pipelineIcon, '#808080')
+        );
+        break;
+    }
+
     for (const node of category.node_types) {
       const prop = properties.find(p => p.id === node.id);
       node.app_data.properties = prop?.properties;
