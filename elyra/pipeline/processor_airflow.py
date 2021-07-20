@@ -241,9 +241,17 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                         # Get corresponding component_property value from parsed pipeline and convert
                         op_property = operation.component_params.get(component_property.ref)
                         operation.component_params[component_property.ref] = json.dumps(op_property)
-                    elif component_property.type in ['dict', 'dictionary', 'list']:
+                    elif component_property.type in ['dict', 'dictionary']:
                         # Get corresponding component_property value from parsed pipeline and convert
                         op_property = operation.component_params.get(component_property.ref)
+                        if not op_property:
+                            op_property = "{}"
+                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
+                    elif component_property.type in ['list', 'set', 'array', 'arr']:
+                        op_property = operation.component_params.get(component_property.ref)
+                        # Get corresponding component_property value from parsed pipeline and convert
+                        if not op_property:
+                            op_property = "[]"
                         operation.component_params[component_property.ref] = ast.literal_eval(op_property)
 
                 # Get component class from operation name

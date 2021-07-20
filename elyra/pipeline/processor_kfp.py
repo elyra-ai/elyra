@@ -428,17 +428,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Volume size to create when using CRI-o, NOTE: IBM Cloud minimum is 20Gi
                 emptydir_volume_size = '20Gi'
 
-            # Collect env variables
-            pipeline_envs = self._collect_envs(operation,
-                                               cos_secret=cos_secret,
-                                               cos_username=cos_username,
-                                               cos_password=cos_password)
-
             sanitized_operation_name = self._sanitize_operation_name(operation.name)
 
             # Create pipeline operation
             # If operation is one of the "generic" set of NBs or scripts, construct custom ExecuteFileOp
             if isinstance(operation, GenericOperation):
+
+                # Collect env variables
+                pipeline_envs = self._collect_envs(operation,
+                                                   cos_secret=cos_secret,
+                                                   cos_username=cos_username,
+                                                   cos_password=cos_password)
+
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
@@ -530,6 +531,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
+                    operation.component_params_as_dict.pop("inputs")
+                    operation.component_params_as_dict.pop("outputs")
                     target_ops[operation.id] = factory_function(**operation.component_params_as_dict)
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
