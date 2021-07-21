@@ -319,7 +319,7 @@ def describe(pipeline_path):
     """
     Display pipeline description in a human readable format
     """
-    print_banner("Elyra Pipeline Local Run")
+    print_banner("Elyra Pipeline Describe")
 
 
 pipeline.add_command(submit)
