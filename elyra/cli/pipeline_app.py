@@ -326,6 +326,8 @@ def describe(pipeline_path):
 
     _validate_pipeline_file(pipeline_path)
 
+    print_banner("Elyra Pipeline Description Complete")
+
 
 pipeline.add_command(submit)
 pipeline.add_command(run)
