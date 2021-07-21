@@ -334,9 +334,6 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
-    cy.closeTab(-1);
-    // dismiss 'save your work' dialog
-    cy.findByRole('button', { name: /discard/i }).click();
   });
 
   it('should save runtime configuration', () => {
