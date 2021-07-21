@@ -59,6 +59,11 @@ const theme: any = {
       main: 'var(--jp-error-color0)',
       contrastText: 'var(--jp-icon-contrast-color3)'
     },
+    errorMessage: {
+      main: 'var(--jp-error-color1)',
+      contrastText: 'rgba(255, 255, 255, 0.9)',
+      errorBorder: 'var(--jp-error-color0)'
+    },
     icon: {
       primary: 'var(--jp-ui-font-color0)',
       secondary: 'var(--jp-ui-font-color0)'
