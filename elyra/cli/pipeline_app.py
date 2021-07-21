@@ -317,9 +317,14 @@ def run(pipeline_path):
 @click.argument('pipeline_path')
 def describe(pipeline_path):
     """
-    Display pipeline description in a human readable format
+    Describe a pipeline in a human readable format
     """
+
+    click.echo()
+
     print_banner("Elyra Pipeline Describe")
+
+    _validate_pipeline_file(pipeline_path)
 
 
 pipeline.add_command(submit)
