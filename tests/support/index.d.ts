@@ -33,5 +33,6 @@ declare namespace Cypress {
     expandPaletteCategory(options?: {
       type?: 'kfp' | 'airflow' | 'generic';
     }): Chainable<void>;
+    closeTab(index: number): Chainable<void>;
   }
 }

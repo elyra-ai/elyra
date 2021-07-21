@@ -881,7 +881,12 @@ const PipelineWrapper: React.FC<IProps> = ({
           shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
           break;
         case 'openFile':
-          commands.execute(commandIDs.openDocManager, { path: args.payload });
+          commands.execute(commandIDs.openDocManager, {
+            path: PipelineService.getWorkspaceRelativeNodePath(
+              contextRef.current.path,
+              args.payload
+            )
+          });
           break;
         default:
           break;
