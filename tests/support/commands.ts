@@ -107,6 +107,20 @@ Cypress.Commands.add('addFileToPipeline', (name: string): void => {
   cy.findByRole('menuitem', { name: /add file to pipeline/i }).click();
 });
 
+Cypress.Commands.add('dragAndDropFileToPipeline', (name: string): void => {
+  const dragItem = cy.findByRole('listitem', {
+    name: (n, _el) => n.includes(name)
+  });
+
+  dragItem.trigger('mousedown', { button: 0 });
+
+  // drop item into canvas
+  cy.get('.d3-svg-background')
+    .trigger('mousemove')
+    .trigger('mouseup', { button: 0, force: true })
+    .wait(100);
+});
+
 Cypress.Commands.add('savePipeline', (): void => {
   cy.findByRole('button', { name: /save pipeline/i }).click();
   // can take a moment to register as saved in ci
