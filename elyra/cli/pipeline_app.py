@@ -103,19 +103,13 @@ def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) 
     if len(pipeline_definition['pipelines']) == 0:
         raise click.ClickException("Pipeline has zero length 'pipelines' field.")
 
+    # Find primary pipeline
     primary_pipeline_key = pipeline_definition['primary_pipeline']
     primary_pipeline = None
-    try:
-        for pipeline in pipeline_definition["pipelines"]:
-            if pipeline['id'] == primary_pipeline_key:
-                primary_pipeline = pipeline
-            for node in pipeline["nodes"]:
-                if 'filename' in node["app_data"]["component_parameters"]:
-                    abs_path = os.path.join(pipeline_dir, node["app_data"]["component_parameters"]["filename"])
-                    node["app_data"]["component_parameters"]["filename"] = abs_path
 
-    except Exception as e:
-        raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
+    for pipeline in pipeline_definition["pipelines"]:
+        if pipeline['id'] == primary_pipeline_key:
+            primary_pipeline = pipeline
 
     assert primary_pipeline is not None, f"No primary pipeline was found in {pipeline_path}"
 
@@ -128,6 +122,16 @@ def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) 
         # New version of Elyra is needed
         raise click.ClickException('Pipeline was last edited in a newer version of Elyra. '
                                    'Update Elyra to use this pipeline.')
+
+    try:
+        for pipeline in pipeline_definition["pipelines"]:
+            for node in pipeline["nodes"]:
+                if 'filename' in node["app_data"]["component_parameters"]:
+                    abs_path = os.path.join(pipeline_dir, node["app_data"]["component_parameters"]["filename"])
+                    node["app_data"]["component_parameters"]["filename"] = abs_path
+
+    except Exception as e:
+        raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
 
     if not _validate_pipeline_runtime(primary_pipeline, runtime):
         runtime_description = primary_pipeline['app_data']['ui_data']['runtime']['display_name']
