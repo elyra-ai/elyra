@@ -21,7 +21,7 @@ from click.testing import CliRunner
 import elyra.cli.pipeline_app as pipeline_app
 from elyra.cli.pipeline_app import pipeline
 
-SUB_COMMANDS = ['run', 'submit']
+SUB_COMMANDS = ['run', 'submit', 'describe']
 
 PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD = \
     '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[],"schemas":[]}'

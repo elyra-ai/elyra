@@ -313,5 +313,15 @@ def run(pipeline_path):
     print_banner("Elyra Pipeline Local Run Complete")
 
 
+@click.command()
+@click.argument('pipeline_path')
+def describe(pipeline_path):
+    """
+    Display pipeline description in a human readable format
+    """
+    print_banner("Elyra Pipeline Local Run")
+
+
 pipeline.add_command(submit)
 pipeline.add_command(run)
+pipeline.add_command(describe)
