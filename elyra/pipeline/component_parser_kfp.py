@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from types import SimpleNamespace
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -29,7 +32,7 @@ class KfpComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def parse(self, registry_entry) -> Optional[List[Component]]:
+    def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         component_yaml = self._read_component_yaml(registry_entry)
         if not component_yaml:
             return None
@@ -50,7 +53,7 @@ class KfpComponentParser(ComponentParser):
                               category_id=registry_entry.category_id)
         return [component]
 
-    def _parse_properties(self, component_yaml):
+    def _parse_properties(self, component_yaml: Dict[str, Any]) -> List[ComponentParameter]:
         properties: List[ComponentParameter] = list()
 
         # NOTE: Currently no runtime-specific properties are needed
@@ -93,7 +96,7 @@ class KfpComponentParser(ComponentParser):
                                                  required=required))
         return properties
 
-    def get_runtime_specific_properties(self):
+    def get_runtime_specific_properties(self) -> List[ComponentParameter]:
         """
         Define properties that are common to the KFP runtime.
         """
@@ -106,24 +109,23 @@ class KfpComponentParser(ComponentParser):
                                          required=True)]
         return properties
 
-    def _read_component_yaml(self, registry_entry):
+    def _read_component_yaml(self, registry_entry: SimpleNamespace) -> Optional[Dict[str, Any]]:
         """
         Convert component_body string to YAML object.
         """
         try:
             reader = self._get_reader(registry_entry)
             component_definition = reader.read_component_definition(registry_entry)
-
             return yaml.safe_load(component_definition)
         except Exception as e:
             self.log.debug(f"Could not read definition for component: {registry_entry.id} -> {str(e)}")
             return None
 
     def _get_adjusted_parameter_fields(self,
-                                       component_body,
-                                       io_object_name,
-                                       io_object_type,
-                                       parameter_type):
+                                       component_body: Dict[str, Any],
+                                       io_object_name: str,
+                                       io_object_type: str,
+                                       parameter_type: str) -> str:
         """
         Change the parameter ref according if it is a KFP path parameter (as opposed to a value parameter)
         """

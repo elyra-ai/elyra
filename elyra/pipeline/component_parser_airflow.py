@@ -15,6 +15,8 @@
 #
 import ast
 import re
+from types import SimpleNamespace
+from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -29,13 +31,13 @@ class AirflowComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def get_catalog_entry_id_for_component(self, component_id):
+    def get_catalog_entry_id_for_component(self, component_id: str) -> str:
         # Component ids are structure differently in Airflow to handle the case
         # where there are multiple classes in one operator file. The id queried
         # must be adjusted to match the id expected in the component_entry catalog.
         return component_id.split('_')[0]
 
-    def parse(self, registry_entry) -> Optional[List[Component]]:
+    def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         components: List[Component] = list()
 
         component_definition = self._read_component_definition(registry_entry)
@@ -70,7 +72,7 @@ class AirflowComponentParser(ComponentParser):
 
         return components
 
-    def _get_all_classes(self, component_definition):
+    def _get_all_classes(self, component_definition: str) -> Dict[str, Dict]:
         # Organize lines according to the class to which they belong
         classes = {}
         class_name = "no_class"
@@ -89,7 +91,7 @@ class AirflowComponentParser(ComponentParser):
         classes.pop("no_class")
         return classes
 
-    def _get_class_with_classname(self, classname, component_definition):
+    def _get_class_with_classname(self, classname: str, component_definition: str) -> Dict[str, List]:
         classes = self._get_all_classes(component_definition)
 
         if classname not in classes.keys():
@@ -109,7 +111,7 @@ class AirflowComponentParser(ComponentParser):
 
         return classes[classname]
 
-    def _parse_properties(self, component_definition, component_class):
+    def _parse_properties(self, component_definition: str, component_class: str) -> List[ComponentParameter]:
         properties: List[ComponentParameter] = list()
 
         # NOTE: Currently no runtime-specific properties are needed, including runtime image. See
@@ -156,7 +158,7 @@ class AirflowComponentParser(ComponentParser):
                                                  control_id=control_id))
         return properties
 
-    def get_runtime_specific_properties(self):
+    def get_runtime_specific_properties(self) -> List[ComponentParameter]:
         """
         Define properties that are common to the Airflow runtime.
         """
@@ -170,7 +172,7 @@ class AirflowComponentParser(ComponentParser):
                                          required=True)]
         return properties
 
-    def _read_component_definition(self, registry_entry):
+    def _read_component_definition(self, registry_entry: SimpleNamespace) -> str:
         """
         Delegate to ComponentReader to read component definition
         """

@@ -182,7 +182,7 @@ class ComponentRegistry(LoggingConfigurable):
                         "type": component_type,
                         "location": component_location,
                         "catalog_entry_id": component_id,
-                        "category_id": component_entry["category"]
+                        "category_id": component_entry.get("category")
                     }
                     component_entries.append(SimpleNamespace(**entry))
             if 'categories' in catalog_json.keys():

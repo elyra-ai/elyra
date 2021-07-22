@@ -18,6 +18,7 @@ import ast
 from http import HTTPStatus
 from logging import Logger
 import os
+from types import SimpleNamespace
 from typing import List
 from typing import Optional
 
@@ -315,13 +316,13 @@ class ComponentParser(LoggingConfigurable):  # ABC
     }
 
     @abstractmethod
-    def parse(self, registry_entry: dict) -> List[Component]:
+    def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         raise NotImplementedError()
 
     def get_catalog_entry_id_for_component(self, component_id: str) -> str:
         return component_id
 
-    def _get_reader(self, component_entry: dict) -> ComponentReader:
+    def _get_reader(self, component_entry: SimpleNamespace) -> ComponentReader:
         """
         Find the proper reader based on the given registry component entry.
         """
