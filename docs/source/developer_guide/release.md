@@ -26,7 +26,6 @@ mostly to abstract integration with other runtimes and components.
 
 Currently, these packages are:
 
-- [kfp-notebook](https://github.com/elyra-ai/kfp-notebook)
 - [airflow-notebook](https://github.com/elyra-ai/airflow-notebook)
 - [pipeline-editor](https://github.com/elyra-ai/pipeline-editor)
 - [canvas](https://github.com/elyra-ai/canvas)
@@ -141,5 +140,3 @@ docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && d
   - https://github.com/conda-forge/elyra-pipeline-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-r-editor-extension-feedstock/pulls
-
-

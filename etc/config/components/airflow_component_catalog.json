@@ -1,40 +1,53 @@
 {
+  "categories": {
+    "airflow": {
+      "label": "Apache Airflow",
+      "image": "",
+      "description": "Components that are supported by Apache Airflow"
+    }
+  },
   "components": {
     "bash-operator": {
       "name": "Bash Operator",
       "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py"
-      }
+      },
+      "category": "airflow"
     },
     "email-operator": {
       "name": "Email Operator",
       "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py"
-      }
+      },
+      "category": "airflow"
     },
     "http-operator": {
       "name": "HTTP Operator",
       "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/http_operator.py"
-      }
+      },
+      "category": "airflow"
     },
     "spark-sql-operator": {
       "name": "Spark Sql Operator",
       "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py"
-      }
+      },
+      "category": "airflow"
     },
     "spark-submit-operator": {
       "name": "Spark Submit Operator",
       "location": {
         "url": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py"
-      }
+      },
+      "category": "airflow"
     },
     "slack-operator": {
       "name": "Slack Operator",
       "location": {
         "filename": "slack_operator.py"
-      }
+      },
+      "category": "airflow"
     }
   }
 }

@@ -19,6 +19,7 @@ import nbformat
 import pytest
 
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor_local import LocalPipelineProcessor
 from elyra.pipeline.tests.util import _read_pipeline_resource
 from elyra.pipeline.tests.util import construct_pipeline
@@ -74,6 +75,7 @@ def test_pipeline_get_envs():
     pipeline = PipelineParser().parse(pipeline_definitions)
 
     for op in pipeline.operations.values():
+        assert isinstance(op, GenericOperation)
         op_envs = op.env_vars_as_dict()
         assert op_envs['OP_NAME'] == op.name
 

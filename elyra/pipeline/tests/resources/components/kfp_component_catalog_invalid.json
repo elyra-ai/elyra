@@ -1,0 +1,25 @@
+{
+  "components": {
+    "run-notebook-using-papermill": {
+      "name": "Run Notebook Using Papermill",
+      "location": {
+        "filename": "/path/to/invalid.yaml"
+      },
+      "category": "kfp"
+    },
+    "filter-text": {
+      "name": "Filter text",
+      "location": {
+        "filename": "/path/to/invalid.yaml"
+      },
+      "category": "kfp"
+    },
+    "kubeflow-serve-model-using-kfserving": {
+      "name": "Serve Model using KFServing",
+      "location": {
+        "filename": "/path/to/invalid.yaml"
+      },
+      "category": "kfp"
+    }
+  }
+}

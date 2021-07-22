@@ -13,11 +13,14 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "filename": "{{filename}}",
-            "runtime_image": "{{runtime_image}}",
-            "env_vars": ["var1=var1", "var2=var2", "", null],
-            "dependencies": ["a.txt", "b.txt", "", null, "c.txt"],
-            "outputs": ["d.txt", null, "", "e.txt", "f.txt"],
+            "label": "{{label}}",
+            "component_parameters": {
+              "filename": "{{filename}}",
+              "runtime_image": "{{runtime_image}}",
+              "env_vars": ["var1=var1", "var2=var2", "", null],
+              "dependencies": ["a.txt", "b.txt", "", null, "c.txt"],
+              "outputs": ["d.txt", null, "", "e.txt", "f.txt"]
+            },
             "ui_data": {
               "label": "{{label}}",
               "x_pos": 112,
@@ -33,7 +36,8 @@
         "runtime-config": "{{runtime-config}}",
         "ui_data": {
           "comments": []
-        }
+        },
+        "version": 4
       }
     }
   ],

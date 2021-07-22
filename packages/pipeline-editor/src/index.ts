@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
 import {
   containerIcon,
   pipelineIcon,
@@ -37,7 +38,6 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
-import { PIPELINE_CURRENT_VERSION } from './constants';
 import { getRuntimeIcon } from './pipeline-hooks';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
@@ -196,12 +196,7 @@ const extension: JupyterFrontEndPlugin<void> = {
                   nodes: [],
                   app_data: {
                     ui_data: {
-                      comments: [],
-                      runtime: args.runtime
-                        ? {
-                            display_name: args.runtime?.display_name
-                          }
-                        : null
+                      comments: []
                     },
                     version: PIPELINE_CURRENT_VERSION,
                     runtime: args.runtime?.name
