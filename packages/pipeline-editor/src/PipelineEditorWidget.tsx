@@ -336,7 +336,7 @@ const PipelineWrapper: React.FC<IProps> = ({
               return pipeline;
             });
             contextRef.current.model.fromString(
-              JSON.stringify(migratedPipeline)
+              JSON.stringify(migratedPipeline, null, 2)
             );
           } else {
             if (shell.currentWidget) {
