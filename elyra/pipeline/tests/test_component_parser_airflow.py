@@ -75,6 +75,18 @@ def test_parse_airflow_component_file():
     assert properties_json['current_parameters']['elyra_test_dict_default'] == ''  # {}
     assert properties_json['current_parameters']['elyra_test_list_default'] == ''  # []
 
+    unusual_dict_property = next(prop for prop in properties_json['uihints']['parameter_info']
+                                 if prop.get('parameter_ref') == 'elyra_test_unusual_type_dict')
+    assert unusual_dict_property['data']['format'] == "dictionary"
+
+    unusual_array_property = next(prop for prop in properties_json['uihints']['parameter_info']
+                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_list')
+    assert unusual_array_property['data']['format'] == "list"
+
+    unusual_string_property = next(prop for prop in properties_json['uihints']['parameter_info']
+                                   if prop.get('parameter_ref') == 'elyra_test_unusual_type_string')
+    assert unusual_string_property['data']['format'] == "string"
+
 
 def test_parse_airflow_component_url():
     entry = {
