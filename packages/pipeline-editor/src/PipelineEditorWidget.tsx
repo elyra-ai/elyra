@@ -434,9 +434,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       )
     ];
 
-    return {
-      component_parameters: { env_vars: merged_env_vars.filter(Boolean) }
-    };
+    return { env_vars: merged_env_vars.filter(Boolean) };
   };
 
   const handleOpenFile = (data: any): void => {
