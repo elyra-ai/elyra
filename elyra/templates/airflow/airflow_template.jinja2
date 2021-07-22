@@ -82,9 +82,9 @@ op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|reg
         op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
     {% endif %}
 
-    {% if operation.parent_operations_ids %}
-        {% for parent_operation in operation.parent_operations_ids %}
-            op_{{ operation.id|regex_replace }} << op_{{ parent_operation_ids|regex_replace }}
+    {% if operation.parent_operation_ids %}
+        {% for parent_operation_id in operation.parent_operation_ids %}
+            op_{{ operation.id|regex_replace }} << op_{{ parent_operation_id|regex_replace }}
         {% endfor %}
     {% endif %}
 {% endfor %}
