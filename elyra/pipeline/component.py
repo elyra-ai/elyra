@@ -343,7 +343,9 @@ class ComponentParser(LoggingConfigurable):  # ABC
             type_lowered = "dictionary"
         elif type_lowered in ['list', 'set', 'array', 'arr']:
             type_lowered = "list"
-        elif type_lowered not in ['file']:
+        elif type_lowered in ['file']:
+            type_lowered = "file"
+        else:
             type_lowered = "string"
 
         return type_lowered, control_id, default_value
