@@ -21,6 +21,7 @@ import os
 import time
 from typing import Dict
 from typing import List
+from typing import Optional
 
 import entrypoints
 from jupyter_core.paths import ENV_JUPYTER_PATH
@@ -36,8 +37,9 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_registry import CachedComponentRegistry
 from elyra.pipeline.component_registry import ComponentRegistry
-from elyra.pipeline.parser import Operation
-from elyra.pipeline.parser import Pipeline
+from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import Pipeline
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from elyra.util.path import get_expanded_path
@@ -103,6 +105,12 @@ class PipelineProcessorManager(SingletonConfigurable):
 
         res = await asyncio.get_event_loop().\
             run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
+        return res
+
+    async def get_categories(self, processor_type):
+        processor = self._get_processor_for_runtime(processor_type)
+
+        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_categories)
         return res
 
     async def process(self, pipeline):
@@ -198,15 +206,23 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
         return components
 
-    def get_component(self, component_id: str) -> Component:
+    def get_component(self, component_id: str) -> Optional[Component]:
         """
         Retrieve runtime-specific component details if component_id is not one of the generic set
         """
 
-        if component_id not in ('notebooks', 'python-script', 'r-script'):
+        if component_id not in ('notebook', 'python-script', 'r-script'):
             return self._component_registry.get_component(component_id=component_id)
 
         return ComponentRegistry.get_generic_component(component_id)
+
+    def get_categories(self) -> List[Dict]:
+        categories: List[Dict] = [ComponentRegistry.get_generic_category()]
+
+        if self._component_registry:
+            categories.extend(self._component_registry.get_categories())
+
+        return categories
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:
@@ -253,7 +269,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
         for operation in sorted_operations:
             parent_io = set()  # gathers inputs & outputs relative to parent
-            for parent_operation_id in operation.parent_operations:
+            for parent_operation_id in operation.parent_operation_ids:
                 parent_operation = pipeline.operations[parent_operation_id]
                 if parent_operation.inputs:
                     parent_io.update(parent_operation.inputs)
@@ -286,7 +302,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         # Optimization: check if already processed
         if operation not in ordered_operations:
             # process each of the dependencies that needs to be executed first
-            for parent_operation_id in operation.parent_operations:
+            for parent_operation_id in operation.parent_operation_ids:
                 parent_operation = operations_by_id[parent_operation_id]
                 if parent_operation not in ordered_operations:
                     PipelineProcessor._sort_operation_dependencies(operations_by_id,
@@ -398,7 +414,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
             self.log.error('Error retrieving metadata configuration for {}'.format(name), exc_info=True)
             raise RuntimeError('Error retrieving metadata configuration for {}', err) from err
 
-    def _collect_envs(self, operation: Operation, **kwargs) -> Dict:
+    def _collect_envs(self, operation: GenericOperation, **kwargs) -> Dict:
         """
         Collect the envs stored on the Operation and set the system-defined ELYRA_RUNTIME_ENV
 

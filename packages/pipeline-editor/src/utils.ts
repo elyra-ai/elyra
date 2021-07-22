@@ -55,13 +55,13 @@ export default class Utils {
     template.pipelines[0].id = generated_uuid;
 
     template.pipelines[0].nodes[0].id = generated_uuid;
-    template.pipelines[0].nodes[0].app_data.filename = filename;
-    template.pipelines[0].nodes[0].app_data.runtime_image = runtimeImage;
-    template.pipelines[0].nodes[0].app_data.env_vars = envVars;
-    template.pipelines[0].nodes[0].app_data.dependencies = dependencies;
-    template.pipelines[0].nodes[0].app_data.cpu = cpu;
-    template.pipelines[0].nodes[0].app_data.gpu = gpu;
-    template.pipelines[0].nodes[0].app_data.memory = memory;
+    template.pipelines[0].nodes[0].app_data.component_parameters.filename = filename;
+    template.pipelines[0].nodes[0].app_data.component_parameters.runtime_image = runtimeImage;
+    template.pipelines[0].nodes[0].app_data.component_parameters.env_vars = envVars;
+    template.pipelines[0].nodes[0].app_data.component_parameters.dependencies = dependencies;
+    template.pipelines[0].nodes[0].app_data.component_parameters.cpu = cpu;
+    template.pipelines[0].nodes[0].app_data.component_parameters.gpu = gpu;
+    template.pipelines[0].nodes[0].app_data.component_parameters.memory = memory;
 
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = runtime_platform;

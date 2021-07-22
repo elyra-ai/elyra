@@ -16,22 +16,24 @@
 import pytest
 
 from elyra.pipeline.parser import PipelineParser
-from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.tests.util import _read_pipeline_resource
 
 
 @pytest.fixture
 def valid_operation():
-    return Operation(id='{{uuid}}',
-                     type='execution_node',
-                     classifier='execute-notebook-node',
-                     name='{{label}}',
-                     filename='{{filename}}',
-                     runtime_image='{{runtime_image}}',
-                     env_vars=["var1=var1", "var2=var2"],
-                     dependencies=["a.txt", "b.txt", "c.txt"],
-                     outputs=["d.txt", "e.txt", "f.txt"],
-                     )
+    component_parameters = {
+        'filename': '{{filename}}',
+        'runtime_image': '{{runtime_image}}',
+        'env_vars': ["var1=var1", "var2=var2"],
+        'dependencies': ["a.txt", "b.txt", "c.txt"],
+        'outputs': ["d.txt", "e.txt", "f.txt"]
+    }
+    return GenericOperation(id='{{uuid}}',
+                            type='execution_node',
+                            classifier='execute-notebook-node',
+                            name='{{label}}',
+                            component_params=component_parameters)
 
 
 def test_valid_pipeline(valid_operation):
@@ -120,18 +122,18 @@ def test_supernode_pipeline():
     for node_id in pipeline.operations:
         # Validate operations list
         if node_id in external_input_node_ids:
-            # These are input nodes, ensure parent_operations are empty
-            assert len(pipeline.operations[node_id].parent_operations) == 0
+            # These are input nodes, ensure parent_operation_ids are empty
+            assert len(pipeline.operations[node_id].parent_operation_ids) == 0
             continue
         if node_id == supernode_excution_node_id:
             # Node within supernode, should have two parent_ops matching external_input_node_ids
-            assert len(pipeline.operations[node_id].parent_operations) == 2
-            assert set(pipeline.operations[node_id].parent_operations) == set(external_input_node_ids)
+            assert len(pipeline.operations[node_id].parent_operation_ids) == 2
+            assert set(pipeline.operations[node_id].parent_operation_ids) == set(external_input_node_ids)
             continue
         if node_id == external_node_id:
             # Final external node, should have super_node embedded node as parent op.
-            assert len(pipeline.operations[node_id].parent_operations) == 1
-            assert pipeline.operations[node_id].parent_operations[0] == supernode_excution_node_id
+            assert len(pipeline.operations[node_id].parent_operation_ids) == 1
+            assert pipeline.operations[node_id].parent_operation_ids[0] == supernode_excution_node_id
             continue
         assert False, "Invalid node_id encountered in pipeline operations!"
 
@@ -161,7 +163,7 @@ def test_pipeline_with_dependencies():
 
     pipeline = PipelineParser().parse(pipeline_definitions)
 
-    assert len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].parent_operations) == 2
+    assert len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].parent_operation_ids) == 2
 
 
 def test_pipeline_global_attributes():
@@ -235,7 +237,7 @@ def test_invalid_node_type():
 
 def test_missing_operation_filename():
     pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data'].pop('filename')
+    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data']['component_parameters'].pop('filename')
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_definitions)
@@ -245,16 +247,9 @@ def test_missing_operation_filename():
 
 def test_missing_operation_image():
     pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data'].pop('runtime_image')
+    pipeline_definitions['pipelines'][0]['nodes'][0]['app_data']['component_parameters'].pop('runtime_image')
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_definitions)
 
     assert "Missing field 'operation runtime image'" in str(e.value)
-
-
-def test_scrub_list_function():
-    env_variables_input = ['FOO=Bar', 'BAR=Foo', None, '']
-    env_variables_output = ['FOO=Bar', 'BAR=Foo']
-
-    assert PipelineParser()._scrub_list(env_variables_input) == env_variables_output

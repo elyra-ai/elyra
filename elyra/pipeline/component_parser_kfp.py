@@ -19,8 +19,8 @@ from typing import Optional
 import yaml
 
 from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component import ComponentProperty
 
 
 class KfpComponentParser(ComponentParser):
@@ -28,9 +28,6 @@ class KfpComponentParser(ComponentParser):
 
     def __init__(self):
         super().__init__()
-
-    def get_adjusted_component_id(self, component_id):
-        return component_id
 
     def parse(self, registry_entry) -> Optional[List[Component]]:
         component_yaml = self._read_component_yaml(registry_entry)
@@ -41,27 +38,23 @@ class KfpComponentParser(ComponentParser):
         if component_yaml.get('description'):
             description = ' '.join(component_yaml.get('description').split())
 
-        component_properties = self._parse_properties(registry_entry, component_yaml)
+        component_properties = self._parse_properties(component_yaml)
 
         component = Component(id=registry_entry.id,
                               name=component_yaml.get('name'),
                               description=description,
                               runtime=self._type,
-                              properties=component_properties)
+                              source_type=registry_entry.type,
+                              source=registry_entry.location,
+                              properties=component_properties,
+                              category_id=registry_entry.category_id)
         return [component]
 
-    def _parse_properties(self, registry_entry, component_yaml):
-        properties: List[ComponentProperty] = list()
+    def _parse_properties(self, component_yaml):
+        properties: List[ComponentParameter] = list()
 
-        # For KFP we need a property for runtime image, path to component source, and component source type
-        runtime_image = component_yaml.get('implementation').get('container').get('image')
-        if not runtime_image:
-            raise RuntimeError(f"Invalid component: Missing runtime image for component {registry_entry.id}.")
-
-        properties.extend(
-            self.get_runtime_specific_properties(runtime_image,
-                                                 registry_entry.location,
-                                                 registry_entry.type))
+        # NOTE: Currently no runtime-specific properties are needed
+        # properties.extend(self.get_runtime_specific_properties())
 
         # Then loop through and create custom properties
         for param in component_yaml.get('inputs'):
@@ -92,40 +85,26 @@ class KfpComponentParser(ComponentParser):
                 value = param.get('default')
 
             ref = param.get('name').lower().replace(' ', '_')
-            properties.append(ComponentProperty(ref=ref,
-                                                name=param.get('name'),
-                                                type=type,
-                                                control_id=control_id,
-                                                value=(value or default_value),
-                                                description=description,
-                                                required=required))
+            properties.append(ComponentParameter(id=ref,
+                                                 name=param.get('name'),
+                                                 type=type,
+                                                 value=(value or default_value),
+                                                 description=description,
+                                                 control_id=control_id,
+                                                 required=required))
         return properties
 
-    def get_runtime_specific_properties(self, runtime_image, location, source_type):
+    def get_runtime_specific_properties(self):
         """
         Define properties that are common to the KFP runtime.
         """
-        properties = [ComponentProperty(ref="runtime_image",
-                                        name="Runtime Image",
-                                        type="string",
-                                        value=runtime_image,
-                                        description="Docker image used as execution environment.",
-                                        control="readonly",
-                                        required=True),
-                      ComponentProperty(ref="component_source",
-                                        name="Path to Component",
-                                        type="string",
-                                        value=location,
-                                        description="The path to the component specification file.",
-                                        control="readonly",
-                                        required=True),
-                      ComponentProperty(ref="component_source_type",
-                                        name="Component Source Type",
-                                        type="string",
-                                        value=source_type,
-                                        description="",
-                                        control="readonly",
-                                        required=True)]
+        properties = [ComponentParameter(id="runtime_image",
+                                         name="Runtime Image",
+                                         type="string",
+                                         value="",
+                                         description="Docker image used as execution environment.",
+                                         control="readonly",
+                                         required=True)]
         return properties
 
     def _read_component_yaml(self, registry_entry):

@@ -1,22 +1,24 @@
 {
   "version": "3.0",
   "categories": [
-{% for component in components %}
+{% for category in categories %}
     {
-      "label": "{{ component.name }}",
-      "image": "",
-      "id": "{{ component.id }}",
-      "description": "{{ component.description }}",
-    {% if component.runtime %}
-      "runtime": "{{ component.runtime }}",
-    {% endif %}
-    {% if component.extension %}
-      "extensions": ["{{ component.extension }}"],
-    {% endif %}
+      "label": "{{ category.label }}",
+      "image": "{{ category.image }}",
+      "id": "{{ category.id }}",
+      "description": "{{ category.description }}",
       "node_types": [
+{% set ns = namespace(first_match=true) %}
+{% for component in components %}
+  {% if component.category_id == category.id %}
+  {% if not ns.first_match %},{% endif %}
+  {% set ns.first_match = False %}
         {
-          "id": "",
           "op": "{{ component.op }}",
+          "description": "{{ component.description }}",
+          "id": "{{ component.id }}",
+          "image": "",
+          "label": "{{ component.name }}",
           "type": "execution_node",
           "inputs": [
             {
@@ -48,20 +50,22 @@
           ],
           "parameters": {},
           "app_data": {
+          {% if component.extensions %}
+            "extensions": {{ component.extensions|tojson }},
+            "parameter_refs": {{ component.parameter_refs|tojson }},
+          {% endif %}
+            "image": "",
             "ui_data": {
-              "label": "{{ component.name }}",
               "description": "{{ component.description }}",
+              "label": "{{ component.name }}",
               "image": "",
               "x_pos": 0,
               "y_pos": 0
             }
           }
         }
+  {% endif %}{% endfor %}
       ]
-    }
-    {% if loop.index != components|length %}
-    ,
-    {% endif %}
-{% endfor %}
+    }{% if loop.index != categories|length %},{% endif %}{% endfor %}
   ]
 }

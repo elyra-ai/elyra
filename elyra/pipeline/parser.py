@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from typing import Any
 from typing import Dict
 from typing import List
@@ -31,6 +30,7 @@ DEFAULT_FILETYPE = "tar.gz"
 class PipelineParser(LoggingConfigurable):
 
     def __init__(self, root_dir="", **kwargs):
+        super().__init__(**kwargs)
         self.root_dir = root_dir
 
     def parse(self, pipeline_definitions: Dict) -> Pipeline:
@@ -70,7 +70,7 @@ class PipelineParser(LoggingConfigurable):
 
         source = PipelineParser._get_app_data_field(primary_pipeline, 'source')
 
-        pipeline_object = Pipeline(id=id,
+        pipeline_object = Pipeline(id=primary_pipeline_id,
                                    name=PipelineParser._get_app_data_field(primary_pipeline, 'name', 'untitled'),
                                    runtime=runtime,
                                    runtime_config=runtime_config,
@@ -111,7 +111,7 @@ class PipelineParser(LoggingConfigurable):
 
             # parse each node as a pipeline operation
             operation = self._create_pipeline_operation(node, super_node)
-            self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.filename, pipeline_object.name))
+            self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.name, pipeline_object.name))
             pipeline_object.operations[operation.id] = operation
 
     def _super_node_to_operations(self,
@@ -137,10 +137,10 @@ class PipelineParser(LoggingConfigurable):
                 return p
         return None
 
-    def _create_pipeline_operation(self, node: Dict, super_node: Optional[Dict] = None):
+    def _create_pipeline_operation(self, node: Dict, super_node: Optional[Dict] = None) -> Operation:
         """
         Creates a pipeline operation instance from the given node.
-        The node and super_node are used to build the list of parent_operations (links) to
+        The node and super_node are used to build the list of parent_operation_ids (links) to
         the node (operation dependencies).
         """
         node_id = node.get('id')
@@ -148,25 +148,18 @@ class PipelineParser(LoggingConfigurable):
         if super_node:  # gather parent-links tied to embedded nodes inputs
             parent_operations.extend(PipelineParser._get_parent_operation_links(super_node, node_id))
 
-        return Operation(
+        operation_name = PipelineParser._get_app_data_field(node, 'label')
+        # If label is not set, default to using the label from ui_data
+        if not operation_name:
+            operation_name = PipelineParser._get_ui_data_field(node, 'label')
+
+        return Operation.create_instance(
             id=node_id,
             type=node.get('type'),
             classifier=node.get('op'),
-            name=PipelineParser._get_ui_data_field(node, 'label',
-                                                   default_value=PipelineParser._get_app_data_field(node, 'filename')),
-            cpu=PipelineParser._get_app_data_field(node, 'cpu'),
-            gpu=PipelineParser._get_app_data_field(node, 'gpu'),
-            memory=PipelineParser._get_app_data_field(node, 'memory'),
-            filename=PipelineParser._get_app_data_field(node, 'filename'),
-            runtime_image=PipelineParser._get_app_data_field(node, 'runtime_image'),
-            dependencies=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'dependencies', [])),
-            include_subdirectories=PipelineParser._get_app_data_field(node, 'include_subdirectories', False),
-            env_vars=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'env_vars', [])),
-            outputs=PipelineParser._scrub_list(PipelineParser._get_app_data_field(node, 'outputs', [])),
-            parent_operations=parent_operations,
-            component_source=PipelineParser._get_app_data_field(node, 'component_source'),
-            component_source_type=PipelineParser._get_app_data_field(node, 'component_source_type'),
-            component_params=self._get_remaining_component_params(node))
+            name=operation_name,
+            parent_operation_ids=parent_operations,
+            component_params=PipelineParser._get_app_data_field(node, "component_parameters", {}))
 
     @staticmethod
     def _get_child_field(obj: Dict, child: str, field_name: str, default_value: Any = None) -> Any:
@@ -220,7 +213,7 @@ class PipelineParser(LoggingConfigurable):
         return input_node_ids
 
     @staticmethod
-    def _get_parent_operation_links(node: Dict, embedded_node_id: Optional[str] = None) -> List[List[str]]:
+    def _get_parent_operation_links(node: Dict, embedded_node_id: Optional[str] = None) -> List[str]:
         """
         Gets a list nodes_ids corresponding to parent nodes (outputs directed to this node).
         For super_nodes, the node to use has an id of the embedded_node_id suffixed with '_inPort'.
@@ -235,38 +228,3 @@ class PipelineParser(LoggingConfigurable):
                 else:
                     links.extend(PipelineParser._get_input_node_ids(node_input))
         return links
-
-    @staticmethod
-    def _scrub_list(dirty: Optional[List[Optional[str]]]) -> List[str]:
-        """
-        Clean an existing list by filtering out None and empty string values
-        :param dirty: a List of values
-        :return: a clean list without None or empty string values
-        """
-        if not dirty:
-            return []
-        return [clean for clean in dirty if clean]
-
-    def _get_remaining_component_params(self, node: Dict):
-        """
-        Builds a dictionary of the parameters for a given node that do not have a corresponding
-        property in the Operation object. These parameters will be used by the appropriate processor when
-        loading and running a component that is not one of the standard notebook or script operations.
-        """
-        component_params = {}
-        if node.get('op') not in ["execute-notebook-node", "execute-python-node", "execute-r-node"]:
-            for key, value in node['app_data'].items():
-                # Do not include any null values
-                if not value or value == "None":
-                    continue
-
-                # Do not include any of the standard set of parameters
-                if key in ["filename", "runtime_image", "cpu", "gpu", "memory", "dependencies", "env_vars", "outputs",
-                           "include_subdirectories", "ui_data", "component_source", "component_source_type", "label",
-                           "image", "description", "properties", "invalidNodeError", "runtime"]:
-
-                    continue
-
-                component_params[key] = value
-
-        return component_params

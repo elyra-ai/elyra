@@ -13,7 +13,9 @@
           "type": "{{type}}",
           "op": "{{op}}",
           "app_data": {
-            "runtime_image": "{{runtime_image}}"
+            "component_parameters": {
+              "runtime_image": "{{runtime_image}}"
+            }
           }
         }
       ],
@@ -23,7 +25,8 @@
         "runtime-config": "{{runtime-config}}",
         "ui_data": {
           "comments": []
-        }
+        },
+        "version": 4
       }
     }
   ],
