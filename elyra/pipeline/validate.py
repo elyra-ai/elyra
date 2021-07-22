@@ -273,9 +273,9 @@ class PipelineValidationManager(SingletonConfigurable):
                         if pipeline_execution != 'local':
                             self._validate_container_image_name(node['id'], node_label, image_name, response=response)
                             for resource_name in resource_name_list:
-                                if resource_name in node_data.keys():
+                                if resource_name in node_data.keys() and node_data.get(resource_name):
                                     self._validate_resource_value(node['id'], node_label, resource_name=resource_name,
-                                                                  resource_value=node_data['resource_name'],
+                                                                  resource_value=node_data[resource_name],
                                                                   response=response)
 
                         # Check label against kfp naming standards
