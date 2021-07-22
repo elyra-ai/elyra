@@ -48,7 +48,7 @@ def test_parse_airflow_component_file():
         'name': 'Test Operator',
         'type': FilesystemComponentReader.type,
         'location': _get_resource_path('airflow_test_operator.py'),
-        'adjusted_id': '',
+        'catalog_entry_id': '',
         'category_id': 'airflow'
     }
     component_entry = SimpleNamespace(**entry)
@@ -82,7 +82,7 @@ def test_parse_airflow_component_url():
         'name': 'Bash Operator',
         'type': UrlComponentReader.type,
         'location': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
-        'adjusted_id': '',
+        'catalog_entry_id': '',
         'category_id': 'airflow'
     }
     component_entry = SimpleNamespace(**entry)

@@ -318,7 +318,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
     def parse(self, registry_entry: dict) -> List[Component]:
         raise NotImplementedError()
 
-    def get_adjusted_component_id(self, component_id: str) -> str:
+    def get_catalog_entry_id_for_component(self, component_id: str) -> str:
         return component_id
 
     def _get_reader(self, component_entry: dict) -> ComponentReader:

@@ -48,7 +48,7 @@ def test_parse_kfp_component_file():
         'name': 'Test Operator',
         'type': FilesystemComponentReader.type,
         'location': _get_resource_path('kfp_test_operator.yaml'),
-        'adjusted_id': '',
+        'catalog_entry_id': '',
         'category_id': 'kfp'
     }
     component_entry = SimpleNamespace(**entry)
@@ -96,7 +96,7 @@ def test_parse_kfp_component_url():
         'name': 'Run Notebook Using Papermill',
         'type': UrlComponentReader.type,
         'location': 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml',  # noqa: E501
-        'adjusted_id': '',
+        'catalog_entry_id': '',
         'category_id': 'kfp'
     }
     component_entry = SimpleNamespace(**entry)

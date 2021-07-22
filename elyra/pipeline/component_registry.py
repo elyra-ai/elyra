@@ -101,12 +101,12 @@ class ComponentRegistry(LoggingConfigurable):
         Return the properties JSON for a given component_id.
         """
         # Read component_entry catalog to get component_entry with given id
-        adjusted_id = self._parser.get_adjusted_component_id(component_id)
-        component_entry = self._get_component_registry_entry(adjusted_id)
+        catalog_entry_id = self._parser.get_catalog_entry_id_for_component(component_id)
+        component_entry = self._get_component_registry_entry(catalog_entry_id)
 
-        # Assign adjusted id for the use of parsers if prefixes have been added
-        if adjusted_id != component_id:
-            component_entry.adjusted_id = component_id
+        # Assign catalog_entry id for the use of parsers if suffixes have been added
+        if catalog_entry_id != component_id:
+            component_entry.id = component_id
 
         component = self._parser.parse(component_entry)
         if component:
@@ -181,7 +181,7 @@ class ComponentRegistry(LoggingConfigurable):
                         "name": component_entry["name"],
                         "type": component_type,
                         "location": component_location,
-                        "adjusted_id": None,
+                        "catalog_entry_id": component_id,
                         "category_id": component_entry["category"]
                     }
                     component_entries.append(SimpleNamespace(**entry))

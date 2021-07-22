@@ -29,7 +29,7 @@ class AirflowComponentParser(ComponentParser):
     def __init__(self):
         super().__init__()
 
-    def get_adjusted_component_id(self, component_id):
+    def get_catalog_entry_id_for_component(self, component_id):
         # Component ids are structure differently in Airflow to handle the case
         # where there are multiple classes in one operator file. The id queried
         # must be adjusted to match the id expected in the component_entry catalog.
@@ -42,12 +42,12 @@ class AirflowComponentParser(ComponentParser):
         if not component_definition:
             return None
 
-        # If id is prepended with elyra_op_, only parse for the class specified in the id.
+        # If id is different from the catalog_entry_id, only parse for the class specified in the id.
         # Else, parse the component definition for all classes
-        if registry_entry.adjusted_id:
-            component_class = registry_entry.adjusted_id.split('_')[-1]
+        if registry_entry.catalog_entry_id != registry_entry.id:
+            component_class = registry_entry.id.split('_')[-1]
             component_properties = self._parse_properties(component_definition, component_class)
-            components.append(Component(id=registry_entry.adjusted_id,
+            components.append(Component(id=registry_entry.id,
                                         name=component_class,
                                         description='',
                                         runtime=self._type,
@@ -59,7 +59,7 @@ class AirflowComponentParser(ComponentParser):
             component_classes = self._get_all_classes(component_definition)
             for component_class in component_classes.keys():
                 component_properties = self._parse_properties(component_definition, component_class)
-                components.append(Component(id=f"{registry_entry.id}_{component_class}",
+                components.append(Component(id=f"{registry_entry.catalog_entry_id}_{component_class}",
                                             name=component_class,
                                             description='',
                                             runtime=self._type,
