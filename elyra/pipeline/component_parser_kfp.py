@@ -65,9 +65,7 @@ class KfpComponentParser(ComponentParser):
                 required = False
 
             # Assign type, default to string
-            type = "string"
-            if "type" in param:
-                type = param.get('type')
+            type = param.get('type', 'string')
 
             # Set description and include parsed type information
             description = self._get_description_with_type_hint(param.get('description'), type)
@@ -80,9 +78,8 @@ class KfpComponentParser(ComponentParser):
 
             type, control_id, default_value = self.determine_type_information(type)
 
-            value = ''
-            if "default" in param:
-                value = param.get('default')
+            # Get value if provided
+            value = param.get('default', '')
 
             ref = param.get('name').lower().replace(' ', '_')
             properties.append(ComponentParameter(id=ref,

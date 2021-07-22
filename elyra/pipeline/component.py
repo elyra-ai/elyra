@@ -14,12 +14,10 @@
 # limitations under the License.
 #
 from abc import abstractmethod
-import ast
 from http import HTTPStatus
 from logging import Logger
 import os
 import re
-from typing import Any
 from typing import List
 from typing import Optional
 
@@ -53,13 +51,6 @@ class ComponentParameter(object):
 
         self._ref = id
         self._name = name
-
-        if control_id == "BooleanControl":
-            if not value:
-                value = False
-            else:
-                value = ast.literal_eval(str(value))
-
         self._type = type
         self._value = value
 
@@ -310,13 +301,13 @@ class ComponentParser(LoggingConfigurable):  # ABC
         else:
             return f"(type: {type})"
 
-    def determine_type_information(self, type: str):
+    def determine_type_information(self, parsed_type: str):
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.
 
         """
-        type_lowered = type.lower()
+        type_lowered = parsed_type.lower()
         type_options = ['dictionary', 'dict', 'set', 'list', 'array', 'arr']
 
         # Prefer types that occur in a clause of the form "[type] of ..."
@@ -335,11 +326,11 @@ class ComponentParser(LoggingConfigurable):  # ABC
                     break
 
         # Set control id and default value for UI rendering purposes
+        # Standardize type names
         control_id = "StringControl"
         default_value = ''
         if any(word in type_lowered for word in ["str", "string"]):
             type_lowered = "string"
-            default_value = ''
         elif any(word in type_lowered for word in ['int', 'integer', 'number']):
             type_lowered = "number"
             control_id = "NumberControl"
@@ -350,13 +341,9 @@ class ComponentParser(LoggingConfigurable):  # ABC
             default_value = False
         elif type_lowered in ['dict', 'dictionary']:
             type_lowered = "dictionary"
-            default_value = ''
         elif type_lowered in ['list', 'set', 'array', 'arr']:
             type_lowered = "list"
-            default_value = ''
-        elif type_lowered in ['file']:
-            default_value = ''
-        else:
+        elif type_lowered not in ['file']:
             type_lowered = "string"
 
         return type_lowered, control_id, default_value
