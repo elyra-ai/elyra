@@ -31,7 +31,7 @@ class ComponentParameter(object):
     """
 
     def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool = False,
-                 control: str = "custom", control_id: str = "StringControl", items: List[str] = []):
+                 control: str = "custom", control_id: str = "StringControl", items: Optional[List[str]] = None):
         """
         :param ref: Unique identifier for a property
         :param name: The name of the property for display
@@ -98,7 +98,7 @@ class ComponentParameter(object):
         self._description = description
         self._control = control
         self._control_id = control_id
-        self._items = items
+        self._items = items or []
 
         # Check description for information about 'required' parameter
         if "not optional" in description.lower() or \
