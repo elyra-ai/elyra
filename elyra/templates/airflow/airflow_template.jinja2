@@ -49,6 +49,7 @@ op_{{ operation.id|regex_replace }} = NotebookOp(class_name='{{ operation.notebo
                                                           namespace='{{ namespace }}',
                                                           task_id='{{ operation.notebook|regex_replace }}',
                                                           notebook='{{ operation.filename }}',
+                                                          image='{{ operation.runtime_image }}',
                                                           cos_endpoint='{{ operation.cos_endpoint }}',
                                                           cos_bucket='{{ operation.cos_bucket }}',
                                                           cos_directory='{{ operation.cos_directory }}',
@@ -68,7 +69,7 @@ op_{{ operation.id|regex_replace }} = NotebookOp(class_name='{{ operation.notebo
                                                                        'limit_gpu': '{{ operation.cpu_request }}',
             {% endif %}
         },
-                                                          image='{{ operation.runtime_image }}',
+
         {% endif %}
     {% endif %}
     {% if cos_secret %}
