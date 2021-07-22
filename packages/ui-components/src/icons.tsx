@@ -113,11 +113,21 @@ export class IconUtil {
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(icon.svgstr);
   }
 
+  private static colorizedIcons: { [key: string]: LabIcon } = {};
+
   static colorize(
     icon: LabIcon,
     fillColor?: string,
     strokeColor?: string
   ): LabIcon {
+    const iconName = `${icon.name}${fillColor ? ':' + fillColor : ''}${
+      strokeColor ? ':' + strokeColor : ''
+    }`;
+
+    if (this.colorizedIcons[iconName]) {
+      return this.colorizedIcons[iconName];
+    }
+
     let svgstr = icon.svgstr;
 
     if (fillColor) {
@@ -130,13 +140,15 @@ export class IconUtil {
       );
     }
 
-    return LabIcon.resolve({
+    const coloredIcon = LabIcon.resolve({
       icon: {
-        name: `${icon.name}${fillColor ? ':' + fillColor : ''}${
-          strokeColor ? ':' + strokeColor : ''
-        }`,
+        name: iconName,
         svgstr: svgstr
       }
     });
+
+    this.colorizedIcons[iconName] = coloredIcon;
+
+    return coloredIcon;
   }
 }

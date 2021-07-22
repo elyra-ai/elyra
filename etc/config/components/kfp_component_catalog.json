@@ -1,22 +1,32 @@
 {
+  "categories": {
+    "kfp": {
+      "label": "Kubeflow Pipelines",
+      "image": "",
+      "description": "Components that are supported by Kubeflow Pipelines"
+    }
+  },
   "components": {
     "run-notebook-using-papermill": {
       "name": "Run Notebook Using Papermill",
       "location": {
-        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml"
-      }
+        "filename": "run_notebook_using_papermill/component.yaml"
+      },
+      "category": "kfp"
     },
-    "filter-text-using-shell-and-grep": {
-      "name": "Filter text using shell and grep",
+    "filter-text": {
+      "name": "Filter text",
       "location": {
-        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/master/components/sample/Shell_script/component.yaml"
-      }
+        "filename": "filter_text_using_shell_and_grep/component.yaml"
+      },
+      "category": "kfp"
     },
     "kubeflow-serve-model-using-kfserving": {
       "name": "Serve Model using KFServing",
       "location": {
-        "url": "https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/kubeflow/kfserving/component.yaml"
-      }
+        "filename": "kubeflow_serve_model_using_kfserving/component.yaml"
+      },
+      "category": "kfp"
     }
   }
 }

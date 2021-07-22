@@ -69,16 +69,16 @@ jobs:
       - name: Install
         run: make yarn-install
       - name: Lint
-        run: make eslint-ui
+        run: make eslint-check-ui
       - name: Check format
-        run: make prettier-ui
+        run: make prettier-check-ui
 
   test-server:
     name: Test Server
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2

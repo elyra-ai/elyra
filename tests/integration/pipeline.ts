@@ -136,7 +136,7 @@ describe('Pipeline Editor tests', () => {
       // producer props
       cy.findByText('producer.ipynb').rightclick();
       cy.findByRole('menuitem', { name: /properties/i }).click();
-      cy.get('[data-id="properties-filename"]').within(() => {
+      cy.get('[data-id="properties-elyra_filename"]').within(() => {
         cy.findByRole('button', { name: /browse/i }).click();
       });
     });
@@ -146,7 +146,7 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.get('#jp-main-dock-panel').within(() => {
-      cy.get('[data-id="properties-outputs"]').within(() => {
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-1.csv');
         cy.findByRole('button', { name: /ok/i }).click();
@@ -155,25 +155,25 @@ describe('Pipeline Editor tests', () => {
         cy.focused().type('output-2.csv');
         cy.findByRole('button', { name: /ok/i }).click();
       });
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
 
       // consumer props
       cy.findByText('consumer.ipynb').click();
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
 
       // setup props
       cy.findByText('setup.py').click();
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
-      cy.get('[data-id="properties-dependencies"]').within(() => {
+      cy.get('[data-id="properties-elyra_dependencies"]').within(() => {
         cy.findByRole('button', { name: /browse/i }).click();
       });
     });
@@ -187,11 +187,11 @@ describe('Pipeline Editor tests', () => {
     cy.get('#jp-main-dock-panel').within(() => {
       // create-source-files props
       cy.findByText('create-source-files.py').click();
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
-      cy.get('[data-id="properties-outputs"]').within(() => {
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('input-1.csv');
         cy.findByRole('button', { name: /ok/i }).click();
@@ -203,11 +203,11 @@ describe('Pipeline Editor tests', () => {
 
       // producer-script props
       cy.findByText('producer-script.py').click();
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
-      cy.get('[data-id="properties-outputs"]').within(() => {
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-3.csv');
         cy.findByRole('button', { name: /ok/i }).click();
@@ -254,17 +254,76 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/simple.pipeline').matchesSnapshot();
   });
 
-  it('should open notebook on double-click', () => {
-    cy.createPipeline();
+  it('should open notebook on double-clicking the node', () => {
+    // Open a pipeline in root directory
+    cy.openFile('helloworld.pipeline');
 
-    cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
-
-    // Open notebook with double-click
-    cy.get('#jp-main-dock-panel').within(() => {
+    // Open notebook node with double-click
+    cy.get('.common-canvas-drop-div').within(() => {
       cy.findByText('helloworld.ipynb').dblclick();
     });
 
     cy.findAllByRole('tab', { name: 'helloworld.ipynb' }).should('exist');
+
+    // close tabs
+    cy.closeTab(-1); // notebook tab
+    cy.findByRole('button', { name: /discard/i }).click();
+    cy.closeTab(-1); // pipeline tab
+
+    // Open a pipeline in a subfolder
+    cy.bootstrapFile('pipelines/producer.ipynb');
+    cy.openDirectory('pipelines');
+    cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
+    cy.openFile('complex.pipeline');
+    cy.get('.common-canvas-drop-div');
+    cy.wait(300);
+    cy.addFileToPipeline('producer.ipynb');
+    cy.wait(300);
+
+    // Open notebook node with double-click
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('producer.ipynb').dblclick();
+    });
+
+    cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
+  });
+
+  it('should open notebook from node right-click menu', () => {
+    // Open a pipeline in root directory
+    cy.openFile('helloworld.pipeline');
+
+    // Open notebook node with right-click menu
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb').rightclick();
+      cy.findByRole('menuitem', { name: /open file/i }).click();
+    });
+
+    cy.findAllByRole('tab', { name: 'helloworld.ipynb' }).should('exist');
+
+    // close tabs
+    cy.closeTab(-1); // notebook tab
+    cy.findByRole('button', { name: /discard/i }).click();
+    cy.closeTab(-1); // pipeline tab
+
+    // Open a pipeline in a subfolder
+    cy.bootstrapFile('pipelines/producer.ipynb');
+    cy.openDirectory('pipelines');
+    cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
+    cy.openFile('complex.pipeline');
+    cy.get('.common-canvas-drop-div');
+    cy.wait(300);
+    cy.addFileToPipeline('producer.ipynb');
+
+    // Open notebook node with right-click menu
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('producer.ipynb').rightclick();
+      cy.findByRole('menuitem', { name: /open file/i }).click();
+    });
+
+    cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
+    cy.closeTab(-1);
+    // dismiss 'save your work' dialog
+    cy.findByRole('button', { name: /discard/i }).click();
   });
 
   it('should save runtime configuration', () => {
@@ -405,7 +464,7 @@ describe('Pipeline Editor tests', () => {
 
       cy.findByText('helloworld.py').click();
 
-      cy.get('[data-id="properties-env_vars"]').within(() => {
+      cy.get('[data-id="properties-elyra_env_vars"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
 
         cy.focused().type('BAD=two');
@@ -432,7 +491,7 @@ describe('Pipeline Editor tests', () => {
 
     const kfpCustomComponents = [
       'run-notebook-using-papermill',
-      'filter-text-using-shell-and-grep',
+      'filter-text',
       'kubeflow-serve-model-using-kfserving'
     ];
 
@@ -464,7 +523,6 @@ describe('Pipeline Editor tests', () => {
       'bash-operator_BashOperator',
       'email-operator_EmailOperator',
       'http-operator_SimpleHttpOperator',
-      'spark-jdbc-operator_SparkJDBCOperator',
       'spark-sql-operator_SparkSqlOperator',
       'spark-submit-operator_SparkSubmitOperator',
       'slack-operator_SlackAPIOperator',

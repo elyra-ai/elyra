@@ -1,0 +1,25 @@
+{
+  "components": {
+    "bash-operator": {
+      "name": "Bash Operator",
+      "location": {
+        "url": "https://nourl.py"
+      },
+      "category": "airflow"
+    },
+    "email-operator": {
+      "name": "Email Operator",
+      "location": {
+        "filename": "/path/to/invalid.py"
+      },
+      "category": "airflow"
+    },
+    "http-operator": {
+      "name": "HTTP Operator",
+      "location": {
+        "filename": "/path/to/invalid.py"
+      },
+      "category": "airflow"
+    }
+  }
+}

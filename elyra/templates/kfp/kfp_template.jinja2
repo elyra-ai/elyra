@@ -10,7 +10,7 @@ import sys
 from kfp.aws import use_aws_secret
 {% endif %}
 from datetime import datetime
-from kfp_notebook.pipeline import NotebookOp
+from kfp_notebook.pipeline import ExecuteFileOp
 
 
 @kfp.dsl.pipeline(
@@ -25,7 +25,7 @@ def create_pipeline():
         {% set op_name = operation.notebook_name.split('.') %}
         {% set operation_id = op_name[0] | to_basename %}
             # Operator for "{{ operation.notebook_name | to_basename }}"
-            notebook_op_{{ loop.index }} = NotebookOp(name='{{ operation_id }}',
+            notebook_op_{{ loop.index }} = ExecuteFileOp(name='{{ operation_id }}',
                                                       pipeline_name='{{ pipeline_name }}',
                                                       experiment_name='{{ experiment_name }}',
                                                       notebook='{{ operation.notebook_name | to_basename }}',

@@ -14,13 +14,13 @@
 # limitations under the License.
 #
 import ast
-import os
 import re
 from typing import List
+from typing import Optional
 
 from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component import ComponentProperty
 
 
 class AirflowComponentParser(ComponentParser):
@@ -35,37 +35,38 @@ class AirflowComponentParser(ComponentParser):
         # must be adjusted to match the id expected in the component_entry catalog.
         return component_id.split('_')[0]
 
-    def parse(self, registry_entry) -> List[Component]:
+    def parse(self, registry_entry) -> Optional[List[Component]]:
         components: List[Component] = list()
 
         component_definition = self._read_component_definition(registry_entry)
-
-        # Adjust filename for display on frontend
-        if registry_entry.type == "filename":
-            registry_entry.location = os.path.join(os.path.dirname(__file__),
-                                                   registry_entry.location)
+        if not component_definition:
+            return None
 
         # If id is prepended with elyra_op_, only parse for the class specified in the id.
         # Else, parse the component definition for all classes
         if registry_entry.adjusted_id:
             component_class = registry_entry.adjusted_id.split('_')[-1]
-            component_properties = self._parse_properties(registry_entry, component_definition,
-                                                          component_class)
+            component_properties = self._parse_properties(component_definition, component_class)
             components.append(Component(id=registry_entry.adjusted_id,
                                         name=component_class,
                                         description='',
                                         runtime=self._type,
-                                        properties=component_properties))
+                                        source_type=registry_entry.type,
+                                        source=registry_entry.location,
+                                        properties=component_properties,
+                                        category_id=registry_entry.category_id))
         else:
             component_classes = self._get_all_classes(component_definition)
             for component_class in component_classes.keys():
-                component_properties = self._parse_properties(registry_entry, component_definition,
-                                                              component_class)
+                component_properties = self._parse_properties(component_definition, component_class)
                 components.append(Component(id=f"{registry_entry.id}_{component_class}",
                                             name=component_class,
                                             description='',
                                             runtime=self._type,
-                                            properties=component_properties))
+                                            source_type=registry_entry.type,
+                                            source=registry_entry.location,
+                                            properties=component_properties,
+                                            category_id=registry_entry.category_id))
 
         return components
 
@@ -108,12 +109,12 @@ class AirflowComponentParser(ComponentParser):
 
         return classes[classname]
 
-    def _parse_properties(self, registry_entry, component_definition, component_class):
-        properties: List[ComponentProperty] = list()
+    def _parse_properties(self, component_definition, component_class):
+        properties: List[ComponentParameter] = list()
 
-        # For Airflow we need a property for path to component source and component source type
-        properties.extend(
-            self.get_runtime_specific_properties("", registry_entry.location, registry_entry.type))
+        # NOTE: Currently no runtime-specific properties are needed, including runtime image. See
+        # justification here: https://github.com/elyra-ai/elyra/issues/1912#issuecomment-879424452
+        # properties.extend(self.get_runtime_specific_properties())
 
         # Retrieve the content of the specified class only
         component_definition = self._get_class_with_classname(component_class, component_definition)
@@ -147,40 +148,26 @@ class AirflowComponentParser(ComponentParser):
             if match:
                 type = match.group(1).strip()
 
-            properties.append(ComponentProperty(ref=arg,
-                                                name=arg,
-                                                type=type,
-                                                value=default_value,
-                                                description=description,
-                                                control_id=control_id))
+            properties.append(ComponentParameter(id=arg,
+                                                 name=arg,
+                                                 type=type,
+                                                 value=default_value,
+                                                 description=description,
+                                                 control_id=control_id))
         return properties
 
-    def get_runtime_specific_properties(self, runtime_image, location, source_type):
+    def get_runtime_specific_properties(self):
         """
         Define properties that are common to the Airflow runtime.
         """
-        properties = [ComponentProperty(ref="runtime_image",
-                                        name="Runtime Image",
-                                        type="string",
-                                        value=runtime_image,
-                                        description="Container image used as execution environment.",
-                                        control="custom",
-                                        control_id="EnumControl",
-                                        required=True),
-                      ComponentProperty(ref="component_source",
-                                        name="Path to Component",
-                                        type="string",
-                                        value=location,
-                                        description="The path to the component specification file.",
-                                        control="readonly",
-                                        required=True),
-                      ComponentProperty(ref="component_source_type",
-                                        name="Component Source Type",
-                                        type="string",
-                                        value=source_type,
-                                        description="The type of component",
-                                        control="readonly",
-                                        required=True)]
+        properties = [ComponentParameter(id="runtime_image",
+                                         name="Runtime Image",
+                                         type="string",
+                                         value="",
+                                         description="Container image used as execution environment.",
+                                         control="custom",
+                                         control_id="EnumControl",
+                                         required=True)]
         return properties
 
     def _read_component_definition(self, registry_entry):
@@ -188,7 +175,6 @@ class AirflowComponentParser(ComponentParser):
         Delegate to ComponentReader to read component definition
         """
         reader = self._get_reader(registry_entry)
-        component_definition = \
-            reader.read_component_definition(registry_entry.id, registry_entry.location)
+        component_definition = reader.read_component_definition(registry_entry)
 
         return component_definition
