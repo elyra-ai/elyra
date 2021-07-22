@@ -45,20 +45,20 @@ op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(namespace='{{ n
                                                                     {{ param }}={{ value }},
         {% endfor %}
     {% else %}
-op_{{ operation.id|regex_replace }} = NotebookOp(class_name='{{ operation.notebook|regex_replace }}',
-                                                          namespace='{{ namespace }}',
-                                                          task_id='{{ operation.notebook|regex_replace }}',
-                                                          notebook='{{ operation.filename }}',
-                                                          image='{{ operation.runtime_image }}',
-                                                          cos_endpoint='{{ operation.cos_endpoint }}',
-                                                          cos_bucket='{{ operation.cos_bucket }}',
-                                                          cos_directory='{{ operation.cos_directory }}',
-                                                          cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
-                                                          pipeline_outputs={{ operation.pipeline_outputs }},
-                                                          pipeline_inputs={{ operation.pipeline_inputs }},
-                                                          env_vars={{ operation.pipeline_envs }},
+op_{{ operation.id|regex_replace }} = NotebookOp(name='{{ operation.notebook|regex_replace }}',
+                                                 namespace='{{ namespace }}',
+                                                 task_id='{{ operation.notebook|regex_replace }}',
+                                                 notebook='{{ operation.filename }}',
+                                                 image='{{ operation.runtime_image }}',
+                                                 cos_endpoint='{{ operation.cos_endpoint }}',
+                                                 cos_bucket='{{ operation.cos_bucket }}',
+                                                 cos_directory='{{ operation.cos_directory }}',
+                                                 cos_dependencies_archive='{{ operation.cos_dependencies_archive }}',
+                                                 pipeline_outputs={{ operation.pipeline_outputs }},
+                                                 pipeline_inputs={{ operation.pipeline_inputs }},
+                                                 env_vars={{ operation.pipeline_envs }},
         {% if operation.cpu_request or operation.mem_request or operation.gpu_limit %}
-                                                          resources = {
+                                                 resources = {
             {% if operation.cpu_request %}
                                                                        'request_cpu': '{{ operation.cpu_request }}',
             {% endif %}
