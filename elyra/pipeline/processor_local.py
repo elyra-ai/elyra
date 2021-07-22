@@ -29,7 +29,7 @@ import papermill
 from traitlets import log
 
 from elyra.pipeline.component_registry import ComponentRegistry
-from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.util.path import get_absolute_path
@@ -92,6 +92,7 @@ class LocalPipelineProcessor(PipelineProcessor):
         # Sort operations based on dependency graph (topological order)
         operations = PipelineProcessor._sort_operations(pipeline.operations)
         for operation in operations:
+            assert isinstance(operation, GenericOperation)
             try:
                 t0 = time.time()
                 operation_processor = self._operation_processor_registry[operation.classifier]
@@ -134,11 +135,11 @@ class OperationProcessor(ABC):
         return self._operation_name
 
     @abstractmethod
-    def process(self, operation: Operation, elyra_run_name: str):
+    def process(self, operation: GenericOperation, elyra_run_name: str):
         raise NotImplementedError
 
     @staticmethod
-    def _collect_envs(operation: Operation, elyra_run_name: str) -> Dict:
+    def _collect_envs(operation: GenericOperation, elyra_run_name: str) -> Dict:
         envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
         envs.update(operation.env_vars_as_dict())
         envs['ELYRA_RUNTIME_ENV'] = "local"  # Special case
@@ -159,7 +160,7 @@ class FileOperationProcessor(OperationProcessor):
         return self._operation_name
 
     @abstractmethod
-    def process(self, operation: Operation, elyra_run_name: str):
+    def process(self, operation: GenericOperation, elyra_run_name: str):
         raise NotImplementedError
 
     def get_valid_filepath(self, op_filename: str) -> str:
@@ -202,7 +203,7 @@ class FileOperationProcessor(OperationProcessor):
 class NotebookOperationProcessor(FileOperationProcessor):
     _operation_name = 'execute-notebook-node'
 
-    def process(self, operation: Operation, elyra_run_name: str):
+    def process(self, operation: GenericOperation, elyra_run_name: str):
         filepath = self.get_valid_filepath(operation.filename)
 
         file_dir = os.path.dirname(filepath)
@@ -252,7 +253,7 @@ class ScriptOperationProcessor(FileOperationProcessor):
     def get_argv(self, filepath) -> List[str]:
         raise NotImplementedError
 
-    def process(self, operation: Operation, elyra_run_name: str):
+    def process(self, operation: GenericOperation, elyra_run_name: str):
         filepath = self.get_valid_filepath(operation.filename)
 
         file_dir = os.path.dirname(filepath)

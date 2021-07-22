@@ -13,11 +13,14 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "outputs": ["community_contributions.csv"],
-            "dependencies": [],
-            "filename": "demo-pipelines/generate-contributions.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3",
-            "env_vars": [],
+            "label": "generate-contributions",
+            "component_parameters": {
+              "outputs": ["community_contributions.csv"],
+              "dependencies": [],
+              "filename": "demo-pipelines/generate-contributions.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3",
+              "env_vars": []
+            },
             "ui_data": {
               "label": "generate-contributions",
               "image": "useDefaultIcon",
@@ -60,11 +63,14 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "outputs": ["community_stats.csv"],
-            "dependencies": [],
-            "filename": "demo-pipelines/generate-stats.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3",
-            "env_vars": [],
+            "label": "generate-stats",
+            "component_parameters": {
+              "outputs": ["community_stats.csv"],
+              "dependencies": [],
+              "filename": "demo-pipelines/generate-stats.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3",
+              "env_vars": []
+            },
             "ui_data": {
               "label": "generate-stats",
               "image": "useDefaultIcon",
@@ -99,10 +105,13 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "filename": "demo-pipelines/data_science_aws.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3",
-            "env_vars": [],
-            "include_subdirectories": false,
+            "label": "data_science_aws",
+            "component_parameters": {
+              "filename": "demo-pipelines/data_science_aws.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3",
+              "env_vars": [],
+              "include_subdirectories": false
+            },
             "ui_data": {
               "label": "data_science_aws",
               "image": "useDefaultIcon",
@@ -218,8 +227,11 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "filename": "demo-pipelines/overview.ipynb",
-            "runtime_image": "elyra/tensorflow:1.15.2-py3",
+            "label": "overview",
+            "component_parameters": {
+              "filename": "demo-pipelines/overview.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            },
             "ui_data": {
               "label": "overview",
               "image": "useDefaultIcon",
@@ -311,7 +323,8 @@
       "app_data": {
         "ui_data": {
           "comments": []
-        }
+        },
+        "version": 4
       },
       "runtime_ref": ""
     }

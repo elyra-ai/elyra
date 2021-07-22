@@ -21,7 +21,7 @@ from typing import List
 from typing import Optional
 import uuid
 
-from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Pipeline
 
 
@@ -70,7 +70,7 @@ class NodeBase(object):
 
         self.dependencies = ['node_util/*']
 
-    def get_operation(self) -> Operation:
+    def get_operation(self) -> GenericOperation:
 
         self.env_vars = []
         if self.fail:  # NODE_FILENAME is required, so skip if triggering failure
@@ -91,10 +91,17 @@ class NodeBase(object):
         # Add system-owned here with bogus or no value...
         self.env_vars.append("ELYRA_RUNTIME_ENV=bogus_runtime")
 
-        return Operation(self.id, 'execution_node', self.name, self.classifier, self.filename, self.image_name or "NA",
-                         dependencies=self.dependencies, env_vars=self.env_vars,
-                         inputs=self.inputs, outputs=self.outputs,
-                         parent_operations=self.parent_operations)
+        component_parameters = {
+            'filename': self.filename,
+            'runtime_image': self.image_name or "NA",
+            'dependencies': self.dependencies,
+            'env_vars': self.env_vars,
+            'inputs': self.inputs,
+            'outputs': self.outputs
+        }
+        return GenericOperation(self.id, 'execution_node', self.name, self.classifier,
+                                parent_operation_ids=self.parent_operations,
+                                component_params=component_parameters)
 
 
 class NotebookNode(NodeBase):

@@ -136,7 +136,7 @@ describe('Pipeline Editor tests', () => {
       // producer props
       cy.findByText('producer.ipynb').rightclick();
       cy.findByRole('menuitem', { name: /properties/i }).click();
-      cy.get('[data-id="properties-filename"]').within(() => {
+      cy.get('[data-id="properties-elyra_filename"]').within(() => {
         cy.findByRole('button', { name: /browse/i }).click();
       });
     });
@@ -146,7 +146,7 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.get('#jp-main-dock-panel').within(() => {
-      cy.get('[data-id="properties-outputs"]').within(() => {
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-1.csv');
         cy.findByRole('button', { name: /ok/i }).click();
@@ -155,25 +155,25 @@ describe('Pipeline Editor tests', () => {
         cy.focused().type('output-2.csv');
         cy.findByRole('button', { name: /ok/i }).click();
       });
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
 
       // consumer props
       cy.findByText('consumer.ipynb').click();
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
 
       // setup props
       cy.findByText('setup.py').click();
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
-      cy.get('[data-id="properties-dependencies"]').within(() => {
+      cy.get('[data-id="properties-elyra_dependencies"]').within(() => {
         cy.findByRole('button', { name: /browse/i }).click();
       });
     });
@@ -187,11 +187,11 @@ describe('Pipeline Editor tests', () => {
     cy.get('#jp-main-dock-panel').within(() => {
       // create-source-files props
       cy.findByText('create-source-files.py').click();
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
-      cy.get('[data-id="properties-outputs"]').within(() => {
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('input-1.csv');
         cy.findByRole('button', { name: /ok/i }).click();
@@ -203,11 +203,11 @@ describe('Pipeline Editor tests', () => {
 
       // producer-script props
       cy.findByText('producer-script.py').click();
-      cy.get('[data-id="properties-runtime_image"]').within(() => {
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
         cy.findByRole('option', { name: /anaconda/i }).click();
       });
-      cy.get('[data-id="properties-outputs"]').within(() => {
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-3.csv');
         cy.findByRole('button', { name: /ok/i }).click();
@@ -464,7 +464,7 @@ describe('Pipeline Editor tests', () => {
 
       cy.findByText('helloworld.py').click();
 
-      cy.get('[data-id="properties-env_vars"]').within(() => {
+      cy.get('[data-id="properties-elyra_env_vars"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
 
         cy.focused().type('BAD=two');

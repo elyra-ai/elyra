@@ -16,6 +16,7 @@
 from abc import abstractmethod
 import ast
 from http import HTTPStatus
+from logging import Logger
 import os
 from typing import List
 from typing import Optional
@@ -24,25 +25,15 @@ import requests
 from traitlets.config import LoggingConfigurable
 
 
-class ComponentProperty(object):
+class ComponentParameter(object):
     """
     Represents a single property for a pipeline component
     """
 
-    ref: str
-    name: str
-    type: str
-    value: str
-    description: str
-    control: str
-    control_id: str
-    items: list
-    required: bool
-
-    def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool = False,
-                 control: str = "custom", control_id: str = "StringControl", items: List[str] = []):
+    def __init__(self, id: str, name: str, type: str, value: str, description: str, required: bool = False,
+                 control: str = "custom", control_id: str = "StringControl", items: Optional[List[str]] = None):
         """
-        :param ref: Unique identifier for a property
+        :param id: Unique identifier for a property
         :param name: The name of the property for display
         :param type: The type that the property value takes on
         :param value: The default value of the property
@@ -53,12 +44,12 @@ class ComponentProperty(object):
         :param required: Whether the property is required
         """
 
-        if not ref:
-            raise ValueError("Invalid component: Missing field 'ref'.")
+        if not id:
+            raise ValueError("Invalid component: Missing field 'id'.")
         if not name:
             raise ValueError("Invalid component: Missing field 'name'.")
 
-        self._ref = ref
+        self._ref = id
         self._name = name
 
         # Set default value according to type
@@ -96,7 +87,7 @@ class ComponentProperty(object):
         self._value = value
 
         # Add type information to description as hint
-        if ref.startswith("elyra_path_"):
+        if id.startswith("elyra_path_"):
             if type == "string":
                 description += " (type: path)"
             else:
@@ -107,7 +98,7 @@ class ComponentProperty(object):
         self._description = description
         self._control = control
         self._control_id = control_id
-        self._items = items
+        self._items = items or []
 
         # Check description for information about 'required' parameter
         if "not optional" in description.lower() or \
@@ -119,43 +110,40 @@ class ComponentProperty(object):
         self._required = required
 
     @property
-    def ref(self):
+    def ref(self) -> str:
         return self._ref
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def type(self):
+    def type(self) -> str:
         return self._type
 
     @property
-    def value(self):
+    def value(self) -> str:
         return self._value
 
     @property
-    def description(self):
+    def description(self) -> str:
         return self._description
 
     @property
-    def control(self):
+    def control(self) -> str:
         return self._control
 
     @property
-    def control_id(self):
+    def control_id(self) -> str:
         return self._control_id
 
     @property
-    def items(self):
+    def items(self) -> List[str]:
         return self._items
 
     @property
-    def required(self):
-        if self._required:
-            return self._required
-        else:
-            return False
+    def required(self) -> bool:
+        return bool(self._required)
 
 
 class Component(object):
@@ -163,24 +151,18 @@ class Component(object):
     Represents a runtime-specific component
     """
 
-    id: str
-    name: str
-    description: str
-    runtime: str
-    properties: List[ComponentProperty]
-    op: str
-    extension: str
-
-    def __init__(self, id: str, name: str, description: Optional[str], runtime: Optional[str] = None,
-                 properties: Optional[List[ComponentProperty]] = None, op: Optional[str] = None,
-                 extension: str = None):
+    def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
+                 source: str, runtime: Optional[str] = None, op: Optional[str] = None,
+                 category_id: Optional[str] = None, properties: Optional[List[ComponentParameter]] = None,
+                 extensions: Optional[List[str]] = None,
+                 parameter_refs: Optional[dict] = None):
         """
         :param id: Unique identifier for a component
         :param name: The name of the component for display
         :param description: The description of the component
         :param runtime: The runtime of the component (e.g. KFP or Airflow)
         :param properties: The set of properties for the component
-        :type properties: List[ComponentProperty]
+        :type properties: List[ComponentParameter]
         :param op: The operation name of the component; used by generic components in rendering the palette
         :param extension: The file extension used by the component
         :type extension: str
@@ -194,41 +176,83 @@ class Component(object):
         self._id = id
         self._name = name
         self._description = description
+        self._source_type = source_type
+        self._source = source
+
         self._runtime = runtime
-        self._properties = properties
         self._op = op
-        self._extension = extension
+        self._category_id = category_id
+        self._properties = properties
+
+        if not parameter_refs:
+            if self._source_type == "elyra":
+                parameter_refs = {
+                    "filehandler": "filename"
+                }
+            else:
+                parameter_refs = {}
+
+        if extensions and not parameter_refs.get('filehandler'):
+            Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
+                                   no entry in the 'parameter_ref' dictionary for 'filehandler' and \
+                                   cannot participate in drag and drop functionality as a result.")
+
+        self._extensions = extensions
+        self._parameter_refs = parameter_refs
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self._id
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def description(self):
+    def description(self) -> Optional[str]:
         return self._description
 
     @property
-    def runtime(self):
+    def source_type(self) -> str:
+        return self._source_type
+
+    @property
+    def source(self) -> str:
+        return self._source
+
+    @property
+    def runtime(self) -> Optional[str]:
         return self._runtime
 
     @property
-    def properties(self):
-        return self._properties
-
-    @property
-    def op(self):
+    def op(self) -> Optional[str]:
         if self._op:
             return self._op
         else:
             return self._id
 
     @property
-    def extension(self):
-        return self._extension
+    def category_id(self) -> Optional[str]:
+        return self._category_id
+
+    @property
+    def properties(self) -> Optional[List[ComponentParameter]]:
+        return self._properties
+
+    @property
+    def extensions(self) -> Optional[List[str]]:
+        return self._extensions
+
+    @property
+    def parameter_refs(self) -> dict:
+        return self._parameter_refs
+
+    @staticmethod
+    def _log_warning(msg: str, logger: Optional[Logger] = None):
+        if logger:
+            logger.warning(msg)
+        else:
+            print(f"WARNING: {msg}")
 
 
 class ComponentReader(LoggingConfigurable):
@@ -253,11 +277,12 @@ class FilesystemComponentReader(ComponentReader):
     type = 'filename'
 
     def read_component_definition(self, registry_entry: dict) -> Optional[str]:
-        if not os.path.exists(registry_entry.location):
-            self.log.warning(f"Invalid location for component: {registry_entry.id} -> {registry_entry.location}")
+        component_path = os.path.join(os.path.dirname(__file__), "resources", registry_entry.location)
+        if not os.path.exists(component_path):
+            self.log.warning(f"Invalid location for component: {registry_entry.id} -> {component_path}")
             return None
 
-        with open(registry_entry.location, 'r') as f:
+        with open(component_path, 'r') as f:
             return f.read()
 
 
@@ -290,10 +315,13 @@ class ComponentParser(LoggingConfigurable):  # ABC
     }
 
     @abstractmethod
-    def parse(self, registry_entry) -> List[Component]:
+    def parse(self, registry_entry: dict) -> List[Component]:
         raise NotImplementedError()
 
-    def _get_reader(self, component_entry):
+    def get_adjusted_component_id(self, component_id: str) -> str:
+        return component_id
+
+    def _get_reader(self, component_entry: dict) -> ComponentReader:
         """
         Find the proper reader based on the given registry component entry.
         """
