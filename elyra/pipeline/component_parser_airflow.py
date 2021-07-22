@@ -148,7 +148,7 @@ class AirflowComponentParser(ComponentParser):
             if match:
                 type = match.group(1).strip()
 
-            properties.append(ComponentParameter(ref=arg,
+            properties.append(ComponentParameter(id=arg,
                                                  name=arg,
                                                  type=type,
                                                  value=default_value,
@@ -160,7 +160,7 @@ class AirflowComponentParser(ComponentParser):
         """
         Define properties that are common to the Airflow runtime.
         """
-        properties = [ComponentParameter(ref="runtime_image",
+        properties = [ComponentParameter(id="runtime_image",
                                          name="Runtime Image",
                                          type="string",
                                          value="",

@@ -85,7 +85,7 @@ class KfpComponentParser(ComponentParser):
                 default_value = param.get('default')
 
             ref = param.get('name').lower().replace(' ', '_')
-            properties.append(ComponentParameter(ref=ref,
+            properties.append(ComponentParameter(id=ref,
                                                  name=param.get('name'),
                                                  type=type,
                                                  value=default_value,
@@ -97,7 +97,7 @@ class KfpComponentParser(ComponentParser):
         """
         Define properties that are common to the KFP runtime.
         """
-        properties = [ComponentParameter(ref="runtime_image",
+        properties = [ComponentParameter(id="runtime_image",
                                          name="Runtime Image",
                                          type="string",
                                          value="",

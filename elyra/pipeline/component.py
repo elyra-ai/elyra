@@ -30,10 +30,10 @@ class ComponentParameter(object):
     Represents a single property for a pipeline component
     """
 
-    def __init__(self, ref: str, name: str, type: str, value: str, description: str, required: bool = False,
+    def __init__(self, id: str, name: str, type: str, value: str, description: str, required: bool = False,
                  control: str = "custom", control_id: str = "StringControl", items: Optional[List[str]] = None):
         """
-        :param ref: Unique identifier for a property
+        :param id: Unique identifier for a property
         :param name: The name of the property for display
         :param type: The type that the property value takes on
         :param value: The default value of the property
@@ -44,12 +44,12 @@ class ComponentParameter(object):
         :param required: Whether the property is required
         """
 
-        if not ref:
-            raise ValueError("Invalid component: Missing field 'ref'.")
+        if not id:
+            raise ValueError("Invalid component: Missing field 'id'.")
         if not name:
             raise ValueError("Invalid component: Missing field 'name'.")
 
-        self._ref = ref
+        self._ref = id
         self._name = name
 
         # Set default value according to type
@@ -87,7 +87,7 @@ class ComponentParameter(object):
         self._value = value
 
         # Add type information to description as hint
-        if ref.startswith("elyra_path_"):
+        if id.startswith("elyra_path_"):
             if type == "string":
                 description += " (type: path)"
             else:
