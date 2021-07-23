@@ -178,7 +178,7 @@ class ComponentRegistry(LoggingConfigurable):
                     # TODO Add error checking for category here or elsewhere
                     entry = {
                         "id": component_id,
-                        "name": component_entry["name"],
+                        "name": component_entry.get("name"),
                         "type": component_type,
                         "location": component_location,
                         "adjusted_id": None,
