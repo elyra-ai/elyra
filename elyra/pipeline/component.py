@@ -19,8 +19,10 @@ from logging import Logger
 import os
 import re
 from types import SimpleNamespace
+from typing import Any
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 import requests
 from traitlets.config import LoggingConfigurable
@@ -236,7 +238,7 @@ class ComponentCategory(object):
         """
 
         if not id:
-            raise ValueError()
+            raise ValueError("Invalid component category: Missing field 'id'.")
 
         self._id = id
         self._label = label
@@ -273,7 +275,7 @@ class ComponentReader(LoggingConfigurable):
         return self.type
 
     @abstractmethod
-    def read_component_definition(self, registry_entry: dict) -> str:
+    def read_component_definition(self, registry_entry: SimpleNamespace) -> str:
         raise NotImplementedError()
 
 
@@ -283,7 +285,7 @@ class FilesystemComponentReader(ComponentReader):
     """
     type = 'filename'
 
-    def read_component_definition(self, registry_entry: dict) -> Optional[str]:
+    def read_component_definition(self, registry_entry: SimpleNamespace) -> Optional[str]:
         component_path = os.path.join(os.path.dirname(__file__), "resources", registry_entry.location)
         if not os.path.exists(component_path):
             self.log.warning(f"Invalid location for component: {registry_entry.id} -> {component_path}")
@@ -299,7 +301,7 @@ class UrlComponentReader(ComponentReader):
     """
     type = 'url'
 
-    def read_component_definition(self, registry_entry: dict) -> Optional[str]:
+    def read_component_definition(self, registry_entry: SimpleNamespace) -> Optional[str]:
         try:
             res = requests.get(registry_entry.location)
         except Exception as e:
@@ -340,7 +342,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         except Exception:
             raise ValueError(f'Unsupported registry type {component_entry.type}.')
 
-    def _get_description_with_type_hint(self, description, type):
+    def _get_description_with_type_hint(self, type: str, description: Optional[str]) -> str:
         """
         Adds type information parsed from component specification to parameter description.
         """
@@ -349,7 +351,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         else:
             return f"(type: {type})"
 
-    def determine_type_information(self, parsed_type: str):
+    def determine_type_information(self, parsed_type: str) -> Tuple[str, str, Any]:
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.

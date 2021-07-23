@@ -200,7 +200,7 @@ class ComponentRegistry(LoggingConfigurable):
 
         return registry
 
-    def _get_relative_location(self, component_type: str, component_path: str):
+    def _get_relative_location(self, component_type: str, component_path: str) -> str:
         """
         Gets the absolute path for a component from a file-based registry
         """
@@ -208,7 +208,7 @@ class ComponentRegistry(LoggingConfigurable):
             component_path = f"{self._parser._type}/{component_path}"
         return component_path
 
-    def _read_registry_for_component(self, queried_component_id, catalog_entry_id) -> Component:
+    def _read_registry_for_component(self, queried_component_id: str, catalog_entry_id: str) -> Component:
         with open(self._component_registry_location, 'r') as catalog_file:
             catalog_json = json.load(catalog_file)
             component_entry = dict(catalog_json['components'].items()).get(catalog_entry_id)
