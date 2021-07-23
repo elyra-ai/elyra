@@ -120,8 +120,11 @@ async def test_parse_components_invalid_location():
     component_parser = AirflowComponentParser()
     component_registry = ComponentRegistry(component_registry_location, component_parser)
 
-    components, categories = component_registry.get_all_components()
+    components = component_registry.get_all_components()
     assert len(components) == 0
+
+    categories = component_registry.get_all_categories()
+    assert len(categories) == 0
 
     palette_json = ComponentRegistry.to_canvas_palette(components, categories)
     empty_palette = {

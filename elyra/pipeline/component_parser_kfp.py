@@ -49,6 +49,7 @@ class KfpComponentParser(ComponentParser):
                               runtime=self._type,
                               source_type=registry_entry.type,
                               source=registry_entry.location,
+                              catalog_entry_id=registry_entry.catalog_entry_id,
                               properties=component_properties,
                               category_id=registry_entry.category_id)
         return [component]

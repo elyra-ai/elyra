@@ -108,11 +108,11 @@ class ComponentParameter(object):
 
 class Component(object):
     """
-    Represents a runtime-specific component
+    Represents a generic or runtime-specific component
     """
 
     def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
-                 source: str, runtime: Optional[str] = None, op: Optional[str] = None,
+                 source: str, catalog_entry_id: str, runtime: Optional[str] = None, op: Optional[str] = None,
                  category_id: Optional[str] = None, properties: Optional[List[ComponentParameter]] = None,
                  extensions: Optional[List[str]] = None,
                  parameter_refs: Optional[dict] = None):
@@ -138,6 +138,7 @@ class Component(object):
         self._description = description
         self._source_type = source_type
         self._source = source
+        self._catalog_entry_id = catalog_entry_id
 
         self._runtime = runtime
         self._op = op
@@ -181,6 +182,10 @@ class Component(object):
         return self._source
 
     @property
+    def catalog_entry_id(self) -> str:
+        return self._catalog_entry_id
+
+    @property
     def runtime(self) -> Optional[str]:
         return self._runtime
 
@@ -213,6 +218,48 @@ class Component(object):
             logger.warning(msg)
         else:
             print(f"WARNING: {msg}")
+
+
+class ComponentCategory(object):
+    """
+    Represents a category assigned to a component
+    """
+
+    def __init__(self, id: str, label: Optional[str],
+                 image_location: Optional[str],
+                 description: Optional[str]):
+        """
+        :param id: A unique identifier for the category
+        :param label: A ui-friendly label for the category
+        :param image_location: TODO Add info here once image serving details are decided
+        :param description: A description for the category
+        """
+
+        if not id:
+            raise ValueError()
+
+        self._id = id
+        self._label = label
+        self._image_location = image_location
+        self._description = description
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @property
+    def label(self) -> str:
+        if not self._label:
+            return self._id
+        return self._label
+
+    @property
+    def image_location(self) -> Optional[str]:
+        return self._image_location
+
+    @property
+    def description(self) -> Optional[str]:
+        return self._description
 
 
 class ComponentReader(LoggingConfigurable):
