@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from datetime import datetime
+from http.client import responses
 import json
 from typing import List
 from typing import Optional
@@ -77,7 +79,13 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
             )
             self.set_header('Location', location)
         else:
-            raise web.HTTPError(400, json.dumps({'issues': response.to_json().get('issues')}))
+            json_msg = json.dumps({
+                'reason': responses.get(400),
+                'message': 'Errors found in pipeline',
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'issues': response.to_json().get('issues')
+            })
+            self.set_status(400)
 
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
@@ -112,7 +120,13 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
             json_msg = json.dumps(response.to_json())
             self.set_status(200)
         else:
-            raise web.HTTPError(400, json.dumps({'issues': response.to_json().get('issues')}))
+            json_msg = json.dumps({
+                'reason': responses.get(400),
+                'message': 'Errors found in pipeline',
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'issues': response.to_json().get('issues')
+            })
+            self.set_status(400)
 
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
