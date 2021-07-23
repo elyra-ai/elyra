@@ -336,7 +336,7 @@ const PipelineWrapper: React.FC<IProps> = ({
               return pipeline;
             });
             contextRef.current.model.fromString(
-              JSON.stringify(migratedPipeline)
+              JSON.stringify(migratedPipeline, null, 2)
             );
           } else {
             if (shell.currentWidget) {
@@ -993,7 +993,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         return showDialog({
           title: 'Unsupported File(s)',
           body:
-            'Currently, only selected notebook and python script files can be added to a pipeline',
+            'Only supported files (Notebooks, Python scripts, and R scripts) can be added to a pipeline.',
           buttons: [Dialog.okButton()]
         });
       }

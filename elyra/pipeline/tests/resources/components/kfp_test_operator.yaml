@@ -14,6 +14,10 @@ inputs:
 - {name: test_required_property, description: 'The test command description', type: String, optional: false}
 - {name: test_optional_property, description: 'The test command description', type: String, optional: true}
 - {name: test_required_property_default, description: 'The test command description', type: String}
+- {name: test_unusual_type_dict, description: 'The test command description', type: Dictionary of arrays}
+- {name: test_unusual_type_list, description: 'The test command description', type: An array}
+- {name: test_unusual_type_string, description: 'The test command description', type: A string}
+- {name: test_unusual_type_file, description: 'The test command description', type: Notebook}
 outputs:
 - {name: Filtered text}
 implementation:
@@ -31,4 +35,5 @@ implementation:
       grep "$pattern" < "$text_path" > "$filtered_text_path"
     - {inputPath: Text}
     - {inputValue: Pattern}
+    - {inputPath: test_unusual_type_file}
     - {outputPath: Filtered text}
