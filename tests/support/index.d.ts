@@ -20,6 +20,7 @@ declare namespace Cypress {
     deleteFile(fileName: string): Chainable<void>;
     openDirectory(fileName: string): Chainable<void>;
     addFileToPipeline(fileName: string): Chainable<void>;
+    dragAndDropFileToPipeline(fileName: string): Chainable<void>;
     createPipeline(options?: {
       name?: string;
       type?: 'kfp' | 'airflow' | 'generic';

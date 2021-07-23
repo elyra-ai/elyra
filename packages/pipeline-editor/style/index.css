@@ -199,14 +199,14 @@ span.bx--list-box__label {
   display: none;
 }
 
-.properties-control-panel[data-id='properties-resources']
+.properties-control-panel[data-id='properties-elyra_resources']
   .properties-custom-ctrl {
   position: absolute;
   bottom: 18px;
   padding-right: 14px;
 }
 
-.properties-control-panel[data-id='properties-resources']
+.properties-control-panel[data-id='properties-elyra_resources']
   .properties-control-description {
   padding-bottom: 35px;
 }
@@ -697,11 +697,11 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   background: var(--jp-border-color1);
 }
 
-.properties-control-panel[data-id='properties-resources'] {
+.properties-control-panel[data-id='properties-elyra_resources'] {
   display: flex;
 }
 
-.properties-control-panel[data-id='properties-resources']
+.properties-control-panel[data-id='properties-elyra_resources']
   .properties-ctrl-wrapper {
   width: 33%;
 }
