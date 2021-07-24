@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 from enum import IntEnum
+from glob import glob
 import json
 import os
 from typing import Dict
@@ -265,8 +266,8 @@ class PipelineValidationManager(SingletonConfigurable):
                         dependencies = node_data.get("dependencies")
                         env_vars = node_data.get("env_vars")
 
-                        self._validate_filepath(node_id=node['id'], node_label=node_label, root_dir=root_dir,
-                                                property_name='filename', filename=filename,
+                        self._validate_filepath(node_id=node['id'], node_label=node_label,
+                                                property_name='filename', filename=filename, server_root=root_dir,
                                                 response=response)
 
                         # If not running locally, we check resource and image name
@@ -282,8 +283,11 @@ class PipelineValidationManager(SingletonConfigurable):
                         if pipeline_runtime == 'kfp' and filename != node_label:
                             self._validate_label(node_id=node['id'], node_label=node_label, response=response)
                         if dependencies:
+                            notebook_root_relative_path = os.path.dirname(filename)
                             for dependency in dependencies:
-                                self._validate_filepath(node_id=node['id'], node_label=node_label, root_dir=root_dir,
+                                self._validate_filepath(node_id=node['id'], node_label=node_label,
+                                                        root_dir=os.path.join(root_dir, notebook_root_relative_path),
+                                                        server_root=root_dir,
                                                         property_name='dependencies',
                                                         filename=dependency, response=response)
                         if env_vars:
@@ -359,8 +363,8 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "nodeName": node_label,
                                        "propertyName": resource_name})
 
-    def _validate_filepath(self, node_id: str, node_label: str, property_name: str,
-                           root_dir: str, filename: str, response: ValidationResponse) -> None:
+    def _validate_filepath(self, node_id: str, node_label: str, property_name: str, server_root: str,
+                           filename: str, response: ValidationResponse, root_dir: Optional[str] = None) -> None:
         """
         Checks the file structure, paths and existence of pipeline dependencies.
         Note that this does not cross reference with file path references within the notebook or script itself.
@@ -371,9 +375,11 @@ class PipelineValidationManager(SingletonConfigurable):
         :param filename: the name of the file or directory to verify
         :param response: ValidationResponse containing the issue list to be updated
         """
+        root_dir = root_dir or server_root
+
         normalized_path = os.path.normpath(f"{root_dir}/{filename}")
 
-        if not os.path.commonpath([normalized_path, root_dir]) == root_dir:
+        if not os.path.commonpath([server_root, root_dir]) == server_root:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidFilePath",
                                  message="Property has an invalid reference to a file/dir outside the root workspace",
@@ -381,7 +387,16 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "nodeName": node_label,
                                        "propertyName": property_name,
                                        "value": normalized_path})
-
+        elif '*' in normalized_path:
+            if len(glob(normalized_path)) == 0:
+                response.add_message(severity=ValidationSeverity.Error,
+                                     message_type="invalidFilePath",
+                                     message="Property(wildcard) has an invalid path to a file/dir"
+                                             " or the file/dir does not exist",
+                                     data={"nodeID": node_id,
+                                           "nodeName": node_label,
+                                           "propertyName": property_name,
+                                           "value": normalized_path})
         elif not os.path.exists(normalized_path):
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidFilePath",
