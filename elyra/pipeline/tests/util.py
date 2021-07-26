@@ -21,8 +21,11 @@ from typing import List
 from typing import Optional
 import uuid
 
+from kfp import components as components
+
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.processor import PipelineProcessor
 
 
 def _read_pipeline_resource(pipeline_filename):
@@ -33,6 +36,45 @@ def _read_pipeline_resource(pipeline_filename):
         pipeline_json = json.load(f)
 
     return pipeline_json
+
+
+def _mock_cc_pipeline(processor, pipeline):
+    target_ops = {}
+    sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
+
+    for operation in sorted_operations:
+
+        if isinstance(operation, GenericOperation):
+            continue
+
+        # If operation is a "non-standard" component, load it's spec and create operation with factory function
+        else:
+            # Retrieve component from cache
+            component = processor._component_registry.get_component(operation.classifier)
+
+            # Get absolute path of component source
+            component_path = component.source
+            if component.source_type == "filename":
+                component_path = os.path.join(os.path.dirname(__file__), "resources", component_path)
+
+            component_source = {}
+            component_source[component.source_type] = component_path
+
+            # Build component task factory
+            try:
+                factory_function = components.load_component(**component_source)
+            except Exception:
+                raise RuntimeError(f"Error loading component spec for {operation.name}.")
+
+            # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
+            try:
+                operation.component_params_as_dict.pop("inputs")
+                operation.component_params_as_dict.pop("outputs")
+                target_ops[operation.id] = factory_function(**operation.component_params_as_dict)
+            except Exception:
+                raise RuntimeError(f"Error constructing component {operation.name}.")
+
+    return target_ops
 
 
 class NodeBase(object):

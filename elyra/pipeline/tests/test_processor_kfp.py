@@ -13,16 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 import os
 import tarfile
 
+from kfp.components.structures import TaskSpec
 import pytest
 
+from elyra.pipeline.component import Component
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
+from elyra.pipeline.tests.util import _mock_cc_pipeline
 
 
 @pytest.fixture
@@ -173,3 +177,86 @@ def test_collect_envs(processor):
     assert envs['USER_EMPTY_VALUE'] == '  '
     assert envs['USER_TWO_EQUALS'] == 'KEY=value'
     assert 'USER_NO_VALUE' not in envs
+
+
+def test_processing_url_runtime_specific_component(processor):
+    # Assign test resource location
+    url = 'https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/' \
+          'pipeline/resources/kfp/filter_text_using_shell_and_grep/component.yaml'
+
+    # Instantiate a url-based component
+    component = Component(id="filter-text",
+                          name="Filter text",
+                          description="",
+                          op="filter-text",
+                          source_type="url",
+                          source=url,
+                          properties=[])
+
+    # Replace cached component registry with single url-based component for testing
+    processor._component_registry._cached_components = [component]
+
+    # Construct hypothetical operation for component
+    operation = Operation(id='filter-text-id',
+                          type='execution_node',
+                          classifier='filter-text',
+                          name='Filter text',
+                          parent_operation_ids=[],
+                          component_params={"text": "resources/components/filter.txt", "pattern": "hello"})
+
+    # Construct single-operation pipeline
+    pipeline = Pipeline(id='pipeline-id',
+                        name='untitled',
+                        runtime='kfp',
+                        runtime_config='test',
+                        source='filter_text.pipeline')
+    pipeline.operations[operation.id] = operation
+
+    # Process pipeline with a scaled-down version of the processor cc_pipeline function
+    constructed_pipeline = _mock_cc_pipeline(processor=processor, pipeline=pipeline)
+
+    # Ensure the pipeline operation was properly processed for execution, creating a KFP TaskSpec object
+    assert isinstance(constructed_pipeline[operation.id], TaskSpec)
+    assert constructed_pipeline[operation.id].component_ref.url == url
+
+
+def test_processing_filename_runtime_specific_component(processor):
+    # Instantiate a file-based component
+    component = Component(id="test-component",
+                          name="KFP test component",
+                          description="",
+                          op="test-component",
+                          source_type="filename",
+                          source="components/kfp_test_operator.yaml",
+                          properties=[])
+
+    # Replace cached component registry with single filename-based component for testing
+    processor._component_registry._cached_components = [component]
+
+    # Construct hypothetical operation for component
+    operation = Operation(id='test-component',
+                          type='execution_node',
+                          classifier='test-component',
+                          name='KFP test component',
+                          parent_operation_ids=[],
+                          component_params={"test_unusual_type_file": "file.txt",
+                                            "test_string_no_default": "hello",
+                                            "test_required_property": "required",
+                                            "test_required_property_default": "required"})
+
+    # Construct single-operation pipeline
+    pipeline = Pipeline(id='pipeline-id',
+                        name='untitled',
+                        runtime='kfp',
+                        runtime_config='test',
+                        source='filter_text.pipeline')
+    pipeline.operations[operation.id] = operation
+
+    # Process pipeline with a scaled-down version of the processor cc_pipeline function
+    constructed_pipeline = _mock_cc_pipeline(processor=processor, pipeline=pipeline)
+
+    # Ensure the pipeline operation was properly processed for execution, creating a KFP TaskSpec object
+    assert isinstance(constructed_pipeline[operation.id], TaskSpec)
+
+    filename = os.path.join(os.path.dirname(__file__), "resources", component.source)
+    assert constructed_pipeline[operation.id].component_ref.url == filename
