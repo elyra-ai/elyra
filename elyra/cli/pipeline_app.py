@@ -331,6 +331,8 @@ def describe(pipeline_path):
 
     print_banner(pipeline_definition)
 
+    click.echo(pipeline_definition)
+
     print_banner("Elyra Pipeline Description Complete")
 
 
