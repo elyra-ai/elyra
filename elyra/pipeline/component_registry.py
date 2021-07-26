@@ -211,21 +211,22 @@ class ComponentRegistry(LoggingConfigurable):
     def _read_registry_for_component(self, queried_component_id: str, catalog_entry_id: str) -> Component:
         with open(self._component_registry_location, 'r') as catalog_file:
             catalog_json = json.load(catalog_file)
-            component_entry = dict(catalog_json['components'].items()).get(catalog_entry_id)
+            component_entry = catalog_json['components'].get(catalog_entry_id)
             if not component_entry:
                 self.log.error(f"Component with ID '{queried_component_id}' could not be found in the " +
                                f"{self._component_registry_location} component_id catalog.")
                 raise ValueError(f"Component with ID '{queried_component_id}' could not be found in the " +
                                  f"{self._component_registry_location} component_id catalog.")
 
-            component_type = next(iter(component_entry.get('location')))
-            component_location = self._get_relative_location(component_type,
-                                                             component_entry["location"][component_type])
+            # Get the key name ('url' or 'filename') from the 'location' dictionary entry
+            location_type = next(iter(component_entry.get('location')))
+            component_location = self._get_relative_location(location_type,
+                                                             component_entry["location"][location_type])
 
             component_entry = {
                 "id": queried_component_id,
                 "name": component_entry['name'],
-                "type": component_type,
+                "type": location_type,
                 "location": component_location,
                 "catalog_entry_id": catalog_entry_id,
                 "category_id": component_entry.get("category")
