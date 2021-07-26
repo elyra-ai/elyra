@@ -332,7 +332,7 @@ def describe(pipeline_path):
     click.echo(type(pipeline_definition))
 
     for key in pipeline_definition:
-        click.echo(f"{key}: " + str(pipeline_definition[key]))
+        click.echo(f"{key}({type(pipeline_definition[key])}):\n" + str(pipeline_definition[key]))
 
     print_banner("Elyra Pipeline Description Complete")
 
