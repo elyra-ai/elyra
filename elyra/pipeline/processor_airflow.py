@@ -197,7 +197,14 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                             image_instance.metadata.get('pull_policy'):
                         image_pull_policy = image_instance.metadata['pull_policy']
 
-                target_op = {'notebook': operation.name,
+                unique_name_counter = 1
+                unique_operation_name = operation.name
+                names = [op['notebook'] for op in target_ops]
+                while unique_operation_name in names:
+                    unique_name_counter += 1
+                    unique_operation_name = ''.join([operation.name, '_', str(unique_name_counter)])
+
+                target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
                              'filename': operation.filename,
                              'runtime_image': operation.runtime_image,
