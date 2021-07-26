@@ -100,31 +100,41 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # (if any were defined in the runtime configuration)
 
             endpoint = api_endpoint.replace('/pipeline', '')
-            auth_info = \
-                KfpPipelineProcessor._get_user_auth_session_cookie(endpoint,
-                                                                   api_username,
-                                                                   api_password)
 
-            self.log.debug(f"Kubeflow authentication info: {auth_info}")
-
-            if auth_info['endpoint_secured'] and \
-               auth_info['authservice_session_cookie'] is None:
-                # Kubeflow is secured but our attempt to authenticate did
-                # not yield the expected results. Log the collected authentication
-                # information and abort processing.
-                self.log.warning(f"Kubeflow authentication info: {auth_info}")
-                raise RuntimeError(f"Error connecting to Kubeflow at '{endpoint}'"
-                                   f": Authentication request failed. Check the "
-                                   f"Kubeflow Pipelines credentials in runtime "
-                                   f"configuration '{pipeline.runtime_config}'.")
-
-            # Create a KFP client
-            if 'Tekton' == engine:
-                client = TektonClient(host=api_endpoint,
-                                      cookies=auth_info['authservice_session_cookie'])
-            else:
+            # in kfp 1.6, a token is injected by projected volume with ML_PIPELINE_SA_TOKEN_PATH
+            token_path = os.environ.get('ML_PIPELINE_SA_TOKEN_PATH')
+            if token_path:
+                with open(token_path, 'r') as f:
+                    token = f.read()
                 client = ArgoClient(host=api_endpoint,
-                                    cookies=auth_info['authservice_session_cookie'])
+                                    namespace=user_namespace,
+                                    existing_token=token)
+            else:
+                auth_info = \
+                    KfpPipelineProcessor._get_user_auth_session_cookie(endpoint,
+                                                                       api_username,
+                                                                       api_password)
+
+                self.log.debug(f"Kubeflow authentication info: {auth_info}")
+
+                if auth_info['endpoint_secured'] and \
+                   auth_info['authservice_session_cookie'] is None:
+                    # Kubeflow is secured but our attempt to authenticate did
+                    # not yield the expected results. Log the collected authentication
+                    # information and abort processing.
+                    self.log.warning(f"Kubeflow authentication info: {auth_info}")
+                    raise RuntimeError(f"Error connecting to Kubeflow at '{endpoint}'"
+                                       f": Authentication request failed. Check the "
+                                       f"Kubeflow Pipelines credentials in runtime "
+                                       f"configuration '{pipeline.runtime_config}'.")
+
+                # Create a KFP client
+                if 'Tekton' == engine:
+                    client = TektonClient(host=api_endpoint,
+                                          cookies=auth_info['authservice_session_cookie'])
+                else:
+                    client = ArgoClient(host=api_endpoint,
+                                        cookies=auth_info['authservice_session_cookie'])
 
             # Determine whether a pipeline with the provided
             # name already exists
