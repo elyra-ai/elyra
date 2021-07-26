@@ -79,6 +79,20 @@ describe('Code Snippet tests', () => {
     cy.get('button.jp-mod-accept').click();
   });
 
+  it('should trigger save / submit on pressing enter', () => {
+    populateCodeSnippetFields(snippetName);
+
+    cy.get('.elyra-metadataEditor-form-display_name').type('{enter}');
+
+    // Metadata editor tab should not be visible
+    cy.get(
+      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
+    ).should('not.exist');
+
+    // Check new code snippet is displayed
+    getSnippetByName(snippetName);
+  });
+
   // Delete snippet
   it('should delete existing Code Snippet', () => {
     createValidCodeSnippet(snippetName);
@@ -305,7 +319,7 @@ const createInvalidCodeSnippet = (snippetName: string): any => {
   saveAndCloseMetadataEditor();
 };
 
-const createValidCodeSnippet = (snippetName: string): any => {
+const populateCodeSnippetFields = (snippetName: string): any => {
   clickCreateNewSnippetButton();
 
   // Name code snippet
@@ -318,6 +332,10 @@ const createValidCodeSnippet = (snippetName: string): any => {
   cy.get('.CodeMirror .CodeMirror-scroll:visible').type(
     'print("Code Snippet Test")'
   );
+};
+
+const createValidCodeSnippet = (snippetName: string): any => {
+  populateCodeSnippetFields(snippetName);
 
   saveAndCloseMetadataEditor();
 
