@@ -47,7 +47,6 @@ import * as React from 'react';
 import { MetadataEditorTags } from './MetadataEditorTags';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
-const ELYRA_CODEDEITOR_WRAPPER_CLASS = 'elyra-codeEditorWrapper';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
 interface IMetadataEditorProps {
@@ -135,7 +134,7 @@ const CodeBlock: React.FC<ICodeBlockProps> = ({
   }, [language]);
 
   return (
-    <div className={ELYRA_CODEDEITOR_WRAPPER_CLASS}>
+    <div>
       <InputLabel error={error} required={required}>
         {label}
       </InputLabel>
