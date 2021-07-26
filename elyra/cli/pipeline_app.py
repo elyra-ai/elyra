@@ -329,9 +329,9 @@ def describe(pipeline_path):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
-    print_banner(pipeline_definition)
-
     click.echo(pipeline_definition)
+
+    click.echo(type(pipeline_definition))
 
     print_banner("Elyra Pipeline Description Complete")
 
