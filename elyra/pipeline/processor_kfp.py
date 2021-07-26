@@ -518,7 +518,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Get absolute path of component source
                 component_path = component.source
-                if component.source_type == "filepath":
+                if component.source_type == "filename":
                     component_path = os.path.join(os.path.dirname(__file__), "resources", component_path)
 
                 component_source = {}
