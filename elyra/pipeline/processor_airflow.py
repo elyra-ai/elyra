@@ -197,12 +197,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                             image_instance.metadata.get('pull_policy'):
                         image_pull_policy = image_instance.metadata['pull_policy']
 
-                unique_name_counter = 1
-                unique_operation_name = operation.name
-                names = [op['notebook'] for op in target_ops]
-                while unique_operation_name in names:
-                    unique_name_counter += 1
-                    unique_operation_name = ''.join([operation.name, '_', str(unique_name_counter)])
+                unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
+                                                                        operation_list=target_ops)
 
                 target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
@@ -264,7 +260,10 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 # Get component class from operation name
                 component_class = operation.classifier.split('_')[-1]
 
-                target_op = {'notebook': f"{operation.name}-{datetime.now().strftime('%m%d%H%M%S%f')}",
+                unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
+                                                                        operation_list=target_ops)
+
+                target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
                              'module_name': component.source.rsplit('/', 1)[-1].split('.')[0],
                              'class_name': component_class,
@@ -337,6 +336,16 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 fh.write(output_to_file)
 
         return pipeline_export_path
+
+    def _get_unique_operation_name(self, operation_name: str, operation_list: list) -> str:
+        unique_name_counter = 1
+        unique_operation_name = operation_name
+        names = [op['notebook'] for op in operation_list]
+        while unique_operation_name in names:
+            unique_name_counter += 1
+            unique_operation_name = ''.join([operation_name, '_', str(unique_name_counter)])
+
+        return unique_operation_name
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
