@@ -324,15 +324,12 @@ def describe(pipeline_path):
 
     print_banner("Elyra Pipeline Describe")
 
-    _validate_pipeline_file(pipeline_path)
+    _validate_pipeline_file_extension(pipeline_path)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
-    for key in {"version", "doc_type"}:
-        click.echo(f"{key}:\n" + str(pipeline_definition[key]))
-
-    click.echo("Dependencies:")
+    click.echo("dependencies:")
     for current_pipeline in pipeline_definition["pipelines"]:
         for node in current_pipeline["nodes"]:
             for dependency in node["app_data"]["dependencies"]:
