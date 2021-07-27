@@ -17,6 +17,7 @@ from enum import IntEnum
 from glob import glob
 import json
 import os
+import re
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -434,6 +435,8 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         """
         label_name_max_length = 63
+        label_regex = re.compile('^[a-z0-9]([-a-z0-9]{0,62}[a-z0-9])?')
+        matched = label_regex.search(node_label)
 
         if len(node_label) > label_name_max_length:
             response.add_message(severity=ValidationSeverity.Error,
@@ -444,7 +447,14 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "propertyName": 'label',
                                        "value": node_label})
 
-        # TODO: run regex check on label
+        elif matched.group(0) != node_label:
+            response.add_message(severity=ValidationSeverity.Error,
+                                 message_type="invalidNodeLabel",
+                                 message="Property string must start contain only lower alphanumeric and dashes",
+                                 data={"nodeID": node_id,
+                                       "nodeName": node_label,
+                                       "propertyName": 'label',
+                                       "value": node_label})
 
     def _validate_pipeline_graph(self, pipeline: dict, response: ValidationResponse) -> None:
         """
