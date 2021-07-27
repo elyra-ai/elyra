@@ -249,7 +249,7 @@ class PipelineValidationManager(SingletonConfigurable):
             node_list = single_pipeline['nodes']
             pipeline_runtime = 'local' if pipeline_runtime == 'generic' else pipeline_runtime
             component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-            categories: list = await PipelineProcessorManager.instance().get_categories(pipeline_runtime)
+            categories: list = await PipelineProcessorManager.instance().get_all_categories(pipeline_runtime)
             components = ComponentRegistry.to_canvas_palette(component_list, categories)
             for node in node_list:
                 if node['type'] == 'execution_node':
