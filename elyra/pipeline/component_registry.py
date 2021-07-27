@@ -225,7 +225,7 @@ class ComponentRegistry(LoggingConfigurable):
 
             component_entry = {
                 "id": queried_component_id,
-                "name": component_entry['name'],
+                "name": component_entry.get("name"),
                 "type": location_type,
                 "location": component_location,
                 "catalog_entry_id": catalog_entry_id,
