@@ -103,9 +103,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param pipeline: the pipeline definition to be validated
         :return: ValidationResponse containing any and all issues discovered during the validation
         """
-
         response = ValidationResponse()
-        root_dir = self.root_dir
 
         try:
             pipeline_json = json.loads(json.dumps(pipeline))
@@ -119,10 +117,9 @@ class PipelineValidationManager(SingletonConfigurable):
         pipeline_runtime = self._get_runtime_schema(pipeline, response)
 
         self._validate_pipeline_structure(pipeline=pipeline, response=response)
-        await self._validate_compatibility(pipeline=pipeline, response=response,
-                                           pipeline_runtime=pipeline_runtime, pipeline_execution=pipeline_execution)
-        await self._validate_node_properties(root_dir=root_dir, pipeline=pipeline,
-                                             response=response, pipeline_runtime=pipeline_runtime,
+        await self._validate_compatibility(pipeline=pipeline, response=response, pipeline_runtime=pipeline_runtime,
+                                           pipeline_execution=pipeline_execution)
+        await self._validate_node_properties(pipeline=pipeline, response=response, pipeline_runtime=pipeline_runtime,
                                              pipeline_execution=pipeline_execution)
         self._validate_pipeline_graph(pipeline=pipeline, response=response)
 
@@ -232,7 +229,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                  data={"pipelineRuntime": pipeline_runtime,
                                        "pipelineID": pipeline_id})
 
-    async def _validate_node_properties(self, root_dir: str, pipeline: dict, pipeline_runtime: str,
+    async def _validate_node_properties(self, pipeline: dict, pipeline_runtime: str,
                                         pipeline_execution: str, response: ValidationResponse) -> None:
         """
         Validates each of the node's structure for required fields/properties as well as
@@ -267,9 +264,8 @@ class PipelineValidationManager(SingletonConfigurable):
                         dependencies = node_data.get("dependencies")
                         env_vars = node_data.get("env_vars")
 
-                        self._validate_filepath(node_id=node['id'], node_label=node_label,
-                                                property_name='filename', filename=filename, server_root=root_dir,
-                                                response=response)
+                        self._validate_filepath(node_id=node['id'], node_label=node_label, property_name='filename',
+                                                filename=filename, response=response)
 
                         # If not running locally, we check resource and image name
                         if pipeline_execution != 'local':
@@ -287,8 +283,8 @@ class PipelineValidationManager(SingletonConfigurable):
                             notebook_root_relative_path = os.path.dirname(filename)
                             for dependency in dependencies:
                                 self._validate_filepath(node_id=node['id'], node_label=node_label,
-                                                        root_dir=os.path.join(root_dir, notebook_root_relative_path),
-                                                        server_root=root_dir,
+                                                        file_dir=os.path.join(self.root_dir,
+                                                                              notebook_root_relative_path),
                                                         property_name='dependencies',
                                                         filename=dependency, response=response)
                         if env_vars:
@@ -364,23 +360,23 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "nodeName": node_label,
                                        "propertyName": resource_name})
 
-    def _validate_filepath(self, node_id: str, node_label: str, property_name: str, server_root: str,
-                           filename: str, response: ValidationResponse, root_dir: Optional[str] = None) -> None:
+    def _validate_filepath(self, node_id: str, node_label: str, property_name: str,
+                           filename: str, response: ValidationResponse, file_dir: Optional[str] = "") -> None:
         """
         Checks the file structure, paths and existence of pipeline dependencies.
         Note that this does not cross reference with file path references within the notebook or script itself.
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
         :param property_name: name of the node property being validated
-        :param root_dir: the absolute base path of the current elyra workspace
+        :param file_dir: the dir path of the where the pipeline file resides in the elyra workspace
         :param filename: the name of the file or directory to verify
         :param response: ValidationResponse containing the issue list to be updated
         """
-        root_dir = root_dir or server_root
+        file_dir = file_dir or self.root_dir
 
-        normalized_path = os.path.normpath(f"{root_dir}/{filename}")
+        normalized_path = os.path.normpath(f"{file_dir}/{filename}")
 
-        if not os.path.commonpath([server_root, root_dir]) == server_root:
+        if not os.path.commonpath([normalized_path, self.root_dir]) == self.root_dir:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidFilePath",
                                  message="Property has an invalid reference to a file/dir outside the root workspace",

@@ -135,10 +135,9 @@ async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
     pvm = PipelineValidationManager.instance()
 
     monkeypatch.setattr(pvm, "_validate_filepath", lambda node_id, node_label,
-                        property_name, filename, server_root, response: True)
+                        property_name, filename, response: True)
 
-    await pvm._validate_node_properties(root_dir='',
-                                        pipeline=pipeline,
+    await pvm._validate_node_properties(pipeline=pipeline,
                                         response=response,
                                         pipeline_runtime='generic',
                                         pipeline_execution='kfp')
@@ -157,10 +156,9 @@ async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch, load_pip
     node_property = "notebook"
     pvm = PipelineValidationManager.instance()
 
-    monkeypatch.setattr(pvm, "_validate_filepath", lambda node_id, root_dir, property_name, filename, response: True)
+    monkeypatch.setattr(pvm, "_validate_filepath", lambda node_id, file_dir, property_name, filename, response: True)
 
-    await pvm._validate_node_properties(root_dir='',
-                                        pipeline=pipeline,
+    await pvm._validate_node_properties(pipeline=pipeline,
                                         response=response,
                                         pipeline_runtime='kfp',
                                         pipeline_execution='')
@@ -196,8 +194,7 @@ def test_invalid_node_property_dependency_filepath_workspace(validation_manager)
     node = {"id": "test-id", "app_data": {"label": "test"}}
     property_name = 'test-property'
 
-    validation_manager._validate_filepath(node_id=node['id'], root_dir=os.getcwd(),
-                                          server_root=os.getcwd(),
+    validation_manager._validate_filepath(node_id=node['id'], file_dir=os.getcwd(),
                                           property_name=property_name,
                                           node_label=node['app_data']['label'],
                                           filename='../invalid_filepath/to/file.ipynb',
@@ -214,8 +211,7 @@ def test_invalid_node_property_dependency_filepath_non_existent(validation_manag
     node = {"id": "test-id", "app_data": {"label": "test"}}
     property_name = 'test-property'
 
-    validation_manager._validate_filepath(node_id=node['id'], root_dir=os.getcwd(),
-                                          server_root=os.getcwd(),
+    validation_manager._validate_filepath(node_id=node['id'], file_dir=os.getcwd(),
                                           property_name=property_name,
                                           node_label=node['app_data']['label'],
                                           filename='invalid_filepath/to/file.ipynb',
@@ -233,8 +229,7 @@ def test_valid_node_property_dependency_filepath(validation_manager):
     node = {"id": "test-id", "app_data": {"label": "test"}}
     property_name = 'test-property'
 
-    validation_manager._validate_filepath(node_id=node['id'], root_dir=os.getcwd(),
-                                          server_root=os.getcwd(),
+    validation_manager._validate_filepath(node_id=node['id'], file_dir=os.getcwd(),
                                           property_name=property_name,
                                           node_label=node['app_data']['label'],
                                           filename=valid_filename,
