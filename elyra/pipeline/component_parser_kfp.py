@@ -72,7 +72,7 @@ class KfpComponentParser(ComponentParser):
             type = param.get('type', 'string')
 
             # Set description and include parsed type information
-            description = self._get_description_with_type_hint(param.get('description'), type)
+            description = self._get_description_with_type_hint(type, param.get('description'))
 
             # Change type to reflect the type of input (inputValue vs inputPath)
             type = self._get_adjusted_parameter_fields(component_body=component_yaml,

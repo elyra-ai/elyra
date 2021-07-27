@@ -18,6 +18,7 @@ inputs:
 - {name: test_unusual_type_list, description: 'The test command description', type: An array}
 - {name: test_unusual_type_string, description: 'The test command description', type: A string}
 - {name: test_unusual_type_file, description: 'The test command description', type: Notebook}
+- {name: test_unusual_type_notgiven, description: 'The test command description'}
 outputs:
 - {name: Filtered text}
 implementation:

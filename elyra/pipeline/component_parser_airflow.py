@@ -142,13 +142,13 @@ class AirflowComponentParser(ComponentParser):
 
             # Search for :param [param] in class doctring to get description
             description = ""
-            param_regex = re.compile(f":param {arg}:" + r"([\s\S]*?(?=:type|:param))")
+            param_regex = re.compile(f":param {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
             match = param_regex.search(class_content)
             if match:
                 description = match.group(1).strip().replace("\"", "'")
 
             # Amend description to include type information
-            description = self._get_description_with_type_hint(description, type)
+            description = self._get_description_with_type_hint(type, description)
 
             type, control_id, default_value = self.determine_type_information(type)
 
