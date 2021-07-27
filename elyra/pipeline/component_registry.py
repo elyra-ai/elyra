@@ -176,7 +176,7 @@ class ComponentRegistry(LoggingConfigurable):
                     # TODO Consider creating a miscellaneous category if none is given
                     component_entry = {
                         "id": component_id,
-                        "name": component_entry["name"],
+                        "name": component_entry.get("name"),
                         "type": component_type,
                         "location": component_location,
                         "catalog_entry_id": component_id,
