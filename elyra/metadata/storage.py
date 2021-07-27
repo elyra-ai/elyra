@@ -28,7 +28,8 @@ from typing import Optional
 
 import jupyter_core.paths
 from traitlets import log  # noqa H306
-from traitlets.config import SingletonConfigurable  # noqa H306
+from traitlets.config import LoggingConfigurable  # noqa H306
+from traitlets.config import SingletonConfigurable
 from traitlets.traitlets import Bool
 from traitlets.traitlets import Integer
 from watchdog.events import FileSystemEventHandler
@@ -39,9 +40,9 @@ from elyra.metadata.error import MetadataNotFoundError
 
 
 class MetadataStore(ABC):
-    def __init__(self, namespace, **kwargs):
+    def __init__(self, namespace, parent: Optional[LoggingConfigurable] = None, **kwargs):
         self.namespace = namespace
-        self.log = log.get_logger()
+        self.log = parent.log if parent else log.get_logger()
 
     @abstractmethod
     def namespace_exists(self) -> bool:

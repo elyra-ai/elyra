@@ -42,6 +42,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
     async def post(self, *args, **kwargs):
         self.log.debug("Pipeline Export handler now executing post request")
 
+        parent = self.settings.get('elyra')
         payload = self.get_json_body()
 
         self.log.debug("JSON payload: %s", json.dumps(payload, indent=2, separators=(',', ': ')))
@@ -51,7 +52,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         pipeline_export_path = payload['export_path']
         pipeline_overwrite = payload['overwrite']
 
-        pipeline = PipelineParser(root_dir=self.settings['server_root_dir']).parse(pipeline_definition)
+        pipeline = PipelineParser(root_dir=self.settings['server_root_dir'], parent=parent).parse(pipeline_definition)
 
         pipeline_exported_path = await PipelineProcessorManager.instance().export(
             pipeline,
@@ -87,10 +88,11 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
     async def post(self, *args, **kwargs):
         self.log.debug("Pipeline SchedulerHandler now executing post request")
 
+        parent = self.settings.get('elyra')
         pipeline_definition = self.get_json_body()
         self.log.debug("JSON payload: %s", pipeline_definition)
 
-        pipeline = PipelineParser(root_dir=self.settings['server_root_dir']).parse(pipeline_definition)
+        pipeline = PipelineParser(root_dir=self.settings['server_root_dir'], parent=parent).parse(pipeline_definition)
 
         response = await PipelineProcessorManager.instance().process(pipeline)
         json_msg = json.dumps(response.to_json())

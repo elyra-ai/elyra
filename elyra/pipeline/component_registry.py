@@ -70,8 +70,8 @@ class ComponentRegistry(LoggingConfigurable):
                                           image_location="",
                                           description="Components that are supported by all runtimes")
 
-    def __init__(self, component_registry_location: str, parser: ComponentParser):
-        super().__init__()
+    def __init__(self, component_registry_location: str, parser: ComponentParser, **kwargs):
+        super().__init__(**kwargs)
         self._component_registry_location = component_registry_location
         self._parser = parser
         self.log.info(f'Creating new registry using {self.registry_location}')

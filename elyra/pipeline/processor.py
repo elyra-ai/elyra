@@ -51,8 +51,19 @@ elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 class PipelineProcessorRegistry(SingletonConfigurable):
     _processors = {}
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.root_dir = get_expanded_path(kwargs.get('root_dir'))
+        # Register all known processors based on entrypoint configuration
+        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
+            try:
+                # instantiate an actual instance of the processor
+                processor_instance = processor.load()(self.root_dir, parent=kwargs.get('parent'))  # Load an instance
+                self.log.info(f'Registering processor "{processor}" with type -> {processor_instance.type}')
+                self.add_processor(processor_instance)
+            except Exception as err:
+                # log and ignore initialization errors
+                self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
     def add_processor(self, processor):
         self.log.debug(f'Registering processor {processor.type}')
@@ -72,24 +83,12 @@ class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
     def __init__(self, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
-
         self._registry = PipelineProcessorRegistry.instance()
-        # Register all known processors based on entrypoint configuration
-        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
-            try:
-                # instantiate an actual instance of the processor
-                processor_instance = processor.load()(self.root_dir, parent=self)  # Load an instance
-                self.log.info(f'Registering processor "{processor}" with type -> {processor_instance.type}')
-                self._registry.add_processor(processor_instance)
-            except Exception as err:
-                # log and ignore initialization errors
-                self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
     def _get_processor_for_runtime(self, processor_type: str):
         processor = self._registry.get_processor(processor_type)
-
         return processor
 
     def is_supported_runtime(self, processor_type: str) -> bool:

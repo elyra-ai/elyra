@@ -28,7 +28,8 @@ class GithubClient(LoggingConfigurable):
                  token: str,
                  repo: str,
                  branch: Optional[str] = None,
-                 server_url: Optional[str] = "https://api.github.com"):
+                 server_url: Optional[str] = "https://api.github.com",
+                 **kwargs):
         """
         Creates a Github Client for Elyra
         :param token: Personal Access Token for use with Github
@@ -42,7 +43,7 @@ class GithubClient(LoggingConfigurable):
                           https://api.github.com'
         """
 
-        super().__init__()
+        super().__init__(**kwargs)
 
         # Remove trailing slash(es) from server URL to prevent failure
         self.server_url = server_url.rstrip('/')

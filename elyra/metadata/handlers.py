@@ -34,7 +34,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def get(self, namespace):
         namespace = url_unescape(namespace)
-        parent = self.settings.get('serverapp')
+        parent = self.settings.get('elyra')
         try:
             metadata_manager = MetadataManager(namespace=namespace, parent=parent)
             metadata = metadata_manager.get_all()
@@ -54,7 +54,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
     async def post(self, namespace):
 
         namespace = url_unescape(namespace)
-        parent = self.settings.get('serverapp')
+        parent = self.settings.get('elyra')
         try:
             instance = self._validate_body(namespace)
             self.log.debug("MetadataHandler: Creating metadata instance '{}' in namespace '{}'...".
@@ -106,7 +106,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     async def get(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
-        parent = self.settings.get('serverapp')
+        parent = self.settings.get('elyra')
 
         try:
             metadata_manager = MetadataManager(namespace=namespace, parent=parent)
@@ -125,7 +125,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     async def put(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
-        parent = self.settings.get('serverapp')
+        parent = self.settings.get('elyra')
 
         try:
             payload = self.get_json_body()
@@ -155,7 +155,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     async def delete(self, namespace, resource):
         namespace = url_unescape(namespace)
         resource = url_unescape(resource)
-        parent = self.settings.get('serverapp')
+        parent = self.settings.get('elyra')
 
         try:
             self.log.debug("MetadataHandler: Deleting metadata instance '{}' in namespace '{}'...".
