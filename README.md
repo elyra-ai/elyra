@@ -40,7 +40,7 @@ Elyra currently includes the following functionality:
 - [Language Server Protocol integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#language-server-protocol-integration)
 - [Version control using Git integration](https://elyra.readthedocs.io/en/latest/getting_started/overview.html#version-control-using-git-integration)
 
-![Elyra](docs/source/images/github-repo/elyra-main-page.png)
+![Elyra](docs/source/images/elyra-main-page.png)
 
 The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting_started/overview.html)
 includes more details on these features.
