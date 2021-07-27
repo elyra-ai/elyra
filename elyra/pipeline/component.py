@@ -18,8 +18,11 @@ from http import HTTPStatus
 from logging import Logger
 import os
 import re
+from types import SimpleNamespace
+from typing import Any
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 import requests
 from traitlets.config import LoggingConfigurable
@@ -107,11 +110,11 @@ class ComponentParameter(object):
 
 class Component(object):
     """
-    Represents a runtime-specific component
+    Represents a generic or runtime-specific component
     """
 
     def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
-                 source: str, runtime: Optional[str] = None, op: Optional[str] = None,
+                 source: str, catalog_entry_id: str, runtime: Optional[str] = None, op: Optional[str] = None,
                  category_id: Optional[str] = None, properties: Optional[List[ComponentParameter]] = None,
                  extensions: Optional[List[str]] = None,
                  parameter_refs: Optional[dict] = None):
@@ -137,6 +140,7 @@ class Component(object):
         self._description = description
         self._source_type = source_type
         self._source = source
+        self._catalog_entry_id = catalog_entry_id
 
         self._runtime = runtime
         self._op = op
@@ -180,6 +184,10 @@ class Component(object):
         return self._source
 
     @property
+    def catalog_entry_id(self) -> str:
+        return self._catalog_entry_id
+
+    @property
     def runtime(self) -> Optional[str]:
         return self._runtime
 
@@ -214,6 +222,48 @@ class Component(object):
             print(f"WARNING: {msg}")
 
 
+class ComponentCategory(object):
+    """
+    Represents a category assigned to a component
+    """
+
+    def __init__(self, id: str, label: Optional[str],
+                 image_location: Optional[str],
+                 description: Optional[str]):
+        """
+        :param id: A unique identifier for the category
+        :param label: A ui-friendly label for the category
+        :param image_location: TODO Add info here once image serving details are decided
+        :param description: A description for the category
+        """
+
+        if not id:
+            raise ValueError("Invalid component category: Missing field 'id'.")
+
+        self._id = id
+        self._label = label
+        self._image_location = image_location
+        self._description = description
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @property
+    def label(self) -> str:
+        if not self._label:
+            return self._id
+        return self._label
+
+    @property
+    def image_location(self) -> Optional[str]:
+        return self._image_location
+
+    @property
+    def description(self) -> Optional[str]:
+        return self._description
+
+
 class ComponentReader(LoggingConfigurable):
     """
     Abstract class to model component_entry readers that can read components from different locations
@@ -225,7 +275,7 @@ class ComponentReader(LoggingConfigurable):
         return self.type
 
     @abstractmethod
-    def read_component_definition(self, registry_entry: dict) -> str:
+    def read_component_definition(self, registry_entry: SimpleNamespace) -> str:
         raise NotImplementedError()
 
 
@@ -235,7 +285,7 @@ class FilesystemComponentReader(ComponentReader):
     """
     type = 'filename'
 
-    def read_component_definition(self, registry_entry: dict) -> Optional[str]:
+    def read_component_definition(self, registry_entry: SimpleNamespace) -> Optional[str]:
         component_path = os.path.join(os.path.dirname(__file__), "resources", registry_entry.location)
         if not os.path.exists(component_path):
             self.log.warning(f"Invalid location for component: {registry_entry.id} -> {component_path}")
@@ -251,7 +301,7 @@ class UrlComponentReader(ComponentReader):
     """
     type = 'url'
 
-    def read_component_definition(self, registry_entry: dict) -> Optional[str]:
+    def read_component_definition(self, registry_entry: SimpleNamespace) -> Optional[str]:
         try:
             res = requests.get(registry_entry.location)
         except Exception as e:
@@ -274,13 +324,13 @@ class ComponentParser(LoggingConfigurable):  # ABC
     }
 
     @abstractmethod
-    def parse(self, registry_entry: dict) -> List[Component]:
+    def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         raise NotImplementedError()
 
-    def get_adjusted_component_id(self, component_id: str) -> str:
+    def get_catalog_entry_id_for_component(self, component_id: str) -> str:
         return component_id
 
-    def _get_reader(self, component_entry: dict) -> ComponentReader:
+    def _get_reader(self, component_entry: SimpleNamespace) -> ComponentReader:
         """
         Find the proper reader based on the given registry component entry.
         """
@@ -292,7 +342,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         except Exception:
             raise ValueError(f'Unsupported registry type {component_entry.type}.')
 
-    def _get_description_with_type_hint(self, description, type):
+    def _get_description_with_type_hint(self, type: str, description: Optional[str]) -> str:
         """
         Adds type information parsed from component specification to parameter description.
         """
@@ -301,7 +351,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         else:
             return f"(type: {type})"
 
-    def determine_type_information(self, parsed_type: str):
+    def determine_type_information(self, parsed_type: str) -> Tuple[str, str, Any]:
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.

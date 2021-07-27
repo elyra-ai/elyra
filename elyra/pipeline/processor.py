@@ -34,6 +34,7 @@ from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentCategory
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_registry import CachedComponentRegistry
 from elyra.pipeline.component_registry import ComponentRegistry
@@ -107,10 +108,10 @@ class PipelineProcessorManager(SingletonConfigurable):
             run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
         return res
 
-    async def get_categories(self, processor_type):
+    async def get_all_categories(self, processor_type):
         processor = self._get_processor_for_runtime(processor_type)
 
-        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_categories)
+        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_all_categories)
         return res
 
     async def process(self, pipeline):
@@ -216,11 +217,11 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
         return ComponentRegistry.get_generic_component(component_id)
 
-    def get_categories(self) -> List[Dict]:
-        categories: List[Dict] = [ComponentRegistry.get_generic_category()]
+    def get_all_categories(self) -> List[ComponentCategory]:
+        categories: List[ComponentCategory] = [ComponentRegistry.get_generic_category()]
 
         if self._component_registry:
-            categories.extend(self._component_registry.get_categories())
+            categories.extend(self._component_registry.get_all_categories())
 
         return categories
 

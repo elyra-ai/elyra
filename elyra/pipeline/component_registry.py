@@ -19,13 +19,13 @@ from types import SimpleNamespace
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Tuple
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from traitlets.config import LoggingConfigurable
 
 from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentCategory
 from elyra.pipeline.component import ComponentParser
 
 
@@ -43,6 +43,7 @@ class ComponentRegistry(LoggingConfigurable):
                               op="execute-notebook-node",
                               source_type="elyra",
                               source="elyra",
+                              catalog_entry_id="elyra",
                               extensions=[".ipynb"],
                               category_id="generic"),
         "python-script": Component(id="python-script",
@@ -51,6 +52,7 @@ class ComponentRegistry(LoggingConfigurable):
                                    op="execute-python-node",
                                    source_type="elyra",
                                    source="elyra",
+                                   catalog_entry_id="elyra",
                                    extensions=[".py"],
                                    category_id="generic"),
         "r-script": Component(id="r-script",
@@ -59,15 +61,14 @@ class ComponentRegistry(LoggingConfigurable):
                               op="execute-r-node",
                               source_type="elyra",
                               source="elyra",
+                              catalog_entry_id="elyra",
                               extensions=[".r"],
                               category_id="generic")}
 
-    _generic_category: dict = SimpleNamespace(**({
-        "id": "generic",
-        "label": "Generic",
-        "image": "",
-        "description": "Components that are supported by all runtimes"
-    }))
+    _generic_category = ComponentCategory(id="generic",
+                                          label="Generic",
+                                          image_location="",
+                                          description="Components that are supported by all runtimes")
 
     def __init__(self, component_registry_location: str, parser: ComponentParser):
         super().__init__()
@@ -79,39 +80,31 @@ class ComponentRegistry(LoggingConfigurable):
     def registry_location(self) -> str:
         return self._component_registry_location
 
-    def get_all_components(self) -> Tuple[List[Component], List[Dict]]:
+    def get_all_components(self) -> List[Component]:
         """
         Retrieve all components from the component registry
         """
-        components: List[Component] = list()
 
-        # Read registry to find list of components
-        component_entries, category_entries = self._read_component_registry()
+        components: List[Component] = self._read_component_registry().get('components')
+        return components
 
-        for component_entry in component_entries:
-            # Parse component details and add to list
-            component = self._parser.parse(component_entry)
-            if component:
-                components.extend(component)
-
-        return components, category_entries
-
-    def get_component(self, component_id) -> Component:
+    def get_component(self, component_id: str) -> Component:
         """
-        Return the properties JSON for a given component_id.
+        Return the component with a given component_id.
         """
-        # Read component_entry catalog to get component_entry with given id
-        adjusted_id = self._parser.get_adjusted_component_id(component_id)
-        component_entry = self._get_component_registry_entry(adjusted_id)
 
-        # Assign adjusted id for the use of parsers if prefixes have been added
-        if adjusted_id != component_id:
-            component_entry.adjusted_id = component_id
+        catalog_entry_id = self._parser.get_catalog_entry_id_for_component(component_id)
+        component = self._read_registry_for_component(component_id, catalog_entry_id)
 
-        component = self._parser.parse(component_entry)
-        if component:
-            component = next(iter(component), None)
         return component
+
+    def get_all_categories(self) -> List[ComponentCategory]:
+        """
+        Retrieve all categories from the component registry
+        """
+
+        categories: List[ComponentCategory] = self._read_component_registry().get('categories')
+        return categories
 
     @staticmethod
     def get_generic_components() -> List[Component]:
@@ -122,11 +115,11 @@ class ComponentRegistry(LoggingConfigurable):
         return ComponentRegistry._generic_components.get(component_id)
 
     @staticmethod
-    def get_generic_category() -> Dict:
+    def get_generic_category() -> ComponentCategory:
         return ComponentRegistry._generic_category
 
     @staticmethod
-    def to_canvas_palette(components: List[Component], categories: list) -> Dict:
+    def to_canvas_palette(components: List[Component], categories: List[ComponentCategory]) -> Dict:
         """
         Converts registry components into appropriate canvas palette format
         """
@@ -158,15 +151,19 @@ class ComponentRegistry(LoggingConfigurable):
         properties_json = json.loads(canvas_properties)
         return properties_json
 
-    def _read_component_registry(self) -> Tuple[List, List]:
+    def _read_component_registry(self) -> Dict[str, List]:
         """
-        Read a component registry and return a list of component definitions.
+        Read a component registry and return a dictionary of lists of components and categories.
         """
 
-        component_entries: list = list()
-        category_entries: list = list()
+        registry = {
+            "components": list(),
+            "categories": list()
+        }
+
         with open(self._component_registry_location, 'r') as catalog_file:
             catalog_json = json.load(catalog_file)
+            # Process component entries from catalog
             if 'components' in catalog_json.keys():
                 for component_id, component_entry in catalog_json['components'].items():
                     self.log.debug(f"Component registry: processing component {component_entry.get('name')}")
@@ -176,29 +173,34 @@ class ComponentRegistry(LoggingConfigurable):
                                                                      component_entry["location"][component_type])
 
                     # TODO Add error checking for category here or elsewhere
-                    entry = {
+                    # TODO Consider creating a miscellaneous category if none is given
+                    component_entry = {
                         "id": component_id,
                         "name": component_entry["name"],
                         "type": component_type,
                         "location": component_location,
-                        "adjusted_id": None,
-                        "category_id": component_entry["category"]
+                        "catalog_entry_id": component_id,
+                        "category_id": component_entry.get("category")
                     }
-                    component_entries.append(SimpleNamespace(**entry))
+
+                    # Parse the component entry to get a fully qualified Component object
+                    component = self._parser.parse(SimpleNamespace(**component_entry))
+                    if component:
+                        registry['components'].extend(component)
+
+            # Process category entries from catalog
             if 'categories' in catalog_json.keys():
                 for category_id, category_metadata in catalog_json['categories'].items():
 
-                    category_entry = {
-                        "id": category_id,
-                        "label": category_metadata["label"],
-                        "image": category_metadata["image"],
-                        "description": category_metadata["description"]
-                    }
-                    category_entries.append(SimpleNamespace(**category_entry))
+                    category_entry = ComponentCategory(id=category_id,
+                                                       label=category_metadata.get('label'),
+                                                       image_location=category_metadata.get('image'),
+                                                       description=category_metadata.get('description'))
+                    registry['categories'].append(category_entry)
 
-        return component_entries, category_entries
+        return registry
 
-    def _get_relative_location(self, component_type: str, component_path: str):
+    def _get_relative_location(self, component_type: str, component_path: str) -> str:
         """
         Gets the absolute path for a component from a file-based registry
         """
@@ -206,22 +208,33 @@ class ComponentRegistry(LoggingConfigurable):
             component_path = f"{self._parser._type}/{component_path}"
         return component_path
 
-    def _get_component_registry_entry(self, component_id):
-        """
-        Get the body of the component registry entry with the given id
-        """
-        # Read registry to find list of components
-        component_entries, _ = self._read_component_registry()
+    def _read_registry_for_component(self, queried_component_id: str, catalog_entry_id: str) -> Component:
+        with open(self._component_registry_location, 'r') as catalog_file:
+            catalog_json = json.load(catalog_file)
+            component_entry = catalog_json['components'].get(catalog_entry_id)
+            if not component_entry:
+                self.log.error(f"Component with ID '{queried_component_id}' could not be found in the " +
+                               f"{self._component_registry_location} component_id catalog.")
+                raise ValueError(f"Component with ID '{queried_component_id}' could not be found in the " +
+                                 f"{self._component_registry_location} component_id catalog.")
 
-        # Find entry with the appropriate id, if exists
-        component_entry = next((entry for entry in component_entries if entry.id == component_id), None)
-        if not component_entry:
-            self.log.error(f"Component with ID '{component_id}' could not be found in the " +
-                           f"{self._component_registry_location} component_id catalog.")
-            raise ValueError(f"Component with ID '{component_id}' could not be found in the " +
-                             f"{self._component_registry_location} component_id catalog.")
+            # Get the key name ('url' or 'filename') from the 'location' dictionary entry
+            location_type = next(iter(component_entry.get('location')))
+            component_location = self._get_relative_location(location_type,
+                                                             component_entry["location"][location_type])
 
-        return component_entry
+            component_entry = {
+                "id": queried_component_id,
+                "name": component_entry['name'],
+                "type": location_type,
+                "location": component_location,
+                "catalog_entry_id": catalog_entry_id,
+                "category_id": component_entry.get("category")
+            }
+
+            # Parse component entry to get a fully qualified Component object
+            component = self._parser.parse(SimpleNamespace(**component_entry))
+            return component
 
 
 class CachedComponentRegistry(ComponentRegistry):
@@ -231,7 +244,7 @@ class CachedComponentRegistry(ComponentRegistry):
     """
 
     _cached_components: List[Component] = list()
-    _cached_categories: List[Dict] = list()
+    _cached_categories: List[ComponentCategory] = list()
     _last_updated = None
 
     def __init__(self, component_registry_location: str, parser: ComponentParser, cache_ttl_in_seconds: int = 60):
@@ -255,14 +268,17 @@ class CachedComponentRegistry(ComponentRegistry):
                                  if component.id == component_id), None)
         return cached_component
 
-    def get_categories(self) -> List[Dict]:
+    def get_all_categories(self) -> List[ComponentCategory]:
         if self._is_cache_expired():
             self._update_cache()
 
         return self._cached_categories
 
     def _update_cache(self):
-        self._cached_components, self._cached_categories = super().get_all_components()
+        registry = super()._read_component_registry()
+        self._cached_components = registry.get('components')
+        self._cached_categories = registry.get('categories')
+
         self._last_updated = time.time()
 
     def _is_cache_expired(self) -> bool:
