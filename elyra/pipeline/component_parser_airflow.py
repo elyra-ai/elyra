@@ -148,7 +148,7 @@ class AirflowComponentParser(ComponentParser):
                 description = match.group(1).strip().replace("\"", "'")
 
             # Amend description to include type information
-            description = self._get_description_with_type_hint(type, description)
+            description = self._format_description(description=description, type=type)
 
             type, control_id, default_value = self.determine_type_information(type)
 
