@@ -280,7 +280,7 @@ describe('Pipeline Editor tests', () => {
 
     // close tabs
     cy.closeTab(-1); // notebook tab
-    cy.findByRole('button', { name: /discard/i }).click();
+    cy.findByRole('button', { name: /cancel/i }).click();
     cy.closeTab(-1); // pipeline tab
 
     // Open a pipeline in a subfolder
@@ -315,7 +315,7 @@ describe('Pipeline Editor tests', () => {
 
     // close tabs
     cy.closeTab(-1); // notebook tab
-    cy.findByRole('button', { name: /discard/i }).click();
+    cy.findByRole('button', { name: /cancel/i }).click();
     cy.closeTab(-1); // pipeline tab
 
     // Open a pipeline in a subfolder
