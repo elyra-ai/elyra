@@ -66,7 +66,7 @@ setup_args = dict(
         'click',
         'colorama',
         'entrypoints>=0.3',
-        'jinja2>=2.11,<3.0',
+        'jinja2>=2.11',
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
