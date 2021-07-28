@@ -49,6 +49,7 @@ class TestOperator(BaseOperator):
     :type test_unusual_type_list: a list of strings
     :param test_unusual_type_string: The test command description
     :type test_unusual_type_string: a string
+    :param test_unusual_type_notgiven: The test command description
     """
 
     @apply_defaults
@@ -67,6 +68,7 @@ class TestOperator(BaseOperator):
                  test_unusual_type_dict=None,
                  test_unusual_type_list=None,
                  test_unusual_type_string="",
+                 test_unusual_type_notgiven="",
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
