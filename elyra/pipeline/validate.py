@@ -234,7 +234,6 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         Validates each of the node's structure for required fields/properties as well as
         their values
-        :param root_dir: the absolute base path of the current elyra workspace
         :param pipeline: the pipeline definition to be validated
         :param pipeline_runtime: name of the pipeline runtime being used e.g. kfp, airflow, generic
         :param pipeline_execution: name of the pipeline runtime for execution  e.g. kfp, airflow, local
@@ -373,6 +372,9 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         """
         file_dir = file_dir or self.root_dir
+
+        print(f"XXXXXXXXX rootdir {self.root_dir}")
+        print(f"XXXXXXXXX filedir {file_dir}")
 
         normalized_path = os.path.normpath(f"{file_dir}/{filename}")
 

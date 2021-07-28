@@ -37,7 +37,9 @@ def load_pipeline():
 
 @pytest.fixture
 def validation_manager():
-    yield PipelineValidationManager.instance()
+    validation_pipelines_path = "elyra/pipeline/tests/resources/validation_pipelines"
+    yield PipelineValidationManager.instance(root_dir=os.path.join(os.getcwd(), validation_pipelines_path))
+    PipelineValidationManager.clear_instance()
 
 
 def test_basic_pipeline_structure(validation_manager, load_pipeline):
@@ -234,6 +236,18 @@ def test_valid_node_property_dependency_filepath(validation_manager):
                                           node_label=node['app_data']['label'],
                                           filename=valid_filename,
                                           response=response)
+
+    assert not response.has_fatal
+    assert not response.to_json().get('issues')
+
+
+async def test_valid_node_property_pipeline_filepath(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('generic_basic_filepath_check.pipeline')
+
+    await validation_manager._validate_node_properties(pipeline=pipeline,
+                                                       response=response,
+                                                       pipeline_runtime='generic',
+                                                       pipeline_execution='kfp')
 
     assert not response.has_fatal
     assert not response.to_json().get('issues')
