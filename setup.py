@@ -33,7 +33,9 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
 npm_packages_path = "./dist/*.tgz"
 auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
 auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
-components_path = './etc/config/components/*.json'
+component_registry_path = './etc/config/components/*.json'
+components_kfp_path = './etc/config/components/kfp/*.yaml'
+components_airflow_path = './etc/config/components/airflow/*.py'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 settings_path = './etc/config/settings/*.json'
 
@@ -58,7 +60,9 @@ setup_args = dict(
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
                 ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path)),
-                ('share/jupyter/components', glob(components_path)),
+                ('share/jupyter/components', glob(component_registry_path)),
+                ('share/jupyter/components/kfp/', glob(components_kfp_path)),
+                ('share/jupyter/components/airflow/', glob(components_airflow_path)),
                 ('share/jupyter/lab/settings', glob(settings_path))],
     packages=find_packages(),
     install_requires=[
@@ -113,6 +117,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ),
     entry_points={
         'console_scripts': [
