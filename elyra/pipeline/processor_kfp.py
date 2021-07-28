@@ -511,7 +511,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             # If file can't be found locally, assume a remote file location was entered.
                             # This may cause the pipeline run to fail; the user must debug in this case.
                             pass
-                    elif component_property.type in ['dict', 'dictionary']:
+                    elif component_property.type in ['dictionary', 'list']:
                         # Get corresponding property value from parsed pipeline and convert
                         op_property = operation.component_params.get(component_property.ref)
                         operation.component_params[component_property.ref] = ast.literal_eval(op_property)
