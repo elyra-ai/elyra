@@ -518,7 +518,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         operation.component_params[component_property.ref] = ast.literal_eval(op_property)
 
                 # Get absolute path of component source
-                component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', component.source)
+                component_path = component.source
+                if component.source_type == "filename":
+                    component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', component_path)
+
                 component_source = {}
                 component_source[component.source_type] = component_path
 

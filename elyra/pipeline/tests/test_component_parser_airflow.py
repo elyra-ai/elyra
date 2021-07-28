@@ -75,17 +75,29 @@ def test_parse_airflow_component_file():
     assert properties_json['current_parameters']['elyra_test_dict_default'] == ''  # {}
     assert properties_json['current_parameters']['elyra_test_list_default'] == ''  # []
 
+    # Ensure that type information is inferred correctly
     unusual_dict_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_dict')
     assert unusual_dict_property['data']['format'] == "dictionary"
 
-    unusual_array_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_list')
-    assert unusual_array_property['data']['format'] == "list"
+    unusual_list_property = next(prop for prop in properties_json['uihints']['parameter_info']
+                                 if prop.get('parameter_ref') == 'elyra_test_unusual_type_list')
+    assert unusual_list_property['data']['format'] == "list"
 
     unusual_string_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                    if prop.get('parameter_ref') == 'elyra_test_unusual_type_string')
     assert unusual_string_property['data']['format'] == "string"
+
+    no_type_property = next(prop for prop in properties_json['uihints']['parameter_info']
+                            if prop.get('parameter_ref') == 'elyra_test_unusual_type_notgiven')
+    assert no_type_property['data']['format'] == "string"
+
+    # Ensure descriptions are rendered properly with type hint in parentheses
+    assert unusual_dict_property['description']['default'] == "The test command description "\
+                                                              "(type: a dictionary of arrays)"
+    assert unusual_list_property['description']['default'] == "The test command description (type: a list of strings)"
+    assert unusual_string_property['description']['default'] == "The test command description (type: a string)"
+    assert no_type_property['description']['default'] == "The test command description (type: string)"
 
 
 def test_parse_airflow_component_url():
