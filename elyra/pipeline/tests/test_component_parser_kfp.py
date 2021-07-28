@@ -89,6 +89,7 @@ def test_parse_kfp_component_file():
                                      if prop.get('parameter_ref') == 'elyra_test_required_property_default')
     assert default_required_property['data']['required'] is True
 
+    # Ensure that type information is inferred correctly
     unusual_dict_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_dict')
     assert unusual_dict_property['data']['format'] == "dictionary"
@@ -104,6 +105,18 @@ def test_parse_kfp_component_file():
     file_property = next(prop for prop in properties_json['uihints']['parameter_info']
                          if prop.get('parameter_ref') == 'elyra_test_unusual_type_file')
     assert file_property['data']['format'] == "file"
+
+    no_type_property = next(prop for prop in properties_json['uihints']['parameter_info']
+                            if prop.get('parameter_ref') == 'elyra_test_unusual_type_notgiven')
+    assert no_type_property['data']['format'] == "string"
+
+    # Ensure descriptions are rendered properly with type hint in parentheses
+    assert unusual_dict_property['description']['default'] == "The test command description "\
+                                                              "(type: Dictionary of arrays)"
+    assert unusual_list_property['description']['default'] == "The test command description (type: An array)"
+    assert unusual_string_property['description']['default'] == "The test command description (type: A string)"
+    assert file_property['description']['default'] == "The test command description (type: Notebook)"
+    assert no_type_property['description']['default'] == "The test command description (type: string)"
 
 
 def test_parse_kfp_component_url():
