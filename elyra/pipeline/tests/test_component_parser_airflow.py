@@ -48,7 +48,7 @@ def test_parse_airflow_component_file():
         'name': 'Test Operator',
         'type': FilesystemComponentReader.type,
         'location': _get_resource_path('airflow_test_operator.py'),
-        'adjusted_id': '',
+        'catalog_entry_id': '',
         'category_id': 'airflow'
     }
     component_entry = SimpleNamespace(**entry)
@@ -94,7 +94,7 @@ def test_parse_airflow_component_url():
         'name': 'Bash Operator',
         'type': UrlComponentReader.type,
         'location': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
-        'adjusted_id': '',
+        'catalog_entry_id': '',
         'category_id': 'airflow'
     }
     component_entry = SimpleNamespace(**entry)
@@ -120,8 +120,11 @@ async def test_parse_components_invalid_location():
     component_parser = AirflowComponentParser()
     component_registry = ComponentRegistry(component_registry_location, component_parser)
 
-    components, categories = component_registry.get_all_components()
+    components = component_registry.get_all_components()
     assert len(components) == 0
+
+    categories = component_registry.get_all_categories()
+    assert len(categories) == 0
 
     palette_json = ComponentRegistry.to_canvas_palette(components, categories)
     empty_palette = {

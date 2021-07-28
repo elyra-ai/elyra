@@ -23,17 +23,25 @@ The community maintains a set of official tutorials and examples for many Elyra 
 
 The following tutorials highlight key features of Elyra.
 
-#### Running notebook pipelines in JupyterLab
+#### Run generic pipelines in JupyterLab
 
-Learn how to [create a notebook pipeline and run it in your local JupyterLab environment](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world).
+Learn how to [create a generic pipeline and run it in your local JupyterLab environment](https://github.com/elyra-ai/examples/tree/master/pipelines/introduction-to-generic-pipelines).
 
-#### Running notebook pipelines on Kubeflow Pipelines
+#### Run generic pipelines on Kubeflow Pipelines
 
-Learn how to [create a notebook pipeline and run it on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world_kubeflow_pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
+Learn how to [run generic pipelines on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/run-generic-pipelines-on-kubeflow-pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
 
-#### Running notebook pipelines on Apache Airflow
+#### Run generic pipelines on Apache Airflow
 
-Learn how to [create a notebook pipeline and run it on Apache Airflow](https://github.com/elyra-ai/examples/tree/master/pipelines/hello_world_apache_airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
+Learn how to [run generic pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/master/pipelines/run-generic-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
+
+#### Run runtime-specific pipelines on Kubeflow Pipelines
+
+Runtime-specific pipelines for Kubeflow Pipelines is under development.
+
+#### Run runtime-specific pipelines on Apache Airflow
+
+Runtime-specific pipelines for Apache Airflow is under development.
 
 #### Examples
 

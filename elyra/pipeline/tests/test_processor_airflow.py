@@ -349,3 +349,29 @@ def test_collect_envs(processor):
     assert envs['USER_EMPTY_VALUE'] == '  '
     assert envs['USER_TWO_EQUALS'] == 'KEY=value'
     assert 'USER_NO_VALUE' not in envs
+
+
+def test_unique_operation_name_existent(processor):
+    operation_name = "sample_operation"
+
+    op1 = {'notebook': "sample_operation"}
+    op2 = {'notebook': "sample_operation_2"}
+    op3 = {'notebook': "sample_operation_3"}
+    sample_operation_list = [op1, op2, op3]
+
+    unique_name = processor._get_unique_operation_name(operation_name, sample_operation_list)
+
+    assert unique_name == "sample_operation_4"
+
+
+def test_unique_operation_name_non_existent(processor):
+    operation_name = "sample_operation_foo_bar"
+
+    op1 = {'notebook': "sample_operation"}
+    op2 = {'notebook': "sample_operation_2"}
+    op3 = {'notebook': "sample_operation_3"}
+    sample_operation_list = [op1, op2, op3]
+
+    unique_name = processor._get_unique_operation_name(operation_name, sample_operation_list)
+
+    assert unique_name == operation_name

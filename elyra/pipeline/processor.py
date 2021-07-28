@@ -34,6 +34,7 @@ from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentCategory
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_registry import CachedComponentRegistry
 from elyra.pipeline.component_registry import ComponentRegistry
@@ -50,8 +51,19 @@ elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 class PipelineProcessorRegistry(SingletonConfigurable):
     _processors = {}
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.root_dir = get_expanded_path(kwargs.get('root_dir'))
+        # Register all known processors based on entrypoint configuration
+        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
+            try:
+                # instantiate an actual instance of the processor
+                processor_instance = processor.load()(self.root_dir, parent=kwargs.get('parent'))  # Load an instance
+                self.log.info(f'Registering processor "{processor}" with type -> {processor_instance.type}')
+                self.add_processor(processor_instance)
+            except Exception as err:
+                # log and ignore initialization errors
+                self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
     def add_processor(self, processor):
         self.log.debug(f'Registering processor {processor.type}')
@@ -71,24 +83,12 @@ class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
     def __init__(self, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
-
         self._registry = PipelineProcessorRegistry.instance()
-        # Register all known processors based on entrypoint configuration
-        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
-            try:
-                # instantiate an actual instance of the processor
-                processor_instance = processor.load()(self.root_dir, parent=self)  # Load an instance
-                self.log.info(f'Registering processor "{processor}" with type -> {processor_instance.type}')
-                self._registry.add_processor(processor_instance)
-            except Exception as err:
-                # log and ignore initialization errors
-                self.log.error('Error registering processor "{}" - {}'.format(processor, err))
 
     def _get_processor_for_runtime(self, processor_type: str):
         processor = self._registry.get_processor(processor_type)
-
         return processor
 
     def is_supported_runtime(self, processor_type: str) -> bool:
@@ -107,10 +107,10 @@ class PipelineProcessorManager(SingletonConfigurable):
             run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
         return res
 
-    async def get_categories(self, processor_type):
+    async def get_all_categories(self, processor_type):
         processor = self._get_processor_for_runtime(processor_type)
 
-        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_categories)
+        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_all_categories)
         return res
 
     async def process(self, pipeline):
@@ -216,11 +216,11 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
         return ComponentRegistry.get_generic_component(component_id)
 
-    def get_categories(self) -> List[Dict]:
-        categories: List[Dict] = [ComponentRegistry.get_generic_category()]
+    def get_all_categories(self) -> List[ComponentCategory]:
+        categories: List[ComponentCategory] = [ComponentRegistry.get_generic_category()]
 
         if self._component_registry:
-            categories.extend(self._component_registry.get_categories())
+            categories.extend(self._component_registry.get_all_categories())
 
         return categories
 

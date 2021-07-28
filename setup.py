@@ -118,6 +118,7 @@ setup_args = dict(
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
             'elyra-pipeline = elyra.cli.pipeline_app:pipeline',
+            'jupyter-elyra = elyra.elyra_app:launch_instance'
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',

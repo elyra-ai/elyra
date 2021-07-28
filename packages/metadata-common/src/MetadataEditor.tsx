@@ -585,9 +585,17 @@ export class MetadataEditor extends ReactWidget {
       headerText = `Add new ${this.schemaDisplayName}`;
     }
     const error = this.displayName === '' && this.invalidForm;
+    const onKeyPress: React.KeyboardEventHandler = (
+      event: React.KeyboardEvent
+    ) => {
+      const targetElement = event.nativeEvent.target as HTMLElement;
+      if (event.key === 'Enter' && targetElement?.tagName !== 'TEXTAREA') {
+        this.saveMetadata();
+      }
+    };
     return (
       <ThemeProvider themeManager={this.themeManager}>
-        <div className={ELYRA_METADATA_EDITOR_CLASS}>
+        <div onKeyPress={onKeyPress} className={ELYRA_METADATA_EDITOR_CLASS}>
           <h3> {headerText} </h3>
           <p style={{ width: '100%', marginBottom: '10px' }}>
             All fields marked with an asterisk are required.&nbsp;

@@ -531,9 +531,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
+                    # Remove inputs and outputs from params dict until support for data exchange is provided
                     operation.component_params_as_dict.pop("inputs")
                     operation.component_params_as_dict.pop("outputs")
-                    target_ops[operation.id] = factory_function(**operation.component_params_as_dict)
+
+                    # Create ContainerOp instance and assign appropriate user-provided name
+                    container_op = factory_function(**operation.component_params_as_dict)
+                    container_op.set_display_name(operation.name)
+
+                    target_ops[operation.id] = container_op
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
                     self.log.error(f"Error constructing component {operation.name}: {str(e)}")
