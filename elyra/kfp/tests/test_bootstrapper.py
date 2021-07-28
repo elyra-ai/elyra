@@ -54,7 +54,11 @@ def start_minio():
             check=True)
         time.sleep(3)
     except subprocess.CalledProcessError as ex:
-        raise RuntimeError(f'Error executing process: {ex.stderr.decode("unicode_escape")}') from ex
+        if ex.stderr:
+            error = ex.stderr.decode("unicode_escape")
+        else:
+            error = ''
+        raise RuntimeError(f'Error executing process: {error}') from ex
 
 
 @pytest.fixture(scope='function')
