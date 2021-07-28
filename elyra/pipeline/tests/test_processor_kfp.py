@@ -203,7 +203,8 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           op="filter-text",
                           source_type="url",
                           source=url,
-                          properties=[])
+                          properties=[],
+                          catalog_entry_id="")
 
     # Replace cached component registry with single url-based component for testing
     processor._component_registry._cached_components = [component]
@@ -249,7 +250,8 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           op="filter-text",
                           source_type="filename",
                           source="kfp/filter_text_using_shell_and_grep/component.yaml",
-                          properties=[])
+                          properties=[],
+                          catalog_entry_id="")
 
     # Replace cached component registry with single filename-based component for testing
     processor._component_registry._cached_components = [component]
