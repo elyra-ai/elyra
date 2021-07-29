@@ -325,10 +325,6 @@ def describe(json_option, pipeline_path):
     Describe a pipeline in a human readable format
     """
 
-    click.echo()
-
-    print_banner("Elyra Pipeline Describe")
-
     _validate_pipeline_file_extension(pipeline_path)
 
     pipeline_definition = \
@@ -337,9 +333,7 @@ def describe(json_option, pipeline_path):
     if not json_option:
         click.echo("Version:")
         for current_pipeline in pipeline_definition["pipelines"]:
-            click.echo("\t" + str(current_pipeline["app_data"]["version"]))
-
-        click.echo()
+            click.echo("  " + str(current_pipeline["app_data"]["version"]))
 
         has_description = False
 
@@ -348,18 +342,14 @@ def describe(json_option, pipeline_path):
                 if not has_description:
                     click.echo("Description:")
                     has_description = True
-                click.echo("\t" + str(current_pipeline["app_data"]["properties"]["description"]))
+                click.echo("  " + str(current_pipeline["app_data"]["properties"]["description"]))
 
         if not has_description:
             click.echo("No Description")
 
-        click.echo()
-
         click.echo("Type:")
         for current_pipeline in pipeline_definition["pipelines"]:
-            click.echo("\t" + str(current_pipeline["app_data"]["properties"]["runtime"]))
-
-        click.echo()
+            click.echo("  " + str(current_pipeline["app_data"]["properties"]["runtime"]))
 
         has_dependencies = False
 
@@ -370,16 +360,12 @@ def describe(json_option, pipeline_path):
                         click.echo("Dependencies:")
                         has_dependencies = True
                     for dependency in node["app_data"]["component_parameters"]["dependencies"]:
-                        click.echo("\t" + str(dependency))
+                        click.echo("  " + str(dependency))
 
         if not has_dependencies:
             click.echo("No Dependencies")
     else:
         click.echo(json.dumps(pipeline_definition, indent=2))
-
-    click.echo()
-
-    print_banner("Elyra Pipeline Description Complete")
 
 
 pipeline.add_command(submit)
