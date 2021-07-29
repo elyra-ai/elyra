@@ -293,8 +293,10 @@ class PipelineValidationManager(SingletonConfigurable):
 
                     # Validate runtime components against specific node properties in component registry
                     else:
-                        property_list = await self._get_component_properties(pipeline_runtime, components, node['op'])
-                        cleaned_property_list = list(map(lambda x: str(x).replace('elyra_', ''), property_list.keys()))
+                        # This is the full dict of properties for the operation e.g. current params, optionals etc
+                        property_dict = await self._get_component_properties(pipeline_runtime, components, node['op'])
+                        cleaned_property_list = list(map(lambda x: str(x).replace('elyra_', ''),
+                                                         property_dict['current_parameters'].keys()))
 
                         # Remove the non component_parameter jinja templated values we do not check against
                         cleaned_property_list.remove('component_source')
@@ -302,14 +304,15 @@ class PipelineValidationManager(SingletonConfigurable):
 
                         for node_property in cleaned_property_list:
                             if node_property not in list(node_data.keys()):
-                                response.add_message(severity=ValidationSeverity.Error,
-                                                     message_type="invalidNodeProperty",
-                                                     message="Node is missing field",
-                                                     data={"nodeID": node['id'],
-                                                           "nodeName": node_label,
-                                                           "propertyName": node_property})
+                                if self._is_required_property(property_dict, f"elyra_{node_property}"):
+                                    response.add_message(severity=ValidationSeverity.Error,
+                                                         message_type="invalidNodeProperty",
+                                                         message="Node is missing field",
+                                                         data={"nodeID": node['id'],
+                                                               "nodeName": node_label,
+                                                               "propertyName": node_property})
                             elif not isinstance(node_data[node_property],
-                                                type(property_list['elyra_' + node_property])):
+                                                type(property_dict['current_parameters']['elyra_' + node_property])):
                                 response.add_message(severity=ValidationSeverity.Error,
                                                      message_type="invalidNodeProperty",
                                                      message="Node field is incorrect type",
@@ -372,9 +375,6 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         """
         file_dir = file_dir or self.root_dir
-
-        print(f"XXXXXXXXX rootdir {self.root_dir}")
-        print(f"XXXXXXXXX filedir {file_dir}")
 
         normalized_path = os.path.normpath(f"{file_dir}/{filename}")
 
@@ -562,7 +562,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
     async def _get_component_properties(self, pipeline_runtime: str, components: dict, node_op: str) -> Dict:
         """
-        Retrieve the list of properties associated with the node_op
+        Retrieve the full dict of properties associated with the node_op
         :param components: list of components associated with the pipeline runtime being used e.g. kfp, airflow
         :param node_op: the node operation e.g. execute-notebook-node
         :return: a list of property names associated with the node op
@@ -579,8 +579,8 @@ class PipelineValidationManager(SingletonConfigurable):
                 if node_op == node_type['op']:
                     component: Component = \
                         await PipelineProcessorManager.instance().get_component(pipeline_runtime, node_op)
-                    component_prop = ComponentRegistry.to_canvas_properties(component)
-                    return component_prop['current_parameters']
+                    component_properties = ComponentRegistry.to_canvas_properties(component)
+                    return component_properties
 
         return {}
 
@@ -625,7 +625,19 @@ class PipelineValidationManager(SingletonConfigurable):
     def _is_legacy_pipeline(self, pipeline: dict) -> bool:
         """
         Checks the pipeline to determine if the pipeline is an older legacy schema
-        :param pipeline:
+        :param pipeline: the pipeline dict
         :return:
         """
         return pipeline['pipelines'][0]['app_data'].get('properties') is None
+
+    def _is_required_property(self, property_dict: dict, node_property: str):
+        """
+        Determine whether or not a component parameter is required to function correctly
+        :param property_dict: the dictionary for the component
+        :param node_property: the component property to check
+        :return:
+        """
+        node_op_parameter_list = property_dict['uihints']['parameter_info']
+        for parameter in node_op_parameter_list:
+            if parameter['parameter_ref'] == node_property:
+                return parameter['data']['required']
