@@ -30,6 +30,7 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.validate import PipelineValidationManager
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -151,6 +152,13 @@ def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) 
 
 def _execute_pipeline(pipeline_definition):
     try:
+        # validate pipeline
+        validation_response = asyncio.get_event_loop().run_until_complete(
+            PipelineValidationManager.instance().validate(pipeline=pipeline_definition))
+        if validation_response.has_fatal:
+            for issue in validation_response.to_json().get('issues'):
+                print(f'>>> {issue}')
+
         # parse pipeline
         pipeline_object = PipelineParser().parse(pipeline_definition)
         # process pipeline
