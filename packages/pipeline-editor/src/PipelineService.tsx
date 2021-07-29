@@ -375,19 +375,22 @@ export class PipelineService {
   ): any {
     for (const node of pipeline.nodes) {
       const nodeDef = components.find((n: any) => {
-        n.id === node.op;
+        return n.op === node.op;
       });
       const params = nodeDef?.app_data?.properties?.uihints?.parameter_info;
       if (!params) {
         continue;
       }
       for (const param of params) {
-        if (param.data?.format === 'file') {
+        if (
+          param.data?.format === 'file' &&
+          param.custom_control_id === 'StringControl'
+        ) {
           node.app_data.component_parameters[
-            param.parameter_ref
+            param.parameter_ref.substring(6)
           ] = this.getWorkspaceRelativeNodePath(
             pipelinePath,
-            node.app_data.component_parameters.filename
+            node.app_data.component_parameters[param.parameter_ref.substring(6)]
           );
         }
       }
