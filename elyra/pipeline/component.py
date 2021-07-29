@@ -24,6 +24,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
 
@@ -286,7 +287,7 @@ class FilesystemComponentReader(ComponentReader):
     type = 'filename'
 
     def read_component_definition(self, registry_entry: SimpleNamespace) -> Optional[str]:
-        component_path = os.path.join(os.path.dirname(__file__), "resources", registry_entry.location)
+        component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', registry_entry.location)
         if not os.path.exists(component_path):
             self.log.warning(f"Invalid location for component: {registry_entry.id} -> {component_path}")
             return None
@@ -342,14 +343,13 @@ class ComponentParser(LoggingConfigurable):  # ABC
         except Exception:
             raise ValueError(f'Unsupported registry type {component_entry.type}.')
 
-    def _get_description_with_type_hint(self, type: str, description: Optional[str]) -> str:
+    def _format_description(self, description: str, type: str) -> str:
         """
         Adds type information parsed from component specification to parameter description.
         """
         if description:
             return f"{description} (type: {type})"
-        else:
-            return f"(type: {type})"
+        return f"(type: {type})"
 
     def determine_type_information(self, parsed_type: str) -> Tuple[str, str, Any]:
         """

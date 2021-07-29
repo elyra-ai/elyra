@@ -33,7 +33,9 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
 npm_packages_path = "./dist/*.tgz"
 auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
 auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
-components_path = './etc/config/components/*.json'
+component_registry_path = './etc/config/components/*.json'
+components_kfp_path = './etc/config/components/kfp/*.yaml'
+components_airflow_path = './etc/config/components/airflow/*.py'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 settings_path = './etc/config/settings/*.json'
 
@@ -58,7 +60,9 @@ setup_args = dict(
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
                 ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path)),
-                ('share/jupyter/components', glob(components_path)),
+                ('share/jupyter/components', glob(component_registry_path)),
+                ('share/jupyter/components/kfp/', glob(components_kfp_path)),
+                ('share/jupyter/components/airflow/', glob(components_airflow_path)),
                 ('share/jupyter/lab/settings', glob(settings_path))],
     packages=find_packages(),
     install_requires=[
@@ -66,7 +70,7 @@ setup_args = dict(
         'click',
         'colorama',
         'entrypoints>=0.3',
-        'jinja2>=2.11,<3.0',
+        'jinja2>=2.11',
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
@@ -77,9 +81,10 @@ setup_args = dict(
         'jupyter-resource-usage>=0.5.1',
         'minio>=5.0.7,<7.0.0',
         'nbclient>=0.5.1',
-        'nbconvert>=5.6.1,<6.0',
+        'nbconvert>=5.6.1',
         'nbdime~=3.1',
         'nbformat>=5.1.2',
+        'networkx>=2.5.1',
         'papermill>=2.1.3',
         'python-language-server[all]>=0.36.2',
         'pyyaml>=5.3.1,<6.0',
@@ -113,6 +118,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ),
     entry_points={
         'console_scripts': [
