@@ -347,15 +347,20 @@ def describe(pipeline_path):
 
     click.echo()
 
+    has_dependencies = False
+
     for current_pipeline in pipeline_definition["pipelines"]:
         for node in current_pipeline["nodes"]:
-            if len(node["app_data"]["component_parameters"]["dependencies"]) != 0:
-                click.echo("Dependencies:")
+            if len(node["app_data"]["component_parameters"]["dependencies"]) >= 1:
+                if not has_dependencies:
+                    click.echo("Dependencies:")
+                    has_dependencies = True
                 for dependency in node["app_data"]["component_parameters"]["dependencies"]:
                     click.echo(dependency)
-            else:
-                pass
 
+    if not has_dependencies:
+        click.echo("No Dependencies")
+        
     click.echo()
 
     print_banner("Elyra Pipeline Description Complete")
