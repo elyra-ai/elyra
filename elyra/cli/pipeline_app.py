@@ -331,19 +331,27 @@ def describe(pipeline_path):
 
     click.echo("Version:")
     for current_pipeline in pipeline_definition["pipelines"]:
-        click.echo(current_pipeline["app_data"]["version"])
+        click.echo("\t" + str(current_pipeline["app_data"]["version"]))
 
     click.echo()
 
-    click.echo("Description:")
+    has_description = False
+
     for current_pipeline in pipeline_definition["pipelines"]:
-        click.echo(current_pipeline["app_data"]["properties"]["description"])
+        if current_pipeline["app_data"]["properties"]["description"] != "":
+            if not has_description:
+                click.echo("Description:")
+                has_description = True
+            click.echo("\t" + str(current_pipeline["app_data"]["properties"]["description"]))
+
+    if not has_description:
+        click.echo("No Description")
 
     click.echo()
 
     click.echo("Type:")
     for current_pipeline in pipeline_definition["pipelines"]:
-        click.echo(current_pipeline["app_data"]["properties"]["runtime"])
+        click.echo("\t" + str(current_pipeline["app_data"]["properties"]["runtime"]))
 
     click.echo()
 
@@ -356,11 +364,11 @@ def describe(pipeline_path):
                     click.echo("Dependencies:")
                     has_dependencies = True
                 for dependency in node["app_data"]["component_parameters"]["dependencies"]:
-                    click.echo(dependency)
+                    click.echo("\t" + str(dependency))
 
     if not has_dependencies:
         click.echo("No Dependencies")
-        
+
     click.echo()
 
     print_banner("Elyra Pipeline Description Complete")
