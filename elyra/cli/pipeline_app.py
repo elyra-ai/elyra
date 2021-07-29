@@ -314,8 +314,13 @@ def run(pipeline_path):
 
 
 @click.command()
+@click.option('--json',
+              'json_option',
+              is_flag=True,
+              required=False,
+              help='Returns pipeline file in a machine-readable JSON format')
 @click.argument('pipeline_path')
-def describe(pipeline_path):
+def describe(json_option, pipeline_path):
     """
     Describe a pipeline in a human readable format
     """
@@ -329,45 +334,48 @@ def describe(pipeline_path):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
-    click.echo("Version:")
-    for current_pipeline in pipeline_definition["pipelines"]:
-        click.echo("\t" + str(current_pipeline["app_data"]["version"]))
+    if not json_option:
+        click.echo("Version:")
+        for current_pipeline in pipeline_definition["pipelines"]:
+            click.echo("\t" + str(current_pipeline["app_data"]["version"]))
 
-    click.echo()
+        click.echo()
 
-    has_description = False
+        has_description = False
 
-    for current_pipeline in pipeline_definition["pipelines"]:
-        if current_pipeline["app_data"]["properties"]["description"] != "":
-            if not has_description:
-                click.echo("Description:")
-                has_description = True
-            click.echo("\t" + str(current_pipeline["app_data"]["properties"]["description"]))
+        for current_pipeline in pipeline_definition["pipelines"]:
+            if current_pipeline["app_data"]["properties"]["description"] != "":
+                if not has_description:
+                    click.echo("Description:")
+                    has_description = True
+                click.echo("\t" + str(current_pipeline["app_data"]["properties"]["description"]))
 
-    if not has_description:
-        click.echo("No Description")
+        if not has_description:
+            click.echo("No Description")
 
-    click.echo()
+        click.echo()
 
-    click.echo("Type:")
-    for current_pipeline in pipeline_definition["pipelines"]:
-        click.echo("\t" + str(current_pipeline["app_data"]["properties"]["runtime"]))
+        click.echo("Type:")
+        for current_pipeline in pipeline_definition["pipelines"]:
+            click.echo("\t" + str(current_pipeline["app_data"]["properties"]["runtime"]))
 
-    click.echo()
+        click.echo()
 
-    has_dependencies = False
+        has_dependencies = False
 
-    for current_pipeline in pipeline_definition["pipelines"]:
-        for node in current_pipeline["nodes"]:
-            if len(node["app_data"]["component_parameters"]["dependencies"]) >= 1:
-                if not has_dependencies:
-                    click.echo("Dependencies:")
-                    has_dependencies = True
-                for dependency in node["app_data"]["component_parameters"]["dependencies"]:
-                    click.echo("\t" + str(dependency))
+        for current_pipeline in pipeline_definition["pipelines"]:
+            for node in current_pipeline["nodes"]:
+                if len(node["app_data"]["component_parameters"]["dependencies"]) >= 1:
+                    if not has_dependencies:
+                        click.echo("Dependencies:")
+                        has_dependencies = True
+                    for dependency in node["app_data"]["component_parameters"]["dependencies"]:
+                        click.echo("\t" + str(dependency))
 
-    if not has_dependencies:
-        click.echo("No Dependencies")
+        if not has_dependencies:
+            click.echo("No Dependencies")
+    else:
+        click.echo(json.dumps(pipeline_definition, indent=2))
 
     click.echo()
 
