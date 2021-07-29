@@ -196,7 +196,7 @@ def test_collect_envs(processor):
 def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
     # Assign test resource location
     url = 'https://raw.githubusercontent.com/elyra-ai/elyra/master/' \
-          'etc/config/components/kfp/filter_text_using_shell_and_grep.yaml'
+          'elyra/pipeline/tests/resources/components/filter_text.yaml'
 
     # Instantiate a url-based component
     component = Component(id="filter-text",
