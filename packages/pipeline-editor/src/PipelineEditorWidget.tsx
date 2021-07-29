@@ -595,7 +595,8 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
-      contextRef.current.path
+      contextRef.current.path,
+      getAllPaletteNodes(palette)
     );
 
     cleanNullProperties();
@@ -741,7 +742,8 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
-      contextRef.current.path
+      contextRef.current.path,
+      getAllPaletteNodes(palette)
     );
 
     cleanNullProperties();

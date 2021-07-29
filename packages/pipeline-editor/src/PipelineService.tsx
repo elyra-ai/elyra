@@ -370,18 +370,26 @@ export class PipelineService {
 
   static setNodePathsRelativeToWorkspace(
     pipeline: any,
-    pipelinePath: string
+    pipelinePath: string,
+    components: any[]
   ): any {
     for (const node of pipeline.nodes) {
-      if (
-        node.op === 'execute-notebook-node' ||
-        node.op === 'execute-python-node' ||
-        node.op === 'execute-r-node'
-      ) {
-        node.app_data.component_parameters.filename = this.getWorkspaceRelativeNodePath(
-          pipelinePath,
-          node.app_data.component_parameters.filename
-        );
+      const nodeDef = components.find((n: any) => {
+        n.id === node.op;
+      });
+      const params = nodeDef?.app_data?.properties?.uihints?.parameter_info;
+      if (!params) {
+        continue;
+      }
+      for (const param of params) {
+        if (param.data?.format === 'file') {
+          node.app_data.component_parameters[
+            param.parameter_ref
+          ] = this.getWorkspaceRelativeNodePath(
+            pipelinePath,
+            node.app_data.component_parameters.filename
+          );
+        }
       }
     }
     return pipeline;
