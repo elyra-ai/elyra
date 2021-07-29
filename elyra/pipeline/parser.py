@@ -41,21 +41,8 @@ class PipelineParser(LoggingConfigurable):
         list of operations.
         """
 
-        # Check for required values.  We require a primary_pipeline, a set of pipelines, and
-        # nodes within the primary pipeline (checked below).
-        if 'primary_pipeline' not in pipeline_definitions:
-            raise ValueError("Invalid pipeline: Could not determine the primary pipeline.")
-        if not isinstance(pipeline_definitions["primary_pipeline"], str):
-            raise ValueError("Invalid pipeline: Field 'primary_pipeline' should be a string.")
-        if 'pipelines' not in pipeline_definitions:
-            raise ValueError("Invalid pipeline: Pipeline definition not found.")
-        if not isinstance(pipeline_definitions["pipelines"], list):
-            raise ValueError("Invalid pipeline: Field 'pipelines' should be a list.")
-
         primary_pipeline_id = pipeline_definitions['primary_pipeline']
         primary_pipeline = PipelineParser._get_pipeline_definition(pipeline_definitions, primary_pipeline_id)
-        if not primary_pipeline:
-            raise ValueError("Invalid pipeline: Primary pipeline '{}' not found.".format(primary_pipeline_id))
 
         # runtime info is only present on primary pipeline...
         runtime = PipelineParser._get_app_data_field(primary_pipeline, 'runtime')
@@ -64,9 +51,6 @@ class PipelineParser(LoggingConfigurable):
         runtime_config = PipelineParser._get_app_data_field(primary_pipeline, 'runtime-config')
         if not runtime_config:
             raise ValueError("Invalid pipeline: Missing runtime configuration.")
-
-        if 'nodes' not in primary_pipeline or len(primary_pipeline['nodes']) == 0:
-            raise ValueError("Invalid pipeline: At least one node must exist in the primary pipeline.")
 
         source = PipelineParser._get_app_data_field(primary_pipeline, 'source')
 

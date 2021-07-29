@@ -165,6 +165,10 @@ class Operation(object):
             return []
         return [clean for clean in dirty if clean]
 
+    @staticmethod
+    def is_generic_operation(operation_type) -> bool:
+        return True if operation_type in Operation.generic_node_types else False
+
 
 class GenericOperation(Operation):
     """

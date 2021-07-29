@@ -60,39 +60,6 @@ def test_pipeline_with_dirty_list_values(valid_operation):
     assert pipeline.operations['{{uuid}}'] == valid_operation
 
 
-def test_missing_primary():
-    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
-    pipeline_definitions.pop('primary_pipeline')
-
-    with pytest.raises(ValueError):
-        PipelineParser().parse(pipeline_definitions)
-
-
-def test_missing_pipelines():
-    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
-    pipeline_definitions.pop('pipelines')
-
-    with pytest.raises(ValueError):
-        PipelineParser().parse(pipeline_definitions)
-
-
-def test_missing_primary_id():
-    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
-    # Replace pipeline id with non-matching guid so primary is not found
-    pipeline_definitions['pipelines'][0]['id'] = "deadbeef-dead-beef-dead-beefdeadbeef"
-
-    with pytest.raises(ValueError):
-        PipelineParser().parse(pipeline_definitions)
-
-
-def test_zero_nodes():
-    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_invalid.json')
-    pipeline_definitions['pipelines'][0]['nodes'] = []
-
-    with pytest.raises(ValueError):
-        PipelineParser().parse(pipeline_definitions)
-
-
 def test_multinode_pipeline():
     pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_3_node_sample.json')
 
