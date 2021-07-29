@@ -88,6 +88,7 @@ $ make
 clean                          Make a clean source tree and uninstall extensions
 container-images               Build all container images
 docs                           Build docs
+install-server                 Install backend
 install                        Build and install
 lint                           Run linters
 publish-container-images       Publish all container images

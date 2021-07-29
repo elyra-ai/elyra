@@ -136,7 +136,7 @@ prepare-server:
 
 only-install-server: prepare-server build-server install-server-package
 
-install-server: lint-server only-install-server # Install backend
+install-server: lint-server only-install-server ## Install backend
 
 install-server-package:
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
