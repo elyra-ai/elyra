@@ -28,6 +28,7 @@ from black import FileMode
 from black import format_str
 from jinja2 import Environment
 from jinja2 import PackageLoader
+from jupyter_core.paths import ENV_JUPYTER_PATH
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
@@ -519,7 +520,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Get absolute path of component source
                 component_path = component.source
                 if component.source_type == "filename":
-                    component_path = os.path.join(os.path.dirname(__file__), "resources", component_path)
+                    component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', component_path)
 
                 component_source = {}
                 component_source[component.source_type] = component_path

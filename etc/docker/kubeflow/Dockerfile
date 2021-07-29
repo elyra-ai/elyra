@@ -28,7 +28,7 @@ RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir --use
     rm -f /tmp/requirements.txt
 
 # install elyra
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra==3.0.0rc1
+RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra==3.0.0rc2
 
 
 RUN jupyter lab build

@@ -1,5 +1,49 @@
 # Changelog
 
+## Release 3.0.0rc2 - 07/28/2021
+
+- Fix error case where error handler throws error - [1984](https://github.com/elyra-ai/elyra/pull/1984)
+- Pipeline validation service initial implementation - [1664](https://github.com/elyra-ai/elyra/pull/1664)
+- Uncap jinja2 and nbconvert dependency version - [1971](https://github.com/elyra-ai/elyra/pull/1971)
+- Refactor component location to jupyter/shared/components/runtime - [1974](https://github.com/elyra-ai/elyra/pull/1974)
+- Fix CI dialog selector after Lab 3.1 release - [1973](https://github.com/elyra-ai/elyra/pull/1973)
+- Temporarily bypass failing KFP component tests - [1982](https://github.com/elyra-ai/elyra/pull/1982)
+- Resolve component name errors in component registry - [1969](https://github.com/elyra-ai/elyra/pull/1969)
+- Fix computation of absolute path for url-based KFP components - [1957](https://github.com/elyra-ai/elyra/pull/1957)
+- Properly display description/type information in node properties - [1970](https://github.com/elyra-ai/elyra/pull/1970)
+- Set KFP component display name to the provided node label - [1968](https://github.com/elyra-ai/elyra/pull/1968)
+- Derive elyra extension from ExtensionApp - [1876](https://github.com/elyra-ai/elyra/pull/1876)
+- Update JupyterLab launcher page image in README - [1917](https://github.com/elyra-ai/elyra/pull/1917)
+- Make 'name' optional when parsing a component registry entry - [1958](https://github.com/elyra-ai/elyra/pull/1958)
+- Use enter key to save and submit metadata editor form - [1962](https://github.com/elyra-ai/elyra/pull/1962)
+- Followup refactor to component & category parsing - [1948](https://github.com/elyra-ai/elyra/pull/1948)
+- Update 'runtime image configuration' topic in User Guide - [1933](https://github.com/elyra-ai/elyra/pull/1933)
+- Update operation naming for airflow custom components - [1961](https://github.com/elyra-ai/elyra/pull/1961)
+- Update tutorial references in documentation overview - [1919](https://github.com/elyra-ai/elyra/pull/1919)
+- Update pipeline-editor to v0.11.2 to fix env-vars refresh - [1952](https://github.com/elyra-ai/elyra/pull/1952)
+- Update Airflow operation naming for uniqueness - [1950](https://github.com/elyra-ai/elyra/pull/1950)
+- Prettify pipeline json on migrate - [1947](https://github.com/elyra-ai/elyra/pull/1947)
+- Update pipeline editor dialog message for unsupported files - [1935](https://github.com/elyra-ai/elyra/pull/1935)
+- Update Apache Airflow jinja template DAG creation logic - [1945](https://github.com/elyra-ai/elyra/pull/1945)
+- Update pipeline properties error message theme - [1939](https://github.com/elyra-ai/elyra/pull/1939)
+- Improve how type info is inferred during component parsing - [1936](https://github.com/elyra-ai/elyra/pull/1936)
+- Avoid deleting test resources during make clean - [1946](https://github.com/elyra-ai/elyra/pull/1946)
+- Fix Pipeline node property resources fields style - [1942](https://github.com/elyra-ai/elyra/pull/1942)
+- Restructure pipeline JSON to prevent custom components from breaking - [1882](https://github.com/elyra-ai/elyra/pull/1882)
+- Fix Open File command for pipeline nodes - [1937](https://github.com/elyra-ai/elyra/pull/1937)
+- Fix exporting generic pipelines to python script - [1927](https://github.com/elyra-ai/elyra/pull/1927)
+- Rename KFP NotebookOp to ExecuteFileOp
+- Merge support for KFP operator into main Elyra repo
+- Set 'required' attribute default to True for KFP components - [1916](https://github.com/elyra-ai/elyra/pull/1916)
+- Add descriptions to component types in palette - [1913](https://github.com/elyra-ai/elyra/pull/1913)
+- Log and skip pipeline components with invalid location - [1872](https://github.com/elyra-ai/elyra/pull/1872)
+- Enable migration from previous pipeline versions - [1860](https://github.com/elyra-ai/elyra/pull/1860)
+- Update 'pipelines' topic in User Guide - [1848](https://github.com/elyra-ai/elyra/pull/1848)
+- Add Python 3.9 to CI integration test matrix - [1908](https://github.com/elyra-ai/elyra/pull/1908)
+- Fix and enable linting on package __init__ files - [1909](https://github.com/elyra-ai/elyra/pull/1909)
+- Initialize component defaults when double clicking palette nodes - [1902](https://github.com/elyra-ai/elyra/pull/1902)
+- Update kfp component files to include optional parameter - [1854](https://github.com/elyra-ai/elyra/pull/1854)
+
 ## Release 3.0.0rc1 - 07/09/2021
 
 - Add 'Pipeline components' topic to the user guide docs - [1839](https://github.com/elyra-ai/elyra/pull/1839)

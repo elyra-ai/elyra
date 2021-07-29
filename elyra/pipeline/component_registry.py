@@ -166,7 +166,7 @@ class ComponentRegistry(LoggingConfigurable):
             # Process component entries from catalog
             if 'components' in catalog_json.keys():
                 for component_id, component_entry in catalog_json['components'].items():
-                    self.log.debug(f"Component registry: processing component {component_entry.get('name')}")
+                    self.log.debug(f"Component registry: processing component {component_id}")
 
                     component_type = next(iter(component_entry.get('location')))
                     component_location = self._get_relative_location(component_type,
@@ -225,7 +225,7 @@ class ComponentRegistry(LoggingConfigurable):
 
             component_entry = {
                 "id": queried_component_id,
-                "name": component_entry['name'],
+                "name": component_entry.get("name"),
                 "type": location_type,
                 "location": component_location,
                 "catalog_entry_id": catalog_entry_id,
