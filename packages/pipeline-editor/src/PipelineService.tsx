@@ -27,6 +27,8 @@ export const RUNTIMES_NAMESPACE = 'runtimes';
 export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 export const COMPONENTS_NAMESPACE = 'components';
 
+const ELYRA_PREFIX_LEN = 6;
+
 export interface IRuntime {
   name: string;
   display_name: string;
@@ -387,10 +389,12 @@ export class PipelineService {
           param.custom_control_id === 'StringControl'
         ) {
           node.app_data.component_parameters[
-            param.parameter_ref.substring(6)
+            param.parameter_ref.substring(ELYRA_PREFIX_LEN)
           ] = this.getWorkspaceRelativeNodePath(
             pipelinePath,
-            node.app_data.component_parameters[param.parameter_ref.substring(6)]
+            node.app_data.component_parameters[
+              param.parameter_ref.substring(ELYRA_PREFIX_LEN)
+            ]
           );
         }
       }
