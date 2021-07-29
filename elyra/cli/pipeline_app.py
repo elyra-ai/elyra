@@ -322,7 +322,7 @@ def run(pipeline_path):
 @click.argument('pipeline_path')
 def describe(json_option, pipeline_path):
     """
-    Describe a pipeline in a human readable format
+    Display pipeline description in a human readable format
     """
 
     _validate_pipeline_file_extension(pipeline_path)
