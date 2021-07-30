@@ -76,6 +76,9 @@ class BootscriptBuilder(object):
         self.container_work_dir_name = "jupyter-work-dir/"
         self.container_work_dir = self.container_work_dir_root_path + self.container_work_dir_name
 
+        if not filename:
+            raise ValueError("You need to provide a filename for the operation.")
+
     @property
     def container_cmd(self):
         self.arguments = [f"mkdir -p {self.container_work_dir} && cd {self.container_work_dir} && "

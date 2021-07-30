@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import string
-
 import pytest
 
 from elyra.airflow.operator import BootscriptBuilder
@@ -67,14 +65,28 @@ def test_fail_with_empty_string_as_filename():
                           cos_bucket="test_bucket",
                           cos_directory="test_directory",
                           cos_dependencies_archive="test_archive.tgz")
-    assert "You need to provide a notebook." == str(error_info.value)
+    assert "You need to provide a filename for the operation." == str(error_info.value)
 
 
-@pytest.mark.skip(reason="TODO")
-def test_build_cmd_with_inputs():
-    BootscriptBuilder(filename="test_notebook.ipynb",
-                      cos_endpoint="http://testserver:32525",
-                      cos_bucket="test_bucket",
-                      cos_directory="test_directory",
-                      cos_dependencies_archive="test_archive.tgz",
-                      inputs=['test.txt', 'test2.txt'])
+def test_build_cmd_with_inputs_and_outputs():
+    pipeline_inputs = ['test.txt', 'test2.txt']
+    pipeline_outputs = ['test3.txt', 'test4.txt']
+
+    boot_build = BootscriptBuilder(filename="test_notebook.ipynb",
+                                   cos_endpoint="http://testserver:32525",
+                                   cos_bucket="test_bucket",
+                                   cos_directory="test_directory",
+                                   cos_dependencies_archive="test_archive.tgz",
+                                   inputs=pipeline_inputs,
+                                   outputs=pipeline_outputs)
+
+    assert boot_build.inputs == pipeline_inputs
+    assert boot_build.outputs == pipeline_outputs
+
+    boot_arg_list = boot_build.container_cmd.split("--")
+    for arg in boot_arg_list:
+        arg_value = arg.split(" ")[1]
+        if 'outputs' in arg:
+            assert arg_value == f"'{';'.join(pipeline_outputs)}'"
+        if 'inputs' in arg:
+            assert arg_value == f"'{';'.join(pipeline_inputs)}'"
