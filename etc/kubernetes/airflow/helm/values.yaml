@@ -158,8 +158,7 @@ airflow:
   ##   extraPipPackages:
   ##     - "airflow-exporter==1.3.1"
   ##
-  extraPipPackages:
-    - "airflow-notebook==0.0.2"
+  #extraPipPackages:
 
   ## extra volumeMounts for the web/scheduler/worker Pods
   ##

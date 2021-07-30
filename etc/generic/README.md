@@ -16,6 +16,6 @@ limitations under the License.
 {% endcomment %}
 -->
 
-### Apache Airflow container image for Elyra
+This directory root contains the requirements file that every generic component will download at runtime to be used
+to install the required python packages needed to run its workload
 
-This `Dockerfile` is used to build an Apache Airflow container image that has the [airflow-notebook](https://github.com/elyra-ai/airflow-notebook) package pre-installed. The container image is published on [Docker Hub](https://hub.docker.com/r/elyra/airflow) and [quay.io](https://quay.io/repository/elyra/airflow).
