@@ -307,7 +307,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                 if self._is_required_property(property_dict, f"elyra_{node_property}"):
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
-                                                         message="Node is missing field",
+                                                         message="Node is missing required property",
                                                          data={"nodeID": node['id'],
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
@@ -315,7 +315,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                 type(property_dict['current_parameters']['elyra_' + node_property])):
                                 response.add_message(severity=ValidationSeverity.Error,
                                                      message_type="invalidNodeProperty",
-                                                     message="Node field is incorrect type",
+                                                     message="Node property is incorrect type",
                                                      data={"nodeID": node['id'],
                                                            "nodeName": node_label,
                                                            "propertyName": node_property})
@@ -630,7 +630,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         return pipeline['pipelines'][0]['app_data'].get('properties') is None
 
-    def _is_required_property(self, property_dict: dict, node_property: str):
+    def _is_required_property(self, property_dict: dict, node_property: str) -> bool:
         """
         Determine whether or not a component parameter is required to function correctly
         :param property_dict: the dictionary for the component
@@ -641,3 +641,4 @@ class PipelineValidationManager(SingletonConfigurable):
         for parameter in node_op_parameter_list:
             if parameter['parameter_ref'] == node_property:
                 return parameter['data']['required']
+        return False
