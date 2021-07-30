@@ -146,11 +146,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # will be stored
             cos_directory = f'{pipeline_name}-{timestamp}'
 
-        except MaxRetryError as ex:
-            raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
+        except (requests.exceptions.ConnectionError, MaxRetryError) as ce:
+            raise RuntimeError(f"Error connecting to pipeline server {api_endpoint}.  Check the "
+                               f"Kubeflow Pipelines connection information in runtime "
+                               f"configuration '{pipeline.runtime_config}'.") from ce
         except LocationValueError as lve:
             if api_username:
-                raise ValueError("Failure occurred uploading pipeline, check your credentials") from lve
+                raise ValueError(f"Failure occurred uploading pipeline. Check the "
+                                 f"Kubeflow Pipelines credentials in runtime "
+                                 f"configuration '{pipeline.runtime_config}'.") from lve
             else:
                 raise lve
 
