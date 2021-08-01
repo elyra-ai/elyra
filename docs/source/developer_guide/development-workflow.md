@@ -88,6 +88,7 @@ $ make
 clean                          Make a clean source tree and uninstall extensions
 container-images               Build all container images
 docs                           Build docs
+install-server                 Build and install backend only
 install                        Build and install
 lint                           Run linters
 publish-container-images       Publish all container images
@@ -128,7 +129,18 @@ You can install Elyra using a local build of @elyra/pipeline-editor with:
 make clean dev-link install
 ```
 
-### Incremental Development
+### Back-end Development
+After making code changes to the back-end, you can re-build Elyra's Python package with:
+
+```bash
+make install-server
+```
+
+This command builds and installs the updated  Python package independently, skipping any UI component build.
+
+Restart JupyterLab to pick up the new code changes.
+
+### Front-end Incremental Development
 
 Elyra supports incremental development using `--watch`. This allows you to make code changes to
 front-end packages and see them without running `make install` again.
