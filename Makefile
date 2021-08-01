@@ -65,7 +65,7 @@ uninstall:
 	pip uninstall -y jupyter-lsp
 	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
 	pip uninstall -y jupyterlab-lsp
-	pip uninstall -y python-language-server
+	pip uninstall -y python-lsp-server
 	pip uninstall -y jupyter-resource-usage
 	- jupyter labextension uninstall @jupyter-server/resource-usage
 	pip uninstall -y elyra
