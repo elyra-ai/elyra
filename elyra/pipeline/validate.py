@@ -121,7 +121,8 @@ class PipelineValidationManager(SingletonConfigurable):
                                            pipeline_execution=pipeline_execution)
         await self._validate_node_properties(pipeline=pipeline, response=response, pipeline_runtime=pipeline_runtime,
                                              pipeline_execution=pipeline_execution)
-        self._validate_pipeline_graph(pipeline=pipeline, response=response)
+        if not self._is_standalone_submission(pipeline_json['pipelines'][0]['app_data']['source']):
+            self._validate_pipeline_graph(pipeline=pipeline, response=response)
 
         return response
 
@@ -240,6 +241,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         """
         pipeline_json = json.loads(json.dumps(pipeline))
+        pipeline_source = pipeline_json['pipelines'][0]['app_data'].get('source')
 
         for single_pipeline in pipeline_json['pipelines']:
             node_list = single_pipeline['nodes']
@@ -249,7 +251,7 @@ class PipelineValidationManager(SingletonConfigurable):
             components = ComponentRegistry.to_canvas_palette(component_list, categories)
             for node in node_list:
                 if node['type'] == 'execution_node':
-                    if self._is_legacy_pipeline(pipeline):
+                    if self._is_legacy_pipeline(pipeline) and not self._is_standalone_submission(pipeline_source):
                         node_data = node['app_data']
                         node_label = node_data['ui_data'].get('label')
                     else:
@@ -647,3 +649,11 @@ class PipelineValidationManager(SingletonConfigurable):
             if parameter['parameter_ref'] == node_property:
                 return parameter['data']['required']
         return False
+
+    def _is_standalone_submission(self, pipeline_source: str):
+        """
+        Determine if the submission is standalone e.g. The Button
+        :param pipeline_source: the pipeline source file e.g. example.pipeline, example.py etc.
+        :return:
+        """
+        return os.path.splitext(pipeline_source)[1] in ['.ipynb', '.r', ".py"]
