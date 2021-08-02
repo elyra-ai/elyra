@@ -376,7 +376,12 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         file_dir = file_dir or self.root_dir
 
-        normalized_path = os.path.normpath(f"{file_dir}/{filename}")
+        if filename == os.path.abspath(filename):
+            normalized_path = os.path.normpath(filename)
+        elif filename.startswith(file_dir):
+            normalized_path = os.path.normpath(filename)
+        else:
+            normalized_path = os.path.normpath(f"{file_dir}/{filename}")
 
         if not os.path.commonpath([normalized_path, self.root_dir]) == self.root_dir:
             response.add_message(severity=ValidationSeverity.Error,

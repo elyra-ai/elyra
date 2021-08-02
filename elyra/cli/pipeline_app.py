@@ -30,6 +30,8 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.validate import PipelineValidationManager
+from elyra.pipeline.validate import ValidationSeverity
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -149,6 +151,42 @@ def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) 
     return pipeline_definition
 
 
+def _print_issues(issues):
+    # print validation issues
+    for issue in issues:
+        if issue.get('severity') == ValidationSeverity.Error:
+            click.echo(
+                f'- (Fatal error on node \'{issue["data"]["nodeName"]}\' property \'{issue["data"]["propertyName"]}\') '
+                f'- {issue["message"]}')
+        else:
+            # TODO check warning nodeNames are empty
+            click.echo(
+                f'- (Warning) - {issue["message"]}')
+
+    click.echo("")
+
+
+def _validate_pipeline_definition(pipeline_definition):
+    # validate pipeline
+    validation_response = asyncio.get_event_loop().run_until_complete(
+        PipelineValidationManager.instance().validate(pipeline=pipeline_definition))
+
+    if validation_response.has_fatal:
+        click.echo('Pipeline validation FAILED:')
+
+        # print validation issues
+        issues = validation_response.to_json().get('issues')
+        _print_issues(issues)
+
+        raise click.ClickException("Error validating pipeline.")
+    else:
+        click.echo('Pipeline validation WARNINGS:')
+
+        # print validation issues
+        issues = validation_response.to_json().get('issues')
+        _print_issues(issues)
+
+
 def _execute_pipeline(pipeline_definition):
     try:
         # parse pipeline
@@ -219,6 +257,8 @@ def submit(pipeline_path, runtime_config):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
+    _validate_pipeline_definition(pipeline_definition)
+
     with yaspin(text="Submitting pipeline..."):
         response = _execute_pipeline(pipeline_definition)
 
@@ -250,6 +290,8 @@ def run(pipeline_path):
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
+
+    _validate_pipeline_definition(pipeline_definition)
 
     _execute_pipeline(pipeline_definition)
 
