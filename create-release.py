@@ -340,6 +340,11 @@ def copy_extension_archive(extension: str, work_dir: str) -> None:
 def generate_changelog() -> None:
     global config
 
+    print("-----------------------------------------------------------------")
+    print("--------------------- Preparing Changelog -----------------------")
+    print("-----------------------------------------------------------------")
+
+
     changelog_path = os.path.join(config.source_dir, 'docs/source/getting_started/changelog.md')
     changelog_backup_path = os.path.join(config.source_dir, 'docs/source/getting_started/changelog.bak')
     if os.path.exists(changelog_backup_path):
@@ -368,6 +373,8 @@ def generate_changelog() -> None:
                 # for each commit, get it's title and prepare a changelog
                 # entry linking to the related pull request
                 commit_title = commit.message.splitlines()[0]
+                # commit_hash = commit.hexsha
+                # print(f'>>> {commit_hash} - {commit_title}')
                 if commit_title != 'Prepare for next development iteration':
                     pr_string = ''
                     pr = re.findall('\(#(.*?)\)', commit_title)

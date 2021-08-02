@@ -1,26 +1,51 @@
 # Changelog
 
-## Release 3.0.0rc2 - 07/28/2021
+## Release 3.0.0 - 08/03/2021
 
+High level enhancements
+- Enable creation of pipelines specific to a runtime
+- Enable support for runtime specific components
+- Increased Elyra pipeline version to 4 with auto-migration support enabled  
+- Upgraded to new Pipeline Editor version 1.0.0 and Elyra Canvas to version 11.0.0
+- Integrate new content parser with support for refreshing environment vars from
+  notebooks and scripts
+- New Pipeline validation service
+- Support for KFP 1.6.3 / Tekton 0.8.1 
+- Fix DEX authentication issues
+- Update to JupyterLab LSP 3.8.0 and migrate to python-lsp-server as the Python language server
+
+Security Fixes
+- Update urllib3 to v1.26.5 and requests to v2.25.1 - [1841](https://github.com/elyra-ai/elyra/pull/1841)
+
+Other enhancements and bug fixes
+- Migrate to use python-lsp-server as the Python language server - [1996](https://github.com/elyra-ai/elyra/pull/1996)
+- Document install-server make task for backend build - [1980](https://github.com/elyra-ai/elyra/pull/1980)
+- Refactor airflow-notebook package back into elyra core - [1925](https://github.com/elyra-ai/elyra/pull/1925)
+- ~~Re-enable tests for KFP pipelines with custom components~~ - [1990](https://github.com/elyra-ai/elyra/pull/1990)
+- Update validation service to accept missing optional fields - [1992](https://github.com/elyra-ai/elyra/pull/1992)
+- Convert exception to string for error handling - [1988](https://github.com/elyra-ai/elyra/pull/1988)
+- Properly evaluate list params when processing KFP components - [1983](https://github.com/elyra-ai/elyra/pull/1983)
+- Improve 'run notebook' KFP component specification - [1987](https://github.com/elyra-ai/elyra/pull/1987)
+- Handle connection error when fetching kfp session cookie - [1972](https://github.com/elyra-ai/elyra/pull/1972)
+- ~~Update pipeline-editor version to 0.11.3~~ - [1985](https://github.com/elyra-ai/elyra/pull/1985)
 - Fix error case where error handler throws error - [1984](https://github.com/elyra-ai/elyra/pull/1984)
 - Pipeline validation service initial implementation - [1664](https://github.com/elyra-ai/elyra/pull/1664)
 - Uncap jinja2 and nbconvert dependency version - [1971](https://github.com/elyra-ai/elyra/pull/1971)
 - Refactor component location to jupyter/shared/components/runtime - [1974](https://github.com/elyra-ai/elyra/pull/1974)
 - Fix CI dialog selector after Lab 3.1 release - [1973](https://github.com/elyra-ai/elyra/pull/1973)
-- Temporarily bypass failing KFP component tests - [1982](https://github.com/elyra-ai/elyra/pull/1982)
 - Resolve component name errors in component registry - [1969](https://github.com/elyra-ai/elyra/pull/1969)
 - Fix computation of absolute path for url-based KFP components - [1957](https://github.com/elyra-ai/elyra/pull/1957)
 - Properly display description/type information in node properties - [1970](https://github.com/elyra-ai/elyra/pull/1970)
 - Set KFP component display name to the provided node label - [1968](https://github.com/elyra-ai/elyra/pull/1968)
 - Derive elyra extension from ExtensionApp - [1876](https://github.com/elyra-ai/elyra/pull/1876)
-- Update JupyterLab launcher page image in README - [1917](https://github.com/elyra-ai/elyra/pull/1917)
+- ~~Update JupyterLab launcher page image in README~~ - [1917](https://github.com/elyra-ai/elyra/pull/1917)
 - Make 'name' optional when parsing a component registry entry - [1958](https://github.com/elyra-ai/elyra/pull/1958)
 - Use enter key to save and submit metadata editor form - [1962](https://github.com/elyra-ai/elyra/pull/1962)
 - Followup refactor to component & category parsing - [1948](https://github.com/elyra-ai/elyra/pull/1948)
 - Update 'runtime image configuration' topic in User Guide - [1933](https://github.com/elyra-ai/elyra/pull/1933)
 - Update operation naming for airflow custom components - [1961](https://github.com/elyra-ai/elyra/pull/1961)
 - Update tutorial references in documentation overview - [1919](https://github.com/elyra-ai/elyra/pull/1919)
-- Update pipeline-editor to v0.11.2 to fix env-vars refresh - [1952](https://github.com/elyra-ai/elyra/pull/1952)
+- ~~Update pipeline-editor to v0.11.2 to fix env-vars refresh~~ - [1952](https://github.com/elyra-ai/elyra/pull/1952)
 - Update Airflow operation naming for uniqueness - [1950](https://github.com/elyra-ai/elyra/pull/1950)
 - Prettify pipeline json on migrate - [1947](https://github.com/elyra-ai/elyra/pull/1947)
 - Update pipeline editor dialog message for unsupported files - [1935](https://github.com/elyra-ai/elyra/pull/1935)
@@ -43,49 +68,41 @@
 - Fix and enable linting on package __init__ files - [1909](https://github.com/elyra-ai/elyra/pull/1909)
 - Initialize component defaults when double clicking palette nodes - [1902](https://github.com/elyra-ai/elyra/pull/1902)
 - Update kfp component files to include optional parameter - [1854](https://github.com/elyra-ai/elyra/pull/1854)
-
-## Release 3.0.0rc1 - 07/09/2021
-
 - Add 'Pipeline components' topic to the user guide docs - [1839](https://github.com/elyra-ai/elyra/pull/1839)
 - Fix icon related console warnings and errors - [1897](https://github.com/elyra-ai/elyra/pull/1897)
 - Move doc images to proper directory location - [1898](https://github.com/elyra-ai/elyra/pull/1898)
 - Run lint in fix mode when building, but in check mode in CI - [1894](https://github.com/elyra-ai/elyra/pull/1894)
-- Update Pipeline Editor to 0.10.1 - [1891](https://github.com/elyra-ai/elyra/pull/1891)
+- ~~Update Pipeline Editor to 0.10.1~~ - [1891](https://github.com/elyra-ai/elyra/pull/1891)
 - Update material-ui version to 4.12.1 and fix console error - [1885](https://github.com/elyra-ai/elyra/pull/1885)
 - Update list of component parameters to avoid parsing errors - [1887](https://github.com/elyra-ai/elyra/pull/1887)
 - Update to KFP v1.6.3 and KFP-Tekton v0.8.1 - [1884](https://github.com/elyra-ai/elyra/pull/1884)
-- Update KFP Notebook to 0.26.0
-- [HOTFIX] Fix version import in release script - [1883](https://github.com/elyra-ai/elyra/pull/1883)
-
-## Release 3.0.0rc0 - 07/07/2021
-
+- ~~Update KFP Notebook to 0.26.0~~
 - Add ‘extensions’ to palette for Pipeline generic components - [1828](https://github.com/elyra-ai/elyra/pull/1828)
 - Update palette JSON to support new pipeline editor features - [1863](https://github.com/elyra-ai/elyra/pull/1863)
 - Update build step to not rely on a globally installed lerna - [1865](https://github.com/elyra-ai/elyra/pull/1865)
 - Enable and enforce import orders on python lint - [1861](https://github.com/elyra-ai/elyra/pull/1861)
-- [HOTFIX] Fix CI tests after pipeline-editor palette changes - [1866](https://github.com/elyra-ai/elyra/pull/1866)
 - Add support for left palette panel in PipelineEditor props - [1844](https://github.com/elyra-ai/elyra/pull/1844)
-- Update Pipeline Editor to 0.9.0 and Canvas to 11.0.0 - [1864](https://github.com/elyra-ai/elyra/pull/1864)
+- ~~Update Pipeline Editor to 0.9.0 and Canvas to 11.0.0~~ - [1864](https://github.com/elyra-ai/elyra/pull/1864)
 - Add snapshot testing for pipeline files - [1792](https://github.com/elyra-ai/elyra/pull/1792)
 - Refactor pipeline component parsing to be owned by processors - [1801](https://github.com/elyra-ai/elyra/pull/1801)
 - Add runtime images button to pipeline editor toolbar - [1858](https://github.com/elyra-ai/elyra/pull/1858)
 - Document best practices for file-based nodes in user guide - [1803](https://github.com/elyra-ai/elyra/pull/1803)
 - Add basic caching to metadata file storage - [1846](https://github.com/elyra-ai/elyra/pull/1846)
 - Fix binder build failures - [1853](https://github.com/elyra-ai/elyra/pull/1853)
-- [HOTFIX] Adjust CI tests to new IPython kernel release - [1855](https://github.com/elyra-ai/elyra/pull/1855)
-- Update docs/recipe KFP version reference to 1.4.0 - [1852](https://github.com/elyra-ai/elyra/pull/1852)
+- Adjust CI tests to new IPython kernel release - [1855](https://github.com/elyra-ai/elyra/pull/1855)
+- ~~Update docs/recipe KFP version reference to 1.4.0~~ - [1852](https://github.com/elyra-ai/elyra/pull/1852)
 - Add integration tests for pipeline export options - [1842](https://github.com/elyra-ai/elyra/pull/1842)
-- Update Pipeline Editor to 0.8.0 - [1847](https://github.com/elyra-ai/elyra/pull/1847)
+- ~~Update Pipeline Editor to 0.8.0~~ - [1847](https://github.com/elyra-ai/elyra/pull/1847)
 - Update urllib3 to v1.26.5 and requests to v2.25.1 - [1841](https://github.com/elyra-ai/elyra/pull/1841)
 - Add support for ELYRA_RUN_NAME environment variable - [1732](https://github.com/elyra-ai/elyra/pull/1732)
-- Update KFP Notebook to 0.25.0 - [1840](https://github.com/elyra-ai/elyra/pull/1840)
+- ~~Update KFP Notebook to 0.25.0~~ - [1840](https://github.com/elyra-ai/elyra/pull/1840)
 - Check pipeline version before run/submit pipeline with CLI - [1830](https://github.com/elyra-ai/elyra/pull/1830)
 - Update CLI to consider runtime specific pipelines - [1805](https://github.com/elyra-ai/elyra/pull/1805)
 - Add integration tests for runtime specific pipelines - [1815](https://github.com/elyra-ai/elyra/pull/1815)
 - List 'Apache Airflow' as supported runtime for Pipeline Editor - [1826](https://github.com/elyra-ai/elyra/pull/1826)
 - Update node property array control css to use all real state - [1800](https://github.com/elyra-ai/elyra/pull/1800)
 - Update incorrect kfp component reference in catalog - [1825](https://github.com/elyra-ai/elyra/pull/1825)
-- Update Pipeline Editor to 0.7.0 and Canvas to 10.9.0 - [1822](https://github.com/elyra-ai/elyra/pull/1822)
+- ~~Update Pipeline Editor to 0.7.0 and Canvas to 10.9.0~~ - [1822](https://github.com/elyra-ai/elyra/pull/1822)
 - Make clean was not unlinking pipeline-editor - [1817](https://github.com/elyra-ai/elyra/pull/1817)
 - Update jupyterlab-git to v0.30.x and NBDime to v3.1 - [1820](https://github.com/elyra-ai/elyra/pull/1820)
 - Add back artifact/log collection for cypress tests - [1819](https://github.com/elyra-ai/elyra/pull/1819)
@@ -96,13 +113,13 @@
 - Validate that component catalog location exists - [1811](https://github.com/elyra-ai/elyra/pull/1811)
 - Adds caching and parallelization to GitHub Actions CI - [1671](https://github.com/elyra-ai/elyra/pull/1671)
 - Properly handle empty pipeline in Pipeline Editor clear button - [1796](https://github.com/elyra-ai/elyra/pull/1796)
-- Update yarn.lock with Pipeline Editor v0.6.0
+- ~~Update yarn.lock with Pipeline Editor v0.6.0~~
 - Support runtime specific component parameter type - [1764](https://github.com/elyra-ai/elyra/pull/1764)
 - Temporary remove KFP Python DSL export option - [1770](https://github.com/elyra-ai/elyra/pull/1770)
 - Update Airflow DAG jinja template to correct package imports - [1788](https://github.com/elyra-ai/elyra/pull/1788)
 - Update missing server-side pipeline node properties - [1790](https://github.com/elyra-ai/elyra/pull/1790)
 - Fix runtime configuration location on pipeline json - [1776](https://github.com/elyra-ai/elyra/pull/1776)
-- Update Pipeline Editor to version 0.6.0 - [1794](https://github.com/elyra-ai/elyra/pull/1794)
+- ~~Update Pipeline Editor to version 0.6.0~~ - [1794](https://github.com/elyra-ai/elyra/pull/1794)
 - Add loader animation to Pipeline Editor - [1793](https://github.com/elyra-ai/elyra/pull/1793)
 - Support exporting pipelines for KF DEX secured envs - [1758](https://github.com/elyra-ai/elyra/pull/1758)
 - Remove Pipeline Editor dead/obsolete code - [1779](https://github.com/elyra-ai/elyra/pull/1779)
@@ -114,13 +131,6 @@
 - Add test case for Pipeline node properties array item bug - [1496](https://github.com/elyra-ai/elyra/pull/1496)
 - Add tooltip to Python Editor output buttons - [1754](https://github.com/elyra-ai/elyra/pull/1754)
 - Made code snippet tag text truncate if it's too long - [1744](https://github.com/elyra-ai/elyra/pull/1744)
-
-## Release 2.3.0rc1 - 06/10/2021
-
-- Update KFP Notebook to 0.24.0
-
-## Release 2.3.0rc0 - 06/10/2021
-
 - Add support for pipeline runtime specific components - [1620](https://github.com/elyra-ai/elyra/pull/1620)
 - Update "Contributing to the Elyra documentation" docs section - [1743](https://github.com/elyra-ai/elyra/pull/1743)
 - Updated code snippets image on documentation - [1731](https://github.com/elyra-ai/elyra/pull/1731)
@@ -143,15 +153,11 @@
 - Fix tooltip for Pipeline Editor in launcher icons - [1681](https://github.com/elyra-ai/elyra/pull/1681)
 - Re-pin  stable binder link to v2.2.4 - [1684](https://github.com/elyra-ai/elyra/pull/1684)
 - Update "Deploying Open Data Hub with Elyra" doc recipe - [1574](https://github.com/elyra-ai/elyra/pull/1574)
-
-## Release 2.3.0b1 - 05/20/2021
-
 - Add prepare-changelog goal to release script help
 - Update documentation with proper release steps
-- Update changelog for release 2.3.0b1
 - Refactor ui-components to use React best-practices - [1657](https://github.com/elyra-ai/elyra/pull/1657)
 - Add support for updating env vars to Pipeline Editor - [1654](https://github.com/elyra-ai/elyra/pull/1654)
-- Update to Pipeline Editor 0.3.0 and Canvas 10.7.0 - [1679](https://github.com/elyra-ai/elyra/pull/1679)
+- ~~Update to Pipeline Editor 0.3.0 and Canvas 10.7.0~~ - [1679](https://github.com/elyra-ai/elyra/pull/1679)
 - Fix Script editor output prompt alignment - [1678](https://github.com/elyra-ai/elyra/pull/1678)
 - Add runtime configuration validation section to docs - [1676](https://github.com/elyra-ai/elyra/pull/1676)
 - Add indication of runtime into operation's environment - [1668](https://github.com/elyra-ai/elyra/pull/1668)
@@ -173,65 +179,18 @@
 - Fix resources input alignment on node properties - [1630](https://github.com/elyra-ai/elyra/pull/1630)
 - Add more details to Pull Request Template - [1585](https://github.com/elyra-ai/elyra/pull/1585)
 - Fix failing pipeline integration tests - [1621](https://github.com/elyra-ai/elyra/pull/1621)
-- Update to KFP v1.4.0 and KFP-Tekton v0.7.0 - [1622](https://github.com/elyra-ai/elyra/pull/1622)
-
-## Release 2.3.0b1 - 05/20/2021
-
-High level enhancements
-- Enable creation of pipelines specific to a runtime
-- Upgrade Elyra Canvas to version 10.7.0
-- Integrate new content parser with you enabling refreshing environment vars from
-  notebooks and scripts
-- Support for KFP 1.3
-- Fix DEX authentication issues
-
-Other enhancements and bug fixes
-- Update changelog for release 2.3.0b0
-- Refactor ui-components to use React best-practices - [1657](https://github.com/elyra-ai/elyra/pull/1657)
-- Add support for updating env vars to Pipeline Editor - [1654](https://github.com/elyra-ai/elyra/pull/1654)
-- Update to Pipeline Editor 0.3.0 and Canvas 10.7.0 - [1679](https://github.com/elyra-ai/elyra/pull/1679)
-- Fix Script editor output prompt alignment - [1678](https://github.com/elyra-ai/elyra/pull/1678)
-- Add runtime configuration validation section to docs - [1676](https://github.com/elyra-ai/elyra/pull/1676)
-- Add indication of runtime into operation's environment - [1668](https://github.com/elyra-ai/elyra/pull/1668)
-- Pin stable version binder link to 2.2.4
-- Update the Getting Started > Overview section in the docs - [1669](https://github.com/elyra-ai/elyra/pull/1669)
-- Add missing dependencies to useCallBack array - [1667](https://github.com/elyra-ai/elyra/pull/1667)
-- Fix Pipeline label in tab context menu - [1666](https://github.com/elyra-ai/elyra/pull/1666)
-- Fix pipeline editor integration test timeout failures - [1660](https://github.com/elyra-ai/elyra/pull/1660)
-- Use GatewayKernelManager from Jupyter Server - [1655](https://github.com/elyra-ai/elyra/pull/1655)
-- Fix KF Dex authentication bug - [1642](https://github.com/elyra-ai/elyra/pull/1642)
-- Update kubeflow installation link on documentation - [1644](https://github.com/elyra-ai/elyra/pull/1644)
-- Remove unused NotebookSubmissionDialog.tsx  file - [1639](https://github.com/elyra-ai/elyra/pull/1639)
-- Add tested runtime version info to prerequisites - [1641](https://github.com/elyra-ai/elyra/pull/1641)
-- Fix Cypress integration tests timeouts - [1640](https://github.com/elyra-ai/elyra/pull/1640)
-- Add configuration instruction for KF 1.3 - [1635](https://github.com/elyra-ai/elyra/pull/1635)
-- Enable creation of pipelines specific to a runtime - [1591](https://github.com/elyra-ai/elyra/pull/1591)
-- Update node properties UI style on pipeline editor - [1631](https://github.com/elyra-ai/elyra/pull/1631)
-- Update Python/R labels in file menu - [1633](https://github.com/elyra-ai/elyra/pull/1633)
-- Fix resources input alignment on node properties - [1630](https://github.com/elyra-ai/elyra/pull/1630)
-- Add more details to Pull Request Template - [1585](https://github.com/elyra-ai/elyra/pull/1585)
-- Fix failing pipeline integration tests - [1621](https://github.com/elyra-ai/elyra/pull/1621)
-- Update to KFP v1.4.0 and KFP-Tekton v0.7.0 - [1622](https://github.com/elyra-ai/elyra/pull/1622)
-
-
-## Release 2.3.0b0 - 04/29/2021
-
-High level enhancements
-- Introduce the new Pipeline Editor
-- New contents API to provide better properties for pipeline artifacts
-
-Other enhancements and bug fixes
+- ~~Update to KFP v1.4.0 and KFP-Tekton v0.7.0~~ - [1622](https://github.com/elyra-ai/elyra/pull/1622)
 - Properly store runtime images name instead of display name - [1626](https://github.com/elyra-ai/elyra/pull/1626)
 - Update binder link to latest stable release - [1627](https://github.com/elyra-ai/elyra/pull/1627)
-- Update release documentation - [1625](https://github.com/elyra-ai/elyra/pull/1625)
-- Update release script to support beta releases - [1625](https://github.com/elyra-ai/elyra/pull/1625)
-- Update release script to generate changelog - [1625](https://github.com/elyra-ai/elyra/pull/1625)
+- Update release documentation
+- Update release script to support beta releases
+- Update release script to generate changelog
 - Fix custom notebook/script code fonts with ligatures - [1618](https://github.com/elyra-ai/elyra/pull/1618)
 - Add python tests for contents handler - [1589](https://github.com/elyra-ai/elyra/pull/1589)
 - Move cos_secret parameter back into original cos category - [1617](https://github.com/elyra-ai/elyra/pull/1617)
-- Update airflow-notebook version to v0.0.7 - [1619](https://github.com/elyra-ai/elyra/pull/1619)
+- ~~Update airflow-notebook version to v0.0.7~~ - [1619](https://github.com/elyra-ai/elyra/pull/1619)
 - Allow secure connections to s3 object storage - [1616](https://github.com/elyra-ai/elyra/pull/1616)
-- Only allow for KFP Notebook patch releases
+- Only allow for KFP Notebook patche releases
 - Exclude single-line comments from content parsing - [1601](https://github.com/elyra-ai/elyra/pull/1601)
 - Display message when no code snippet or tag is defined - [1603](https://github.com/elyra-ai/elyra/pull/1603)
 - Update README release doc links to specific Elyra version - [1588](https://github.com/elyra-ai/elyra/pull/1588)
@@ -242,7 +201,7 @@ Other enhancements and bug fixes
 - Switch to using the new pipeline editor package - [1221](https://github.com/elyra-ai/elyra/pull/1221)
 - Serve pipeline configuration from server - [1551](https://github.com/elyra-ai/elyra/pull/1551)
 - Exported KFP pipeline yaml missing cos_directory parameter - [1563](https://github.com/elyra-ai/elyra/pull/1563)
-- Update jupyterlab-git extension to v0.30.0 - [1584](https://github.com/elyra-ai/elyra/pull/1584)
+- ~~Update jupyterlab-git extension to v0.30.0~~ - [1584](https://github.com/elyra-ai/elyra/pull/1584)
 - Build elyra-image from released artifacts for non dev tags - [1536](https://github.com/elyra-ai/elyra/pull/1536)
 - Improve messaging for COS credential exceptions - [1575](https://github.com/elyra-ai/elyra/pull/1575)
 - Adds material ui dependency to ui-components package - [1567](https://github.com/elyra-ai/elyra/pull/1567)
@@ -256,7 +215,7 @@ Other enhancements and bug fixes
 - Refactor environmental variable discovery into backend service - [1460](https://github.com/elyra-ai/elyra/pull/1460)
 - Use yarn lock for Elyra builds - [1555](https://github.com/elyra-ai/elyra/pull/1555)
 - Update project MANIFEST.in with missing files - [1552](https://github.com/elyra-ai/elyra/pull/1552)
-- Update Airflow Notebook to  0.0.5 - [1548](https://github.com/elyra-ai/elyra/pull/1548)
+- ~~Update Airflow Notebook to  0.0.5~~ - [1548](https://github.com/elyra-ai/elyra/pull/1548)
 - Fix description of the exported Apache Airflow DAG file - [1539](https://github.com/elyra-ai/elyra/pull/1539)
 - Pin the testutils and filebrowser version - [1541](https://github.com/elyra-ai/elyra/pull/1541)
 - Refactor container related Makefile targets - [1531](https://github.com/elyra-ai/elyra/pull/1531)
