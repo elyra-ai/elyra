@@ -55,6 +55,7 @@ export default class Utils {
     template.pipelines[0].id = generated_uuid;
 
     template.pipelines[0].nodes[0].id = generated_uuid;
+    template.pipelines[0].nodes[0].app_data.label = PathExt.basename(filename);
     template.pipelines[0].nodes[0].app_data.component_parameters.filename = filename;
     template.pipelines[0].nodes[0].app_data.component_parameters.runtime_image = runtimeImage;
     template.pipelines[0].nodes[0].app_data.component_parameters.env_vars = envVars;
