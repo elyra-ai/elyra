@@ -276,7 +276,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                   response=response)
 
                         # Check label against kfp naming standards
-                        if pipeline_runtime == 'kfp' and filename != node_label:
+                        if pipeline_runtime == 'kfp' and node_label and filename != node_label:
                             self._validate_label(node_id=node['id'], node_label=node_label, response=response)
                         if dependencies:
                             notebook_root_relative_path = os.path.dirname(filename)
