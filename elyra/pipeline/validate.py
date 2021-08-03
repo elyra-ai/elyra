@@ -242,7 +242,6 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         """
         pipeline_json = json.loads(json.dumps(pipeline))
-        pipeline_source = pipeline_json['pipelines'][0]['app_data'].get('source')
 
         for single_pipeline in pipeline_json['pipelines']:
             node_list = single_pipeline['nodes']
@@ -252,18 +251,13 @@ class PipelineValidationManager(SingletonConfigurable):
             components = ComponentRegistry.to_canvas_palette(component_list, categories)
             for node in node_list:
                 if node['type'] == 'execution_node':
-                    if self._is_standalone_submission(pipeline_source):
-                        node_data = node['app_data'].get('component_parameters')
-                        node_label = node['app_data'].get('label')
-                    elif self._is_legacy_pipeline(pipeline):
-                        node_data = node['app_data']
-                        if node_data.get('ui_data'):  # If present, always the source of truth
-                            node_label = node_data['ui_data'].get('label')
-                        else:
-                            node_label = node['app_data'].get('label')
+                    # Get Node Label
+                    if node['app_data'].get('ui_data'):  # If present, always the source of truth
+                        node_label = node['app_data']['ui_data'].get('label')
                     else:
-                        node_data = node['app_data'].get('component_parameters')
                         node_label = node['app_data'].get('label')
+                    # Get Node Data
+                    node_data = node['app_data'].get('component_parameters') or node['app_data']
 
                     if Operation.is_generic_operation(node['op']):
                         resource_name_list = ['cpu', 'gpu', 'memory']
@@ -664,5 +658,5 @@ class PipelineValidationManager(SingletonConfigurable):
         :return:
         """
         if pipeline_source:
-            return os.path.splitext(pipeline_source)[1] in ['.ipynb', '.r', ".py"]
+            return os.path.splitext(pipeline_source)[1] in [".ipynb", ".r", ".py"]
         return False
