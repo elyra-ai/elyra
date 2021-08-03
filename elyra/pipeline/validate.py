@@ -115,13 +115,14 @@ class PipelineValidationManager(SingletonConfigurable):
 
         pipeline_execution = pipeline_json['pipelines'][0]['app_data'].get('runtime')  # local, kfp, airflow
         pipeline_runtime = self._get_runtime_schema(pipeline, response)
+        pipeline_source = pipeline_json['pipelines'][0]['app_data'].get('source')
 
         self._validate_pipeline_structure(pipeline=pipeline, response=response)
         await self._validate_compatibility(pipeline=pipeline, response=response, pipeline_runtime=pipeline_runtime,
                                            pipeline_execution=pipeline_execution)
         await self._validate_node_properties(pipeline=pipeline, response=response, pipeline_runtime=pipeline_runtime,
                                              pipeline_execution=pipeline_execution)
-        if not self._is_standalone_submission(pipeline_json['pipelines'][0]['app_data']['source']):
+        if not self._is_standalone_submission(pipeline_source):
             self._validate_pipeline_graph(pipeline=pipeline, response=response)
 
         return response
@@ -251,9 +252,15 @@ class PipelineValidationManager(SingletonConfigurable):
             components = ComponentRegistry.to_canvas_palette(component_list, categories)
             for node in node_list:
                 if node['type'] == 'execution_node':
-                    if self._is_legacy_pipeline(pipeline) and not self._is_standalone_submission(pipeline_source):
+                    if self._is_standalone_submission(pipeline_source):
+                        node_data = node['app_data'].get('component_parameters')
+                        node_label = node['app_data'].get('label')
+                    elif self._is_legacy_pipeline(pipeline):
                         node_data = node['app_data']
-                        node_label = node_data['ui_data'].get('label')
+                        if node_data.get('ui_data'):  # If present, always the source of truth
+                            node_label = node_data['ui_data'].get('label')
+                        else:
+                            node_label = node['app_data'].get('label')
                     else:
                         node_data = node['app_data'].get('component_parameters')
                         node_label = node['app_data'].get('label')
@@ -278,7 +285,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                   response=response)
 
                         # Check label against kfp naming standards
-                        if pipeline_runtime == 'kfp' and node_label and filename != node_label:
+                        if pipeline_runtime == 'kfp' and filename != node_label:
                             self._validate_label(node_id=node['id'], node_label=node_label, response=response)
                         if dependencies:
                             notebook_root_relative_path = os.path.dirname(filename)
@@ -656,4 +663,6 @@ class PipelineValidationManager(SingletonConfigurable):
         :param pipeline_source: the pipeline source file e.g. example.pipeline, example.py etc.
         :return:
         """
-        return os.path.splitext(pipeline_source)[1] in ['.ipynb', '.r', ".py"]
+        if pipeline_source:
+            return os.path.splitext(pipeline_source)[1] in ['.ipynb', '.r', ".py"]
+        return False
