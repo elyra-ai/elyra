@@ -249,12 +249,13 @@ class PipelineValidationManager(SingletonConfigurable):
             components = ComponentRegistry.to_canvas_palette(component_list, categories)
             for node in node_list:
                 if node['type'] == 'execution_node':
-                    if self._is_legacy_pipeline(pipeline):
-                        node_data = node['app_data']
-                        node_label = node_data['ui_data'].get('label')
+                    # Get Node Label
+                    if node['app_data'].get('ui_data'):  # If present, always the source of truth
+                        node_label = node['app_data']['ui_data'].get('label')
                     else:
-                        node_data = node['app_data'].get('component_parameters')
                         node_label = node['app_data'].get('label')
+                    # Get Node Data
+                    node_data = node['app_data'].get('component_parameters') or node['app_data']
 
                     if Operation.is_generic_operation(node['op']):
                         resource_name_list = ['cpu', 'gpu', 'memory']
@@ -495,9 +496,10 @@ class PipelineValidationManager(SingletonConfigurable):
             for node in node_list:
                 if node['type'] == "execution_node":
                     graph.add_node(node['id'])
-                    if 'links' in node['inputs'][0]:
-                        for link in node['inputs'][0]['links']:
-                            graph.add_edge(link['node_id_ref'], node['id'])
+                    if node.get('inputs'):
+                        if 'links' in node['inputs'][0]:
+                            for link in node['inputs'][0]['links']:
+                                graph.add_edge(link['node_id_ref'], node['id'])
 
         for isolate in nx.isolates(graph):
             if graph.number_of_nodes() > 1:
