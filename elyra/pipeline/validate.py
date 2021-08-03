@@ -115,15 +115,13 @@ class PipelineValidationManager(SingletonConfigurable):
 
         pipeline_execution = pipeline_json['pipelines'][0]['app_data'].get('runtime')  # local, kfp, airflow
         pipeline_runtime = self._get_runtime_schema(pipeline, response)
-        pipeline_source = pipeline_json['pipelines'][0]['app_data'].get('source')
 
         self._validate_pipeline_structure(pipeline=pipeline, response=response)
         await self._validate_compatibility(pipeline=pipeline, response=response, pipeline_runtime=pipeline_runtime,
                                            pipeline_execution=pipeline_execution)
         await self._validate_node_properties(pipeline=pipeline, response=response, pipeline_runtime=pipeline_runtime,
                                              pipeline_execution=pipeline_execution)
-        if not self._is_standalone_submission(pipeline_source):
-            self._validate_pipeline_graph(pipeline=pipeline, response=response)
+        self._validate_pipeline_graph(pipeline=pipeline, response=response)
 
         return response
 
@@ -498,9 +496,10 @@ class PipelineValidationManager(SingletonConfigurable):
             for node in node_list:
                 if node['type'] == "execution_node":
                     graph.add_node(node['id'])
-                    if 'links' in node['inputs'][0]:
-                        for link in node['inputs'][0]['links']:
-                            graph.add_edge(link['node_id_ref'], node['id'])
+                    if node.get('inputs'):
+                        if 'links' in node['inputs'][0]:
+                            for link in node['inputs'][0]['links']:
+                                graph.add_edge(link['node_id_ref'], node['id'])
 
         for isolate in nx.isolates(graph):
             if graph.number_of_nodes() > 1:
@@ -649,14 +648,4 @@ class PipelineValidationManager(SingletonConfigurable):
         for parameter in node_op_parameter_list:
             if parameter['parameter_ref'] == node_property:
                 return parameter['data']['required']
-        return False
-
-    def _is_standalone_submission(self, pipeline_source: str):
-        """
-        Determine if the submission is standalone e.g. The Button
-        :param pipeline_source: the pipeline source file e.g. example.pipeline, example.py etc.
-        :return:
-        """
-        if pipeline_source:
-            return os.path.splitext(pipeline_source)[1] in [".ipynb", ".r", ".py"]
         return False
