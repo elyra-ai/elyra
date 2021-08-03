@@ -533,7 +533,6 @@ describe('Pipeline Editor tests', () => {
       'http-operator_SimpleHttpOperator',
       'spark-sql-operator_SparkSqlOperator',
       'spark-submit-operator_SparkSubmitOperator',
-      'slack-operator_SlackAPIOperator',
       'slack-operator_SlackAPIPostOperator'
     ];
 
