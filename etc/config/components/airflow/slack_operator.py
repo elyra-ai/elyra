@@ -20,10 +20,8 @@
 
 import json
 
-from airflow.models import BaseOperator
+from airflow.operators.slack_operator import SlackAPIOperator
 from airflow.utils.decorators import apply_defaults
-from airflow.hooks.slack_hook import SlackHook
-from airflow.exceptions import AirflowException
 
 
 class SlackAPIPostOperator(SlackAPIOperator):
