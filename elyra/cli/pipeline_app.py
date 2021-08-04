@@ -331,6 +331,10 @@ def describe(json_option, pipeline_path):
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
     if not json_option:
+        click.echo("Name:")
+        for current_pipeline in pipeline_definition["pipelines"]:
+            click.echo("  " + str(current_pipeline["app_data"]["properties"]["name"]))
+
         click.echo("Version:")
         for current_pipeline in pipeline_definition["pipelines"]:
             click.echo("  " + str(current_pipeline["app_data"]["version"]))
