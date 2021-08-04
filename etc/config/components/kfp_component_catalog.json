@@ -18,12 +18,6 @@
         "filename": "filter_text_using_shell_and_grep.yaml"
       },
       "category": "kfp"
-    },
-    "kubeflow-serve-model-using-kfserving": {
-      "location": {
-        "filename": "kubeflow_serve_model_using_kfserving.yaml"
-      },
-      "category": "kfp"
     }
   }
 }
