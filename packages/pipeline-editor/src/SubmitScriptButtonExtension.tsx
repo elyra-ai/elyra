@@ -126,7 +126,7 @@ export class SubmitScriptButtonExtension
       runtime_platform,
       runtime_config,
       framework,
-      dependency_include ? dependencies : undefined,
+      dependency_include ? dependencies.split(',') : undefined,
       envObject,
       cpu,
       gpu,

@@ -35,7 +35,7 @@ export default class Utils {
     runtime_platform: string,
     runtime_config: string,
     runtimeImage: string,
-    dependencies: string[],
+    dependencies: string[] | undefined,
     envObject: { [key: string]: string },
     cpu?: number,
     gpu?: number,
