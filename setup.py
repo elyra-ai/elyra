@@ -57,7 +57,7 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
-        'click',
+        'click>=7.1.1,<8', #Required bykfp 1.6.3
         'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11',
@@ -66,8 +66,8 @@ setup_args = dict(
         'jupyter_client>=6.1.7',
         'jupyter_server>=1.7.0',
         'jupyterlab>=3.0.0',
-        'jupyterlab-git~=0.30',
-        'jupyterlab-lsp>=3.7.0',
+        'jupyterlab-git~=0.32',
+        'jupyterlab-lsp>=3.8.0',
         'jupyter-resource-usage>=0.5.1',
         'minio>=5.0.7,<7.0.0',
         'nbclient>=0.5.1',
