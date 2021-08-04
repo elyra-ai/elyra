@@ -20,70 +20,8 @@
 
 import json
 
-from airflow.models import BaseOperator
+from airflow.operators.slack_operator import SlackAPIOperator
 from airflow.utils.decorators import apply_defaults
-from airflow.hooks.slack_hook import SlackHook
-from airflow.exceptions import AirflowException
-
-
-class SlackAPIOperator(BaseOperator):
-    """
-    Base Slack Operator
-    The SlackAPIPostOperator is derived from this operator.
-    In the future additional Slack API Operators will be derived from this class as well
-
-    :param slack_conn_id: Slack connection ID which its password is Slack API token
-    :type slack_conn_id: str
-    :param token: Slack API token (https://api.slack.com/web)
-    :type token: str
-    :param method: The Slack API Method to Call (https://api.slack.com/methods)
-    :type method: str
-    :param api_params: API Method call parameters (https://api.slack.com/methods)
-    :type api_params: dict
-    """
-
-    @apply_defaults
-    def __init__(self,
-                 slack_conn_id=None,
-                 token=None,
-                 method=None,
-                 api_params=None,
-                 *args, **kwargs):
-        super(SlackAPIOperator, self).__init__(*args, **kwargs)
-
-        if token is None and slack_conn_id is None:
-            raise AirflowException('No valid Slack token nor slack_conn_id supplied.')
-        if token is not None and slack_conn_id is not None:
-            raise AirflowException('Cannot determine Slack credential '
-                                   'when both token and slack_conn_id are supplied.')
-
-        self.token = token
-        self.slack_conn_id = slack_conn_id
-
-        self.method = method
-        self.api_params = api_params
-
-    def construct_api_call_params(self):
-        """
-        Used by the execute function. Allows templating on the source fields
-        of the api_call_params dict before construction
-
-        Override in child classes.
-        Each SlackAPIOperator child class is responsible for
-        having a construct_api_call_params function
-        which sets self.api_call_params with a dict of
-        API call parameters (https://api.slack.com/methods)
-        """
-
-    def execute(self, **kwargs):
-        """
-        SlackAPIOperator calls will not fail even if the call is not unsuccessful.
-        It should not prevent a DAG from completing in success
-        """
-        if not self.api_params:
-            self.construct_api_call_params()
-        slack = SlackHook(token=self.token, slack_conn_id=self.slack_conn_id)
-        slack.call(self.method, self.api_params)
 
 
 class SlackAPIPostOperator(SlackAPIOperator):

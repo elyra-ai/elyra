@@ -16,10 +16,7 @@ limitations under the License.
 {% endcomment %}
 -->
 
-This directory root contains Dockerfiles and required supporting files needed to build custom images for use with Elyra. 
-
-### airflow
-Builds the Apache Airflow image with the [airflow-notebook](https://github.com/elyra-ai/airflow-notebook) package pre-installed.
+This directory root contains Dockerfiles and required supporting files needed to build custom images for use with Elyra.
 
 ### elyra
 Builds the Elyra image for use as standalone or with JupyterHub. See [Deploying Elyra and JupyterHub in a Kubernetes environment](https://elyra.readthedocs.io/en/latest/recipes/deploying-elyra-in-a-jupyterhub-environment.html#deploying-elyra-jupyterhub-in-a-kubernetes-environment)

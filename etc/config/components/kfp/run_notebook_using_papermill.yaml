@@ -20,8 +20,8 @@ description: |
   The notebook will receive the parameter values passed to it as well as the INPUT_DATA_PATH and OUTPUT_DATA_PATH variables that will be set to the input data path (if provided) and directory for the optional output data.
 inputs:
 - {name: Notebook, optional: false, type: JupyterNotebook, description: 'Required. Notebook to execute.'}
-- {name: Parameters, type: JsonObject, default: '{}', description: 'Map with notebook parameter values.'}
-- {name: Packages to install, type: JsonArray, default: '', description: 'Python packages to install'}
+- {name: Parameters, optional: false, type: JsonObject, default: '{}', description: 'Map with notebook parameter values.'}
+- {name: Packages to install, optional: false, type: JsonArray, default: '[]', description: 'Python packages to install'}
 - {name: Input data, optional: true, description: 'Optional data that can be passed to notebook. In notebook, the INPUT_DATA_PATH variable will point to the data (if passed).'}
 outputs:
 - {name: Notebook, type: JupyterNotebook, description: 'Executed notebook.'}

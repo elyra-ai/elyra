@@ -289,12 +289,10 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                 for image in sample_image_metadata:
                     if ordered_dict[key]['runtime_image'] == image.metadata['image_name']:
                         assert ordered_dict[key]['image_pull_policy'] == image.metadata['pull_policy']
-                assert ordered_dict[key]['filename'] == component_parameters['filename']
+                print(ordered_dict[key])
                 for env in component_parameters['env_vars']:
                     var, value = env.split("=")
                     assert ordered_dict[key]['pipeline_envs'][var] == value
-                assert ordered_dict[key]['cos_endpoint'] == sample_metadata['cos_endpoint']
-                assert ordered_dict[key]['cos_bucket'] == sample_metadata['cos_bucket']
                 assert ordered_dict[key]['pipeline_envs']['AWS_ACCESS_KEY_ID'] == sample_metadata['cos_username']
                 assert ordered_dict[key]['pipeline_envs']['AWS_SECRET_ACCESS_KEY'] == sample_metadata['cos_password']
                 for arg in ["inputs", "outputs"]:

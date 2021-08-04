@@ -108,7 +108,7 @@ The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/k
 
 ![LSP Integration](../images/lsp.gif)
 
-By default, Elyra installs the [Python Language Server package](https://pypi.org/project/python-language-server/), enabling the productivity features in the notebook editor and the Python editor. Support for other languages can be added by manually installing additional Language Server packages and their prerequisites.
+By default, Elyra installs the [Python Language Server package](https://pypi.org/project/python-lsp-server/), enabling the productivity features in the notebook editor and the Python editor. Support for other languages can be added by manually installing additional Language Server packages and their prerequisites.
 
 Refer to the [`jupyterlab-lsp` extension documentation](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) for a full list of supported Language Servers and installation instructions.
 

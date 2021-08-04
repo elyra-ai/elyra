@@ -26,7 +26,6 @@ mostly to abstract integration with other runtimes and components.
 
 Currently, these packages are:
 
-- [airflow-notebook](https://github.com/elyra-ai/airflow-notebook)
 - [pipeline-editor](https://github.com/elyra-ai/pipeline-editor)
 - [canvas](https://github.com/elyra-ai/canvas)
 
