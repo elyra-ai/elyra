@@ -18,6 +18,11 @@ Security Fixes
 - Update urllib3 to v1.26.5 and requests to v2.25.1 - [1841](https://github.com/elyra-ai/elyra/pull/1841)
 
 Other enhancements and bug fixes
+- Remove slack operator base class definition from palette - [2007](https://github.com/elyra-ai/elyra/pull/2007)
+- Add missing node label for single file pipeline submission - [2005](https://github.com/elyra-ai/elyra/pull/2005)
+- Update link to requirements-elyra.txt in runtime specific docs
+- Update pipeline validation label check - [2004](https://github.com/elyra-ai/elyra/pull/2004)
+- Integrate Pipeline CLI with new validation service - [1993](https://github.com/elyra-ai/elyra/pull/1993)
 - Migrate to use python-lsp-server as the Python language server - [1996](https://github.com/elyra-ai/elyra/pull/1996)
 - Document install-server make task for backend build - [1980](https://github.com/elyra-ai/elyra/pull/1980)
 - Refactor airflow-notebook package back into elyra core - [1925](https://github.com/elyra-ai/elyra/pull/1925)
