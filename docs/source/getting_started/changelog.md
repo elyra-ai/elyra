@@ -5,19 +5,24 @@
 High level enhancements
 - Enable creation of pipelines specific to a runtime
 - Enable support for runtime specific components
-- Increased Elyra pipeline version to 4 with auto-migration support enabled  
-- Upgraded to new Pipeline Editor version 1.0.0 and Elyra Canvas to version 11.0.0
+- Increased Elyra pipeline version to 4 with auto-migration support enabled
 - Integrate new content parser with support for refreshing environment vars from
   notebooks and scripts
 - New Pipeline validation service
 - Support for KFP 1.6.3 / Tekton 0.8.1 
 - Fix DEX authentication issues
+- Upgraded to new Pipeline Editor version 1.0.0 and Elyra Canvas to version 11.0.0
 - Update to JupyterLab LSP 3.8.0 and migrate to python-lsp-server as the Python language server
+- Update to JupyterLab Git 0.32.0
 
 Security Fixes
 - Update urllib3 to v1.26.5 and requests to v2.25.1 - [#1841](https://github.com/elyra-ai/elyra/pull/1841)
 
 Other enhancements and bug fixes
+- Update pipeline-editor version to 1.0.0 - [#2011](https://github.com/elyra-ai/elyra/pull/2011)
+- Update JupyterLab LSP to version 3.8.0 - [#2011](https://github.com/elyra-ai/elyra/pull/2011)
+- Update Jupyterlab GIT to version 0.32.0 - [#2011](https://github.com/elyra-ai/elyra/pull/2011)
+- Pin click dependency to KFP 1.6.3 required version - [#2010](https://github.com/elyra-ai/elyra/pull/2010)
 - Remove slack operator base class definition from palette - [#2007](https://github.com/elyra-ai/elyra/pull/2007)
 - Add missing node label for single file pipeline submission - [#2005](https://github.com/elyra-ai/elyra/pull/2005)
 - Update link to requirements-elyra.txt in runtime specific docs
