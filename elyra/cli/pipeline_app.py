@@ -333,11 +333,13 @@ def describe(json_option, pipeline_path):
     if not json_option:
         indent_length = 4
         for current_pipeline in pipeline_definition["pipelines"]:
-            pipeline_keys = ["name", "description", "type", "version", "dependencies"]
+            pipeline_keys = ["name", "description", "type", "version", "nodes", "dependencies"]
 
             pipeline_values = ["None"] * len(pipeline_keys)
 
-            pipeline_values[1] = pipeline_values[4] = f"\n{' ' * indent_length}None"
+            pipeline_values[pipeline_keys.index("description")] = \
+                pipeline_values[pipeline_keys.index("dependencies")] = \
+                f"\n{' ' * indent_length}None"
 
             properties = current_pipeline["app_data"]["properties"]
 
@@ -358,6 +360,8 @@ def describe(json_option, pipeline_path):
                 pipeline_values[pipeline_keys.index("version")] = str(pipeline_data.get("version"))
 
             # Will break if there are no nodes
+            pipeline_values[pipeline_keys.index("nodes")] = str(len(current_pipeline["nodes"]))
+
             for node in current_pipeline["nodes"]:
                 if "dependencies" in node["app_data"]["component_parameters"]:
                     for dependency in node["app_data"]["component_parameters"].get("dependencies"):
