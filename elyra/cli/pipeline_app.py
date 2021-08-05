@@ -338,11 +338,11 @@ def describe(json_option, pipeline_path):
 
             click.echo("Name: " + str(pipeline_data["properties"]["name"]))
 
-            click.echo("Version: " + str(pipeline_data["version"]))
-
             click.echo("Description: " + str(pipeline_data["properties"]["description"]))
 
             click.echo("Type: " + str(pipeline_data["properties"]["runtime"]))
+
+            click.echo("Version: " + str(pipeline_data["version"]))
 
             has_dependencies = False
 
