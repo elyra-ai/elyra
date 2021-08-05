@@ -331,32 +331,45 @@ def describe(json_option, pipeline_path):
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
     if not json_option:
-        indent_length = 2
-
+        indent_length = 4
         for current_pipeline in pipeline_definition["pipelines"]:
+            pipeline_keys = ["name", "description", "type", "version", "dependencies"]
+
+            pipeline_values = ["None"] * len(pipeline_keys)
+
+            pipeline_values[1] = pipeline_values[4] = f"\n{' ' * indent_length}None"
+
+            properties = current_pipeline["app_data"]["properties"]
+
             pipeline_data = current_pipeline["app_data"]
 
-            click.echo("Name: " + str(pipeline_data["properties"]["name"]))
+            # If the name is actually "None", it will seem as if there is no name
+            # The same can be said for all fields
+            if "name" in properties.keys():
+                pipeline_values[pipeline_keys.index("name")] = str(properties.get("name"))
 
-            click.echo("Description: " + str(pipeline_data["properties"]["description"]))
+            if "description" in properties.keys():
+                pipeline_values[pipeline_keys.index("description")] = str(properties.get("description"))
 
-            click.echo("Type: " + str(pipeline_data["properties"]["runtime"]))
+            if "runtime" in properties.keys():
+                pipeline_values[pipeline_keys.index("type")] = str(properties.get("runtime"))
 
-            click.echo("Version: " + str(pipeline_data["version"]))
+            if "version" in pipeline_data.keys():
+                pipeline_values[pipeline_keys.index("version")] = str(pipeline_data.get("version"))
 
-            has_dependencies = False
-
-            click.echo("Dependencies:")
-
+            # Will break if there are no nodes
             for node in current_pipeline["nodes"]:
-                if len(node["app_data"]["component_parameters"]["dependencies"]) >= 1:
-                    if not has_dependencies:
-                        has_dependencies = True
-                    for dependency in node["app_data"]["component_parameters"]["dependencies"]:
-                        click.echo((indent_length * " ") + str(dependency))
+                if "dependencies" in node["app_data"]["component_parameters"]:
+                    for dependency in node["app_data"]["component_parameters"].get("dependencies"):
+                        if pipeline_values[pipeline_keys.index("dependencies")] == \
+                                f"\n{' ' * indent_length}None":
+                            pipeline_values[pipeline_keys.index("dependencies")] = ""
+                        pipeline_values[pipeline_keys.index("dependencies")] += \
+                            f"\n{' ' * indent_length}{dependency}"
 
-            if not has_dependencies:
-                click.echo((indent_length * " ") + "None")
+            for key in pipeline_keys:
+                click.echo(f"{key.title()}: {pipeline_values[pipeline_keys.index(key)]}")
+
     else:
         click.echo(json.dumps(pipeline_definition, indent=2))
 
