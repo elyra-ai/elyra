@@ -257,21 +257,18 @@ class MockMetadataStore(MetadataStore):
 
     def namespace_exists(self) -> bool:
         """Returns True if the namespace for this instance exists"""
-        if self.instances is not None:
-            return True
-        return False
+        return self.instances is not None
 
     def fetch_instances(self, name: Optional[str] = None, include_invalid: bool = False) -> List[dict]:
         """Fetch metadata instances"""
 
         if name:
-            if self.instances is not None:
-                if name in self.instances:
-                    instance = self.instances.get(name)
-                    if instance.get('reason'):
-                        raise ValueError(instance.get('reason'))
-                    instance['name'] = name
-                    return [instance]
+            if self.instances is not None and name in self.instances:
+                instance = self.instances.get(name)
+                if instance.get('reason'):
+                    raise ValueError(instance.get('reason'))
+                instance['name'] = name
+                return [instance]
             raise MetadataNotFoundError(self.namespace, name)
 
         # all instances are wanted, filter based on include-invalid and reason ...

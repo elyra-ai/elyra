@@ -102,9 +102,7 @@ class BootscriptBuilder(object):
             outputs_str = self._artifact_list_to_str(self.outputs)
             self.arguments.append("--outputs '{}' ".format(outputs_str))
 
-        argument_string = ''.join(self.arguments)
-
-        return argument_string
+        return ''.join(self.arguments)
 
     def _artifact_list_to_str(self, pipeline_array):
         trimmed_artifact_list = []

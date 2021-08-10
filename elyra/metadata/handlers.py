@@ -45,8 +45,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
 
-        metadata_model = dict()
-        metadata_model[namespace] = [r.to_dict(trim=True) for r in metadata]
+        metadata_model = {namespace: [r.to_dict(trim=True) for r in metadata]}
         self.set_header("Content-Type", 'application/json')
         self.finish(metadata_model)
 
@@ -95,8 +94,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
                 )
             )
 
-        instance = Metadata.from_dict(namespace, {**body})
-        return instance
+        return Metadata.from_dict(namespace, {**body})
 
 
 class MetadataResourceHandler(HttpErrorMixin, APIHandler):
@@ -190,8 +188,7 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
 
-        schemas_model = dict()
-        schemas_model[namespace] = list(schemas.values())
+        schemas_model = {namespace: list(schemas.values())}
         self.set_header("Content-Type", 'application/json')
         self.finish(schemas_model)
 
@@ -230,8 +227,6 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
         except Exception as err:
             raise web.HTTPError(500, repr(err)) from err
 
-        namespace_model = dict()
-        namespace_model['namespaces'] = namespaces
-
+        namespace_model = {'namespaces': namespaces}
         self.set_header("Content-Type", 'application/json')
         self.finish(namespace_model)

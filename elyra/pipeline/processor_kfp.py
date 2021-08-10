@@ -302,7 +302,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 pipeline_function = lambda: self._cc_pipeline(pipeline,
                                                               pipeline_name,
                                                               cos_directory=cos_directory)  # nopep8
-                if 'Tekton' == engine:
+                if engine == 'Tekton':
                     self.log.info("Compiling pipeline for Tekton engine")
                     kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
                 else:

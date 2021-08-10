@@ -167,7 +167,7 @@ class Operation(object):
 
     @staticmethod
     def is_generic_operation(operation_type) -> bool:
-        return True if operation_type in Operation.generic_node_types else False
+        return operation_type in Operation.generic_node_types
 
 
 class GenericOperation(Operation):
