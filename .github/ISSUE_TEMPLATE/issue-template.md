@@ -31,7 +31,6 @@ A clear and concise description of what you expected to happen.
 **Deployment information**
 Describe what you've deployed and how:
  - Elyra version: [e.g. 1.5.3]
- - Operating system: [e.g. macos, linux]
  - Installation source: [e.g. PyPI, conda, from source, official container image, custom container image]
  - Deployment type: [e.g. local installation, Docker, Kubernetes, Kubeflow [notebook server] , Open Data Hub]
-
+ - Operating system: [e.g. macos, linux]
