@@ -276,9 +276,8 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                   resource_value=node_data[resource_name],
                                                                   response=response)
 
-                        # Check label against kfp naming standards
-                        if pipeline_runtime == 'kfp' and node_label and filename != node_label:
-                            self._validate_label(node_id=node['id'], node_label=node_label, response=response)
+                        self._validate_label(node_id=node['id'], filename=filename, node_label=node_label,
+                                             response=response)
                         if dependencies:
                             notebook_root_relative_path = os.path.dirname(filename)
                             for dependency in dependencies:
@@ -431,30 +430,36 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "propertyName": 'env_vars',
                                        "value": env_var})
 
-    def _validate_label(self, node_id: str, node_label: str, response: ValidationResponse) -> None:
+    def _validate_label(self, node_id: str, filename: str, node_label: str, response: ValidationResponse) -> None:
         """
         KFP specific check for the label name when constructing the node operation using dsl
         :param node_id: the unique ID of the node
+        :param filename: the name of the file with or without a relative path prefix
         :param node_label: the given node name or user customized name/label of the node
         :param response: ValidationResponse containing the issue list to be updated
         """
         label_name_max_length = 63
-        label_regex = re.compile('^[a-z0-9]([-a-z0-9]{0,62}[a-z0-9])?')
+        label_regex = re.compile('^[a-z0-9]([-_a-z0-9]{0,62}[a-z0-9])?')
         matched = label_regex.search(node_label)
 
-        if len(node_label) > label_name_max_length:
-            response.add_message(severity=ValidationSeverity.Error,
+        if os.path.basename(filename) == node_label and len(os.path.basename(filename)) > label_name_max_length or \
+                len(node_label) > label_name_max_length:
+            response.add_message(severity=ValidationSeverity.Warning,
                                  message_type="invalidNodeLabel",
-                                 message="Property string value has exceeded the max length allowed ",
+                                 message="Property value has exceeded the max length allowed "
+                                         "({label_name_max_length}). This value may be truncated "
+                                         "by the runtime service",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'label',
                                        "value": node_label})
-
-        elif matched.group(0) != node_label:
-            response.add_message(severity=ValidationSeverity.Error,
+        if not matched or matched.group(0) != node_label:
+            response.add_message(severity=ValidationSeverity.Warning,
                                  message_type="invalidNodeLabel",
-                                 message="Property string must start contain only lower alphanumeric and dashes",
+                                 message="Property value contains invalid characters. Invalid characters "
+                                         "may be replaced by the runtime service. Node labels must "
+                                         "start with lower case alphanumeric and contain "
+                                         "only lower case alphanumeric, underscores, and dashes",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'label',
