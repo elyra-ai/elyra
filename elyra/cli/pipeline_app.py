@@ -15,6 +15,7 @@
 #
 
 import asyncio
+from collections import OrderedDict
 import json
 import os
 from typing import Optional
@@ -330,53 +331,58 @@ def describe(json_option, pipeline_path):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
-    if not json_option:
-        indent_length = 4
-        for current_pipeline in pipeline_definition["pipelines"]:
-            pipeline_keys = ["name", "description", "type", "version", "nodes", "dependencies"]
+    indent_length = 4
+    for current_pipeline in pipeline_definition["pipelines"]:
+        pipeline_keys = ["name", "description", "type", "version", "nodes", "dependencies"]
 
-            pipeline_values = ["None"] * len(pipeline_keys)
+        list_keys = {"dependencies"}
 
-            list_keys = {"description", "dependencies"}
+        describe_dict = OrderedDict()
 
-            for key in list_keys:
-                pipeline_values[pipeline_keys.index(key)] = f"\n{' ' * indent_length}None"
+        properties = current_pipeline["app_data"]["properties"]
 
-            properties = current_pipeline["app_data"]["properties"]
+        pipeline_data = current_pipeline["app_data"]
 
-            pipeline_data = current_pipeline["app_data"]
+        # If the name is actually "None", it will seem as if there is no name
+        # The same can be said for all fields
+        if "name" in properties.keys():
+            describe_dict["name"] = str(properties.get("name"))
 
-            # If the name is actually "None", it will seem as if there is no name
-            # The same can be said for all fields
-            if "name" in properties.keys():
-                pipeline_values[pipeline_keys.index("name")] = str(properties.get("name"))
+        if "description" in properties.keys():
+            describe_dict["description"] = str(properties.get("description"))
 
-            if "description" in properties.keys():
-                pipeline_values[pipeline_keys.index("description")] = str(properties.get("description"))
+        if "runtime" in properties.keys():
+            describe_dict["type"] = str(properties.get("runtime"))
 
-            if "runtime" in properties.keys():
-                pipeline_values[pipeline_keys.index("type")] = str(properties.get("runtime"))
+        if "version" in pipeline_data.keys():
+            describe_dict["version"] = str(pipeline_data.get("version"))
 
-            if "version" in pipeline_data.keys():
-                pipeline_values[pipeline_keys.index("version")] = str(pipeline_data.get("version"))
+        # Will break if there are no nodes
+        describe_dict["nodes"] = str(len(current_pipeline["nodes"]))
 
-            # Will break if there are no nodes
-            pipeline_values[pipeline_keys.index("nodes")] = str(len(current_pipeline["nodes"]))
-
-            for node in current_pipeline["nodes"]:
-                if "dependencies" in node["app_data"]["component_parameters"]:
-                    for dependency in node["app_data"]["component_parameters"].get("dependencies"):
-                        if pipeline_values[pipeline_keys.index("dependencies")] == \
-                                f"\n{' ' * indent_length}None":
-                            pipeline_values[pipeline_keys.index("dependencies")] = ""
-                        pipeline_values[pipeline_keys.index("dependencies")] += \
-                            f"\n{' ' * indent_length}{dependency}"
-
+        for node in current_pipeline["nodes"]:
+            if "dependencies" in node["app_data"]["component_parameters"]:
+                for dependency in node["app_data"]["component_parameters"].get("dependencies"):
+                    if describe_dict.get("dependencies") is None:
+                        describe_dict["dependencies"] = []
+                    describe_dict["dependencies"].append(f"{dependency}")
+        if not json_option:
             for key in pipeline_keys:
-                click.echo(f"{key.title()}: {pipeline_values[pipeline_keys.index(key)]}")
+                if key in list_keys:
+                    click.echo(f"{key.title()}")
+                    if describe_dict.get(key) is None:
+                        click.echo(f"{' ' * indent_length}None")
+                    else:
+                        for item in describe_dict[key]:
+                            click.echo(f"{' ' * indent_length}{item}")
+                else:
+                    if describe_dict.get(key) is None:
+                        click.echo(f"{key.title()}: None")
+                    else:
+                        click.echo(f"{key.title()}: {describe_dict[key]}")
 
-    else:
-        click.echo(json.dumps(pipeline_definition, indent=2))
+        else:
+            click.echo(json.dumps(describe_dict, indent=indent_length))
 
 
 pipeline.add_command(submit)
