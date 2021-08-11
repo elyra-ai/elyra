@@ -337,9 +337,10 @@ def describe(json_option, pipeline_path):
 
             pipeline_values = ["None"] * len(pipeline_keys)
 
-            pipeline_values[pipeline_keys.index("description")] = \
-                pipeline_values[pipeline_keys.index("dependencies")] = \
-                f"\n{' ' * indent_length}None"
+            list_keys = {"description", "dependencies"}
+
+            for key in list_keys:
+                pipeline_values[pipeline_keys.index(key)] = f"\n{' ' * indent_length}None"
 
             properties = current_pipeline["app_data"]["properties"]
 
