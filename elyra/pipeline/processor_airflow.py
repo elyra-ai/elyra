@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ast
 from collections import OrderedDict
 from datetime import datetime
 import json
@@ -243,22 +242,23 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                     # Skip properties for which no value was given
                     if component_property.ref not in operation.component_params.keys():
                         continue
+
+                    # Get corresponding property's value from parsed pipeline
+                    property_value = operation.component_params.get(component_property.ref)
+
                     if component_property.type == "string":
-                        # Get corresponding component_property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(component_property.ref)
-                        operation.component_params[component_property.ref] = json.dumps(op_property)
-                    elif component_property.type in ['dict', 'dictionary']:
-                        # Get corresponding component_property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(component_property.ref)
-                        if not op_property:
-                            op_property = "{}"
-                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
-                    elif component_property.type in ['list', 'set', 'array', 'arr']:
-                        op_property = operation.component_params.get(component_property.ref)
-                        # Get corresponding component_property value from parsed pipeline and convert
-                        if not op_property:
-                            op_property = "[]"
-                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
+                        # Add surrounding quotation marks to string value for correct rendering
+                        # in jinja DAG template
+                        operation.component_params[component_property.ref] = json.dumps(property_value)
+                    elif component_property.type == 'dictionary':
+                        processed_value = operation.process_dictionary_value(property_value)
+                        # If value could not be successfully converted to dictionary,
+                        # pass the string directly to the operator instead
+                        operation.component_params[component_property.ref] = processed_value \
+                            if processed_value else property_value
+                    elif component_property.type == 'list':
+                        processed_value = operation.process_list_value(property_value)
+                        operation.component_params[component_property.ref] = processed_value
 
                 # Get component class from operation name
                 component_class = operation.classifier.split('_')[-1]

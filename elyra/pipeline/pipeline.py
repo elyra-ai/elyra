@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import ast
+import json
 from logging import Logger
 import os
 import sys
@@ -168,6 +170,58 @@ class Operation(object):
     @staticmethod
     def is_generic_operation(operation_type) -> bool:
         return True if operation_type in Operation.generic_node_types else False
+
+    @staticmethod
+    def process_dictionary_value(value: str) -> Optional[Dict]:
+        """
+        For parameters of type dictionary, convert the string value given in the pipeline
+        JSON to the appropriate Dict format.
+        """
+        if not value:
+            value = "{}"
+
+        converted_dict = None
+        if value.startswith('{') and value.endswith('}'):
+            try:
+                converted_dict = ast.literal_eval(value)
+            except Exception:
+                try:
+                    converted_dict = json.loads(value)
+                except Exception:
+                    pass
+
+        # Value could not be successfully converted to dictionary
+        if not isinstance(converted_dict, dict):
+            return None
+
+        return converted_dict
+
+    @staticmethod
+    def process_list_value(value: str) -> List:
+        """
+        For parameters of type list, convert the string value given in the pipeline
+        JSON to the appropriate List format.
+        """
+        if not value:
+            value = "[]"
+
+        converted_list = None
+        if value.startswith('[') and value.endswith(']'):
+            try:
+                converted_list = ast.literal_eval(value)
+            except Exception:
+                # Remove brackets in preparation to parse as delimited list
+                value = value[1:-1]
+
+        if not isinstance(converted_list, list):
+            if ',' in value:
+                converted_list = [elem.strip(" '\"") for elem in value.split(',')]
+            elif ';' in value:
+                converted_list = [elem.strip(" '\"") for elem in value.split(";")]
+            else:
+                converted_list = [value.strip(" '\"")]
+
+        return converted_list
 
 
 class GenericOperation(Operation):
