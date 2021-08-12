@@ -345,24 +345,19 @@ def describe(json_option, pipeline_path):
 
         # If the name is actually "None", it will seem as if there is no name
         # The same can be said for all fields
-        if "name" in properties.keys():
-            describe_dict["name"] = str(properties.get("name"))
+        describe_dict["name"] = str(properties.get("name", "None"))
 
-        if "description" in properties.keys():
-            describe_dict["description"] = str(properties.get("description"))
+        describe_dict["description"] = str(properties.get("description", "None"))
 
-        if "runtime" in properties.keys():
-            describe_dict["type"] = str(properties.get("runtime"))
+        describe_dict["type"] = str(properties.get("runtime", "None"))
 
-        if "version" in pipeline_data.keys():
-            describe_dict["version"] = str(pipeline_data.get("version"))
+        describe_dict["version"] = str(pipeline_data.get("version", "None"))
 
-        # Will break if there are no nodes
-        describe_dict["nodes"] = str(len(current_pipeline["nodes"]))
+        describe_dict["nodes"] = str(len(current_pipeline.get("nodes", [])))
 
         for node in current_pipeline["nodes"]:
             if "dependencies" in node["app_data"]["component_parameters"]:
-                for dependency in node["app_data"]["component_parameters"].get("dependencies"):
+                for dependency in node["app_data"]["component_parameters"].get("dependencies", []):
                     if describe_dict.get("dependencies") is None:
                         describe_dict["dependencies"] = []
                     describe_dict["dependencies"].append(f"{dependency}")
@@ -370,16 +365,10 @@ def describe(json_option, pipeline_path):
             for key in pipeline_keys:
                 if key in list_keys:
                     click.echo(f"{key.title()}")
-                    if describe_dict.get(key) is None:
-                        click.echo(f"{' ' * indent_length}None")
-                    else:
-                        for item in describe_dict[key]:
-                            click.echo(f"{' ' * indent_length}{item}")
+                    for item in describe_dict.get(key, ["None"]):
+                        click.echo(f"{' ' * indent_length}{item}")
                 else:
-                    if describe_dict.get(key) is None:
-                        click.echo(f"{key.title()}: None")
-                    else:
-                        click.echo(f"{key.title()}: {describe_dict[key]}")
+                    click.echo(f"{key.title()}: {describe_dict.get(key, 'None')}")
 
         else:
             click.echo(json.dumps(describe_dict, indent=indent_length))
