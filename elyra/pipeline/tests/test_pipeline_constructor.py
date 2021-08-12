@@ -510,3 +510,100 @@ def test_scrub_list_function():
     env_variables_output = ['FOO=Bar', 'BAR=Foo']
 
     assert Operation._scrub_list(env_variables_input) == env_variables_output
+
+
+def test_process_list_value_function():
+    # Test list and comma- and semi-colon-delimited strings
+    entered_values = ["['elem1', 'elem2']", "[elem1, elem2]", "[elem1; elem2]",
+                      "'elem1', 'elem2'", "'elem1, elem2'", "elem1, elem2",
+                      "'elem1'; 'elem2'", "'elem1; elem2'", "elem1; elem2"]
+    for value in entered_values:
+        converted_value = Operation.process_list_value(value)
+
+        expected_value = ["elem1", "elem2"]
+        assert converted_value == expected_value
+
+    # Test single values
+    entered_values = ["'elem1'", "elem1"]
+    for value in entered_values:
+        converted_value = Operation.process_list_value(value)
+
+        expected_value = ["elem1"]
+        assert converted_value == expected_value
+
+    # Test falsy values
+    entered_values = ["", "[]", None]
+    for value in entered_values:
+        converted_value = Operation.process_list_value(value)
+
+        expected_value = []
+        assert converted_value == expected_value
+
+    assert Operation.process_list_value("[1, 2]") == [1, 2]
+    assert Operation.process_list_value("elem1, elem2, elem3, elem4") == ["elem1", "elem2", "elem3", "elem4"]
+    assert Operation.process_list_value("[{'obj': 'val', 'obj2': 'val2'}, {}]") == [{'obj': 'val', 'obj2': 'val2'}, {}]
+
+
+def test_process_dictionary_value_function():
+    entered_values = ["{'key': 'val'}", "{key: val}"]
+    for value in entered_values:
+        converted_value = Operation.process_dictionary_value(value)
+
+        expected_value = {"key": "val"}
+        assert converted_value == expected_value
+
+    entered_values = ["{'key': True}", "{'key': true}", "'key': 'true'"]
+    for value in entered_values:
+        converted_value = Operation.process_dictionary_value(value)
+
+        expected_value = {"key": True}
+        assert converted_value == expected_value
+
+    entered_values = ["{'key': 2}", "{key: 2}", "'key': '2'"]
+    for value in entered_values:
+        converted_value = Operation.process_dictionary_value(value)
+
+        expected_value = {"key": 2}
+        assert converted_value == expected_value
+
+    entered_values = ["{'key': ['elem1', 'elem2']}", "{'key': [elem1, elem2]}"]
+    for value in entered_values:
+        converted_value = Operation.process_dictionary_value(value)
+
+        expected_value = {"key": ["elem1", "elem2"]}
+        assert converted_value == expected_value
+
+    assert Operation.process_dictionary_value("{'key': [1, 2, 3]}") == {"key": [1, 2, 3]}
+
+    entered_values = ["{'key': null}", "{'key': None}"]
+    for value in entered_values:
+        converted_value = Operation.process_dictionary_value(value)
+
+        expected_value = {"key": None}
+        assert converted_value == expected_value
+
+    entered_values = ["", "{}", None]
+    for value in entered_values:
+        converted_value = Operation.process_dictionary_value(value)
+
+        expected_value = {}
+        assert converted_value == expected_value
+
+    entered_values = ["'key': 'val'", "key: val"]
+    for value in entered_values:
+        converted_value = Operation.process_dictionary_value(value)
+
+        expected_value = {"key": "val"}
+        assert converted_value == expected_value
+
+    dict_as_str = "{'key1': {key1: [1, 2, 3], key2: 2}, 'key2': True, 'key3': 'string value', 'key4': None}"
+    expected_dict = {
+        "key1": {
+            "key1": [1, 2, 3],
+            "key2": 2
+        },
+        "key2": True,
+        "key3": "string value",
+        "key4": None
+    }
+    assert Operation.process_dictionary_value(dict_as_str) == expected_dict
