@@ -15,9 +15,9 @@
 #
 import ast
 import json
-import re
 from logging import Logger
 import os
+import re
 import sys
 from typing import Any
 from typing import Dict
@@ -195,7 +195,7 @@ class Operation(object):
         # Value could not be successfully converted to dictionary
         if not isinstance(converted_dict, dict):
             converted_dict = {}
-            kv_regex = re.compile(",(?=(?:[^\]}]*[\[{][^\]}]*[\]}])*[^\]}]*$)")
+            kv_regex = re.compile(",(?=(?:[^]}]*[[{][^]}]*[]}])*[^]}]*$)")
             kv_pairs = kv_regex.split(value)
 
             for pair in kv_pairs:
