@@ -15,6 +15,7 @@
 #
 import ast
 import json
+import re
 from logging import Logger
 import os
 import sys
@@ -186,11 +187,37 @@ class Operation(object):
                 converted_dict = ast.literal_eval(value)
             except Exception:
                 try:
+                    value = value.replace("'", "\"")
                     converted_dict = json.loads(value)
                 except Exception:
-                    pass
+                    value = value[1:-1]
 
         # Value could not be successfully converted to dictionary
+        if not isinstance(converted_dict, dict):
+            converted_dict = {}
+            kv_regex = re.compile(",(?=(?:[^\]}]*[\[{][^\]}]*[\]}])*[^\]}]*$)")
+            kv_pairs = kv_regex.split(value)
+
+            for pair in kv_pairs:
+                key, val = pair.split(":", 1)
+
+                try:
+                    val = ast.literal_eval(val.strip(" '\""))
+                except Exception:
+                    try:
+                        val = json.loads(val.strip(" '\""))
+                    except Exception:
+                        pass
+
+                if isinstance(val, str):
+                    val = val.strip(" '\"")
+                    if val.startswith('{') and val.endswith('}'):
+                        val = Operation.process_dictionary_value(val, logger=logger)
+                    elif val.startswith('[') and val.endswith(']'):
+                        val = Operation.process_list_value(val)
+
+                converted_dict[key.strip(" '\"")] = val
+
         if not isinstance(converted_dict, dict):
             Operation._log_info(f"Could not convert parameter value '{value}' to dictionary",
                                 logger=logger)
