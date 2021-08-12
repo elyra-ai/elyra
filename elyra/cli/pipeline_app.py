@@ -335,7 +335,7 @@ def describe(json_option, pipeline_path):
     for current_pipeline in pipeline_definition["pipelines"]:
         pipeline_keys = ["name", "description", "type", "version", "nodes", "dependencies"]
 
-        list_keys = {"dependencies"}
+        iter_keys = {"dependencies"}
 
         describe_dict = OrderedDict()
 
@@ -355,22 +355,26 @@ def describe(json_option, pipeline_path):
 
         describe_dict["nodes"] = str(len(current_pipeline.get("nodes", [])))
 
+        describe_dict["dependencies"] = set()
         for node in current_pipeline["nodes"]:
             if "dependencies" in node["app_data"]["component_parameters"]:
                 for dependency in node["app_data"]["component_parameters"].get("dependencies", []):
-                    if describe_dict.get("dependencies") is None:
-                        describe_dict["dependencies"] = []
-                    describe_dict["dependencies"].append(f"{dependency}")
+                    describe_dict["dependencies"].add(f"{dependency}")
+
         if not json_option:
             for key in pipeline_keys:
-                if key in list_keys:
-                    click.echo(f"{key.title()}")
-                    for item in describe_dict.get(key, ["None"]):
-                        click.echo(f"{' ' * indent_length}{item}")
+                if key in iter_keys:
+                    click.echo(f"{key.title()}:")
+                    if describe_dict.get(key, set()) == set():
+                        click.echo(f"{' ' * indent_length}None")
+                    else:
+                        for item in describe_dict.get(key, ["None"]):
+                            click.echo(f"{' ' * indent_length}{item}")
                 else:
                     click.echo(f"{key.title()}: {describe_dict.get(key, 'None')}")
-
         else:
+            for key in iter_keys:
+                describe_dict[key] = list(describe_dict[key])
             click.echo(json.dumps(describe_dict, indent=indent_length))
 
 
