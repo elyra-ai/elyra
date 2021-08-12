@@ -501,12 +501,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Retrieve component from cache
                 component = self._component_registry.get_component(operation.classifier)
 
-                # Change value of variables according to their type. Path variables should include
-                # the contents of the specified file and dictionary values must be converted from strings.
+                # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
                     # Get corresponding property's value from parsed pipeline
                     property_value = operation.component_params.get(component_property.ref)
 
+                    self.log.debug(f"Processing component parameter '{component_property.name}' "
+                                   f"of type '{component_property.type}'")
                     if component_property.type == "file":
                         filename = get_absolute_path(get_expanded_path(self.root_dir), property_value)
                         try:
@@ -517,7 +518,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             # This may cause the pipeline run to fail; the user must debug in this case.
                             pass
                     elif component_property.type == 'dictionary':
-                        processed_value = operation.process_dictionary_value(property_value)
+                        processed_value = operation.process_dictionary_value(property_value, logger=self.log)
                         # If value could not be successfully converted to dictionary,
                         # pass the string directly to the operator instead
                         operation.component_params[component_property.ref] = processed_value \

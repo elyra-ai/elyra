@@ -172,10 +172,10 @@ class Operation(object):
         return True if operation_type in Operation.generic_node_types else False
 
     @staticmethod
-    def process_dictionary_value(value: str) -> Optional[Dict]:
+    def process_dictionary_value(value: str, logger: Optional[Logger] = None) -> Optional[Dict]:
         """
         For parameters of type dictionary, convert the string value given in the pipeline
-        JSON to the appropriate Dict format.
+        JSON to the appropriate Dict format. If Dict cannot be formed, log & return None.
         """
         if not value:
             value = "{}"
@@ -192,6 +192,8 @@ class Operation(object):
 
         # Value could not be successfully converted to dictionary
         if not isinstance(converted_dict, dict):
+            Operation._log_info(f"Could not convert parameter value '{value}' to dictionary",
+                                logger=logger)
             return None
 
         return converted_dict
