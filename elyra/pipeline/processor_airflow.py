@@ -252,12 +252,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                         operation.component_params[component_property.ref] = json.dumps(property_value)
                     elif component_property.type == 'dictionary':
                         processed_value = operation.process_dictionary_value(property_value, logger=self.log)
-                        # If value could not be successfully converted to dictionary,
-                        # pass the string directly to the operator instead
-                        operation.component_params[component_property.ref] = processed_value \
-                            if processed_value else property_value
+                        operation.component_params[component_property.ref] = processed_value
                     elif component_property.type == 'list':
-                        processed_value = operation.process_list_value(property_value)
+                        processed_value = operation.process_list_value(property_value, logger=self.log)
                         operation.component_params[component_property.ref] = processed_value
 
                 # Get component class from operation name

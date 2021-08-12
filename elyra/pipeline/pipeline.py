@@ -14,15 +14,14 @@
 # limitations under the License.
 #
 import ast
-import json
 from logging import Logger
 import os
-import re
 import sys
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Union
 
 
 class Operation(object):
@@ -173,82 +172,46 @@ class Operation(object):
         return True if operation_type in Operation.generic_node_types else False
 
     @staticmethod
-    def process_dictionary_value(value: str, logger: Optional[Logger] = None) -> Optional[Dict]:
+    def process_dictionary_value(value: str, logger: Optional[Logger] = None) -> Union[Dict, str]:
         """
-        For parameters of type dictionary, convert the string value given in the pipeline
-        JSON to the appropriate Dict format. If Dict cannot be formed, log & return None.
+        For parameters of type dictionary, convert the string value given in the pipeline JSON
+        to the appropriate Dict format. If Dict cannot be formed, log & return string value.
         """
-        if not value:
-            value = "{}"
-
         converted_dict = None
+        value = value.strip()
         if value.startswith('{') and value.endswith('}'):
             try:
                 converted_dict = ast.literal_eval(value)
             except Exception:
-                try:
-                    value = value.replace("'", "\"")
-                    converted_dict = json.loads(value)
-                except Exception:
-                    value = value[1:-1]
+                pass
 
         # Value could not be successfully converted to dictionary
         if not isinstance(converted_dict, dict):
-            converted_dict = {}
-            kv_regex = re.compile(",(?=(?:[^]}]*[[{][^]}]*[]}])*[^]}]*$)")
-            kv_pairs = kv_regex.split(value)
-
-            for pair in kv_pairs:
-                key, val = pair.split(":", 1)
-
-                try:
-                    val = ast.literal_eval(val.strip(" '\""))
-                except Exception:
-                    try:
-                        val = json.loads(val.strip(" '\""))
-                    except Exception:
-                        pass
-
-                if isinstance(val, str):
-                    val = val.strip(" '\"")
-                    if val.startswith('{') and val.endswith('}'):
-                        val = Operation.process_dictionary_value(val, logger=logger)
-                    elif val.startswith('[') and val.endswith(']'):
-                        val = Operation.process_list_value(val)
-
-                converted_dict[key.strip(" '\"")] = val
-
-        if not isinstance(converted_dict, dict):
-            Operation._log_info(f"Could not convert parameter value '{value}' to dictionary",
+            Operation._log_info(f"Could not convert entered parameter value `{value}` to dictionary",
                                 logger=logger)
-            return None
+            return value
 
         return converted_dict
 
     @staticmethod
-    def process_list_value(value: str) -> List:
+    def process_list_value(value: str, logger: Optional[Logger] = None) -> Union[List, str]:
         """
-        For parameters of type list, convert the string value given in the pipeline
-        JSON to the appropriate List format.
+        For parameters of type list, convert the string value given in the pipeline JSON
+        to the appropriate List format. If List cannot be formed, log & return string value.
         """
-        if not value:
-            value = "[]"
-
+        value = value.strip()
         converted_list = None
         if value.startswith('[') and value.endswith(']'):
             try:
                 converted_list = ast.literal_eval(value)
             except Exception:
-                # Remove brackets in preparation to parse as delimited list
-                value = value[1:-1]
+                pass
 
+        # Value could not be successfully converted to list
         if not isinstance(converted_list, list):
-            if ',' in value:
-                converted_list = [elem.strip(" '\"") for elem in value.split(',')]
-            elif ';' in value:
-                converted_list = [elem.strip(" '\"") for elem in value.split(";")]
-            else:
-                converted_list = [value.strip(" '\"")]
+            Operation._log_info(f"Could not convert entered parameter value `{value}` to list",
+                                logger=logger)
+            return value
 
         return converted_list
 
