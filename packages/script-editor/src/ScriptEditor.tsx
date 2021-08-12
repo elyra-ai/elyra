@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { pyIcon } from '@elyra/ui-components';
+// import { pyIcon } from '@elyra/ui-components';
 
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+// import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
-  ABCWidgetFactory,
+  // ABCWidgetFactory,
   DocumentRegistry,
   DocumentWidget
 } from '@jupyterlab/docregistry';
@@ -60,8 +60,8 @@ const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-ScriptEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-ScriptEditor-OutputArea-prompt';
 const RUN_BUTTON_CLASS = 'elyra-ScriptEditor-Run';
 const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
-const PYTHON = 'python';
-const R = 'R';
+// const PYTHON = 'python';
+// const R = 'R';
 
 /**
  * A widget for script editors.
@@ -80,7 +80,7 @@ export class ScriptEditor extends DocumentWidget<
   private runDisabled: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
-  private editorLanguage: string;
+  protected editorLanguage: string;
 
   /**
    * Construct a new editor widget.
@@ -97,12 +97,13 @@ export class ScriptEditor extends DocumentWidget<
     this.emptyOutput = true;
     this.runDisabled = false;
     this.controller = new ScriptEditorController();
-    this.editorLanguage = this.kernelName?.toLowerCase().includes(PYTHON)
-      ? PYTHON
-      : R;
+    this.editorLanguage = '';
+    // this.editorLanguage = this.kernelName?.toLowerCase().includes(PYTHON)
+    //   ? PYTHON
+    //   : R;
 
     // Add icon to main tab
-    this.title.icon = this.editorLanguage === PYTHON ? pyIcon : 'rIcon';
+    // this.title.icon = this.editorLanguage === PYTHON ? pyIcon : 'rIcon';
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -416,58 +417,58 @@ export class ScriptEditor extends DocumentWidget<
   };
 }
 
-/**
- * A widget factory for script editors.
- */
-export class ScriptEditorFactory extends ABCWidgetFactory<
-  ScriptEditor,
-  DocumentRegistry.ICodeModel
-> {
-  /**
-   * Construct a new editor widget factory.
-   */
-  constructor(options: ScriptEditorFactory.IOptions) {
-    super(options.factoryOptions);
-    this._services = options.editorServices;
-  }
+// /**
+//  * A widget factory for script editors.
+//  */
+// export class ScriptEditorFactory extends ABCWidgetFactory<
+//   ScriptEditor,
+//   DocumentRegistry.ICodeModel
+// > {
+//   /**
+//    * Construct a new editor widget factory.
+//    */
+//   constructor(options: ScriptEditorFactory.IOptions) {
+//     super(options.factoryOptions);
+//     this._services = options.editorServices;
+//   }
 
-  /**
-   * Create a new widget given a context.
-   */
-  protected createNewWidget(
-    context: DocumentRegistry.CodeContext
-  ): ScriptEditor {
-    const newDocumentEditor = this._services.factoryService.newDocumentEditor;
-    const factory: CodeEditor.Factory = options => {
-      return newDocumentEditor(options);
-    };
-    const content = new FileEditor({
-      factory,
-      context,
-      mimeTypeService: this._services.mimeTypeService
-    });
-    return new ScriptEditor({ content, context });
-  }
+//   /**
+//    * Create a new widget given a context.
+//    */
+//   protected createNewWidget(
+//     context: DocumentRegistry.CodeContext
+//   ): ScriptEditor {
+//     const newDocumentEditor = this._services.factoryService.newDocumentEditor;
+//     const factory: CodeEditor.Factory = options => {
+//       return newDocumentEditor(options);
+//     };
+//     const content = new FileEditor({
+//       factory,
+//       context,
+//       mimeTypeService: this._services.mimeTypeService
+//     });
+//     return new ScriptEditor({ content, context });
+//   }
 
-  private _services: IEditorServices;
-}
+//   private _services: IEditorServices;
+// }
 
-/**
- * The namespace for `ScriptEditorFactory` class statics.
- */
-export namespace ScriptEditorFactory {
-  /**
-   * The options used to create an editor widget factory.
-   */
-  export interface IOptions {
-    /**
-     * The editor services used by the factory.
-     */
-    editorServices: IEditorServices;
+// /**
+//  * The namespace for `ScriptEditorFactory` class statics.
+//  */
+// export namespace ScriptEditorFactory {
+//   /**
+//    * The options used to create an editor widget factory.
+//    */
+//   export interface IOptions {
+//     /**
+//      * The editor services used by the factory.
+//      */
+//     editorServices: IEditorServices;
 
-    /**
-     * The factory options associated with the factory.
-     */
-    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<ScriptEditor>;
-  }
-}
+//     /**
+//      * The factory options associated with the factory.
+//      */
+//     factoryOptions: DocumentRegistry.IWidgetFactoryOptions<ScriptEditor>;
+//   }
+// }
