@@ -87,7 +87,7 @@ setup_args = dict(
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp==1.6.3',
+        'kfp>=1.6.3<1.7',
         'kfp-tekton==0.8.1',
         # Airflow runtime dependencies
         'pygithub',
