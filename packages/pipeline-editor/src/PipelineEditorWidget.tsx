@@ -19,7 +19,7 @@ import {
   PipelineOutOfDateError,
   ThemeProvider
 } from '@elyra/pipeline-editor';
-import { migrate, validate } from '@elyra/pipeline-services';
+import { validate } from '@elyra/pipeline-services';
 import { ContentParser } from '@elyra/services';
 import {
   IconUtil,
@@ -56,14 +56,10 @@ import { Signal } from '@lumino/signaling';
 import { Snackbar } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import * as React from 'react';
 
 import { formDialogWidget } from './formDialogWidget';
-import {
-  usePalette,
-  useRuntimeImages,
-  useRuntimesSchema
-} from './pipeline-hooks';
+import { usePipeline } from './pipeline/use-pipeline';
 import { PipelineExportDialog } from './PipelineExportDialog';
 import pipelineProperties from './pipelineProperties';
 import {
@@ -103,14 +99,6 @@ const getAllPaletteNodes = (palette: any): any[] => {
   }
 
   return nodes;
-};
-
-const getRuntimeDisplayName = (
-  schemas: { name: string; display_name: string }[] | undefined,
-  runtime: string | undefined
-): string | undefined => {
-  const schema = schemas?.find(s => s.name === runtime);
-  return schema?.display_name;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -160,146 +148,29 @@ const PipelineWrapper: React.FC<IProps> = ({
   addFileToPipelineSignal,
   widgetId
 }) => {
-  const ref = useRef<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [pipeline, setPipeline] = useState<any>(null);
+  const pipelinePath = context.path;
+
+  const {
+    pipeline,
+    palette,
+    updatePipeline,
+    migratePipeline,
+    savePipeline
+  } = usePipeline(context);
+
+  const ref = React.useRef<any>(null);
+
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState('');
 
-  const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
-
-  const { data: palette, error: paletteError } = usePalette(
-    pipelineRuntimeName
-  );
-
-  const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
-
-  const {
-    data: runtimesSchema,
-    error: runtimesSchemaError
-  } = useRuntimesSchema();
-
-  const pipelineRuntimeDisplayName = getRuntimeDisplayName(
-    runtimesSchema,
-    pipelineRuntimeName
-  );
-
-  useEffect(() => {
-    if (runtimeImages?.length === 0) {
-      RequestErrors.noMetadataError('runtime image');
-    }
-  }, [runtimeImages?.length]);
-
-  useEffect(() => {
-    if (paletteError) {
-      RequestErrors.serverError(paletteError);
-    }
-  }, [paletteError]);
-
-  useEffect(() => {
-    if (runtimeImagesError) {
-      RequestErrors.serverError(runtimeImagesError);
-    }
-  }, [runtimeImagesError]);
-
-  useEffect(() => {
-    if (runtimesSchemaError) {
-      RequestErrors.serverError(runtimesSchemaError);
-    }
-  }, [runtimesSchemaError]);
-
-  const contextRef = useRef(context);
-  useEffect(() => {
-    const currentContext = contextRef.current;
-
-    const changeHandler = (): void => {
-      const pipelineJson: any = currentContext.model.toJSON();
-
-      // map IDs to display names
-      const nodes = pipelineJson?.pipelines?.[0]?.nodes;
-      if (nodes?.length > 0) {
-        for (const node of nodes) {
-          if (node?.app_data?.component_parameters?.runtime_image) {
-            const image = runtimeImages?.find(
-              i =>
-                i.metadata.image_name ===
-                node.app_data.component_parameters.runtime_image
-            );
-            if (image) {
-              node.app_data.component_parameters.runtime_image =
-                image.display_name;
-            }
-          }
-
-          if (node?.app_data?.component_parameters) {
-            for (const [key, val] of Object.entries(
-              node?.app_data?.component_parameters
-            )) {
-              if (val === null) {
-                node.app_data.component_parameters[key] = undefined;
-              }
-            }
-          }
-        }
-      }
-      // TODO: don't persist this, but this will break things right now
-      if (pipelineJson?.pipelines?.[0]?.app_data) {
-        if (!pipelineJson.pipelines[0].app_data.properties) {
-          pipelineJson.pipelines[0].app_data.properties = {};
-        }
-        const pipeline_path = contextRef.current.path;
-        const pipeline_name = PathExt.basename(
-          pipeline_path,
-          PathExt.extname(pipeline_path)
-        );
-        pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
-        pipelineJson.pipelines[0].app_data.properties.runtime =
-          pipelineRuntimeDisplayName ?? 'Generic';
-      }
-      setPipeline(pipelineJson);
-      setLoading(false);
-    };
-
-    currentContext.ready.then(changeHandler);
-    currentContext.model.contentChanged.connect(changeHandler);
-
-    return (): void => {
-      currentContext.model.contentChanged.disconnect(changeHandler);
-    };
-  }, [pipelineRuntimeDisplayName, runtimeImages]);
-
-  const onChange = useCallback(
-    (pipelineJson: any): void => {
-      if (contextRef.current.isReady) {
-        if (pipelineJson?.pipelines?.[0]?.nodes) {
-          // map display names to IDs
-          const nodes = pipelineJson?.pipelines?.[0]?.nodes;
-          if (nodes?.length > 0) {
-            for (const node of nodes) {
-              if (node?.app_data?.component_parameters?.runtime_image) {
-                const image = runtimeImages?.find(
-                  i =>
-                    i.display_name ===
-                    node.app_data.component_parameters.runtime_image
-                );
-                if (image) {
-                  node.app_data.component_parameters.runtime_image =
-                    image.metadata.image_name;
-                }
-              }
-            }
-          }
-        }
-
-        contextRef.current.model.fromString(
-          JSON.stringify(pipelineJson, null, 2)
-        );
-      }
+  const onChange = React.useCallback(
+    (pipeline: any): void => {
+      updatePipeline(pipeline);
     },
-    [runtimeImages]
+    [updatePipeline]
   );
 
-  const onError = useCallback(
+  const onError = React.useCallback(
     (error?: Error): void => {
       if (error instanceof PipelineOutOfDateError) {
         showDialog({
@@ -322,22 +193,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           buttons: [Dialog.cancelButton(), Dialog.okButton()]
         }).then(result => {
           if (result.button.accept) {
-            // proceed with migration
-            console.log('migrating pipeline');
-            const migratedPipeline = migrate(pipeline, pipeline => {
-              // function for updating to relative paths in v2
-              // uses location of filename as expected in v1
-              for (const node of pipeline.nodes) {
-                node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                  contextRef.current.path,
-                  node.app_data.filename
-                );
-              }
-              return pipeline;
-            });
-            contextRef.current.model.fromString(
-              JSON.stringify(migratedPipeline, null, 2)
-            );
+            migratePipeline();
           } else {
             if (shell.currentWidget) {
               shell.currentWidget.close();
@@ -356,12 +212,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [pipeline, shell.currentWidget]
+    // TODO: nick - shell should be ref
+    [migratePipeline, shell.currentWidget]
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
     const filename = PipelineService.getWorkspaceRelativeNodePath(
-      contextRef.current.path,
+      pipelinePath,
       args.filename ?? ''
     );
 
@@ -404,7 +261,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
           if (res.button.accept && res.value.length) {
             const file = PipelineService.getPipelineRelativeNodePath(
-              contextRef.current.path,
+              pipelinePath,
               res.value[0].path
             );
             return [file];
@@ -418,7 +275,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const onPropertiesUpdateRequested = async (args: any): Promise<any> => {
     const path = PipelineService.getWorkspaceRelativeNodePath(
-      contextRef.current.path,
+      pipelinePath,
       args.elyra_filename
     );
     const new_env_vars = await ContentParser.getEnvVars(
@@ -448,7 +305,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         continue;
       }
       const path = PipelineService.getWorkspaceRelativeNodePath(
-        contextRef.current.path,
+        pipelinePath,
         node.app_data.component_parameters.filename
       );
       commands.execute(commandIDs.openDocManager, { path });
@@ -470,7 +327,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
   }, [pipeline?.pipelines]);
 
-  const handleExportPipeline = useCallback(async (): Promise<void> => {
+  const handleExportPipeline = React.useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // prepare pipeline submission details
     // Warn user if the pipeline has invalid nodes
@@ -501,7 +358,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         ]
       });
       if (dialogResult.button && dialogResult.button.accept === true) {
-        await contextRef.current.save();
+        await savePipeline();
       } else {
         // Don't proceed if cancel button pressed
         return;
@@ -573,7 +430,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
 
     // prepare pipeline submission details
-    const pipeline_path = contextRef.current.path;
+    const pipeline_path = pipelinePath;
 
     const pipeline_dir = PathExt.dirname(pipeline_path);
     const pipeline_name = PathExt.basename(
@@ -595,7 +452,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
-      contextRef.current.path
+      pipelinePath
     );
 
     cleanNullProperties();
@@ -603,9 +460,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipelineJson.pipelines[0].app_data.name = pipeline_name;
     pipelineJson.pipelines[0].app_data.runtime = runtime;
     pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
-    pipelineJson.pipelines[0].app_data.source = PathExt.basename(
-      contextRef.current.path
-    );
+    pipelineJson.pipelines[0].app_data.source = PathExt.basename(pipelinePath);
 
     PipelineService.exportPipeline(
       pipelineJson,
@@ -616,18 +471,18 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     PipelineService.setNodePathsRelativeToPipeline(
       pipelineJson.pipelines[0],
-      contextRef.current.path
+      pipelinePath
     );
   }, [
     cleanNullProperties,
     context.model,
     palette,
-    pipelineRuntimeDisplayName,
-    pipelineRuntimeName,
+    pipelinePath,
+    savePipeline,
     shell
   ]);
 
-  const handleRunPipeline = useCallback(async (): Promise<void> => {
+  const handleRunPipeline = React.useCallback(async (): Promise<void> => {
     const pipelineJson: any = context.model.toJSON();
     // Check that all nodes are valid
     const errorMessages = validate(
@@ -643,6 +498,8 @@ const PipelineWrapper: React.FC<IProps> = ({
       return;
     }
 
+    // TODO: nick - Does it though? We already have the unsaved copy and the
+    // backend doesn't use the pipeline on disk
     if (contextRef.current.model.dirty) {
       const dialogResult = await showDialog({
         title:
@@ -653,7 +510,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         ]
       });
       if (dialogResult.button && dialogResult.button.accept === true) {
-        await contextRef.current.save();
+        await savePipeline();
       } else {
         // Don't proceed if cancel button pressed
         return;
@@ -661,8 +518,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
 
     const pipelineName = PathExt.basename(
-      contextRef.current.path,
-      PathExt.extname(contextRef.current.path)
+      pipelinePath,
+      PathExt.extname(pipelinePath)
     );
 
     const action = 'run pipeline';
@@ -741,7 +598,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
-      contextRef.current.path
+      pipelinePath
     );
 
     cleanNullProperties();
@@ -751,7 +608,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipelineJson.pipelines[0]['app_data']['runtime'] = runtime;
     pipelineJson.pipelines[0]['app_data']['runtime-config'] = runtime_config;
     pipelineJson.pipelines[0]['app_data']['source'] = PathExt.basename(
-      contextRef.current.path
+      pipelinePath
     );
 
     PipelineService.submitPipeline(
@@ -764,18 +621,20 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     PipelineService.setNodePathsRelativeToPipeline(
       pipelineJson.pipelines[0],
-      contextRef.current.path
+      pipelinePath
     );
   }, [
     cleanNullProperties,
     context.model,
     palette,
-    pipelineRuntimeDisplayName,
-    pipelineRuntimeName,
+    pipelinePath,
+    savePipeline,
     shell
   ]);
 
-  const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
+  const handleClearPipeline = React.useCallback(async (data: any): Promise<
+    any
+  > => {
     return showDialog({
       title: 'Clear Pipeline',
       body: 'Are you sure you want to clear the pipeline?',
@@ -800,11 +659,11 @@ const PipelineWrapper: React.FC<IProps> = ({
     });
   }, []);
 
-  const onAction = useCallback(
+  const onAction = React.useCallback(
     (args: { type: string; payload?: any }) => {
       switch (args.type) {
         case 'save':
-          contextRef.current.save();
+          savePipeline();
           break;
         case 'run':
           handleRunPipeline();
@@ -830,7 +689,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         case 'openFile':
           commands.execute(commandIDs.openDocManager, {
             path: PipelineService.getWorkspaceRelativeNodePath(
-              contextRef.current.path,
+              pipelinePath,
               args.payload
             )
           });
@@ -840,12 +699,14 @@ const PipelineWrapper: React.FC<IProps> = ({
       }
     },
     [
-      handleRunPipeline,
+      commands,
       handleClearPipeline,
       handleExportPipeline,
+      handleRunPipeline,
       panelOpen,
-      shell,
-      commands
+      pipelinePath,
+      savePipeline,
+      shell
     ]
   );
 
@@ -933,9 +794,10 @@ const PipelineWrapper: React.FC<IProps> = ({
     ]
   };
 
-  const [defaultPosition, setDefaultPosition] = useState(10);
+  // TODO: nick - this can be a ref, we don't need to rerender anything to use it.
+  const [defaultPosition, setDefaultPosition] = React.useState(10);
 
-  const handleAddFileToPipeline = useCallback(
+  const handleAddFileToPipeline = React.useCallback(
     (location?: { x: number; y: number }) => {
       const fileBrowser = browserFactory.defaultBrowser;
       // Only add file to pipeline if it is currently in focus
@@ -960,7 +822,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         if (PipelineService.isSupportedNode(item)) {
           item.op = PipelineService.getNodeType(item.path);
           item.path = PipelineService.getPipelineRelativeNodePath(
-            contextRef.current.path,
+            pipelinePath,
             item.path
           );
           item.x = (location?.x ?? 0) + position;
@@ -1000,24 +862,31 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       return;
     },
-    [browserFactory.defaultBrowser, defaultPosition, shell, widgetId]
+    [
+      browserFactory.defaultBrowser,
+      defaultPosition,
+      pipelinePath,
+      shell.currentWidget?.id,
+      widgetId
+    ]
   );
 
   const handleDrop = async (e: IDragEvent): Promise<void> => {
     handleAddFileToPipeline({ x: e.offsetX, y: e.offsetY });
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleSignal = (): void => {
       handleAddFileToPipeline();
     };
+    // TODO: nick - this should be a ref.
     addFileToPipelineSignal.connect(handleSignal);
     return (): void => {
       addFileToPipelineSignal.disconnect(handleSignal);
     };
   }, [addFileToPipelineSignal, handleAddFileToPipeline]);
 
-  const handleClose = (event?: React.SyntheticEvent, reason?: string): void => {
+  const handleClose = (_e: React.SyntheticEvent, reason?: string): void => {
     if (reason === 'clickaway') {
       return;
     }
@@ -1025,7 +894,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     setAlert('');
   };
 
-  if (loading || palette === undefined) {
+  if (status === 'loading' || palette === undefined) {
     return <div className="elyra-loader"></div>;
   }
 
