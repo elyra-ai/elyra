@@ -497,11 +497,7 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.expandPaletteCategory({ type: 'kfp' });
 
-    const kfpCustomComponents = [
-      'run-notebook-using-papermill',
-      'filter-text',
-      'kubeflow-serve-model-using-kfserving'
-    ];
+    const kfpCustomComponents = ['run-notebook-using-papermill', 'filter-text'];
 
     kfpCustomComponents.forEach(component => {
       cy.get(`#${component}`).should('exist');

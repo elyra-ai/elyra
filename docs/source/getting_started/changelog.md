@@ -19,6 +19,8 @@ Security Fixes
 - Update urllib3 to v1.26.5 and requests to v2.25.1 - [#1841](https://github.com/elyra-ai/elyra/pull/1841)
 
 Other enhancements and bug fixes
+- Single node pipeline dependencies should be an array - [#2015](https://github.com/elyra-ai/elyra/pull/2015)
+- Remove KFServing from KFP Component Registry - [#2013](https://github.com/elyra-ai/elyra/pull/2013)
 - Update pipeline-editor version to 1.0.0 - [#2011](https://github.com/elyra-ai/elyra/pull/2011)
 - Update JupyterLab LSP to version 3.8.0 - [#2011](https://github.com/elyra-ai/elyra/pull/2011)
 - Update Jupyterlab GIT to version 0.32.0 - [#2011](https://github.com/elyra-ai/elyra/pull/2011)
