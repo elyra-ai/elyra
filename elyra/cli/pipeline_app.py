@@ -73,13 +73,11 @@ def _validate_pipeline_runtime(primary_pipeline: dict, runtime: str) -> bool:
     Generic pipelines do not have a persisted runtime type, and can be run on any runtime
     Runtime specific pipeline have a runtime type, and con only be run on matching runtime
     """
-    is_valid = False
-    pipeline_runtime = primary_pipeline["app_data"].get("runtime")
-    if not pipeline_runtime:
-        is_valid = True
-    else:
-        if runtime and pipeline_runtime == runtime:
-            is_valid = True
+    is_valid = True
+    if runtime:  # Only perform validation if a target runtime has been specified
+        pipeline_runtime = primary_pipeline["app_data"].get("runtime")
+        if pipeline_runtime and pipeline_runtime != runtime:
+            is_valid = False
 
     return is_valid
 
