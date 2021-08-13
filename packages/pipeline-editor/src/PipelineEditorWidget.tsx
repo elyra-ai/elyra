@@ -127,11 +127,15 @@ const PipelineWrapper: React.FC<IProps> = ({
   const pipelinePath = context.path;
 
   const {
+    pipelineRuntimeName,
+    pipelineRuntimeDisplayName,
     pipeline,
     palette,
     updatePipeline,
     migratePipeline,
-    savePipeline
+    savePipeline,
+    exportPipeline,
+    submitPipeline
   } = usePipeline(context);
 
   const commandsRef = React.useRef(commands);
@@ -326,13 +330,13 @@ const PipelineWrapper: React.FC<IProps> = ({
           savePipeline();
           break;
         case 'run':
-          handleRunPipeline();
+          submitPipeline();
           break;
         case 'clear':
           handleClearPipeline(args.payload);
           break;
         case 'export':
-          handleExportPipeline();
+          exportPipeline();
           break;
         case 'toggleOpenPanel':
           setPanelOpen(!panelOpen);
@@ -360,7 +364,14 @@ const PipelineWrapper: React.FC<IProps> = ({
           break;
       }
     },
-    [handleClearPipeline, panelOpen, pipelinePath, savePipeline]
+    [
+      exportPipeline,
+      handleClearPipeline,
+      panelOpen,
+      pipelinePath,
+      savePipeline,
+      submitPipeline
+    ]
   );
 
   const toolbar = {
