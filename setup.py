@@ -88,13 +88,13 @@ setup_args = dict(
         'yaspin',
         # KFP runtime dependencies
         'kfp==1.6.3',
-        'kfp-tekton==0.8.1',
         # Airflow runtime dependencies
         'pygithub',
         'black'
     ],
     extras_require={
         'test': ['pytest', 'pytest-tornasync'],
+        'kfp-tekton': ['kfp-tekton~=0.8.1',]
     },
     include_package_data=True,
     classifiers=(

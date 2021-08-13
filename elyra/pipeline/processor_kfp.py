@@ -34,11 +34,17 @@ from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
 from kfp.aws import use_aws_secret  # noqa H306
 from kfp_server_api.exceptions import ApiException
-from kfp_tekton import compiler as kfp_tekton_compiler
-from kfp_tekton import TektonClient
 import requests
 from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
+try
+    from kfp_tekton import compiler as kfp_tekton_compiler
+    from kfp_tekton import TektonClient
+except ImportError:
+    # We may not have kfp-tekton available and that's okay!
+    kfp_tekton_compiler = None
+    TektonClient = None
+
 
 from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
@@ -93,6 +99,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         api_password = runtime_configuration.metadata.get('api_password')
 
         engine = runtime_configuration.metadata.get('engine')
+        if engine == 'Tekton' and not TektonClient:
+            raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
 
         pipeline_name = pipeline.name
         try:
@@ -289,6 +297,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_secret = runtime_configuration.metadata.get('cos_secret')
         kf_secured = runtime_configuration.metadata.get('api_username') is not None and \
             runtime_configuration.metadata.get('api_password') is not None
+        
+        if engine == 'Tekton' and not TektonClient:
+            raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
@@ -303,7 +314,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 pipeline_function = lambda: self._cc_pipeline(pipeline,
                                                               pipeline_name,
                                                               cos_directory=cos_directory)  # nopep8
-                if 'Tekton' == engine:
+                if 'Tekton' == engine:                        
                     self.log.info("Compiling pipeline for Tekton engine")
                     kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
                 else:

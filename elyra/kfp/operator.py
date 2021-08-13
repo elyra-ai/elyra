@@ -254,7 +254,12 @@ class ExecuteFileOp(ContainerOp):
             run_name_placeholder = '{{workflow.annotations.pipelines.kubeflow.org/run_name}}'
             self.container.add_env_variable(V1EnvVar(name='ELYRA_RUN_NAME',
                                                      value=run_name_placeholder))
-        else:
+        elif workflow_engine and workflow_engine.lower() == 'tekton':
+            try:
+                from kfp_tekton import TektonClient
+            except ImportError:
+                raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
+
             # For Tekton derive the value from the specified pod annotation
             annotation = 'pipelines.kubeflow.org/run_name'
             field_path = f"metadata.annotations['{annotation}']"
