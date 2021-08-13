@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ast
 from logging import Logger
 import os
 import sys
@@ -21,7 +20,6 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Union
 
 
 class Operation(object):
@@ -170,50 +168,6 @@ class Operation(object):
     @staticmethod
     def is_generic_operation(operation_type) -> bool:
         return True if operation_type in Operation.generic_node_types else False
-
-    @staticmethod
-    def process_dictionary_value(value: str, logger: Optional[Logger] = None) -> Union[Dict, str]:
-        """
-        For parameters of type dictionary, convert the string value given in the pipeline JSON
-        to the appropriate Dict format. If Dict cannot be formed, log & return string value.
-        """
-        converted_dict = None
-        value = value.strip()
-        if value.startswith('{') and value.endswith('}'):
-            try:
-                converted_dict = ast.literal_eval(value)
-            except Exception:
-                pass
-
-        # Value could not be successfully converted to dictionary
-        if not isinstance(converted_dict, dict):
-            Operation._log_info(f"Could not convert entered parameter value `{value}` to dictionary",
-                                logger=logger)
-            return value
-
-        return converted_dict
-
-    @staticmethod
-    def process_list_value(value: str, logger: Optional[Logger] = None) -> Union[List, str]:
-        """
-        For parameters of type list, convert the string value given in the pipeline JSON
-        to the appropriate List format. If List cannot be formed, log & return string value.
-        """
-        value = value.strip()
-        converted_list = None
-        if value.startswith('[') and value.endswith(']'):
-            try:
-                converted_list = ast.literal_eval(value)
-            except Exception:
-                pass
-
-        # Value could not be successfully converted to list
-        if not isinstance(converted_list, list):
-            Operation._log_info(f"Could not convert entered parameter value `{value}` to list",
-                                logger=logger)
-            return value
-
-        return converted_list
 
 
 class GenericOperation(Operation):

@@ -20,6 +20,9 @@ import os
 import re
 import tempfile
 import time
+from typing import Dict
+from typing import List
+from typing import Union
 
 import autopep8
 from black import FileMode
@@ -251,10 +254,10 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                         # in jinja DAG template
                         operation.component_params[component_property.ref] = json.dumps(property_value)
                     elif component_property.type == 'dictionary':
-                        processed_value = operation.process_dictionary_value(property_value, logger=self.log)
+                        processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
                     elif component_property.type == 'list':
-                        processed_value = operation.process_list_value(property_value, logger=self.log)
+                        processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
 
                 # Get component class from operation name
@@ -346,6 +349,28 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             unique_operation_name = ''.join([operation_name, '_', str(unique_name_counter)])
 
         return unique_operation_name
+
+    def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
+        """
+        For component parameters of type dictionary, if a string value is returned from the superclass
+        method, it must be converted to include surrounding quotation marks for correct rendering
+        in jinja DAG template.
+        """
+        converted_value = super()._process_dictionary_value(value)
+        if isinstance(converted_value, str):
+            converted_value = json.dumps(converted_value)
+        return converted_value
+
+    def _process_list_value(self, value: str) -> Union[List, str]:
+        """
+        For component parameters of type list, if a string value is returned from the superclass
+        method, it must be converted to include surrounding quotation marks for correct rendering
+        in jinja DAG template.
+        """
+        converted_value = super()._process_list_value(value)
+        if isinstance(converted_value, str):
+            converted_value = json.dumps(converted_value)
+        return converted_value
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
