@@ -155,14 +155,19 @@ def _preprocess_pipeline(pipeline_path: str,
 
     return pipeline_definition
 
-
 def _print_issues(issues):
     # print validation issues
     for issue in issues:
         if issue.get('severity') == ValidationSeverity.Error:
-            click.echo(
-                f'- (Fatal error on node \'{issue["data"]["nodeName"]}\' property \'{issue["data"]["propertyName"]}\') '
-                f'- {issue["message"]}')
+            if issue.get('data'):
+                node_name = issue["data"].get("nodeName")
+                property_name = issue["data"].get("propertyName")
+                click.echo(
+                    f'- (Fatal error on node \'{node_name}\' property \'{property_name}\') '
+                    f'- {issue["message"]}')
+            else:
+                click.echo(
+                    f'- Fatal error - {issue["message"]}')
         else:
             # TODO check warning nodeNames are empty
             click.echo(
