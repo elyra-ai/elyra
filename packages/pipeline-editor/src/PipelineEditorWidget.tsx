@@ -134,6 +134,9 @@ const PipelineWrapper: React.FC<IProps> = ({
     savePipeline
   } = usePipeline(context);
 
+  const commandsRef = React.useRef(commands);
+  const browserFactoryRef = React.useRef(browserFactory);
+  const addFileToPipelineSignalRef = React.useRef(addFileToPipelineSignal);
   const shellRef = React.useRef(shell);
   const ref = React.useRef<any>(null);
 
@@ -202,7 +205,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       case 'elyra_dependencies':
         {
           const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
+            browserFactoryRef.current.defaultBrowser.model.manager,
             {
               multiselect: true,
               includeDir: true,
@@ -221,7 +224,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       default:
         {
           const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
+            browserFactoryRef.current.defaultBrowser.model.manager,
             {
               startPath: PathExt.dirname(filename),
               filter: (model: any): boolean => {
@@ -284,7 +287,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         pipelinePath,
         node.app_data.component_parameters.filename
       );
-      commands.execute(commandIDs.openDocManager, { path });
+      commandsRef.current.execute(commandIDs.openDocManager, { path });
     }
   };
 
@@ -346,7 +349,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           );
           break;
         case 'openFile':
-          commands.execute(commandIDs.openDocManager, {
+          commandsRef.current.execute(commandIDs.openDocManager, {
             path: PipelineService.getWorkspaceRelativeNodePath(
               pipelinePath,
               args.payload
@@ -357,7 +360,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           break;
       }
     },
-    [commands, handleClearPipeline, panelOpen, pipelinePath, savePipeline]
+    [handleClearPipeline, panelOpen, pipelinePath, savePipeline]
   );
 
   const toolbar = {
@@ -444,12 +447,11 @@ const PipelineWrapper: React.FC<IProps> = ({
     ]
   };
 
-  // TODO: nick - this can be a ref, we don't need to rerender anything to use it.
-  const [defaultPosition, setDefaultPosition] = React.useState(10);
+  const defaultPositionRef = React.useRef(10);
 
   const handleAddFileToPipeline = React.useCallback(
     (location?: { x: number; y: number }) => {
-      const fileBrowser = browserFactory.defaultBrowser;
+      const fileBrowser = browserFactoryRef.current.defaultBrowser;
       // Only add file to pipeline if it is currently in focus
       if (shellRef.current.currentWidget?.id !== widgetId) {
         return;
@@ -461,7 +463,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       // if either x or y is undefined use the default coordinates
       if (missingXY) {
-        position = defaultPosition;
+        position = defaultPositionRef.current;
         location = {
           x: 75,
           y: 85
@@ -498,7 +500,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       });
       // update position if the default coordinates were used
       if (missingXY) {
-        setDefaultPosition(position);
+        defaultPositionRef.current = position;
       }
 
       if (failedAdd) {
@@ -512,7 +514,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       return;
     },
-    [browserFactory.defaultBrowser, defaultPosition, pipelinePath, widgetId]
+    [pipelinePath, widgetId]
   );
 
   const handleDrop = async (e: IDragEvent): Promise<void> => {
@@ -523,12 +525,12 @@ const PipelineWrapper: React.FC<IProps> = ({
     const handleSignal = (): void => {
       handleAddFileToPipeline();
     };
-    // TODO: nick - this should be a ref.
-    addFileToPipelineSignal.connect(handleSignal);
+    const signal = addFileToPipelineSignalRef.current;
+    signal.connect(handleSignal);
     return (): void => {
-      addFileToPipelineSignal.disconnect(handleSignal);
+      signal.disconnect(handleSignal);
     };
-  }, [addFileToPipelineSignal, handleAddFileToPipeline]);
+  }, [handleAddFileToPipeline]);
 
   const handleClose = (_e: React.SyntheticEvent, reason?: string): void => {
     if (reason === 'clickaway') {
