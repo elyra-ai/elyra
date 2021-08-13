@@ -155,6 +155,7 @@ def _preprocess_pipeline(pipeline_path: str,
 
     return pipeline_definition
 
+
 def _print_issues(issues):
     # print validation issues
     for issue in issues:
