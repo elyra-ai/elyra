@@ -328,8 +328,7 @@ def describe(json_option, pipeline_path):
 
     _validate_pipeline_file_extension(pipeline_path)
 
-    pipeline_definition = \
-        _preprocess_pipeline(pipeline_path, runtime="None", runtime_config="None")
+    pipeline_definition = _preprocess_pipeline(pipeline_path)
 
     indent_length = 4
     for current_pipeline in pipeline_definition["pipelines"]:
