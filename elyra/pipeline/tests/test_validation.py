@@ -358,7 +358,7 @@ def test_valid_node_property_label_filename_has_relative_path(validation_manager
                                        node_label=valid_label_name,
                                        response=response)
     issues = response.to_json().get('issues')
-    assert len(issues) == 1
+    assert len(issues) == 0
 
 
 def test_invalid_node_property_label_bad_characters(validation_manager):

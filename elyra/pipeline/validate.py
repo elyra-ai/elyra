@@ -439,11 +439,10 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         """
         label_name_max_length = 63
-        label_regex = re.compile('^[a-z0-9]([-_a-z0-9]{0,62}[a-z0-9])?')
+        label_regex = re.compile('^[a-z0-9]([-_.a-z0-9]{0,62}[a-z0-9])?')
         matched = label_regex.search(node_label)
 
-        if os.path.basename(filename) == node_label and len(os.path.basename(filename)) > label_name_max_length or \
-                len(node_label) > label_name_max_length:
+        if len(node_label) > label_name_max_length:
             response.add_message(severity=ValidationSeverity.Warning,
                                  message_type="invalidNodeLabel",
                                  message="Property value has exceeded the max length allowed "
@@ -459,7 +458,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                  message="Property value contains invalid characters. Invalid characters "
                                          "may be replaced by the runtime service. Node labels must "
                                          "start with lower case alphanumeric and contain "
-                                         "only lower case alphanumeric, underscores, and dashes",
+                                         "only lower case alphanumeric, underscores, dots and dashes",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'label',
