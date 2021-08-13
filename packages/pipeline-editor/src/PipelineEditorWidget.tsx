@@ -19,7 +19,6 @@ import {
   PipelineOutOfDateError,
   ThemeProvider
 } from '@elyra/pipeline-editor';
-import { validate } from '@elyra/pipeline-services';
 import { ContentParser } from '@elyra/services';
 import {
   IconUtil,
@@ -31,8 +30,6 @@ import {
   runtimesIcon,
   containerIcon,
   Dropzone,
-  RequestErrors,
-  showFormDialog,
   kubeflowIcon,
   airflowIcon
 } from '@elyra/ui-components';
@@ -58,20 +55,14 @@ import Alert from '@material-ui/lab/Alert';
 
 import * as React from 'react';
 
-import { formDialogWidget } from './formDialogWidget';
 import { usePipeline } from './pipeline/use-pipeline';
-import { PipelineExportDialog } from './PipelineExportDialog';
 import pipelineProperties from './pipelineProperties';
 import {
-  IRuntime,
-  ISchema,
   PipelineService,
   RUNTIMES_NAMESPACE,
   RUNTIME_IMAGES_NAMESPACE
 } from './PipelineService';
-import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
-import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -84,21 +75,6 @@ export const commandIDs = {
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node'
-};
-
-const getAllPaletteNodes = (palette: any): any[] => {
-  if (palette.categories === undefined) {
-    return [];
-  }
-
-  const nodes = [];
-  for (const c of palette.categories) {
-    if (c.node_types) {
-      nodes.push(...c.node_types);
-    }
-  }
-
-  return nodes;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -158,6 +134,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     savePipeline
   } = usePipeline(context);
 
+  const shellRef = React.useRef(shell);
   const ref = React.useRef<any>(null);
 
   const [panelOpen, setPanelOpen] = React.useState(false);
@@ -195,8 +172,8 @@ const PipelineWrapper: React.FC<IProps> = ({
           if (result.button.accept) {
             migratePipeline();
           } else {
-            if (shell.currentWidget) {
-              shell.currentWidget.close();
+            if (shellRef.current.currentWidget) {
+              shellRef.current.currentWidget.close();
             }
           }
         });
@@ -206,14 +183,13 @@ const PipelineWrapper: React.FC<IProps> = ({
           body: <p> {error || ''} </p>,
           buttons: [Dialog.okButton()]
         }).then(() => {
-          if (shell.currentWidget) {
-            shell.currentWidget.close();
+          if (shellRef.current.currentWidget) {
+            shellRef.current.currentWidget.close();
           }
         });
       }
     },
-    // TODO: nick - shell should be ref
-    [migratePipeline, shell.currentWidget]
+    [migratePipeline]
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
@@ -312,21 +288,6 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
   };
 
-  const cleanNullProperties = React.useCallback((): void => {
-    // Delete optional fields that have null value
-    for (const node of pipeline?.pipelines[0].nodes) {
-      if (node.app_data.component_parameters.cpu === null) {
-        delete node.app_data.component_parameters.cpu;
-      }
-      if (node.app_data.component_parameters.memory === null) {
-        delete node.app_data.component_parameters.memory;
-      }
-      if (node.app_data.component_parameters.gpu === null) {
-        delete node.app_data.component_parameters.gpu;
-      }
-    }
-  }, [pipeline?.pipelines]);
-
   const handleClearPipeline = React.useCallback(async (data: any): Promise<
     any
   > => {
@@ -377,10 +338,12 @@ const PipelineWrapper: React.FC<IProps> = ({
           setPanelOpen(true);
           break;
         case 'openRuntimes':
-          shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+          shellRef.current.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
           break;
         case 'openRuntimeImages':
-          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
+          shellRef.current.activateById(
+            `elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`
+          );
           break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, {
@@ -394,16 +357,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           break;
       }
     },
-    [
-      commands,
-      handleClearPipeline,
-      handleExportPipeline,
-      handleRunPipeline,
-      panelOpen,
-      pipelinePath,
-      savePipeline,
-      shell
-    ]
+    [commands, handleClearPipeline, panelOpen, pipelinePath, savePipeline]
   );
 
   const toolbar = {
@@ -497,7 +451,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     (location?: { x: number; y: number }) => {
       const fileBrowser = browserFactory.defaultBrowser;
       // Only add file to pipeline if it is currently in focus
-      if (shell.currentWidget?.id !== widgetId) {
+      if (shellRef.current.currentWidget?.id !== widgetId) {
         return;
       }
 
@@ -558,13 +512,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       return;
     },
-    [
-      browserFactory.defaultBrowser,
-      defaultPosition,
-      pipelinePath,
-      shell.currentWidget?.id,
-      widgetId
-    ]
+    [browserFactory.defaultBrowser, defaultPosition, pipelinePath, widgetId]
   );
 
   const handleDrop = async (e: IDragEvent): Promise<void> => {

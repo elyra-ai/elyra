@@ -24,7 +24,24 @@ import { PipelineExportDialog } from '../PipelineExportDialog';
 import { PipelineService } from '../PipelineService';
 import { PipelineSubmissionDialog } from '../PipelineSubmissionDialog';
 
+import { preparePipelineForStorage } from './conversion-utils';
+
 class NoMetadataError extends Error {}
+
+const cleanNullProperties = (pipeline: any): void => {
+  // Delete optional fields that have null value
+  for (const node of pipeline?.pipelines[0].nodes) {
+    if (node.app_data.component_parameters.cpu === null) {
+      delete node.app_data.component_parameters.cpu;
+    }
+    if (node.app_data.component_parameters.memory === null) {
+      delete node.app_data.component_parameters.memory;
+    }
+    if (node.app_data.component_parameters.gpu === null) {
+      delete node.app_data.component_parameters.gpu;
+    }
+  }
+};
 
 /**
  * Flatten palette category into simple list of all possible node types.
@@ -50,15 +67,18 @@ const getAllPaletteNodes = (palette: any): any[] => {
  * Finalize pipeline adding special things the server needs
  */
 const prepare = (
-  pipeline: any,
+  pipelineJson: any,
   { pipelinePath, name, runtime, runtimeConfig, source }: any
 ): void => {
+  const pipelineString = preparePipelineForStorage(pipelineJson, runtimeImages);
+  const pipeline = JSON.parse(pipelineString);
+
   PipelineService.setNodePathsRelativeToWorkspace(
     pipeline.pipelines[0],
     pipelinePath
   );
 
-  cleanNullProperties();
+  cleanNullProperties(pipeline);
 
   pipeline.pipelines[0].app_data.name = name;
   pipeline.pipelines[0].app_data.runtime = runtime;
