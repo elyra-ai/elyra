@@ -91,7 +91,7 @@ setup_args = dict(
         'kfp-tekton==0.8.1',
         # Airflow runtime dependencies
         'pygithub',
-        'black'
+        'black',
     ],
     extras_require={
         'test': ['pytest', 'pytest-tornasync'],

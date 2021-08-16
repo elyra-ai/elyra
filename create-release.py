@@ -28,6 +28,7 @@ import subprocess
 import sys
 
 from datetime import datetime
+from pathlib import Path
 from types import SimpleNamespace
 
 config: SimpleNamespace
@@ -35,7 +36,7 @@ config: SimpleNamespace
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
 DEFAULT_GIT_URL = 'git@github.com:elyra-ai/elyra.git'
-DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:elyra-ai/elyra-package-template.git'
+DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:lresende/elyra-package-template.git'
 DEFAULT_BUILD_DIR = 'build/release'
 
 
@@ -402,6 +403,11 @@ def generate_changelog() -> None:
 def prepare_extensions_release() -> None:
     global config
 
+    print("-----------------------------------------------------------------")
+    print("--------------- Preparing Individual Extensions -----------------")
+    print("-----------------------------------------------------------------")
+
+
     extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
                   'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
                   'elyra-python-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension'],
@@ -420,6 +426,8 @@ def prepare_extensions_release() -> None:
         setup_file = os.path.join(extension_source_dir, 'setup.py')
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
+        sed(setup_file, "{{data-files}}", "('share/jupyter/lab/extensions', glob('./dist/*.tgz'))")
+        sed(setup_file, "{{install-requires}}", f"'elyra-server=={config.new_version}',")
 
         for dependency in extensions[extension]:
             copy_extension_archive(dependency, extension_source_dir)
@@ -427,6 +435,52 @@ def prepare_extensions_release() -> None:
         # build extension
         check_run(['python', 'setup.py', 'bdist_wheel', 'sdist'], cwd=extension_source_dir)
         print('')
+
+
+def prepare_runtime_extensions_package_release() -> None:
+    global config
+
+    print("-----------------------------------------------------------------")
+    print("---------------- Preparing Individual Packages ------------------")
+    print("-----------------------------------------------------------------")
+
+    packages = {'kfp-notebook':['kfp>=1.6.3'],
+                'airflow-notebook':['pygithub', 'black']}
+
+    packages_source = {'kfp-notebook':'kfp',
+                      'airflow-notebook':'airflow'}
+
+    for package in packages:
+        package_source_dir = os.path.join(config.work_dir, package)
+        print(f'Preparing package : {package} at {package_source_dir}')
+        # clone extension package template
+        if os.path.exists(package_source_dir):
+            print(f'Removing working directory: {config.source_dir}')
+            shutil.rmtree(package_source_dir)
+        print(f'Cloning : {config.git_extension_package_url} to {config.work_dir}')
+        check_run(['git', 'clone', config.git_extension_package_url, package], cwd=config.work_dir)
+        # update template
+        setup_file = os.path.join(package_source_dir, 'setup.py')
+        sed(setup_file, "{{package-name}}", package)
+        sed(setup_file, "{{version}}", config.new_version)
+        # no data files
+        sed(setup_file, "{{data-files}}", "")
+        # prepare package specific dependencies
+        requires = ''
+        for dependency in packages[package]:
+            requires += f"'{dependency}',"
+        sed(setup_file, "{{install-requires}}", requires)
+        # copy source files
+        source_dir = os.path.join(config.source_dir, 'elyra', packages_source[package])
+        dest_dir = os.path.join(package_source_dir, 'elyra', packages_source[package])
+        print(f'Copying package cousrce from {source_dir} to {dest_dir}')
+        Path(os.path.join(package_source_dir, 'elyra')).mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source_dir, dest_dir)
+
+        # build extension
+        check_run(['python', 'setup.py', 'bdist_wheel', 'sdist'], cwd=package_source_dir)
+        print('')
+
 
 def prepare_changelog() -> None:
     """
@@ -455,7 +509,7 @@ def prepare_release() -> None:
     # clone repository
     checkout_code()
     # generate changelog with new release list of commits
-    prepare_changelog()
+    # prepare_changelog()
     # Update to new release version
     update_version_to_release()
     # commit and tag
@@ -473,6 +527,8 @@ def prepare_release() -> None:
     check_run(['git', 'commit', '-a', '-m', f'Prepare for next development iteration'], cwd=config.source_dir)
     # prepare extensions
     prepare_extensions_release()
+    # prepare runtime extsnsions
+    prepare_runtime_extensions_package_release()
 
 
 def publish_release(working_dir) -> None:
