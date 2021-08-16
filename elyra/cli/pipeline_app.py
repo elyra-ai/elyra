@@ -85,7 +85,9 @@ def _validate_pipeline_file_extension(pipeline_file: str):
         raise click.ClickException('Pipeline file should be a [.pipeline] file.\n')
 
 
-def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) -> dict:
+def _preprocess_pipeline(pipeline_path: str,
+                         runtime: Optional[str] = None,
+                         runtime_config: Optional[str] = None) -> dict:
     pipeline_path = os.path.expanduser(pipeline_path)
     pipeline_abs_path = os.path.join(os.getcwd(), pipeline_path)
     pipeline_dir = os.path.dirname(pipeline_abs_path)
@@ -136,7 +138,7 @@ def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) 
         raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
 
     if not _validate_pipeline_runtime(primary_pipeline, runtime):
-        runtime_description = primary_pipeline['app_data']['ui_data']['runtime']['display_name']
+        runtime_description = primary_pipeline['app_data']['properties']['runtime']
         runtime_config_display_name = _get_runtime_display_name(runtime_config)
         raise click.ClickException(
             f"This pipeline requires an instance of {runtime_description} runtime configuration.\n"
@@ -144,9 +146,12 @@ def _preprocess_pipeline(pipeline_path: str, runtime: str, runtime_config: str) 
 
     # update pipeline transient fields
     primary_pipeline["app_data"]["name"] = pipeline_name
-    primary_pipeline["app_data"]["runtime"] = runtime
-    primary_pipeline["app_data"]["runtime-config"] = runtime_config
     primary_pipeline["app_data"]["source"] = os.path.basename(pipeline_abs_path)
+    # Only update the following if values were provided (and runtime is valid)
+    if runtime:
+        primary_pipeline["app_data"]["runtime"] = runtime
+    if runtime_config:
+        primary_pipeline["app_data"]["runtime-config"] = runtime_config
 
     return pipeline_definition
 
@@ -155,9 +160,15 @@ def _print_issues(issues):
     # print validation issues
     for issue in issues:
         if issue.get('severity') == ValidationSeverity.Error:
-            click.echo(
-                f'- (Fatal error on node \'{issue["data"]["nodeName"]}\' property \'{issue["data"]["propertyName"]}\') '
-                f'- {issue["message"]}')
+            if issue.get('data'):
+                node_name = issue["data"].get("nodeName")
+                property_name = issue["data"].get("propertyName")
+                click.echo(
+                    f'- (Fatal error on node \'{node_name}\' property \'{property_name}\') '
+                    f'- {issue["message"]}')
+            else:
+                click.echo(
+                    f'- Fatal error - {issue["message"]}')
         else:
             # TODO check warning nodeNames are empty
             click.echo(
