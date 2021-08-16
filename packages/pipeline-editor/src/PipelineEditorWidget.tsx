@@ -301,13 +301,12 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const isDialogAlreadyShowing = useRef(false);
   const onError = useCallback(
-    async (error?: Error): Promise<void> => {
+    (error?: Error): void => {
       if (isDialogAlreadyShowing.current) {
         return; // bail, we are already showing a dialog.
       }
-      isDialogAlreadyShowing.current = true;
       if (error instanceof PipelineOutOfDateError) {
-        const result = await showDialog({
+        showDialog({
           title: 'Migrate pipeline?',
           body: (
             <p>
@@ -325,42 +324,39 @@ const PipelineWrapper: React.FC<IProps> = ({
             </p>
           ),
           buttons: [Dialog.cancelButton(), Dialog.okButton()]
-        });
-        isDialogAlreadyShowing.current = false;
-
-        if (!result.button.accept) {
-          shell.currentWidget?.close();
-          return;
-        }
-
-        // proceed with migration
-        console.log('migrating pipeline');
-        const migratedPipeline = migrate(pipeline, pipeline => {
-          // function for updating to relative paths in v2
-          // uses location of filename as expected in v1
-          for (const node of pipeline.nodes) {
-            node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-              contextRef.current.path,
-              node.app_data.filename
+        }).then(result => {
+          isDialogAlreadyShowing.current = false;
+          if (result.button.accept) {
+            // proceed with migration
+            console.log('migrating pipeline');
+            const migratedPipeline = migrate(pipeline, pipeline => {
+              // function for updating to relative paths in v2
+              // uses location of filename as expected in v1
+              for (const node of pipeline.nodes) {
+                node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                  contextRef.current.path,
+                  node.app_data.filename
+                );
+              }
+              return pipeline;
+            });
+            contextRef.current.model.fromString(
+              JSON.stringify(migratedPipeline, null, 2)
             );
+          } else {
+            shell.currentWidget?.close();
           }
-          return pipeline;
         });
-        contextRef.current.model.fromString(
-          JSON.stringify(migratedPipeline, null, 2)
-        );
-
-        return;
+      } else {
+        showDialog({
+          title: 'Load pipeline failed!',
+          body: <p> {error || ''} </p>,
+          buttons: [Dialog.okButton()]
+        }).then(() => {
+          isDialogAlreadyShowing.current = false;
+          shell.currentWidget?.close();
+        });
       }
-
-      await showDialog({
-        title: 'Load pipeline failed!',
-        body: <p>{error ?? ''}</p>,
-        buttons: [Dialog.okButton()]
-      });
-      isDialogAlreadyShowing.current = false;
-
-      shell.currentWidget?.close();
     },
     [pipeline, shell.currentWidget]
   );
