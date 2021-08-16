@@ -36,7 +36,7 @@ config: SimpleNamespace
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
 DEFAULT_GIT_URL = 'git@github.com:elyra-ai/elyra.git'
-DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:lresende/elyra-package-template.git'
+DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:elyra-ai/elyra-package-template.git'
 DEFAULT_BUILD_DIR = 'build/release'
 
 
@@ -473,7 +473,7 @@ def prepare_runtime_extensions_package_release() -> None:
         # copy source files
         source_dir = os.path.join(config.source_dir, 'elyra', packages_source[package])
         dest_dir = os.path.join(package_source_dir, 'elyra', packages_source[package])
-        print(f'Copying package cousrce from {source_dir} to {dest_dir}')
+        print(f'Copying package source from {source_dir} to {dest_dir}')
         Path(os.path.join(package_source_dir, 'elyra')).mkdir(parents=True, exist_ok=True)
         shutil.copytree(source_dir, dest_dir)
 
@@ -509,7 +509,7 @@ def prepare_release() -> None:
     # clone repository
     checkout_code()
     # generate changelog with new release list of commits
-    # prepare_changelog()
+    prepare_changelog()
     # Update to new release version
     update_version_to_release()
     # commit and tag
