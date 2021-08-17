@@ -28,6 +28,7 @@ import {
   standardRendererFactories as initialFactories
 } from '@jupyterlab/rendermime';
 import {
+  bugIcon,
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
   DockPanelSvg,
@@ -43,7 +44,7 @@ import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
 /**
- * The CSS class added to widgets.
+ * ScriptEditor widget CSS classes.
  */
 const SCRIPT_EDITOR_CLASS = 'elyra-ScriptEditor';
 const OUTPUT_AREA_CLASS = 'elyra-ScriptEditor-OutputArea';
@@ -52,6 +53,7 @@ const OUTPUT_AREA_CHILD_CLASS = 'elyra-ScriptEditor-OutputArea-child';
 const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-ScriptEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-ScriptEditor-OutputArea-prompt';
 const RUN_BUTTON_CLASS = 'elyra-ScriptEditor-Run';
+const RUN_AND_DEBUG_BUTTON_CLASS = 'elyra-ScriptEditor-Run-Debug';
 const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
 
 /**
@@ -104,6 +106,13 @@ export class ScriptEditor extends DocumentWidget<
       tooltip: 'Run'
     });
 
+    const runAndDebugButton = new ToolbarButton({
+      className: RUN_AND_DEBUG_BUTTON_CLASS,
+      icon: bugIcon,
+      onClick: this.runAndDebugScript,
+      tooltip: 'Run and Debug'
+    });
+
     const stopButton = new ToolbarButton({
       icon: stopIcon,
       onClick: this.stopRun,
@@ -114,6 +123,7 @@ export class ScriptEditor extends DocumentWidget<
     const toolbar = this.toolbar;
     toolbar.addItem('save', saveButton);
     toolbar.addItem('run', runButton);
+    toolbar.addItem('run and debug', runAndDebugButton);
     toolbar.addItem('stop', stopButton);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
@@ -136,7 +146,7 @@ export class ScriptEditor extends DocumentWidget<
         kernelSpecs,
         this.kernelSelectorRef
       );
-      this.toolbar.insertItem(3, 'select', kernelDropDown);
+      this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
   };
 
@@ -172,9 +182,8 @@ export class ScriptEditor extends DocumentWidget<
    */
   private runScript = async (): Promise<void> => {
     if (!this.runDisabled) {
-      this.kernelName = this.kernelSelectorRef?.current?.getSelection();
-      this.resetOutputArea();
-      this.kernelName && this.displayOutputArea();
+      this.clearOutputArea();
+      this.displayOutputArea();
       await this.runner.runScript(
         this.kernelName,
         this.context.path,
@@ -182,6 +191,14 @@ export class ScriptEditor extends DocumentWidget<
         this.handleKernelMsg
       );
     }
+  };
+
+  /**
+   * Function: Creates a debugger session and
+   * runs the script in debugger mode
+   */
+  private runAndDebugScript = async (): Promise<void> => {
+    console.log('Run and debug command coming soon...');
   };
 
   private stopRun = async (): Promise<void> => {
@@ -201,7 +218,7 @@ export class ScriptEditor extends DocumentWidget<
   /**
    * Function: Clears existing output area.
    */
-  private resetOutputArea = (): void => {
+  private clearOutputArea = (): void => {
     // TODO: hide this.layout(), or set its height to 0
     this.dockPanel?.hide();
     this.outputAreaWidget?.model.clear();
@@ -257,7 +274,10 @@ export class ScriptEditor extends DocumentWidget<
    * Function: Displays output area widget.
    */
   private displayOutputArea = (): void => {
-    if (this.outputAreaWidget === undefined) {
+    if (
+      this.outputAreaWidget === undefined ||
+      !this.kernelSelectorRef?.current?.getSelection()
+    ) {
       return;
     }
 
@@ -285,7 +305,7 @@ export class ScriptEditor extends DocumentWidget<
         }
         outputTab.disposed.connect((sender, args) => {
           this.stopRun();
-          this.resetOutputArea();
+          this.clearOutputArea();
         }, this);
       }
     }
