@@ -52,7 +52,7 @@ def mock_data_dir():
 def test_no_opts(script_runner):
     ret = script_runner.run('elyra-metadata')
     assert ret.success is False
-    assert ret.stdout.startswith("No subcommand specified. Must specify one of: ['list', 'install', 'remove']")
+    assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove']" in ret.stdout
     assert ret.stderr == ''
 
 
@@ -516,8 +516,8 @@ def test_integer_multiple(script_runner, mock_data_dir):
     prop_test.negative_value = 32
     prop_test.negative_stdout = "Property used to test integers with multipleOf restrictions"
     #  this can be joined with previous if adding meta-properties
-    #  "; title: Integer Multiple Test, multipleOf: 7"
-    prop_test.negative_stderr = "32 is not a multiple of 7"
+    #  "; title: Integer Multiple Test, multipleOf: 6"
+    prop_test.negative_stderr = "32 is not a multiple of 6"
     prop_test.positive_value = 42
     prop_test.run(script_runner, mock_data_dir)
 
@@ -571,9 +571,9 @@ def test_enum(script_runner, mock_data_dir):
     prop_test.negative_value = "jupyter"
     prop_test.negative_stdout = "Property used to test properties with enums"
     #  this can be joined with previous if adding meta-properties
-    #  "; title: Enum Test, enum: ['elyra', 'rocks']"
-    prop_test.negative_stderr = "'jupyter' is not one of ['elyra', 'rocks']"
-    prop_test.positive_value = "rocks"
+    #  "; title: Enum Test, enum: ['elyra', 'rocks', 'added']"
+    prop_test.negative_stderr = "'jupyter' is not one of ['elyra', 'rocks', 'added']"
+    prop_test.positive_value = "added"
     prop_test.run(script_runner, mock_data_dir)
 
 
