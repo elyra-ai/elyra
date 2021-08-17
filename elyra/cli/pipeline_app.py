@@ -37,6 +37,11 @@ from elyra.pipeline.validate import ValidationSeverity
 # as today is only available on the pipeline editor
 PIPELINE_CURRENT_VERSION = 4
 
+SEVERITY = {ValidationSeverity.Error: 'Error',
+            ValidationSeverity.Warning: 'Warning',
+            ValidationSeverity.Hint: 'Hint',
+            ValidationSeverity.Information: 'Information'}
+
 
 def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
     if not runtime_config:
@@ -170,8 +175,8 @@ def _print_issues(issues):
                     f'- Fatal error - {issue["message"]}')
         else:
             # TODO check warning nodeNames are empty
-            click.echo(
-                f'- (Warning) - {issue["message"]}')
+            severity = SEVERITY[issue.get('severity')]
+            click.echo(f'- ({severity}) - {issue["message"]}')
 
     click.echo("")
 
@@ -190,8 +195,6 @@ def _validate_pipeline_definition(pipeline_definition):
 
         raise click.ClickException("Error validating pipeline.")
     else:
-        click.echo('Pipeline validation WARNINGS:')
-
         # print validation issues
         issues = validation_response.to_json().get('issues')
         _print_issues(issues)
