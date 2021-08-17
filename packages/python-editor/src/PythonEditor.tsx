@@ -27,7 +27,7 @@ import { FileEditor } from '@jupyterlab/fileeditor';
 
 export class PythonEditor extends ScriptEditor {
   /**
-   * Construct a new editor widget.
+   * Construct a new Python Editor widget.
    */
   constructor(
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
