@@ -50,17 +50,16 @@ def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
         raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
 
 
-def _get_runtime_display_name(runtime_config: Optional[str]) -> Optional[str]:
-    if not runtime_config:
+def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
+    if not schema_name:
         return None
 
     try:
         schema_manager = SchemaManager.instance()
-        schema_name = _get_runtime_type(runtime_config)
         schema = schema_manager.get_schema('runtimes', schema_name)
         return schema['display_name']
     except Exception as e:
-        raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
+        raise click.ClickException(f'Invalid runtime configuration: {schema_name}\n {e}')
 
 
 def _validate_pipeline_runtime(primary_pipeline: dict, runtime: str) -> bool:
@@ -138,11 +137,11 @@ def _preprocess_pipeline(pipeline_path: str,
         raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
 
     if not _validate_pipeline_runtime(primary_pipeline, runtime):
-        runtime_description = primary_pipeline['app_data']['properties']['runtime']
-        runtime_config_display_name = _get_runtime_display_name(runtime_config)
+        pipeline_runtime_display_name = _get_runtime_display_name(primary_pipeline['app_data']['runtime'])
+        provided_runtime_display_name = _get_runtime_display_name(_get_runtime_type(runtime_config))
         raise click.ClickException(
-            f"This pipeline requires an instance of {runtime_description} runtime configuration.\n"
-            f"The specified configuration '{runtime_config}' is for {runtime_config_display_name} runtime.")
+            f"This pipeline requires an instance of {pipeline_runtime_display_name} runtime configuration.\n"
+            f"The specified configuration '{runtime_config}' is for {provided_runtime_display_name} runtime.")
 
     # update pipeline transient fields
     primary_pipeline["app_data"]["name"] = pipeline_name
