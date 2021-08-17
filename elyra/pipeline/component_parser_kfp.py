@@ -61,7 +61,8 @@ class KfpComponentParser(ComponentParser):
         # properties.extend(self.get_runtime_specific_properties())
 
         # Then loop through and create custom properties
-        for param in component_yaml.get('inputs'):
+        input_params = component_yaml.get('inputs', [])
+        for param in input_params:
             # KFP components default to being required unless otherwise stated.
             # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
             required = True
