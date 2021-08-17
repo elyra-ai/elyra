@@ -137,11 +137,11 @@ def _preprocess_pipeline(pipeline_path: str,
         raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
 
     if not _validate_pipeline_runtime(primary_pipeline, runtime):
-        runtime_description = _get_runtime_display_name(primary_pipeline['app_data']['runtime'])
-        runtime_config_display_name = _get_runtime_display_name(_get_runtime_type(runtime_config))
+        pipeline_runtime_display_name = _get_runtime_display_name(primary_pipeline['app_data']['runtime'])
+        provided_runtime_display_name = _get_runtime_display_name(_get_runtime_type(runtime_config))
         raise click.ClickException(
-            f"This pipeline requires an instance of {runtime_description} runtime configuration.\n"
-            f"The specified configuration '{runtime_config}' is for {runtime_config_display_name} runtime.")
+            f"This pipeline requires an instance of {pipeline_runtime_display_name} runtime configuration.\n"
+            f"The specified configuration '{runtime_config}' is for {provided_runtime_display_name} runtime.")
 
     # update pipeline transient fields
     primary_pipeline["app_data"]["name"] = pipeline_name
