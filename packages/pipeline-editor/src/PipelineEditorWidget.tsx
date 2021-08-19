@@ -299,8 +299,12 @@ const PipelineWrapper: React.FC<IProps> = ({
     [runtimeImages]
   );
 
+  const isDialogAlreadyShowing = useRef(false);
   const onError = useCallback(
     (error?: Error): void => {
+      if (isDialogAlreadyShowing.current) {
+        return; // bail, we are already showing a dialog.
+      }
       if (error instanceof PipelineOutOfDateError) {
         showDialog({
           title: 'Migrate pipeline?',
@@ -321,6 +325,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           ),
           buttons: [Dialog.cancelButton(), Dialog.okButton()]
         }).then(result => {
+          isDialogAlreadyShowing.current = false;
           if (result.button.accept) {
             // proceed with migration
             console.log('migrating pipeline');
@@ -339,9 +344,7 @@ const PipelineWrapper: React.FC<IProps> = ({
               JSON.stringify(migratedPipeline, null, 2)
             );
           } else {
-            if (shell.currentWidget) {
-              shell.currentWidget.close();
-            }
+            shell.currentWidget?.close();
           }
         });
       } else {
@@ -350,9 +353,8 @@ const PipelineWrapper: React.FC<IProps> = ({
           body: <p> {error || ''} </p>,
           buttons: [Dialog.okButton()]
         }).then(() => {
-          if (shell.currentWidget) {
-            shell.currentWidget.close();
-          }
+          isDialogAlreadyShowing.current = false;
+          shell.currentWidget?.close();
         });
       }
     },
