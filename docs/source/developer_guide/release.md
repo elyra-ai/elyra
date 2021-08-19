@@ -40,7 +40,7 @@ password: <PASSWORD>
 ```
 
 We use [twine](https://twine.readthedocs.io/en/latest/#installation) for uploading packages to PyPi, and another option
-to setup your credentials is to use [twine's keyring support](https://twine.readthedocs.io/en/latest/#keyring-support) for twine.
+to setup your credentials is to use [twine's keyring support](https://twine.readthedocs.io/en/latest/#keyring-support).
 
 ### Configuring your environment to publish to npm.js
 
