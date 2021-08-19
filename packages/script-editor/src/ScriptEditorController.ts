@@ -45,4 +45,23 @@ export class ScriptEditorController {
 
     return specs;
   };
+
+  /**
+   * Get kernelspecs by name.
+   */
+  getKernelSpecsByName = async (
+    kernelName: string
+  ): Promise<KernelSpec.ISpecModels | null> => {
+    const specs = await this.getKernelSpecs();
+    Object.entries(specs?.kernelspecs ?? [])
+      .filter(entry => entry[1]?.name?.includes(kernelName) === false)
+      .forEach(entry => delete specs?.kernelspecs[entry[0]]);
+
+    return specs;
+  };
+
+  isDebuggerAvailable = async (kernelName: string): Promise<boolean> => {
+    const specs = await this.getKernelSpecsByName(kernelName);
+    return !!(specs?.kernelspecs[kernelName]?.metadata?.['debugger'] ?? false);
+  };
 }

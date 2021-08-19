@@ -71,6 +71,7 @@ export class ScriptEditor extends DocumentWidget<
   private model: any;
   private emptyOutput: boolean;
   private runDisabled: boolean;
+  private debugDisabled: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
   protected editorLanguage: string;
@@ -84,11 +85,12 @@ export class ScriptEditor extends DocumentWidget<
     super(options);
     this.addClass(SCRIPT_EDITOR_CLASS);
     this.model = this.content.model;
-    this.runner = new ScriptRunner(this.disableRun);
+    this.runner = new ScriptRunner(this.disableButton);
     this.kernelSelectorRef = null;
     this.kernelName = options.context.sessionContext.kernelPreference.language;
     this.emptyOutput = true;
     this.runDisabled = false;
+    this.debugDisabled = false;
     this.controller = new ScriptEditorController();
     this.editorLanguage = '';
 
@@ -132,6 +134,11 @@ export class ScriptEditor extends DocumentWidget<
     this.createOutputAreaWidget();
   }
 
+  /**
+   * Function: Fetches kernel specs by editor language
+   * and populates toolbar kernel selector.
+   * This function must be called by the classes that extends ScriptEditor.
+   */
   initializeKernelSpecs = async (): Promise<void> => {
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
       this.editorLanguage
@@ -148,6 +155,15 @@ export class ScriptEditor extends DocumentWidget<
       );
       this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
+
+    const debuggerIsAvailable = await this.controller.isDebuggerAvailable(
+      this.kernelName || ''
+    );
+    if (!debuggerIsAvailable) {
+      this.disableButton(true, 'debug');
+    }
+
+    console.log('Is debugger available? ' + debuggerIsAvailable);
   };
 
   /**
@@ -198,7 +214,7 @@ export class ScriptEditor extends DocumentWidget<
    * runs the script in debugger mode
    */
   private runAndDebugScript = async (): Promise<void> => {
-    console.log('Run and debug command coming soon...');
+    window.alert('🚧 WORK IN PROGRESS... 🚧');
   };
 
   private stopRun = async (): Promise<void> => {
@@ -208,10 +224,24 @@ export class ScriptEditor extends DocumentWidget<
     }
   };
 
-  private disableRun = (disabled: boolean): void => {
-    this.runDisabled = disabled;
+  private disableButton = (disabled: boolean, buttonType: string): void => {
+    let buttonClass = '';
+
+    switch (buttonType) {
+      case 'run':
+        this.runDisabled = disabled;
+        buttonClass = RUN_BUTTON_CLASS;
+        break;
+      case 'debug':
+        this.debugDisabled = disabled;
+        buttonClass = RUN_AND_DEBUG_BUTTON_CLASS;
+        break;
+      default:
+        break;
+    }
+
     (document.querySelector(
-      '#' + this.id + ' .' + RUN_BUTTON_CLASS
+      '#' + this.id + ' .' + buttonClass
     ) as HTMLInputElement).disabled = disabled;
   };
 
@@ -335,7 +365,7 @@ export class ScriptEditor extends DocumentWidget<
   };
 
   /**
-   * Function: Displays python code in OutputArea widget.
+   * Function: Displays code in OutputArea widget.
    */
   private displayOutput = (output: string): void => {
     if (output) {

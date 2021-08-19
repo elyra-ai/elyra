@@ -39,13 +39,13 @@ export class ScriptRunner {
   sessionConnection: Session.ISessionConnection | null;
   kernelSpecManager: KernelSpecManager;
   kernelManager: KernelManager;
-  disableRun: (disabled: boolean) => void;
+  disableButton: (disabled: boolean, buttonType: string) => void;
 
   /**
    * Construct a new runner.
    */
-  constructor(disableRun: (disabled: boolean) => void) {
-    this.disableRun = disableRun;
+  constructor(disableButton: (disabled: boolean, buttonType: string) => void) {
+    this.disableButton = disableButton;
 
     this.kernelSpecManager = new KernelSpecManager();
     this.kernelManager = new KernelManager();
@@ -56,7 +56,7 @@ export class ScriptRunner {
   }
 
   private errorDialog = (errorMsg: string): Promise<Dialog.IResult<string>> => {
-    this.disableRun(false);
+    this.disableButton(false, 'run');
     return showDialog({
       title: 'Error',
       body: errorMsg,
@@ -74,12 +74,12 @@ export class ScriptRunner {
     handleKernelMsg: (msgOutput: any) => void
   ): Promise<any> => {
     if (!kernelName) {
-      this.disableRun(true);
+      this.disableButton(true, 'run');
       return this.errorDialog(KERNEL_ERROR_MSG);
     }
 
     if (!this.sessionConnection) {
-      this.disableRun(true);
+      this.disableButton(true, 'run');
 
       try {
         await this.startSession(kernelName, contextPath);
@@ -167,7 +167,7 @@ export class ScriptRunner {
       const name = this.sessionConnection.kernel?.name;
 
       try {
-        this.disableRun(false);
+        this.disableButton(false, 'run');
         await this.sessionConnection.shutdown();
         this.sessionConnection = null;
         console.log(name + ' kernel shut down');
