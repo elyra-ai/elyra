@@ -336,21 +336,21 @@ def describe(json_option, pipeline_path):
 
         describe_dict = OrderedDict()
 
-        properties = current_pipeline["app_data"]["properties"]
+        pipeline_data = current_pipeline.get("app_data", dict())
 
-        pipeline_data = current_pipeline["app_data"]
+        properties = pipeline_data.get("properties", dict())
 
         # If the name is actually "None", it will seem as if there is no name
         # The same can be said for all fields
-        describe_dict["name"] = str(properties.get("name", "None"))
+        describe_dict["name"] = properties.get("name", "None")
 
-        describe_dict["description"] = str(properties.get("description", "None"))
+        describe_dict["description"] = properties.get("description", "None")
 
-        describe_dict["type"] = str(properties.get("runtime", "None"))
+        describe_dict["type"] = properties.get("runtime", "None")
 
-        describe_dict["version"] = str(pipeline_data.get("version", "None"))
+        describe_dict["version"] = pipeline_data.get("version", "None")
 
-        describe_dict["nodes"] = str(len(current_pipeline.get("nodes", [])))
+        describe_dict["nodes"] = len(current_pipeline.get("nodes", []))
 
         describe_dict["dependencies"] = set()
         for node in current_pipeline["nodes"]:
