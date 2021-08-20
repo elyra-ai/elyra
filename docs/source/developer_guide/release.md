@@ -59,7 +59,7 @@ Follow [these steps](https://docs.npmjs.com/creating-and-viewing-access-tokens) 
 During publishing, the packages will be signed and that will require you to have support for [pgp](https://gpgtools.org/)
 and a valid [signing key](https://gpgtools.tenderapp.com/kb/how-to/first-steps-where-do-i-start-where-do-i-begin-setup-gpgtools-create-a-new-key-your-first-encrypted-mail)
 
-Note: Although this is probably not recommended, the release scripts expects a signing key that would work without
+Note: Although this is probably not recommended, the release script expects a signing key that would work without
 prompting the user for a passphrase.
 
 ## Before you begin
