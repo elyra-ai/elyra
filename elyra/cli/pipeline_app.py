@@ -344,8 +344,9 @@ def describe(json_option, pipeline_path):
 
         properties = pipeline_data.get("properties", dict())
 
-        # If the name is actually "None", it will seem as if there is no name
-        # The same can be said for all fields
+        # If the name is actually the same as the blank_field, it will seem as if there is no name
+        # The same can be said for all single fields
+        # The same issue happens with iterable fields and the blank_list
         describe_dict["name"] = properties.get("name")
 
         describe_dict["description"] = properties.get("description")
