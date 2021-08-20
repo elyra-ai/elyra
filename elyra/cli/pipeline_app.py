@@ -372,7 +372,7 @@ def describe(json_option, pipeline_path):
                 if key in iter_keys:
                     click.echo(f"{readable_key}:")
                     if describe_dict.get(key, set()) == set():
-                        click.echo(f"{' ' * indent_length}{blank_field}")
+                        click.echo(f"{' ' * indent_length}{blank_list[0]}")
                     else:
                         for item in describe_dict.get(key, blank_list):
                             click.echo(f"{' ' * indent_length}{item}")
