@@ -379,6 +379,9 @@ def describe(json_option, pipeline_path):
                 else:
                     click.echo(f"{readable_key}: {describe_dict.get(key, blank_field)}")
         else:
+            for key in pipeline_keys:
+                if describe_dict.get(key) is None:
+                    describe_dict.pop(key)
             for key in iter_keys:
                 describe_dict[key] = list(describe_dict[key])
             click.echo(json.dumps(describe_dict, indent=indent_length))
