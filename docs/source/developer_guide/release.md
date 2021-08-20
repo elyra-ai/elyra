@@ -18,14 +18,34 @@ limitations under the License.
 
 # Elyra Release
 
+## Requesting publish access
+
+In order to perform a release, one will need to have publish access to
+
+- PyPI
+  - [elyra](https://pypi.org/manage/project/elyra/collaboration/)
+  - [elyra-server](https://pypi.org/manage/project/elyra-server/collaboration/)
+  - [elyra-r-editor-extension](https://pypi.org/manage/project/elyra-r-editor-extension/collaboration/)
+  - [elyra-python-editor-extension](https://pypi.org/manage/project/elyra-python-editor-extension/collaboration/)
+  - [elyra-pipeline-editor-extension](https://pypi.org/manage/project/elyra-pipeline-editor-extension/collaboration/)
+  - [elyra-code-snippet-extension](https://pypi.org/manage/project/elyra-code-snippet-extension/collaboration/)
+  - [kfp-notebook](https://pypi.org/manage/project/kfp-notebook/collaboration/)
+  - [airflow-notebook](https://pypi.org/manage/project/airflow-notebook/collaboration/)
+- Npm
+  - [elyra](https://www.npmjs.com/settings/elyra/members)
+- DockerHub org
+  - [elyra](https://hub.docker.com/orgs/elyra)
+- Quay.io org
+  - [quay.io](https://quay.io/organization/elyra)
+
 ## Configuring your environment
 
 Publishing a release requires proper access to the external repositories as well as your development environment
 pre-configured to publish to these repositories without prompting for password:
 
-### Configuring your environment to publish to PyPi
+### Configuring your environment to publish to PyPI
 
-PyPi package managers will look for repository credentials in a `~/.pypirc` file. The example file below could
+PyPI package managers will look for repository credentials in a `~/.pypirc` file. The example file below could
 be used as a template for configuring your environment:
 
 ```
@@ -39,7 +59,7 @@ username: <USERNAME>
 password: <PASSWORD>
 ```
 
-We use [twine](https://twine.readthedocs.io/en/latest/#installation) for uploading packages to PyPi, and another option
+We use [twine](https://twine.readthedocs.io/en/latest/#installation) for uploading packages to PyPI, and another option
 to setup your credentials is to use [twine's keyring support](https://twine.readthedocs.io/en/latest/#keyring-support).
 
 ### Configuring your environment to publish to npm.js
