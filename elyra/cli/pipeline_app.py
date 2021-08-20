@@ -333,10 +333,12 @@ def describe(json_option, pipeline_path):
     blank_field = "Not Specified"
 
     blank_list = ["None Listed"]
-    for current_pipeline in pipeline_definition["pipelines"]:
-        pipeline_keys = ["name", "description", "type", "version", "nodes", "file dependencies"]
 
-        iter_keys = {"file_dependencies"}
+    pipeline_keys = ["name", "description", "type", "version", "nodes", "file_dependencies"]
+
+    iter_keys = {"file_dependencies"}
+
+    for current_pipeline in pipeline_definition.get("pipelines", list()):
 
         describe_dict = OrderedDict()
 
@@ -355,12 +357,13 @@ def describe(json_option, pipeline_path):
 
         describe_dict["version"] = pipeline_data.get("version")
 
-        describe_dict["nodes"] = len(current_pipeline.get("nodes", []))
+        describe_dict["nodes"] = len(current_pipeline.get("nodes", list()))
 
         describe_dict["file_dependencies"] = set()
-        for node in current_pipeline["nodes"]:
-            if "dependencies" in node["app_data"]["component_parameters"]:
-                for dependency in node["app_data"]["component_parameters"].get("dependencies", []):
+        for node in current_pipeline.get("nodes", list()):
+            if "dependencies" in node.get("app_data", dict()).get("component_parameters", list()):
+                for dependency in \
+                        node.get("app_data", dict()).get("component_parameters", dict()).get("dependencies", list()):
                     describe_dict["file_dependencies"].add(f"{dependency}")
 
         if not json_option:
