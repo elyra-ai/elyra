@@ -42,7 +42,7 @@ def test_no_opts():
     result = runner.invoke(pipeline)
     assert 'run       Run a pipeline in your local environment' in result.output
     assert 'submit    Submit a pipeline to be executed on the server' in result.output
-    assert 'describe  Display pipeline description in a human readable format' in result.output
+    assert 'describe  Display pipeline summary' in result.output
     assert result.exit_code == 0
 
 
