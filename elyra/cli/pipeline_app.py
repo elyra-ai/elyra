@@ -332,7 +332,7 @@ def describe(json_option, pipeline_path):
 
     blank_field = "Not Specified"
 
-    blank_list = "None Listed"
+    blank_list = ["None Listed"]
     for current_pipeline in pipeline_definition["pipelines"]:
         pipeline_keys = ["name", "description", "type", "version", "nodes", "file dependencies"]
 
@@ -346,13 +346,13 @@ def describe(json_option, pipeline_path):
 
         # If the name is actually "None", it will seem as if there is no name
         # The same can be said for all fields
-        describe_dict["name"] = properties.get("name", blank_field)
+        describe_dict["name"] = properties.get("name")
 
-        describe_dict["description"] = properties.get("description", blank_field)
+        describe_dict["description"] = properties.get("description")
 
-        describe_dict["type"] = properties.get("runtime", blank_field)
+        describe_dict["type"] = properties.get("runtime")
 
-        describe_dict["version"] = pipeline_data.get("version", blank_field)
+        describe_dict["version"] = pipeline_data.get("version")
 
         describe_dict["nodes"] = len(current_pipeline.get("nodes", []))
 
@@ -370,7 +370,7 @@ def describe(json_option, pipeline_path):
                     if describe_dict.get(key, set()) == set():
                         click.echo(f"{' ' * indent_length}{blank_field}")
                     else:
-                        for item in describe_dict.get(key, [blank_list]):
+                        for item in describe_dict.get(key, blank_list):
                             click.echo(f"{' ' * indent_length}{item}")
                 else:
                     click.echo(f"{readable_key}: {describe_dict.get(key, blank_field)}")
