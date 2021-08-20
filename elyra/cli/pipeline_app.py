@@ -317,7 +317,7 @@ def run(pipeline_path):
               'json_option',
               is_flag=True,
               required=False,
-              help='Returns pipeline file in a machine-readable JSON format')
+              help='Display pipeline summary in JSON format')
 @click.argument('pipeline_path')
 def describe(json_option, pipeline_path):
     """
