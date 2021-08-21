@@ -37,7 +37,7 @@ from kfp_server_api.exceptions import ApiException
 import requests
 from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
-try
+try:
     from kfp_tekton import compiler as kfp_tekton_compiler
     from kfp_tekton import TektonClient
 except ImportError:
