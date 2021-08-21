@@ -136,7 +136,7 @@ only-install-server: prepare-server build-server install-server-package
 install-server: lint-server only-install-server ## Build and install backend only
 
 install-server-package:
-	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl
+	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver dist/elyra-*-py3-none-any.whl[kfp-tekton]
 
 install: install-server install-ui check-install ## Build and install
 
