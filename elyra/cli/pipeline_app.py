@@ -15,6 +15,7 @@
 #
 
 import asyncio
+from collections import OrderedDict
 import json
 import os
 from typing import Optional
@@ -72,13 +73,11 @@ def _validate_pipeline_runtime(primary_pipeline: dict, runtime: str) -> bool:
     Generic pipelines do not have a persisted runtime type, and can be run on any runtime
     Runtime specific pipeline have a runtime type, and con only be run on matching runtime
     """
-    is_valid = False
-    pipeline_runtime = primary_pipeline["app_data"].get("runtime")
-    if not pipeline_runtime:
-        is_valid = True
-    else:
-        if runtime and pipeline_runtime == runtime:
-            is_valid = True
+    is_valid = True
+    if runtime:  # Only perform validation if a target runtime has been specified
+        pipeline_runtime = primary_pipeline["app_data"].get("runtime")
+        if pipeline_runtime and pipeline_runtime != runtime:
+            is_valid = False
 
     return is_valid
 
@@ -313,5 +312,82 @@ def run(pipeline_path):
     print_banner("Elyra Pipeline Local Run Complete")
 
 
+@click.command()
+@click.option('--json',
+              'json_option',
+              is_flag=True,
+              required=False,
+              help='Display pipeline summary in JSON format')
+@click.argument('pipeline_path')
+def describe(json_option, pipeline_path):
+    """
+    Display pipeline summary
+    """
+
+    _validate_pipeline_file_extension(pipeline_path)
+
+    pipeline_definition = _preprocess_pipeline(pipeline_path)
+
+    indent_length = 4
+
+    blank_field = "Not Specified"
+
+    blank_list = ["None Listed"]
+
+    pipeline_keys = ["name", "description", "type", "version", "nodes", "file_dependencies"]
+
+    iter_keys = {"file_dependencies"}
+
+    for current_pipeline in pipeline_definition.get("pipelines", list()):
+
+        describe_dict = OrderedDict()
+
+        pipeline_data = current_pipeline.get("app_data", dict())
+
+        properties = pipeline_data.get("properties", dict())
+
+        # If the name is actually the same as the blank_field, it will seem as if there is no name
+        # The same can be said for all single fields
+        # The same issue happens with iterable fields and the blank_list
+        describe_dict["name"] = properties.get("name")
+
+        describe_dict["description"] = properties.get("description")
+
+        describe_dict["type"] = properties.get("runtime")
+
+        describe_dict["version"] = pipeline_data.get("version")
+
+        describe_dict["nodes"] = len(current_pipeline.get("nodes", list()))
+
+        describe_dict["file_dependencies"] = set()
+        for node in current_pipeline.get("nodes", list()):
+            if "dependencies" in node.get("app_data", dict()).get("component_parameters", list()):
+                for dependency in \
+                        node.get("app_data", dict()).get("component_parameters", dict()).get("dependencies", list()):
+                    describe_dict["file_dependencies"].add(f"{dependency}")
+
+        if not json_option:
+            for key in pipeline_keys:
+                readable_key = ' '.join(key.title().split('_'))
+                if key in iter_keys:
+                    click.echo(f"{readable_key}:")
+                    if describe_dict.get(key, set()) == set():
+                        click.echo(f"{' ' * indent_length}{blank_list[0]}")
+                    else:
+                        for item in describe_dict.get(key, blank_list):
+                            click.echo(f"{' ' * indent_length}{item}")
+                else:
+                    click.echo(f"{readable_key}: {describe_dict.get(key, blank_field)}")
+        else:
+            for key in iter_keys:
+                describe_dict[key] = list(describe_dict[key])
+            for key in pipeline_keys:
+                value = describe_dict.get(key)
+                if value is None or (key in iter_keys and len(value) == 0):
+                    describe_dict.pop(key)
+            click.echo(json.dumps(describe_dict, indent=indent_length))
+
+
 pipeline.add_command(submit)
 pipeline.add_command(run)
+pipeline.add_command(describe)
