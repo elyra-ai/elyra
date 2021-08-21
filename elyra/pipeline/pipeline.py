@@ -21,6 +21,11 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+# TODO: Make pipeline version available more widely
+# as today is only available on the pipeline editor
+PIPELINE_CURRENT_VERSION = 4
+PIPELINE_CURRENT_SCHEMA = 3.0
+
 
 class Operation(object):
     """

@@ -19,8 +19,9 @@ import os
 
 import pytest
 
-from elyra.pipeline.validate import PipelineValidationManager
-from elyra.pipeline.validate import ValidationResponse
+from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
+from elyra.pipeline.validation import PipelineValidationManager
+from elyra.pipeline.validation import ValidationResponse
 
 
 @pytest.fixture
@@ -40,6 +41,42 @@ def validation_manager():
     validation_pipelines_path = "elyra/pipeline/tests/resources/validation_pipelines"
     yield PipelineValidationManager.instance(root_dir=os.path.join(os.getcwd(), validation_pipelines_path))
     PipelineValidationManager.clear_instance()
+
+
+def test_invalid_lower_pipeline_version(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
+    pipeline['pipelines'][0]['app_data']['version'] = -1
+    validation_manager._validate_pipeline_structure(pipeline=pipeline,
+                                                    response=response)
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidPipeline'
+    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value'
+
+
+def test_invalid_upper_pipeline_version(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
+    pipeline['pipelines'][0]['app_data']['version'] = PIPELINE_CURRENT_VERSION + 1
+    validation_manager._validate_pipeline_structure(pipeline=pipeline,
+                                                    response=response)
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidPipeline'
+    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value'
+
+
+def test_invalid_pipeline_version_that_needs_migration(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
+    pipeline['pipelines'][0]['app_data']['version'] = 3
+    validation_manager._validate_pipeline_structure(pipeline=pipeline,
+                                                    response=response)
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidPipeline'
+    assert "needs to be migrated" in issues[0]['message']
 
 
 def test_basic_pipeline_structure(validation_manager, load_pipeline):

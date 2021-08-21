@@ -29,6 +29,8 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
+from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.util.path import get_expanded_path
 
@@ -131,8 +133,6 @@ class PipelineValidationManager(SingletonConfigurable):
         :param pipeline: the pipeline definition to be validated
         :param response: ValidationResponse containing the issue list to be updated
         """
-
-        current_pipeline_schema_version = 3.0
         pipeline_json = json.loads(json.dumps(pipeline))
 
         # Check for required values.  We require a primary_pipeline, a set of pipelines, and
@@ -165,17 +165,32 @@ class PipelineValidationManager(SingletonConfigurable):
         elif 'version' not in primary_pipeline['app_data']:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Pipeline app_data 'version' is missing from primary pipeline.")
-        elif int(primary_pipeline['app_data']['version']) <= 0:
+
+        # validate pipeline version compatibility
+        pipeline_version = int(primary_pipeline['app_data']['version'])
+        if pipeline_version not in range(PIPELINE_CURRENT_VERSION + 1):
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Primary pipeline version field has an invalid value.")
 
+        elif pipeline_version < PIPELINE_CURRENT_VERSION:
+            # Pipeline needs to be migrated
+            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
+                                 message=f'Pipeline version {pipeline_version} is out of date and needs to be migrated '
+                                         f'using the Elyra pipeline editor.')
+        elif pipeline_version > PIPELINE_CURRENT_VERSION:
+            # New version of Elyra is needed
+            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
+                                 message='Pipeline was last edited in a newer version of Elyra. '
+                                         'Update Elyra to use this pipeline.')
+
+        # Validate pipeline schema version
         if 'version' not in pipeline_json:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Primary pipeline version field is missing.")
         if not isinstance(pipeline_json['version'], str):
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Primary pipeline version field should be a string.")
-        if float(pipeline_json['version']) < current_pipeline_schema_version:
+        if float(pipeline_json['version']) < PIPELINE_CURRENT_SCHEMA:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Incompatible pipeline schema version detected.")
 

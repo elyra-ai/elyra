@@ -32,12 +32,9 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
-from elyra.pipeline.validate import PipelineValidationManager
-from elyra.pipeline.validate import ValidationSeverity
+from elyra.pipeline.validation import PipelineValidationManager
+from elyra.pipeline.validation import ValidationSeverity
 
-# TODO: Make pipeline version available more widely
-# as today is only available on the pipeline editor
-PIPELINE_CURRENT_VERSION = 4
 
 SEVERITY = {ValidationSeverity.Error: 'Error',
             ValidationSeverity.Warning: 'Warning',
@@ -120,16 +117,6 @@ def _preprocess_pipeline(pipeline_path: str,
             primary_pipeline = pipeline
 
     assert primary_pipeline is not None, f"No primary pipeline was found in {pipeline_path}"
-
-    pipeline_version = int(primary_pipeline["app_data"]["version"])
-    if pipeline_version < PIPELINE_CURRENT_VERSION:
-        # Pipeline needs to be migrated
-        raise click.ClickException(f'Pipeline version {pipeline_version} is out of date and needs to be migrated '
-                                   f'using the Elyra pipeline editor.')
-    elif pipeline_version > PIPELINE_CURRENT_VERSION:
-        # New version of Elyra is needed
-        raise click.ClickException('Pipeline was last edited in a newer version of Elyra. '
-                                   'Update Elyra to use this pipeline.')
 
     try:
         for pipeline in pipeline_definition["pipelines"]:
