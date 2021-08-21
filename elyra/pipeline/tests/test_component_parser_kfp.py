@@ -142,6 +142,33 @@ def test_parse_kfp_component_url():
     assert properties_json['current_parameters']['elyra_input_data'] == ''
 
 
+def test_parse_kfp_component_file_no_inputs():
+    entry = {
+        'id': 'test-no-inputs',
+        'type': FilesystemComponentReader.type,
+        'location': _get_resource_path('kfp_test_operator_no_inputs.yaml'),
+        'catalog_entry_id': '',
+        'category_id': 'kfp'
+    }
+    component_entry = SimpleNamespace(**entry)
+
+    parser = KfpComponentParser()
+    component = parser.parse(component_entry)[0]
+    properties_json = ComponentRegistry.to_canvas_properties(component)
+
+    # Properties JSON should only include the two parameters common to every
+    # component:'label' and 'component_source'
+    num_common_params = 2
+    assert len(properties_json['current_parameters'].keys()) == num_common_params
+    assert len(properties_json['parameters']) == num_common_params
+    assert len(properties_json['uihints']['parameter_info']) == num_common_params
+    assert len(properties_json['uihints']['group_info'][0]['group_info']) == num_common_params
+
+    # Ensure that template still renders the two common parameters correctly
+    assert properties_json['current_parameters']['label'] == ""
+    assert properties_json['current_parameters']['component_source'] == component_entry.location
+
+
 async def test_parse_components_invalid_location():
     # Ensure a component with an invalid location is not returned
     component_registry_location = os.path.join(os.path.dirname(__file__),

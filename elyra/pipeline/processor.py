@@ -15,6 +15,7 @@
 #
 from abc import ABC
 from abc import abstractmethod
+import ast
 import asyncio
 import functools
 import os
@@ -22,6 +23,7 @@ import time
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Union
 
 import entrypoints
 from jupyter_core.paths import ENV_JUPYTER_PATH
@@ -435,3 +437,45 @@ class RuntimePipelineProcessor(PipelineProcessor):
         # Convey pipeline logging enablement to operation
         envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
         return envs
+
+    def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
+        """
+        For component parameters of type dictionary, the user-entered string value given in the pipeline
+        JSON should be converted to the appropriate Dict format, if possible. If a Dict cannot be formed,
+        log and return stripped string value.
+        """
+        converted_dict = None
+        value = value.strip()
+        if value.startswith('{') and value.endswith('}'):
+            try:
+                converted_dict = ast.literal_eval(value)
+            except Exception:
+                pass
+
+        # Value could not be successfully converted to dictionary
+        if not isinstance(converted_dict, dict):
+            self.log.debug(f"Could not convert entered parameter value `{value}` to dictionary")
+            return value
+
+        return converted_dict
+
+    def _process_list_value(self, value: str) -> Union[List, str]:
+        """
+        For component parameters of type list, the user-entered string value given in the pipeline JSON
+        should be converted to the appropriate List format, if possible. If a List cannot be formed,
+        log and return stripped string value.
+        """
+        value = value.strip()
+        converted_list = None
+        if value.startswith('[') and value.endswith(']'):
+            try:
+                converted_list = ast.literal_eval(value)
+            except Exception:
+                pass
+
+        # Value could not be successfully converted to list
+        if not isinstance(converted_list, list):
+            self.log.debug(f"Could not convert entered parameter value `{value}` to list")
+            return value
+
+        return converted_list

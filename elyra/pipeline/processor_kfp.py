@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ast
 from datetime import datetime
 import json
 import logging
@@ -513,13 +512,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Retrieve component from cache
                 component = self._component_registry.get_component(operation.classifier)
 
-                # Change value of variables according to their type. Path variables should include
-                # the contents of the specified file and dictionary values must be converted from strings.
+                # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
+                    # Get corresponding property's value from parsed pipeline
+                    property_value = operation.component_params.get(component_property.ref)
+
+                    self.log.debug(f"Processing component parameter '{component_property.name}' "
+                                   f"of type '{component_property.type}'")
                     if component_property.type == "file":
-                        # Get corresponding property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(component_property.ref)
-                        filename = get_absolute_path(get_expanded_path(self.root_dir), op_property)
+                        filename = get_absolute_path(get_expanded_path(self.root_dir), property_value)
                         try:
                             with open(filename) as f:
                                 operation.component_params[component_property.ref] = f.read()
@@ -527,18 +528,19 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             # If file can't be found locally, assume a remote file location was entered.
                             # This may cause the pipeline run to fail; the user must debug in this case.
                             pass
-                    elif component_property.type in ['dictionary', 'list']:
-                        # Get corresponding property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(component_property.ref)
-                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
+                    elif component_property.type == 'dictionary':
+                        processed_value = self._process_dictionary_value(property_value)
+                        operation.component_params[component_property.ref] = processed_value
+                    elif component_property.type == 'list':
+                        processed_value = self._process_list_value(property_value)
+                        operation.component_params[component_property.ref] = processed_value
 
                 # Get absolute path of component source
                 component_path = component.source
                 if component.source_type == "filename":
                     component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', component_path)
 
-                component_source = {}
-                component_source[component.source_type] = component_path
+                component_source = {component.source_type: component_path}
 
                 # Build component task factory
                 try:

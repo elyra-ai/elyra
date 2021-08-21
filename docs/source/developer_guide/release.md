@@ -18,6 +18,69 @@ limitations under the License.
 
 # Elyra Release
 
+## Requesting publish access
+
+In order to perform a release, one will need to have publish access to
+
+- PyPI
+  - [elyra](https://pypi.org/manage/project/elyra/collaboration/)
+  - [elyra-server](https://pypi.org/manage/project/elyra-server/collaboration/)
+  - [elyra-r-editor-extension](https://pypi.org/manage/project/elyra-r-editor-extension/collaboration/)
+  - [elyra-python-editor-extension](https://pypi.org/manage/project/elyra-python-editor-extension/collaboration/)
+  - [elyra-pipeline-editor-extension](https://pypi.org/manage/project/elyra-pipeline-editor-extension/collaboration/)
+  - [elyra-code-snippet-extension](https://pypi.org/manage/project/elyra-code-snippet-extension/collaboration/)
+  - [kfp-notebook](https://pypi.org/manage/project/kfp-notebook/collaboration/)
+  - [airflow-notebook](https://pypi.org/manage/project/airflow-notebook/collaboration/)
+- Npm
+  - [elyra](https://www.npmjs.com/settings/elyra/members)
+- DockerHub org
+  - [elyra](https://hub.docker.com/orgs/elyra)
+- Quay.io org
+  - [quay.io](https://quay.io/organization/elyra)
+
+## Configuring your environment
+
+Publishing a release requires proper access to the external repositories as well as your development environment
+pre-configured to publish to these repositories without prompting for password:
+
+### Configuring your environment to publish to PyPI
+
+PyPI package managers will look for repository credentials in a `~/.pypirc` file. The example file below could
+be used as a template for configuring your environment:
+
+```
+[distutils] # this tells distutils what package indexes you can push to
+index-servers =
+  pypi
+
+[pypi]
+repository:  https://upload.pypi.org/legacy/
+username: <USERNAME>
+password: <PASSWORD>
+```
+
+We use [twine](https://twine.readthedocs.io/en/latest/#installation) for uploading packages to PyPI, and another option
+to setup your credentials is to use [twine's keyring support](https://twine.readthedocs.io/en/latest/#keyring-support).
+
+### Configuring your environment to publish to npm.js
+
+When publishing npm packages, user credentials are configured in the `~/.npmrc` file, where your e-mail and access token
+should be available:
+
+```
+email=<USER EMAIL>
+//registry.npmjs.org/:_authToken=<AUTH TOKEN>
+```
+
+Follow [these steps](https://docs.npmjs.com/creating-and-viewing-access-tokens) to create your authorization token.
+
+### Configuring signing keys
+
+During publishing, the packages will be signed and that will require you to have support for [pgp](https://gpgtools.org/)
+and a valid [signing key](https://gpgtools.tenderapp.com/kb/how-to/first-steps-where-do-i-start-where-do-i-begin-setup-gpgtools-create-a-new-key-your-first-encrypted-mail)
+
+Note: Although this is probably not recommended, the release script expects a signing key that would work without
+prompting the user for a passphrase.
 
 ## Before you begin
 

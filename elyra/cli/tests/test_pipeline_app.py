@@ -29,6 +29,9 @@ PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD = \
 PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD = \
     '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","schemas":[]}'
 
+PIPELINE_SOURCE_WITH_ZERO_NODES = \
+    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[{"id":"1","nodes":[],"app_data":{"runtime":"","version": 4,"properties": {"name": "generic","runtime": "Generic"}}, "schemas":[]}]}'  # noqa
+
 
 def mock_get_runtime_type(runtime_config: str) -> str:
     return "kfp"
@@ -154,4 +157,31 @@ def test_submit_with_zero_length_pipelines_field(monkeypatch):
         result = runner.invoke(pipeline, ['submit', pipeline_file_path,
                                           '--runtime-config', 'foo'])
         assert "Pipeline has zero length 'pipelines' field." in result.output
+        assert result.exit_code != 0
+
+
+def test_run_pipeline_with_no_nodes():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_NODES)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        result = runner.invoke(pipeline, ['run', pipeline_file_path])
+        assert "At least one node must exist in the primary pipeline." in result.output
+        assert result.exit_code != 0
+
+
+def test_submit_pipeline_with_no_nodes(monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_NODES)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
+
+        result = runner.invoke(pipeline, ['submit', pipeline_file_path,
+                                          '--runtime-config', 'foo'])
+        assert "At least one node must exist in the primary pipeline." in result.output
         assert result.exit_code != 0

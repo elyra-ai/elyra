@@ -193,6 +193,79 @@ def test_collect_envs(processor):
     assert 'USER_NO_VALUE' not in envs
 
 
+def test_process_list_value_function(processor):
+    # Test values that will be successfully converted to list
+    assert processor._process_list_value("[]") == []
+    assert processor._process_list_value("['elem1']") == ["elem1"]
+    assert processor._process_list_value("['elem1', 'elem2', 'elem3']") == ["elem1", "elem2", "elem3"]
+    assert processor._process_list_value("  ['elem1',   'elem2' , 'elem3']  ") == ["elem1", "elem2", "elem3"]
+    assert processor._process_list_value("[1, 2]") == [1, 2]
+    assert processor._process_list_value("[True, False, True]") == [True, False, True]
+    assert processor._process_list_value("[{'obj': 'val', 'obj2': 'val2'}, {}]") == [{'obj': 'val', 'obj2': 'val2'}, {}]
+
+    # Test values that will not be successfully converted to list
+    assert processor._process_list_value("") == ""
+    assert processor._process_list_value("[[]") == "[[]"
+    assert processor._process_list_value("[elem1, elem2]") == "[elem1, elem2]"
+    assert processor._process_list_value("elem1, elem2") == "elem1, elem2"
+    assert processor._process_list_value("  elem1, elem2  ") == "elem1, elem2"
+    assert processor._process_list_value("'elem1', 'elem2'") == "'elem1', 'elem2'"
+
+
+def test_process_dictionary_value_function(processor):
+    # Test values that will be successfully converted to dictionary
+    assert processor._process_dictionary_value("{}") == {}
+    assert processor._process_dictionary_value("{'key': 'value'}") == {"key": "value"}
+
+    dict_as_str = "{'key1': 'value', 'key2': 'value'}"
+    assert processor._process_dictionary_value(dict_as_str) == {"key1": "value", "key2": "value"}
+
+    dict_as_str = "  {  'key1': 'value'  , 'key2'  : 'value'}  "
+    assert processor._process_dictionary_value(dict_as_str) == {"key1": "value", "key2": "value"}
+
+    dict_as_str = "{'key1': [1, 2, 3], 'key2': ['elem1', 'elem2']}"
+    assert processor._process_dictionary_value(dict_as_str) == {"key1": [1, 2, 3], "key2": ["elem1", "elem2"]}
+
+    dict_as_str = "{'key1': 2, 'key2': 'value', 'key3': True, 'key4': None, 'key5': [1, 2, 3]}"
+    expected_value = {
+        "key1": 2,
+        "key2": "value",
+        "key3": True,
+        "key4": None,
+        "key5": [1, 2, 3]
+    }
+    assert processor._process_dictionary_value(dict_as_str) == expected_value
+
+    dict_as_str = "{'key1': {'key2': 2, 'key3': 3, 'key4': 4}, 'key5': {}}"
+    expected_value = {
+        "key1": {
+            "key2": 2,
+            "key3": 3,
+            "key4": 4,
+        },
+        "key5": {}
+    }
+    assert processor._process_dictionary_value(dict_as_str) == expected_value
+
+    # Test values that will not be successfully converted to dictionary
+    assert processor._process_dictionary_value("") == ""
+    assert processor._process_dictionary_value("{{}") == "{{}"
+    assert processor._process_dictionary_value("{key1: value, key2: value}") == "{key1: value, key2: value}"
+    assert processor._process_dictionary_value("  { key1: value, key2: value }  ") == "{ key1: value, key2: value }"
+    assert processor._process_dictionary_value("key1: value, key2: value") == "key1: value, key2: value"
+    assert processor._process_dictionary_value("{'key1': true}") == "{'key1': true}"
+    assert processor._process_dictionary_value("{'key': null}") == "{'key': null}"
+
+    dict_as_str = "{'key1': [elem1, elem2, elem3], 'key2': ['elem1', 'elem2']}"
+    assert processor._process_dictionary_value(dict_as_str) == dict_as_str
+
+    dict_as_str = "{'key1': {key2: 2}, 'key3': ['elem1', 'elem2']}"
+    assert processor._process_dictionary_value(dict_as_str) == dict_as_str
+
+    dict_as_str = "{'key1': {key2: 2}, 'key3': ['elem1', 'elem2']}"
+    assert processor._process_dictionary_value(dict_as_str) == dict_as_str
+
+
 def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
     # Assign test resource location
     url = 'https://raw.githubusercontent.com/elyra-ai/elyra/master/' \

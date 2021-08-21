@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ast
 from collections import OrderedDict
 from datetime import datetime
 import json
@@ -21,6 +20,9 @@ import os
 import re
 import tempfile
 import time
+from typing import Dict
+from typing import List
+from typing import Union
 
 import autopep8
 from black import FileMode
@@ -236,29 +238,27 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 # Retrieve component from cache
                 component = self._component_registry.get_component(operation.classifier)
 
-                # Change value of variables according to their type. String variables must include
-                # quotation marks in order to render properly in the jinja template and dictionary
-                # values must be converted from strings.
+                # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
                     # Skip properties for which no value was given
                     if component_property.ref not in operation.component_params.keys():
                         continue
+
+                    # Get corresponding property's value from parsed pipeline
+                    property_value = operation.component_params.get(component_property.ref)
+
+                    self.log.debug(f"Processing component parameter '{component_property.name}' "
+                                   f"of type '{component_property.type}'")
                     if component_property.type == "string":
-                        # Get corresponding component_property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(component_property.ref)
-                        operation.component_params[component_property.ref] = json.dumps(op_property)
-                    elif component_property.type in ['dict', 'dictionary']:
-                        # Get corresponding component_property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(component_property.ref)
-                        if not op_property:
-                            op_property = "{}"
-                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
-                    elif component_property.type in ['list', 'set', 'array', 'arr']:
-                        op_property = operation.component_params.get(component_property.ref)
-                        # Get corresponding component_property value from parsed pipeline and convert
-                        if not op_property:
-                            op_property = "[]"
-                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
+                        # Add surrounding quotation marks to string value for correct rendering
+                        # in jinja DAG template
+                        operation.component_params[component_property.ref] = json.dumps(property_value)
+                    elif component_property.type == 'dictionary':
+                        processed_value = self._process_dictionary_value(property_value)
+                        operation.component_params[component_property.ref] = processed_value
+                    elif component_property.type == 'list':
+                        processed_value = self._process_list_value(property_value)
+                        operation.component_params[component_property.ref] = processed_value
 
                 # Get component class from operation name
                 component_class = operation.classifier.split('_')[-1]
@@ -349,6 +349,28 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             unique_operation_name = ''.join([operation_name, '_', str(unique_name_counter)])
 
         return unique_operation_name
+
+    def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
+        """
+        For component parameters of type dictionary, if a string value is returned from the superclass
+        method, it must be converted to include surrounding quotation marks for correct rendering
+        in jinja DAG template.
+        """
+        converted_value = super()._process_dictionary_value(value)
+        if isinstance(converted_value, str):
+            converted_value = json.dumps(converted_value)
+        return converted_value
+
+    def _process_list_value(self, value: str) -> Union[List, str]:
+        """
+        For component parameters of type list, if a string value is returned from the superclass
+        method, it must be converted to include surrounding quotation marks for correct rendering
+        in jinja DAG template.
+        """
+        converted_value = super()._process_list_value(value)
+        if isinstance(converted_value, str):
+            converted_value = json.dumps(converted_value)
+        return converted_value
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
