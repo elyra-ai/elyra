@@ -258,9 +258,11 @@ class ExecuteFileOp(ContainerOp):
                                                      value=run_name_placeholder))
         elif workflow_engine.lower() == 'tekton':
             try:
-                from kfp_tekton import TektonClient
+                from kfp_tekton import TektonClient # noqa: F401
             except ImportError:
-                raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
+                raise ValueError(
+                    'kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.'
+                )
 
             # For Tekton derive the value from the specified pod annotation
             annotation = 'pipelines.kubeflow.org/run_name'
