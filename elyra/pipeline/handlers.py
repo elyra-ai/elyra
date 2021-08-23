@@ -24,7 +24,7 @@ from jupyter_server.utils import url_path_join
 from tornado import web
 
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentCategory
+# from elyra.pipeline.component import ComponentCategory
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
@@ -143,8 +143,9 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         components: List[Component] = await PipelineProcessorManager.instance().get_components(processor)
-        categories: List[ComponentCategory] = await PipelineProcessorManager.instance().get_all_categories(processor)
-        palette_json = ComponentRegistry.to_canvas_palette(components=components, categories=categories)
+        # categories: List[ComponentCategory] = await PipelineProcessorManager.instance().get_all_categories(processor)
+
+        palette_json = ComponentRegistry.to_canvas_palette(components=components)
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')

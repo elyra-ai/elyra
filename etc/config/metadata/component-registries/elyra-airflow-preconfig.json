@@ -1,0 +1,40 @@
+{
+  "display_name": "Airflow Preloaded Components",
+  "metadata": {
+    "description": "Preloaded components that are supported by Apache Airflow",
+    "runtime": "airflow",
+    "locations": [
+      {
+        "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py",
+        "location_type": "url",
+        "categories": ["Preloaded Airflow"]
+      },
+      {
+        "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py",
+        "location_type": "url",
+        "categories": ["Preloaded Airflow"]
+      },
+      {
+        "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/http_operator.py",
+        "location_type": "url",
+        "categories": ["Preloaded Airflow"]
+      },
+      {
+        "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py",
+        "location_type": "url",
+        "categories": ["Preloaded Airflow"]
+      },
+      {
+        "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py",
+        "location_type": "url",
+        "categories": ["Preloaded Airflow"]
+      },
+      {
+        "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/slack_operator.py",
+        "location_type": "url",
+        "categories": ["Preloaded Airflow"]
+      }
+    ]
+  },
+  "schema_name": "component-registry"
+}

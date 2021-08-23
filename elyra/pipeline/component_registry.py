@@ -22,11 +22,18 @@ from typing import Optional
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
+from jsonschema import ValidationError
 from traitlets.config import LoggingConfigurable
 
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentCategory
 from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.component import ComponentReader
+from elyra.pipeline.component import DirectoryComponentReader
+from elyra.pipeline.component import FilesystemComponentReader
+from elyra.pipeline.component import UrlComponentReader
 
 
 class ComponentRegistry(LoggingConfigurable):
@@ -35,7 +42,7 @@ class ComponentRegistry(LoggingConfigurable):
     for each runtime. The registry uses component parser to read and parse each
     component entry from the catalog and transform them into a component value object.
     """
-
+    _generic_category_label = "Elyra"
     _generic_components: Dict[str, Component] = {
         "notebook": Component(id="notebook",
                               name="Notebook",
@@ -45,7 +52,7 @@ class ComponentRegistry(LoggingConfigurable):
                               source="elyra",
                               catalog_entry_id="elyra",
                               extensions=[".ipynb"],
-                              category_id="generic"),
+                              categories=[_generic_category_label]),
         "python-script": Component(id="python-script",
                                    name="Python Script",
                                    description="Run Python script",
@@ -54,7 +61,7 @@ class ComponentRegistry(LoggingConfigurable):
                                    source="elyra",
                                    catalog_entry_id="elyra",
                                    extensions=[".py"],
-                                   category_id="generic"),
+                                   categories=[_generic_category_label]),
         "r-script": Component(id="r-script",
                               name="R Script",
                               description="Run R script",
@@ -63,12 +70,18 @@ class ComponentRegistry(LoggingConfigurable):
                               source="elyra",
                               catalog_entry_id="elyra",
                               extensions=[".r"],
-                              category_id="generic")}
+                              categories=[_generic_category_label])}
 
     _generic_category = ComponentCategory(id="generic",
                                           label="Generic",
                                           image_location="",
                                           description="Components that are supported by all runtimes")
+
+    _readers = {
+        FilesystemComponentReader.type: FilesystemComponentReader(),
+        DirectoryComponentReader.type: DirectoryComponentReader(),
+        UrlComponentReader.type: UrlComponentReader()
+    }
 
     def __init__(self, component_registry_location: str, parser: ComponentParser, **kwargs):
         super().__init__(**kwargs)
@@ -119,7 +132,7 @@ class ComponentRegistry(LoggingConfigurable):
         return ComponentRegistry._generic_category
 
     @staticmethod
-    def to_canvas_palette(components: List[Component], categories: List[ComponentCategory]) -> Dict:
+    def to_canvas_palette(components: List[Component]) -> Dict:
         """
         Converts registry components into appropriate canvas palette format
         """
@@ -128,7 +141,35 @@ class ComponentRegistry(LoggingConfigurable):
         template_env = Environment(loader=loader)
         template = template_env.get_template('canvas_palette_template.jinja2')
 
-        canvas_palette = template.render(components=components, categories=categories)
+        # TODO Consider defining this somewhere else
+        fallback_category_name = "No Category"
+
+        # Convert the list of all components into a dictionary of
+        # component lists keyed by category
+        category_dict: Dict[str, List[Component]] = {}
+        for component in components:
+            categories = component.categories
+
+            # Assign a fallback category so that component is not
+            # lost during palette render
+            if not categories:
+                categories = [fallback_category_name]
+
+            for category in categories:
+                if category not in category_dict.keys():
+                    category_dict[category] = []
+
+                if component.id not in [comp.id for comp in category_dict[category]]:
+                    category_dict[category].append(component)
+
+        # Reorder the dictionary such that components with
+        # no category to render last
+        fallback_category = category_dict.pop(fallback_category_name, None)
+        if fallback_category:
+            category_dict[fallback_category_name] = fallback_category
+
+        # Render template
+        canvas_palette = template.render(category_dict=category_dict)
         palette_json = json.loads(canvas_palette)
         return palette_json
 
@@ -153,14 +194,93 @@ class ComponentRegistry(LoggingConfigurable):
 
     def _read_component_registry(self) -> Dict[str, List]:
         """
-        Read a component registry and return a dictionary of lists of components and categories.
+        Read through component registries and list of components.
         """
 
-        registry = {
+        registry_return = {
             "components": list(),
             "categories": list()
         }
 
+        # components: List[Component] = list()
+
+        try:
+            metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+            all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
+
+            # Filter registries according to processor type
+            runtime_registries = filter(lambda r: r['metadata']['runtime'] == self._parser.type, all_registries)
+        except (ValidationError, ValueError):
+            raise
+        except MetadataNotFoundError:
+            raise
+        except Exception:
+            raise
+
+        for registry in runtime_registries:
+            registry_name = registry['display_name']
+            self.log.debug(f"Component registry: processing components in registry {registry_name}")
+
+            # idx = 0
+            for location_specifier in registry['metadata']['locations']:
+                location_type = location_specifier["location_type"]
+                location_path = location_specifier["location_path"]
+
+                # Assign reader
+                reader = self._get_reader(location_type)
+                component_paths = reader.get_list_of_paths(location_path)
+                for path in component_paths:
+                    # Figure out a good heuristic here; consider assigning later with class name/component name?
+                    # component_id = f"{registry_name.replace(' ', '')}_{idx}"
+                    # self.log.debug(f"Component registry: processing component {component_id}")
+
+                    # Is this necessary?? Consider doing some other way
+                    # path = self._get_relative_location(location_type, path)
+                    path = reader.get_relative_location(location_path, path)
+
+                    component_entry = {
+                        # "id": component_id,
+                        "type": reader.base_type,  # I don't think we need this since we can just use the reader type
+                        "location": path,
+                        # "catalog_entry_id": component_id,
+                        "categories": location_specifier.get("categories", []),
+                        "reader": reader
+                    }
+
+                    # Parse the component entry to get a fully qualified Component object
+                    component = self._parser.parse(SimpleNamespace(**component_entry))
+                    if component:
+                        registry_return['components'].extend(component)
+                        # components.extend(component)
+                        # idx += 1
+
+                '''
+                component_id = f"{registry_name.replace(' ', '')}_{idx}"
+                self.log.debug(f"Component registry: processing component {component_id}")
+
+                location_path = self._get_relative_location(location_type,
+                                                            location_specifier.get("location_path"))
+
+                component_entry = {
+                    "id": component_id,
+                    "type": location_type,
+                    "location": location_path,
+                    "catalog_entry_id": component_id,
+                    "categories": location_specifier.get("categories", []),
+                    "reader": self._get_reader(location_type)
+                }
+
+                component_entry = self._build_component_from_registry(location_specifier, registry_name)
+
+                # Parse the component entry to get a fully qualified Component object
+                # component = self._parser.parse(SimpleNamespace(**component_entry))
+                component = self._parser.parse(component_entry)
+                if component:
+                    idx += 1
+                    registry_return['components'].extend(component)
+                '''
+
+        '''
         with open(self._component_registry_location, 'r') as catalog_file:
             catalog_json = json.load(catalog_file)
             # Process component entries from catalog
@@ -197,15 +317,18 @@ class ComponentRegistry(LoggingConfigurable):
                                                        image_location=category_metadata.get('image'),
                                                        description=category_metadata.get('description'))
                     registry['categories'].append(category_entry)
+        '''
 
-        return registry
+        return registry_return
+        # return components
 
+    '''
     def _get_relative_location(self, component_type: str, component_path: str) -> str:
         """
         Gets the absolute path for a component from a file-based registry
         """
-        if component_type == "filename":
-            component_path = f"{self._parser._type}/{component_path}"
+        if component_type in ["filename", "directory"]:
+            component_path = f"{self._parser.type}/{component_path}"
         return component_path
 
     def _read_registry_for_component(self, queried_component_id: str, catalog_entry_id: str) -> Component:
@@ -235,6 +358,16 @@ class ComponentRegistry(LoggingConfigurable):
             # Parse component entry to get a fully qualified Component object
             component = self._parser.parse(SimpleNamespace(**component_entry))
             return component
+    '''
+
+    def _get_reader(self, location_type: str) -> ComponentReader:
+        """
+        Find the proper reader based on the given registry location type.
+        """
+        try:
+            return self._readers.get(location_type)
+        except Exception:
+            raise ValueError(f'Unsupported registry type {location_type}.')
 
 
 class CachedComponentRegistry(ComponentRegistry):

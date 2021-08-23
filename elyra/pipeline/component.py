@@ -114,21 +114,29 @@ class Component(object):
     Represents a generic or runtime-specific component
     """
 
-    def __init__(self, id: str, name: str, description: Optional[str], source_type: str,
-                 source: str, catalog_entry_id: str, runtime: Optional[str] = None, op: Optional[str] = None,
-                 category_id: Optional[str] = None, properties: Optional[List[ComponentParameter]] = None,
+    def __init__(self, id: str, name: str,
+                 description: Optional[str],
+                 source_type: str,
+                 source: str,
+                 catalog_entry_id: str,
+                 runtime: Optional[str] = None,
+                 op: Optional[str] = None,
+                 categories: Optional[List[str]] = None,
+                 properties: Optional[List[ComponentParameter]] = None,
                  extensions: Optional[List[str]] = None,
                  parameter_refs: Optional[dict] = None):
         """
         :param id: Unique identifier for a component
         :param name: The name of the component for display
         :param description: The description of the component
+        :param source_type: Indicates the type of component definition resource location; one of ['url', filename']
+        :param source: The location of the component definition
+        :param catalog_entry_id: TODO
         :param runtime: The runtime of the component (e.g. KFP or Airflow)
-        :param properties: The set of properties for the component
-        :type properties: List[ComponentParameter]
         :param op: The operation name of the component; used by generic components in rendering the palette
-        :param extension: The file extension used by the component
-        :type extension: str
+        :param categories: A list of categories that this component belongs to
+        :param properties: The set of properties for the component
+        :param extensions: The file extension used by the component
         """
 
         if not id:
@@ -145,7 +153,7 @@ class Component(object):
 
         self._runtime = runtime
         self._op = op
-        self._category_id = category_id
+        self._category_ids = categories
         self._properties = properties
 
         if not parameter_refs:
@@ -200,8 +208,10 @@ class Component(object):
             return self._id
 
     @property
-    def category_id(self) -> Optional[str]:
-        return self._category_id
+    def categories(self) -> Optional[List[str]]:
+        if not self._category_ids:
+            return []
+        return self._category_ids
 
     @property
     def properties(self) -> Optional[List[ComponentParameter]]:
@@ -228,9 +238,11 @@ class ComponentCategory(object):
     Represents a category assigned to a component
     """
 
-    def __init__(self, id: str, label: Optional[str],
-                 image_location: Optional[str],
-                 description: Optional[str]):
+    def __init__(self, id: str,
+                 label: Optional[str] = "",
+                 image_location: Optional[str] = "",
+                 description: Optional[str] = "",
+                 components: Optional[List[Component]] = None):
         """
         :param id: A unique identifier for the category
         :param label: A ui-friendly label for the category
@@ -245,6 +257,7 @@ class ComponentCategory(object):
         self._label = label
         self._image_location = image_location
         self._description = description
+        self._components = components
 
     @property
     def id(self) -> str:
@@ -264,6 +277,16 @@ class ComponentCategory(object):
     def description(self) -> Optional[str]:
         return self._description
 
+    @property
+    def components(self) -> List[Component]:
+        if not self._components:
+            return []
+        return self._components
+
+    def append_component(self, component: Component) -> List[Component]:
+        self._components = self.components + [component]
+        return self._components
+
 
 class ComponentReader(LoggingConfigurable):
     """
@@ -275,9 +298,22 @@ class ComponentReader(LoggingConfigurable):
     def type(self) -> str:
         return self.type
 
+    @property
+    def base_type(self):
+        return self.type
+
     @abstractmethod
-    def read_component_definition(self, registry_entry: SimpleNamespace) -> str:
+    def read_component_definition(self, location: str) -> Optional[str]:
         raise NotImplementedError()
+
+    def get_list_of_paths(self, location_path: str) -> List[str]:
+        return [location_path]
+
+    def get_relative_location(self, component_path: str, parser_type: str) -> str:
+        """
+        Gets the relative path for a component
+        """
+        return component_path
 
 
 class FilesystemComponentReader(ComponentReader):
@@ -286,14 +322,44 @@ class FilesystemComponentReader(ComponentReader):
     """
     type = 'filename'
 
-    def read_component_definition(self, registry_entry: SimpleNamespace) -> Optional[str]:
-        component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', registry_entry.location)
+    def read_component_definition(self, location: str) -> Optional[str]:
+        component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', location)
         if not os.path.exists(component_path):
-            self.log.warning(f"Invalid location for component: {registry_entry.id} -> {component_path}")
+            self.log.warning(f"Invalid location for component: {component_path}")
             return None
 
         with open(component_path, 'r') as f:
             return f.read()
+
+    def get_relative_location(self, directory_path: str, component_file: str) -> str:
+        """
+        Gets the relative path for a component from a file-based registry
+        """
+        return f"{directory_path}/{component_file}"
+
+
+class DirectoryComponentReader(FilesystemComponentReader):
+    """
+    Read a component definition from the local filesystem
+    """
+    type = 'directory'
+
+    def get_list_of_paths(self, location_path: str) -> List[str]:
+        paths = []
+        dirpath = os.path.join(ENV_JUPYTER_PATH[0], 'components', location_path)
+        if not os.path.exists(dirpath):
+            self.log.warning(f"Invalid directory -> {location_path}")
+            return paths
+
+        for filename in os.listdir(dirpath):
+            if filename.endswith(".yaml") or filename.endswith(".py"):
+                paths.append(filename)
+
+        return paths
+
+    @property
+    def base_type(self):
+        return super().type
 
 
 class UrlComponentReader(ComponentReader):
@@ -302,27 +368,45 @@ class UrlComponentReader(ComponentReader):
     """
     type = 'url'
 
-    def read_component_definition(self, registry_entry: SimpleNamespace) -> Optional[str]:
+    def read_component_definition(self, location: str) -> Optional[str]:
         try:
-            res = requests.get(registry_entry.location)
+            res = requests.get(location)
         except Exception as e:
-            self.log.warning(f"Failed to connect to URL for component: {registry_entry.id} -> " +
-                             f"{registry_entry.location}: {str(e)}")
+            self.log.warning(f"Failed to connect to URL for component: {location}: {str(e)}")
             return None
 
         if res.status_code != HTTPStatus.OK:
-            self.log.warning(f"Invalid location for component: {registry_entry.id} -> {registry_entry.location} " +
-                             f"(HTTP code {res.status_code})")
+            self.log.warning(f"Invalid location for component: {location} (HTTP code {res.status_code})")
             return None
 
         return res.text
 
 
+class GitHubComponentReader(UrlComponentReader):
+    """
+    Read a component definition from a url
+    """
+    type = 'github'
+
+    def get_list_of_paths(self, location_path: str) -> List[str]:
+        pass
+
+    @property
+    def base_type(self):
+        return super().type
+
+
 class ComponentParser(LoggingConfigurable):  # ABC
+    _type = None
+
     _readers = {
         FilesystemComponentReader.type: FilesystemComponentReader(),
         UrlComponentReader.type: UrlComponentReader()
     }
+
+    @property
+    def type(self) -> str:
+        return self._type
 
     @abstractmethod
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
@@ -330,6 +414,15 @@ class ComponentParser(LoggingConfigurable):  # ABC
 
     def get_catalog_entry_id_for_component(self, component_id: str) -> str:
         return component_id
+
+    def get_component_id(self, location: str, name: str) -> str:
+        """
+        TODO
+        """
+        file_basename = os.path.basename(location)
+        filename = os.path.splitext(file_basename)[0]
+        component_name = filename + name.replace(' ', '')
+        return component_name
 
     def _get_reader(self, component_entry: SimpleNamespace) -> ComponentReader:
         """

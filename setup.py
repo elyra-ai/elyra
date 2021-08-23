@@ -36,7 +36,8 @@ auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.jso
 component_registry_path = './etc/config/components/*.json'
 components_kfp_path = './etc/config/components/kfp/*.yaml'
 components_airflow_path = './etc/config/components/airflow/*.py'
-metadata_path = './etc/config/metadata/runtime-images/*.json'
+metadata_path_runtime_image = './etc/config/metadata/runtime-images/*.json'
+metadata_path_registries = './etc/config/metadata/component-registries/*.json'
 settings_path = './etc/config/settings/*.json'
 
 setup_args = dict(
@@ -49,7 +50,8 @@ setup_args = dict(
     license="Apache License Version 2.0",
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
                 ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
-                ('share/jupyter/metadata/runtime-images', glob(metadata_path)),
+                ('share/jupyter/metadata/runtime-images', glob(metadata_path_runtime_image)),
+                ('share/jupyter/metadata/component-registries', glob(metadata_path_registries)),
                 ('share/jupyter/components', glob(component_registry_path)),
                 ('share/jupyter/components/kfp/', glob(components_kfp_path)),
                 ('share/jupyter/components/airflow/', glob(components_airflow_path)),

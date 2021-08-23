@@ -46,18 +46,19 @@ class AirflowComponentParser(ComponentParser):
 
         # If id is different from the catalog_entry_id, only parse for the class specified in the id.
         # Else, parse the component definition for all classes
+        '''
         if registry_entry.catalog_entry_id != registry_entry.id:
             component_class = registry_entry.id.split('_')[-1]
             component_properties = self._parse_properties(component_definition, component_class)
             components.append(Component(id=registry_entry.id,
                                         name=component_class,
                                         description='',
-                                        runtime=self._type,
-                                        source_type=registry_entry.type,
+                                        runtime=self.type,
+                                        source_type=registry_entry.reader.base_type,
                                         source=registry_entry.location,
                                         catalog_entry_id=registry_entry.catalog_entry_id,
                                         properties=component_properties,
-                                        category_id=registry_entry.category_id))
+                                        categories=registry_entry.categories))
         else:
             component_classes = self._get_all_classes(component_definition)
             for component_class in component_classes.keys():
@@ -65,12 +66,26 @@ class AirflowComponentParser(ComponentParser):
                 components.append(Component(id=f"{registry_entry.catalog_entry_id}_{component_class}",
                                             name=component_class,
                                             description='',
-                                            runtime=self._type,
-                                            source_type=registry_entry.type,
+                                            runtime=self.type,
+                                            source_type=registry_entry.reader.base_type,
                                             source=registry_entry.location,
                                             catalog_entry_id=registry_entry.catalog_entry_id,
                                             properties=component_properties,
-                                            category_id=registry_entry.category_id))
+                                            categories=registry_entry.categories))
+        '''
+        component_classes = self._get_all_classes(component_definition)
+        for component_class in component_classes.keys():
+            component_id = self.get_component_id(registry_entry.location, component_class)
+            component_properties = self._parse_properties(component_definition, component_class)
+            components.append(Component(id=component_id,
+                                        name=component_class,
+                                        description='',
+                                        runtime=self.type,
+                                        source_type=registry_entry.reader.base_type,
+                                        source=registry_entry.location,
+                                        catalog_entry_id="",
+                                        properties=component_properties,
+                                        categories=registry_entry.categories))
 
         return components
 
@@ -178,7 +193,8 @@ class AirflowComponentParser(ComponentParser):
         """
         Delegate to ComponentReader to read component definition
         """
-        reader = self._get_reader(registry_entry)
-        component_definition = reader.read_component_definition(registry_entry)
+        # reader = self._get_reader(registry_entry)
+        # component_definition = reader.read_component_definition(registry_entry)
+        component_definition = registry_entry.reader.read_component_definition(registry_entry.location)
 
         return component_definition
