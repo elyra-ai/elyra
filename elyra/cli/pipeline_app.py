@@ -142,10 +142,11 @@ def _preprocess_pipeline(pipeline_path: str,
 
     if not _validate_pipeline_runtime(primary_pipeline, runtime):
         pipeline_runtime_display_name = _get_runtime_display_name(primary_pipeline['app_data']['runtime'])
-        provided_runtime_display_name = _get_runtime_display_name(_get_runtime_type(runtime_config))
-        raise click.ClickException(
-            f"This pipeline requires an instance of {pipeline_runtime_display_name} runtime configuration.\n"
-            f"The specified configuration '{runtime_config}' is for {provided_runtime_display_name} runtime.")
+        msg = f"This pipeline requires an instance of {pipeline_runtime_display_name} runtime configuration.\n"
+        if runtime_config:
+            provided_runtime_display_name = _get_runtime_display_name(_get_runtime_type(runtime_config))
+            msg = f"{msg}The specified configuration '{runtime_config}' is for {provided_runtime_display_name} runtime."
+        raise click.ClickException(msg)
 
     # update pipeline transient fields
     primary_pipeline["app_data"]["name"] = pipeline_name
@@ -155,6 +156,8 @@ def _preprocess_pipeline(pipeline_path: str,
         primary_pipeline["app_data"]["runtime"] = runtime
     if runtime_config:
         primary_pipeline["app_data"]["runtime-config"] = runtime_config
+    else:
+        primary_pipeline["app_data"]["runtime-config"] = 'local'
 
     return pipeline_definition
 
@@ -301,7 +304,7 @@ def run(pipeline_path):
     _validate_pipeline_file_extension(pipeline_path)
 
     pipeline_definition = \
-        _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
+        _preprocess_pipeline(pipeline_path, runtime='local')
 
     _validate_pipeline_definition(pipeline_definition)
 
