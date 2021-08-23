@@ -331,7 +331,7 @@ class PipelineValidationManager(SingletonConfigurable):
         if not image_name:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidNodeProperty",
-                                 message="Node is missing image name",
+                                 message="Required property value is missing.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'runtime_image'})
@@ -455,10 +455,10 @@ class PipelineValidationManager(SingletonConfigurable):
         if not matched or matched.group(0) != node_label:
             response.add_message(severity=ValidationSeverity.Warning,
                                  message_type="invalidNodeLabel",
-                                 message="Property value contains invalid characters. Invalid characters "
-                                         "may be replaced by the runtime service. Node labels must "
+                                 message="The node label contains characters that may be replaced "
+                                         "by the runtime service. Node labels should "
                                          "start with lower case alphanumeric and contain "
-                                         "only lower case alphanumeric, underscores, dots and dashes",
+                                         "only lower case alphanumeric, underscores, dots, and dashes.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'label',
@@ -505,13 +505,23 @@ class PipelineValidationManager(SingletonConfigurable):
                             for link in node['inputs'][0]['links']:
                                 graph.add_edge(link['node_id_ref'], node['id'])
 
+        # for isolate in nx.isolates(graph):
+        #    if graph.number_of_nodes() > 1:
+        #        response.add_message(severity=ValidationSeverity.Warning,
+        #                             message_type="singletonReference",
+        #                             message="This node is not connected to any part of the pipeline",
+        #                             data={"nodeID": isolate,
+        #                                  "nodeNames": self._get_node_names(pipeline=pipeline, node_id_list=[isolate]),
+        #                                   "pipelineID": self._get_pipeline_id(pipeline, node_id=isolate)})
+
         for isolate in nx.isolates(graph):
             if graph.number_of_nodes() > 1:
                 response.add_message(severity=ValidationSeverity.Warning,
                                      message_type="singletonReference",
-                                     message="This node is not connected to any part of the pipeline",
+                                     message="This node is not connected to any other node.",
                                      data={"nodeID": isolate,
-                                           "nodeNames": self._get_node_names(pipeline=pipeline, node_id_list=[isolate]),
+                                           "nodeName":
+                                           self._get_node_names(pipeline=pipeline, node_id_list=[isolate])[0],
                                            "pipelineID": self._get_pipeline_id(pipeline, node_id=isolate)})
 
         cycles_detected = nx.simple_cycles(graph)
@@ -532,7 +542,7 @@ class PipelineValidationManager(SingletonConfigurable):
         for cycle_number, cycle_link_list in link_dict_table.items():
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="circularReference",
-                                 message="A cycle was found within this pipeline",
+                                 message="A cycle was found within this pipeline.",
                                  data={"cycleNumber": cycle_number,
                                        "nodeNames": self._get_node_names(pipeline=pipeline,
                                                                          node_id_list=cycle_link_list),
