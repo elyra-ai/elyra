@@ -164,13 +164,17 @@ def _print_issues(issues):
     # print validation issues
 
     for issue in sorted(issues, key=itemgetter('severity')):
-        output = f" [{SEVERITY[issue.get('severity')]}]"
+        severity = f" [{SEVERITY[issue.get('severity')]}]"
+        prefix = ''
+        postfix = ''
         if issue.get('data'):
             if issue['data'].get('nodeName'):
-                output = f"{output}[{issue['data'].get('nodeName')}]"
+                prefix = f"[{issue['data'].get('nodeName')}]"
             if issue['data'].get('propertyName'):
-                output = f"{output}[{issue['data'].get('propertyName')}]"
-        output = f"{output} - {issue['message']}"
+                prefix = f"{prefix}[{issue['data'].get('propertyName')}]"
+            if issue['data'].get('value'):
+                postfix = f"The current property value is '{issue['data'].get('value')}'."
+        output = f"{severity}{prefix} - {issue['message']} {postfix}"
         click.echo(output)
 
     click.echo("")

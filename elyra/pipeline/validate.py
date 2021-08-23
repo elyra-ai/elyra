@@ -505,6 +505,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             for link in node['inputs'][0]['links']:
                                 graph.add_edge(link['node_id_ref'], node['id'])
 
+        # TODO ptitzler remove
         # for isolate in nx.isolates(graph):
         #    if graph.number_of_nodes() > 1:
         #        response.add_message(severity=ValidationSeverity.Warning,
