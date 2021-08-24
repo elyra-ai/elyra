@@ -37,6 +37,8 @@ export class REditor extends ScriptEditor {
     this.title.icon = 'rIcon';
 
     this.initializeKernelSpecs();
+
+    this.context.ready.then(this.initializeDebugger);
   }
 }
 

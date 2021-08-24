@@ -39,6 +39,8 @@ export class PythonEditor extends ScriptEditor {
     this.title.icon = pyIcon;
 
     this.initializeKernelSpecs();
+
+    this.context.ready.then(this.initializeDebugger);
   }
 }
 

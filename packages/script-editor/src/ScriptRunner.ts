@@ -32,7 +32,7 @@ export interface IScriptOutput {
 }
 
 /**
- * Utility class to enable running scripts files in the context of a Kernel environment
+ * Utility class to enable running scripts in the context of a Kernel environment
  */
 export class ScriptRunner {
   sessionManager: SessionManager;

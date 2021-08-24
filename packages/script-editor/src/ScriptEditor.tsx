@@ -139,7 +139,7 @@ export class ScriptEditor extends DocumentWidget<
    * and populates toolbar kernel selector.
    * This function must be called by the classes that extends ScriptEditor.
    */
-  initializeKernelSpecs = async (): Promise<void> => {
+  protected initializeKernelSpecs = async (): Promise<void> => {
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
       this.editorLanguage
     );
@@ -155,15 +155,19 @@ export class ScriptEditor extends DocumentWidget<
       );
       this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
+  };
 
+  /**
+   * Function: Initializes debug features.
+   * This function must be called by the classes that extends ScriptEditor.
+   */
+  protected initializeDebugger = async (): Promise<void> => {
     const debuggerIsAvailable = await this.controller.isDebuggerAvailable(
       this.kernelName || ''
     );
     if (!debuggerIsAvailable) {
       this.disableButton(true, 'debug');
     }
-
-    console.log('Is debugger available? ' + debuggerIsAvailable);
   };
 
   /**
@@ -240,9 +244,10 @@ export class ScriptEditor extends DocumentWidget<
         break;
     }
 
-    (document.querySelector(
-      '#' + this.id + ' .' + buttonClass
-    ) as HTMLInputElement).disabled = disabled;
+    const buttonElement = document.querySelector(
+      '.' + buttonClass
+    ) as HTMLInputElement;
+    buttonElement.disabled = disabled;
   };
 
   /**
