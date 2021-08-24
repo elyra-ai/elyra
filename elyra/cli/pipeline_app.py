@@ -32,8 +32,8 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
-from elyra.pipeline.validate import PipelineValidationManager
-from elyra.pipeline.validate import ValidationSeverity
+from elyra.pipeline.validation import PipelineValidationManager
+from elyra.pipeline.validation import ValidationSeverity
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
