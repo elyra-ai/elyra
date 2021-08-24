@@ -169,11 +169,21 @@ def _print_issues(issues):
         postfix = ''
         if issue.get('data'):
             if issue['data'].get('nodeName'):
+                # issue is associated with a single node; display it
                 prefix = f"[{issue['data'].get('nodeName')}]"
             if issue['data'].get('propertyName'):
+                # issue is associated with a node property; display it
                 prefix = f"{prefix}[{issue['data'].get('propertyName')}]"
             if issue['data'].get('value'):
+                # issue is caused by the value of a node property; display it
                 postfix = f"The current property value is '{issue['data'].get('value')}'."
+            elif issue['data'].get('nodeNames') and isinstance(issue['data']['nodeNames'], list):
+                # issue is associated with multiple nodes
+                postfix = 'Nodes: '
+                separator = ''
+                for nn in issue['data']['nodeNames']:
+                    postfix = f"{postfix}{separator}'{nn}'"
+                    separator = ', '
         output = f"{severity}{prefix} - {issue['message']} {postfix}"
         click.echo(output)
 
