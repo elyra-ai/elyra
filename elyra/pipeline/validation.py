@@ -167,10 +167,12 @@ class PipelineValidationManager(SingletonConfigurable):
                                  message="Pipeline app_data 'version' is missing from primary pipeline.")
 
         # validate pipeline version compatibility
-        pipeline_version = int(primary_pipeline['app_data']['version'])
+        pipeline_version = int(primary_pipeline['app_data'].get('version', 0))
         if pipeline_version not in range(PIPELINE_CURRENT_VERSION + 1):
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message="Primary pipeline version field has an invalid value.")
+                                 message="Primary pipeline version field has an invalid value.",
+                                 data={"supported_version": PIPELINE_CURRENT_VERSION,
+                                       "detected_version": pipeline_version})
 
         elif pipeline_version < PIPELINE_CURRENT_VERSION:
             # Pipeline needs to be migrated
@@ -181,7 +183,9 @@ class PipelineValidationManager(SingletonConfigurable):
             # New version of Elyra is needed
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message='Pipeline was last edited in a newer version of Elyra. '
-                                         'Update Elyra to use this pipeline.')
+                                         'Update Elyra to use this pipeline.',
+                                 data={"supported_version": PIPELINE_CURRENT_VERSION,
+                                       "detected_version": pipeline_version})
 
         # Validate pipeline schema version
         if 'version' not in pipeline_json:
@@ -190,9 +194,11 @@ class PipelineValidationManager(SingletonConfigurable):
         if not isinstance(pipeline_json['version'], str):
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Primary pipeline version field should be a string.")
-        if float(pipeline_json['version']) < PIPELINE_CURRENT_SCHEMA:
+        if float(pipeline_json['version']) != PIPELINE_CURRENT_SCHEMA:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message="Incompatible pipeline schema version detected.")
+                                 message="Incompatible pipeline schema version detected.",
+                                 data={"supported_schema_version": PIPELINE_CURRENT_SCHEMA,
+                                       "detected_schema_version": float(pipeline_json['version'])})
 
     async def _validate_compatibility(self, pipeline: dict, pipeline_runtime: str,
                                       pipeline_execution: str, response: ValidationResponse) -> None:
