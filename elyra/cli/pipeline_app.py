@@ -197,9 +197,6 @@ def _validate_pipeline_definition(pipeline_definition):
     validation_response = asyncio.get_event_loop().run_until_complete(
         PipelineValidationManager.instance().validate(pipeline=pipeline_definition))
 
-    # TODO: ptitzler remove
-    print(validation_response.to_json())
-
     # print validation issues
     issues = validation_response.to_json().get('issues')
     _print_issues(issues)
