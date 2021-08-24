@@ -31,7 +31,9 @@ describe('Script Editor tests', () => {
 
   // Python Tests
   it('opens blank Python file from launcher', () => {
-    cy.get('[title="Create a new Python file"][tabindex="100"]').click();
+    cy.get(
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"]'
+    ).click();
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 
@@ -40,10 +42,9 @@ describe('Script Editor tests', () => {
   });
 
   it('opens blank Python file from menu', () => {
-    cy.get(':nth-child(1) > .lm-MenuBar-itemLabel').click();
-    cy.get(
-      ':nth-child(2) > .lm-Menu-itemSubmenuIcon > svg > .jp-icon3 > path'
-    ).click();
+    cy.findByRole('menuitem', { name: /file/i }).click();
+    cy.findByText(/^new$/i).click();
+
     cy.get(
       '[data-command="script-editor:create-new-python-file"] > .lm-Menu-itemLabel'
     ).click();
@@ -82,7 +83,9 @@ describe('Script Editor tests', () => {
 
   // R Tests
   it('opens blank R file from launcher', () => {
-    cy.get('[title="Create a new R file"][tabindex="100"]').click();
+    cy.get(
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R file"]'
+    ).click();
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 
@@ -91,10 +94,9 @@ describe('Script Editor tests', () => {
   });
 
   it('opens blank R file from menu', () => {
-    cy.get(':nth-child(1) > .lm-MenuBar-itemLabel').click();
-    cy.get(
-      ':nth-child(2) > .lm-Menu-itemSubmenuIcon > svg > .jp-icon3 > path'
-    ).click();
+    cy.findByRole('menuitem', { name: /file/i }).click();
+    cy.findByText(/^new$/i).click();
+
     cy.get(
       '[data-command="script-editor:create-new-r-file"] > .lm-Menu-itemLabel'
     ).click();

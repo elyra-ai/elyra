@@ -280,7 +280,6 @@ describe('Pipeline Editor tests', () => {
 
     // close tabs
     cy.closeTab(-1); // notebook tab
-    cy.findByRole('button', { name: /discard/i }).click();
     cy.closeTab(-1); // pipeline tab
 
     // Open a pipeline in a subfolder
@@ -315,7 +314,6 @@ describe('Pipeline Editor tests', () => {
 
     // close tabs
     cy.closeTab(-1); // notebook tab
-    cy.findByRole('button', { name: /discard/i }).click();
     cy.closeTab(-1); // pipeline tab
 
     // Open a pipeline in a subfolder
@@ -535,7 +533,6 @@ describe('Pipeline Editor tests', () => {
       'http-operator_SimpleHttpOperator',
       'spark-sql-operator_SparkSqlOperator',
       'spark-submit-operator_SparkSubmitOperator',
-      'slack-operator_SlackAPIOperator',
       'slack-operator_SlackAPIPostOperator'
     ];
 

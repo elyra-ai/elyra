@@ -24,6 +24,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
 
@@ -286,7 +287,7 @@ class FilesystemComponentReader(ComponentReader):
     type = 'filename'
 
     def read_component_definition(self, registry_entry: SimpleNamespace) -> Optional[str]:
-        component_path = os.path.join(os.path.dirname(__file__), "resources", registry_entry.location)
+        component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', registry_entry.location)
         if not os.path.exists(component_path):
             self.log.warning(f"Invalid location for component: {registry_entry.id} -> {component_path}")
             return None

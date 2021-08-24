@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import ast
 import os
 import tarfile
 from unittest import mock
 
-from kfp.components.structures import TaskSpec
+from kfp import compiler as kfp_argo_compiler
 import pytest
+import yaml
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import Component
@@ -191,10 +193,10 @@ def test_collect_envs(processor):
     assert 'USER_NO_VALUE' not in envs
 
 
-def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata):
+def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
     # Assign test resource location
-    url = 'https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/' \
-          'pipeline/resources/kfp/filter_text_using_shell_and_grep/component.yaml'
+    url = 'https://raw.githubusercontent.com/elyra-ai/elyra/master/' \
+          'elyra/pipeline/tests/resources/components/filter_text.yaml'
 
     # Instantiate a url-based component
     component = Component(id="filter-text",
@@ -203,18 +205,24 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           op="filter-text",
                           source_type="url",
                           source=url,
-                          properties=[])
+                          properties=[],
+                          catalog_entry_id="")
 
     # Replace cached component registry with single url-based component for testing
     processor._component_registry._cached_components = [component]
 
     # Construct hypothetical operation for component
+    operation_name = "Filter text test"
+    operation_params = {
+        "text": "path/to/text.txt",
+        "pattern": "hello"
+    }
     operation = Operation(id='filter-text-id',
                           type='execution_node',
                           classifier='filter-text',
-                          name='Filter text',
+                          name=operation_name,
                           parent_operation_ids=[],
-                          component_params={"text": "resources/components/filter.txt", "pattern": "hello"})
+                          component_params=operation_params)
 
     # Build a mock runtime config for use in _cc_pipeline
     mocked_runtime = Metadata(name="test-metadata",
@@ -227,40 +235,63 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
 
     # Construct single-operation pipeline
     pipeline = Pipeline(id='pipeline-id',
-                        name='untitled',
+                        name='kfp_test',
                         runtime='kfp',
                         runtime_config='test',
                         source='filter_text.pipeline')
     pipeline.operations[operation.id] = operation
 
-    # Process pipeline with a scaled-down version of the processor cc_pipeline function
-    constructed_pipeline = processor._cc_pipeline(pipeline=pipeline, pipeline_name='test_pipeline')
+    # Establish path and function to construct pipeline
+    pipeline_path = os.path.join(tmpdir, 'kfp_test.yaml')
+    constructed_pipeline_function = lambda: processor._cc_pipeline(pipeline=pipeline, pipeline_name='test_pipeline')
 
-    # Ensure the pipeline operation was properly processed for execution, creating a KFP TaskSpec object
-    assert isinstance(constructed_pipeline[operation.id], TaskSpec)
-    assert constructed_pipeline[operation.id].component_ref.url == url
+    # TODO Check against both argo and tekton compilations
+    # Compile pipeline and save into pipeline_path
+    kfp_argo_compiler.Compiler().compile(constructed_pipeline_function, pipeline_path)
+
+    # Read contents of pipeline YAML
+    with open(pipeline_path) as f:
+        pipeline_yaml = yaml.safe_load(f.read())
+
+    # Check the pipeline file contents for correctness
+    pipeline_template = pipeline_yaml['spec']['templates'][0]
+    assert pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/task_display_name'] == operation_name
+    assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
+
+    component_ref = pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/component_ref']
+    component_ref = ast.literal_eval(component_ref)
+    assert component_ref['url'] == url
 
 
-def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata):
+def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+    # Assign test resource location
+    relative_path = "kfp/filter_text_using_shell_and_grep.yaml"
+
     # Instantiate a file-based component
     component = Component(id="filter-text",
                           name="Filter text",
                           description="",
                           op="filter-text",
                           source_type="filename",
-                          source="kfp/filter_text_using_shell_and_grep/component.yaml",
-                          properties=[])
+                          source=relative_path,
+                          properties=[],
+                          catalog_entry_id="")
 
     # Replace cached component registry with single filename-based component for testing
     processor._component_registry._cached_components = [component]
 
     # Construct hypothetical operation for component
+    operation_name = "Filter text test"
+    operation_params = {
+        "text": "path/to/text.txt",
+        "pattern": "hello"
+    }
     operation = Operation(id='filter-text-id',
                           type='execution_node',
                           classifier='filter-text',
-                          name='Filter text',
+                          name=operation_name,
                           parent_operation_ids=[],
-                          component_params={"text": "resources/components/filter.txt", "pattern": "hello"})
+                          component_params=operation_params)
 
     # Build a mock runtime config for use in _cc_pipeline
     mocked_runtime = Metadata(name="test-metadata",
@@ -273,17 +304,29 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
 
     # Construct single-operation pipeline
     pipeline = Pipeline(id='pipeline-id',
-                        name='untitled',
+                        name='kfp_test',
                         runtime='kfp',
-                        runtime_config='test-metadata',
+                        runtime_config='test',
                         source='filter_text.pipeline')
     pipeline.operations[operation.id] = operation
 
-    # Process pipeline with a scaled-down version of the processor cc_pipeline function
-    constructed_pipeline = processor._cc_pipeline(pipeline=pipeline, pipeline_name='test_pipeline')
+    # Establish path and function to construct pipeline
+    pipeline_path = os.path.join(tmpdir, 'kfp_test.yaml')
+    constructed_pipeline_function = lambda: processor._cc_pipeline(pipeline=pipeline, pipeline_name='test_pipeline')
 
-    # Ensure the pipeline operation was properly processed for execution, creating a KFP TaskSpec object
-    assert isinstance(constructed_pipeline[operation.id], TaskSpec)
+    # TODO Check against both argo and tekton compilations
+    # Compile pipeline and save into pipeline_path
+    kfp_argo_compiler.Compiler().compile(constructed_pipeline_function, pipeline_path)
 
-    filename = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources", component.source))
-    assert constructed_pipeline[operation.id].component_ref.url == filename
+    # Read contents of pipeline YAML
+    with open(pipeline_path) as f:
+        pipeline_yaml = yaml.safe_load(f.read())
+
+    # Check the pipeline file contents for correctness
+    pipeline_template = pipeline_yaml['spec']['templates'][0]
+    assert pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/task_display_name'] == operation_name
+    assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
+
+    component_ref = pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/component_ref']
+    component_ref = ast.literal_eval(component_ref)
+    assert relative_path in component_ref['url']

@@ -44,7 +44,7 @@ OR
 - An existing Apache Airflow cluster 
     - Ensure Apache Airflow is at least v1.10.8 and below v2.0.0. Other versions might work but have not been tested.
     - Apache Airflow is configured to use the Kubernetes Executor.
-    - The [`airflow-notebook`](https://pypi.org/project/airflow-notebook/) operator package is installed on the webserver, scheduler, and workers.  
+    - Ensure the KubernetesPodOperator is installed and available in the Apache Airflow deployment
     
 ## Setting up a DAG repository on GitHub
 
@@ -115,8 +115,6 @@ To deploy Apache Airflow on a new Kubernetes cluster:
        refreshTime: 10
    ```
 
-   Note: The example configuration references the pre-built `elyra/airflow` container image, which has the [`airflow-notebook` package](https://pypi.org/project/airflow-notebook/) pre-installed. This package contains the [operator](https://github.com/elyra-ai/airflow-notebook) that supports running of Jupyter notebooks or Python scripts as tasks.
-
    ```bash
    airflow:
    ## configs for the docker image of the web/scheduler/worker
@@ -139,6 +137,5 @@ Once Apache Airflow is deployed you are ready to create and run pipelines, as de
 
 To enable running of notebook pipelines on an existing Apache Airflow deployment  
 - Enable Git as DAG storage by customizing the [Git settings in `airflow.cfg`](https://github.com/apache/airflow/blob/6416d898060706787861ff8ecbc4363152a35f45/airflow/config_templates/default_airflow.cfg#L913).
-- Install the [`airflow-notebook` Python package](https://github.com/elyra-ai/airflow-notebook) in the web-server, scheduler, and worker pods.
 
 Once Apache Airflow is deployed you are ready to create and run pipelines, as described in the [tutorial](../getting_started/tutorials).

@@ -33,9 +33,11 @@ from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
 from elyra.pipeline.handlers import PipelineSchedulerHandler
+from elyra.pipeline.handlers import PipelineValidationHandler
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.validate import PipelineValidationManager
 
 
 DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
@@ -85,6 +87,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
             (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
              PipelineComponentPropertiesHandler),
             (f'/{self.name}/contents/properties/{path_regex}', ContentHandler),
+            (f'/{self.name}/elyra/pipeline/validate', PipelineValidationHandler),
         ])
 
     def initialize_settings(self):
@@ -93,6 +96,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         # root_dir to PipelineProcessorManager.
         PipelineProcessorRegistry.instance(root_dir=self.settings['server_root_dir'], parent=self)
         PipelineProcessorManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
+        PipelineValidationManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
         FileMetadataCache.instance(parent=self)
         SchemaManager.instance(parent=self)
 

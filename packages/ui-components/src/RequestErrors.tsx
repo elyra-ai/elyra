@@ -25,6 +25,22 @@ import { ExpandableErrorDialog } from './ExpandableErrorDialog';
  */
 export class RequestErrors {
   /**
+   * An utility function that takes in a json object of issues and formats them
+   * into a multiline string to be placed in the expandable error dialog.
+   *
+   * @param issues - A json object containing a list of issues
+   *
+   * @returns A human readable multiline string for displaying the issues
+   */
+  private static formatIssues(issues: any): string {
+    let formatted = '';
+    for (const issue of issues) {
+      formatted += JSON.stringify(issue, null, 2) + '\n';
+    }
+    return formatted;
+  }
+
+  /**
    * Displays an error dialog showing error data and stacktrace, if available.
    *
    * @param response - The server response containing the error data
@@ -39,7 +55,11 @@ export class RequestErrors {
     const reason = response.reason ? response.reason : '';
     const message = response.message ? response.message : '';
     const timestamp = response.timestamp ? response.timestamp : '';
-    const traceback = response.traceback ? response.traceback : '';
+    const traceback = response.issues
+      ? this.formatIssues(response.issues)
+      : response.traceback
+      ? response.traceback
+      : '';
     const defaultBody = response.timestamp
       ? 'Check the JupyterLab log for more details at ' + response.timestamp
       : 'Check the JupyterLab log for more details';

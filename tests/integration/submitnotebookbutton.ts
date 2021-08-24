@@ -52,9 +52,7 @@ describe('Submit Notebook Button tests', () => {
     // Click submit notebook button
     cy.findByText(/run as pipeline/i).click();
 
-    // NOTE: This doesn't show anymore, is this a regression or expected?
-    // Should have warning for unsaved changes
-    // cy.findByRole('button', { name: /save and submit/i }).click();
+    cy.findByRole('button', { name: /save and submit/i }).click();
 
     cy.findByText(/run notebook as pipeline/i).should('exist');
 

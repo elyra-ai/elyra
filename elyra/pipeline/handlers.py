@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from datetime import datetime
+from http.client import responses
 import json
 from typing import List
 from typing import Optional
@@ -26,6 +28,7 @@ from elyra.pipeline.component import ComponentCategory
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.validate import PipelineValidationManager
 from elyra.util.http import HttpErrorMixin
 
 
@@ -52,25 +55,38 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         pipeline_export_path = payload['export_path']
         pipeline_overwrite = payload['overwrite']
 
-        pipeline = PipelineParser(root_dir=self.settings['server_root_dir'], parent=parent).parse(pipeline_definition)
+        response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
+        self.log.debug(f"Validation checks completed. Results as follows: {response.to_json()}")
 
-        pipeline_exported_path = await PipelineProcessorManager.instance().export(
-            pipeline,
-            pipeline_export_format,
-            pipeline_export_path,
-            pipeline_overwrite
-        )
-        json_msg = json.dumps({"export_path": pipeline_export_path})
+        if not response.has_fatal:
+            pipeline = PipelineParser(root_dir=self.settings['server_root_dir'],
+                                      parent=parent).parse(pipeline_definition)
 
-        self.set_status(201)
-        self.set_header("Content-Type", 'application/json')
-        location = url_path_join(
-            self.base_url,
-            'api',
-            'contents',
-            pipeline_exported_path
-        )
-        self.set_header('Location', location)
+            pipeline_exported_path = await PipelineProcessorManager.instance().export(
+                pipeline,
+                pipeline_export_format,
+                pipeline_export_path,
+                pipeline_overwrite
+            )
+            json_msg = json.dumps({"export_path": pipeline_export_path})
+            self.set_status(201)
+            self.set_header("Content-Type", 'application/json')
+            location = url_path_join(
+                self.base_url,
+                'api',
+                'contents',
+                pipeline_exported_path
+            )
+            self.set_header('Location', location)
+        else:
+            json_msg = json.dumps({
+                'reason': responses.get(400),
+                'message': 'Errors found in pipeline',
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'issues': response.to_json().get('issues')
+            })
+            self.set_status(400)
+
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
 
@@ -92,12 +108,26 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         pipeline_definition = self.get_json_body()
         self.log.debug("JSON payload: %s", pipeline_definition)
 
-        pipeline = PipelineParser(root_dir=self.settings['server_root_dir'], parent=parent).parse(pipeline_definition)
+        response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
 
-        response = await PipelineProcessorManager.instance().process(pipeline)
-        json_msg = json.dumps(response.to_json())
+        self.log.debug(f"Validation checks completed. Results as follows: {response.to_json()}")
 
-        self.set_status(200)
+        if not response.has_fatal:
+            self.log.debug("Processing the pipeline submission and executing request")
+            pipeline = PipelineParser(root_dir=self.settings['server_root_dir'],
+                                      parent=parent).parse(pipeline_definition)
+            response = await PipelineProcessorManager.instance().process(pipeline)
+            json_msg = json.dumps(response.to_json())
+            self.set_status(200)
+        else:
+            json_msg = json.dumps({
+                'reason': responses.get(400),
+                'message': 'Errors found in pipeline',
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'issues': response.to_json().get('issues')
+            })
+            self.set_status(400)
+
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
 
@@ -140,4 +170,29 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
+
         self.finish(properties_json)
+
+
+class PipelineValidationHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose method calls to validate pipeline payloads for errors"""
+
+    @web.authenticated
+    async def get(self):
+        msg_json = dict(title="GET requests are not supported.")
+        self.write(msg_json)
+        self.flush()
+
+    @web.authenticated
+    async def post(self):
+        self.log.debug("Pipeline Validation Handler now executing post request")
+
+        pipeline_definition = self.get_json_body()
+        self.log.debug("Pipeline payload: %s", pipeline_definition)
+
+        response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
+        json_msg = response.to_json()
+
+        self.set_status(200)
+        self.set_header("Content-Type", 'application/json')
+        self.finish(json_msg)

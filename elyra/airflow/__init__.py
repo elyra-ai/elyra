@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:experimental
 #
 # Copyright 2018-2021 Elyra Authors
 #
@@ -14,9 +13,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-FROM apache/airflow:1.10.12-python3.6
-
-ARG AIRFLOW_NOTEBOOK_VERSION
-
-RUN python -m pip install airflow-notebook==$AIRFLOW_NOTEBOOK_VERSION --user

@@ -28,6 +28,7 @@ from black import FileMode
 from black import format_str
 from jinja2 import Environment
 from jinja2 import PackageLoader
+from jupyter_core.paths import ENV_JUPYTER_PATH
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
@@ -145,11 +146,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # will be stored
             cos_directory = f'{pipeline_name}-{timestamp}'
 
-        except MaxRetryError as ex:
-            raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
+        except (requests.exceptions.ConnectionError, MaxRetryError) as ce:
+            raise RuntimeError(f"Error connecting to pipeline server {api_endpoint}.  Check the "
+                               f"Kubeflow Pipelines connection information in runtime "
+                               f"configuration '{pipeline.runtime_config}'.") from ce
         except LocationValueError as lve:
             if api_username:
-                raise ValueError("Failure occurred uploading pipeline, check your credentials") from lve
+                raise ValueError(f"Failure occurred uploading pipeline. Check the "
+                                 f"Kubeflow Pipelines credentials in runtime "
+                                 f"configuration '{pipeline.runtime_config}'.") from lve
             else:
                 raise lve
 
@@ -511,7 +516,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             # If file can't be found locally, assume a remote file location was entered.
                             # This may cause the pipeline run to fail; the user must debug in this case.
                             pass
-                    elif component_property.type in ['dict', 'dictionary']:
+                    elif component_property.type in ['dictionary', 'list']:
                         # Get corresponding property value from parsed pipeline and convert
                         op_property = operation.component_params.get(component_property.ref)
                         operation.component_params[component_property.ref] = ast.literal_eval(op_property)
@@ -519,7 +524,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Get absolute path of component source
                 component_path = component.source
                 if component.source_type == "filename":
-                    component_path = os.path.join(os.path.dirname(__file__), "resources", component_path)
+                    component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', component_path)
 
                 component_source = {}
                 component_source[component.source_type] = component_path
