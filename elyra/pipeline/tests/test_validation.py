@@ -52,7 +52,7 @@ def test_invalid_lower_pipeline_version(validation_manager, load_pipeline):
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidPipeline'
-    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value'
+    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value.'
 
 
 def test_invalid_upper_pipeline_version(validation_manager, load_pipeline):
@@ -64,7 +64,7 @@ def test_invalid_upper_pipeline_version(validation_manager, load_pipeline):
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidPipeline'
-    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value'
+    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value.'
 
 
 def test_invalid_pipeline_version_that_needs_migration(validation_manager, load_pipeline):
