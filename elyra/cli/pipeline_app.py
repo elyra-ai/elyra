@@ -17,6 +17,7 @@
 import asyncio
 from collections import OrderedDict
 import json
+from operator import itemgetter
 import os
 from typing import Optional
 import warnings
@@ -161,42 +162,47 @@ def _preprocess_pipeline(pipeline_path: str,
 
 def _print_issues(issues):
     # print validation issues
-    for issue in issues:
-        if issue.get('severity') == ValidationSeverity.Error:
-            if issue.get('data'):
-                node_name = issue["data"].get("nodeName")
-                property_name = issue["data"].get("propertyName")
-                click.echo(
-                    f'- (Fatal error on node \'{node_name}\' property \'{property_name}\') '
-                    f'- {issue["message"]}')
-            else:
-                click.echo(
-                    f'- Fatal error - {issue["message"]}')
-        else:
-            # TODO check warning nodeNames are empty
-            severity = SEVERITY[issue.get('severity')]
-            click.echo(f'- ({severity}) - {issue["message"]}')
+
+    for issue in sorted(issues, key=itemgetter('severity')):
+        severity = f" [{SEVERITY[issue.get('severity')]}]"
+        prefix = ''
+        postfix = ''
+        if issue.get('data'):
+            if issue['data'].get('nodeName'):
+                # issue is associated with a single node; display it
+                prefix = f"[{issue['data'].get('nodeName')}]"
+            if issue['data'].get('propertyName'):
+                # issue is associated with a node property; display it
+                prefix = f"{prefix}[{issue['data'].get('propertyName')}]"
+            if issue['data'].get('value'):
+                # issue is caused by the value of a node property; display it
+                postfix = f"The current property value is '{issue['data'].get('value')}'."
+            elif issue['data'].get('nodeNames') and isinstance(issue['data']['nodeNames'], list):
+                # issue is associated with multiple nodes
+                postfix = 'Nodes: '
+                separator = ''
+                for nn in issue['data']['nodeNames']:
+                    postfix = f"{postfix}{separator}'{nn}'"
+                    separator = ', '
+        output = f"{severity}{prefix} - {issue['message']} {postfix}"
+        click.echo(output)
 
     click.echo("")
 
 
 def _validate_pipeline_definition(pipeline_definition):
+
+    click.echo("Validating pipeline...")
     # validate pipeline
     validation_response = asyncio.get_event_loop().run_until_complete(
         PipelineValidationManager.instance().validate(pipeline=pipeline_definition))
 
+    # print validation issues
+    issues = validation_response.to_json().get('issues')
+    _print_issues(issues)
+
     if validation_response.has_fatal:
-        click.echo('Pipeline validation FAILED:')
-
-        # print validation issues
-        issues = validation_response.to_json().get('issues')
-        _print_issues(issues)
-
-        raise click.ClickException("Error validating pipeline.")
-    else:
-        # print validation issues
-        issues = validation_response.to_json().get('issues')
-        _print_issues(issues)
+        raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
 
 
 def _execute_pipeline(pipeline_definition):
