@@ -165,7 +165,7 @@ class PipelineValidationManager(SingletonConfigurable):
         elif 'version' not in primary_pipeline['app_data']:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Pipeline app_data 'version' is missing from primary pipeline.")
-        elif not int(primary_pipeline['app_data']['version']) > 0:
+        elif int(primary_pipeline['app_data']['version']) <= 0:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Primary pipeline version field has an invalid value.")
 
@@ -259,7 +259,6 @@ class PipelineValidationManager(SingletonConfigurable):
                     node_data = node['app_data'].get('component_parameters') or node['app_data']
 
                     if Operation.is_generic_operation(node['op']):
-                        resource_name_list = ['cpu', 'gpu', 'memory']
                         image_name = node_data.get('runtime_image')
                         filename = node_data.get("filename")
                         dependencies = node_data.get("dependencies")
@@ -271,7 +270,7 @@ class PipelineValidationManager(SingletonConfigurable):
                         # If not running locally, we check resource and image name
                         if pipeline_execution != 'local':
                             self._validate_container_image_name(node['id'], node_label, image_name, response=response)
-                            for resource_name in resource_name_list:
+                            for resource_name in ['cpu', 'gpu', 'memory']:
                                 if resource_name in node_data.keys() and node_data.get(resource_name):
                                     self._validate_resource_value(node['id'], node_label, resource_name=resource_name,
                                                                   resource_value=node_data[resource_name],
@@ -526,7 +525,7 @@ class PipelineValidationManager(SingletonConfigurable):
             size_of_cycle = len(cycle)
             if cycle_counter not in link_dict_table:
                 link_dict_table[cycle_counter] = []
-            for i in range(0, size_of_cycle):
+            for i in range(size_of_cycle):
                 if i == size_of_cycle - 1:
                     link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[0]))
                 else:
