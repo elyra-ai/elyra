@@ -18,6 +18,7 @@ import io
 import json
 import os
 from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -27,6 +28,7 @@ from elyra.metadata.error import MetadataExistsError
 from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.schema import SchemaFilter
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
 
@@ -180,7 +182,7 @@ def create_instance(metadata_store: MetadataStore, location: str, name: str, con
     return resource
 
 
-def get_schema(schema_name):
+def get_unfiltered_schema(schema_name):
     schema_file = os.path.join(os.path.dirname(__file__), '..', 'schemas', schema_name + '.json')
     if not os.path.exists(schema_file):
         raise ValidationError("Metadata schema file '{}' is missing!".format(schema_file))
@@ -348,3 +350,24 @@ class MockMetadataTestInvalid(object):
     """
     def __init__(self, **kwargs: Any) -> None:
         pass
+
+
+class TestSchemaFilter(SchemaFilter):
+    """Test schema filter to validate schema filtering """
+    def post_load(self, name: str, schema_json: Dict) -> Dict:
+        """Ensure tekton packages are present and remove engine from schema if not."""
+
+        filtered_schema = super().post_load(name, schema_json)
+
+        # Update multipleOf from 7 to 6 and and value 'added' to enum-valued property
+        multiple_of: int = \
+            filtered_schema['properties']['metadata']['properties']['integer_multiple_test']['multipleOf']
+        assert multiple_of == 7
+        filtered_schema['properties']['metadata']['properties']['integer_multiple_test']['multipleOf'] = 6
+
+        enum: list = filtered_schema['properties']['metadata']['properties']['enum_test']['enum']
+        assert len(enum) == 2
+        enum.append('added')
+        filtered_schema['properties']['metadata']['properties']['enum_test']['enum'] = enum
+
+        return filtered_schema

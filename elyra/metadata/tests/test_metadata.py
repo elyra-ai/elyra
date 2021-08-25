@@ -38,10 +38,11 @@ from elyra.metadata.storage import MetadataStore
 from elyra.metadata.tests.test_utils import byo_metadata_json
 from elyra.metadata.tests.test_utils import create_instance
 from elyra.metadata.tests.test_utils import create_json_file
-from elyra.metadata.tests.test_utils import get_schema
+from elyra.metadata.tests.test_utils import get_unfiltered_schema
 from elyra.metadata.tests.test_utils import invalid_metadata_json
 from elyra.metadata.tests.test_utils import invalid_no_display_name_json
 from elyra.metadata.tests.test_utils import MockMetadataStore
+from elyra.metadata.tests.test_utils import TestSchemaFilter
 from elyra.metadata.tests.test_utils import valid_display_name_json
 from elyra.metadata.tests.test_utils import valid_metadata_json
 
@@ -703,7 +704,7 @@ def test_store_delete_instance(store_manager, namespace_location):
 def test_schema_manager_all(schema_manager):
     schema_manager.clear_all()
 
-    test_schema_json = get_schema('metadata-test')
+    test_schema_json = get_unfiltered_schema('metadata-test')
 
     with pytest.raises(ValueError):
         schema_manager.add_schema("foo", "metadata-test", test_schema_json)
@@ -734,7 +735,8 @@ def test_schema_manager_all(schema_manager):
     schema_manager.clear_all()  # Ensure test schema has been restored
     test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
     assert test_schema is not None
-    assert test_schema == test_schema_json
+    # Since test_schema is filtered and test_schema_json is unfiltered, apply filtering for comparison
+    assert test_schema == TestSchemaFilter().post_load("metadata-test", test_schema_json)
 
 
 # ########################## Error Tests ###########################

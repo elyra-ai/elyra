@@ -52,8 +52,7 @@ def mock_data_dir():
 def test_no_opts(script_runner):
     ret = script_runner.run('elyra-metadata')
     assert ret.success is False
-    assert ret.stdout.startswith("No subcommand specified. Must specify one of: ['list', 'install', 'remove']")
-    assert ret.stderr == ''
+    assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove']" in ret.stdout
 
 
 def test_bad_subcommand(script_runner):
@@ -61,7 +60,6 @@ def test_bad_subcommand(script_runner):
     assert ret.success is False
     assert ret.stdout.startswith("Subcommand 'bogus-subcommand' is invalid.")
     assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove']" in ret.stdout
-    assert ret.stderr == ''
 
 
 def test_install_bad_argument(script_runner):
@@ -77,14 +75,12 @@ def test_install_bad_namespace(script_runner):
     assert ret.stdout.startswith("Subcommand 'bogus-namespace' is invalid.")
     assert "Install a metadata instance into a given namespace." in ret.stdout
     assert "Install a metadata instance into namespace \'{}\'.".format(METADATA_TEST_NAMESPACE) in ret.stdout
-    assert ret.stderr == ''
 
 
 def test_install_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--help')
     assert ret.success is False
     assert ret.stdout.startswith("\nInstall a metadata instance into namespace '{}'.".format(METADATA_TEST_NAMESPACE))
-    assert ret.stderr == ''
 
 
 def test_install_no_schema_single(script_runner, mock_data_dir):
@@ -93,7 +89,6 @@ def test_install_no_schema_single(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', "runtime-images")
     assert ret.success is False
     assert ret.stdout.startswith("'--display_name' is a required parameter.")
-    assert ret.stderr == ''
 
 
 def test_install_no_schema_multiple(script_runner, mock_data_dir):
@@ -103,21 +98,18 @@ def test_install_no_schema_multiple(script_runner, mock_data_dir):
     # first known difference in the schema names.
     assert ret.stdout.startswith("'--schema_name' is a required parameter and must be one of the "
                                  "following values: ['metadata-test")
-    assert ret.stderr == ''
 
 
 def test_install_bad_schema_multiple(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-foo')
     assert ret.success is False
     assert ret.stdout.startswith("Parameter '--schema_name' requires one of the following values: ['metadata-test")
-    assert ret.stderr == ''
 
 
 def test_install_no_name(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test')
     assert ret.success is False
     assert ret.stdout.startswith("'--display_name' is a required parameter.")
-    assert ret.stderr == ''
 
 
 def test_install_only_display_name(script_runner, mock_data_dir):
@@ -218,14 +210,12 @@ def test_list_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--help')
     assert ret.success is False
     assert ret.stdout.startswith("\nList installed metadata for {}.".format(METADATA_TEST_NAMESPACE))
-    assert ret.stderr == ''
 
 
 def test_list_bad_argument(script_runner):
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--bogus-argument')
     assert ret.success is False
     assert ret.stdout.startswith("The following arguments were unexpected: ['--bogus-argument']")
-    assert ret.stderr == ''
 
 
 def test_list_instances(script_runner, mock_data_dir):
@@ -262,7 +252,6 @@ def test_list_instances(script_runner, mock_data_dir):
     assert line_elements[2][1] == "valid"
     assert line_elements[3][0] == "metadata-test"
     assert line_elements[3][1] == "valid2"
-    assert ret.stderr == ''
 
     # Remove the '2' runtimes and reconfirm smaller set
     metadata_manager.remove('valid2')
@@ -321,7 +310,6 @@ def test_list_json_instances(script_runner, mock_data_dir):
 
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_NAMESPACE, '--json')
     assert ret.success
-    assert ret.stderr == ''
     # Consume results
     results = json.loads(ret.stdout)
     assert len(results) == 4
@@ -350,14 +338,12 @@ def test_remove_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--help')
     assert ret.success is False
     assert ret.stdout.startswith("\nRemove a metadata instance from namespace '{}'.".format(METADATA_TEST_NAMESPACE))
-    assert ret.stderr == ''
 
 
 def test_remove_no_name(script_runner):
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE)
     assert ret.success is False
     assert ret.stdout.startswith("'--name' is a required parameter.")
-    assert ret.stderr == ''
 
 
 def test_remove_malformed_name(script_runner):
@@ -365,7 +351,6 @@ def test_remove_malformed_name(script_runner):
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name', 'valid')
     assert ret.success is False
-    assert ret.stderr == ''
     assert "Parameter '--name' requires a value." in ret.stdout
 
 
@@ -377,7 +362,6 @@ def test_remove_missing(script_runner):
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=missing')
     assert ret.success is False
-    assert ret.stderr == ''
     assert "No such instance named 'missing' was found in the metadata-tests namespace." in ret.stdout
 
     # Now cleanup original instance.
@@ -516,8 +500,8 @@ def test_integer_multiple(script_runner, mock_data_dir):
     prop_test.negative_value = 32
     prop_test.negative_stdout = "Property used to test integers with multipleOf restrictions"
     #  this can be joined with previous if adding meta-properties
-    #  "; title: Integer Multiple Test, multipleOf: 7"
-    prop_test.negative_stderr = "32 is not a multiple of 7"
+    #  "; title: Integer Multiple Test, multipleOf: 6"
+    prop_test.negative_stderr = "32 is not a multiple of 6"
     prop_test.positive_value = 42
     prop_test.run(script_runner, mock_data_dir)
 
@@ -571,9 +555,9 @@ def test_enum(script_runner, mock_data_dir):
     prop_test.negative_value = "jupyter"
     prop_test.negative_stdout = "Property used to test properties with enums"
     #  this can be joined with previous if adding meta-properties
-    #  "; title: Enum Test, enum: ['elyra', 'rocks']"
-    prop_test.negative_stderr = "'jupyter' is not one of ['elyra', 'rocks']"
-    prop_test.positive_value = "rocks"
+    #  "; title: Enum Test, enum: ['elyra', 'rocks', 'added']"
+    prop_test.negative_stderr = "'jupyter' is not one of ['elyra', 'rocks', 'added']"
+    prop_test.positive_value = "added"
     prop_test.run(script_runner, mock_data_dir)
 
 
