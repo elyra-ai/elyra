@@ -78,7 +78,8 @@ Refer to the topics below for detailed information on how to use `elyra-metadata
 
 ### Working with pipelines
 
-In Elyra, [a pipeline](https://elyra.readthedocs.io/en/latest/user_guide/pipelines.html) is a representation of a workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow.
+In Elyra, [a pipeline](https://elyra.readthedocs.io/en/latest/user_guide/pipelines.html) is a representation of a
+workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow.
 
 #### Getting help
 
@@ -96,7 +97,6 @@ $ elyra-pipeline run --help
 #### Running pipelines
 
 Refer to the topics below for detailed information on how to use `elyra-pipeline` to
+ - [Display pipeline information summary](pipelines.html#running-a-pipeline-using-the-command-line)
  - [Run a pipeline locally](pipelines.html#running-a-pipeline-using-the-command-line)
  - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-using-the-command-line)
-
-
