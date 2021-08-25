@@ -28,18 +28,22 @@ from elyra.pipeline.component import ComponentParser
 
 class KfpComponentParser(ComponentParser):
     _type = "kfp"
+    _file_types = [".yaml"]
 
     def __init__(self):
         super().__init__()
 
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
+        # Get YAML object from component definition
         component_yaml = self._read_component_yaml(registry_entry)
         if not component_yaml:
             return None
 
+        # Assign component_id and description
         component_id = self.get_component_id(registry_entry.location, component_yaml.get('name', ''))
         description = ""
         if component_yaml.get('description'):
+            # Remove whitespace characters and replace with spaces
             description = ' '.join(component_yaml.get('description').split())
 
         component_properties = self._parse_properties(component_yaml)
@@ -48,9 +52,8 @@ class KfpComponentParser(ComponentParser):
                               name=component_yaml.get('name'),
                               description=description,
                               runtime=self.type,
-                              source_type=registry_entry.reader.base_type,
+                              source_type=registry_entry.type,
                               source=registry_entry.location,
-                              catalog_entry_id="",
                               properties=component_properties,
                               categories=registry_entry.categories)
 
@@ -116,14 +119,13 @@ class KfpComponentParser(ComponentParser):
 
     def _read_component_yaml(self, registry_entry: SimpleNamespace) -> Optional[Dict[str, Any]]:
         """
-        Convert component_body string to YAML object.
+        Convert component_definition string to YAML object
         """
         try:
-            # reader = self._get_reader(registry_entry)
-            component_definition = registry_entry.reader.read_component_definition(registry_entry.location)
-            return yaml.safe_load(component_definition)
+            return yaml.safe_load(registry_entry.component_definition)
         except Exception as e:
-            self.log.debug(f"Could not read definition for component: {registry_entry.id} -> {str(e)}")
+            self.log.debug(f"Could not read definition for component at "
+                           f"location: '{registry_entry.location}' -> {str(e)}")
             return None
 
     def _get_adjusted_parameter_fields(self,

@@ -7,7 +7,7 @@
       {
         "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py",
         "location_type": "url",
-        "categories": ["Preloaded Airflow"]
+        "categories": ["Preloaded Airflow", "other"]
       },
       {
         "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py",
