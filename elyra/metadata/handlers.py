@@ -94,7 +94,8 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
                 )
             )
 
-        return Metadata.from_dict(namespace, {**body})
+        instance = Metadata.from_dict(namespace, {**body})
+        return instance
 
 
 class MetadataResourceHandler(HttpErrorMixin, APIHandler):

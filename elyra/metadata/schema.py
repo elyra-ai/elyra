@@ -49,14 +49,17 @@ class SchemaManager(SingletonConfigurable):
 
     def get_namespace_schemas(self, namespace: str) -> dict:
         self.validate_namespace(namespace)
-        return self.namespace_schemas.get(namespace)
+        schemas = self.namespace_schemas.get(namespace)
+        return schemas
 
     def get_schema(self, namespace: str, schema_name: str) -> dict:
         self.validate_namespace(namespace)
         schemas = self.namespace_schemas.get(namespace)
         if schema_name not in schemas.keys():
             raise SchemaNotFoundError(namespace, schema_name)
-        return schemas.get(schema_name)
+        schema_json = schemas.get(schema_name)
+
+        return schema_json
 
     def add_schema(self, namespace: str, schema_name: str, schema: dict) -> None:
         """Adds (updates) schema to set of stored schemas. """
