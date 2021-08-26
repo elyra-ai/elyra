@@ -7,7 +7,7 @@
       {
         "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py",
         "location_type": "url",
-        "categories": ["Preloaded Airflow", "other"]
+        "categories": ["Preloaded Airflow", "Second Category Test"]
       },
       {
         "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py",
@@ -30,8 +30,8 @@
         "categories": ["Preloaded Airflow"]
       },
       {
-        "location_path": "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/slack_operator.py",
-        "location_type": "url",
+        "location_path": "airflow/slack_operator.py",
+        "location_type": "filename",
         "categories": ["Preloaded Airflow"]
       }
     ]
