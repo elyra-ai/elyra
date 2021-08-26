@@ -45,8 +45,10 @@ SEVERITY = {ValidationSeverity.Error: 'Error',
 
 
 def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
-    if not runtime_config:
-        return None
+    if not runtime_config or runtime_config == 'local':
+        # No runtime configuration was  specified or it is local.
+        # Cannot use metadata manager to determine the runtime type.
+        return runtime_config
 
     try:
         metadata_manager = MetadataManager(namespace='runtimes')
@@ -57,8 +59,10 @@ def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
 
 
 def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
-    if not schema_name:
-        return None
+    if not schema_name or schema_name == 'local':
+        # No schame name was  specified or it is local.
+        # Cannot use metadata manager to determine the display name.
+        return schema_name
 
     try:
         schema_manager = SchemaManager.instance()
@@ -142,10 +146,10 @@ def _preprocess_pipeline(pipeline_path: str,
 
     if not _validate_pipeline_runtime(primary_pipeline, runtime):
         pipeline_runtime_display_name = _get_runtime_display_name(primary_pipeline['app_data']['runtime'])
-        msg = f"This pipeline requires an instance of {pipeline_runtime_display_name} runtime configuration.\n"
+        msg = f"This pipeline requires an instance of {pipeline_runtime_display_name} runtime configuration."
         if runtime_config:
             provided_runtime_display_name = _get_runtime_display_name(_get_runtime_type(runtime_config))
-            msg = f"{msg}The specified configuration '{runtime_config}' is for {provided_runtime_display_name} runtime."
+            msg = f"{msg} The provided configuration '{runtime_config}' is for {provided_runtime_display_name} runtime."
         raise click.ClickException(msg)
 
     # update pipeline transient fields
@@ -304,7 +308,7 @@ def run(pipeline_path):
     _validate_pipeline_file_extension(pipeline_path)
 
     pipeline_definition = \
-        _preprocess_pipeline(pipeline_path, runtime='local')
+        _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
     _validate_pipeline_definition(pipeline_definition)
 
