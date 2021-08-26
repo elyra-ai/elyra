@@ -269,6 +269,8 @@ class ScriptOperationProcessor(FileOperationProcessor):
         except CalledProcessError as cpe:
             error_msg = str(cpe.stderr.decode())
             self.log.error(f'Error executing {file_name}: {error_msg}')
+            # Log process information to aid with troubleshooting
+            self.log.info(f'FFDC: \n argv: {argv}\n cwd: {file_dir}\n env:{envs}')
 
             error_trim_index = error_msg.rfind('\n', 0, error_msg.rfind('Error'))
             if error_trim_index != -1:
