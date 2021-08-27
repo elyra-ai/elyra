@@ -29,6 +29,8 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
+from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.util.path import get_expanded_path
 
@@ -131,8 +133,6 @@ class PipelineValidationManager(SingletonConfigurable):
         :param pipeline: the pipeline definition to be validated
         :param response: ValidationResponse containing the issue list to be updated
         """
-
-        current_pipeline_schema_version = 3.0
         pipeline_json = json.loads(json.dumps(pipeline))
 
         # Check for required values.  We require a primary_pipeline, a set of pipelines, and
@@ -161,23 +161,44 @@ class PipelineValidationManager(SingletonConfigurable):
                                  message="At least one node must exist in the primary pipeline.")
         if 'app_data' not in primary_pipeline:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message="Pipeline 'app_data' is missing from primary pipeline")
+                                 message="Pipeline 'app_data' is missing from primary pipeline.")
         elif 'version' not in primary_pipeline['app_data']:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message="Pipeline app_data 'version' is missing from primary pipeline")
-        elif not int(primary_pipeline['app_data']['version']) > 0:
-            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message="Primary pipeline version field has an invalid value")
+                                 message="Pipeline app_data 'version' is missing from primary pipeline.")
 
+        # validate pipeline version compatibility
+        pipeline_version = int(primary_pipeline['app_data'].get('version', 0))
+        if pipeline_version not in range(PIPELINE_CURRENT_VERSION + 1):
+            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
+                                 message="Primary pipeline version field has an invalid value.",
+                                 data={"supported_version": PIPELINE_CURRENT_VERSION,
+                                       "detected_version": pipeline_version})
+
+        elif pipeline_version < PIPELINE_CURRENT_VERSION:
+            # Pipeline needs to be migrated
+            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
+                                 message=f'Pipeline version {pipeline_version} is out of date and needs to be migrated '
+                                         f'using the Elyra pipeline editor.')
+        elif pipeline_version > PIPELINE_CURRENT_VERSION:
+            # New version of Elyra is needed
+            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
+                                 message='Pipeline was last edited in a newer version of Elyra. '
+                                         'Update Elyra to use this pipeline.',
+                                 data={"supported_version": PIPELINE_CURRENT_VERSION,
+                                       "detected_version": pipeline_version})
+
+        # Validate pipeline schema version
         if 'version' not in pipeline_json:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message="Primary pipeline version field is missing")
+                                 message="Primary pipeline version field is missing.")
         if not isinstance(pipeline_json['version'], str):
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
                                  message="Primary pipeline version field should be a string.")
-        if float(pipeline_json['version']) < current_pipeline_schema_version:
+        if float(pipeline_json['version']) != PIPELINE_CURRENT_SCHEMA:
             response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message="Incompatible pipeline schema version detected")
+                                 message="Incompatible pipeline schema version detected.",
+                                 data={"supported_schema_version": PIPELINE_CURRENT_SCHEMA,
+                                       "detected_schema_version": float(pipeline_json['version'])})
 
     async def _validate_compatibility(self, pipeline: dict, pipeline_runtime: str,
                                       pipeline_execution: str, response: ValidationResponse) -> None:
@@ -197,7 +218,8 @@ class PipelineValidationManager(SingletonConfigurable):
             if pipeline_execution != pipeline_runtime and pipeline_runtime != 'generic':
                 response.add_message(severity=ValidationSeverity.Error,
                                      message_type="invalidRuntime",
-                                     message="Unable to run selected pipeline on selected runtime",
+                                     message="Pipeline runtime platform is not compatible "
+                                             "with selected runtime configuration.",
                                      data={"pipelineRuntime": pipeline_runtime,
                                            "pipelineID": pipeline_id})
             elif pipeline_runtime == 'generic':
@@ -217,7 +239,7 @@ class PipelineValidationManager(SingletonConfigurable):
                         node_label = node['app_data']['ui_data'].get('label', node['app_data']['label'])
                         response.add_message(severity=ValidationSeverity.Error,
                                              message_type="invalidNodeType",
-                                             message="Unsupported node type found in this pipeline",
+                                             message="Unsupported node type found in this pipeline.",
                                              data={"nodeID": node['id'],
                                                    "nodeOpName": node['op'],
                                                    "nodeName": node_label,
@@ -258,7 +280,6 @@ class PipelineValidationManager(SingletonConfigurable):
                     node_data = node['app_data'].get('component_parameters') or node['app_data']
 
                     if Operation.is_generic_operation(node['op']):
-                        resource_name_list = ['cpu', 'gpu', 'memory']
                         image_name = node_data.get('runtime_image')
                         filename = node_data.get("filename")
                         dependencies = node_data.get("dependencies")
@@ -270,15 +291,14 @@ class PipelineValidationManager(SingletonConfigurable):
                         # If not running locally, we check resource and image name
                         if pipeline_execution != 'local':
                             self._validate_container_image_name(node['id'], node_label, image_name, response=response)
-                            for resource_name in resource_name_list:
+                            for resource_name in ['cpu', 'gpu', 'memory']:
                                 if resource_name in node_data.keys() and node_data.get(resource_name):
                                     self._validate_resource_value(node['id'], node_label, resource_name=resource_name,
                                                                   resource_value=node_data[resource_name],
                                                                   response=response)
 
-                        # Check label against kfp naming standards
-                        if pipeline_runtime == 'kfp' and node_label and filename != node_label:
-                            self._validate_label(node_id=node['id'], node_label=node_label, response=response)
+                        self._validate_label(node_id=node['id'], filename=filename, node_label=node_label,
+                                             response=response)
                         if dependencies:
                             notebook_root_relative_path = os.path.dirname(filename)
                             for dependency in dependencies:
@@ -308,7 +328,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                 if self._is_required_property(property_dict, f"elyra_{node_property}"):
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
-                                                         message="Node is missing required property",
+                                                         message="Node is missing required property.",
                                                          data={"nodeID": node['id'],
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
@@ -316,7 +336,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                 type(property_dict['current_parameters']['elyra_' + node_property])):
                                 response.add_message(severity=ValidationSeverity.Error,
                                                      message_type="invalidNodeProperty",
-                                                     message="Node property is incorrect type",
+                                                     message="Node property is incorrect type.",
                                                      data={"nodeID": node['id'],
                                                            "nodeName": node_label,
                                                            "propertyName": node_property})
@@ -332,7 +352,7 @@ class PipelineValidationManager(SingletonConfigurable):
         if not image_name:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidNodeProperty",
-                                 message="Node is missing image name",
+                                 message="Required property value is missing.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'runtime_image'})
@@ -351,17 +371,19 @@ class PipelineValidationManager(SingletonConfigurable):
             if int(resource_value) <= 0:
                 response.add_message(severity=ValidationSeverity.Error,
                                      message_type="invalidNodeProperty",
-                                     message="Property must be greater than zero",
+                                     message="Property must be greater than zero.",
                                      data={"nodeID": node_id,
                                            "nodeName": node_label,
-                                           "propertyName": resource_name})
+                                           "propertyName": resource_name,
+                                           "value": resource_value})
         except (ValueError, TypeError):
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidNodeProperty",
-                                 message="Property has a non-parsable value",
+                                 message="Property has a non-numeric value.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
-                                       "propertyName": resource_name})
+                                       "propertyName": resource_name,
+                                       "value": resource_value})
 
     def _validate_filepath(self, node_id: str, node_label: str, property_name: str,
                            filename: str, response: ValidationResponse, file_dir: Optional[str] = "") -> None:
@@ -387,7 +409,7 @@ class PipelineValidationManager(SingletonConfigurable):
         if not os.path.commonpath([normalized_path, self.root_dir]) == self.root_dir:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidFilePath",
-                                 message="Property has an invalid reference to a file/dir outside the root workspace",
+                                 message="Property has an invalid reference to a file/dir outside the root workspace.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": property_name,
@@ -397,7 +419,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 response.add_message(severity=ValidationSeverity.Error,
                                      message_type="invalidFilePath",
                                      message="Property(wildcard) has an invalid path to a file/dir"
-                                             " or the file/dir does not exist",
+                                             " or the file/dir does not exist.",
                                      data={"nodeID": node_id,
                                            "nodeName": node_label,
                                            "propertyName": property_name,
@@ -405,7 +427,7 @@ class PipelineValidationManager(SingletonConfigurable):
         elif not os.path.exists(normalized_path):
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidFilePath",
-                                 message="Property has an invalid path to a file/dir or the file/dir does not exist",
+                                 message="Property has an invalid path to a file/dir or the file/dir does not exist.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": property_name,
@@ -425,36 +447,41 @@ class PipelineValidationManager(SingletonConfigurable):
         if len(result) != 2:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidEnvPair",
-                                 message="Property has an improperly formatted env variable key value pair",
+                                 message="Property has an improperly formatted env variable key value pair.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'env_vars',
                                        "value": env_var})
 
-    def _validate_label(self, node_id: str, node_label: str, response: ValidationResponse) -> None:
+    def _validate_label(self, node_id: str, filename: str, node_label: str, response: ValidationResponse) -> None:
         """
         KFP specific check for the label name when constructing the node operation using dsl
         :param node_id: the unique ID of the node
+        :param filename: the name of the file with or without a relative path prefix
         :param node_label: the given node name or user customized name/label of the node
         :param response: ValidationResponse containing the issue list to be updated
         """
         label_name_max_length = 63
-        label_regex = re.compile('^[a-z0-9]([-a-z0-9]{0,62}[a-z0-9])?')
+        label_regex = re.compile('^[a-z0-9]([-_.a-z0-9]{0,62}[a-z0-9])?')
         matched = label_regex.search(node_label)
 
         if len(node_label) > label_name_max_length:
-            response.add_message(severity=ValidationSeverity.Error,
+            response.add_message(severity=ValidationSeverity.Warning,
                                  message_type="invalidNodeLabel",
-                                 message="Property string value has exceeded the max length allowed ",
+                                 message="Property value exceeds the max length allowed "
+                                         "({label_name_max_length}). This value may be truncated "
+                                         "by the runtime service.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'label',
                                        "value": node_label})
-
-        elif matched.group(0) != node_label:
-            response.add_message(severity=ValidationSeverity.Error,
+        if not matched or matched.group(0) != node_label:
+            response.add_message(severity=ValidationSeverity.Warning,
                                  message_type="invalidNodeLabel",
-                                 message="Property string must start contain only lower alphanumeric and dashes",
+                                 message="The node label contains characters that may be replaced "
+                                         "by the runtime service. Node labels should "
+                                         "start with lower case alphanumeric and contain "
+                                         "only lower case alphanumeric, underscores, dots, and dashes.",
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'label',
@@ -505,9 +532,10 @@ class PipelineValidationManager(SingletonConfigurable):
             if graph.number_of_nodes() > 1:
                 response.add_message(severity=ValidationSeverity.Warning,
                                      message_type="singletonReference",
-                                     message="This node is not connected to any part of the pipeline",
+                                     message="Node is not connected to any other node.",
                                      data={"nodeID": isolate,
-                                           "nodeNames": self._get_node_names(pipeline=pipeline, node_id_list=[isolate]),
+                                           "nodeName":
+                                           self._get_node_names(pipeline=pipeline, node_id_list=[isolate])[0],
                                            "pipelineID": self._get_pipeline_id(pipeline, node_id=isolate)})
 
         cycles_detected = nx.simple_cycles(graph)
@@ -518,7 +546,7 @@ class PipelineValidationManager(SingletonConfigurable):
             size_of_cycle = len(cycle)
             if cycle_counter not in link_dict_table:
                 link_dict_table[cycle_counter] = []
-            for i in range(0, size_of_cycle):
+            for i in range(size_of_cycle):
                 if i == size_of_cycle - 1:
                     link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[0]))
                 else:
@@ -528,10 +556,10 @@ class PipelineValidationManager(SingletonConfigurable):
         for cycle_number, cycle_link_list in link_dict_table.items():
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="circularReference",
-                                 message="A cycle was found within this pipeline",
+                                 message="The pipeline contains a circular dependency between nodes.",
                                  data={"cycleNumber": cycle_number,
-                                       "nodeNames": self._get_node_names(pipeline=pipeline,
-                                                                         node_id_list=cycle_link_list),
+                                       "nodeNames": self._get_node_labels(pipeline,
+                                                                          cycle_link_list),
                                        "linkIDList": cycle_link_list})
 
     def _get_link_id(self, pipeline: dict, u_edge: str, v_edge: str) -> str:
@@ -608,7 +636,7 @@ class PipelineValidationManager(SingletonConfigurable):
         else:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidRuntime",
-                                 message="Unsupported pipeline runtime selected in this pipeline",
+                                 message="Unsupported pipeline runtime selected in this pipeline.",
                                  data={"pipelineRuntime": runtime})
 
     def _get_node_names(self, pipeline: dict, node_id_list: list) -> List:
@@ -621,13 +649,59 @@ class PipelineValidationManager(SingletonConfigurable):
         node_name_list = []
         pipeline_json = json.loads(json.dumps(pipeline))
         for node_id in node_id_list:
+            found = False
             for single_pipeline in pipeline_json['pipelines']:
-                nodes = single_pipeline['nodes']
-                for node in nodes:
+                for node in single_pipeline['nodes']:
                     if node['id'] == node_id:
-                        node_name_list.append(node['app_data'].get('label'))
+                        node_name_list.append(self._get_node_label(node))
+                        found = True
+                        break
+                if found:
+                    break
 
         return node_name_list
+
+    def _get_node_labels(self, pipeline: dict, link_ids: List[str]) -> List[str]:
+        """
+        Returns the names (labels) of the nodes that are connected by
+        the specified link_ids.
+
+        :param pipeline: the pipeline dict
+        :param link_id: link id
+        :return a tuple containing two node labels that are connected
+        """
+        if link_ids is None:
+            return None
+
+        pipeline_json = json.loads(json.dumps(pipeline))
+        node_labels = []
+        for link_id in link_ids:
+            for single_pipeline in pipeline_json['pipelines']:
+                for node in single_pipeline['nodes']:
+                    if node['type'] == "execution_node":
+                        for input in node.get('inputs', []):
+                            for link in input.get('links', []):
+                                if link['id'] == link_id:
+                                    node_labels.append(self._get_node_label(node))
+        return node_labels
+
+    def _get_node_label(self, node: dict) -> str:
+        """
+        Returns the label for the provided node or None if the information
+        cannot be derived from the inpuit dictionary.
+
+        :param node_dict: a dict representing a pipeline node
+        :return: node label
+        :rtype: str
+        """
+
+        if node is None or node.get('app_data') is None:
+            return None
+
+        node_label = node['app_data'].get('label')
+        if node['type'] == 'execution_node' and node['app_data'].get('ui_data'):
+            node_label = node['app_data']['ui_data'].get('label')
+        return node_label
 
     def _is_legacy_pipeline(self, pipeline: dict) -> bool:
         """

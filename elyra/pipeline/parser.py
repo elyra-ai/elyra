@@ -24,9 +24,6 @@ from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 
 
-DEFAULT_FILETYPE = "tar.gz"
-
-
 class PipelineParser(LoggingConfigurable):
 
     def __init__(self, root_dir="", **kwargs):

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ast
 from datetime import datetime
 import json
 import logging
@@ -34,15 +33,21 @@ from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
 from kfp.aws import use_aws_secret  # noqa H306
 from kfp_server_api.exceptions import ApiException
-from kfp_tekton import compiler as kfp_tekton_compiler
-from kfp_tekton import TektonClient
 import requests
 from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
+try:
+    from kfp_tekton import compiler as kfp_tekton_compiler
+    from kfp_tekton import TektonClient
+except ImportError:
+    # We may not have kfp-tekton available and that's okay!
+    kfp_tekton_compiler = None
+    TektonClient = None
 
 from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schema import SchemaFilter
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
@@ -303,7 +308,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 pipeline_function = lambda: self._cc_pipeline(pipeline,
                                                               pipeline_name,
                                                               cos_directory=cos_directory)  # nopep8
-                if 'Tekton' == engine:
+                if engine == 'Tekton':
                     self.log.info("Compiling pipeline for Tekton engine")
                     kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
                 else:
@@ -502,13 +507,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Retrieve component from cache
                 component = self._component_registry.get_component(operation.classifier)
 
-                # Change value of variables according to their type. Path variables should include
-                # the contents of the specified file and dictionary values must be converted from strings.
+                # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
+                    # Get corresponding property's value from parsed pipeline
+                    property_value = operation.component_params.get(component_property.ref)
+
+                    self.log.debug(f"Processing component parameter '{component_property.name}' "
+                                   f"of type '{component_property.type}'")
                     if component_property.type == "file":
-                        # Get corresponding property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(component_property.ref)
-                        filename = get_absolute_path(get_expanded_path(self.root_dir), op_property)
+                        filename = get_absolute_path(get_expanded_path(self.root_dir), property_value)
                         try:
                             with open(filename) as f:
                                 operation.component_params[component_property.ref] = f.read()
@@ -516,18 +523,19 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             # If file can't be found locally, assume a remote file location was entered.
                             # This may cause the pipeline run to fail; the user must debug in this case.
                             pass
-                    elif component_property.type in ['dictionary', 'list']:
-                        # Get corresponding property value from parsed pipeline and convert
-                        op_property = operation.component_params.get(component_property.ref)
-                        operation.component_params[component_property.ref] = ast.literal_eval(op_property)
+                    elif component_property.type == 'dictionary':
+                        processed_value = self._process_dictionary_value(property_value)
+                        operation.component_params[component_property.ref] = processed_value
+                    elif component_property.type == 'list':
+                        processed_value = self._process_list_value(property_value)
+                        operation.component_params[component_property.ref] = processed_value
 
                 # Get absolute path of component source
                 component_path = component.source
                 if component.source_type == "filename":
                     component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', component_path)
 
-                component_source = {}
-                component_source[component.source_type] = component_path
+                component_source = {component.source_type: component_path}
 
                 # Build component task factory
                 try:
@@ -635,3 +643,24 @@ class KfpPipelineProcessorResponse(PipelineProcessorResponse):
     @property
     def type(self):
         return self._type
+
+
+class KfpSchemaFilter(SchemaFilter):
+    """
+    This class exists to ensure that the KFP schema's engine metadata
+    appropriately reflects what is installed on the system.
+    """
+
+    def post_load(self, name: str, schema_json: Dict) -> Dict:
+        """Ensure tekton packages are present and remove engine from schema if not."""
+
+        filtered_schema = super().post_load(name, schema_json)
+
+        # If TektonClient package is missing, navigate to the engine property
+        # and remove 'tekton' entry if present and return updated result.
+        if not TektonClient:
+            engine_enum: list = filtered_schema['properties']['metadata']['properties']['engine']['enum']
+            if 'Tekton' in engine_enum:
+                engine_enum.remove('Tekton')
+                filtered_schema['properties']['metadata']['properties']['engine']['enum'] = engine_enum
+        return filtered_schema

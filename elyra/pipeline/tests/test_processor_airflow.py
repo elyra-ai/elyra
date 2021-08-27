@@ -373,3 +373,78 @@ def test_unique_operation_name_non_existent(processor):
     unique_name = processor._get_unique_operation_name(operation_name, sample_operation_list)
 
     assert unique_name == operation_name
+
+
+def test_process_list_value_function(processor):
+    # Test values that will be successfully converted to list
+    assert processor._process_list_value("[]") == []
+    assert processor._process_list_value("['elem1']") == ["elem1"]
+    assert processor._process_list_value("['elem1', 'elem2', 'elem3']") == ["elem1", "elem2", "elem3"]
+    assert processor._process_list_value("  ['elem1',   'elem2' , 'elem3']  ") == ["elem1", "elem2", "elem3"]
+    assert processor._process_list_value("[1, 2]") == [1, 2]
+    assert processor._process_list_value("[True, False, True]") == [True, False, True]
+    assert processor._process_list_value("[{'obj': 'val', 'obj2': 'val2'}, {}]") == [{'obj': 'val', 'obj2': 'val2'}, {}]
+
+    # Test values that will not be successfully converted to list
+    # Surrounding quotes are added to string values for correct DAG render
+    assert processor._process_list_value("") == "\"\""
+    assert processor._process_list_value("[[]") == "\"[[]\""
+    assert processor._process_list_value("[elem1, elem2]") == "\"[elem1, elem2]\""
+    assert processor._process_list_value("elem1, elem2") == "\"elem1, elem2\""
+    assert processor._process_list_value("  elem1, elem2  ") == "\"elem1, elem2\""
+    assert processor._process_list_value("'elem1', 'elem2'") == "\"'elem1', 'elem2'\""
+
+
+def test_process_dictionary_value_function(processor):
+    # Test values that will be successfully converted to dictionary
+    assert processor._process_dictionary_value("{}") == {}
+    assert processor._process_dictionary_value("{'key': 'value'}") == {"key": "value"}
+
+    dict_as_str = "{'key1': 'value', 'key2': 'value'}"
+    assert processor._process_dictionary_value(dict_as_str) == {"key1": "value", "key2": "value"}
+
+    dict_as_str = "  {  'key1': 'value'  , 'key2'  : 'value'}  "
+    assert processor._process_dictionary_value(dict_as_str) == {"key1": "value", "key2": "value"}
+
+    dict_as_str = "{'key1': [1, 2, 3], 'key2': ['elem1', 'elem2']}"
+    assert processor._process_dictionary_value(dict_as_str) == {"key1": [1, 2, 3], "key2": ["elem1", "elem2"]}
+
+    dict_as_str = "{'key1': 2, 'key2': 'value', 'key3': True, 'key4': None, 'key5': [1, 2, 3]}"
+    expected_value = {
+        "key1": 2,
+        "key2": "value",
+        "key3": True,
+        "key4": None,
+        "key5": [1, 2, 3]
+    }
+    assert processor._process_dictionary_value(dict_as_str) == expected_value
+
+    dict_as_str = "{'key1': {'key2': 2, 'key3': 3, 'key4': 4}, 'key5': {}}"
+    expected_value = {
+        "key1": {
+            "key2": 2,
+            "key3": 3,
+            "key4": 4,
+        },
+        "key5": {}
+    }
+    assert processor._process_dictionary_value(dict_as_str) == expected_value
+
+    # Test values that will not be successfully converted to dictionary
+    # Surrounding quotes are added to string values for correct DAG render
+    assert processor._process_dictionary_value("") == "\"\""
+    assert processor._process_dictionary_value("{{}") == "\"{{}\""
+    assert processor._process_dictionary_value("{key1: value, key2: value}") == "\"{key1: value, key2: value}\""
+    assert processor._process_dictionary_value("  { key1: value, key2: value }  ") == "\"{ key1: value, key2: value }\""
+    assert processor._process_dictionary_value("key1: value, key2: value") == "\"key1: value, key2: value\""
+    assert processor._process_dictionary_value("{'key1': true}") == "\"{'key1': true}\""
+    assert processor._process_dictionary_value("{'key': null}") == "\"{'key': null}\""
+
+    dict_as_str = "{'key1': [elem1, elem2, elem3], 'key2': ['elem1', 'elem2']}"
+    assert processor._process_dictionary_value(dict_as_str) == f"\"{dict_as_str}\""
+
+    dict_as_str = "{'key1': {key2: 2}, 'key3': ['elem1', 'elem2']}"
+    assert processor._process_dictionary_value(dict_as_str) == f"\"{dict_as_str}\""
+
+    dict_as_str = "{'key1': {key2: 2}, 'key3': ['elem1', 'elem2']}"
+    assert processor._process_dictionary_value(dict_as_str) == f"\"{dict_as_str}\""

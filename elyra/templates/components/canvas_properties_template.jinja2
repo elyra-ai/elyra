@@ -1,7 +1,7 @@
 {
     "current_parameters": {
       "label": "",
-      "component_source": "{{ component.source }}",
+      "component_source": "{{ component.source }}"{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
     {% if property.type|lower == "bool" or property.type|lower == "boolean" %}
       "elyra_{{ property.ref }}": {{ property.value|lower }}
@@ -21,7 +21,7 @@
       },
       {
         "id": "component_source"
-      },
+      }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
       {
         "id": "elyra_{{ property.ref }}"
@@ -58,7 +58,7 @@
             "placement": "on_panel"
           },
           "data": {}
-        },
+        }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
         {
           "parameter_ref": "elyra_{{ property.ref }}",
@@ -106,7 +106,7 @@
               "id": "component_source",
               "type": "controls",
               "parameter_refs": ["component_source"]
-            },
+            }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
             {
               "id": "elyra_{{ property.ref }}",

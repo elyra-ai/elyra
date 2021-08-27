@@ -65,7 +65,7 @@ setup_args = dict(
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
         'jupyter_server>=1.7.0',
-        'jupyterlab>=3.0.0',
+        'jupyterlab>=3.0.17',
         'jupyterlab-git~=0.32',
         'jupyterlab-lsp>=3.8.0',
         'jupyter-resource-usage>=0.5.1',
@@ -87,11 +87,11 @@ setup_args = dict(
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp==1.6.3',
-        'kfp-tekton==0.8.1',
+        'kfp>=1.6.3<2.0',
+        'kfp-tekton~=0.8.1',
         # Airflow runtime dependencies
         'pygithub',
-        'black'
+        'black',
     ],
     extras_require={
         'test': ['pytest', 'pytest-tornasync'],

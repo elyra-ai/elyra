@@ -4,6 +4,7 @@
   "name": "kfp",
   "display_name": "Kubeflow Pipelines",
   "namespace": "runtimes",
+  "schema_filter_class_name": "elyra.pipeline.processor_kfp.KfpSchemaFilter",
   "uihints": {
     "title": "Kubeflow Pipelines runtimes",
     "icon": "elyra:runtimes",
@@ -71,7 +72,7 @@
         },
         "engine": {
           "title": "Kubeflow Pipelines engine",
-          "description": "The Kubeflow Pipelines engine in use ('Argo' or 'Tekton')",
+          "description": "The Kubeflow Pipelines engine in use",
           "type": "string",
           "enum": ["Argo", "Tekton"],
           "default": "Argo",

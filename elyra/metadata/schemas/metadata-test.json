@@ -5,6 +5,7 @@
   "display_name": "Metadata Test",
   "namespace": "metadata-tests",
   "metadata_class_name": "elyra.metadata.tests.test_utils.MockMetadataTest",
+  "schema_filter_class_name": "elyra.metadata.tests.test_utils.TestSchemaFilter",
   "properties": {
     "schema_name": {
       "title": "Schema Name",

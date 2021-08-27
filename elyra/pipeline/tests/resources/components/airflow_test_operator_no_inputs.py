@@ -1,6 +1,5 @@
-#!/bin/bash
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2020 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from airflow.models import BaseOperator
+from airflow.utils.decorators import apply_defaults
 
-# Determine the directory from which to start the chmod operation
-data_dir=`jupyter --data-dir`
-metadata_dir=${data_dir}"/metadata"
 
-# For each item (including directories) remove its permissions for groups
-# and others, leaving only the user (owner) permissions in place.
-echo "Changing permissions on metadata files under ${metadata_dir}..."
-find ${metadata_dir} -print -exec chmod go-rwx {} \;
+class TestOperatorNoInputs(BaseOperator):
+    r"""
+    Execute a test script.
+    """
 
-exit 0
+    @apply_defaults
+    def __init__(self,
+                 *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
