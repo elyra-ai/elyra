@@ -141,7 +141,14 @@ To run a pipeline from the Visual Pipeline Editor:
 
 **Running a pipeline from the command line interface**
 
-The [`elyra-pipeline` command line interface](https://elyra.readthedocs.io/en/latest/user_guide/command-line-interface.html#working-with-pipelines) provides two pipeline execution commands: `run` and `submit`.
+The [`elyra-pipeline` command line interface](https://elyra.readthedocs.io/en/latest/user_guide/command-line-interface.html#working-with-pipelines)
+provides an informative command: `describe` and two execution commands: `run` and `submit`.
+
+Use the `elyra-pipeline describe` command to display pipeline details such as name, version, etc.
+
+```bash
+$ elyra-pipeline describe elyra-pipelines/a-notebook.pipeline
+```
 
 Use the `elyra-pipeline run` command to run a generic pipeline in your JupyterLab environment:
 
@@ -177,4 +184,3 @@ To export a pipeline from the Visual Pipeline Editor:
    ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
 
 1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is monitoring.   
- 

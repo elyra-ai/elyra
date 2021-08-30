@@ -37,7 +37,7 @@ from elyra.pipeline.handlers import PipelineValidationHandler
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorRegistry
-from elyra.pipeline.validate import PipelineValidationManager
+from elyra.pipeline.validation import PipelineValidationManager
 
 
 DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
