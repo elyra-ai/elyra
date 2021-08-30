@@ -26,7 +26,6 @@ from typing import Optional
 from typing import Union
 
 import entrypoints
-# from jupyter_core.paths import ENV_JUPYTER_PATH
 from minio.error import SignatureDoesNotMatch
 from traitlets.config import Bool
 from traitlets.config import LoggingConfigurable
