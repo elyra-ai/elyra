@@ -43,10 +43,6 @@ except ImportError:
     # We may not have kfp-tekton available and that's okay!
     kfp_tekton_compiler = None
     TektonClient = None
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
 
 from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
