@@ -105,4 +105,15 @@ export default class Utils {
 
     return widget;
   };
+
+  /**
+   * Strips the `elyra_` prefix from a property key if it exists
+   */
+  static stripPropPrefix = (propertyName: string): string => {
+    if (propertyName.startsWith('elyra_')) {
+      return propertyName.replace(/^elyra_/, '');
+    } else {
+      return propertyName;
+    }
+  };
 }

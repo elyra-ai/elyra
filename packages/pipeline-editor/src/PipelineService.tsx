@@ -22,12 +22,12 @@ import { PathExt } from '@jupyterlab/coreutils';
 
 import * as React from 'react';
 
+import Utils from './utils';
+
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_NAMESPACE = 'runtimes';
 export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
 export const COMPONENTS_NAMESPACE = 'components';
-
-const ELYRA_PREFIX_LEN = 6;
 
 export interface IRuntime {
   name: string;
@@ -343,7 +343,6 @@ export class PipelineService {
     pipelinePath: string,
     nodePath: string
   ): string {
-    // since resolve returns an "absolute" path we need to strip off the leading '/'
     const workspacePath: string = PathExt.resolve(
       PathExt.dirname(pipelinePath),
       nodePath
@@ -353,18 +352,31 @@ export class PipelineService {
 
   static setNodePathsRelativeToPipeline(
     pipeline: any,
-    pipelinePath: string
+    pipelinePath: string,
+    components: any[]
   ): any {
     for (const node of pipeline.nodes) {
-      if (
-        node.op === 'execute-notebook-node' ||
-        node.op === 'execute-python-node' ||
-        node.op === 'execute-r-node'
-      ) {
-        node.app_data.component_parameters.filename = this.getPipelineRelativeNodePath(
-          pipelinePath,
-          node.app_data.component_parameters.filename
-        );
+      const nodeDef = components.find((n: any) => {
+        return n.op === node.op;
+      });
+      const params = nodeDef?.app_data?.properties?.uihints?.parameter_info;
+      if (!params) {
+        continue;
+      }
+      for (const param of params) {
+        if (
+          param.data?.format === 'file' &&
+          param.custom_control_id === 'StringControl'
+        ) {
+          node.app_data.component_parameters[
+            Utils.stripPropPrefix(param.parameter_ref)
+          ] = this.getPipelineRelativeNodePath(
+            pipelinePath,
+            node.app_data.component_parameters[
+              Utils.stripPropPrefix(param.parameter_ref)
+            ]
+          );
+        }
       }
     }
     return pipeline;
@@ -389,11 +401,11 @@ export class PipelineService {
           param.custom_control_id === 'StringControl'
         ) {
           node.app_data.component_parameters[
-            param.parameter_ref.substring(ELYRA_PREFIX_LEN)
+            Utils.stripPropPrefix(param.parameter_ref)
           ] = this.getWorkspaceRelativeNodePath(
             pipelinePath,
             node.app_data.component_parameters[
-              param.parameter_ref.substring(ELYRA_PREFIX_LEN)
+              Utils.stripPropPrefix(param.parameter_ref)
             ]
           );
         }
