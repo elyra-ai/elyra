@@ -76,9 +76,7 @@ class ComponentRegistry(LoggingConfigurable):
 
     def __init__(self, parser: ComponentParser, **kwargs):
         super().__init__(**kwargs)
-        # self._component_registry_location = component_registry_location
         self._parser = parser
-        # self.log.info(f'Creating new registry using {self.registry_location}')
 
     def get_all_components(self) -> List[Component]:
         """
