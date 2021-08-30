@@ -23,6 +23,7 @@ from subprocess import run
 import time
 from typing import Dict
 from typing import List
+from typing import Optional
 
 from jupyter_server.gateway.managers import GatewayClient
 import papermill
@@ -171,7 +172,10 @@ class FileOperationProcessor(OperationProcessor):
             raise ValueError(f'Not a file: {filepath}')
         return filepath
 
-    def log_and_raise(self, file_name: str, ex: Exception) -> None:
+    def log_and_raise(self,
+                      file_name: str,
+                      ex: Exception,
+                      data_capture_msg: Optional[str]) -> None:
         """Log and raise the exception that occurs when processing file_name.
 
         If the exception's message is longer than MAX_ERROR_LEN, it will be
@@ -179,6 +183,8 @@ class FileOperationProcessor(OperationProcessor):
         will be logged.
         """
         self.log.error(f'Error executing {file_name}: {str(ex)}')
+        if data_capture_msg:
+            self.log.info(data_capture_msg)
         truncated_msg = FileOperationProcessor._truncate_msg(str(ex))
         raise RuntimeError(f'({file_name}): {truncated_msg}') from ex
 
@@ -263,6 +269,10 @@ class ScriptOperationProcessor(FileOperationProcessor):
 
         argv = self.get_argv(filepath)
         envs = OperationProcessor._collect_envs(operation, elyra_run_name)
+        data_capture_msg = f"Data capture for previous error:\n"\
+                           f" command: {' '.join(argv)}\n"\
+                           f" working directory: {file_dir}\n"\
+                           f" environment variables: {envs}"
         t0 = time.time()
         try:
             run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)
@@ -270,7 +280,7 @@ class ScriptOperationProcessor(FileOperationProcessor):
             error_msg = str(cpe.stderr.decode())
             self.log.error(f'Error executing {file_name}: {error_msg}')
             # Log process information to aid with troubleshooting
-            self.log.info(f'FFDC: \n argv: {argv}\n cwd: {file_dir}\n env:{envs}')
+            self.log.info(data_capture_msg)
 
             error_trim_index = error_msg.rfind('\n', 0, error_msg.rfind('Error'))
             if error_trim_index != -1:
@@ -278,7 +288,7 @@ class ScriptOperationProcessor(FileOperationProcessor):
             else:
                 raise RuntimeError(f'({file_name})') from cpe
         except Exception as ex:
-            self.log_and_raise(file_name, ex)
+            self.log_and_raise(file_name, ex, data_capture_msg)
 
         t1 = time.time()
         duration = (t1 - t0)
