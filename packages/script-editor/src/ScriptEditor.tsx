@@ -39,7 +39,9 @@ import {
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
 
+import { EditorHandler } from './EditorHandler';
 import { KernelDropdown, ISelect } from './KernelDropdown';
+import { ScriptDebugger } from './ScriptDebugger';
 import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
@@ -75,6 +77,7 @@ export class ScriptEditor extends DocumentWidget<
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
   protected editorLanguage: string;
+  private debugger: ScriptDebugger;
 
   /**
    * Construct a new editor widget.
@@ -93,6 +96,7 @@ export class ScriptEditor extends DocumentWidget<
     this.debugDisabled = false;
     this.controller = new ScriptEditorController();
     this.editorLanguage = '';
+    this.debugger = new ScriptDebugger(this.disableButton);
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -135,9 +139,9 @@ export class ScriptEditor extends DocumentWidget<
   }
 
   /**
-   * Function: Fetches kernel specs by editor language
+   * Function: Fetches kernel specs filtered by editor language
    * and populates toolbar kernel selector.
-   * This function must be called by the classes that extends ScriptEditor.
+   * This function must be called by the classes that extend ScriptEditor.
    */
   protected initializeKernelSpecs = async (): Promise<void> => {
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
@@ -159,7 +163,7 @@ export class ScriptEditor extends DocumentWidget<
 
   /**
    * Function: Initializes debug features.
-   * This function must be called by the classes that extends ScriptEditor.
+   * This function must be called by the classes that extend ScriptEditor.
    */
   protected initializeDebugger = async (): Promise<void> => {
     const debuggerIsAvailable = await this.controller.isDebuggerAvailable(
@@ -167,8 +171,151 @@ export class ScriptEditor extends DocumentWidget<
     );
     if (!debuggerIsAvailable) {
       this.disableButton(true, 'debug');
+      return;
     }
+
+    // Enable setting breakpoints
+    // this.setupEditor();
+    const EditorHandler = this.createEditorDebugHandler();
+    console.log(EditorHandler);
   };
+
+  private createEditorDebugHandler = (): EditorHandler => {
+    // const specsManager = new KernelSpecManager();
+    // const config = new Debugger.Config();
+    // const service = new DebuggerService({ specsManager, config });
+    const editorHandler = new EditorHandler({
+      editor: this.content.editor,
+      path: this.context.path
+    });
+    console.log('editorHandler created!');
+
+    return editorHandler;
+  };
+
+  /**
+   * Handle a click on the gutter.
+   * Addapted from jupyterlab-debugger
+   *
+   * @param editor The editor from where the click originated.
+   * @param lineNumber The line corresponding to the click event.
+   */
+  // private onGutterClick = (
+  //   editor: CodeMirrorEditor,
+  //   lineNumber: number
+  // ): void => {
+  //   const info = editor.editor.lineInfo(lineNumber); // Cannot read property 'lineInfo' of undefined
+
+  //   if (!info) {
+  //     return;
+  //   }
+
+  //   const remove = !!info.gutterMarkers;
+  //   let breakpoints: IDebugger.IBreakpoint[] = this.debugger.breakpoints;
+  //   if (remove) {
+  //     breakpoints = breakpoints.filter(ele => ele.line !== info.line + 1);
+  //   } else {
+  //     breakpoints.push(this.createBreakpoint(info.line + 1));
+  //   }
+
+  //   this.debugger.updateBreakpoints(breakpoints);
+  // };
+
+  /**
+   * Remove line numbers and all gutters from editor.
+   * Addapted from jupyterlab-debugger
+   *
+   */
+  // private clearGutter(): void {
+  //   const editor = this.content.editor as CodeMirrorEditor;
+  //   editor.doc.eachLine((line: ILineInfo) => {
+  //     if ((line as ILineInfo).gutterMarkers) {
+  //       editor.editor.setGutterMarker(line, 'breakpoints', null);
+  //     }
+  //   });
+  // }
+
+  /**
+   * Add the breakpoints to the editor.
+   * Addapted from jupyterlab-debugger
+   */
+  // private addBreakpointsToEditor(): void {
+  //   const editor = this.content.editor as CodeMirrorEditor;
+  //   const breakpoints = this.debugger.breakpoints;
+  //   this.clearGutter();
+  //   breakpoints.forEach(breakpoint => {
+  //     if (typeof breakpoint.line === 'number') {
+  //       editor.editor.setGutterMarker(
+  //         breakpoint.line - 1,
+  //         'breakpoints',
+  //         this.createMarkerNode()
+  //       );
+  //     }
+  //   });
+  // }
+
+  /**
+   * Create a marker DOM element for a breakpoint.
+   * Addapted from jupyterlab-debugger
+   */
+  // private createMarkerNode(): HTMLElement {
+  //   const marker = document.createElement('div');
+  //   marker.className = 'jp-DebuggerEditor-marker'; // add our class
+  //   marker.innerHTML = '●';
+  //   return marker;
+  // }
+
+  /**
+   * Create a new breakpoint.
+   * Addapted from jupyterlab-debugger
+   *
+   * @param session The name of the session.
+   * @param line The line number of the breakpoint.
+   */
+  // private createBreakpoint(
+  //   // session: string,
+  //   line: number
+  // ): IDebugger.IBreakpoint {
+  //   return {
+  //     line,
+  //     verified: true
+  //     // source: {
+  //     //   name: session
+  //     // }
+  //   };
+  // }
+
+  /**
+   * Retrieve the breakpoints from the editor.
+   * Addapted from jupyterlab-debugger
+   */
+  // private getBreakpointsFromEditor(): ILineInfo[] {
+  //   const editor = this.content.editor as CodeMirrorEditor;
+  //   const lines = [];
+  //   for (let i = 0; i < editor.doc.lineCount(); i++) {
+  //     const info = editor.editor.lineInfo(i);
+  //     if (info.gutterMarkers) {
+  //       lines.push(info);
+  //     }
+  //   }
+  //   return lines;
+  // }
+
+  /**
+   * Send the breakpoints from the editor UI.
+   * Addapted from jupyterlab-debugger
+   */
+  // private sendEditorBreakpoints(): void {
+  //   if (this.isDisposed) {
+  //     return;
+  //   }
+
+  //   const breakpoints = this.getBreakpointsFromEditor().map(lineInfo => {
+  //     return this.createBreakpoint(lineInfo.line + 1);
+  //   });
+
+  //   this.debugger.updateBreakpoints(breakpoints);
+  // }
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.

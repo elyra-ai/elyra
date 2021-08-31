@@ -39,6 +39,7 @@
     "@jupyterlab/application": "^3.0.0",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/codeeditor": "^3.0.0",
+    "@jupyterlab/debugger": "^3.0.0",
     "@jupyterlab/docregistry": "^3.0.0",
     "@jupyterlab/filebrowser": "^3.0.0",
     "@jupyterlab/fileeditor": "^3.0.0",
