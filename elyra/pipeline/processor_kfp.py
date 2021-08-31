@@ -209,7 +209,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Upload the compiled pipeline, create an experiment and run
 
             try:
-                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.source}'."
+                if pipeline.description is not None:
+                    description = pipeline.description
+                else:
+                    description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
                 t0 = time.time()
 
                 if pipeline_id is None:
@@ -273,6 +276,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = pipeline.name
+        pipeline_description = pipeline.description
         pipeline_version_name = f'{pipeline_name}-{timestamp}'
         # work around https://github.com/kubeflow/pipelines/issues/5172
         experiment_name = pipeline_name.lower()
@@ -337,7 +341,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                  cos_directory=cos_directory,
                                                  export=True)
 
-            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
+            if pipeline_description is None:
+                pipeline_description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
             if self.log.isEnabledFor(logging.DEBUG):
                 self.log.debug(f"Exporting pipeline {pipeline_name} with components: \n")
@@ -361,7 +366,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                             cos_secret=cos_secret,
                                             namespace=namespace,
                                             api_endpoint=api_endpoint,
-                                            pipeline_description=description,
+                                            pipeline_description=pipeline_description,
                                             writable_container_dir=self.WCD,
                                             kf_secured=kf_secured)
 
