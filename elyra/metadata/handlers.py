@@ -218,6 +218,7 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
 
 class NamespaceHandler(HttpErrorMixin, APIHandler):
     """Handler for retrieving namespaces """
+    # Redirect to SchemaSpaceHandler
 
     @web.authenticated
     async def get(self):
@@ -235,3 +236,23 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
 
         self.set_header("Content-Type", 'application/json')
         self.finish(namespace_model)
+
+class SchemaSpaceHandler(HttpErrorMixin, APIHandler):
+    """Handler for retrieving schemaspaces """
+
+    @web.authenticated
+    async def get(self):
+
+        try:
+            schema_manager = SchemaManager.instance()
+            schemaspaces = schema_manager.get_schemaspaces()
+        except (ValidationError, ValueError) as err:
+            raise web.HTTPError(404, str(err)) from err
+        except Exception as err:
+            raise web.HTTPError(500, repr(err)) from err
+
+        schemaspace_model = dict()
+        schemaspace_model['schemas'] = schemaspaces
+
+        self.set_header("Content-Type", 'application/json')
+        self.finish(schemaspace_model)

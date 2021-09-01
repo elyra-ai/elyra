@@ -14,11 +14,6 @@
 # limitations under the License.
 #
 
-# Schemaspace:
-# the result of the entrypoint load is a schemaspace
-# and require that elyra register all 4 schemaspaces as entrypoints.
-# The only requirement is that the schemaspace be a subclass of MetadataSchemaspace.
-
 from elyra.metadata.storage import MetadataStore
 from elyra.metadata.storage import FileMetadataStore
 

@@ -25,7 +25,7 @@ from traitlets.config import SingletonConfigurable
 from elyra.metadata.error import SchemaNotFoundError
 
 
-METADATA_TEST_NAMESPACE = "metadata-tests"  # exposed via METADATA_TESTING env
+METADATA_TEST_SCHEMASPACE = "metadata-tests"  # exposed via METADATA_TESTING env
 
 
 class SchemaManager(SingletonConfigurable):
@@ -35,63 +35,63 @@ class SchemaManager(SingletonConfigurable):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # namespace_schemas is a dict of namespace keys to dict of schema_name keys of JSON schema
-        self.namespace_schemas = SchemaManager.load_namespace_schemas()
+        # schemaspace_schemas is a dict of schemaspace keys to dict of schema_name keys of JSON schema
+        self.schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
 
-    def validate_namespace(self, namespace: str) -> None:
-        """Ensures the namespace is valid and raises ValueError if it is not."""
-        if namespace not in self.namespace_schemas.keys():
-            raise ValueError("Namespace '{}' is not in the list of valid namespaces: '{}'".
-                             format(namespace, self.get_namespaces()))
+    def validate_schemaspace(self, schemaspace: str) -> None:
+        """Ensures the schemaspace is valid and raises ValueError if it is not."""
+        if schemaspace not in self.schemaspace_schemas.keys():
+            raise ValueError("schemaspace '{}' is not in the list of valid schemaspaces: '{}'".
+                             format(schemaspace, self.get_schemaspaces()))
 
-    def get_namespaces(self) -> list:
-        return list(self.namespace_schemas.keys())
+    def get_schemaspaces(self) -> list:
+        return list(self.schemaspace_schemas.keys())
 
-    def get_namespace_schemas(self, namespace: str) -> dict:
-        self.validate_namespace(namespace)
-        schemas = self.namespace_schemas.get(namespace)
+    def get_schemaspace_schemas(self, schemaspace: str) -> dict:
+        self.validate_schemaspace(schemaspace)
+        schemas = self.schemaspace_schemas.get(schemaspace)
         return schemas
 
-    def get_schema(self, namespace: str, schema_name: str) -> dict:
-        self.validate_namespace(namespace)
-        schemas = self.namespace_schemas.get(namespace)
+    def get_schema(self, schemaspace: str, schema_name: str) -> dict:
+        self.validate_schemaspace(schemaspace)
+        schemas = self.schemaspace_schemas.get(schemaspace)
         if schema_name not in schemas.keys():
-            raise SchemaNotFoundError(namespace, schema_name)
+            raise SchemaNotFoundError(schemaspace, schema_name)
         schema_json = schemas.get(schema_name)
 
         return schema_json
 
-    def add_schema(self, namespace: str, schema_name: str, schema: dict) -> None:
+    def add_schema(self, schemaspace: str, schema_name: str, schema: dict) -> None:
         """Adds (updates) schema to set of stored schemas. """
-        self.validate_namespace(namespace)
-        self.log.debug("SchemaManager: Adding schema '{}' to namespace '{}'".format(schema_name, namespace))
-        self.namespace_schemas[namespace][schema_name] = schema
+        self.validate_schemaspace(schemaspace)
+        self.log.debug("SchemaManager: Adding schema '{}' to schemaspace '{}'".format(schema_name, schemaspace))
+        self.schemaspace_schemas[schemaspace][schema_name] = schema
 
     def clear_all(self) -> None:
         """Primarily used for testing, this method reloads schemas from initial values. """
-        self.log.debug("SchemaManager: Reloading all schemas for all namespaces.")
-        self.namespace_schemas = SchemaManager.load_namespace_schemas()
+        self.log.debug("SchemaManager: Reloading all schemas for all schemaspaces.")
+        self.schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
 
-    def remove_schema(self, namespace: str, schema_name: str) -> None:
-        """Removes the schema entry associated with namespace & schema_name. """
-        self.validate_namespace(namespace)
-        self.log.debug("SchemaManager: Removing schema '{}' from namespace '{}'".format(schema_name, namespace))
-        self.namespace_schemas[namespace].pop(schema_name)
+    def remove_schema(self, schemaspace: str, schema_name: str) -> None:
+        """Removes the schema entry associated with schemaspace & schema_name. """
+        self.validate_schemaspace(schemaspace)
+        self.log.debug("SchemaManager: Removing schema '{}' from schemaspace '{}'".format(schema_name, schemaspace))
+        self.schemaspace_schemas[schemaspace].pop(schema_name)
 
     @classmethod
-    def load_namespace_schemas(cls, schema_dir: Optional[str] = None) -> dict:
-        """Loads the static schema files into a dictionary indexed by namespace.
+    def load_schemaspace_schemas(cls, schema_dir: Optional[str] = None) -> dict:
+        """Loads the static schema files into a dictionary indexed by schemaspace.
            If schema_dir is not specified, the static location relative to this
            file will be used.
            Note: The schema file must have a top-level string-valued attribute
-           named 'namespace' to be included in the resulting dictionary.
+           named 'schemaspace' to be included in the resulting dictionary.
         """
-        # The following exposes the metadata-test namespace if true or 1.
+        # The following exposes the metadata-test schemaspace if true or 1.
         # Metadata testing will enable this env.  Note: this cannot be globally
         # defined, else the file could be loaded before the tests have enable the env.
         metadata_testing_enabled = bool(os.getenv("METADATA_TESTING", 0))
 
-        namespace_schemas = {}
+        schemaspace_schemas = {}
         if schema_dir is None:
             schema_dir = os.path.join(os.path.dirname(__file__), 'schemas')
         if not os.path.exists(schema_dir):
@@ -103,21 +103,21 @@ class SchemaManager(SingletonConfigurable):
             with io.open(schema_file, 'r', encoding='utf-8') as f:
                 schema_json = json.load(f)
 
-            # Elyra schema files are required to have a namespace property (see test_validate_factory_schema)
-            namespace = schema_json.get('namespace')
-            if namespace is None:
-                warnings.warn("Schema file '{}' is missing its namespace attribute!  Skipping...".format(schema_file))
+            # Elyra schema files are required to have a schemaspace property (see test_validate_factory_schema)
+            schemaspace = schema_json.get('schemaspace')
+            if schemaspace is None:
+                warnings.warn("Schema file '{}' is missing its schemaspace attribute!  Skipping...".format(schema_file))
                 continue
-            # Skip test namespace unless we're testing metadata
-            if namespace == METADATA_TEST_NAMESPACE and not metadata_testing_enabled:
+            # Skip test schemaspace unless we're testing metadata
+            if schemaspace == METADATA_TEST_SCHEMASPACE and not metadata_testing_enabled:
                 continue
-            if namespace not in namespace_schemas:  # Create the namespace dict
-                namespace_schemas[namespace] = {}
-            # Add the schema file indexed by name within the namespace
+            if schemaspace not in schemaspace_schemas:  # Create the schemaspace dict
+                schemaspace_schemas[schemaspace] = {}
+            # Add the schema file indexed by name within the schemaspace
             name = schema_json.get('name')
             if name is None:
                 # If schema is missing a name attribute, use file's basename.
                 name = os.path.splitext(os.path.basename(schema_file))[0]
-            namespace_schemas[namespace][name] = schema_json
+            schemaspace_schemas[schemaspace][name] = schema_json
 
-        return copy.deepcopy(namespace_schemas)
+        return copy.deepcopy(schemaspace_schemas)
