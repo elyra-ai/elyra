@@ -193,35 +193,31 @@ class ComponentRegistry(LoggingConfigurable):
             registry_name = registry['display_name']
             self.log.debug(f"Component registry: processing components in registry '{registry_name}'")
 
-            # Loop through all location_specifiers for this registry
-            for location_specifier in registry['metadata']['locations']:
-                location_type = location_specifier["location_type"]
-                location_path = location_specifier["location_path"]
+            # Assign reader based on the type of the registry entry (file, directory, url)
+            registry_type = registry['metadata']['type'].lower()
+            reader = self._get_reader(registry_type)
 
-                # Assign reader based on the location_type of the registry entry (file, directory, url)
-                reader = self._get_reader(location_type)
+            # Read the path array to get the absolute paths of all components associated with this registry
+            component_paths = reader.get_list_of_paths(registry['metadata']['paths'], self._parser.file_types)
+            for path in component_paths:
+                # TODO Figure out what would be the best path to display to the user
+                # TODO when accessing the node properties panel, since components can
+                # TODO now come from myriad locations
 
-                # Read the location path to get all paths associated with this registry
-                component_paths = reader.get_list_of_paths(location_path, self._parser.file_types)
-                for path in component_paths:
-                    # TODO Figure out what would be the best path to display to the user
-                    # TODO when accessing the node properties panel, since components can
-                    # TODO now come from myriad locations
+                # Read in contents of the component
+                component_definition = reader.read_component_definition(path)
 
-                    # Read in contents of the component
-                    component_definition = reader.read_component_definition(path)
+                component_entry = {
+                    "type": reader.base_type,
+                    "location": path,
+                    "categories": registry['metadata'].get("categories", []),
+                    "component_definition": component_definition
+                }
 
-                    component_entry = {
-                        "type": reader.base_type,
-                        "location": path,
-                        "categories": location_specifier.get("categories", []),
-                        "component_definition": component_definition
-                    }
-
-                    # Parse the component entry to get a fully qualified Component object
-                    components = self._parser.parse(SimpleNamespace(**component_entry))
-                    for component in components:
-                        component_dict[component.id] = component
+                # Parse the component entry to get a fully qualified Component object
+                components = self._parser.parse(SimpleNamespace(**component_entry))
+                for component in components:
+                    component_dict[component.id] = component
 
         return component_dict
 

@@ -249,10 +249,10 @@ class ComponentReader(LoggingConfigurable):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_list_of_paths(self, location: str, parser_file_types: List[str]) -> List[str]:
+    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
         """
         Returns a list of absolute paths to component specification file(s)
-        based on the relative location given
+        based on the array of potentially relative location given
         """
         raise NotImplementedError()
 
@@ -287,12 +287,14 @@ class FilesystemComponentReader(ComponentReader):
         with open(location, 'r') as f:
             return f.read()
 
-    def get_list_of_paths(self, location: str, parser_file_types: List[str]) -> List[str]:
-        filepath = self.determine_location(location)
-        if not os.path.exists(filepath):
-            self.log.warning(f"File does not exist -> {filepath}")
-            return []
-        return [filepath]
+    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
+        absolute_paths = []
+        for path in paths:
+            absolute_path = self.determine_location(path)
+            if not os.path.exists(absolute_path):
+                self.log.warning(f"File does not exist -> {absolute_path}")
+            absolute_paths.append(absolute_path)
+        return absolute_paths
 
 
 class DirectoryComponentReader(FilesystemComponentReader):
@@ -301,18 +303,19 @@ class DirectoryComponentReader(FilesystemComponentReader):
     """
     type = 'directory'
 
-    def get_list_of_paths(self, location: str, parser_file_types: List[str]) -> List[str]:
-        paths = []
-        dirpath = self.determine_location(location)
-        if not os.path.exists(dirpath):
-            self.log.warning(f"Invalid directory -> {dirpath}")
-            return paths
+    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
+        absolute_paths = []
+        for path in paths:
+            absolute_path = self.determine_location(path)
+            if not os.path.exists(absolute_path):
+                self.log.warning(f"Invalid directory -> {absolute_path}")
+                continue
 
-        for filename in os.listdir(dirpath):
-            if filename.endswith(tuple(parser_file_types)):
-                paths.append(os.path.join(dirpath, filename))
+            for filename in os.listdir(absolute_path):
+                if filename.endswith(tuple(parser_file_types)):
+                    absolute_paths.append(os.path.join(absolute_path, filename))
 
-        return paths
+        return absolute_paths
 
     @property
     def base_type(self):
@@ -338,8 +341,8 @@ class UrlComponentReader(ComponentReader):
 
         return res.text
 
-    def get_list_of_paths(self, location: str, parser_file_types: List[str]) -> List[str]:
-        return [location]
+    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
+        return paths
 
 
 class GitHubComponentReader(UrlComponentReader):
@@ -348,7 +351,7 @@ class GitHubComponentReader(UrlComponentReader):
     """
     type = 'github'
 
-    def get_list_of_paths(self, location: str, parser_file_types: List[str]) -> List[str]:
+    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
         pass
 
     @property

@@ -37,45 +37,38 @@
           "description": "The runtime associated with this Component Registry",
           "type": "string"
         },
-        "locations": {
-          "title": "",
-          "description": "",
+        "type": {
+          "title": "Location Type",
+          "description": "The type of location for this registry",
+          "type": "string",
+          "enum": ["URL", "Filename", "Directory"],
+          "uihints": {
+            "field_type": "dropdown"
+          }
+        },
+        "categories": {
+          "title": "Categories",
+          "description": "Categories that apply to this registry location",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
+        },
+        "paths": {
+          "title": "Paths",
+          "description": "The paths to the component specification files",
           "type": "array",
           "items": [
             {
-              "type": "object",
-              "properties": {
-                "location_path": {
-                  "title": "Location Path",
-                  "description": "The path to this component registry location",
-                  "type": "string"
-                },
-                "location_type": {
-                  "title": "Location Type",
-                  "description": "The type of location for this registry",
-                  "type": "string",
-                  "enum": ["url", "filename", "directory"],
-                  "uihints": {
-                    "field_type": "dropdown"
-                  }
-                },
-                "categories": {
-                  "title": "Categories",
-                  "description": "Categories that apply to this registry location",
-                  "type": "array",
-                  "items": [
-                    {
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "required": ["location_path", "location_type"]
+              "type": "string"
             }
-          ]
+          ],
+          "uihints": {
+            "category": "Paths"
+          }
         }
       },
-      "required": ["runtime", "locations"]
+      "required": ["runtime", "type", "paths"]
     }
   },
   "required": ["schema_name", "display_name", "metadata"]
