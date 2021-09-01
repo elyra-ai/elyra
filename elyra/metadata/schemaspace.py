@@ -1,0 +1,85 @@
+#
+# Copyright 2018-2021 Elyra Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Schemaspace:
+# the result of the entrypoint load is a schemaspace
+# and require that elyra register all 4 schemaspaces as entrypoints.
+# The only requirement is that the schemaspace be a subclass of MetadataSchemaspace.
+
+from elyra.metadata.storage import MetadataStore
+from elyra.metadata.storage import FileMetadataStore
+
+import re
+
+class Schemaspace(object):
+  _id: str
+  _name: str
+  _description: str
+  _storage_class: MetadataStore
+  _schemas: List[Dict]
+
+  def __init__(self, *args, **kwargs):
+    self._id = None
+    self._name = None
+    self._description = ""
+    self._storage_class = FileMetadataStore
+    self._schemas = []
+
+  @property
+  def id(self) -> str:
+    """The id (uuid) of the schemaspace"""
+    assert self._id is not None and len(self._id) > 0, "Property 'id' requires a value!"
+    assert self._validate_id(), f"The value of property 'id' ({self._id}) does not conform to a UUID!"
+    return self._id
+
+  @property
+  def name(self) -> str:
+    """The name of the schemaspace"""
+    assert self._name is not None and len(self._name) > 0, "Property 'name' requires a value!"
+    return self._name
+
+  @property
+  def description(self) -> str:
+    """The description of the schemaspace"""
+    return self._description
+
+  @property
+  def storage_class(self) -> MetadataStore:
+    """The storage class used to store instances of the schemas associated with this schemaspace"""
+    assert isinstance(self._storage_class, MetadataStore,
+                      f"The value of property 'storage_class' ({self._storage_class.__name__}) must be an instance of '{MetadataStore.__name__}'!")
+    return self._storage_class
+
+  @property
+  def schemas(self) -> List[Dict]:
+    """Returns the schemas currently associated with this namespace"""
+    return self._schemas
+
+  def add_schema(self, schema: Dict) -> None:
+    """Associates the given schema to this namespace"""
+    assert isinstance(schema, dict, "Parameter 'schema' is not a dictionary!")
+    self._schemas.append(schema)
+
+  def _validate_id(self) -> bool:
+    """
+    Validate that id is uuidv4 compliant
+    """
+    is_valid = False
+    uuidv4_regex = re.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+    if uuidv4_regex.match(self._id):
+      is_valid = True
+
+    return is_valid
