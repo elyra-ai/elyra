@@ -209,10 +209,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Upload the compiled pipeline, create an experiment and run
 
             try:
-                if pipeline.description is not None:
-                    description = pipeline.description
-                else:
-                    description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
+                pipeline_description = pipeline.description
+                if pipeline_description is None:
+                    pipeline_description = f"Created with Elyra {__version__} pipeline editor "\
+                                           f"using `{pipeline.source}`."
                 t0 = time.time()
 
                 if pipeline_id is None:
@@ -221,7 +221,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     kfp_pipeline = \
                         client.upload_pipeline(pipeline_path,
                                                pipeline_name,
-                                               description)
+                                               pipeline_description)
                     pipeline_id = kfp_pipeline.id
                     version_id = None
                 else:

@@ -377,7 +377,7 @@ class Pipeline(object):
         return self._operations
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         """
         Pipeline description
         """
