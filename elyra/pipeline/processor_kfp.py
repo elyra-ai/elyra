@@ -31,8 +31,10 @@ from jupyter_core.paths import ENV_JUPYTER_PATH
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
+from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kfp_server_api.exceptions import ApiException
+from kubernetes import client as k8s_client
 import requests
 from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
@@ -189,15 +191,32 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             # Compile the new pipeline
             try:
+                # TODO ptitzler
+                cc_out = self._cc_pipeline(pipeline,  # nopep8 E731
+                                           pipeline_name=pipeline_name,
+                                           pipeline_version=pipeline_version_name,
+                                           experiment_name=experiment_name,
+                                           cos_directory=cos_directory)
+                # TODO ptitzler
+                pipeline_conf = PipelineConf()
+                pipeline_conf.set_image_pull_secrets([k8s_client.V1ObjectReference(name="private-p")])
+
                 pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8 E731
                                                               pipeline_name=pipeline_name,
                                                               pipeline_version=pipeline_version_name,
                                                               experiment_name=experiment_name,
                                                               cos_directory=cos_directory)
+                # TODO ptitzler
+                print(type(cc_out))
+                print(cc_out)
                 if 'Tekton' == engine:
-                    kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, pipeline_path)
+                    kfp_tekton_compiler.TektonCompiler().compile(pipeline_function,
+                                                                 pipeline_path,
+                                                                 pipeline_conf=pipeline_conf)
                 else:
-                    kfp_argo_compiler.Compiler().compile(pipeline_function, pipeline_path)
+                    kfp_argo_compiler.Compiler().compile(pipeline_function,
+                                                         pipeline_path,
+                                                         pipeline_conf=pipeline_conf)
             except Exception as ex:
                 if ex.__cause__:
                     raise RuntimeError(str(ex)) from ex
@@ -422,6 +441,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Create dictionary that maps component Id to its ContainerOp instance
         target_ops = {}
 
+        # list of container image pull secrets for all operations
+        container_image_pull_secrets = []
+        # list(set(container_pull_secrets))
+
         # Sort operations based on dependency graph (topological order)
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
 
@@ -493,6 +516,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             image_instance.metadata.get('pull_policy'):
                         target_ops[operation.id].container. \
                             set_image_pull_policy(image_instance.metadata['pull_policy'])
+
+                    if image_instance.metadata['image_name'] == operation.runtime_image and \
+                            image_instance.metadata.get('pull_secret'):
+                        container_image_pull_secrets.append(image_instance.metadata.get('pull_secret'))
 
                 self.log_pipeline_info(pipeline_name,
                                        f"processing operation dependencies for id: {operation.id}",
@@ -569,6 +596,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 op.after(parent_op)
 
         self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration=(time.time() - t0_all))
+
+        # TODO ptitzler
+        # add list(set(container_image_pull_secrets)) to return datastructure
 
         return target_ops
 

@@ -59,6 +59,14 @@
             "field_type": "dropdown",
             "category": "Source"
           }
+        },
+        "pull_secret": {
+          "title": "Image Pull Secret",
+          "description": "If specified, the value is used as container image registry key",
+          "type": "string",
+          "uihints": {
+            "category": "Source"
+          }
         }
       },
       "required": ["image_name"]
