@@ -23,8 +23,6 @@ import time
 from typing import Dict
 
 import autopep8
-from black import FileMode
-from black import format_str
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jupyter_core.paths import ENV_JUPYTER_PATH
@@ -367,8 +365,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             # Write to Python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
+                # Defer the import to postpone logger messages: https://github.com/psf/black/issues/2058
+                import black
                 autopep_output = autopep8.fix_code(python_output)
-                output_to_file = format_str(autopep_output, mode=FileMode())
+                output_to_file = black.format_str(autopep_output, mode=black.FileMode())
                 fh.write(output_to_file)
 
             self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0_all))

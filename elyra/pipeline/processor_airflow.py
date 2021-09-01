@@ -25,8 +25,6 @@ from typing import List
 from typing import Union
 
 import autopep8
-from black import FileMode
-from black import format_str
 from jinja2 import Environment
 from jinja2 import PackageLoader
 
@@ -334,8 +332,10 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
             # Write to python file and fix formatting
             with open(pipeline_export_path, "w") as fh:
+                # Defer the import to postpone logger messages: https://github.com/psf/black/issues/2058
+                import black
                 autopep_output = autopep8.fix_code(python_output)
-                output_to_file = format_str(autopep_output, mode=FileMode())
+                output_to_file = black.format_str(autopep_output, mode=black.FileMode())
                 fh.write(output_to_file)
 
         return pipeline_export_path
