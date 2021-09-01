@@ -22,6 +22,7 @@ from traitlets.config import LoggingConfigurable
 
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.pipeline_definition import PipelineDefinition
 
 
 class PipelineParser(LoggingConfigurable):
@@ -30,7 +31,7 @@ class PipelineParser(LoggingConfigurable):
         super().__init__(**kwargs)
         self.root_dir = root_dir
 
-    def parse(self, pipeline_definitions: Dict) -> Pipeline:
+    def parse(self, pipeline_json: Dict) -> Pipeline:
         """
         The pipeline definitions allow for defining multiple pipelines  in one json file.
         When super_nodes are used, their node actually references another pipeline in the
@@ -38,32 +39,33 @@ class PipelineParser(LoggingConfigurable):
         list of operations.
         """
 
-        primary_pipeline_id = pipeline_definitions['primary_pipeline']
-        primary_pipeline = PipelineParser._get_pipeline_definition(pipeline_definitions, primary_pipeline_id)
+        pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+
+        primary_pipeline = pipeline_definition.primary_pipeline
 
         # runtime info is only present on primary pipeline...
-        runtime = PipelineParser._get_app_data_field(primary_pipeline, 'runtime')
+        runtime = primary_pipeline.runtime
         if not runtime:
             raise ValueError("Invalid pipeline: Missing runtime.")
-        runtime_config = PipelineParser._get_app_data_field(primary_pipeline, 'runtime-config')
+        runtime_config = primary_pipeline.runtime_config
         if not runtime_config:
             raise ValueError("Invalid pipeline: Missing runtime configuration.")
 
-        source = PipelineParser._get_app_data_field(primary_pipeline, 'source')
+        source = primary_pipeline.source
 
         description = PipelineParser._get_app_data_field(primary_pipeline, 'properties', {}).get('description')
 
-        pipeline_object = Pipeline(id=primary_pipeline_id,
-                                   name=PipelineParser._get_app_data_field(primary_pipeline, 'name', 'untitled'),
+        pipeline_object = Pipeline(id=primary_pipeline.id,
+                                   name=primary_pipeline.name,
                                    runtime=runtime,
                                    runtime_config=runtime_config,
                                    source=source,
                                    description=description)
-        self._nodes_to_operations(pipeline_definitions, pipeline_object, primary_pipeline['nodes'])
+        self._nodes_to_operations(pipeline_json, pipeline_object, primary_pipeline['nodes'])
         return pipeline_object
 
     def _nodes_to_operations(self,
-                             pipeline_definitions: Dict,
+                             pipeline_definition: Dict,
                              pipeline_object: Pipeline,
                              nodes: List[Dict],
                              super_node: Optional[Dict] = None) -> None:
@@ -84,7 +86,7 @@ class PipelineParser(LoggingConfigurable):
             # Super_nodes trigger recursion
             node_type = node.get('type')
             if node_type == "super_node":
-                self._super_node_to_operations(pipeline_definitions, pipeline_object, node)
+                self._super_node_to_operations(pipeline_definition, pipeline_object, node)
                 continue  # skip to next node
             elif node_type == "binding":  # We can ignore binding nodes since we're able to determine links w/o
                 continue
@@ -111,12 +113,12 @@ class PipelineParser(LoggingConfigurable):
         return self._nodes_to_operations(pipeline_definitions, pipeline_object, pipeline['nodes'], super_node)
 
     @staticmethod
-    def _get_pipeline_definition(pipeline_definitions: Dict, pipeline_id: str) -> [Dict, None]:
+    def _get_pipeline_definition(pipeline_definition: Dict, pipeline_id: str) -> [Dict, None]:
         """
         Locates the pipeline corresponding to pipeline_id in the definitions and returns that definition.
         If the pipeline cannot be located, None is returned.
         """
-        for p in pipeline_definitions['pipelines']:
+        for p in pipeline_definition['pipelines']:
             if p['id'] == pipeline_id:
                 return p
         return None
