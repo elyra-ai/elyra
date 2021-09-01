@@ -7,6 +7,8 @@
       "elyra_{{ property.ref }}": {{ property.value|lower }}
     {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
       "elyra_{{ property.ref }}": {{ property.value }}
+    {% elif property.type|lower == "dict" %}
+      "elyra_{{ property.ref }}": '{'{{ property.value }}'}'
     {% else %}
       "elyra_{{ property.ref }}": "{{ property.value }}"
     {% endif %}{% if loop.index != component.properties|length %},{% endif %}

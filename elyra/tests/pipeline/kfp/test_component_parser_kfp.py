@@ -232,7 +232,7 @@ def test_parse_kfp_component_file():
 
     file_property = next(prop for prop in properties_json['uihints']['parameter_info']
                          if prop.get('parameter_ref') == 'elyra_test_unusual_type_file')
-    assert file_property['data']['format'] == "file"
+    assert file_property['data']['format'] == "inputpath"
 
     no_type_property = next(prop for prop in properties_json['uihints']['parameter_info']
                             if prop.get('parameter_ref') == 'elyra_test_unusual_type_notgiven')
@@ -308,7 +308,8 @@ def test_parse_kfp_component_file_no_inputs():
 
     # Properties JSON should only include the two parameters common to every
     # component:'label' and 'component_source'
-    num_common_params = 2
+    num_common_params = 3
+    print(properties_json['current_parameters'].keys())
     assert len(properties_json['current_parameters'].keys()) == num_common_params
     assert len(properties_json['parameters']) == num_common_params
     assert len(properties_json['uihints']['parameter_info']) == num_common_params

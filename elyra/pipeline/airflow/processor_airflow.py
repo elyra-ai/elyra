@@ -256,7 +256,15 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
-                    if component_property.data_type == "string":
+
+                    if property_value and not type(property_value) == bool and \
+                            str(property_value)[0] == '{' and str(property_value)[-1] == '}':
+                        pv = json.loads(json.dumps(property_value))
+                        if len(pv) == 2 and list(pv.keys()) == ['node_id', 'output_key']:
+                            parent_node_name = self._get_node_name(sorted_operations, pv['node_id'])
+                            processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
+                            operation.component_params[component_property.ref] = processed_value
+                    elif component_property.type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
                         operation.component_params[component_property.ref] = json.dumps(property_value)
@@ -387,6 +395,11 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
         if isinstance(converted_value, str):
             converted_value = json.dumps(converted_value)
         return converted_value
+
+    def _get_node_name(self, operations_list: list, node_id: str) -> str:
+        for operation in operations_list:
+            if operation.id == node_id:
+                return operation.name
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):

@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import re
 from types import SimpleNamespace
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 import yaml
 
@@ -63,41 +65,66 @@ class KfpComponentParser(ComponentParser):
         # properties.extend(self.get_runtime_specific_properties())
 
         # Then loop through and create custom properties
+        # Get parameter sub-dictionaries from YAML object
+
         input_params = component_yaml.get('inputs', [])
-        for param in input_params:
-            # KFP components default to being required unless otherwise stated.
-            # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
-            required = True
-            if "optional" in param and param.get('optional') is True:
-                required = False
+        output_params = component_yaml.get('outputs', [])
 
-            # Assign type, default to string
-            data_type = param.get('type', 'string')
+        all_params = {"inputs": input_params, "outputs": output_params}
 
-            # Set description and include parsed type information
-            description = self._format_description(description=param.get('description', ''),
-                                                   data_type=data_type)
+        # Loop through inputs and outputs and create custom properties
+        for param_type, params in all_params.items():
+            for param in params:
+                # KFP components default to being required unless otherwise stated.
+                # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
+                required = True
+                if "optional" in param and param.get('optional') is True:
+                    required = False
 
-            # Change type to reflect the type of input (inputValue vs inputPath)
-            data_type = self._get_adjusted_parameter_fields(component_body=component_yaml,
-                                                            io_object_name=param.get('name'),
-                                                            io_object_type="input",
-                                                            parameter_type=data_type)
+                # Assign type, default to string
+                data_type = param.get('type', 'string')
 
-            data_type, control_id, default_value = self.determine_type_information(data_type)
+                # Set description and include parsed type information
+                description = self._format_description(description=param.get('description', ''),
+                                                       data_type=data_type)
 
-            # Get value if provided
-            value = param.get('default', '')
+                # Change type to reflect the type of input (inputValue vs inputPath)
+                data_type = self._get_adjusted_parameter_fields(component_body=component_yaml,
+                                                                io_object_name=param.get('name'),
+                                                                io_object_type=param_type[:-1],
+                                                                parameter_type=data_type)
 
-            ref = param.get('name').lower().replace(' ', '_')
-            properties.append(ComponentParameter(id=ref,
-                                                 name=param.get('name'),
-                                                 data_type=data_type,
-                                                 value=(value or default_value),
-                                                 description=description,
-                                                 control_id=control_id,
-                                                 required=required))
+                type, control, control_id, required_param, default_value = self.determine_type_information(data_type)
+                if not required_param:
+                    required = required_param
+
+                # Get value if provided
+                value = param.get('default', '')
+
+                ref_name = param.get('name').lower().replace(' ', '_')
+
+                ref = self.get_unique_ref_name(ref_name=ref_name,
+                                               properties=properties)
+
+                properties.append(ComponentParameter(id=ref,
+                                                     name=param.get('name'),
+                                                     data_type=data_type,
+                                                     value=(value or default_value),
+                                                     description=description,
+                                                     control=control,
+                                                     control_id=control_id,
+                                                     required=required))
         return properties
+
+    def get_unique_ref_name(self, ref_name: str, properties: list) -> str:
+        unique_name_counter = 1
+        unique_ref_name = ref_name
+        names = [component_parameter.ref for component_parameter in properties]
+        while unique_ref_name in names:
+            unique_name_counter += 1
+            unique_ref_name = ''.join([ref_name, '_', str(unique_name_counter)])
+
+        return unique_ref_name
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
         """
@@ -140,11 +167,69 @@ class KfpComponentParser(ComponentParser):
                 for command in component_body['implementation']['container']['command']:
                     if isinstance(command, dict) and list(command.values())[0] == io_object_name and \
                             list(command.keys())[0] == f"{io_object_type}Path":
-                        adjusted_type = "file"
+                        adjusted_type = f"{io_object_type}Path"
             if "args" in component_body['implementation']['container']:
                 for arg in component_body['implementation']['container']['args']:
                     if isinstance(arg, dict) and list(arg.values())[0] == io_object_name and \
                             list(arg.keys())[0] == f"{io_object_type}Path":
-                        adjusted_type = "file"
+                        adjusted_type = f"{io_object_type}Path"
 
         return adjusted_type
+
+    def determine_type_information(self, parsed_type: str) -> Tuple[str, str, str, bool, Any]:
+        """
+        Takes the type information of a component parameter as parsed from the component
+        specification and returns a new type that is one of several standard options.
+
+        """
+        type_lowered = parsed_type.lower()
+        type_options = ['dictionary', 'dict', 'set', 'list', 'array', 'arr', 'inputpath', 'inputvalue', 'outputpath']
+
+        # Prefer types that occur in a clause of the form "[type] of ..."
+        # E.g. "a dictionary of key/value pairs" will produce the type "dictionary"
+        if any(word + " of " in type_lowered for word in type_options):
+            for option in type_options:
+                reg = re.compile(f"({option}) of ")
+                match = reg.search(type_lowered)
+                if match:
+                    type_lowered = option
+                    break
+        else:
+            for option in type_options:
+                if option in type_lowered:
+                    type_lowered = option
+                    break
+
+        # Set control id and default value for UI rendering purposes
+        # Standardize type names
+        control = "custom"
+        control_id = "StringControl"
+        default_value = ''
+        required_param = True
+        if any(word in type_lowered for word in ["str", "string"]):
+            type_lowered = "string"
+        elif any(word in type_lowered for word in ['int', 'integer', 'number']):
+            type_lowered = "number"
+            control_id = "NumberControl"
+            default_value = 0
+        elif any(word in type_lowered for word in ['bool', 'boolean']):
+            type_lowered = "boolean"
+            control_id = "BooleanControl"
+            default_value = False
+        elif type_lowered in ['dict', 'dictionary']:
+            type_lowered = "dictionary"
+        elif type_lowered in ['list', 'set', 'array', 'arr']:
+            type_lowered = "list"
+        elif type_lowered in ['inputpath']:
+            type_lowered = "inputpath"
+            control_id = "FoobarControl"
+        elif type_lowered in ['inputvalue']:
+            type_lowered = "inputvalue"
+        elif type_lowered in ['outputpath']:
+            control = "readonly"
+            type_lowered = "outputpath"
+            required_param = False
+        else:
+            type_lowered = "string"
+
+        return type_lowered, control, control_id, required_param, default_value
