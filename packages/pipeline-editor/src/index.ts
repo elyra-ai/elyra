@@ -38,6 +38,10 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
+import {
+  COMPONENT_REGISTRY_NAMESPACE,
+  ComponentRegistryWidget
+} from './ComponentRegistryWidget';
 import { getRuntimeIcon } from './pipeline-hooks';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
@@ -321,8 +325,21 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
 
+    const componentRegistryWidget = new ComponentRegistryWidget({
+      app,
+      themeManager,
+      display_name: 'Component Registry',
+      namespace: COMPONENT_REGISTRY_NAMESPACE,
+      icon: containerIcon
+    });
+    const componentRegistryWidgetID = `elyra-metadata:${COMPONENT_REGISTRY_NAMESPACE}`;
+    componentRegistryWidget.id = componentRegistryWidgetID;
+    componentRegistryWidget.title.icon = containerIcon;
+    componentRegistryWidget.title.caption = 'Component Registry';
+
     restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
     app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
+    app.shell.add(componentRegistryWidget, 'left', { rank: 961 });
   }
 };
 export default extension;
