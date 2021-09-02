@@ -3,7 +3,7 @@
   "metadata": {
     "description": "Preloaded components that are supported by Kubeflow Pipelines",
     "runtime": "kfp",
-    "type": "Directory",
+    "location_type": "Directory",
     "categories": ["Preloaded KFP"],
     "paths": ["kfp"]
   },

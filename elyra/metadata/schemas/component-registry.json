@@ -37,7 +37,7 @@
           "description": "The runtime associated with this Component Registry",
           "type": "string"
         },
-        "type": {
+        "location_type": {
           "title": "Location Type",
           "description": "The type of location for this registry",
           "type": "string",
@@ -68,7 +68,7 @@
           }
         }
       },
-      "required": ["runtime", "type", "paths"]
+      "required": ["runtime", "location_type", "paths"]
     }
   },
   "required": ["schema_name", "display_name", "metadata"]

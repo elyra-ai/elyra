@@ -47,31 +47,31 @@ class ComponentRegistry(LoggingConfigurable):
                               name="Notebook",
                               description="Run notebook file",
                               op="execute-notebook-node",
-                              source_type="elyra",
-                              source="elyra",
+                              location_type="elyra",
+                              location="elyra",
                               extensions=[".ipynb"],
                               categories=[_generic_category_label]),
         "python-script": Component(id="python-script",
                                    name="Python Script",
                                    description="Run Python script",
                                    op="execute-python-node",
-                                   source_type="elyra",
-                                   source="elyra",
+                                   location_type="elyra",
+                                   location="elyra",
                                    extensions=[".py"],
                                    categories=[_generic_category_label]),
         "r-script": Component(id="r-script",
                               name="R Script",
                               description="Run R script",
                               op="execute-r-node",
-                              source_type="elyra",
-                              source="elyra",
+                              location_type="elyra",
+                              location="elyra",
                               extensions=[".r"],
                               categories=[_generic_category_label])}
 
     _readers = {
-        FilesystemComponentReader.type: FilesystemComponentReader(),
-        DirectoryComponentReader.type: DirectoryComponentReader(),
-        UrlComponentReader.type: UrlComponentReader()
+        FilesystemComponentReader.location_type: FilesystemComponentReader(),
+        DirectoryComponentReader.location_type: DirectoryComponentReader(),
+        UrlComponentReader.location_type: UrlComponentReader()
     }
 
     def __init__(self, parser: ComponentParser, **kwargs):
@@ -95,9 +95,9 @@ class ComponentRegistry(LoggingConfigurable):
         component = component_dict.get(component_id)
         if component is None:
             self.log.error(f"Component with ID '{component_id}' could not be found in any "
-                           f"{self._parser.type} registries.")
+                           f"{self._parser.component_platform} registries.")
             raise ValueError(f"Component with ID '{component_id}' could not be found in any "
-                             f"{self._parser.type} registries.")
+                             f"{self._parser.component_platform} registries.")
 
         return component
 
@@ -181,7 +181,8 @@ class ComponentRegistry(LoggingConfigurable):
             all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
 
             # Filter registries according to processor type
-            runtime_registries = filter(lambda r: r['metadata']['runtime'] == self._parser.type, all_registries)
+            runtime_registries = filter(lambda r: r['metadata']['runtime'] == self._parser.component_platform,
+                                        all_registries)
         except (ValidationError, ValueError):
             raise
         except MetadataNotFoundError:
@@ -193,8 +194,8 @@ class ComponentRegistry(LoggingConfigurable):
             registry_name = registry['display_name']
             self.log.debug(f"Component registry: processing components in registry '{registry_name}'")
 
-            # Assign reader based on the type of the registry entry (file, directory, url)
-            registry_type = registry['metadata']['type'].lower()
+            # Assign reader based on the location type of the registry (file, directory, url)
+            registry_type = registry['metadata']['location_type'].lower()
             reader = self._get_reader(registry_type)
 
             # Read the path array to get the absolute paths of all components associated with this registry
@@ -208,7 +209,7 @@ class ComponentRegistry(LoggingConfigurable):
                 component_definition = reader.read_component_definition(path)
 
                 component_entry = {
-                    "type": reader.base_type,
+                    "location_type": reader.resource_type,
                     "location": path,
                     "categories": registry['metadata'].get("categories", []),
                     "component_definition": component_definition
@@ -221,13 +222,13 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component_dict
 
-    def _get_reader(self, location_type: str) -> ComponentReader:
+    def _get_reader(self, registry_location_type: str) -> ComponentReader:
         """
         Find the proper reader based on the given registry location type
         """
-        reader = self._readers.get(location_type)
+        reader = self._readers.get(registry_location_type)
         if not reader:
-            raise ValueError(f"Unsupported registry type: '{location_type}'")
+            raise ValueError(f"Unsupported registry type: '{registry_location_type}'")
 
         return reader
 

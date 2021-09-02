@@ -34,8 +34,15 @@ class ComponentParameter(object):
     Represents a single property for a pipeline component
     """
 
-    def __init__(self, id: str, name: str, type: str, value: str, description: str, required: bool = False,
-                 control: str = "custom", control_id: str = "StringControl", items: Optional[List[str]] = None):
+    def __init__(self, id: str,
+                 name: str,
+                 data_type: str,
+                 value: str,
+                 description: str,
+                 required: bool = False,
+                 control: str = "custom",
+                 control_id: str = "StringControl",
+                 items: Optional[List[str]] = None):
         """
         :param id: Unique identifier for a property
         :param name: The name of the property for display
@@ -55,7 +62,7 @@ class ComponentParameter(object):
 
         self._ref = id
         self._name = name
-        self._type = type
+        self._data_type = data_type
         self._value = value
 
         self._description = description
@@ -81,8 +88,8 @@ class ComponentParameter(object):
         return self._name
 
     @property
-    def type(self) -> str:
-        return self._type
+    def data_type(self) -> str:
+        return self._data_type
 
     @property
     def value(self) -> str:
@@ -116,8 +123,8 @@ class Component(object):
 
     def __init__(self, id: str, name: str,
                  description: Optional[str],
-                 source_type: str,
-                 source: str,
+                 location_type: str,
+                 location: str,
                  runtime: Optional[str] = None,
                  op: Optional[str] = None,
                  categories: Optional[List[str]] = None,
@@ -128,8 +135,9 @@ class Component(object):
         :param id: Unique identifier for a component
         :param name: The name of the component for display
         :param description: The description of the component
-        :param source_type: Indicates the type of component definition resource location; one of ['url', filename']
-        :param source: The location of the component definition
+        :param location_type: Indicates the type of component definition resource
+                              location; one of ['url', filename', 'directory]
+        :param location: The location of the component definition
         :param runtime: The runtime of the component (e.g. KFP or Airflow)
         :param op: The operation name of the component; used by generic components in rendering the palette
         :param categories: A list of categories that this component belongs to
@@ -145,16 +153,16 @@ class Component(object):
         self._id = id
         self._name = name
         self._description = description
-        self._source_type = source_type
-        self._source = source
+        self._location_type = location_type
+        self._location = location
 
         self._runtime = runtime
         self._op = op
-        self._category_ids = categories
+        self._categories = categories or []
         self._properties = properties
 
         if not parameter_refs:
-            if self._source_type == "elyra":
+            if self._location_type == "elyra":
                 parameter_refs = {
                     "filehandler": "filename"
                 }
@@ -182,12 +190,12 @@ class Component(object):
         return self._description
 
     @property
-    def source_type(self) -> str:
-        return self._source_type
+    def location_type(self) -> str:
+        return self._location_type
 
     @property
-    def source(self) -> str:
-        return self._source
+    def location(self) -> str:
+        return self._location
 
     @property
     def runtime(self) -> Optional[str]:
@@ -201,10 +209,8 @@ class Component(object):
             return self._id
 
     @property
-    def categories(self) -> Optional[List[str]]:
-        if not self._category_ids:
-            return []
-        return self._category_ids
+    def categories(self) -> List[str]:
+        return self._categories
 
     @property
     def properties(self) -> Optional[List[ComponentParameter]]:
@@ -230,15 +236,17 @@ class ComponentReader(LoggingConfigurable):
     """
     Abstract class to model component_entry readers that can read components from different locations
     """
-    type: str = None
+    location_type: str = None
+
+    '''
+    @property
+    def location_type(self) -> str:
+        return self.location_type
+    '''
 
     @property
-    def type(self) -> str:
-        return self.type
-
-    @property
-    def base_type(self):
-        return self.type
+    def resource_type(self):
+        return self.location_type
 
     @abstractmethod
     def read_component_definition(self, location: str) -> Optional[str]:
@@ -261,7 +269,7 @@ class FilesystemComponentReader(ComponentReader):
     """
     Read a singular component definition from the local filesystem
     """
-    type = 'filename'
+    location_type = 'filename'
 
     def determine_location(self, location_path: str) -> str:
         """
@@ -301,7 +309,7 @@ class DirectoryComponentReader(FilesystemComponentReader):
     """
     Read component definitions from a local directory
     """
-    type = 'directory'
+    location_type = 'directory'
 
     def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
         absolute_paths = []
@@ -318,15 +326,15 @@ class DirectoryComponentReader(FilesystemComponentReader):
         return absolute_paths
 
     @property
-    def base_type(self):
-        return super().type
+    def resource_type(self):
+        return super().location_type
 
 
 class UrlComponentReader(ComponentReader):
     """
     Read a singular component definition from a url
     """
-    type = 'url'
+    location_type = 'url'
 
     def read_component_definition(self, location: str) -> Optional[str]:
         try:
@@ -349,23 +357,23 @@ class GitHubComponentReader(UrlComponentReader):
     """
     Read component definitions from a github repo
     """
-    type = 'github'
+    location_type = 'github'
 
     def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
         pass
 
     @property
-    def base_type(self):
-        return super().type
+    def resource_type(self):
+        return super().location_type
 
 
 class ComponentParser(LoggingConfigurable):  # ABC
-    _type = None
+    _component_platform = None
     _file_types = None
 
     @property
-    def type(self) -> str:
-        return self._type
+    def component_platform(self) -> str:
+        return self._component_platform
 
     @property
     def file_types(self) -> List[str]:
@@ -389,13 +397,14 @@ class ComponentParser(LoggingConfigurable):  # ABC
         component_name = f"{filename}_{name.replace(' ', '')}"
         return component_name
 
-    def _format_description(self, description: str, type: str) -> str:
+    def _format_description(self, description: str, data_type: str) -> str:
         """
-        Adds type information parsed from component specification to parameter description.
+        Adds parameter type information parsed from component specification
+        to parameter description.
         """
         if description:
-            return f"{description} (type: {type})"
-        return f"(type: {type})"
+            return f"{description} (type: {data_type})"
+        return f"(type: {data_type})"
 
     def determine_type_information(self, parsed_type: str) -> Tuple[str, str, Any]:
         """

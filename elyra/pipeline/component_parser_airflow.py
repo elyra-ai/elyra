@@ -26,7 +26,7 @@ from elyra.pipeline.component import ComponentParser
 
 
 class AirflowComponentParser(ComponentParser):
-    _type = "airflow"
+    _component_platform = "airflow"
     _file_types = [".py"]
 
     def __init__(self):
@@ -54,9 +54,9 @@ class AirflowComponentParser(ComponentParser):
             components.append(Component(id=component_id,
                                         name=component_class,
                                         description='',
-                                        runtime=self.type,
-                                        source_type=registry_entry.type,
-                                        source=registry_entry.location,
+                                        runtime=self.component_platform,
+                                        location_type=registry_entry.location_type,
+                                        location=registry_entry.location,
                                         properties=component_properties,
                                         categories=registry_entry.categories))
 
@@ -126,7 +126,7 @@ class AirflowComponentParser(ComponentParser):
             # Search for :type [param] information in class docstring
             type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
             match = type_regex.search(class_content)
-            type = match.group(1).strip() if match else "string"
+            data_type = match.group(1).strip() if match else "string"
 
             # Search for :param [param] in class doctring to get description
             description = ""
@@ -136,13 +136,13 @@ class AirflowComponentParser(ComponentParser):
                 description = match.group(1).strip().replace("\"", "'")
 
             # Amend description to include type information
-            description = self._format_description(description=description, type=type)
+            description = self._format_description(description=description, data_type=data_type)
 
-            type, control_id, default_value = self.determine_type_information(type)
+            data_type, control_id, default_value = self.determine_type_information(data_type)
 
             properties.append(ComponentParameter(id=arg,
                                                  name=arg,
-                                                 type=type,
+                                                 data_type=data_type,
                                                  value=(value or default_value),
                                                  description=description,
                                                  control_id=control_id))
@@ -156,7 +156,7 @@ class AirflowComponentParser(ComponentParser):
             ComponentParameter(
                 id="runtime_image",
                 name="Runtime Image",
-                type="string",
+                data_type="string",
                 value="",
                 description="Container image used as execution environment.",
                 control="custom",

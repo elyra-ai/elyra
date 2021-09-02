@@ -1,18 +1,15 @@
 {
     "current_parameters": {
       "label": "",
-      "component_source": "{{ component.source }}"{% if component.properties|length > 0 %},{% endif %}
+      "component_source": "{{ component.location }}"{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
-    {% if property.type|lower == "bool" or property.type|lower == "boolean" %}
+    {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
       "elyra_{{ property.ref }}": {{ property.value|lower }}
-    {% elif property.type|lower == "int" or property.type|lower == "integer" or property.type|lower == "number" %}
+    {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
       "elyra_{{ property.ref }}": {{ property.value }}
     {% else %}
       "elyra_{{ property.ref }}": "{{ property.value }}"
-    {% endif %}
-    {% if loop.index != component.properties|length %}
-      ,
-    {% endif %}
+    {% endif %}{% if loop.index != component.properties|length %},{% endif %}
 {% endfor %}
     },
     "parameters": [
@@ -25,10 +22,7 @@
 {% for property in component.properties %}
       {
         "id": "elyra_{{ property.ref }}"
-      }
-    {% if loop.index != component.properties|length %}
-      ,
-    {% endif %}
+      }{% if loop.index != component.properties|length %},{% endif %}
 {% endfor %}
     ],
     "uihints": {
@@ -72,7 +66,7 @@
             "placement": "on_panel"
           },
           "data": {
-            "format": "{{ property.type }}",
+            "format": "{{ property.data_type }}",
             "required": {{ property.required|lower }}
             {% if property.control_id == "EnumControl" %}
             ,
@@ -86,10 +80,7 @@
               ]
             {% endif %}
           }
-        }
-      {% if loop.index != component.properties|length %}
-        ,
-      {% endif %}
+        }{% if loop.index != component.properties|length %},{% endif %}
 {% endfor %}
       ],
       "group_info": [
@@ -112,10 +103,7 @@
               "id": "elyra_{{ property.ref }}",
               "type": "controls",
               "parameter_refs": ["elyra_{{ property.ref }}"]
-            }
-          {% if loop.index != component.properties|length %}
-            ,
-          {% endif %}
+            }{% if loop.index != component.properties|length %},{% endif %}
 {% endfor %}
           ]
         }
