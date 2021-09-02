@@ -21,25 +21,43 @@ from typing import Optional
 
 
 class AppDataBase():
-    _pipeline_definition: Dict = None
+    """
+    An abstraction for app_data based nodes
+    """
     _node: Dict = None
 
-    def __init__(self, pipeline_definition: Dict, node: Dict):
-        self._pipeline_definition = pipeline_definition
+    def __init__(self, node: Dict):
+        """
+        Constructor with the node json structure
+        :param node: the node json
+        """
         self._node = node
 
     @property
     def id(self) -> str:
+        """
+        The node id
+        :return: the node unique identifier
+        """
         return self._node.get('id')
 
-    @property
-    def pipeline(self) -> Dict:
-        return self._pipeline_definition
-
     def get(self, key: str, default_value=None) -> Any:
+        """
+        Retrieve node values for a given key.
+        These key/value pairs are stored in the app_data stanza
+        :param key: The key to be retrieved
+        :param default_value: a default value in case the key is not found
+        :return: the value or the default_value if the key is not found
+        """
         return self._node['app_data'].get(key, default_value)
 
     def set(self, key: str, value: Any):
+        """
+        Update node values for a given key.
+        These key/value pairs are stored in the app_data stanza
+        :param key: The key to be set
+        :param value: The value to be set
+        """
         if not key:
             raise ValueError("Key is required")
 
@@ -48,12 +66,6 @@ class AppDataBase():
 
         self._node['app_data'][key] = value
 
-    def validate(self) -> list:
-        pass
-
-    def is_valid(self) -> bool:
-        return len(self.validate()) == 0
-
     def to_dict(self) -> Dict:
         return self._node
 
@@ -61,23 +73,43 @@ class AppDataBase():
 class Pipeline(AppDataBase):
     _nodes: list = None
 
-    def __init__(self, pipeline_definition: Dict, node: Dict):
-        super().__init__(pipeline_definition, node)
+    def __init__(self, node: Dict):
+        """
+        The constructor with pipeline json structure
+        :param node: the node pipeline
+        """
+        super().__init__(node)
 
     @property
     def version(self) -> int:
+        """
+        The pipelive version
+        :return: The version
+        """
         return int(self._node['app_data'].get('version'))
 
     @property
     def runtime(self) -> str:
+        """
+        The runtime associated with the pipeline
+        :return: The runtime keyword
+        """
         return self._node['app_data'].get('runtime')
 
     @property
     def runtime_config(self) -> str:
+        """
+        The runtime configuration associated with the pipeline
+        :return: The runtime configuration key. This should be a valid key from the Runtimes metadata
+        """
         return self._node['app_data'].get('runtime-config')
 
     @property
     def type(self):
+        """
+        The pipeline type
+        :return: The runtime keyword associated with the pipeline or `generic`
+        """
         type_description_to_type = {'Kubeflow Pipelines': 'kfp',
                                     'Apache Airflow': 'airflow',
                                     'Generic': 'generic'}
@@ -88,21 +120,31 @@ class Pipeline(AppDataBase):
         return type_description_to_type[pipeline_type_description]
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+        The pipeline name
+        :rtype: The pipeline name or `untitled`
+        """
         return self._node['app_data'].get('name') or 'untitled'
 
     @property
-    def source(self):
+    def source(self) -> str:
+        """
+        The pipeline source
+        :rtype: The pipeline source
+        """
         return self._node['app_data'].get('source')
 
     @property
     def nodes(self) -> list:
-        if not self._nodes:
-            if 'nodes' not in self._node:
-                raise ValueError("Pipeline is missing 'nodes' field.")
-            # elif len(self._node['nodes']) == 0:
-            #     raise ValueError("Pipeline has zero length 'nodes' field.")
+        """
+        The list of nodes for the pipeline
+        :rtype: object
+        """
+        if 'nodes' not in self._node:
+            raise ValueError("Pipeline is missing 'nodes' field.")
 
+        if self._nodes is None:
             nodes: list = list()
             for node in self._node['nodes']:
                 nodes.append(Node(self._pipeline_definition, node))
@@ -112,10 +154,20 @@ class Pipeline(AppDataBase):
         return self._nodes
 
     def get_property(self, key: str, default_value=None) -> Any:
-        self._validate()
+        """
+        Retrieve pipeline values for a given key.
+        :param key: the key to be retrieved
+        :param default_value: a default value in case the key is not found
+        :return: the value or the default_value if the key is not found
+        """
         return self._node['app_data']['properties'].get(key, default_value)
 
     def set_property(self, key: str, value: Any):
+        """
+        Update pipeline values for a given key.
+        :param key: the key to be set
+        :param value: the value to be set
+        """
         if not key:
             raise ValueError("Key is required")
 
@@ -124,36 +176,52 @@ class Pipeline(AppDataBase):
 
         self._node['app_data']['properties'][key] = value
 
-    def validate(self) -> list:
-        validation_issues = list()
-        if 'properties' not in self._node['app_data']:
-            validation_issues.append("Node is missing 'properties' field.")
-        elif len(self._node['app_data']['properties']) == 0:
-            validation_issues.append("Pipeline has zero length 'properties' field.")
-
-        return validation_issues
-
 
 class Node(AppDataBase):
-    def __init__(self, pipeline_definition: Dict, node: Dict):
-        super().__init__(pipeline_definition, node)
+    def __init__(self, node: Dict):
+        super().__init__(node)
 
     @property
     def type(self) -> str:
+        """
+        The node type
+        :return: type (e.g. execution_node)
+        """
         return self._node.get('type')
 
     @property
     def op(self) -> str:
+        """
+        The node op, which identify the operation to be executed
+        :return: op (e.g. execute-notebook-node)
+        """
         return self._node.get('op')
 
     @property
     def label(self) -> str:
+        """
+        The node label
+        :return:  node label
+        """
         return self._node['app_data']['ui_data'].get('label', self._node['app_data']['label'])
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
+        """
+        Retrieve component parameter values.
+        These key/value pairs are stored in app_data.component_parameters
+        :param key: the parameter key to be retrieved
+        :param default_value: a default value in case the key is not found
+        :return: the value or the default value if the key is not found
+        """
         return self._node['app_data']['component_parameters'].get(key, default_value)
 
     def set_component_parameter(self, key: str, value: Any):
+        """
+        Update component parameter values for a given key.
+        These key/value pairs are stored in app_data.component_parameters
+        :param key: The parameter key to be retrieved
+        :param value: the value to be set
+        """
         if not key:
             raise ValueError("Key is required")
 
@@ -162,25 +230,24 @@ class Node(AppDataBase):
 
         self._node['app_data']['component_parameters'][key] = value
 
-    def validate(self) -> list:
-        validation_issues = list()
-        if "component_parameters" not in self._node['app_data']:
-            validation_issues.append("Node is missing 'component_parameters' field")
-
-        return validation_issues
-
 
 class PipelineDefinition(object):
     """
     Represents a helper class to manipulate pipeline json structure
     """
     _pipelines: list = None
-    _primary_pipeline = None
+    _primary_pipeline: Pipeline = None
+    _validated: bool = False
+    _validation_issues: list = None
 
-    def __init__(self, pipeline_path: Optional[str] = None, pipeline_definition: Optional[Dict] = None):
+    def __init__(self, pipeline_path: Optional[str] = None,
+                 pipeline_definition: Optional[Dict] = None,
+                 validate: bool = False):
         """
         The constructor enables either passing a pipeline path or the content of the pipeline definition.
-
+        :param pipeline_path: this is the path to a pipeline
+        :param pipeline_definition: this is the piepline json
+        :param validate: flag to turn validation during pipeline initialization
         """
         if not pipeline_path and not pipeline_definition:
             # at least one parameter should be provided
@@ -203,16 +270,31 @@ class PipelineDefinition(object):
             # supporting passing the pipeline definition directly
             self._pipeline_definition = pipeline_definition
 
+        if validate:
+            self.validate()
+
     @property
     def id(self) -> str:
+        """
+        The pipeline definition id
+        :return: the unid
+        """
         return self._pipeline_definition.get('id')
 
     @property
     def schema_version(self) -> str:
+        """
+        The schema used by the Pipeline definition
+        :return: the version
+        """
         return self._pipeline_definition.get('version')
 
     @property
     def pipelines(self) -> list:
+        """
+        The list of pipelines defined in the pipeline definition
+        :return: the list of pipelines
+        """
         if not self._pipelines:
             if 'pipelines' not in self._pipeline_definition:
                 raise ValueError("Pipeline is missing 'pipelines' field.")
@@ -229,6 +311,10 @@ class PipelineDefinition(object):
 
     @property
     def primary_pipeline(self) -> Pipeline:
+        """
+        The primary pipeline associated with this pipeline definition
+        :return: the primary pipeline
+        """
         if not self._primary_pipeline:
             if "pipelines" not in self._pipeline_definition:
                 raise ValueError("Pipeline is missing 'pipelines' field.")
@@ -243,6 +329,16 @@ class PipelineDefinition(object):
         return Pipeline(self._pipeline_definition, self._primary_pipeline)
 
     def validate(self) -> list:
+        """
+        Validates the pipeline definition structure and semantics
+        :return: the list of issues found
+        """
+        # If it has been validated before
+        if self._validated:
+            # return current list of issues
+            return self._validation_issues
+
+        # Has not been validated before
         validation_issues = list()
         # Validate pipeline schema version
         if 'version' not in self._pipeline_definition:
@@ -269,22 +365,45 @@ class PipelineDefinition(object):
             validation_issues.append("No primary pipeline was found")
         else:
             # Validate primary pipeline structure
-            if 'nodes' not in primary_pipeline or len(primary_pipeline['nodes']) == 0:
-                validation_issues.append("At least one node must exist in the primary pipeline.")
             if 'app_data' not in primary_pipeline:
                 validation_issues.append("Primary pipeline is missing the 'app_data' field.")
-            elif 'version' not in primary_pipeline['app_data']:
-                validation_issues.append("Primary pipeline is missing the 'version' field.")
+            else:
+                if 'version' not in primary_pipeline['app_data']:
+                    validation_issues.append("Primary pipeline is missing the 'version' field.")
+                if 'properties' not in primary_pipeline['app_data']:
+                    validation_issues.append("Node is missing 'properties' field.")
+                elif len(primary_pipeline['app_data']['properties']) == 0:
+                    validation_issues.append("Pipeline has zero length 'properties' field.")
+
+            if 'nodes' not in primary_pipeline or len(primary_pipeline['nodes']) == 0:
+                validation_issues.append("At least one node must exist in the primary pipeline.")
+            else:
+                for node in primary_pipeline['nodes']:
+                    if "component_parameters" not in node['app_data']:
+                        validation_issues.append("Node is missing 'component_parameters' field")
 
         return validation_issues
 
     def is_valid(self) -> bool:
+        """
+        Represents wether or not the pipeline structure is valid
+        :return: True for a valid pipeline definition
+        """
         return len(self.validate()) == 0
 
     def to_dict(self) -> Dict:
+        """
+        The raw contents of the pipeline definition json
+        :rtype: object
+        """
         return self._pipeline_definition
 
     def _get_pipeline_definition(self, pipeline_id):
+        """
+        Retrieve a given pipeline from the pipeline definition
+        :param pipeline_id: the pipeline unique identifier
+        :return: the pipeline or None
+        """
         if 'pipelines' in self._pipeline_definition:
             for pipeline in self._pipeline_definition["pipelines"]:
                 if pipeline['id'] == pipeline_id:
