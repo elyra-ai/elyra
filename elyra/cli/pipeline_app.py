@@ -160,8 +160,6 @@ def _preprocess_pipeline(pipeline_path: str,
         primary_pipeline["app_data"]["runtime"] = runtime
     if runtime_config:
         primary_pipeline["app_data"]["runtime-config"] = runtime_config
-    else:
-        primary_pipeline["app_data"]["runtime-config"] = 'local'
 
     return pipeline_definition
 
