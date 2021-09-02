@@ -101,16 +101,16 @@ class PipelineParser(LoggingConfigurable):
             pipeline_object.operations[operation.id] = operation
 
     def _super_node_to_operations(self,
-                                  pipeline_definitions: Dict,
+                                  pipeline_definition: Dict,
                                   pipeline_object: Pipeline,
                                   super_node: Dict) -> None:
         """Converts nodes within a super_node to operations. """
 
         # get pipeline corresponding to super_node
         pipeline_id = PipelineParser._get_child_field(super_node, 'subflow_ref', 'pipeline_id_ref')
-        pipeline = PipelineParser._get_pipeline_definition(pipeline_definitions, pipeline_id)
+        pipeline = PipelineParser._get_pipeline_definition(pipeline_definition, pipeline_id)
         # recurse to process nodes of super-node
-        return self._nodes_to_operations(pipeline_definitions, pipeline_object, pipeline['nodes'], super_node)
+        return self._nodes_to_operations(pipeline_definition, pipeline_object, pipeline['nodes'], super_node)
 
     @staticmethod
     def _get_pipeline_definition(pipeline_definition: Dict, pipeline_id: str) -> [Dict, None]:
