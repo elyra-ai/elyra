@@ -319,7 +319,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
             cos_secret = runtime_configuration.metadata.get('cos_secret')
 
-            description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
+            pipeline_description = pipeline.description
+            if pipeline_description is None:
+                pipeline_description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
             python_output = template.render(operations_list=target_ops,
                                             pipeline_name=pipeline_name,
@@ -328,7 +330,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                                             kube_config_path=None,
                                             is_paused_upon_creation='False',
                                             in_cluster='True',
-                                            pipeline_description=description)
+                                            pipeline_description=pipeline_description)
 
             # Write to python file and fix formatting
             with open(pipeline_export_path, "w") as fh:

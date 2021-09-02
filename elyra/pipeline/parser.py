@@ -51,11 +51,14 @@ class PipelineParser(LoggingConfigurable):
 
         source = PipelineParser._get_app_data_field(primary_pipeline, 'source')
 
+        description = PipelineParser._get_app_data_field(primary_pipeline, 'properties', {}).get('description')
+
         pipeline_object = Pipeline(id=primary_pipeline_id,
                                    name=PipelineParser._get_app_data_field(primary_pipeline, 'name', 'untitled'),
                                    runtime=runtime,
                                    runtime_config=runtime_config,
-                                   source=source)
+                                   source=source,
+                                   description=description)
         self._nodes_to_operations(pipeline_definitions, pipeline_object, primary_pipeline['nodes'])
         return pipeline_object
 

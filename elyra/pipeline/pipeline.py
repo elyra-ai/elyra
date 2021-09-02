@@ -312,7 +312,13 @@ class Pipeline(object):
     Represents a single pipeline constructed in the pipeline editor
     """
 
-    def __init__(self, id: str, name: str, runtime: str, runtime_config: str, source: Optional[str] = None):
+    def __init__(self,
+                 id: str,
+                 name: str,
+                 runtime: str,
+                 runtime_config: str,
+                 source: Optional[str] = None,
+                 description: Optional[str] = None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -322,6 +328,7 @@ class Pipeline(object):
                         e.g. kfp OR airflow
         :param runtime_config: Runtime configuration that should be used to submit the pipeline to execution
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
+        :description: Pipeline description
         """
 
         if not name:
@@ -333,6 +340,7 @@ class Pipeline(object):
 
         self._id = id
         self._name = name
+        self._description = description
         self._source = source
         self._runtime = runtime
         self._runtime_config = runtime_config
@@ -368,11 +376,19 @@ class Pipeline(object):
     def operations(self) -> Dict[str, Operation]:
         return self._operations
 
+    @property
+    def description(self) -> Optional[str]:
+        """
+        Pipeline description
+        """
+        return self._description
+
     def __eq__(self, other: 'Pipeline') -> bool:
         if isinstance(self, other.__class__):
             return self.id == other.id and \
                 self.name == other.name and \
                 self.source == other.source and \
+                self.description == other.description and \
                 self.runtime == other.runtime and \
                 self.runtime_config == other.runtime_config and \
                 self.operations == other.operations
