@@ -59,3 +59,12 @@ class CodeSnippets(Schemaspace):
         self._id = self.CODE_SNIPPETS_SCHEMASPACE_ID
         self._name = "Code Snippets"
         self._description = "Schemaspace for instances of Elyra code snippets configurations"
+
+
+class ComponentRegistries(Schemaspace):
+    COMPONENT_REGISTRIES_SCHEMASPACE_ID = uuid.uuid4()
+
+    def __init__(self, *args, **kwargs):
+        self._id = self.COMPONENT_REGISTRIES_SCHEMASPACE_ID
+        self._name = "Component Registries"
+        self._description = "Schemaspace for instances of Elyra component resgistries configurations"
