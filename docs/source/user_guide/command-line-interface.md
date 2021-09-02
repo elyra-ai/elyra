@@ -78,7 +78,7 @@ Refer to the topics below for detailed information on how to use `elyra-metadata
 
 ### Working with pipelines
 
-In Elyra, [a pipeline](pipelines.html) is a representation of a
+In Elyra, [a pipeline](pipelines.md) is a representation of a
 workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow.
 
 #### Getting help
