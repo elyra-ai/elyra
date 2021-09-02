@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 
 from elyra.metadata.storage import MetadataStore
 from elyra.metadata.storage import FileMetadataStore
@@ -36,6 +36,7 @@ class Schemaspace(object):
   @property
   def id(self) -> str:
     """The id (uuid) of the schemaspace"""
+    #  We may want another dictionary that maps name to id
     assert self._id is not None and len(self._id) > 0, "Property 'id' requires a value!"
     assert self._validate_id(), f"The value of property 'id' ({self._id}) does not conform to a UUID!"
     return self._id
