@@ -62,10 +62,13 @@
         },
         "pull_secret": {
           "title": "Image Pull Secret",
-          "description": "If specified, the value is used as container image registry key",
+          "description": "Kubernetes secret name containing the container registry credentials, if anonymous pull access is forbidden.",
           "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
+          "maxLength": 253,
           "uihints": {
-            "category": "Source"
+            "category": "Source",
+            "secure": true
           }
         }
       },

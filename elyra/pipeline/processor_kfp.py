@@ -191,24 +191,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             # Compile the new pipeline
             try:
-                # TODO ptitzler
-                cc_out = self._cc_pipeline(pipeline,  # nopep8 E731
-                                           pipeline_name=pipeline_name,
-                                           pipeline_version=pipeline_version_name,
-                                           experiment_name=experiment_name,
-                                           cos_directory=cos_directory)
-                # TODO ptitzler
-                pipeline_conf = PipelineConf()
-                pipeline_conf.set_image_pull_secrets([k8s_client.V1ObjectReference(name="private-p")])
-
                 pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8 E731
                                                               pipeline_name=pipeline_name,
                                                               pipeline_version=pipeline_version_name,
                                                               experiment_name=experiment_name,
                                                               cos_directory=cos_directory)
-                # TODO ptitzler
-                print(type(cc_out))
-                print(cc_out)
+                # collect pipeline configuration information
+                pipeline_conf = self._generate_pipeline_conf(pipeline)
+
                 if 'Tekton' == engine:
                     kfp_tekton_compiler.TektonCompiler().compile(pipeline_function,
                                                                  pipeline_path,
@@ -441,10 +431,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Create dictionary that maps component Id to its ContainerOp instance
         target_ops = {}
 
-        # list of container image pull secrets for all operations
-        container_image_pull_secrets = []
-        # list(set(container_pull_secrets))
-
         # Sort operations based on dependency graph (topological order)
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
 
@@ -516,10 +502,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             image_instance.metadata.get('pull_policy'):
                         target_ops[operation.id].container. \
                             set_image_pull_policy(image_instance.metadata['pull_policy'])
-
-                    if image_instance.metadata['image_name'] == operation.runtime_image and \
-                            image_instance.metadata.get('pull_secret'):
-                        container_image_pull_secrets.append(image_instance.metadata.get('pull_secret'))
 
                 self.log_pipeline_info(pipeline_name,
                                        f"processing operation dependencies for id: {operation.id}",
@@ -597,10 +579,49 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration=(time.time() - t0_all))
 
-        # TODO ptitzler
-        # add list(set(container_image_pull_secrets)) to return datastructure
-
         return target_ops
+
+    def _generate_pipeline_conf(self, pipeline: dict) -> PipelineConf:
+        """
+        Returns a KFP pipeline configuration for this pipeline, which can be empty.
+
+        :param pipeline: pipeline dictionary
+        :type pipeline: dict
+        :return: https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf
+        :rtype: kfp.dsl import PipelineConf
+        """
+
+        self.log.debug('Generating pipeline configuration ...')
+        pipeline_conf = PipelineConf()
+
+        #
+        # Gather input for container image pull secrets in support of private container image registries
+        # https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf.set_image_pull_secrets
+        #
+        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+
+        # iterate through pipeline operations and create list of Kubernetes secret names
+        # that are associated with generic components
+        container_image_pull_secret_names = []
+        for operation in pipeline.operations.values():
+            if isinstance(operation, GenericOperation):
+                for image_instance in image_namespace:
+                    if image_instance.metadata['image_name'] == operation.runtime_image:
+                        if image_instance.metadata.get('pull_secret'):
+                            container_image_pull_secret_names.append(image_instance.metadata.get('pull_secret'))
+                        break
+
+        if len(container_image_pull_secret_names) > 0:
+            # de-duplicate the pull secret name list, create Kubernetes resource
+            # references and add them to the pipeline configuration
+            container_image_pull_secrets = []
+            for secret_name in list(set(container_image_pull_secret_names)):
+                container_image_pull_secrets.append(k8s_client.V1ObjectReference(name=secret_name))
+            pipeline_conf.set_image_pull_secrets(container_image_pull_secrets)
+            self.log.debug(f'Added {len(container_image_pull_secrets)}'
+                           ' image pull secret(s) to the pipeline configuration.')
+
+        return pipeline_conf
 
     @staticmethod
     def _sanitize_operation_name(name: str) -> str:
