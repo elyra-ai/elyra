@@ -32,6 +32,7 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationSeverity
 
@@ -197,7 +198,7 @@ def _validate_pipeline_definition(pipeline_definition):
         raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
 
 
-def _execute_pipeline(pipeline_definition):
+def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
     try:
         # parse pipeline
         pipeline_object = PipelineParser().parse(pipeline_definition)
@@ -270,15 +271,22 @@ def submit(pipeline_path, runtime_config):
     _validate_pipeline_definition(pipeline_definition)
 
     with yaspin(text="Submitting pipeline..."):
-        response = _execute_pipeline(pipeline_definition)
+        response: PipelineProcessorResponse = _execute_pipeline(pipeline_definition)
 
     if response:
-        print_info("Job submission succeeded",
-                   [
-                       f"Check the status of your job at: {response._run_url}",
-                       f"The results and outputs are in the {response._object_storage_path} ",
-                       f"working directory in {response._object_storage_url}"
-                   ])
+        msg = []
+        # If there's a git_url attr, assume Apache Airflow DAG repo.
+        # TODO: this will need to be revisited once front-end is decoupled from runtime platforms.
+        if hasattr(response, 'git_url'):
+            msg.append(f"Apache Airflow DAG has been pushed to: {response.git_url}")
+        msg.extend(
+            [
+                f"Check the status of your job at: {response.run_url}",
+                f"The results and outputs are in the {response.object_storage_path} ",
+                f"working directory in {response.object_storage_url}"
+            ]
+        )
+        print_info("Job submission succeeded", msg)
 
     click.echo()
 
