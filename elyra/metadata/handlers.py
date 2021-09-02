@@ -237,6 +237,7 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
         self.set_header("Content-Type", 'application/json')
         self.finish(namespace_model)
 
+
 class SchemaSpaceHandler(HttpErrorMixin, APIHandler):
     """Handler for retrieving schemaspaces """
 

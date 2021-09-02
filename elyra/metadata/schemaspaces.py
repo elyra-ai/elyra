@@ -20,7 +20,8 @@
 # ElyraSchemaspaces.get_schemaspaces() would return a list of instances of
 # RuntimesSchemaspace, RuntimeImagesSchemaspace, CodeSnippetsSchemaspace and ComponentRegistriesSchemaspace
 # - all of which derive from SchemaspaceBase.
-# ElyraSchemaspaces would NOT be a subclass of SchemaspaceBase, it just needs to serve the various instances associated with the entrypoint
+# ElyraSchemaspaces would NOT be a subclass of SchemaspaceBase
+# it just needs to serve the various instances associated with the entrypoint
 
 
 # Schemaspace:
@@ -37,24 +38,24 @@ class Runtimes(Schemaspace):
     RUNTIMES_SCHEMASPACE_ID = uuid.uuid4()
 
     def __init__(self, *args, **kwargs):
-      self._id = self.RUNTIMES_SCHEMASPACE_ID
-      self._name = "Runtimes"
-      self._description = "Schemaspace for instances of Elyra runtime configurations"
+        self._id = self.RUNTIMES_SCHEMASPACE_ID
+        self._name = "Runtimes"
+        self._description = "Schemaspace for instances of Elyra runtime configurations"
 
 
 class RuntimeImages(Schemaspace):
     RUNTIME_IMAGES_SCHEMASPACE_ID = uuid.uuid4()
 
     def __init__(self, *args, **kwargs):
-      self._id = self.RUNTIME_IMAGES_SCHEMASPACE_ID
-      self._name = "Runtime Images"
-      self._description = "Schemaspace for instances of Elyra runtime images configurations"
+        self._id = self.RUNTIME_IMAGES_SCHEMASPACE_ID
+        self._name = "Runtime Images"
+        self._description = "Schemaspace for instances of Elyra runtime images configurations"
 
 
 class CodeSnippets(Schemaspace):
     CODE_SNIPPETS_SCHEMASPACE_ID = uuid.uuid4()
 
     def __init__(self, *args, **kwargs):
-      self._id = self.CODE_SNIPPETS_SCHEMASPACE_ID
-      self._name = "Code Snippets"
-      self._description = "Schemaspace for instances of Elyra code snippets configurations"
+        self._id = self.CODE_SNIPPETS_SCHEMASPACE_ID
+        self._name = "Code Snippets"
+        self._description = "Schemaspace for instances of Elyra code snippets configurations"

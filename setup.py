@@ -119,7 +119,7 @@ setup_args = dict(
         'metadata.schemaspaces': [
             'runtimes = elyra.metadata.schemaspaces:Runtimes',
             'runtimes-images = elyra.metadata.schemaspaces:RuntimeImages',
-            'code-snippets = elyra.metadata.schemaspaces:CodeSnippets'
+            'code-snippets = elyra.metadata.schemaspaces:CodeSnippets',
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
