@@ -24,7 +24,7 @@ A runtime image configuration identifies a container image that Elyra can utiliz
 A runtime image configuration is associated with a container image that must meet these prerequisites:
 
 - The image is stored in a container registry in a public or private network that the container platform in which the pipeline is executed can connect to. Examples of such registries are [hub.docker.com](https://hub.docker.com) or a self-managed registry in an intranet environment.
-- The image can be pulled from the registry without the need to authenticate.
+- Apache Airflow pipelines only: The image can be pulled from the registry without the need to authenticate.
 - The image must have a current `Python 3` version pre-installed and in the search path.
 - The image must have `curl` pre-installed and in the search path.
 
@@ -146,7 +146,7 @@ Example: `My custom runtime container image`
 
 ##### Image Name (image_name)
 
-The name and tag of an existing container image in a public container registry that meets the stated prerequisites. This property is required.
+The name and tag of an existing container image in a container registry that meets the stated prerequisites. This property is required.
 
 Example:
 
@@ -171,6 +171,19 @@ Example:
 - `IfNotPresent`
 
 This example will tell the kubelet to only pull the image if it does not exist. 
+
+##### Image Pull Secret (pull_secret)
+
+If `Image Name` references a container image in a secured registry (requiring credentials to pull the image), [create a Kubernetes secret in the appropriate Kubeflow Pipeline user namespace](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) and specify the secret name as _image pull secret_.
+
+Restrictions:
+ - Only supported for generic components.
+ - Only supported for Kubeflow Pipelines runtime environments.
+
+Example:
+
+- `my-registry-credentials-secret`
+
 
 ##### N/A (name)
 
