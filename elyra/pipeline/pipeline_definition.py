@@ -20,7 +20,7 @@ from typing import Dict
 from typing import Optional
 
 
-class NodeBase():
+class AppDataBase():
     _pipeline_definition: Dict = None
     _node: Dict = None
 
@@ -58,7 +58,7 @@ class NodeBase():
         return self._node
 
 
-class Pipeline(NodeBase):
+class Pipeline(AppDataBase):
     _nodes: list = None
 
     def __init__(self, pipeline_definition: Dict, node: Dict):
@@ -134,7 +134,7 @@ class Pipeline(NodeBase):
         return validation_issues
 
 
-class Node(NodeBase):
+class Node(AppDataBase):
     def __init__(self, pipeline_definition: Dict, node: Dict):
         super().__init__(pipeline_definition, node)
 
