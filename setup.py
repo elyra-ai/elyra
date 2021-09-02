@@ -36,7 +36,7 @@ auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.jso
 component_registry_path = './etc/config/components/*.json'
 components_kfp_path = './etc/config/components/kfp/*.yaml'
 components_airflow_path = './etc/config/components/airflow/*.py'
-metadata_path = './etc/config/metadata/runtime-images/*.json'
+runtime_images_path = './etc/config/metadata/runtime-images/*.json'
 settings_path = './etc/config/settings/*.json'
 
 setup_args = dict(
@@ -49,7 +49,7 @@ setup_args = dict(
     license="Apache License Version 2.0",
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
                 ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
-                ('share/jupyter/metadata/runtime-images', glob(metadata_path)),
+                ('share/jupyter/metadata/runtime-images', glob(runtime_images_path)),
                 ('share/jupyter/components', glob(component_registry_path)),
                 ('share/jupyter/components/kfp/', glob(components_kfp_path)),
                 ('share/jupyter/components/airflow/', glob(components_airflow_path)),
@@ -115,6 +115,11 @@ setup_args = dict(
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
             'elyra-pipeline = elyra.cli.pipeline_app:pipeline',
             'jupyter-elyra = elyra.elyra_app:launch_instance'
+        ],
+        'metadata.schemaspaces': [
+            'runtimes = elyra.metadata.schemaspaces:Runtimes',
+            'runtimes-images = elyra.metadata.schemaspaces:RuntimeImages',
+            'code-snippets = elyra.metadata.schemaspaces:CodeSnippets'
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
