@@ -147,7 +147,7 @@ class Pipeline(AppDataBase):
         if self._nodes is None:
             nodes: list = list()
             for node in self._node['nodes']:
-                nodes.append(Node(self._pipeline_definition, node))
+                nodes.append(Node(node))
 
             self._nodes = nodes
 
@@ -160,7 +160,11 @@ class Pipeline(AppDataBase):
         :param default_value: a default value in case the key is not found
         :return: the value or the default_value if the key is not found
         """
-        return self._node['app_data']['properties'].get(key, default_value)
+        return_value = default_value
+        if 'properties' in self._node['app_data']:
+            return_value = self._node['app_data']['properties'].get(key, default_value)
+
+        return return_value
 
     def set_property(self, key: str, value: Any):
         """
@@ -185,7 +189,7 @@ class Node(AppDataBase):
     def type(self) -> str:
         """
         The node type
-        :return: type (e.g. execution_node)
+        :return: type (e.g. execution_node, super_node)
         """
         return self._node.get('type')
 
@@ -204,6 +208,20 @@ class Node(AppDataBase):
         :return:  node label
         """
         return self._node['app_data']['ui_data'].get('label', self._node['app_data']['label'])
+
+    @property
+    def subflow_pipeline_id(self) -> Pipeline:
+        """
+        The Super Node pipeline reference. Only available when type is a super node.
+        :return:
+        """
+        if self._node['type'] != 'super_node':
+            raise ValueError("Node must be a super_node in order to retrieve a subflow pipeline id")
+
+        if 'subflow_ref' in self._node:
+            return self._node['subflow_ref'].get('pipeline_id_ref')
+        else:
+            return None
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
@@ -303,7 +321,7 @@ class PipelineDefinition(object):
 
             pipelines: list = list()
             for pipeline in self._pipeline_definition['pipelines']:
-                pipelines.append(Pipeline(self._pipeline_definition, pipeline))
+                pipelines.append(Pipeline(pipeline))
 
             self._pipelines = pipelines
 
@@ -322,11 +340,11 @@ class PipelineDefinition(object):
                 raise ValueError("Pipeline has zero length 'pipelines' field.")
 
             # Find primary pipeline
-            self._primary_pipeline = self._get_pipeline_definition(self._pipeline_definition.get('primary_pipeline'))
+            self._primary_pipeline = self.get_pipeline_definition(self._pipeline_definition.get('primary_pipeline'))
 
             assert self._primary_pipeline is not None, "No primary pipeline was found"
 
-        return Pipeline(self._pipeline_definition, self._primary_pipeline)
+        return self._primary_pipeline
 
     def validate(self) -> list:
         """
@@ -360,10 +378,11 @@ class PipelineDefinition(object):
         elif not isinstance(self._pipeline_definition["primary_pipeline"], str):
             validation_issues.append("Field 'primary_pipeline' should be a string.")
 
-        primary_pipeline = self._get_pipeline_definition(self._pipeline_definition.get('primary_pipeline'))
+        primary_pipeline = self.get_pipeline_definition(self._pipeline_definition.get('primary_pipeline'))
         if not primary_pipeline:
             validation_issues.append("No primary pipeline was found")
         else:
+            primary_pipeline = primary_pipeline.to_dict()
             # Validate primary pipeline structure
             if 'app_data' not in primary_pipeline:
                 validation_issues.append("Primary pipeline is missing the 'app_data' field.")
@@ -398,7 +417,7 @@ class PipelineDefinition(object):
         """
         return self._pipeline_definition
 
-    def _get_pipeline_definition(self, pipeline_id):
+    def get_pipeline_definition(self, pipeline_id) -> Pipeline:
         """
         Retrieve a given pipeline from the pipeline definition
         :param pipeline_id: the pipeline unique identifier
@@ -407,6 +426,6 @@ class PipelineDefinition(object):
         if 'pipelines' in self._pipeline_definition:
             for pipeline in self._pipeline_definition["pipelines"]:
                 if pipeline['id'] == pipeline_id:
-                    return pipeline
+                    return Pipeline(pipeline)
 
         return None

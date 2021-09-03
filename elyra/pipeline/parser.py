@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -22,6 +21,7 @@ from traitlets.config import LoggingConfigurable
 
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 
 
@@ -53,7 +53,7 @@ class PipelineParser(LoggingConfigurable):
 
         source = primary_pipeline.source
 
-        description = PipelineParser._get_app_data_field(primary_pipeline, 'properties', {}).get('description')
+        description = primary_pipeline.get_property('description')
 
         pipeline_object = Pipeline(id=primary_pipeline.id,
                                    name=primary_pipeline.name,
@@ -61,14 +61,14 @@ class PipelineParser(LoggingConfigurable):
                                    runtime_config=runtime_config,
                                    source=source,
                                    description=description)
-        self._nodes_to_operations(pipeline_json, pipeline_object, primary_pipeline['nodes'])
+        self._nodes_to_operations(pipeline_definition, pipeline_object, primary_pipeline.nodes)
         return pipeline_object
 
     def _nodes_to_operations(self,
-                             pipeline_definition: Dict,
+                             pipeline_definition: PipelineDefinition,
                              pipeline_object: Pipeline,
                              nodes: List[Dict],
-                             super_node: Optional[Dict] = None) -> None:
+                             super_node: Node = None) -> None:
         """
         Converts each execution_node of the pipeline to its corresponding operation.
 
@@ -84,16 +84,15 @@ class PipelineParser(LoggingConfigurable):
         """
         for node in nodes:
             # Super_nodes trigger recursion
-            node_type = node.get('type')
-            if node_type == "super_node":
-                self._super_node_to_operations(pipeline_definition, pipeline_object, node)
+            if node.type == "super_node":
+                self._super_node_to_operations(pipeline_definition, node, pipeline_object, node)
                 continue  # skip to next node
-            elif node_type == "binding":  # We can ignore binding nodes since we're able to determine links w/o
+            elif node.type == "binding":  # We can ignore binding nodes since we're able to determine links w/o
                 continue
-            elif node_type == "model_node":
-                raise NotImplementedError("Node type '{}' is currently not supported!".format(node_type))
-            elif node_type != "execution_node":
-                raise ValueError("Node type '{}' is invalid!".format(node_type))
+            elif node.type == "model_node":
+                raise NotImplementedError("Node type '{}' is currently not supported!".format(node.type))
+            elif node.type != "execution_node":
+                raise ValueError("Node type '{}' is invalid!".format(node.type))
 
             # parse each node as a pipeline operation
             operation = self._create_pipeline_operation(node, super_node)
@@ -101,72 +100,35 @@ class PipelineParser(LoggingConfigurable):
             pipeline_object.operations[operation.id] = operation
 
     def _super_node_to_operations(self,
-                                  pipeline_definition: Dict,
+                                  pipeline_definition: PipelineDefinition,
+                                  node: Node,
                                   pipeline_object: Pipeline,
-                                  super_node: Dict) -> None:
+                                  super_node: Node) -> None:
         """Converts nodes within a super_node to operations. """
 
         # get pipeline corresponding to super_node
-        pipeline_id = PipelineParser._get_child_field(super_node, 'subflow_ref', 'pipeline_id_ref')
-        pipeline = PipelineParser._get_pipeline_definition(pipeline_definition, pipeline_id)
+        pipeline_id = node.subflow_pipeline_id
+        pipeline = pipeline_definition.get_pipeline_definition(pipeline_id)
         # recurse to process nodes of super-node
-        return self._nodes_to_operations(pipeline_definition, pipeline_object, pipeline['nodes'], super_node)
+        return self._nodes_to_operations(pipeline_definition, pipeline_object, pipeline.nodes, super_node)
 
-    @staticmethod
-    def _get_pipeline_definition(pipeline_definition: Dict, pipeline_id: str) -> [Dict, None]:
-        """
-        Locates the pipeline corresponding to pipeline_id in the definitions and returns that definition.
-        If the pipeline cannot be located, None is returned.
-        """
-        for p in pipeline_definition['pipelines']:
-            if p['id'] == pipeline_id:
-                return p
-        return None
-
-    def _create_pipeline_operation(self, node: Dict, super_node: Optional[Dict] = None) -> Operation:
+    def _create_pipeline_operation(self, node: Node, super_node: Node = None) -> Operation:
         """
         Creates a pipeline operation instance from the given node.
         The node and super_node are used to build the list of parent_operation_ids (links) to
         the node (operation dependencies).
         """
-        node_id = node.get('id')
-        parent_operations = PipelineParser._get_parent_operation_links(node)  # parse links as dependencies
+        parent_operations = PipelineParser._get_parent_operation_links(node.to_dict())  # parse links as dependencies
         if super_node:  # gather parent-links tied to embedded nodes inputs
-            parent_operations.extend(PipelineParser._get_parent_operation_links(super_node, node_id))
-
-        operation_name = PipelineParser._get_app_data_field(node, 'label')
-        # If label is not set, default to using the label from ui_data
-        if not operation_name:
-            operation_name = PipelineParser._get_ui_data_field(node, 'label')
+            parent_operations.extend(PipelineParser._get_parent_operation_links(super_node.to_dict(), node.id))
 
         return Operation.create_instance(
-            id=node_id,
-            type=node.get('type'),
-            classifier=node.get('op'),
-            name=operation_name,
+            id=node.id,
+            type=node.type,
+            classifier=node.op,
+            name=node.label,
             parent_operation_ids=parent_operations,
-            component_params=PipelineParser._get_app_data_field(node, "component_parameters", {}))
-
-    @staticmethod
-    def _get_child_field(obj: Dict, child: str, field_name: str, default_value: Any = None) -> Any:
-        """
-        Returns the field's value from the child dictionary of object obj or the default
-        if any portion (child, field) is not present.
-        """
-        return_value = default_value
-        if child in obj.keys():
-            return_value = obj[child].get(field_name, default_value)
-        return return_value
-
-    @staticmethod
-    def _get_app_data_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:
-        """Helper method to pull the field's value from the app_data child of object obj."""
-        return PipelineParser._get_child_field(obj, 'app_data', field_name, default_value=default_value)
-
-    @staticmethod
-    def _get_ui_data_field(obj: Dict, field_name: str, default_value: Any = None) -> Any:
-        ui_data = PipelineParser._get_child_field(obj, 'app_data', 'ui_data', {})
-        return ui_data.get(field_name, default_value)
+            component_params=node.get("component_parameters", {}))
 
     @staticmethod
     def _get_port_node_id(link: Dict) -> [None, str]:
