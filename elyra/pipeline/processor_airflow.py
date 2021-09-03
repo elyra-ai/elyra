@@ -193,10 +193,14 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 pipeline_envs['ELYRA_RUN_NAME'] = f'{pipeline_name}-{{{{ ts_nodash }}}}'
 
                 image_pull_policy = None
+                runtime_image_pull_secret = None
                 for image_instance in image_namespace:
-                    if image_instance.metadata['image_name'] == operation.runtime_image and \
-                            image_instance.metadata.get('pull_policy'):
-                        image_pull_policy = image_instance.metadata['pull_policy']
+                    if image_instance.metadata['image_name'] == operation.runtime_image:
+                        if image_instance.metadata.get('pull_policy'):
+                            image_pull_policy = image_instance.metadata['pull_policy']
+                        if image_instance.metadata.get('pull_secret'):
+                            runtime_image_pull_secret = image_instance.metadata['pull_secret']
+                        break
 
                 bootscript = BootscriptBuilder(filename=operation.filename,
                                                cos_endpoint=cos_endpoint,
@@ -221,6 +225,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                              'gpu_request': operation.gpu,
                              'is_generic_operator': True
                              }
+
+                if runtime_image_pull_secret is not None:
+                    target_op['runtime_image_pull_secret'] = runtime_image_pull_secret
 
                 target_ops.append(target_op)
 
