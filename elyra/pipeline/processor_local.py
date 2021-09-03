@@ -301,7 +301,7 @@ class PythonScriptOperationProcessor(ScriptOperationProcessor):
     _script_type = 'Python'
 
     def get_argv(self, file_path) -> List[str]:
-        return ['python3', file_path]
+        return [f"{sys.executable}", file_path]
 
 
 class RScriptOperationProcessor(ScriptOperationProcessor):
