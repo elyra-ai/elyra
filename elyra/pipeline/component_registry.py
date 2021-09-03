@@ -27,6 +27,7 @@ from traitlets.config import LoggingConfigurable
 
 from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schema import SchemaFilter
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ComponentReader
@@ -181,7 +182,7 @@ class ComponentRegistry(LoggingConfigurable):
             all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
 
             # Filter registries according to processor type
-            runtime_registries = filter(lambda r: r['metadata']['runtime'] == self._parser.component_platform,
+            runtime_registries = filter(lambda r: r['metadata']['runtime'].lower() == self._parser.component_platform,
                                         all_registries)
         except (ValidationError, ValueError):
             raise
@@ -280,3 +281,26 @@ class CachedComponentRegistry(ComponentRegistry):
                 is_expired = False
 
         return is_expired
+
+
+class RegistrySchemaFilter(SchemaFilter):
+    """
+    This class exists to ensure that the component registry schema's runtime
+    metadata appropriately reflects the available runtimes.
+    """
+
+    def post_load(self, name: str, schema_json: Dict) -> Dict:
+        """Ensure available runtimes are present and add to schema as necessary."""
+
+        filtered_schema = super().post_load(name, schema_json)
+
+        # Runtimes are currently hardcoded as attempting to retrieve them dynamically
+        # via the SchemaManager causes a circular dependency.
+        # TODO Revisit options to dynamically load the runtimes via this SchemaFilter
+        # schema_manager = SchemaManager.instance()
+        # runtime_enum = schema_manager.get_namespace_schemas(namespace=MetadataManager.NAMESPACE_RUNTIMES)
+        runtime_enum = ["KFP", "Airflow"]
+
+        # Add runtimes to schema
+        filtered_schema['properties']['metadata']['properties']['runtime']['enum'] = runtime_enum
+        return filtered_schema

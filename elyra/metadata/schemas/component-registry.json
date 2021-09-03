@@ -2,12 +2,13 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Component Registry",
   "name": "component-registry",
-  "display_name": "Components",
+  "display_name": "Pipeline Component",
   "namespace": "component-registries",
+  "schema_filter_class_name": "elyra.pipeline.component_registry.RegistrySchemaFilter",
   "uihints": {
-    "title": "Components",
+    "title": "Pipeline Components",
     "icon": "",
-    "reference_url": ""
+    "reference_url": "https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html"
   },
   "properties": {
     "schema_name": {
@@ -32,10 +33,24 @@
           "description": "Description of this Component Registry",
           "type": "string"
         },
+        "categories": {
+          "title": "Categories",
+          "description": "Categories that apply to this registry location",
+          "type": "array",
+          "uihints": {
+            "field_type": "tags"
+          }
+        },
         "runtime": {
           "title": "Runtime",
           "description": "The runtime associated with this Component Registry",
-          "type": "string"
+          "type": "string",
+          "$comment": "This enum is dynamically generated to contain the available runtime values.",
+          "enum": ["{schema-filter-value}"],
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Source"
+          }
         },
         "location_type": {
           "title": "Location Type",
@@ -43,15 +58,8 @@
           "type": "string",
           "enum": ["URL", "Filename", "Directory"],
           "uihints": {
-            "field_type": "dropdown"
-          }
-        },
-        "categories": {
-          "title": "Categories",
-          "description": "Categories that apply to this registry location",
-          "type": "array",
-          "uihints": {
-            "field_type": "tags"
+            "field_type": "dropdown",
+            "category": "Source"
           }
         },
         "paths": {
@@ -64,7 +72,7 @@
             }
           ],
           "uihints": {
-            "category": "Paths"
+            "category": "Source"
           }
         }
       },
