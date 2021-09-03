@@ -50,9 +50,29 @@ Component details and demo pipelines can be found in the `https://github.com/ely
 
 Note that example components are provided as is. Unless indicated otherwise they are not maintained by the Elyra community.
 
-### Managing custom components
+### Managing custom components using the JupyterLab UI
 
-In this release Elyra utilizes an internal registry to store information about custom components that you can use in the Visual Pipeline Editor to create pipelines.
+Custom components can be added, modified, and removed in the _Custom Components_ panel.
+
+![Runtime components UI](../images/user_guide/pipeline-components/pipeline-components-ui.png)
+
+To access the panel in JupyterLab:
+
+- Click the `Open Component Registry` button in the pipeline editor toolbar.
+
+  ![Open panel from pipeline editor toolbar](../images/user_guide/pipeline-components/toolbar-manage-button.png)     
+
+  OR     
+
+- Select the `Component Registry` panel from the JupyterLab sidebar.
+
+  ![Open panel from sidebar](../images/user_guide/pipeline-components/sidebar-button.png)     
+
+  OR
+
+- Open the JupyterLab command palette (`Cmd/Ctrl + Shift + C`) and search for `Manage Pipeline Components`.
+
+  ![Open panel from command palette](../images/user_guide/pipeline-components/cmd-palette.png)
 
 #### Adding a component to the registry
 
