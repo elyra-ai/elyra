@@ -19,7 +19,8 @@ import {
   containerIcon,
   pipelineIcon,
   RequestErrors,
-  runtimesIcon
+  runtimesIcon,
+  pipelineComponentsIcon
 } from '@elyra/ui-components';
 
 import {
@@ -38,10 +39,6 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon } from '@jupyterlab/ui-components';
 
-import {
-  COMPONENT_REGISTRY_NAMESPACE,
-  ComponentRegistryWidget
-} from './ComponentRegistryWidget';
 import { getRuntimeIcon } from './pipeline-hooks';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
@@ -54,10 +51,12 @@ import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
 
 import '../style/index.css';
+import { MetadataWidget } from '@elyra/metadata-common';
 
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
+const COMPONENT_REGISTRY_NAMESPACE = 'component-registries';
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -325,17 +324,17 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
 
-    const componentRegistryWidget = new ComponentRegistryWidget({
+    const componentRegistryWidget = new MetadataWidget({
       app,
       themeManager,
-      display_name: 'Component Registry',
+      display_name: 'Pipeline Components',
       namespace: COMPONENT_REGISTRY_NAMESPACE,
-      icon: containerIcon
+      icon: pipelineComponentsIcon
     });
     const componentRegistryWidgetID = `elyra-metadata:${COMPONENT_REGISTRY_NAMESPACE}`;
     componentRegistryWidget.id = componentRegistryWidgetID;
-    componentRegistryWidget.title.icon = containerIcon;
-    componentRegistryWidget.title.caption = 'Component Registry';
+    componentRegistryWidget.title.icon = pipelineComponentsIcon;
+    componentRegistryWidget.title.caption = 'Pipeline Components';
 
     restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
     app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });

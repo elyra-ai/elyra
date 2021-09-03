@@ -34,7 +34,8 @@ import {
   RequestErrors,
   showFormDialog,
   kubeflowIcon,
-  airflowIcon
+  airflowIcon,
+  pipelineComponentsIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
 import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
@@ -892,6 +893,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         enable: true,
         iconEnabled: IconUtil.encode(containerIcon),
         iconDisabled: IconUtil.encode(containerIcon)
+      },
+      {
+        action: 'openPipelineComponents',
+        label: 'Open Pipeline Components',
+        enable: true,
+        iconEnabled: IconUtil.encode(pipelineComponentsIcon),
+        iconDisabled: IconUtil.encode(pipelineComponentsIcon)
       },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },
