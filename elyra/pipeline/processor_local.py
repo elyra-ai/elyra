@@ -24,6 +24,7 @@ import time
 from typing import Dict
 from typing import List
 from typing import Optional
+import sys
 
 from jupyter_server.gateway.managers import GatewayClient
 import papermill
