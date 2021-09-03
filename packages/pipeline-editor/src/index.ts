@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { MetadataWidget } from '@elyra/metadata-common';
 import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
 import {
   containerIcon,
@@ -51,7 +52,6 @@ import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
 import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
 
 import '../style/index.css';
-import { MetadataWidget } from '@elyra/metadata-common';
 
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
