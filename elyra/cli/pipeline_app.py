@@ -67,9 +67,6 @@ def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
         # Cannot use metadata manager to determine the display name.
         return schema_name
 
-    if schema_name == 'local':
-        return schema_name
-
     try:
         schema_manager = SchemaManager.instance()
         schema = schema_manager.get_schema('runtimes', schema_name)
@@ -81,7 +78,7 @@ def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
 def _validate_pipeline_runtime(primary_pipeline: Pipeline, runtime: str) -> bool:
     """
     Generic pipelines do not have a persisted runtime type, and can be run on any runtime
-    Runtime specific pipeline have a runtime type, and con only be run on matching runtime
+    Runtime specific pipeline have a runtime type, and can only be run on matching runtime
     """
     is_valid = True
     if runtime:  # Only perform validation if a target runtime has been specified
@@ -133,7 +130,7 @@ def _preprocess_pipeline(pipeline_path: str,
     # update pipeline transient fields
     primary_pipeline.set("name", pipeline_name)
     primary_pipeline.set("source", os.path.basename(pipeline_abs_path))
-    # Only update the following if values were provided (and runtime is valid)
+    # Only update the following if values were provided
     if runtime:
         primary_pipeline.set("runtime", runtime)
     if runtime_config:

@@ -39,9 +39,11 @@ class PipelineParser(LoggingConfigurable):
         list of operations.
         """
 
-        pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
-
-        primary_pipeline = pipeline_definition.primary_pipeline
+        try:
+            pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+            primary_pipeline = pipeline_definition.primary_pipeline
+        except Exception as e:
+            raise ValueError(f"Invalid Pipeline: {e}")
 
         # runtime info is only present on primary pipeline...
         runtime = primary_pipeline.runtime
@@ -67,8 +69,8 @@ class PipelineParser(LoggingConfigurable):
     def _nodes_to_operations(self,
                              pipeline_definition: PipelineDefinition,
                              pipeline_object: Pipeline,
-                             nodes: List[Dict],
-                             super_node: Node = None) -> None:
+                             nodes: List[Node],
+                             super_node: Optional[Node] = None) -> None:
         """
         Converts each execution_node of the pipeline to its corresponding operation.
 
