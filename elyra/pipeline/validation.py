@@ -289,7 +289,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                         filename=dependency, response=response)
                         if env_vars:
                             for env_var in env_vars:
-                                self._validate_environmental_variables(node['id'], node_label, env_var=env_var,
+                                self._validate_environmental_variables(node.id, node_label, env_var=env_var,
                                                                        response=response)
 
                     # Validate runtime components against specific node properties in component registry
