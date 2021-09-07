@@ -25,8 +25,6 @@ from typing import List
 from typing import Union
 
 import autopep8
-from black import FileMode
-from black import format_str
 from jinja2 import Environment
 from jinja2 import PackageLoader
 
@@ -195,10 +193,14 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 pipeline_envs['ELYRA_RUN_NAME'] = f'{pipeline_name}-{{{{ ts_nodash }}}}'
 
                 image_pull_policy = None
+                runtime_image_pull_secret = None
                 for image_instance in image_namespace:
-                    if image_instance.metadata['image_name'] == operation.runtime_image and \
-                            image_instance.metadata.get('pull_policy'):
-                        image_pull_policy = image_instance.metadata['pull_policy']
+                    if image_instance.metadata['image_name'] == operation.runtime_image:
+                        if image_instance.metadata.get('pull_policy'):
+                            image_pull_policy = image_instance.metadata['pull_policy']
+                        if image_instance.metadata.get('pull_secret'):
+                            runtime_image_pull_secret = image_instance.metadata['pull_secret']
+                        break
 
                 bootscript = BootscriptBuilder(filename=operation.filename,
                                                cos_endpoint=cos_endpoint,
@@ -223,6 +225,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                              'gpu_request': operation.gpu,
                              'is_generic_operator': True
                              }
+
+                if runtime_image_pull_secret is not None:
+                    target_op['runtime_image_pull_secret'] = runtime_image_pull_secret
 
                 target_ops.append(target_op)
 
@@ -321,7 +326,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
             cos_secret = runtime_configuration.metadata.get('cos_secret')
 
-            description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
+            pipeline_description = pipeline.description
+            if pipeline_description is None:
+                pipeline_description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
             python_output = template.render(operations_list=target_ops,
                                             pipeline_name=pipeline_name,
@@ -330,12 +337,14 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                                             kube_config_path=None,
                                             is_paused_upon_creation='False',
                                             in_cluster='True',
-                                            pipeline_description=description)
+                                            pipeline_description=pipeline_description)
 
             # Write to python file and fix formatting
             with open(pipeline_export_path, "w") as fh:
+                # Defer the import to postpone logger messages: https://github.com/psf/black/issues/2058
+                import black
                 autopep_output = autopep8.fix_code(python_output)
-                output_to_file = format_str(autopep_output, mode=FileMode())
+                output_to_file = black.format_str(autopep_output, mode=black.FileMode())
                 fh.write(output_to_file)
 
         return pipeline_export_path

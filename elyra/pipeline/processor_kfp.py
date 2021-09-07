@@ -23,16 +23,16 @@ import time
 from typing import Dict
 
 import autopep8
-from black import FileMode
-from black import format_str
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jupyter_core.paths import ENV_JUPYTER_PATH
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
+from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kfp_server_api.exceptions import ApiException
+from kubernetes import client as k8s_client
 import requests
 from urllib3.exceptions import LocationValueError
 from urllib3.exceptions import MaxRetryError
@@ -98,6 +98,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         api_password = runtime_configuration.metadata.get('api_password')
 
         engine = runtime_configuration.metadata.get('engine')
+        if engine == 'Tekton' and not TektonClient:
+            raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
 
         pipeline_name = pipeline.name
         try:
@@ -194,10 +196,17 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                               pipeline_version=pipeline_version_name,
                                                               experiment_name=experiment_name,
                                                               cos_directory=cos_directory)
+                # collect pipeline configuration information
+                pipeline_conf = self._generate_pipeline_conf(pipeline)
+
                 if 'Tekton' == engine:
-                    kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, pipeline_path)
+                    kfp_tekton_compiler.TektonCompiler().compile(pipeline_function,
+                                                                 pipeline_path,
+                                                                 pipeline_conf=pipeline_conf)
                 else:
-                    kfp_argo_compiler.Compiler().compile(pipeline_function, pipeline_path)
+                    kfp_argo_compiler.Compiler().compile(pipeline_function,
+                                                         pipeline_path,
+                                                         pipeline_conf=pipeline_conf)
             except Exception as ex:
                 if ex.__cause__:
                     raise RuntimeError(str(ex)) from ex
@@ -209,7 +218,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Upload the compiled pipeline, create an experiment and run
 
             try:
-                description = f"Created with Elyra {__version__} pipeline editor using '{pipeline.source}'."
+                pipeline_description = pipeline.description
+                if pipeline_description is None:
+                    pipeline_description = f"Created with Elyra {__version__} pipeline editor "\
+                                           f"using `{pipeline.source}`."
                 t0 = time.time()
 
                 if pipeline_id is None:
@@ -218,7 +230,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     kfp_pipeline = \
                         client.upload_pipeline(pipeline_path,
                                                pipeline_name,
-                                               description)
+                                               pipeline_description)
                     pipeline_id = kfp_pipeline.id
                     version_id = None
                 else:
@@ -273,6 +285,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = pipeline.name
+        pipeline_description = pipeline.description
         pipeline_version_name = f'{pipeline_name}-{timestamp}'
         # work around https://github.com/kubeflow/pipelines/issues/5172
         experiment_name = pipeline_name.lower()
@@ -294,6 +307,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_secret = runtime_configuration.metadata.get('cos_secret')
         kf_secured = runtime_configuration.metadata.get('api_username') is not None and \
             runtime_configuration.metadata.get('api_password') is not None
+
+        if engine == 'Tekton' and not TektonClient:
+            raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
@@ -337,7 +353,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                  cos_directory=cos_directory,
                                                  export=True)
 
-            description = f'Created with Elyra {__version__} pipeline editor using {pipeline.source}.'
+            if pipeline_description is None:
+                pipeline_description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
             if self.log.isEnabledFor(logging.DEBUG):
                 self.log.debug(f"Exporting pipeline {pipeline_name} with components: \n")
@@ -361,14 +378,16 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                             cos_secret=cos_secret,
                                             namespace=namespace,
                                             api_endpoint=api_endpoint,
-                                            pipeline_description=description,
+                                            pipeline_description=pipeline_description,
                                             writable_container_dir=self.WCD,
                                             kf_secured=kf_secured)
 
             # Write to Python file and fix formatting
             with open(absolute_pipeline_export_path, "w") as fh:
+                # Defer the import to postpone logger messages: https://github.com/psf/black/issues/2058
+                import black
                 autopep_output = autopep8.fix_code(python_output)
-                output_to_file = format_str(autopep_output, mode=FileMode())
+                output_to_file = black.format_str(autopep_output, mode=black.FileMode())
                 fh.write(output_to_file)
 
             self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0_all))
@@ -571,6 +590,48 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         self.log_pipeline_info(pipeline_name, "pipeline dependencies processed", duration=(time.time() - t0_all))
 
         return target_ops
+
+    def _generate_pipeline_conf(self, pipeline: dict) -> PipelineConf:
+        """
+        Returns a KFP pipeline configuration for this pipeline, which can be empty.
+
+        :param pipeline: pipeline dictionary
+        :type pipeline: dict
+        :return: https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf
+        :rtype: kfp.dsl import PipelineConf
+        """
+
+        self.log.debug('Generating pipeline configuration ...')
+        pipeline_conf = PipelineConf()
+
+        #
+        # Gather input for container image pull secrets in support of private container image registries
+        # https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf.set_image_pull_secrets
+        #
+        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+
+        # iterate through pipeline operations and create list of Kubernetes secret names
+        # that are associated with generic components
+        container_image_pull_secret_names = []
+        for operation in pipeline.operations.values():
+            if isinstance(operation, GenericOperation):
+                for image_instance in image_namespace:
+                    if image_instance.metadata['image_name'] == operation.runtime_image:
+                        if image_instance.metadata.get('pull_secret'):
+                            container_image_pull_secret_names.append(image_instance.metadata.get('pull_secret'))
+                        break
+
+        if len(container_image_pull_secret_names) > 0:
+            # de-duplicate the pull secret name list, create Kubernetes resource
+            # references and add them to the pipeline configuration
+            container_image_pull_secrets = []
+            for secret_name in list(set(container_image_pull_secret_names)):
+                container_image_pull_secrets.append(k8s_client.V1ObjectReference(name=secret_name))
+            pipeline_conf.set_image_pull_secrets(container_image_pull_secrets)
+            self.log.debug(f'Added {len(container_image_pull_secrets)}'
+                           ' image pull secret(s) to the pipeline configuration.')
+
+        return pipeline_conf
 
     @staticmethod
     def _sanitize_operation_name(name: str) -> str:

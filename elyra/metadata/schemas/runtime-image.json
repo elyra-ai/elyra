@@ -59,6 +59,17 @@
             "field_type": "dropdown",
             "category": "Source"
           }
+        },
+        "pull_secret": {
+          "title": "Image Pull Secret",
+          "description": "Kubernetes secret name containing the container registry credentials, if anonymous pull access is forbidden.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
+          "maxLength": 253,
+          "uihints": {
+            "category": "Source",
+            "secure": true
+          }
         }
       },
       "required": ["image_name"]

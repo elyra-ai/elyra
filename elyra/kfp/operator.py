@@ -250,17 +250,28 @@ class ExecuteFileOp(ContainerOp):
 
         # Generate unique ELYRA_RUN_NAME value and expose it as an environment
         # variable in the container
-        if workflow_engine and workflow_engine.lower() == 'argo':
+        if not workflow_engine:
+            raise ValueError('workflow_engine is missing and needs to be specified.')
+        if workflow_engine.lower() == 'argo':
             run_name_placeholder = '{{workflow.annotations.pipelines.kubeflow.org/run_name}}'
             self.container.add_env_variable(V1EnvVar(name='ELYRA_RUN_NAME',
                                                      value=run_name_placeholder))
-        else:
+        elif workflow_engine.lower() == 'tekton':
+            try:
+                from kfp_tekton import TektonClient  # noqa: F401
+            except ImportError:
+                raise ValueError(
+                    'kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.'
+                )
+
             # For Tekton derive the value from the specified pod annotation
             annotation = 'pipelines.kubeflow.org/run_name'
             field_path = f"metadata.annotations['{annotation}']"
             self.container.add_env_variable(V1EnvVar(name='ELYRA_RUN_NAME',
                                                      value_from=V1EnvVarSource(
                                                          field_ref=V1ObjectFieldSelector(field_path=field_path))))
+        else:
+            raise ValueError(f'{workflow_engine} is not a supported workflow engine.')
 
         # Attach metadata to the pod
         # Node type (a static type for this op)

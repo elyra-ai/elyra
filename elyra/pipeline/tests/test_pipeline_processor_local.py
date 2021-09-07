@@ -36,9 +36,9 @@ def pipeline_dir(tmp_path):
 
 def test_pipeline_execution_order_in_complex_pipeline():
     expected_operation_names = ['a', 'b', 'c', 'd', 'e', 'f', 'x', 'y', 'g', 'h']
-    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_complex.json')
+    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_complex.json')
 
-    pipeline = PipelineParser().parse(pipeline_definitions)
+    pipeline = PipelineParser().parse(pipeline_json)
     current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
     assert current_ordered_operation_names != expected_operation_names
 
@@ -52,9 +52,9 @@ def test_pipeline_execution_order_in_complex_pipeline():
 
 def test_pipeline_execution_order_in_simple_pipeline():
     expected_operation_names = ['f', 'a', 'c', 'g']
-    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_simple.json')
+    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_simple.json')
 
-    pipeline = PipelineParser().parse(pipeline_definitions)
+    pipeline = PipelineParser().parse(pipeline_json)
     current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
     assert current_ordered_operation_names != expected_operation_names
 
@@ -70,9 +70,9 @@ def test_pipeline_get_envs():
 
     # Ensure pipeline operation env lists are properly converted to dictionaries.
 
-    pipeline_definitions = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_complex.json')
+    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_complex.json')
 
-    pipeline = PipelineParser().parse(pipeline_definitions)
+    pipeline = PipelineParser().parse(pipeline_json)
 
     for op in pipeline.operations.values():
         assert isinstance(op, GenericOperation)
