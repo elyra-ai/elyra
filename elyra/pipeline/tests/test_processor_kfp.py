@@ -272,17 +272,18 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
           'elyra/pipeline/tests/resources/components/filter_text.yaml'
 
     # Instantiate a url-based component
-    component = Component(id="filter-text",
+    component_id = 'filter-text'
+    component = Component(id=component_id,
                           name="Filter text",
                           description="",
                           op="filter-text",
-                          source_type="url",
-                          source=url,
+                          location_type="url",
+                          location=url,
                           properties=[],
-                          catalog_entry_id="")
+                          categories=[])
 
     # Replace cached component registry with single url-based component for testing
-    processor._component_registry._cached_components = [component]
+    processor._component_registry._cached_components = {component_id: component}
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
@@ -292,7 +293,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     }
     operation = Operation(id='filter-text-id',
                           type='execution_node',
-                          classifier='filter-text',
+                          classifier=component_id,
                           name=operation_name,
                           parent_operation_ids=[],
                           component_params=operation_params)
@@ -341,17 +342,18 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     relative_path = "kfp/filter_text_using_shell_and_grep.yaml"
 
     # Instantiate a file-based component
-    component = Component(id="filter-text",
+    component_id = "filter-text"
+    component = Component(id=component_id,
                           name="Filter text",
                           description="",
                           op="filter-text",
-                          source_type="filename",
-                          source=relative_path,
+                          location_type="filename",
+                          location=relative_path,
                           properties=[],
-                          catalog_entry_id="")
+                          categories=[])
 
     # Replace cached component registry with single filename-based component for testing
-    processor._component_registry._cached_components = [component]
+    processor._component_registry._cached_components = {component_id: component}
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
@@ -361,7 +363,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     }
     operation = Operation(id='filter-text-id',
                           type='execution_node',
-                          classifier='filter-text',
+                          classifier=component_id,
                           name=operation_name,
                           parent_operation_ids=[],
                           component_params=operation_params)

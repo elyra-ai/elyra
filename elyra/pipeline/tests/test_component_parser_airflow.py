@@ -34,25 +34,32 @@ def _get_resource_path(filename):
 
 
 def test_component_registry_can_load_components_from_catalog():
-    component_registry_location = os.path.join(COMPONENT_CATALOG_DIRECTORY, 'airflow_component_catalog.json')
     component_parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(component_registry_location, component_parser)
+    component_registry = ComponentRegistry(component_parser)
 
     components = component_registry.get_all_components()
     assert len(components) > 0
 
 
 def test_parse_airflow_component_file():
+    # Define the appropriate reader for a filesystem-type component definition
+    airflow_supported_file_types = [".py"]
+    reader = FilesystemComponentReader(airflow_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = _get_resource_path('airflow_test_operator.py')
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'test-operator_TestOperator',
-        'name': 'Test Operator',
-        'type': FilesystemComponentReader.type,
-        'location': _get_resource_path('airflow_test_operator.py'),
-        'catalog_entry_id': '',
-        'category_id': 'airflow'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
 
+    # Parse the component entry
     parser = AirflowComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -101,16 +108,24 @@ def test_parse_airflow_component_file():
 
 
 def test_parse_airflow_component_url():
+    # Define the appropriate reader for a Url-type component definition
+    airflow_supported_file_types = [".py"]
+    reader = UrlComponentReader(airflow_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'bash-operator_BashOperator',
-        'name': 'Bash Operator',
-        'type': UrlComponentReader.type,
-        'location': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
-        'catalog_entry_id': '',
-        'category_id': 'airflow'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
 
+    # Parse the component entry
     parser = AirflowComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -125,15 +140,24 @@ def test_parse_airflow_component_url():
 
 
 def test_parse_airflow_component_file_no_inputs():
+    # Define the appropriate reader for a filesystem-type component definition
+    airflow_supported_file_types = [".py"]
+    reader = FilesystemComponentReader(airflow_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = _get_resource_path('airflow_test_operator_no_inputs.py')
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'test-operator_TestOperatorNoInputs',
-        'type': FilesystemComponentReader.type,
-        'location': _get_resource_path('airflow_test_operator_no_inputs.py'),
-        'catalog_entry_id': '',
-        'category_id': 'kfp'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
 
+    # Parse the component entry
     parser = AirflowComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -151,23 +175,26 @@ def test_parse_airflow_component_file_no_inputs():
     assert properties_json['current_parameters']['component_source'] == component_entry.location
 
 
-async def test_parse_components_invalid_location():
-    # Ensure a component with an invalid location is not returned
-    component_registry_location = os.path.join(os.path.dirname(__file__),
-                                               'resources/components',
-                                               'airflow_component_catalog_invalid.json')
-    component_parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(component_registry_location, component_parser)
+async def test_parse_components_url_invalid_location():
+    # Define the appropriate reader for a Url-type component definition
+    airflow_supported_file_types = [".py"]
+    reader = UrlComponentReader(airflow_supported_file_types)
 
-    components = component_registry.get_all_components()
-    assert len(components) == 0
+    # Get path to an invalid component definition file and read contents
+    invalid_path = 'https://nourl.py'
+    component_definition = reader.read_component_definition(invalid_path)
+    assert component_definition is None
 
-    categories = component_registry.get_all_categories()
-    assert len(categories) == 0
-
-    palette_json = ComponentRegistry.to_canvas_palette(components, categories)
-    empty_palette = {
-        "version": "3.0",
-        "categories": []
+    # Build entry for parsing
+    entry = {
+        "location_type": reader.resource_type,
+        "location": invalid_path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
-    assert palette_json == empty_palette
+    component_entry = SimpleNamespace(**entry)
+
+    # Parse the component entry
+    parser = AirflowComponentParser()
+    component = parser.parse(component_entry)
+    assert component is None

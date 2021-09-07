@@ -42,13 +42,6 @@ def jp_server_config():
     }
 
 
-# async def test_invalid_config_resource(jp_fetch):
-#     with pytest.raises(HTTPClientError) as e:
-#         await jp_fetch('elyra', 'pipeline', 'config', 'invalid', method='GET')
-#
-#     assert expected_http_error(e, 400)
-
-
 async def test_get_components(jp_fetch):
     # Ensure all valid components can be found
     response = await jp_fetch('elyra', 'pipeline', 'components', 'local')

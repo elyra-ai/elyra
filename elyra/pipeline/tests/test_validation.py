@@ -104,6 +104,7 @@ async def test_invalid_runtime_node_kubeflow(validation_manager, load_pipeline):
                                                      pipeline_execution='kfp')
 
     issues = response.to_json().get('issues')
+    print(response.to_json())
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidNodeType'

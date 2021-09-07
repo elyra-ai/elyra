@@ -34,25 +34,32 @@ def _get_resource_path(filename):
 
 
 def test_component_registry_can_load_components_from_catalog():
-    component_registry_location = os.path.join(COMPONENT_CATALOG_DIRECTORY, 'kfp_component_catalog.json')
     component_parser = KfpComponentParser()
-    component_registry = ComponentRegistry(component_registry_location, component_parser)
+    component_registry = ComponentRegistry(component_parser)
 
     components = component_registry.get_all_components()
     assert len(components) > 0
 
 
 def test_parse_kfp_component_file():
+    # Define the appropriate reader for a filesystem-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = FilesystemComponentReader(kfp_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = _get_resource_path('kfp_test_operator.yaml')
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'elyra_op_test-operator_TestOperator',
-        'name': 'Test Operator',
-        'type': FilesystemComponentReader.type,
-        'location': _get_resource_path('kfp_test_operator.yaml'),
-        'catalog_entry_id': '',
-        'category_id': 'kfp'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
 
+    # Parse the component entry
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -120,15 +127,24 @@ def test_parse_kfp_component_file():
 
 
 def test_parse_kfp_component_url():
+    # Define the appropriate reader for a URL-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = UrlComponentReader(kfp_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml'  # noqa: E501
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'run-notebook-using-papermill',
-        'name': 'Run Notebook Using Papermill',
-        'type': UrlComponentReader.type,
-        'location': 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml',  # noqa: E501
-        'catalog_entry_id': '',
-        'category_id': 'kfp'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
+
+    # Parse the component entry
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -143,15 +159,24 @@ def test_parse_kfp_component_url():
 
 
 def test_parse_kfp_component_file_no_inputs():
+    # Define the appropriate reader for a filesystem-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = FilesystemComponentReader(kfp_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = _get_resource_path('kfp_test_operator_no_inputs.yaml')
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'test-no-inputs',
-        'type': FilesystemComponentReader.type,
-        'location': _get_resource_path('kfp_test_operator_no_inputs.yaml'),
-        'catalog_entry_id': '',
-        'category_id': 'kfp'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
 
+    # Parse the component entry
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -169,23 +194,26 @@ def test_parse_kfp_component_file_no_inputs():
     assert properties_json['current_parameters']['component_source'] == component_entry.location
 
 
-async def test_parse_components_invalid_location():
-    # Ensure a component with an invalid location is not returned
-    component_registry_location = os.path.join(os.path.dirname(__file__),
-                                               'resources/components',
-                                               'kfp_component_catalog_invalid.json')
-    component_parser = KfpComponentParser()
-    component_registry = ComponentRegistry(component_registry_location, component_parser)
+async def test_parse_components_filesystem_invalid_location():
+    # Define the appropriate reader for a filesystem-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = FilesystemComponentReader(kfp_supported_file_types)
 
-    components = component_registry.get_all_components()
-    assert len(components) == 0
+    # Get path to an invalid component definition file and read contents
+    path = _get_resource_path('kfp_test_operator_invalid.yaml')
+    component_definition = reader.read_component_definition(path)
+    assert component_definition is None
 
-    categories = component_registry.get_all_categories()
-    assert len(categories) == 0
-
-    palette_json = ComponentRegistry.to_canvas_palette(components, categories)
-    empty_palette = {
-        "version": "3.0",
-        "categories": []
+    # Build entry for parsing
+    entry = {
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
-    assert palette_json == empty_palette
+    component_entry = SimpleNamespace(**entry)
+
+    # Parse the component entry
+    parser = KfpComponentParser()
+    component = parser.parse(component_entry)
+    assert component is None
