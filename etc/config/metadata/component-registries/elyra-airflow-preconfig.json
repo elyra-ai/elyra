@@ -2,7 +2,7 @@
   "display_name": "Airflow Preloaded Components",
   "metadata": {
     "description": "Preloaded components that are supported by Apache Airflow",
-    "runtime": "Airflow",
+    "runtime": "airflow",
     "location_type": "URL",
     "categories": ["Preloaded Airflow"],
     "paths": [

@@ -20,6 +20,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jsonschema import ValidationError
@@ -68,12 +69,6 @@ class ComponentRegistry(LoggingConfigurable):
                               location="elyra",
                               extensions=[".r"],
                               categories=[_generic_category_label])}
-
-    _readers = {
-        FilesystemComponentReader.location_type: FilesystemComponentReader(),
-        DirectoryComponentReader.location_type: DirectoryComponentReader(),
-        UrlComponentReader.location_type: UrlComponentReader()
-    }
 
     def __init__(self, parser: ComponentParser, **kwargs):
         super().__init__(**kwargs)
@@ -182,7 +177,7 @@ class ComponentRegistry(LoggingConfigurable):
             all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
 
             # Filter registries according to processor type
-            runtime_registries = filter(lambda r: r['metadata']['runtime'].lower() == self._parser.component_platform,
+            runtime_registries = filter(lambda r: r['metadata']['runtime'] == self._parser.component_platform,
                                         all_registries)
         except (ValidationError, ValueError):
             raise
@@ -197,10 +192,10 @@ class ComponentRegistry(LoggingConfigurable):
 
             # Assign reader based on the location type of the registry (file, directory, url)
             registry_type = registry['metadata']['location_type'].lower()
-            reader = self._get_reader(registry_type)
+            reader = self._get_reader(registry_type, self._parser.file_types)
 
             # Read the path array to get the absolute paths of all components associated with this registry
-            component_paths = reader.get_list_of_paths(registry['metadata']['paths'], self._parser.file_types)
+            component_paths = reader.get_absolute_locations(registry['metadata']['paths'])
             for path in component_paths:
                 # TODO Figure out what would be the best path to display to the user
                 # TODO when accessing the node properties panel, since components can
@@ -223,11 +218,17 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component_dict
 
-    def _get_reader(self, registry_location_type: str) -> ComponentReader:
+    def _get_reader(self, registry_location_type: str, file_types: List[str]) -> ComponentReader:
         """
         Find the proper reader based on the given registry location type
         """
-        reader = self._readers.get(registry_location_type)
+        readers = {
+            FilesystemComponentReader.location_type: FilesystemComponentReader(file_types),
+            DirectoryComponentReader.location_type: DirectoryComponentReader(file_types),
+            UrlComponentReader.location_type: UrlComponentReader(file_types)
+        }
+
+        reader = readers.get(registry_location_type)
         if not reader:
             raise ValueError(f"Unsupported registry type: '{registry_location_type}'")
 
@@ -294,12 +295,13 @@ class RegistrySchemaFilter(SchemaFilter):
 
         filtered_schema = super().post_load(name, schema_json)
 
-        # Runtimes are currently hardcoded as attempting to retrieve them dynamically
-        # via the SchemaManager causes a circular dependency.
-        # TODO Revisit options to dynamically load the runtimes via this SchemaFilter
-        # schema_manager = SchemaManager.instance()
-        # runtime_enum = schema_manager.get_namespace_schemas(namespace=MetadataManager.NAMESPACE_RUNTIMES)
-        runtime_enum = ["KFP", "Airflow"]
+        # Get processor names
+        runtime_enum = []
+        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
+            if processor.name == "local":
+                continue
+            if processor.name not in runtime_enum:
+                runtime_enum.append(processor.name)
 
         # Add runtimes to schema
         filtered_schema['properties']['metadata']['properties']['runtime']['enum'] = runtime_enum

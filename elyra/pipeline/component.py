@@ -238,11 +238,9 @@ class ComponentReader(LoggingConfigurable):
     """
     location_type: str = None
 
-    '''
-    @property
-    def location_type(self) -> str:
-        return self.location_type
-    '''
+    def __init__(self, file_types: List[str]):
+        super().__init__()
+        self.file_types = file_types
 
     @property
     def resource_type(self):
@@ -257,10 +255,10 @@ class ComponentReader(LoggingConfigurable):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
+    def get_absolute_locations(self, paths: List[str]) -> List[str]:
         """
         Returns a list of absolute paths to component specification file(s)
-        based on the array of potentially relative location given
+        based on the array of potentially relative locations given
         """
         raise NotImplementedError()
 
@@ -295,7 +293,7 @@ class FilesystemComponentReader(ComponentReader):
         with open(location, 'r') as f:
             return f.read()
 
-    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
+    def get_absolute_locations(self, paths: List[str]) -> List[str]:
         absolute_paths = []
         for path in paths:
             absolute_path = self.determine_location(path)
@@ -311,7 +309,7 @@ class DirectoryComponentReader(FilesystemComponentReader):
     """
     location_type = 'directory'
 
-    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
+    def get_absolute_locations(self, paths: List[str]) -> List[str]:
         absolute_paths = []
         for path in paths:
             absolute_path = self.determine_location(path)
@@ -320,7 +318,7 @@ class DirectoryComponentReader(FilesystemComponentReader):
                 continue
 
             for filename in os.listdir(absolute_path):
-                if filename.endswith(tuple(parser_file_types)):
+                if filename.endswith(tuple(self.file_types)):
                     absolute_paths.append(os.path.join(absolute_path, filename))
 
         return absolute_paths
@@ -349,7 +347,7 @@ class UrlComponentReader(ComponentReader):
 
         return res.text
 
-    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
+    def get_absolute_locations(self, paths: List[str]) -> List[str]:
         return paths
 
 
@@ -359,7 +357,7 @@ class GitHubComponentReader(UrlComponentReader):
     """
     location_type = 'github'
 
-    def get_list_of_paths(self, paths: List[str], parser_file_types: List[str]) -> List[str]:
+    def get_absolute_locations(self, paths: List[str]) -> List[str]:
         pass
 
     @property
@@ -369,7 +367,6 @@ class GitHubComponentReader(UrlComponentReader):
 
 class ComponentParser(LoggingConfigurable):  # ABC
     _component_platform = None
-    _file_types = None
 
     @property
     def component_platform(self) -> str:
