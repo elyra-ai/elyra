@@ -17,15 +17,40 @@ import copy
 import io
 import json
 import os
+from typing import Dict
 from typing import Optional
 import warnings
 
+from ipython_genutils.importstring import import_item
 from traitlets.config import SingletonConfigurable
 
 from elyra.metadata.error import SchemaNotFoundError
 
+default_schema_filter_class_name = 'elyra.metadata.schema.SchemaFilter'
 
 METADATA_TEST_SCHEMASPACE = "metadata-tests"  # exposed via METADATA_TESTING env
+
+
+class SchemaFilter(object):
+    """
+    This class is used by the SchemaManager to process schema instances if the
+    schema references a `schema_filter_class_name` meta-property.  It is meant to be
+    subclassed since instances of this class are associated with a specific schema
+    and have knowledge about how to filter instances of "their" schema.
+
+    Instances of SchemaFilter are meant to be short-lived and stateless, essentially
+    performing an operation on the schema and returning its filtered result.
+    """
+
+    def post_load(self, name: str, schema_json: Dict) -> Dict:
+        """Called by SchemaManager after fetching the schema instance, this method
+        filters the schema based on current runtime situations.
+
+        :param name: The name of the schema
+        :param schema_json: The schema itself
+        :return: The filtered schema
+        """
+        return schema_json
 
 
 class SchemaManager(SingletonConfigurable):
@@ -118,6 +143,11 @@ class SchemaManager(SingletonConfigurable):
             if name is None:
                 # If schema is missing a name attribute, use file's basename.
                 name = os.path.splitext(os.path.basename(schema_file))[0]
-            schemaspace_schemas[schemaspace][name] = schema_json
+
+            # apply post-load filter
+            schema_filter_class_name = schema_json.get('schema_filter_class_name', default_schema_filter_class_name)
+            schema_filter_class = import_item(schema_filter_class_name)
+            filtered_schema = schema_filter_class().post_load(name, schema_json)
+            schemaspace_schemas[schemaspace][name] = filtered_schema
 
         return copy.deepcopy(schemaspace_schemas)

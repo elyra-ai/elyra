@@ -28,7 +28,7 @@ from elyra.pipeline.component import ComponentCategory
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
-from elyra.pipeline.validate import PipelineValidationManager
+from elyra.pipeline.validation import PipelineValidationManager
 from elyra.util.http import HttpErrorMixin
 
 

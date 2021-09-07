@@ -194,7 +194,7 @@ class ArchiveTestCase(unittest.TestCase):
         with tarfile.open(archive_path, "r:gz") as tar:
             for tarinfo in tar:
                 if tarinfo.isreg():
-                    n_files = n_files + 1
+                    n_files += 1
 
         self.assertEqual(expected_number_of_files, n_files)
 

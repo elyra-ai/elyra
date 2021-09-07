@@ -17,6 +17,7 @@
 import asyncio
 from collections import OrderedDict
 import json
+from operator import itemgetter
 import os
 from typing import Optional
 import warnings
@@ -30,13 +31,13 @@ from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline_definition import Pipeline
+from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
-from elyra.pipeline.validate import PipelineValidationManager
-from elyra.pipeline.validate import ValidationSeverity
+from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.pipeline.validation import PipelineValidationManager
+from elyra.pipeline.validation import ValidationSeverity
 
-# TODO: Make pipeline version available more widely
-# as today is only available on the pipeline editor
-PIPELINE_CURRENT_VERSION = 4
 
 SEVERITY = {ValidationSeverity.Error: 'Error',
             ValidationSeverity.Warning: 'Warning',
@@ -45,8 +46,13 @@ SEVERITY = {ValidationSeverity.Error: 'Error',
 
 
 def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
-    if not runtime_config:
-        return None
+    if not runtime_config or runtime_config == 'local':
+        # No runtime configuration was  specified or it is local.
+        # Cannot use metadata manager to determine the runtime type.
+        return runtime_config
+
+    if runtime_config == 'local':
+        return runtime_config
 
     try:
         metadata_manager = MetadataManager(namespace='runtimes')
@@ -57,8 +63,10 @@ def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
 
 
 def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
-    if not schema_name:
-        return None
+    if not schema_name or schema_name == 'local':
+        # No schame name was  specified or it is local.
+        # Cannot use metadata manager to determine the display name.
+        return schema_name
 
     try:
         schema_manager = SchemaManager.instance()
@@ -68,14 +76,14 @@ def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
         raise click.ClickException(f'Invalid runtime configuration: {schema_name}\n {e}')
 
 
-def _validate_pipeline_runtime(primary_pipeline: dict, runtime: str) -> bool:
+def _validate_pipeline_runtime(primary_pipeline: Pipeline, runtime: str) -> bool:
     """
     Generic pipelines do not have a persisted runtime type, and can be run on any runtime
-    Runtime specific pipeline have a runtime type, and con only be run on matching runtime
+    Runtime specific pipeline have a runtime type, and can only be run on matching runtime
     """
     is_valid = True
     if runtime:  # Only perform validation if a target runtime has been specified
-        pipeline_runtime = primary_pipeline["app_data"].get("runtime")
+        pipeline_runtime = primary_pipeline.runtime
         if pipeline_runtime and pipeline_runtime != runtime:
             is_valid = False
 
@@ -99,107 +107,85 @@ def _preprocess_pipeline(pipeline_path: str,
     if not os.path.exists(pipeline_abs_path):
         raise click.ClickException(f"Pipeline file not found: '{pipeline_abs_path}'\n")
 
-    with open(pipeline_abs_path) as f:
-        try:
-            pipeline_definition = json.load(f)
-        except ValueError as ve:
-            raise click.ClickException(f"Pipeline file is invalid: \n {ve}")
-
-    if 'pipelines' not in pipeline_definition:
-        raise click.ClickException("Pipeline is missing 'pipelines' field.")
-    if len(pipeline_definition['pipelines']) == 0:
-        raise click.ClickException("Pipeline has zero length 'pipelines' field.")
-
-    # Find primary pipeline
-    primary_pipeline_key = pipeline_definition['primary_pipeline']
-    primary_pipeline = None
-
-    for pipeline in pipeline_definition["pipelines"]:
-        if pipeline['id'] == primary_pipeline_key:
-            primary_pipeline = pipeline
-
-    assert primary_pipeline is not None, f"No primary pipeline was found in {pipeline_path}"
-
-    pipeline_version = int(primary_pipeline["app_data"]["version"])
-    if pipeline_version < PIPELINE_CURRENT_VERSION:
-        # Pipeline needs to be migrated
-        raise click.ClickException(f'Pipeline version {pipeline_version} is out of date and needs to be migrated '
-                                   f'using the Elyra pipeline editor.')
-    elif pipeline_version > PIPELINE_CURRENT_VERSION:
-        # New version of Elyra is needed
-        raise click.ClickException('Pipeline was last edited in a newer version of Elyra. '
-                                   'Update Elyra to use this pipeline.')
+    try:
+        pipeline_definition = PipelineDefinition(pipeline_abs_path)
+    except ValueError as ve:
+        raise click.ClickException(f"Pipeline file is invalid: \n {ve}")
 
     try:
-        for pipeline in pipeline_definition["pipelines"]:
-            for node in pipeline["nodes"]:
-                if 'filename' in node["app_data"]["component_parameters"]:
-                    abs_path = os.path.join(pipeline_dir, node["app_data"]["component_parameters"]["filename"])
-                    node["app_data"]["component_parameters"]["filename"] = abs_path
+        primary_pipeline = pipeline_definition.primary_pipeline
+    except Exception as e:
+        raise click.ClickException(e)
+
+    try:
+        for pipeline in pipeline_definition.pipelines:
+            for node in pipeline.nodes:
+                filename = node.get_component_parameter('filename')
+                if filename:
+                    abs_path = os.path.join(pipeline_dir, filename)
+                    node.set_component_parameter("filename", abs_path)
 
     except Exception as e:
         raise click.ClickException(f"Error pre-processing pipeline: \n {e}")
 
-    if not _validate_pipeline_runtime(primary_pipeline, runtime):
-        pipeline_runtime_display_name = _get_runtime_display_name(primary_pipeline['app_data']['runtime'])
-        provided_runtime_display_name = _get_runtime_display_name(_get_runtime_type(runtime_config))
-        raise click.ClickException(
-            f"This pipeline requires an instance of {pipeline_runtime_display_name} runtime configuration.\n"
-            f"The specified configuration '{runtime_config}' is for {provided_runtime_display_name} runtime.")
-
     # update pipeline transient fields
-    primary_pipeline["app_data"]["name"] = pipeline_name
-    primary_pipeline["app_data"]["source"] = os.path.basename(pipeline_abs_path)
-    # Only update the following if values were provided (and runtime is valid)
+    primary_pipeline.set("name", pipeline_name)
+    primary_pipeline.set("source", os.path.basename(pipeline_abs_path))
+    # Only update the following if values were provided
     if runtime:
-        primary_pipeline["app_data"]["runtime"] = runtime
+        primary_pipeline.set("runtime", runtime)
     if runtime_config:
-        primary_pipeline["app_data"]["runtime-config"] = runtime_config
+        primary_pipeline.set("runtime-config", runtime_config)
 
-    return pipeline_definition
+    return pipeline_definition.to_dict()
 
 
 def _print_issues(issues):
     # print validation issues
-    for issue in issues:
-        if issue.get('severity') == ValidationSeverity.Error:
-            if issue.get('data'):
-                node_name = issue["data"].get("nodeName")
-                property_name = issue["data"].get("propertyName")
-                click.echo(
-                    f'- (Fatal error on node \'{node_name}\' property \'{property_name}\') '
-                    f'- {issue["message"]}')
-            else:
-                click.echo(
-                    f'- Fatal error - {issue["message"]}')
-        else:
-            # TODO check warning nodeNames are empty
-            severity = SEVERITY[issue.get('severity')]
-            click.echo(f'- ({severity}) - {issue["message"]}')
+
+    for issue in sorted(issues, key=itemgetter('severity')):
+        severity = f" [{SEVERITY[issue.get('severity')]}]"
+        prefix = ''
+        postfix = ''
+        if issue.get('data'):
+            if issue['data'].get('nodeName'):
+                # issue is associated with a single node; display it
+                prefix = f"[{issue['data'].get('nodeName')}]"
+            if issue['data'].get('propertyName'):
+                # issue is associated with a node property; display it
+                prefix = f"{prefix}[{issue['data'].get('propertyName')}]"
+            if issue['data'].get('value'):
+                # issue is caused by the value of a node property; display it
+                postfix = f"The current property value is '{issue['data'].get('value')}'."
+            elif issue['data'].get('nodeNames') and isinstance(issue['data']['nodeNames'], list):
+                # issue is associated with multiple nodes
+                postfix = 'Nodes: '
+                separator = ''
+                for nn in issue['data']['nodeNames']:
+                    postfix = f"{postfix}{separator}'{nn}'"
+                    separator = ', '
+        output = f"{severity}{prefix} - {issue['message']} {postfix}"
+        click.echo(output)
 
     click.echo("")
 
 
 def _validate_pipeline_definition(pipeline_definition):
+
+    click.echo("Validating pipeline...")
     # validate pipeline
     validation_response = asyncio.get_event_loop().run_until_complete(
         PipelineValidationManager.instance().validate(pipeline=pipeline_definition))
 
+    # print validation issues
+    issues = validation_response.to_json().get('issues')
+    _print_issues(issues)
+
     if validation_response.has_fatal:
-        click.echo('Pipeline validation FAILED:')
-
-        # print validation issues
-        issues = validation_response.to_json().get('issues')
-        _print_issues(issues)
-
-        raise click.ClickException("Error validating pipeline.")
-    else:
-        # print validation issues
-        issues = validation_response.to_json().get('issues')
-        _print_issues(issues)
+        raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
 
 
-def _execute_pipeline(pipeline_definition):
+def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
     try:
         # parse pipeline
         pipeline_object = PipelineParser().parse(pipeline_definition)
@@ -272,15 +258,22 @@ def submit(pipeline_path, runtime_config):
     _validate_pipeline_definition(pipeline_definition)
 
     with yaspin(text="Submitting pipeline..."):
-        response = _execute_pipeline(pipeline_definition)
+        response: PipelineProcessorResponse = _execute_pipeline(pipeline_definition)
 
     if response:
-        print_info("Job submission succeeded",
-                   [
-                       f"Check the status of your job at: {response._run_url}",
-                       f"The results and outputs are in the {response._object_storage_path} ",
-                       f"working directory in {response._object_storage_url}"
-                   ])
+        msg = []
+        # If there's a git_url attr, assume Apache Airflow DAG repo.
+        # TODO: this will need to be revisited once front-end is decoupled from runtime platforms.
+        if hasattr(response, 'git_url'):
+            msg.append(f"Apache Airflow DAG has been pushed to: {response.git_url}")
+        msg.extend(
+            [
+                f"Check the status of your job at: {response.run_url}",
+                f"The results and outputs are in the {response.object_storage_path} ",
+                f"working directory in {response.object_storage_url}"
+            ]
+        )
+        print_info("Job submission succeeded", msg)
 
     click.echo()
 
@@ -323,6 +316,10 @@ def describe(json_option, pipeline_path):
     """
     Display pipeline summary
     """
+
+    click.echo()
+
+    print_banner("Elyra Pipeline details")
 
     _validate_pipeline_file_extension(pipeline_path)
 
