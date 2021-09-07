@@ -12,30 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-
-# Holds schemaspace instances for
-# Runtimes, RuntimeImages, CodeSnippets and ComponentRegistries
-# and the entrypoint class for schemaspaces (ElyraSchemaspaces)
-# ElyraSchemaspaces.get_schemaspaces() would return a list of instances of
-# RuntimesSchemaspace, RuntimeImagesSchemaspace, CodeSnippetsSchemaspace and ComponentRegistriesSchemaspace
-# - all of which derive from SchemaspaceBase.
-# ElyraSchemaspaces would NOT be a subclass of SchemaspaceBase
-# it just needs to serve the various instances associated with the entrypoint
-
-
-# Schemaspace:
-# the result of the entrypoint load is a schemaspace
-# and require that elyra register all 4 schemaspaces as entrypoints.
-# The only requirement is that the schemaspace be a subclass of MetadataSchemaspace.
-
-import uuid
 
 from elyra.metadata.schemaspace import Schemaspace
 
 
 class Runtimes(Schemaspace):
-    RUNTIMES_SCHEMASPACE_ID = uuid.uuid4()
+    RUNTIMES_SCHEMASPACE_ID = "ce74fbbb-6953-4c23-869e-c0d50a33edb9"
 
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id=self.RUNTIMES_SCHEMASPACE_ID,
@@ -44,7 +26,7 @@ class Runtimes(Schemaspace):
 
 
 class RuntimeImages(Schemaspace):
-    RUNTIME_IMAGES_SCHEMASPACE_ID = uuid.uuid4()
+    RUNTIME_IMAGES_SCHEMASPACE_ID = "119c9740-d73f-48c6-a97a-599d3acaf41d"
 
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id=self.RUNTIME_IMAGES_SCHEMASPACE_ID,
@@ -53,7 +35,7 @@ class RuntimeImages(Schemaspace):
 
 
 class CodeSnippets(Schemaspace):
-    CODE_SNIPPETS_SCHEMASPACE_ID = uuid.uuid4()
+    CODE_SNIPPETS_SCHEMASPACE_ID = "aa60988f-8f7c-4d09-a243-c54ef9c2f7fb"
 
     def __init__(self, *args, **kwargs):
         def __init__(self, *args, **kwargs):
@@ -63,7 +45,7 @@ class CodeSnippets(Schemaspace):
 
 
 class ComponentRegistries(Schemaspace):
-    COMPONENT_REGISTRIES_SCHEMASPACE_ID = uuid.uuid4()
+    COMPONENT_REGISTRIES_SCHEMASPACE_ID = "ae79159a-489d-4656-83a6-1adfbc567c70"
 
     def __init__(self, *args, **kwargs):
         def __init__(self, *args, **kwargs):
