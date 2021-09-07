@@ -21,9 +21,9 @@ import os
 def get_absolute_path(root_dir: str, path: str) -> str:
     """Checks if path is absolute or not.  If not absolute, `path` is appended to `root_dir`. """
 
-    absolute_path = path
-    if not os.path.isabs(path):
-        absolute_path = os.path.join(root_dir, path)
+    absolute_path = os.path.normpath(path)
+    if not os.path.isabs(absolute_path):
+        absolute_path = os.path.join(os.path.normpath(root_dir), absolute_path)
 
     return absolute_path
 

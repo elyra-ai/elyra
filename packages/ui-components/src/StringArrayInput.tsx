@@ -24,13 +24,13 @@ import {
   ListItemText,
   TextField
 } from '@material-ui/core';
+import { FormHelperText } from '@material-ui/core';
 import produce from 'immer';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import React from 'react';
 
 import { trashIcon } from './icons';
-import { FormHelperText } from '@material-ui/core';
 
 export interface IArrayInputProps {
   label: string;
