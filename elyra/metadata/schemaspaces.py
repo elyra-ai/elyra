@@ -17,7 +17,7 @@ from elyra.metadata.schemaspace import Schemaspace
 
 
 class Runtimes(Schemaspace):
-    RUNTIMES_SCHEMASPACE_ID = "ce74fbbb-6953-4c23-869e-c0d50a33edb9"
+    RUNTIMES_SCHEMASPACE_ID = "130b8e00-de7c-4b32-b553-b4a52824a3b5"
 
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id=self.RUNTIMES_SCHEMASPACE_ID,

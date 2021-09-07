@@ -701,38 +701,11 @@ def test_store_delete_instance(store_manager, namespace_location):
 
 
 # ########################## SchemaManager Tests ###########################
-def test_schema_manager_all(schema_manager):
+def test_schema_filter(schema_manager):
     schema_manager.clear_all()
 
     test_schema_json = get_unfiltered_schema('metadata-test')
 
-    with pytest.raises(ValueError):
-        schema_manager.add_schema("foo", "metadata-test", test_schema_json)
-
-    with pytest.raises(ValueError):
-        schema_manager.add_schema("bar", "metadata-test", test_schema_json)
-
-    schema_manager.add_schema(METADATA_TEST_NAMESPACE, "metadata-test", test_schema_json)
-
-    test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
-    assert test_schema is not None
-    assert test_schema == test_schema_json
-
-    # extend the schema... add and ensure update exists...
-    modified_schema = copy.deepcopy(test_schema)
-    modified_schema['properties']['metadata']['properties']['bar'] = {"type": "string", "minLength": 5}
-
-    schema_manager.add_schema(METADATA_TEST_NAMESPACE, "metadata-test", modified_schema)
-    bar_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
-    assert bar_schema is not None
-    assert bar_schema != test_schema_json
-    assert bar_schema == modified_schema
-
-    schema_manager.remove_schema(METADATA_TEST_NAMESPACE, "metadata-test")
-    with pytest.raises(SchemaNotFoundError):
-        schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
-
-    schema_manager.clear_all()  # Ensure test schema has been restored
     test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
     assert test_schema is not None
     # Since test_schema is filtered and test_schema_json is unfiltered, apply filtering for comparison

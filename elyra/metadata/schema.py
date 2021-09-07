@@ -86,22 +86,10 @@ class SchemaManager(SingletonConfigurable):
 
         return schema_json
 
-    def add_schema(self, schemaspace: str, schema_name: str, schema: dict) -> None:
-        """Adds (updates) schema to set of stored schemas. """
-        self.validate_schemaspace(schemaspace)
-        self.log.debug("SchemaManager: Adding schema '{}' to schemaspace '{}'".format(schema_name, schemaspace))
-        self.schemaspace_schemas[schemaspace][schema_name] = schema
-
     def clear_all(self) -> None:
         """Primarily used for testing, this method reloads schemas from initial values. """
         self.log.debug("SchemaManager: Reloading all schemas for all schemaspaces.")
         self.schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
-
-    def remove_schema(self, schemaspace: str, schema_name: str) -> None:
-        """Removes the schema entry associated with schemaspace & schema_name. """
-        self.validate_schemaspace(schemaspace)
-        self.log.debug("SchemaManager: Removing schema '{}' from schemaspace '{}'".format(schema_name, schemaspace))
-        self.schemaspace_schemas[schemaspace].pop(schema_name)
 
     @classmethod
     def load_schemaspace_schemas(cls, schema_dir: Optional[str] = None) -> dict:

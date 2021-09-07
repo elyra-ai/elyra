@@ -179,9 +179,6 @@ class MetadataManager(LoggingConfigurable):
                 self.log.error("The file for schema '{}' is missing from its expected location: '{}'".
                                format(schema_name, schema_file))
                 raise SchemaNotFoundError("The file for schema '{}' is missing!".format(schema_name))
-            with io.open(schema_file, 'r', encoding='utf-8') as f:
-                schema_json = json.load(f)
-            self.schema_mgr.add_schema(self.namespace, schema_name, schema_json)
 
         return schema_json
 
