@@ -218,7 +218,7 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
 
 class NamespaceHandler(HttpErrorMixin, APIHandler):
     """Handler for retrieving namespaces """
-    # Redirect to SchemaSpaceHandler
+    # Redirect to SchemaspaceHandler
 
     @web.authenticated
     async def get(self):
@@ -238,7 +238,7 @@ class NamespaceHandler(HttpErrorMixin, APIHandler):
         self.finish(namespace_model)
 
 
-class SchemaSpaceHandler(HttpErrorMixin, APIHandler):
+class SchemaspaceHandler(HttpErrorMixin, APIHandler):
     """Handler for retrieving schemaspaces """
 
     @web.authenticated

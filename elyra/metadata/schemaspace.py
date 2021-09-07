@@ -16,6 +16,7 @@
 import re
 from typing import Dict
 from typing import List
+from typing import Optional
 
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
@@ -28,25 +29,37 @@ class Schemaspace(object):
     _storage_class: MetadataStore
     _schemas: List[Dict]
 
-    def __init__(self, *args, **kwargs):
-        self._id = None
-        self._name = None
-        self._description = ""
-        self._storage_class = FileMetadataStore
-        self._schemas = []
+    def __init__(self,
+                 schemaspace_id: str,
+                 name: str,
+                 description: Optional[str] = "",
+                 storage_class: Optional[FileMetadataStore] = None,
+                 schemas: Optional[List] = []):
+        self._id = schemaspace_id
+        self._name = name
+        self._description = description
+        self._storage_class = storage_class
+        self._schemas = schemas
+
+        # Validate properties
+        #  We may want another dictionary that maps name to id
+        assert self._id is not None and len(self._id) > 0, "Property 'id' requires a value!"
+        assert self._validate_id(), f"The value of property 'id' ({self._id}) does not conform to a UUID!"
+
+        assert self._name is not None and len(self._name) > 0, "Property 'name' requires a value!"
+
+        assert isinstance(self._storage_class, MetadataStore,
+                          f"The value of property 'storage_class' ({self._storage_class.__name__}) "
+                          f"must be an instance of '{MetadataStore.__name__}'!")
 
     @property
     def id(self) -> str:
         """The id (uuid) of the schemaspace"""
-        #  We may want another dictionary that maps name to id
-        assert self._id is not None and len(self._id) > 0, "Property 'id' requires a value!"
-        assert self._validate_id(), f"The value of property 'id' ({self._id}) does not conform to a UUID!"
         return self._id
 
     @property
     def name(self) -> str:
         """The name of the schemaspace"""
-        assert self._name is not None and len(self._name) > 0, "Property 'name' requires a value!"
         return self._name
 
     @property
@@ -57,9 +70,6 @@ class Schemaspace(object):
     @property
     def storage_class(self) -> MetadataStore:
         """The storage class used to store instances of the schemas associated with this schemaspace"""
-        assert isinstance(self._storage_class, MetadataStore,
-                          f"The value of property 'storage_class' ({self._storage_class.__name__}) "
-                          f"must be an instance of '{MetadataStore.__name__}'!")
         return self._storage_class
 
     @property
@@ -67,11 +77,13 @@ class Schemaspace(object):
         """Returns the schemas currently associated with this namespace"""
         return self._schemas
 
+    @classmethod
     def add_schema(self, schema: Dict) -> None:
         """Associates the given schema to this namespace"""
         assert isinstance(schema, dict, "Parameter 'schema' is not a dictionary!")
         self._schemas.append(schema)
 
+    @classmethod
     def _validate_id(self) -> bool:
         """
             Validate that id is uuidv4 compliant
