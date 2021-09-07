@@ -24,13 +24,13 @@ import {
   ListItemText,
   TextField
 } from '@material-ui/core';
+import { FormHelperText } from '@material-ui/core';
 import produce from 'immer';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import React from 'react';
 
 import { trashIcon } from './icons';
-import { FormHelperText } from '@material-ui/core';
 
 export interface IArrayInputProps {
   label: string;
@@ -226,7 +226,7 @@ export const ArrayInput: React.FC<IArrayInputProps> = ({
 
   return (
     <div id={fieldName} className="elyra-metadataEditor-formInput">
-      <InputLabel error={error} description={description} required={required}>
+      <InputLabel error={error} required={required}>
         {' '}
         {label}{' '}
       </InputLabel>
