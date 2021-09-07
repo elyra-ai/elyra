@@ -73,12 +73,12 @@ class Schemaspace(object):
 
     @property
     def schemas(self) -> List[Dict]:
-        """Returns the schemas currently associated with this namespace"""
+        """Returns the schemas currently associated with this schemaspace"""
         return self._schemas
 
     @classmethod
     def add_schema(self, schema: Dict) -> None:
-        """Associates the given schema to this namespace"""
+        """Associates the given schema to this schemaspace"""
         assert isinstance(schema, dict, "Parameter 'schema' is not a dictionary!")
         self._schemas.append(schema)
 

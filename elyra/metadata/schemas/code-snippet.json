@@ -3,7 +3,7 @@
   "title": "Code Snippet",
   "name": "code-snippet",
   "display_name": "Code Snippet",
-  "namespace": "code-snippets",
+  "schemaspace": "code-snippets",
   "uihints": {
     "title": "Code Snippets",
     "icon": "elyra:code-snippet",

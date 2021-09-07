@@ -3,7 +3,7 @@
   "title": "Metadata Test",
   "name": "metadata-test",
   "display_name": "Metadata Test",
-  "namespace": "metadata-tests",
+  "schemaspace": "metadata-tests",
   "metadata_class_name": "elyra.metadata.tests.test_utils.MockMetadataTest",
   "schema_filter_class_name": "elyra.metadata.tests.test_utils.TestSchemaFilter",
   "properties": {

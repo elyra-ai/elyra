@@ -40,13 +40,13 @@ from elyra.metadata.error import MetadataNotFoundError
 
 
 class MetadataStore(ABC):
-    def __init__(self, namespace, parent: Optional[LoggingConfigurable] = None, **kwargs):
-        self.namespace = namespace
+    def __init__(self, schemaspace, parent: Optional[LoggingConfigurable] = None, **kwargs):
+        self.schemaspace = schemaspace
         self.log = parent.log if parent else log.get_logger()
 
     @abstractmethod
-    def namespace_exists(self) -> bool:
-        """Returns True if the namespace for this instance exists"""
+    def schemaspace_exists(self) -> bool:
+        """Returns True if the schemaspace for this instance exists"""
         pass
 
     @abstractmethod
@@ -173,29 +173,29 @@ class FileChangeHandler(FileSystemEventHandler):
 
 class FileMetadataStore(MetadataStore):
 
-    def __init__(self, namespace: str, **kwargs):
-        super().__init__(namespace, **kwargs)
+    def __init__(self, schemaspace: str, **kwargs):
+        super().__init__(schemaspace, **kwargs)
         self.cache = FileMetadataCache.instance()
-        self.metadata_paths = FileMetadataStore.metadata_path(self.namespace)
+        self.metadata_paths = FileMetadataStore.metadata_path(self.schemaspace)
         self.preferred_metadata_dir = self.metadata_paths[0]
-        self.log.debug(f"Namespace '{self.namespace}' is using metadata directory: "
+        self.log.debug(f"Schemaspace '{self.schemaspace}' is using metadata directory: "
                        f"{self.preferred_metadata_dir} from list: {self.metadata_paths}")
 
-    def namespace_exists(self) -> bool:
-        """Does the namespace exist in any of the dir paths?"""
-        namespace_dir_exists = False
+    def schemaspace_exists(self) -> bool:
+        """Does the schemaspace exist in any of the dir paths?"""
+        schemaspace_dir_exists = False
         for d in self.metadata_paths:
             if os.path.isdir(d):
-                namespace_dir_exists = True
+                schemaspace_dir_exists = True
                 break
-        return namespace_dir_exists
+        return schemaspace_dir_exists
 
     def fetch_instances(self, name: Optional[str] = None, include_invalid: bool = False) -> List[dict]:
         """Returns a list of metadata instances.
 
         If name is provided, the single instance will be returned in a list of one item.
         """
-        if not self.namespace_exists():  # namespace doesn't exist - return empty list
+        if not self.schemaspace_exists():  # schemaspace doesn't exist - return empty list
             return []
 
         resources = {}
@@ -234,7 +234,7 @@ class FileMetadataStore(MetadataStore):
                 return [resources[name]]
 
             # If we're looking for a single metadata and we're here, then its not found
-            raise MetadataNotFoundError(self.namespace, name)
+            raise MetadataNotFoundError(self.schemaspace, name)
 
         # We're here only if loading all resources, so only return list of values.
         return list(resources.values())
@@ -283,28 +283,28 @@ class FileMetadataStore(MetadataStore):
             # Since multiple folders are in play, we only allow removal if the resource is in
             # the first directory in the list (i.e., most "near" the user)
             if not self._remove_allowed(metadata):
-                self.log.error("Removal of instance '{}' from the {} namespace is not permitted!  "
-                               "Resource conflict at '{}' ".format(name, self.namespace, resource))
-                raise PermissionError("Removal of instance '{}' from the {} namespace is not permitted!".
-                                      format(name, self.namespace))
+                self.log.error("Removal of instance '{}' from the {} schemaspace is not permitted!  "
+                               "Resource conflict at '{}' ".format(name, self.schemaspace, resource))
+                raise PermissionError("Removal of instance '{}' from the {} schemaspace is not permitted!".
+                                      format(name, self.schemaspace))
             os.remove(resource)
             self.cache.remove_item(resource)
 
     def _prepare_create(self, name: str, resource: str) -> None:
         """Prepare to create resource, ensure it doesn't exist in the hierarchy."""
         if os.path.exists(resource):
-            self.log.error("An instance named '{}' already exists in the {} namespace at {}.".
-                           format(name, self.namespace, resource))
-            raise MetadataExistsError(self.namespace, name)
+            self.log.error("An instance named '{}' already exists in the {} schemaspace at {}.".
+                           format(name, self.schemaspace, resource))
+            raise MetadataExistsError(self.schemaspace, name)
 
         # Although the resource doesn't exist in the preferred dir, it may exist at other levels.
         # If creating, then existence at other levels should also prevent the operation.
         try:
             resources = self.fetch_instances(name)
             # Instance exists at other (protected) level and this is a create - throw exception
-            self.log.error("An instance named '{}' already exists in the {} namespace at {}.".
-                           format(name, self.namespace, resources[0].get('resource')))
-            raise MetadataExistsError(self.namespace, name)
+            self.log.error("An instance named '{}' already exists in the {} schemaspace at {}.".
+                           format(name, self.schemaspace, resources[0].get('resource')))
+            raise MetadataExistsError(self.schemaspace, name)
         except MetadataNotFoundError:  # doesn't exist elsewhere, so we're good.
             pass
 
@@ -370,9 +370,9 @@ class FileMetadataStore(MetadataStore):
                 # when getting multiple items, it's okay to raise.  The singleton searches (by handlers)
                 # already catch ValueError and map to 400, so we're good there as well.
                 self.log.error(f"JSON failed to load for resource '{resource}' in the "
-                               f"{self.namespace} namespace with error: {jde}.")
+                               f"{self.schemaspace} schemaspace with error: {jde}.")
                 raise ValueError(f"JSON failed to load for instance '{name}' in the "
-                                 f"{self.namespace} namespace with error: {jde}.") from jde
+                                 f"{self.schemaspace} schemaspace with error: {jde}.") from jde
 
             metadata_json['name'] = name
             metadata_json['resource'] = resource

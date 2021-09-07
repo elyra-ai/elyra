@@ -27,7 +27,7 @@ from jsonschema import ValidationError
 from elyra.metadata.error import MetadataExistsError
 from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.metadata import Metadata
-from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
 from elyra.metadata.schema import SchemaFilter
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
@@ -216,13 +216,13 @@ class PropertyTester(object):
         self.property = name + "_test"
 
     def run(self, script_runner, mock_data_dir):
-        expected_file = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE, self.name + '.json')
+        expected_file = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_SCHEMASPACE, self.name + '.json')
         # Cleanup from any potential previous failures
         if os.path.exists(expected_file):
             os.remove(expected_file)
 
         # First test
-        ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
+        ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
                                 '--name=' + self.name, '--display_name=' + self.name,
                                 '--required_test=required_value',
                                 '--' + self.property + '=' + str(self.negative_value))
@@ -232,7 +232,7 @@ class PropertyTester(object):
         assert self.negative_stderr in ret.stderr
 
         # Second test
-        ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_NAMESPACE, '--schema_name=metadata-test',
+        ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
                                 '--name=' + self.name, '--display_name=' + self.name,
                                 '--required_test=required_value',
                                 '--' + self.property + '=' + str(self.positive_value))
@@ -240,7 +240,7 @@ class PropertyTester(object):
         assert ret.success is self.positive_res
         assert "Metadata instance '" + self.name + "' for schema 'metadata-test' has been written" in ret.stdout
 
-        assert os.path.isdir(os.path.join(mock_data_dir, 'metadata', METADATA_TEST_NAMESPACE))
+        assert os.path.isdir(os.path.join(mock_data_dir, 'metadata', METADATA_TEST_SCHEMASPACE))
         assert os.path.isfile(expected_file)
 
         with open(expected_file, "r") as fd:
@@ -253,12 +253,12 @@ class PropertyTester(object):
 class MockMetadataStore(MetadataStore):
     """Hypothetical class used to demonstrate (and test) use of custom storage classes."""
 
-    def __init__(self, namespace: str, **kwargs: Any) -> None:
-        super().__init__(namespace, **kwargs)
+    def __init__(self, schemaspace: str, **kwargs: Any) -> None:
+        super().__init__(schemaspace, **kwargs)
         self.instances = None
 
-    def namespace_exists(self) -> bool:
-        """Returns True if the namespace for this instance exists"""
+    def schemaspace_exists(self) -> bool:
+        """Returns True if the schemaspace for this instance exists"""
         return self.instances is not None
 
     def fetch_instances(self, name: Optional[str] = None, include_invalid: bool = False) -> List[dict]:
@@ -271,7 +271,7 @@ class MockMetadataStore(MetadataStore):
                     raise ValueError(instance.get('reason'))
                 instance['name'] = name
                 return [instance]
-            raise MetadataNotFoundError(self.namespace, name)
+            raise MetadataNotFoundError(self.schemaspace, name)
 
         # all instances are wanted, filter based on include-invalid and reason ...
         instance_list = []
@@ -287,7 +287,7 @@ class MockMetadataStore(MetadataStore):
         try:
             instance = self.fetch_instances(name)
             if not for_update:  # Create - already exists
-                raise MetadataExistsError(self.namespace, instance[0].get('resource'))
+                raise MetadataExistsError(self.schemaspace, instance[0].get('resource'))
         except MetadataNotFoundError as mnfe:
             if for_update:  # Update - doesn't exist
                 raise mnfe from mnfe

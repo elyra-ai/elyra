@@ -3,7 +3,7 @@
   "title": "Apache Airflow runtime configuration",
   "name": "airflow",
   "display_name": "Apache Airflow",
-  "namespace": "runtimes",
+  "schemaspace": "runtimes",
   "uihints": {
     "title": "Apache Airflow runtimes",
     "icon": "elyra:runtimes",

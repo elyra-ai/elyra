@@ -31,7 +31,7 @@ from elyra.metadata.error import SchemaNotFoundError
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.manager import SchemaManager
 from elyra.metadata.metadata import Metadata
-from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
 from elyra.metadata.storage import FileMetadataCache
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
@@ -47,7 +47,7 @@ from elyra.metadata.tests.test_utils import valid_display_name_json
 from elyra.metadata.tests.test_utils import valid_metadata_json
 
 
-os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests namespace
+os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
 
 # Test factory schemas.
 # Note: should we ever decide to allow folks to bring their own schemas, we'd want to expose this.
@@ -59,8 +59,8 @@ schema_schema = {
             "type": "string",
             "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
         },
-        "namespace": {
-            "description": "The namespace corresponding to the schema and its instances.",
+        "schemaspace": {
+            "description": "The schemaspace corresponding to the schema and its instances.",
             "type": "string",
             "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
         },
@@ -72,16 +72,16 @@ schema_schema = {
             "additionalProperties": True
         }
     },
-    "required": ["name", "namespace", "properties"]
+    "required": ["name", "schemaspace", "properties"]
 }
 
 
 def test_validate_factory_schemas():
     # Test that each of our factory schemas meet the minimum requirements.
-    namespace_schemas = SchemaManager.load_namespace_schemas()
-    for namespace, schemas in namespace_schemas.items():
+    schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
+    for schemaspace, schemas in schemaspace_schemas.items():
         for name, schema in schemas.items():
-            print("Validating schema '{namespace}/{name}'...".format(namespace=namespace, name=name))
+            print("Validating schema '{schemaspace}/{name}'...".format(schemaspace=schemaspace, name=name))
             validate(instance=schema, schema=schema_schema, format_checker=draft7_format_checker)
 
 
@@ -89,7 +89,7 @@ def test_validate_factory_schemas():
 def test_manager_add_invalid(tests_manager):
 
     with pytest.raises(ValueError):
-        MetadataManager(namespace='invalid')
+        MetadataManager(schemaspace='invalid')
 
     # Attempt with non Metadata instance
     with pytest.raises(TypeError):
@@ -103,10 +103,10 @@ def test_manager_add_invalid(tests_manager):
         tests_manager.create("foo", None)
 
 
-def test_manager_add_no_name(tests_manager, namespace_location):
+def test_manager_add_no_name(tests_manager, schemaspace_location):
     metadata_name = 'valid_metadata_instance'
 
-    metadata = Metadata.from_dict(METADATA_TEST_NAMESPACE, {**valid_metadata_json})
+    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, {**valid_metadata_json})
     instance = tests_manager.create(None, metadata)
 
     assert instance is not None
@@ -115,8 +115,8 @@ def test_manager_add_no_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = Metadata.from_dict(METADATA_TEST_NAMESPACE, instance_list[0])
-    metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
+    instance = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, instance_list[0])
+    metadata_location = _compose_instance_location(tests_manager.metadata_store, schemaspace_location, metadata_name)
     assert instance.resource == metadata_location
     assert instance.special_property == instance.metadata['required_test']
 
@@ -128,7 +128,7 @@ def test_manager_add_no_name(tests_manager, namespace_location):
         tests_manager.metadata_store.fetch_instances(metadata_name)
 
 
-def test_manager_add_short_name(tests_manager, namespace_location):
+def test_manager_add_short_name(tests_manager, schemaspace_location):
     # Found that single character names were failing validation
     metadata_name = 'a'
     metadata = Metadata(**valid_metadata_json)
@@ -140,8 +140,8 @@ def test_manager_add_short_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = Metadata.from_dict(METADATA_TEST_NAMESPACE, instance_list[0])
-    metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
+    instance = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, instance_list[0])
+    metadata_location = _compose_instance_location(tests_manager.metadata_store, schemaspace_location, metadata_name)
     assert instance.resource == metadata_location
 
     # And finally, remove it.
@@ -165,7 +165,7 @@ def test_manager_add_empty_display_name(tests_manager):
         tests_manager.metadata_store.fetch_instances(metadata_name)
 
 
-def test_manager_add_display_name(tests_manager, namespace_location):
+def test_manager_add_display_name(tests_manager, schemaspace_location):
     metadata_display_name = '1 teste "rápido"'
     metadata_name = 'a_1_teste_rpido'
 
@@ -179,8 +179,8 @@ def test_manager_add_display_name(tests_manager, namespace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = Metadata.from_dict(METADATA_TEST_NAMESPACE, instance_list[0])
-    metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
+    instance = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, instance_list[0])
+    metadata_location = _compose_instance_location(tests_manager.metadata_store, schemaspace_location, metadata_name)
     assert instance.resource == metadata_location
     assert instance.display_name == metadata_display_name
 
@@ -216,28 +216,30 @@ def test_manager_get_all(tests_manager):
             assert metadata.name == "valid"
 
 
-def test_manager_get_none(tests_manager, namespace_location):
+def test_manager_get_none(tests_manager, schemaspace_location):
     # Attempt to get a metadata instance using `None` (error expected)
     with pytest.raises(ValueError, match="The 'name' parameter requires a value."):
         tests_manager.get(name=None)
 
 
-def test_manager_get_all_none(tests_manager, namespace_location):
-    # Delete the namespace contents and attempt listing metadata
-    _remove_namespace(tests_manager.metadata_store, namespace_location)
-    assert tests_manager.namespace_exists() is False
-    _create_namespace(tests_manager.metadata_store, namespace_location)
-    assert tests_manager.namespace_exists()
+def test_manager_get_all_none(tests_manager, schemaspace_location):
+    # TODO - there is no schemaspace removal - test requires update
+    # Delete the schemaspace contents and attempt listing metadata
+    _remove_schemaspace(tests_manager.metadata_store, schemaspace_location)
+    assert tests_manager.schemaspace_exists() is False
+    _create_schemaspace(tests_manager.metadata_store, schemaspace_location)
+    assert tests_manager.schemaspace_exists()
 
     metadata_list = tests_manager.get_all()
     assert len(metadata_list) == 0
 
 
-def test_manager_add_remove_valid(tests_manager, namespace_location):
+def test_manager_add_remove_valid(tests_manager, schemaspace_location):
     metadata_name = 'valid_add_remove'
 
-    # Remove namespace_location and ensure it gets created
-    _remove_namespace(tests_manager.metadata_store, namespace_location)
+    # TODO - there is no schemaspace removal - test requires update
+    # Remove schemaspace_location and ensure it gets created
+    _remove_schemaspace(tests_manager.metadata_store, schemaspace_location)
 
     metadata = Metadata(**valid_metadata_json)
 
@@ -259,9 +261,9 @@ def test_manager_add_remove_valid(tests_manager, namespace_location):
         tests_manager.metadata_store.fetch_instances(metadata_name)
 
 
-def test_manager_remove_invalid(tests_manager, namespace_location):
+def test_manager_remove_invalid(tests_manager, schemaspace_location):
     # Ensure invalid metadata file isn't validated and is removed.
-    create_instance(tests_manager.metadata_store, namespace_location, 'remove_invalid', invalid_metadata_json)
+    create_instance(tests_manager.metadata_store, schemaspace_location, 'remove_invalid', invalid_metadata_json)
     metadata_name = 'remove_invalid'
     tests_manager.remove(metadata_name)
 
@@ -277,12 +279,12 @@ def test_manager_remove_missing(tests_manager):
         tests_manager.remove(metadata_name)
 
 
-def test_manager_read_valid_by_name(tests_manager, namespace_location):
+def test_manager_read_valid_by_name(tests_manager, schemaspace_location):
     metadata_name = 'valid'
     some_metadata = tests_manager.get(metadata_name)
     assert some_metadata.name == metadata_name
     assert some_metadata.schema_name == "metadata-test"
-    metadata_location = _compose_instance_location(tests_manager.metadata_store, namespace_location, metadata_name)
+    metadata_location = _compose_instance_location(tests_manager.metadata_store, schemaspace_location, metadata_name)
     assert metadata_location == some_metadata.resource
 
 
@@ -298,7 +300,7 @@ def test_manager_read_missing_by_name(tests_manager):
         tests_manager.get(metadata_name)
 
 
-def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_location, shared_location, namespace_location):
+def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_location, shared_location, schemaspace_location):
 
     # fetch initial instances, only factory data should be present
     metadata_list = tests_hierarchy_manager.get_all()
@@ -334,7 +336,7 @@ def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_location, shar
     byo_instance['display_name'] = 'shared'
     create_json_file(shared_location, 'byo_2.json', byo_instance)
     byo_instance['display_name'] = 'user'
-    create_json_file(namespace_location, 'byo_2.json', byo_instance)
+    create_json_file(schemaspace_location, 'byo_2.json', byo_instance)
 
     metadata_list = tests_hierarchy_manager.get_all()
     assert len(metadata_list) == 3
@@ -348,7 +350,7 @@ def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_location, shar
             assert metadata.display_name == "shared"
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
-    assert byo_2.resource.startswith(str(namespace_location))
+    assert byo_2.resource.startswith(str(schemaspace_location))
 
     # delete the user instance and ensure its shared copy is now exposed
     tests_hierarchy_manager.metadata_store.delete_instance(byo_2.to_dict())
@@ -386,7 +388,7 @@ def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_location, shar
     assert byo_2.resource.startswith(str(factory_location))
 
 
-def test_manager_hierarchy_create(tests_hierarchy_manager, namespace_location):
+def test_manager_hierarchy_create(tests_hierarchy_manager, schemaspace_location):
 
     # Note, this is really more of an update test (replace = True), since you cannot "create" an
     # instance if it already exists - which, in this case, it exists in the factory area
@@ -398,7 +400,7 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, namespace_location):
 
     instance = tests_hierarchy_manager.update('byo_2', metadata)
     assert instance is not None
-    assert instance.resource.startswith(str(namespace_location))
+    assert instance.resource.startswith(str(schemaspace_location))
 
     metadata_list = tests_hierarchy_manager.get_all()
     assert len(metadata_list) == 3
@@ -412,13 +414,13 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, namespace_location):
             assert metadata.display_name == "factory"
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
-    assert byo_2.resource.startswith(str(namespace_location))
+    assert byo_2.resource.startswith(str(schemaspace_location))
 
     metadata = Metadata(**byo_metadata_json)
     metadata.display_name = 'user'
     instance = tests_hierarchy_manager.update('byo_3', metadata)
     assert instance is not None
-    assert instance.resource.startswith(str(namespace_location))
+    assert instance.resource.startswith(str(schemaspace_location))
 
     metadata_list = tests_hierarchy_manager.get_all()
     assert len(metadata_list) == 3
@@ -432,10 +434,10 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, namespace_location):
             assert metadata.display_name == "user"
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
-    assert byo_2.resource.startswith(str(namespace_location))
+    assert byo_2.resource.startswith(str(schemaspace_location))
 
 
-def test_manager_hierarchy_update(tests_hierarchy_manager, factory_location, shared_location, namespace_location):
+def test_manager_hierarchy_update(tests_hierarchy_manager, factory_location, shared_location, schemaspace_location):
 
     # Create a copy of existing factory instance and ensure its in the user area
     byo_2 = tests_hierarchy_manager.get('byo_2')
@@ -448,7 +450,7 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_location, sha
     # Repeat with replacement enabled
     instance = tests_hierarchy_manager.update('byo_2', byo_2)
     assert instance is not None
-    assert instance.resource.startswith(str(namespace_location))
+    assert instance.resource.startswith(str(schemaspace_location))
 
     # now "slip in" a shared instance behind the updated version and ensure
     # the updated version is what's returned.
@@ -457,7 +459,7 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_location, sha
     create_json_file(shared_location, 'byo_2.json', byo_instance)
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
-    assert byo_2.resource.startswith(str(namespace_location))
+    assert byo_2.resource.startswith(str(schemaspace_location))
 
     # now remove the updated instance and ensure the shared instance appears
     tests_hierarchy_manager.remove('byo_2')
@@ -466,17 +468,17 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_location, sha
     assert byo_2.resource.startswith(str(shared_location))
 
 
-def test_manager_update(tests_hierarchy_manager, namespace_location):
+def test_manager_update(tests_hierarchy_manager, schemaspace_location):
 
     # Create some metadata, then attempt to update it with a known schema violation
     # and ensure the previous copy still exists...
 
     # Create a user instance...
-    metadata = Metadata.from_dict(METADATA_TEST_NAMESPACE, {**byo_metadata_json})
+    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, {**byo_metadata_json})
     metadata.display_name = 'user1'
     instance = tests_hierarchy_manager.create('update', metadata)
     assert instance is not None
-    assert instance.resource.startswith(str(namespace_location))
+    assert instance.resource.startswith(str(schemaspace_location))
     assert instance.for_update is False
     assert instance.special_property == instance.metadata['required_test']
 
@@ -489,20 +491,20 @@ def test_manager_update(tests_hierarchy_manager, namespace_location):
     assert instance.for_update is True
     assert instance.special_property == instance.metadata['required_test']
 
-    _ensure_single_instance(tests_hierarchy_manager, namespace_location, "update.json")
+    _ensure_single_instance(tests_hierarchy_manager, schemaspace_location, "update.json")
 
     instance2 = tests_hierarchy_manager.get('update')
     assert instance2.display_name == 'user2'
     assert instance2.metadata['number_range_test'] == 7
 
 
-def test_manager_default_value(tests_hierarchy_manager, namespace_location):
+def test_manager_default_value(tests_hierarchy_manager, schemaspace_location):
 
     # Create some metadata, then attempt to update it with a known schema violation
     # and ensure the previous copy still exists...
 
     # Create a user instance...
-    metadata = Metadata.from_dict(METADATA_TEST_NAMESPACE, {**byo_metadata_json})
+    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, {**byo_metadata_json})
     metadata.display_name = 'user1'
     instance = tests_hierarchy_manager.create('default_value', metadata)
     assert instance.metadata['number_default_test'] == 42  # Ensure default value was applied when not present
@@ -523,7 +525,7 @@ def test_manager_default_value(tests_hierarchy_manager, namespace_location):
     assert instance4.metadata['number_default_test'] == 42
 
 
-def test_manager_bad_update(tests_hierarchy_manager, namespace_location):
+def test_manager_bad_update(tests_hierarchy_manager, schemaspace_location):
 
     # Create some metadata, then attempt to update it with a known schema violation
     # and ensure the previous copy still exists...
@@ -533,7 +535,7 @@ def test_manager_bad_update(tests_hierarchy_manager, namespace_location):
     metadata.display_name = 'user1'
     instance = tests_hierarchy_manager.create('bad_update', metadata)
     assert instance is not None
-    assert instance.resource.startswith(str(namespace_location))
+    assert instance.resource.startswith(str(schemaspace_location))
 
     # Now, attempt to update the user instance, but include a schema violation.
     # Verify the update failed, but also ensure the previous instance is still there.
@@ -544,7 +546,7 @@ def test_manager_bad_update(tests_hierarchy_manager, namespace_location):
     with pytest.raises(ValidationError):
         tests_hierarchy_manager.update('bad_update', instance2)
 
-    _ensure_single_instance(tests_hierarchy_manager, namespace_location, "bad_update.json")
+    _ensure_single_instance(tests_hierarchy_manager, schemaspace_location, "bad_update.json")
 
     instance2 = tests_hierarchy_manager.get('bad_update')
     assert instance2.display_name == instance.display_name
@@ -556,10 +558,10 @@ def test_manager_bad_update(tests_hierarchy_manager, namespace_location):
     with pytest.raises(ValueError):
         tests_hierarchy_manager.update(None, instance2)
 
-    _ensure_single_instance(tests_hierarchy_manager, namespace_location, "bad_update.json")
+    _ensure_single_instance(tests_hierarchy_manager, schemaspace_location, "bad_update.json")
 
 
-def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, shared_location, namespace_location):
+def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, shared_location, schemaspace_location):
 
     # Create additional instances in shared and user areas
     byo_2 = byo_metadata_json
@@ -570,7 +572,7 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
     metadata.display_name = 'user'
     instance = tests_hierarchy_manager.update('byo_2', metadata)
     assert instance is not None
-    assert instance.resource.startswith(str(namespace_location))
+    assert instance.resource.startswith(str(schemaspace_location))
 
     # Confirm on in user is found...
     metadata_list = tests_hierarchy_manager.get_all()
@@ -585,11 +587,11 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
             assert metadata.display_name == "factory"
 
     byo_2 = tests_hierarchy_manager.get('byo_2')
-    assert byo_2.resource.startswith(str(namespace_location))
+    assert byo_2.resource.startswith(str(schemaspace_location))
 
     # Now remove instance.  Should be allowed since it resides in user area
     tests_hierarchy_manager.remove('byo_2')
-    _ensure_single_instance(tests_hierarchy_manager, namespace_location, "byo_2.json", expected_count=0)
+    _ensure_single_instance(tests_hierarchy_manager, schemaspace_location, "byo_2.json", expected_count=0)
 
     # Attempt to remove instance from shared area and its protected
     with pytest.raises(PermissionError) as pe:
@@ -610,14 +612,15 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
 
 
 # ########################## MetadataStore Tests ###########################
-def test_store_namespace(store_manager, namespace_location):
+def test_store_schemaspace(store_manager, schemaspace_location):
+    # TODO - there is no schemaspace removal - test requires update
     # Delete the metadata dir contents and attempt listing metadata
-    _remove_namespace(store_manager, namespace_location)
-    assert store_manager.namespace_exists() is False
+    _remove_schemaspace(store_manager, schemaspace_location)
+    assert store_manager.schemaspace_exists() is False
 
     # create some metadata
-    store_manager.store_instance('ensure_namespace_exists', Metadata(**valid_metadata_json).prepare_write())
-    assert store_manager.namespace_exists()
+    store_manager.store_instance('ensure_schemaspace_exists', Metadata(**valid_metadata_json).prepare_write())
+    assert store_manager.schemaspace_exists()
 
 
 def test_store_fetch_instances(store_manager):
@@ -625,9 +628,10 @@ def test_store_fetch_instances(store_manager):
     assert len(instances_list) == 4
 
 
-def test_store_fetch_no_namespace(store_manager, namespace_location):
-    # Delete the namespace contents and attempt listing metadata
-    _remove_namespace(store_manager, namespace_location)
+def test_store_fetch_no_schemaspace(store_manager, schemaspace_location):
+    # TODO - there is no schemaspace removal - test requires update
+    # Delete the schemaspace contents and attempt listing metadata
+    _remove_schemaspace(store_manager, schemaspace_location)
 
     instance_list = store_manager.fetch_instances()
     assert len(instance_list) == 0
@@ -645,9 +649,10 @@ def test_store_fetch_missing(store_manager):
         store_manager.fetch_instances(name=metadata_name)
 
 
-def test_store_store_instance(store_manager, namespace_location):
-
-    _remove_namespace(store_manager, namespace_location)  # Remove namespace to test raw creation and confirm perms
+def test_store_store_instance(store_manager, schemaspace_location):
+    # TODO - there is no schemaspace removal - test requires update
+    # Remove schemaspace to test raw creation and confirm perms
+    _remove_schemaspace(store_manager, schemaspace_location)
 
     metadata_name = 'persist'
     metadata = Metadata(**valid_metadata_json)
@@ -657,11 +662,11 @@ def test_store_store_instance(store_manager, namespace_location):
     assert instance is not None
 
     if isinstance(store_manager, FileMetadataStore):
-        dir_mode = oct(os.stat(namespace_location).st_mode & 0o777777)  # Be sure to include other attributes
+        dir_mode = oct(os.stat(schemaspace_location).st_mode & 0o777777)  # Be sure to include other attributes
         assert dir_mode == "0o40700"  # and ensure this is a directory with only rwx by owner enabled
 
         # Ensure file was created
-        metadata_file = os.path.join(namespace_location, 'persist.json')
+        metadata_file = os.path.join(schemaspace_location, 'persist.json')
         assert os.path.exists(metadata_file)
         file_mode = oct(os.stat(metadata_file).st_mode & 0o777777)  # Be sure to include other attributes
         assert file_mode == "0o100600"  # and ensure this is a regular file with only rw by owner enabled
@@ -685,7 +690,7 @@ def test_store_store_instance(store_manager, namespace_location):
     assert instance.get('metadata')['number_range_test'] == 10
 
 
-def test_store_delete_instance(store_manager, namespace_location):
+def test_store_delete_instance(store_manager, schemaspace_location):
     metadata_name = 'valid'
     instance_list = store_manager.fetch_instances(name=metadata_name)
     metadata = instance_list[0]
@@ -696,7 +701,7 @@ def test_store_delete_instance(store_manager, namespace_location):
 
     if isinstance(store_manager, FileMetadataStore):
         # Ensure file was physically deleted
-        metadata_file = os.path.join(namespace_location, 'valid.json')
+        metadata_file = os.path.join(schemaspace_location, 'valid.json')
         assert not os.path.exists(metadata_file)
 
 
@@ -706,7 +711,7 @@ def test_schema_filter(schema_manager):
 
     test_schema_json = get_unfiltered_schema('metadata-test')
 
-    test_schema = schema_manager.get_schema(METADATA_TEST_NAMESPACE, "metadata-test")
+    test_schema = schema_manager.get_schema(METADATA_TEST_SCHEMASPACE, "metadata-test")
     assert test_schema is not None
     # Since test_schema is filtered and test_schema_json is unfiltered, apply filtering for comparison
     assert test_schema == TestSchemaFilter().post_load("metadata-test", test_schema_json)
@@ -714,30 +719,30 @@ def test_schema_filter(schema_manager):
 
 # ########################## Error Tests ###########################
 def test_error_metadata_not_found():
-    namespace = METADATA_TEST_NAMESPACE
+    schemaspace = METADATA_TEST_SCHEMASPACE
     resource = 'missing_metadata'
     try:
-        raise MetadataNotFoundError(namespace, resource)
+        raise MetadataNotFoundError(schemaspace, resource)
     except MetadataNotFoundError as mnfe:
-        assert str(mnfe) == "No such instance named '{}' was found in the {} namespace.".format(resource, namespace)
+        assert str(mnfe) == "No such instance named '{}' was found in the {} schemaspace.".format(resource, schemaspace)
 
 
 def test_error_metadata_exists():
-    namespace = METADATA_TEST_NAMESPACE
+    schemaspace = METADATA_TEST_SCHEMASPACE
     resource = 'existing_metadata'
     try:
-        raise MetadataExistsError(namespace, resource)
+        raise MetadataExistsError(schemaspace, resource)
     except MetadataExistsError as mee:
-        assert str(mee) == "An instance named '{}' already exists in the {} namespace.".format(resource, namespace)
+        assert str(mee) == "An instance named '{}' already exists in the {} schemaspace.".format(resource, schemaspace)
 
 
 def test_error_schema_not_found():
-    namespace = METADATA_TEST_NAMESPACE
+    schemaspace = METADATA_TEST_SCHEMASPACE
     resource = 'missing_schema'
     try:
-        raise SchemaNotFoundError(namespace, resource)
+        raise SchemaNotFoundError(schemaspace, resource)
     except SchemaNotFoundError as snfe:
-        assert str(snfe) == "No such schema named '{}' was found in the {} namespace.".format(resource, namespace)
+        assert str(snfe) == "No such schema named '{}' was found in the {} schemaspace.".format(resource, schemaspace)
 
 
 def test_cache_init():
@@ -751,7 +756,7 @@ def test_cache_init():
     FileMetadataCache.clear_instance()
 
 
-def test_cache_ops(tests_manager, namespace_location):
+def test_cache_ops(tests_manager, schemaspace_location):
     FileMetadataCache.clear_instance()
 
     test_items = OrderedDict({'a': 3, 'b': 4, 'c': 5, 'd': 6, 'e': 7})
@@ -763,7 +768,7 @@ def test_cache_ops(tests_manager, namespace_location):
         content = copy.deepcopy(valid_metadata_json)
         content['display_name'] = name
         content['metadata']['number_range_test'] = number
-        resource = create_instance(tests_manager.metadata_store, namespace_location, name, content)
+        resource = create_instance(tests_manager.metadata_store, schemaspace_location, name, content)
         test_resources[name] = resource
         test_content[name] = content
 
@@ -831,7 +836,7 @@ def test_cache_ops(tests_manager, namespace_location):
         assert cache.trims == 3
 
 
-def test_cache_disabled(tests_manager, namespace_location):
+def test_cache_disabled(tests_manager, schemaspace_location):
     FileMetadataCache.clear_instance()
 
     test_items = OrderedDict({'a': 3, 'b': 4, 'c': 5, 'd': 6, 'e': 7})
@@ -843,7 +848,7 @@ def test_cache_disabled(tests_manager, namespace_location):
         content = copy.deepcopy(valid_metadata_json)
         content['display_name'] = name
         content['metadata']['number_range_test'] = number
-        resource = create_instance(tests_manager.metadata_store, namespace_location, name, content)
+        resource = create_instance(tests_manager.metadata_store, schemaspace_location, name, content)
         test_resources[name] = resource
         test_content[name] = content
 
@@ -867,7 +872,7 @@ def test_cache_disabled(tests_manager, namespace_location):
     assert cache.hits == 0
 
 
-def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, expected_count=1):
+def _ensure_single_instance(tests_hierarchy_manager, schemaspace_location, name, expected_count=1):
     """Because updates can trigger the copy of the original, this methods ensures that
        only the named instance (`name`) exists after the operation.  The expected_count
        can be altered so that it can also be used to ensure clean removals.
@@ -877,7 +882,7 @@ def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, e
         # a timestamp appended to it.
         count = 0
         actual = 0
-        for f in os.listdir(str(namespace_location)):
+        for f in os.listdir(str(schemaspace_location)):
             if name in f:
                 count = count + 1
             if name == f:
@@ -886,20 +891,20 @@ def _ensure_single_instance(tests_hierarchy_manager, namespace_location, name, e
         assert actual == expected_count
 
 
-def _create_namespace(store_manager: MetadataStore, namespace_location: str):
-    """Creates namespace in a storage-independent manner"""
+def _create_schemaspace(store_manager: MetadataStore, schemaspace_location: str):
+    """Creates schemaspace in a storage-independent manner"""
     if isinstance(store_manager, FileMetadataStore):
-        os.makedirs(namespace_location)
+        os.makedirs(schemaspace_location)
     elif isinstance(store_manager, MockMetadataStore):
         instances = store_manager.instances
         if instances is None:
             setattr(store_manager, 'instances', dict())
 
 
-def _remove_namespace(store_manager: MetadataStore, namespace_location: str):
-    """Removes namespace in a storage-independent manner"""
+def _remove_schemaspace(store_manager: MetadataStore, schemaspace_location: str):
+    """Removes schemaspace in a storage-independent manner"""
     if isinstance(store_manager, FileMetadataStore):
-        shutil.rmtree(namespace_location)
+        shutil.rmtree(schemaspace_location)
     elif isinstance(store_manager, MockMetadataStore):
         setattr(store_manager, 'instances', None)
 

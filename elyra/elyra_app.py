@@ -23,9 +23,9 @@ from elyra.api.handlers import YamlSpecHandler
 from elyra.contents.handlers import ContentHandler
 from elyra.metadata.handlers import MetadataHandler
 from elyra.metadata.handlers import MetadataResourceHandler
-from elyra.metadata.handlers import NamespaceHandler
 from elyra.metadata.handlers import SchemaHandler
 from elyra.metadata.handlers import SchemaResourceHandler
+from elyra.metadata.handlers import SchemaspaceHandler
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
@@ -68,7 +68,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     # Define ElyraApp configurables here..
 
     def initialize_handlers(self):
-        namespace_regex = r"(?P<namespace>[\w\.\-]+)"
+        schemaspace_regex = r"(?P<schemaspace>[\w\.\-]+)"
         resource_regex = r"(?P<resource>[\w\.\-]+)"
         path_regex = r"(?P<path>[\w\.\/\-\%]+)"
         processor_regex = r"(?P<processor>[\w]+)"
@@ -76,11 +76,11 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
 
         self.handlers.extend([
             (f'/{self.name}/{YamlSpecHandler.get_resource_metadata()[0]}', YamlSpecHandler),
-            (f'/{self.name}/metadata/{namespace_regex}', MetadataHandler),
-            (f'/{self.name}/metadata/{namespace_regex}/{resource_regex}', MetadataResourceHandler),
-            (f'/{self.name}/schema/{namespace_regex}', SchemaHandler),
-            (f'/{self.name}/schema/{namespace_regex}/{resource_regex}', SchemaResourceHandler),
-            (f'/{self.name}/namespace', NamespaceHandler),
+            (f'/{self.name}/metadata/{schemaspace_regex}', MetadataHandler),
+            (f'/{self.name}/metadata/{schemaspace_regex}/{resource_regex}', MetadataResourceHandler),
+            (f'/{self.name}/schema/{schemaspace_regex}', SchemaHandler),
+            (f'/{self.name}/schema/{schemaspace_regex}/{resource_regex}', SchemaResourceHandler),
+            (f'/{self.name}/schemaspace', SchemaspaceHandler),
             (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
             (f'/{self.name}/pipeline/export', PipelineExportHandler),
             (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),

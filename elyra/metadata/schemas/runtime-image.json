@@ -3,7 +3,7 @@
   "title": "Runtime Image",
   "name": "runtime-image",
   "display_name": "Runtime Image",
-  "namespace": "runtime-images",
+  "schemaspace": "runtime-images",
   "uihints": {
     "icon": "elyra:container",
     "title": "Runtime Images",

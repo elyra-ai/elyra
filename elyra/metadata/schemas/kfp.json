@@ -3,7 +3,7 @@
   "title": "Kubeflow Pipelines runtime configuration",
   "name": "kfp",
   "display_name": "Kubeflow Pipelines",
-  "namespace": "runtimes",
+  "schemaspace": "runtimes",
   "schema_filter_class_name": "elyra.pipeline.processor_kfp.KfpSchemaFilter",
   "uihints": {
     "title": "Kubeflow Pipelines runtimes",
