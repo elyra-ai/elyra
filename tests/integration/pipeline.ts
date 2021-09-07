@@ -497,7 +497,10 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.expandPaletteCategory({ type: 'kfp' });
 
-    const kfpCustomComponents = ['run-notebook-using-papermill', 'filter-text'];
+    const kfpCustomComponents = [
+      'filter_text_using_shell_and_grep_Filtertext',
+      'run_notebook_using_papermill_Runnotebookusingpapermill'
+    ];
 
     kfpCustomComponents.forEach(component => {
       cy.get(`#${component}`).should('exist');
@@ -524,12 +527,11 @@ describe('Pipeline Editor tests', () => {
     cy.expandPaletteCategory({ type: 'airflow' });
 
     const airflowCustomComponents = [
-      'bash-operator_BashOperator',
-      'email-operator_EmailOperator',
-      'http-operator_SimpleHttpOperator',
-      'spark-sql-operator_SparkSqlOperator',
-      'spark-submit-operator_SparkSubmitOperator',
-      'slack-operator_SlackAPIPostOperator'
+      'bash_operator_BashOperator',
+      'email_operator_EmailOperator',
+      'http_operator_SimpleHttpOperator',
+      'spark_sql_operator_SparkSqlOperator',
+      'spark_submit_operator_SparkSubmitOperator'
     ];
 
     airflowCustomComponents.forEach(component => {
