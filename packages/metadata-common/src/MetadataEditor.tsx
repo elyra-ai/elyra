@@ -19,7 +19,8 @@ import {
   DropDown,
   ThemeProvider,
   RequestErrors,
-  TextInput
+  TextInput,
+  ArrayInput
 } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
@@ -202,6 +203,7 @@ export class MetadataEditor extends ReactWidget {
     this.addClass(this.widgetClass);
 
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
+    this.handleArrayInputChange = this.handleArrayInputChange.bind(this);
     this.handleChangeOnTag = this.handleChangeOnTag.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.renderField = this.renderField.bind(this);
@@ -386,6 +388,11 @@ export class MetadataEditor extends ReactWidget {
     }
   }
 
+  handleArrayInputChange(schemaField: string, values: string[]): void {
+    this.handleDirtyState(true);
+    this.metadata[schemaField] = values;
+  }
+
   handleDropdownChange = (schemaField: string, value: string): void => {
     this.handleDirtyState(true);
     this.metadata[schemaField] = value;
@@ -551,6 +558,22 @@ export class MetadataEditor extends ReactWidget {
             handleChange={this.handleChangeOnTag}
           />
         </div>
+      );
+    } else if (uihints.field_type === 'array') {
+      return (
+        <ArrayInput
+          label={this.schema[fieldName].title}
+          description={this.schema[fieldName].description}
+          key={`${fieldName}TextInput`}
+          fieldName={fieldName}
+          defaultValues={this.metadata[fieldName] || defaultValue || []}
+          required={required}
+          defaultError={uihints.error}
+          placeholder={uihints.placeholder}
+          onChange={(values: string[]): void => {
+            this.handleArrayInputChange(fieldName, values);
+          }}
+        />
       );
     } else {
       return null;
