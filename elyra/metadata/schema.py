@@ -72,6 +72,9 @@ class SchemaManager(SingletonConfigurable):
     def get_schemaspaces(self) -> list:
         return list(self.schemaspace_schemas.keys())
 
+    # To Do: Redirect get_namespace_schemas() to get_schemaspace_schemas()
+    # def get_namespace_schemas(self, namespace: str) -> dict:
+
     def get_schemaspace_schemas(self, schemaspace: str) -> dict:
         self.validate_schemaspace(schemaspace)
         schemas = self.schemaspace_schemas.get(schemaspace)
@@ -90,6 +93,9 @@ class SchemaManager(SingletonConfigurable):
         """Primarily used for testing, this method reloads schemas from initial values. """
         self.log.debug("SchemaManager: Reloading all schemas for all schemaspaces.")
         self.schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
+
+    # To Do: Redirect load_namespace_schemas() to load_schemaspace_schemas()
+    # def load_namespace_schemas(cls, schema_dir: Optional[str] = None) -> dict:
 
     @classmethod
     def load_schemaspace_schemas(cls, schema_dir: Optional[str] = None) -> dict:

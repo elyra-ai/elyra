@@ -33,13 +33,12 @@ class Schemaspace(object):
                  schemaspace_id: str,
                  name: str,
                  description: Optional[str] = "",
-                 storage_class: Optional[FileMetadataStore] = None,
-                 schemas: Optional[List] = []):
+                 storage_class: Optional[MetadataStore] = FileMetadataStore):
         self._id = schemaspace_id
         self._name = name
         self._description = description
         self._storage_class = storage_class
-        self._schemas = schemas
+        self._schemas = []
 
         # Validate properties
         #  We may want another dictionary that maps name to id
