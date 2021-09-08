@@ -623,6 +623,16 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             if cookie_auth_value:
                 auth_info['authservice_session_cookie'] = \
                     f"{cookie_auth_key}={cookie_auth_value}"
+            else: # try dex local auth            
+                m = re.search('req=([^"]*)', get_response.text)
+                req = m.group(0).replace("req=", "")
+                r = session.post(f"{url}/dex/auth/local?req={req}", params=payload)
+                if not r.ok:
+                    raise Exception(r.text)
+                cookie_auth_value = f"{session.cookies['authservice_session']}"
+            if cookie_auth_value:
+                auth_info['authservice_session_cookie'] = \
+                    f"{cookie_auth_key}={cookie_auth_value}"
 
         return auth_info
 
