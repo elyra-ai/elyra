@@ -79,7 +79,7 @@ class ComponentRegistry(LoggingConfigurable):
         Retrieve all components from the component registry
         """
 
-        components = self._read_component_registry()
+        components = self._read_component_registries()
         return list(components.values())
 
     def get_component(self, component_id: str) -> Component:
@@ -87,7 +87,7 @@ class ComponentRegistry(LoggingConfigurable):
         Retrieve the component with a given component_id.
         """
 
-        component_dict = self._read_component_registry()
+        component_dict = self._read_component_registries()
         component = component_dict.get(component_id)
         if component is None:
             self.log.error(f"Component with ID '{component_id}' could not be found in any "
@@ -166,7 +166,7 @@ class ComponentRegistry(LoggingConfigurable):
         properties_json = json.loads(canvas_properties)
         return properties_json
 
-    def _read_component_registry(self) -> Dict[str, Component]:
+    def _read_component_registries(self) -> Dict[str, Component]:
         """
         Read through component registries and return a dictionary of components indexed by component_id.
         """
@@ -270,7 +270,7 @@ class CachedComponentRegistry(ComponentRegistry):
         return self._cached_components.get(component_id)
 
     def _update_cache(self):
-        self._cached_components = super()._read_component_registry()
+        self._cached_components = super()._read_component_registries()
         self._last_updated = time.time()
 
     def _is_cache_expired(self) -> bool:
@@ -297,11 +297,10 @@ class RegistrySchemaFilter(SchemaFilter):
 
         # Get processor names
         runtime_enum = []
-        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
-            if processor.name == "local":
+        for processor_name in entrypoints.get_group_named('elyra.pipeline.processors').keys():
+            if processor_name == "local":
                 continue
-            if processor.name not in runtime_enum:
-                runtime_enum.append(processor.name)
+            runtime_enum.append(processor_name)
 
         # Add runtimes to schema
         filtered_schema['properties']['metadata']['properties']['runtime']['enum'] = runtime_enum
