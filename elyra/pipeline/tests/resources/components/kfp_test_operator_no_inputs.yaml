@@ -1,0 +1,16 @@
+name: Test Operator No Inputs
+description: no input one output
+
+outputs:
+- {name: Output 1, type: String, description: 'Output 1 data'}
+
+implementation:
+  container:
+    image: alpine
+    command: [
+        python3,
+        # Path of the program inside the container
+        /pipelines/component/src/0_1.py,
+        --output1-path,
+        { outputPath: Output 1 },
+    ]

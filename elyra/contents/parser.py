@@ -75,7 +75,6 @@ class NotebookReader(FileReader):
 
             except KeyError:
                 self.log.warning(f'No language metadata found in {self._filepath}')
-                pass
 
     @property
     def language(self) -> str:
@@ -208,6 +207,4 @@ class ContentParser(LoggingConfigurable):
 
             if not parser:
                 self.log.warning(f'Content parser for {language} is not available.')
-                pass
-
         return parser

@@ -40,7 +40,7 @@ def processor():
 @pytest.fixture
 def parsed_pipeline():
     pipeline_resource = _read_pipeline_resource(PIPELINE_FILE)
-    return PipelineParser().parse(pipeline_definitions=pipeline_resource)
+    return PipelineParser().parse(pipeline_json=pipeline_resource)
 
 
 @pytest.fixture

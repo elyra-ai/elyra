@@ -46,7 +46,7 @@ class Option(object):
         self.type = type
 
     def set_value(self, value):
-        if self.type == 'array' or self.type == 'object':
+        if self.type in ['array', 'object']:
             self.value = ast.literal_eval(value)
         elif self.type == 'integer':
             self.value = int(value)

@@ -39,6 +39,11 @@ components_airflow_path = './etc/config/components/airflow/*.py'
 metadata_path = './etc/config/metadata/runtime-images/*.json'
 settings_path = './etc/config/settings/*.json'
 
+runtime_extras = {
+    'kfp-tekton': ['kfp-tekton~=0.8.1',]
+}
+runtime_extras['all'] = list(set(sum(runtime_extras.values(), [])))
+
 setup_args = dict(
     name="elyra",
     version=version_ns['__version__'],
@@ -88,13 +93,13 @@ setup_args = dict(
         'yaspin',
         # KFP runtime dependencies
         'kfp>=1.6.3<2.0',
-        'kfp-tekton~=0.8.1',
         # Airflow runtime dependencies
         'pygithub',
-        'black'
+        'black',
     ],
     extras_require={
         'test': ['pytest', 'pytest-tornasync'],
+        **runtime_extras
     },
     include_package_data=True,
     classifiers=(

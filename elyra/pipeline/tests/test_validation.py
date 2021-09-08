@@ -14,13 +14,15 @@
 # limitations under the License.
 #
 
-import json
 import os
 
 import pytest
 
-from elyra.pipeline.validate import PipelineValidationManager
-from elyra.pipeline.validate import ValidationResponse
+from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
+from elyra.pipeline.pipeline_definition import PipelineDefinition
+from elyra.pipeline.tests.util import _read_pipeline_resource
+from elyra.pipeline.validation import PipelineValidationManager
+from elyra.pipeline.validation import ValidationResponse
 
 
 @pytest.fixture
@@ -28,32 +30,72 @@ def load_pipeline():
     def _function(pipeline_filepath):
         response = ValidationResponse()
 
-        with open(f'elyra/pipeline/tests/resources/validation_pipelines/{pipeline_filepath}') as f:
-            pipeline = json.loads(f.read())
-            return pipeline, response
+        pipeline = _read_pipeline_resource(f'resources/validation_pipelines/{pipeline_filepath}')
+        return pipeline, response
 
     yield _function
 
 
 @pytest.fixture
 def validation_manager():
-    validation_pipelines_path = "elyra/pipeline/tests/resources/validation_pipelines"
-    yield PipelineValidationManager.instance(root_dir=os.path.join(os.getcwd(), validation_pipelines_path))
+    root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__), "resources/validation_pipelines"))
+    yield PipelineValidationManager.instance(root_dir=root)
     PipelineValidationManager.clear_instance()
+
+
+async def test_invalid_lower_pipeline_version(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
+    pipeline['pipelines'][0]['app_data']['version'] = -1
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    validation_manager._validate_pipeline_structure(pipeline_definition=pipeline_definition, response=response)
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidPipeline'
+    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value.'
+
+
+def test_invalid_upper_pipeline_version(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
+    pipeline['pipelines'][0]['app_data']['version'] = PIPELINE_CURRENT_VERSION + 1
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    validation_manager._validate_pipeline_structure(pipeline_definition=pipeline_definition, response=response)
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidPipeline'
+    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value.'
+
+
+def test_invalid_pipeline_version_that_needs_migration(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
+    pipeline['pipelines'][0]['app_data']['version'] = 3
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    validation_manager._validate_pipeline_structure(pipeline_definition=pipeline_definition, response=response)
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidPipeline'
+    assert "needs to be migrated" in issues[0]['message']
 
 
 def test_basic_pipeline_structure(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
-    validation_manager._validate_pipeline_structure(pipeline=pipeline,
-                                                    response=response)
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    validation_manager._validate_pipeline_structure(pipeline_definition=pipeline_definition, response=response)
     assert not response.has_fatal
     assert not response.to_json().get('issues')
 
 
 def test_basic_pipeline_structure_with_scripts(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_basic_pipeline_with_scripts.pipeline')
-    validation_manager._validate_pipeline_structure(pipeline=pipeline,
-                                                    response=response)
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    validation_manager._validate_pipeline_structure(pipeline_definition=pipeline_definition, response=response)
     assert not response.has_fatal
     assert not response.to_json().get('issues')
 
@@ -61,10 +103,12 @@ def test_basic_pipeline_structure_with_scripts(validation_manager, load_pipeline
 async def test_invalid_runtime_node_kubeflow(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('kf_invalid_node_op.pipeline')
     node_id = "eace43f8-c4b1-4a25-b331-d57d4fc29426"
-    await validation_manager._validate_compatibility(pipeline=pipeline,
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_runtime='kfp',
-                                                     pipeline_execution='kfp')
+                                                     pipeline_type='kfp',
+                                                     pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
     assert len(issues) == 1
@@ -77,10 +121,12 @@ async def test_invalid_runtime_node_kubeflow_with_supernode(validation_manager, 
     pipeline, response = load_pipeline('kf_invalid_node_op_with_supernode.pipeline')
     node_id = "98aa7270-639b-42a4-9a07-b31cd0fa3205"
     pipeline_id = "00304a2b-dec4-4a73-ab4a-6830f97d7855"
-    await validation_manager._validate_compatibility(pipeline=pipeline,
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_runtime='kfp',
-                                                     pipeline_execution='kfp')
+                                                     pipeline_type='kfp',
+                                                     pipeline_runtime='kfp')
     issues = response.to_json().get('issues')
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
@@ -92,10 +138,11 @@ async def test_invalid_runtime_node_kubeflow_with_supernode(validation_manager, 
 async def test_invalid_pipeline_runtime_with_kubeflow_execution(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_basic_pipeline_with_scripts.pipeline')
 
-    await validation_manager._validate_compatibility(pipeline=pipeline,
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_runtime='airflow',
-                                                     pipeline_execution='kfp')
+                                                     pipeline_type='airflow',
+                                                     pipeline_runtime='kfp')
     issues = response.to_json().get('issues')
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
@@ -105,24 +152,27 @@ async def test_invalid_pipeline_runtime_with_kubeflow_execution(validation_manag
 async def test_invalid_pipeline_runtime_with_local_execution(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_basic_pipeline_with_scripts.pipeline')
 
-    await validation_manager._validate_compatibility(pipeline=pipeline,
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_runtime='airflow',
-                                                     pipeline_execution='local')
+                                                     pipeline_type='airflow',
+                                                     pipeline_runtime='local')
     issues = response.to_json().get('issues')
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidRuntime'
-    assert issues[0]['data']['pipelineRuntime'] == 'airflow'
+    assert issues[0]['data']['pipelineType'] == 'airflow'
 
 
 async def test_invalid_node_op_with_airflow(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('aa_invalid_node_op.pipeline')
     node_id = "749d4641-cee8-4a50-a0ed-30c07439908f"
-    await validation_manager._validate_compatibility(pipeline=pipeline,
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_runtime='airflow',
-                                                     pipeline_execution='airflow')
+                                                     pipeline_type='airflow',
+                                                     pipeline_runtime='airflow')
     issues = response.to_json().get('issues')
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
@@ -142,10 +192,11 @@ async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
     monkeypatch.setattr(pvm, "_validate_label", lambda node_id, node_label,
                         filename, response: True)
 
-    await pvm._validate_node_properties(pipeline=pipeline,
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await pvm._validate_node_properties(pipeline_definition=pipeline_definition,
                                         response=response,
-                                        pipeline_runtime='generic',
-                                        pipeline_execution='kfp')
+                                        pipeline_type='generic',
+                                        pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
     assert len(issues) == 1
@@ -163,10 +214,11 @@ async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch, load_pip
 
     monkeypatch.setattr(pvm, "_validate_filepath", lambda node_id, file_dir, property_name, filename, response: True)
 
-    await pvm._validate_node_properties(pipeline=pipeline,
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await pvm._validate_node_properties(pipeline_definition=pipeline_definition,
                                         response=response,
-                                        pipeline_runtime='kfp',
-                                        pipeline_execution='')
+                                        pipeline_type='kfp',
+                                        pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
     assert len(issues) == 1
@@ -230,7 +282,8 @@ def test_invalid_node_property_dependency_filepath_non_existent(validation_manag
 
 def test_valid_node_property_dependency_filepath(validation_manager):
     response = ValidationResponse()
-    valid_filename = 'elyra/pipeline/tests/resources/validation_pipelines/generic_single_cycle.pipeline'
+    valid_filename = os.path.join(os.path.dirname(__file__),
+                                  'resources/validation_pipelines/generic_single_cycle.pipeline')
     node = {"id": "test-id", "app_data": {"label": "test"}}
     property_name = 'test-property'
 
@@ -250,10 +303,11 @@ async def test_valid_node_property_pipeline_filepath(monkeypatch, validation_man
     monkeypatch.setattr(validation_manager, "_validate_label", lambda node_id, node_label,
                         filename, response: True)
 
-    await validation_manager._validate_node_properties(pipeline=pipeline,
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
                                                        response=response,
-                                                       pipeline_runtime='generic',
-                                                       pipeline_execution='kfp')
+                                                       pipeline_type='generic',
+                                                       pipeline_runtime='kfp')
 
     assert not response.has_fatal
     assert not response.to_json().get('issues')
