@@ -18,6 +18,8 @@ from types import SimpleNamespace
 
 import jupyter_core.paths
 
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import FilesystemComponentReader
 from elyra.pipeline.component import UrlComponentReader
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
@@ -33,12 +35,112 @@ def _get_resource_path(filename):
     return resource_path
 
 
-def test_component_registry_can_load_components_from_catalog():
+def test_component_registry_can_load_components_from_registries():
     component_parser = KfpComponentParser()
     component_registry = ComponentRegistry(component_parser)
 
     components = component_registry.get_all_components()
     assert len(components) > 0
+
+
+def test_modify_component_registries():
+    # Get initial set of components from the current active registries
+    parser = KfpComponentParser()
+    component_registry = ComponentRegistry(parser)
+    initial_components = component_registry.get_all_components()
+
+    metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+
+    # Create new registry instance with a single URL-based component
+    paths = [_get_resource_path('kfp_test_operator.yaml')]
+
+    instance_metadata = {
+        "description": "A test registry",
+        "runtime": "kfp",
+        "categories": ["New Components"],
+        "location_type": "Filename",
+        "paths": paths
+    }
+    registry_instance = Metadata(schema_name="component-registry",
+                                 name="new_registry",
+                                 display_name="New Registry",
+                                 metadata=instance_metadata)
+
+    metadata_manager.create("new_registry", registry_instance)
+
+    # Get new set of components from all active registries, including added test registry
+    added_components = component_registry.get_all_components()
+    assert len(added_components) > len(initial_components)
+
+    added_component_names = [component.name for component in added_components]
+    assert 'Test Operator' in added_component_names
+    assert 'Test Operator No Inputs' not in added_component_names
+
+    # Modify the test registry to add an additional path to
+    paths.append(_get_resource_path('kfp_test_operator_no_inputs.yaml'))
+    metadata_manager.update("new_registry", registry_instance)
+
+    # Get set of components from all active registries, including modified test registry
+    modified_components = component_registry.get_all_components()
+    assert len(modified_components) > len(added_components)
+
+    modified_component_names = [component.name for component in modified_components]
+    assert 'Test Operator' in modified_component_names
+    assert 'Test Operator No Inputs' in modified_component_names
+
+    # Delete the test registry
+    metadata_manager.remove("new_registry")
+    post_delete_components = component_registry.get_all_components()
+    assert len(post_delete_components) == len(initial_components)
+
+    # Check that the list of component ids is the same as before addition of the test registry
+    initial_component_ids = [component.id for component in initial_components]
+    post_delete_component_ids = [component.id for component in post_delete_components]
+    assert post_delete_component_ids == initial_component_ids
+
+    # Check that component palette is the same as before addition of the test registry
+    initial_palette = ComponentRegistry.to_canvas_palette(post_delete_components)
+    post_delete_palette = ComponentRegistry.to_canvas_palette(initial_components)
+    assert initial_palette == post_delete_palette
+
+
+def test_directory_based_component_registry():
+    # Get initial set of components from the current active registries
+    parser = KfpComponentParser()
+    component_registry = ComponentRegistry(parser)
+    initial_components = component_registry.get_all_components()
+
+    metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+
+    # Create new directory-based registry instance
+    root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    registry_path = os.path.join(root, 'resources', 'components')
+    instance_metadata = {
+        "description": "A test registry",
+        "runtime": "kfp",
+        "categories": ["New Components"],
+        "location_type": "Directory",
+        "paths": [registry_path]
+    }
+    registry_instance = Metadata(schema_name="component-registry",
+                                 name="new_registry",
+                                 display_name="New Registry",
+                                 metadata=instance_metadata)
+
+    metadata_manager.create("new_registry", registry_instance)
+
+    # Get new set of components from all active registries, including added test registry
+    added_components = component_registry.get_all_components()
+    assert len(added_components) > len(initial_components)
+
+    # Check that all relevant components from the new registry have been added
+    added_component_names = [component.name for component in added_components]
+    assert 'Filter text' in added_component_names
+    assert 'Test Operator' in added_component_names
+    assert 'Test Operator No Inputs' in added_component_names
+
+    # Remove the test instance
+    metadata_manager.remove("new_registry")
 
 
 def test_parse_kfp_component_file():
