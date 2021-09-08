@@ -119,11 +119,7 @@ export const ArrayListItem: React.FC<IListItemProps> = ({
       <div>
         <TextField
           inputProps={{ ref: inputRef }}
-          defaultValue={
-            typeof value === 'string'
-              ? value ?? ''
-              : JSON.stringify(value, null, '\t')
-          }
+          defaultValue={value}
           multiline={typeof value !== 'string'}
           maxRows={15}
           placeholder={placeholder}
@@ -163,11 +159,7 @@ export const ArrayListItem: React.FC<IListItemProps> = ({
         onEdit?.();
       }}
     >
-      <ListItemText style={{ whiteSpace: 'pre' }}>
-        {typeof value === 'string'
-          ? value ?? ''
-          : JSON.stringify(value, null, '\t')}
-      </ListItemText>
+      <ListItemText style={{ whiteSpace: 'pre' }}>{value}</ListItemText>
       <ButtonGroup>
         <IconButton
           title="Edit"
@@ -205,9 +197,9 @@ export const ArrayInput: React.FC<IArrayInputProps> = ({
   const [items, setItems] = React.useState(defaultValues ?? []);
   const [error, setError] = React.useState(defaultError);
 
-  const [editingIndex, setEditingIndex] = useState<number | 'new'>();
+  const [editingIndex, setEditingIndex] = React.useState<number | 'new'>();
 
-  const handleAction = useCallback(
+  const handleAction = React.useCallback(
     action => {
       const newItems = reducer(items, action);
       setItems(newItems);
