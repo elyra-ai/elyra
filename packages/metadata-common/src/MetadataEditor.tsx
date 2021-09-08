@@ -566,7 +566,7 @@ export class MetadataEditor extends ReactWidget {
           description={this.schema[fieldName].description}
           key={`${fieldName}TextInput`}
           fieldName={fieldName}
-          defaultValues={this.metadata[fieldName] || defaultValue || []}
+          defaultValues={this.metadata[fieldName] ?? defaultValue ?? []}
           required={required}
           defaultError={uihints.error}
           placeholder={uihints.placeholder}

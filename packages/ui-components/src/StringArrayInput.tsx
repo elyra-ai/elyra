@@ -26,9 +26,7 @@ import {
 } from '@material-ui/core';
 import { FormHelperText } from '@material-ui/core';
 import produce from 'immer';
-import { useCallback, useEffect, useRef, useState } from 'react';
-
-import React from 'react';
+import * as React from 'react';
 
 import { trashIcon } from './icons';
 
@@ -106,9 +104,9 @@ export const ArrayListItem: React.FC<IListItemProps> = ({
   onDelete,
   onEdit
 }: IListItemProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // We want this to be called anytime isEditing becomes true.
     if (isEditing) {
       inputRef.current!.focus();
