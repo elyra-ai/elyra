@@ -18,11 +18,14 @@ import {
   Button,
   ButtonGroup,
   IconButton,
+  InputAdornment,
   InputLabel,
   List,
   ListItem,
   ListItemText,
-  TextField
+  TextField,
+  Tooltip,
+  withStyles
 } from '@material-ui/core';
 import { FormHelperText } from '@material-ui/core';
 import produce from 'immer';
@@ -50,6 +53,12 @@ interface IListItemProps {
   onDelete?: () => any;
   onEdit?: () => any;
 }
+
+const CustomTooltip = withStyles(_theme => ({
+  tooltip: {
+    fontSize: 13
+  }
+}))(Tooltip);
 
 export const reducer = produce((draft: string[], action) => {
   const { type, payload } = action;
@@ -116,13 +125,14 @@ export const ArrayListItem: React.FC<IListItemProps> = ({
 
   if (isEditing) {
     return (
-      <div>
+      <div className="elyra-metadataEditor-arrayItemEditor">
         <TextField
           inputProps={{ ref: inputRef }}
           defaultValue={value}
           multiline={typeof value !== 'string'}
           maxRows={15}
           placeholder={placeholder}
+          variant="outlined"
           onKeyDown={(e: any): void => {
             if (e.code === 'Enter') {
               onSubmit?.(inputRef.current!.value);
@@ -159,27 +169,36 @@ export const ArrayListItem: React.FC<IListItemProps> = ({
         onEdit?.();
       }}
     >
-      <ListItemText style={{ whiteSpace: 'pre' }}>{value}</ListItemText>
-      <ButtonGroup>
-        <IconButton
-          title="Edit"
-          className="elyricon elyricon-edit"
-          onClick={(): void => {
-            onEdit?.();
-          }}
-        >
-          {<editIcon.react />}
-        </IconButton>
-        <IconButton
-          title="Delete"
-          className="elyricon elyricon-delete"
-          onClick={(): void => {
-            onDelete?.();
-          }}
-        >
-          {<trashIcon.react />}
-        </IconButton>
-      </ButtonGroup>
+      <TextField
+        style={{ whiteSpace: 'pre' }}
+        variant="outlined"
+        InputProps={{
+          readOnly: true,
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                aria-label="edit button"
+                onClick={(): void => {
+                  onEdit?.();
+                }}
+                edge="end"
+              >
+                {<editIcon.react />}
+              </IconButton>
+              <IconButton
+                aria-label="delete button"
+                onClick={(): void => {
+                  onDelete?.();
+                }}
+                edge="end"
+              >
+                {<trashIcon.react />}
+              </IconButton>
+            </InputAdornment>
+          )
+        }}
+        value={value}
+      />
     </ListItem>
   );
 };
@@ -215,13 +234,17 @@ export const ArrayInput: React.FC<IArrayInputProps> = ({
   }, [defaultError]);
 
   return (
-    <div id={fieldName} className="elyra-metadataEditor-formInput">
-      <InputLabel error={error} required={required}>
-        {' '}
-        {label}{' '}
-      </InputLabel>
+    <div
+      id={fieldName}
+      className="elyra-metadataEditor-formInput elyra-metadataEditor-arrayInput"
+    >
+      <CustomTooltip title={description ?? ''}>
+        <InputLabel error={error} required={required}>
+          {label}
+        </InputLabel>
+      </CustomTooltip>
       <List>
-        {items.map((item: string, index: number) => (
+        {items?.map?.((item: string, index: number) => (
           <ArrayListItem
             key={index}
             value={item}
@@ -268,6 +291,7 @@ export const ArrayInput: React.FC<IArrayInputProps> = ({
 
       {editingIndex !== 'new' && (
         <Button
+          className="elyra-metadataEditor-addItemButton"
           onClick={(): void => {
             setEditingIndex('new');
           }}

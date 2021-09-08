@@ -72,7 +72,8 @@ import {
   ISchema,
   PipelineService,
   RUNTIMES_NAMESPACE,
-  RUNTIME_IMAGES_NAMESPACE
+  RUNTIME_IMAGES_NAMESPACE,
+  PIPELINE_COMPONENTS_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
@@ -829,6 +830,9 @@ const PipelineWrapper: React.FC<IProps> = ({
           break;
         case 'openRuntimeImages':
           shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
+          break;
+        case 'openPipelineComponents':
+          shell.activateById(`elyra-metadata:${PIPELINE_COMPONENTS_NAMESPACE}`);
           break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, {

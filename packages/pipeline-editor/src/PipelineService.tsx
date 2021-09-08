@@ -25,6 +25,7 @@ import * as React from 'react';
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_NAMESPACE = 'runtimes';
 export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
+export const PIPELINE_COMPONENTS_NAMESPACE = 'component-registries';
 export const COMPONENTS_NAMESPACE = 'components';
 
 export interface IRuntime {
