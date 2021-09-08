@@ -149,7 +149,7 @@ Cypress.Commands.add('resetJupyterLab', (): void => {
 });
 
 Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
-  cy.findByRole('tab', { name: /pipeline/i }).rightclick();
+  cy.findByRole('tab', { name: /\.pipeline/i }).rightclick();
   cy.findAllByRole('menuitem', { name: new RegExp(fileType, 'i') }).should(
     'exist'
   );
