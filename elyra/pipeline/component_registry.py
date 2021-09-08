@@ -212,7 +212,7 @@ class ComponentRegistry(LoggingConfigurable):
                 }
 
                 # Parse the component entry to get a fully qualified Component object
-                components = self._parser.parse(SimpleNamespace(**component_entry))
+                components = self._parser.parse(SimpleNamespace(**component_entry)) or []
                 for component in components:
                     component_dict[component.id] = component
 
