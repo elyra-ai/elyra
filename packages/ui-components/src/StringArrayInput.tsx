@@ -22,7 +22,6 @@ import {
   InputLabel,
   List,
   ListItem,
-  ListItemText,
   TextField,
   Tooltip,
   withStyles

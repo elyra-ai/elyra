@@ -33,14 +33,6 @@
           "description": "Description of this Component Registry",
           "type": "string"
         },
-        "tags": {
-          "title": "Tags",
-          "description": "Tags for categorizing component registries",
-          "type": "array",
-          "uihints": {
-            "field_type": "tags"
-          }
-        },
         "categories": {
           "title": "Category Names",
           "description": "Category names associated with this Component Registry (the components defined in this registry will be organized in the component palette according to these categories)",
