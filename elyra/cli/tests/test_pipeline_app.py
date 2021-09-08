@@ -21,7 +21,7 @@ from click.testing import CliRunner
 import elyra.cli.pipeline_app as pipeline_app
 from elyra.cli.pipeline_app import pipeline
 
-SUB_COMMANDS = ['run', 'submit', 'describe']
+SUB_COMMANDS = ['run', 'submit', 'describe', 'validate']
 
 PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD = \
     '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[],"schemas":[]}'
@@ -91,6 +91,14 @@ def test_describe_with_invalid_pipeline():
     assert result.exit_code != 0
 
 
+def test_validate_with_invalid_pipeline():
+    runner = CliRunner()
+
+    result = runner.invoke(pipeline, ['validate', 'foo.pipeline'])
+    assert "Pipeline file not found:" in result.output
+    assert "foo.pipeline" in result.output
+    assert result.exit_code != 0
+
 def test_run_with_unsupported_file_type():
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -123,6 +131,17 @@ def test_describe_with_unsupported_file_type():
             f.write('{ "nbformat": 4, "cells": [] }')
 
         result = runner.invoke(pipeline, ['describe', 'foo.ipynb'])
+        assert "Pipeline file should be a [.pipeline] file" in result.output
+        assert result.exit_code != 0
+
+
+def test_validate_with_unsupported_file_type():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.ipynb', 'w') as f:
+            f.write('{ "nbformat": 4, "cells": [] }')
+
+        result = runner.invoke(pipeline, ['validate', 'foo.ipynb'])
         assert "Pipeline file should be a [.pipeline] file" in result.output
         assert result.exit_code != 0
 
@@ -162,6 +181,18 @@ def test_describe_with_no_pipelines_field():
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
 
         result = runner.invoke(pipeline, ['describe', pipeline_file_path])
+        assert "Pipeline is missing 'pipelines' field." in result.output
+        assert result.exit_code != 0
+
+
+def test_validate_with_no_pipelines_field():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        result = runner.invoke(pipeline, ['validate', pipeline_file_path])
         assert "Pipeline is missing 'pipelines' field." in result.output
         assert result.exit_code != 0
 

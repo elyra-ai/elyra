@@ -236,10 +236,10 @@ def pipeline():
 
 @click.command()
 @click.option('--runtime-config',
-              required=True,
+              required=False,
               help='Runtime config where the pipeline should be processed')
 @click.argument('pipeline_path')
-def validate(pipeline_path, runtime_config):
+def validate(pipeline_path, runtime_config='local'):
     """
     Validate pipeline
     """
