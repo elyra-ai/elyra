@@ -99,6 +99,7 @@ def test_validate_with_invalid_pipeline():
     assert "foo.pipeline" in result.output
     assert result.exit_code != 0
 
+
 def test_run_with_unsupported_file_type():
     runner = CliRunner()
     with runner.isolated_filesystem():
