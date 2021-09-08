@@ -29,6 +29,7 @@ from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
 from elyra.metadata.schema import SchemaFilter
+from elyra.metadata.schema import Schemaspace
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
 
@@ -368,3 +369,13 @@ class TestSchemaFilter(SchemaFilter):
         filtered_schema['properties']['metadata']['properties']['enum_test']['enum'] = enum
 
         return filtered_schema
+
+
+class MetadataTests(Schemaspace):
+    METADATA_TEST_SCHEMASPACE_ID = "8182fc28-899a-4521-8342-1a0e218c3a4d"
+    METADATA_TEST_SCHEMASPACE_NAME = "Metadata-tests"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(schemaspace_id=MetadataTests.METADATA_TEST_SCHEMASPACE_ID,
+                         name=MetadataTests.METADATA_TEST_SCHEMASPACE_NAME,
+                         description="Schemaspace for instances of metadata for testing")

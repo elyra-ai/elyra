@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from elyra.metadata.schemaspace import Schemaspace
+from elyra.metadata.schema import Schemaspace
 
 
 class Runtimes(Schemaspace):
@@ -21,8 +21,8 @@ class Runtimes(Schemaspace):
     RUNTIMES_SCHEMASPACE_NAME = "Runtimes"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=self.RUNTIMES_SCHEMASPACE_ID,
-                         name=self.RUNTIMES_SCHEMASPACE_NAME,
+        super().__init__(schemaspace_id=Runtimes.RUNTIMES_SCHEMASPACE_ID,
+                         name=Runtimes.RUNTIMES_SCHEMASPACE_NAME,
                          description="Schemaspace for instances of Elyra runtime configurations")
 
 
@@ -31,8 +31,8 @@ class RuntimeImages(Schemaspace):
     RUNTIMES_IMAGES_SCHEMASPACE_NAME = "Runtime Images"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=self.RUNTIME_IMAGES_SCHEMASPACE_ID,
-                         name=self.RUNTIMES_IMAGES_SCHEMASPACE_NAME,
+        super().__init__(schemaspace_id=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID,
+                         name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME,
                          description="Schemaspace for instances of Elyra runtime images configurations")
 
 
@@ -41,8 +41,8 @@ class CodeSnippets(Schemaspace):
     CODE_SNIPPETS_SCHEMASPACE_NAME = "Code Snippets"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=self.CODE_SNIPPETS_SCHEMASPACE_ID,
-                         name=self.CODE_SNIPPETS_SCHEMASPACE_NAME,
+        super().__init__(schemaspace_id=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID,
+                         name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_NAME,
                          description="Schemaspace for instances of Elyra code snippets configurations")
 
 
@@ -51,6 +51,6 @@ class ComponentRegistries(Schemaspace):
     COMPONENT_REGISTRIES_SCHEMASPACE_NAME = "Component Registries"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=self.COMPONENT_REGISTRIES_SCHEMASPACE_ID,
-                         name=self.COMPONENT_REGISTRIES_SCHEMASPACE_NAME,
+        super().__init__(schemaspace_id=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID,
+                         name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_NAME,
                          description="Schemaspace for instances of Elyra component registries configurations")
