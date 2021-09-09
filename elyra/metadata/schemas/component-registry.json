@@ -52,7 +52,7 @@
           "description": "The runtime associated with this Component Registry",
           "type": "string",
           "$comment": "This enum is dynamically generated to contain the available runtime values.",
-          "enum": ["{schema-filter-value}"],
+          "enum": ["{currently-configured-runtmes}"],
           "uihints": {
             "field_type": "dropdown",
             "category": "Source"
