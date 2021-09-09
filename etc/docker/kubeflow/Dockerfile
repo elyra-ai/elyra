@@ -16,21 +16,16 @@
 #
 
 # Ubuntu 20.04.2 LTS (Focal Fossa)
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-2dd0e3e4
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.3.0
 
-USER root
+# install - elyra
+RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated legacy-resolver \
+    elyra==3.0.1
 
-RUN npm install -g yarn
+# build jupyter plugins
+RUN jupyter lab build
 
 # install - requirements.txt
 COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt
-RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir --use-deprecated=legacy-resolver && \
-    rm -f /tmp/requirements.txt
-
-# install elyra
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra==3.0.1
-
-
-RUN jupyter lab build
-
-USER jovyan
+RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir --use-deprecated=legacy-resolver \
+ && rm -f /tmp/requirements.txt
