@@ -215,14 +215,14 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
 
 
 class SchemaspaceHandler(HttpErrorMixin, APIHandler):
-    """Handler for retrieving schemaspaces """
+    """Handler for retrieving schemaspace names """
 
     @web.authenticated
     async def get(self):
 
         try:
             schema_manager = SchemaManager.instance()
-            schemaspaces = schema_manager.get_schemaspaces()
+            schemaspaces = schema_manager.get_schemaspace_names()
         except (ValidationError, ValueError) as err:
             raise web.HTTPError(404, str(err)) from err
         except Exception as err:

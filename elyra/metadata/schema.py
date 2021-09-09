@@ -16,47 +16,23 @@
 from abc import ABC
 from abc import abstractmethod
 import copy
-import io
-import json
 import os
 import re
 from typing import Dict
 from typing import List
 from typing import Optional
-import warnings
 
-from ipython_genutils.importstring import import_item
+import entrypoints
+from traitlets.config import LoggingConfigurable
 from traitlets.config import SingletonConfigurable
+from traitlets import Type  # noqa H306
 
 from elyra.metadata.error import SchemaNotFoundError
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
 
-default_schema_filter_class_name = 'elyra.metadata.schema.SchemaFilter'
-
+METADATA_TEST_SCHEMASPACE_ID = "8182fc28-899a-4521-8342-1a0e218c3a4d"
 METADATA_TEST_SCHEMASPACE = "metadata-tests"  # exposed via METADATA_TESTING env
-
-
-class SchemaFilter(object):
-    """
-    This class is used by the SchemaManager to process schema instances if the
-    schema references a `schema_filter_class_name` meta-property.  It is meant to be
-    subclassed since instances of this class are associated with a specific schema
-    and have knowledge about how to filter instances of "their" schema.
-
-    Instances of SchemaFilter are meant to be short-lived and stateless, essentially
-    performing an operation on the schema and returning its filtered result.
-    """
-
-    def post_load(self, name: str, schema_json: Dict) -> Dict:
-        """Called by SchemaManager after fetching the schema instance, this method
-        filters the schema based on current runtime situations.
-
-        :param name: The name of the schema
-        :param schema_json: The schema itself
-        :return: The filtered schema
-        """
-        return schema_json
 
 
 class SchemaManager(SingletonConfigurable):
@@ -66,122 +42,162 @@ class SchemaManager(SingletonConfigurable):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # schemaspace_schemas is a dict of schemaspace keys to dict of schema_name keys of JSON schema
-        self.schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
+        self._load_schemaspace_schemas()
 
-    def validate_schemaspace(self, schemaspace: str) -> None:
+    def _validate_schemaspace(self, schemaspace_name_or_id: str) -> None:
         """Ensures the schemaspace is valid and raises ValueError if it is not."""
-        if schemaspace not in self.schemaspace_schemas.keys():
+        if schemaspace_name_or_id not in list(self.schemaspaces.keys()) + list(self.schemaspace_name_to_id.keys()):
             raise ValueError("schemaspace '{}' is not in the list of valid schemaspaces: '{}'".
-                             format(schemaspace, self.get_schemaspaces()))
+                             format(schemaspace_name_or_id, self.get_schemaspace_names()))
 
-    def get_schemaspaces(self) -> list:
-        return list(self.schemaspace_schemas.keys())
+    def get_schemaspace_names(self) -> list:
+        """Retuns list of registered schemaspace names."""
+        return list(self.schemaspace_name_to_id.keys())
 
-    # To Do: Redirect get_schemaspace_schemas() to get_schemaspace_schemas()
-    # def get_schemaspace_schemas(self, schemaspace: str) -> dict:
+    def get_schemaspace_schemas(self, schemaspace_name_or_id: str) -> dict:
+        self._validate_schemaspace(schemaspace_name_or_id)
+        schemaspace = self.get_schemaspace(schemaspace_name_or_id)
+        schemas = schemaspace.schemas
+        return copy.deepcopy(schemas)
 
-    def get_schemaspace_schemas(self, schemaspace: str) -> dict:
-        self.validate_schemaspace(schemaspace)
-        schemas = self.schemaspace_schemas.get(schemaspace)
-        return schemas
+    def get_schema(self, schemaspace_name_or_id: str, schema_name: str) -> dict:
+        """Returns the specified schema for the specified schemaspace."""
+        self._validate_schemaspace(schemaspace_name_or_id)
 
-    def get_schema(self, schemaspace: str, schema_name: str) -> dict:
-        self.validate_schemaspace(schemaspace)
-        schemas = self.schemaspace_schemas.get(schemaspace)
+        schemaspace = self.get_schemaspace(schemaspace_name_or_id)
+        schemas = schemaspace.schemas
         if schema_name not in schemas.keys():
-            raise SchemaNotFoundError(schemaspace, schema_name)
+            raise SchemaNotFoundError(schemaspace_name_or_id, schema_name)
         schema_json = schemas.get(schema_name)
 
-        return schema_json
+        return copy.deepcopy(schema_json)
+
+    def get_schemaspace(self, schemaspace_name_or_id: str) -> 'Schemaspace':
+        """Returns the Schemaspace instance associated with the given name or id."""
+
+        # Need to determine if this is an id or name.  We'll be optimistic and assume Id,
+        # then try name and if both fail, raise ValueError
+        self._validate_schemaspace(schemaspace_name_or_id)
+        if schemaspace_name_or_id in self.schemaspaces.keys():
+            schemaspace_id = schemaspace_name_or_id  # we have an id
+        else:
+            schemaspace_id = self.schemaspace_name_to_id.get(schemaspace_name_or_id)
+
+        if not schemaspace_id:
+            raise ValueError(f"The provided schemaspace name or id '{schemaspace_name_or_id}' "
+                             f"is not associated with a registered Schemaspace!")
+
+        return self.schemaspaces.get(schemaspace_id)
 
     def clear_all(self) -> None:
         """Primarily used for testing, this method reloads schemas from initial values. """
         self.log.debug("SchemaManager: Reloading all schemas for all schemaspaces.")
-        self.schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
+        self._load_schemaspace_schemas()
 
-    # To Do: Redirect load_schemaspace_schemas() to load_schemaspace_schemas()
-    # def load_schemaspace_schemas(cls, schema_dir: Optional[str] = None) -> dict:
+    def _load_schemaspace_schemas(self):
+        """Gets Schemaspaces and SchemasProviders via entrypoints and validates/loads their schemas."""
 
-    @classmethod
-    def load_schemaspace_schemas(cls, schema_dir: Optional[str] = None) -> dict:
-        """Loads the static schema files into a dictionary indexed by schemaspace.
-           If schema_dir is not specified, the static location relative to this
-           file will be used.
-           Note: The schema file must have a top-level string-valued attribute
-           named 'schemaspace' to be included in the resulting dictionary.
-        """
         # The following exposes the metadata-test schemaspace if true or 1.
         # Metadata testing will enable this env.  Note: this cannot be globally
         # defined, else the file could be loaded before the tests have enable the env.
         metadata_testing_enabled = bool(os.getenv("METADATA_TESTING", 0))
 
-        schemaspace_schemas = {}
-        if schema_dir is None:
-            schema_dir = os.path.join(os.path.dirname(__file__), 'schemas')
-        if not os.path.exists(schema_dir):
-            raise RuntimeError("Metadata schema directory '{}' was not found!".format(schema_dir))
+        self.schemaspaces = {}
+        self.schemaspace_name_to_id = {}
+        for schemaspace in entrypoints.get_group_all('metadata.schemaspaces'):
+            # Record the Schemaspace instance and create the name-to-id map
+            try:
+                # If we're not testing, skip our test schemaspace
+                if not metadata_testing_enabled and schemaspace.name == METADATA_TEST_SCHEMASPACE:
+                    continue
+                # instantiate an actual instance of the Schemaspace
+                self.log.info(f"Loading schemaspace '{schemaspace.name}'...")
+                schemaspace_instance = schemaspace.load()(parent=self.parent)  # Load an instance
+                if not isinstance(schemaspace_instance, Schemaspace):
+                    raise ValueError(f"Schemaspace instance '{schemaspace.name}' is not an "
+                                     f"instance of '{Schemaspace.__name__}'!")
+                self.schemaspaces[schemaspace_instance.id] = schemaspace_instance
+                self.schemaspace_name_to_id[schemaspace_instance.name] = schemaspace_instance.id
+            except Exception as err:
+                # log and ignore initialization errors
+                self.log.error(f"Error loading schemaspace '{schemaspace.name}' - {err}")
 
-        schema_files = [json_file for json_file in os.listdir(schema_dir) if json_file.endswith('.json')]
-        for json_file in schema_files:
-            schema_file = os.path.join(schema_dir, json_file)
-            with io.open(schema_file, 'r', encoding='utf-8') as f:
-                schema_json = json.load(f)
+        for schemas_provider in entrypoints.get_group_all('metadata.schemas'):
+            try:
+                # If we're not testing, skip our test schemas
+                if not metadata_testing_enabled and schemas_provider.name == METADATA_TEST_SCHEMASPACE:
+                    continue
+                # instantiate an actual instance of the processor
+                self.log.info(f"Loading SchemasProvider '{schemas_provider.name}'...")
+                schemas_provider_instance = schemas_provider.load()()  # Load an instance
+                if not isinstance(schemas_provider_instance, SchemasProvider):
+                    raise ValueError(f"SchemasProvider instance '{schemas_provider.name}' is not an "
+                                     f"instance of '{SchemasProvider.__name__}'!")
+                self._load_schemas(schemas_provider_instance)
+            except Exception as err:
+                # log and ignore initialization errors
+                self.log.error(f"Error loading schemas for SchemasProvider '{schemas_provider.name}' - {err}")
 
-            # Elyra schema files are required to have a schemaspace property (see test_validate_factory_schema)
-            schemaspace = schema_json.get('schemaspace')
-            if schemaspace is None:
-                warnings.warn("Schema file '{}' is missing its schemaspace attribute!  Skipping...".format(schema_file))
-                continue
-            # Skip test schemaspace unless we're testing metadata
-            if schemaspace == METADATA_TEST_SCHEMASPACE and not metadata_testing_enabled:
-                continue
-            if schemaspace not in schemaspace_schemas:  # Create the schemaspace dict
-                schemaspace_schemas[schemaspace] = {}
-            # Add the schema file indexed by name within the schemaspace
-            name = schema_json.get('name')
-            if name is None:
-                # If schema is missing a name attribute, use file's basename.
-                name = os.path.splitext(os.path.basename(schema_file))[0]
+    def _load_schemas(self, provider: 'SchemasProvider'):
+        """Calls get_schemas() on the provider, validates the referenced schemaspace id, and adds
 
-            # apply post-load filter
-            schema_filter_class_name = schema_json.get('schema_filter_class_name', default_schema_filter_class_name)
-            schema_filter_class = import_item(schema_filter_class_name)
-            filtered_schema = schema_filter_class().post_load(name, schema_json)
-            schemaspace_schemas[schemaspace][name] = filtered_schema
+        to schemaspace instance.
+        """
+        schemas = provider.get_schemas()
+        for schema in schemas:
+            # TODO - validate schema against meta-schema
 
-        return copy.deepcopy(schemaspace_schemas)
+            schemaspace_id = schema.get("schemaspace_id")
+            schema_name = schema.get("name")
+            if schemaspace_id not in self.schemaspaces:
+                raise ValueError(f"Schema '{schema_name}' references a schemaspace "
+                                 f"'{schemaspace_id}' that is not loaded!")
+
+            self.schemaspaces[schemaspace_id].add_schema(schema)
 
 
-class Schemaspace(object):
+class Schemaspace(LoggingConfigurable):
     _id: str
     _name: str
     _description: str
     _storage_class: MetadataStore
-    _schemas: List[Dict]
+    _schemas: Dict[str, Dict]  # use a dict to prevent duplicate entries
+
+    metadata_store_class = Type(default_value=FileMetadataStore, config=True,
+                                klass=MetadataStore,
+                                help="""The metadata store class.  This is configurable to allow subclassing of
+                                the MetadataStore for customized behavior.""")
 
     def __init__(self,
                  schemaspace_id: str,
                  name: str,
+                 display_name: Optional[str] = None,
                  description: Optional[str] = "",
-                 storage_class: Optional[MetadataStore] = FileMetadataStore):
-        self._id = schemaspace_id
-        self._name = name
-        self._description = description
-        self._storage_class = storage_class
-        self._schemas = []
+                 storage_class: Optional[MetadataStore] = FileMetadataStore,
+                 **kwargs):
+        super().__init__(**kwargs)
+
+        self._schemas = {}
 
         # Validate properties
-        #  We may want another dictionary that maps name to id
-        assert self._id is not None and len(self._id) > 0, "Property 'id' requires a value!"
-        assert Schemaspace._validate_id(self._id), \
-            f"The value of property 'id' ({self._id}) does not conform to a UUID!"
+        if not schemaspace_id:
+            raise ValueError("Property 'id' requires a value!")
 
-        assert self._name is not None and len(self._name) > 0, "Property 'name' requires a value!"
+        if not Schemaspace._validate_id(schemaspace_id):
+            raise ValueError(f"The value of property 'id' ({self._id}) does not conform to a UUID!")
 
-        assert isinstance(self._storage_class, MetadataStore), \
-            f"The value of property 'storage_class' ({self._storage_class.__name__}) " \
-            f"must be an instance of '{MetadataStore.__name__}'!"
+        if not name:
+            raise ValueError("Property 'name' requires a value!")
+
+        if not isinstance(storage_class, MetadataStore):
+            ValueError(f"The value of property 'storage_class' ({storage_class.__name__}) "
+                       f"must be an instance of '{MetadataStore.__name__}'!")
+
+        self._id = schemaspace_id
+        self._name = name
+        self._display_name = display_name or name
+        self._description = description
+        self._storage_class = storage_class
 
     @property
     def id(self) -> str:
@@ -194,6 +210,11 @@ class Schemaspace(object):
         return self._name
 
     @property
+    def display_name(self) -> str:
+        """The display_name of the schemaspace"""
+        return self._display_name
+
+    @property
     def description(self) -> str:
         """The description of the schemaspace"""
         return self._description
@@ -204,14 +225,14 @@ class Schemaspace(object):
         return self._storage_class
 
     @property
-    def schemas(self) -> List[Dict]:
+    def schemas(self) -> Dict[str, Dict]:
         """Returns the schemas currently associated with this schemaspace"""
         return self._schemas
 
     def add_schema(self, schema: Dict) -> None:
         """Associates the given schema to this schemaspace"""
         assert isinstance(schema, dict), "Parameter 'schema' is not a dictionary!"
-        self._schemas.append(schema)
+        self._schemas[schema.get('name')] = schema
 
     @staticmethod
     def _validate_id(id) -> bool:

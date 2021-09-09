@@ -47,7 +47,6 @@ except ImportError:
 from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.manager import MetadataManager
-from elyra.metadata.schema import SchemaFilter
 from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
@@ -704,24 +703,3 @@ class KfpPipelineProcessorResponse(PipelineProcessorResponse):
     @property
     def type(self):
         return self._type
-
-
-class KfpSchemaFilter(SchemaFilter):
-    """
-    This class exists to ensure that the KFP schema's engine metadata
-    appropriately reflects what is installed on the system.
-    """
-
-    def post_load(self, name: str, schema_json: Dict) -> Dict:
-        """Ensure tekton packages are present and remove engine from schema if not."""
-
-        filtered_schema = super().post_load(name, schema_json)
-
-        # If TektonClient package is missing, navigate to the engine property
-        # and remove 'tekton' entry if present and return updated result.
-        if not TektonClient:
-            engine_enum: list = filtered_schema['properties']['metadata']['properties']['engine']['enum']
-            if 'Tekton' in engine_enum:
-                engine_enum.remove('Tekton')
-                filtered_schema['properties']['metadata']['properties']['engine']['enum'] = engine_enum
-        return filtered_schema

@@ -38,11 +38,9 @@ from elyra.metadata.storage import MetadataStore
 from elyra.metadata.tests.test_utils import byo_metadata_json
 from elyra.metadata.tests.test_utils import create_instance
 from elyra.metadata.tests.test_utils import create_json_file
-from elyra.metadata.tests.test_utils import get_unfiltered_schema
 from elyra.metadata.tests.test_utils import invalid_metadata_json
 from elyra.metadata.tests.test_utils import invalid_no_display_name_json
 from elyra.metadata.tests.test_utils import MockMetadataStore
-from elyra.metadata.tests.test_utils import TestSchemaFilter
 from elyra.metadata.tests.test_utils import valid_display_name_json
 from elyra.metadata.tests.test_utils import valid_metadata_json
 
@@ -78,10 +76,12 @@ schema_schema = {
 
 def test_validate_factory_schemas():
     # Test that each of our factory schemas meet the minimum requirements.
-    schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
-    for schemaspace, schemas in schemaspace_schemas.items():
-        for name, schema in schemas.items():
-            print("Validating schema '{schemaspace}/{name}'...".format(schemaspace=schemaspace, name=name))
+    schema_mgr = SchemaManager.instance()
+    schemaspace_names = SchemaManager.instance().get_schemaspace_names()
+    for schemaspace_name in schemaspace_names:
+        schemaspace = schema_mgr.get_schemaspace(schemaspace_name)
+        for name, schema in schemaspace.schemas.items():
+            print("Validating schema '{schemaspace}/{name}'...".format(schemaspace=schemaspace_name, name=name))
             validate(instance=schema, schema=schema_schema, format_checker=draft7_format_checker)
 
 
@@ -706,16 +706,7 @@ def test_store_delete_instance(store_manager, schemaspace_location):
 
 
 # ########################## SchemaManager Tests ###########################
-def test_schema_filter(schema_manager):
-    schema_manager.clear_all()
-
-    test_schema_json = get_unfiltered_schema('metadata-test')
-
-    test_schema = schema_manager.get_schema(METADATA_TEST_SCHEMASPACE, "metadata-test")
-    assert test_schema is not None
-    # Since test_schema is filtered and test_schema_json is unfiltered, apply filtering for comparison
-    assert test_schema == TestSchemaFilter().post_load("metadata-test", test_schema_json)
-
+# TODO - add tests for SchemaManagr, Schemaspaces, and SchemaProviders
 
 # ########################## Error Tests ###########################
 def test_error_metadata_not_found():

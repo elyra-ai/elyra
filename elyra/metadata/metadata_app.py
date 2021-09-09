@@ -331,7 +331,11 @@ class MetadataApp(AppBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.schemaspace_schemas = SchemaManager.load_schemaspace_schemas()
+        self.schemaspace_schemas = {}
+        schema_mgr = SchemaManager.instance()
+        schemaspace_names = schema_mgr.get_schemaspace_names()
+        for name in schemaspace_names:
+            self.schemaspace_schemas[name] = schema_mgr.get_schemaspace_schemas(name)
 
     def start(self):
         subcommand = self.get_subcommand()

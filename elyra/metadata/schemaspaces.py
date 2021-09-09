@@ -18,7 +18,7 @@ from elyra.metadata.schema import Schemaspace
 
 class Runtimes(Schemaspace):
     RUNTIMES_SCHEMASPACE_ID = "130b8e00-de7c-4b32-b553-b4a52824a3b5"
-    RUNTIMES_SCHEMASPACE_NAME = "Runtimes"
+    RUNTIMES_SCHEMASPACE_NAME = "runtimes"
 
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id=Runtimes.RUNTIMES_SCHEMASPACE_ID,
@@ -28,7 +28,7 @@ class Runtimes(Schemaspace):
 
 class RuntimeImages(Schemaspace):
     RUNTIME_IMAGES_SCHEMASPACE_ID = "119c9740-d73f-48c6-a97a-599d3acaf41d"
-    RUNTIMES_IMAGES_SCHEMASPACE_NAME = "Runtime Images"
+    RUNTIMES_IMAGES_SCHEMASPACE_NAME = "runtime-images"
 
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID,
@@ -38,7 +38,7 @@ class RuntimeImages(Schemaspace):
 
 class CodeSnippets(Schemaspace):
     CODE_SNIPPETS_SCHEMASPACE_ID = "aa60988f-8f7c-4d09-a243-c54ef9c2f7fb"
-    CODE_SNIPPETS_SCHEMASPACE_NAME = "Code Snippets"
+    CODE_SNIPPETS_SCHEMASPACE_NAME = "code-snippets"
 
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID,
@@ -48,7 +48,7 @@ class CodeSnippets(Schemaspace):
 
 class ComponentRegistries(Schemaspace):
     COMPONENT_REGISTRIES_SCHEMASPACE_ID = "ae79159a-489d-4656-83a6-1adfbc567c70"
-    COMPONENT_REGISTRIES_SCHEMASPACE_NAME = "Component Registries"
+    COMPONENT_REGISTRIES_SCHEMASPACE_NAME = "component-registries"
 
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID,

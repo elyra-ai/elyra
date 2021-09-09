@@ -4,7 +4,7 @@
   "name": "kfp",
   "display_name": "Kubeflow Pipelines",
   "schemaspace": "runtimes",
-  "schema_filter_class_name": "elyra.pipeline.processor_kfp.KfpSchemaFilter",
+  "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
   "uihints": {
     "title": "Kubeflow Pipelines runtimes",
     "icon": "elyra:runtimes",
