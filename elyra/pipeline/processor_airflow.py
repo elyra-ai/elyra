@@ -61,7 +61,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata.get('api_endpoint')
         cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
@@ -136,9 +136,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
     def _cc_pipeline(self, pipeline, pipeline_name):
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
-        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+        image_namespace = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
 
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata['cos_username']
@@ -321,7 +321,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             template = template_env.get_template('airflow_template.jinja2')
 
             target_ops = self._cc_pipeline(pipeline, pipeline_name)
-            runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+            runtime_configuration = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                      name=pipeline.runtime_config)
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
             cos_secret = runtime_configuration.metadata.get('cos_secret')

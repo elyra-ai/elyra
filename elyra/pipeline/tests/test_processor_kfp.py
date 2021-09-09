@@ -57,7 +57,7 @@ def sample_metadata():
 
 def test_fail_get_metadata_configuration_invalid_namespace(processor):
     with pytest.raises(RuntimeError):
-        processor._get_metadata_configuration(namespace="non_existent_namespace",
+        processor._get_metadata_configuration(schemaspace="non_existent_namespace",
                                               name='non_existent_metadata')
 
 

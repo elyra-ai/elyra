@@ -55,7 +55,7 @@ def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
         return runtime_config
 
     try:
-        metadata_manager = MetadataManager(namespace='runtimes')
+        metadata_manager = MetadataManager(schemaspace='runtimes')
         metadata = metadata_manager.get(runtime_config)
         return metadata.schema_name
     except Exception as e:

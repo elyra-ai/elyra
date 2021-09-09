@@ -83,7 +83,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
 
         api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
@@ -298,7 +298,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # we're using its absolute form.
         absolute_pipeline_export_path = get_absolute_path(self.root_dir, pipeline_export_path)
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
         namespace = runtime_configuration.metadata.get('user_namespace')
@@ -416,7 +416,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                      cos_directory=None,
                      export=False):
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIMES,
                                                                  name=pipeline.runtime_config)
 
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
@@ -505,7 +505,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 if cos_secret and not export:
                     target_ops[operation.id].apply(use_aws_secret(cos_secret))
 
-                image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+                image_namespace = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
                 for image_instance in image_namespace:
                     if image_instance.metadata['image_name'] == operation.runtime_image and \
                             image_instance.metadata.get('pull_policy'):
@@ -607,7 +607,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Gather input for container image pull secrets in support of private container image registries
         # https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf.set_image_pull_secrets
         #
-        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+        image_namespace = self._get_metadata_configuration(schemaspace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
 
         # iterate through pipeline operations and create list of Kubernetes secret names
         # that are associated with generic components
