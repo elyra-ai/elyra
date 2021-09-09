@@ -23,9 +23,9 @@ import github
 import pytest
 
 from elyra.metadata.metadata import Metadata
+from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
-from elyra.pipeline.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 from elyra.util import git
 

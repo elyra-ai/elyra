@@ -18,9 +18,9 @@ import os
 import nbformat
 import pytest
 
+from elyra.pipeline.local.processor_local import LocalPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
-from elyra.pipeline.processor_local import LocalPipelineProcessor
 from elyra.pipeline.tests.util import _read_pipeline_resource
 from elyra.pipeline.tests.util import construct_pipeline
 from elyra.pipeline.tests.util import NotebookNode
@@ -36,7 +36,8 @@ def pipeline_dir(tmp_path):
 
 def test_pipeline_execution_order_in_complex_pipeline():
     expected_operation_names = ['a', 'b', 'c', 'd', 'e', 'f', 'x', 'y', 'g', 'h']
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_complex.json')
+    pipeline_json = _read_pipeline_resource(
+        'resources/sample_pipelines/pipeline_dependency_complex.json')
 
     pipeline = PipelineParser().parse(pipeline_json)
     current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
@@ -52,7 +53,8 @@ def test_pipeline_execution_order_in_complex_pipeline():
 
 def test_pipeline_execution_order_in_simple_pipeline():
     expected_operation_names = ['f', 'a', 'c', 'g']
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_simple.json')
+    pipeline_json = _read_pipeline_resource(
+        'resources/sample_pipelines/pipeline_dependency_simple.json')
 
     pipeline = PipelineParser().parse(pipeline_json)
     current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
@@ -70,7 +72,8 @@ def test_pipeline_get_envs():
 
     # Ensure pipeline operation env lists are properly converted to dictionaries.
 
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_dependency_complex.json')
+    pipeline_json = _read_pipeline_resource(
+        'resources/sample_pipelines/pipeline_dependency_complex.json')
 
     pipeline = PipelineParser().parse(pipeline_json)
 

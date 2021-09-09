@@ -22,15 +22,16 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import FilesystemComponentReader
 from elyra.pipeline.component import UrlComponentReader
-from elyra.pipeline.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.component_registry import ComponentRegistry
+from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
 
 
 def _get_resource_path(filename):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    resource_path = os.path.join(root, 'resources', 'components', filename)
+    resource_path = os.path.join(root, '../../tests', 'resources', 'components', filename)
+    resource_path = os.path.normpath(resource_path)
 
     return resource_path
 
