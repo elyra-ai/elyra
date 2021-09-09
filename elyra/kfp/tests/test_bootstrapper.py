@@ -18,10 +18,13 @@ import json
 import logging
 import os
 from pathlib import Path
-import subprocess
+from subprocess import CalledProcessError
+from subprocess import CompletedProcess
+from subprocess import run
 import sys
 from tempfile import TemporaryFile
 import time
+from typing import Optional
 
 import minio
 import mock
@@ -46,15 +49,43 @@ MINIO_HOST_PORT = os.getenv("MINIO_HOST_PORT", "127.0.0.1:9000")
 
 @pytest.fixture(scope="module", autouse=True)
 def start_minio():
-    print('>>> Starting minio')
+    """Start the minio container to simulate COS."""
+
+    # The docker run command will fail if an instance of the test_minio container is running.
+    # We'll make a "silent" attempt to start.  If that fails, assume its due to the container
+    # conflict, force its shutdown, and try once more.  If successful, yield the minio instance
+    # but also shutdown on the flip-side of the yield (when the fixture is cleaned up).
+    #
+    # Although actions like SIGINT (ctrl-C) should still trigger the post-yield logic, urgent
+    # interrupts like SIGQUIT (ctrl-\) or multiple SIGINTs can still orphan the container, so
+    # we still need the pre-yield behavior.
+
+    minio = start_minio_container(False)
+    if minio is None:  # Got a failure. Shutdown (assumed) container and try once more.
+        stop_minio_container()
+        minio = start_minio_container(True)
+
+    time.sleep(3)  # give container a chance to start
+    yield minio
+    stop_minio_container()
+
+
+def start_minio_container(raise_on_failure: bool = False) -> Optional[CompletedProcess]:
+    minio = None
     try:
-        return subprocess.run(
+        minio = run(
             ['docker', 'run', '--name', 'test_minio', '-d', '-p', '9000:9000', 'minio/minio', 'server', '/data'],
             cwd=os.getcwd(),
             check=True)
-        time.sleep(3)
-    except subprocess.CalledProcessError as ex:
-        raise RuntimeError(f"Error executing process: {ex.stderr or ''}") from ex
+    except CalledProcessError as ex:
+        if raise_on_failure:
+            raise RuntimeError(f"Error executing docker process: {ex}") from ex
+
+    return minio
+
+
+def stop_minio_container():
+    run(['docker', 'rm', '-f', 'test_minio'], check=True)
 
 
 @pytest.fixture(scope='function')
