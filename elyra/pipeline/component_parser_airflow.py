@@ -26,10 +26,8 @@ from elyra.pipeline.component import ComponentParser
 
 
 class AirflowComponentParser(ComponentParser):
-    _type = "airflow"
-
-    def __init__(self):
-        super().__init__()
+    _component_platform = "airflow"
+    _file_types = [".py"]
 
     def get_catalog_entry_id_for_component(self, component_id: str) -> str:
         # Component ids are structure differently in Airflow to handle the case
@@ -40,37 +38,24 @@ class AirflowComponentParser(ComponentParser):
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         components: List[Component] = list()
 
-        component_definition = self._read_component_definition(registry_entry)
+        component_definition = registry_entry.component_definition
         if not component_definition:
             return None
 
-        # If id is different from the catalog_entry_id, only parse for the class specified in the id.
-        # Else, parse the component definition for all classes
-        if registry_entry.catalog_entry_id != registry_entry.id:
-            component_class = registry_entry.id.split('_')[-1]
+        # Parse the component definition for all defined classes
+        component_classes = self._get_all_classes(component_definition)
+        for component_class in component_classes.keys():
+            # Create a Component object for each class
+            component_id = self.get_component_id(registry_entry.location, component_class)
             component_properties = self._parse_properties(component_definition, component_class)
-            components.append(Component(id=registry_entry.id,
+            components.append(Component(id=component_id,
                                         name=component_class,
                                         description='',
-                                        runtime=self._type,
-                                        source_type=registry_entry.type,
-                                        source=registry_entry.location,
-                                        catalog_entry_id=registry_entry.catalog_entry_id,
+                                        runtime=self.component_platform,
+                                        location_type=registry_entry.location_type,
+                                        location=registry_entry.location,
                                         properties=component_properties,
-                                        category_id=registry_entry.category_id))
-        else:
-            component_classes = self._get_all_classes(component_definition)
-            for component_class in component_classes.keys():
-                component_properties = self._parse_properties(component_definition, component_class)
-                components.append(Component(id=f"{registry_entry.catalog_entry_id}_{component_class}",
-                                            name=component_class,
-                                            description='',
-                                            runtime=self._type,
-                                            source_type=registry_entry.type,
-                                            source=registry_entry.location,
-                                            catalog_entry_id=registry_entry.catalog_entry_id,
-                                            properties=component_properties,
-                                            category_id=registry_entry.category_id))
+                                        categories=registry_entry.categories))
 
         return components
 
@@ -138,7 +123,7 @@ class AirflowComponentParser(ComponentParser):
             # Search for :type [param] information in class docstring
             type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
             match = type_regex.search(class_content)
-            type = match.group(1).strip() if match else "string"
+            data_type = match.group(1).strip() if match else "string"
 
             # Search for :param [param] in class doctring to get description
             description = ""
@@ -148,13 +133,13 @@ class AirflowComponentParser(ComponentParser):
                 description = match.group(1).strip().replace("\"", "'")
 
             # Amend description to include type information
-            description = self._format_description(description=description, type=type)
+            description = self._format_description(description=description, data_type=data_type)
 
-            type, control_id, default_value = self.determine_type_information(type)
+            data_type, control_id, default_value = self.determine_type_information(data_type)
 
             properties.append(ComponentParameter(id=arg,
                                                  name=arg,
-                                                 type=type,
+                                                 data_type=data_type,
                                                  value=(value or default_value),
                                                  description=description,
                                                  control_id=control_id))
@@ -164,21 +149,15 @@ class AirflowComponentParser(ComponentParser):
         """
         Define properties that are common to the Airflow runtime.
         """
-        properties = [ComponentParameter(id="runtime_image",
-                                         name="Runtime Image",
-                                         type="string",
-                                         value="",
-                                         description="Container image used as execution environment.",
-                                         control="custom",
-                                         control_id="EnumControl",
-                                         required=True)]
-        return properties
-
-    def _read_component_definition(self, registry_entry: SimpleNamespace) -> str:
-        """
-        Delegate to ComponentReader to read component definition
-        """
-        reader = self._get_reader(registry_entry)
-        component_definition = reader.read_component_definition(registry_entry)
-
-        return component_definition
+        return [
+            ComponentParameter(
+                id="runtime_image",
+                name="Runtime Image",
+                data_type="string",
+                value="",
+                description="Container image used as execution environment.",
+                control="custom",
+                control_id="EnumControl",
+                required=True,
+            )
+        ]

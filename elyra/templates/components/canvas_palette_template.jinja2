@@ -1,18 +1,14 @@
 {
   "version": "3.0",
   "categories": [
-{% for category in categories %}
+{% for category_label, components in category_dict.items() %}
     {
-      "label": "{{ category.label }}",
-      "image": "{{ category.image }}",
-      "id": "{{ category.id }}",
-      "description": "{{ category.description }}",
+      "id": "{{ category_label }}",
+      "label": "{{ category_label }}",
       "node_types": [
 {% set ns = namespace(first_match=true) %}
 {% for component in components %}
-  {% if component.category_id == category.id %}
-  {% if not ns.first_match %},{% endif %}
-  {% set ns.first_match = False %}
+  {% if not ns.first_match %},{% endif %}{% set ns.first_match = False %}
         {
           "op": "{{ component.op }}",
           "description": "{{ component.description }}",
@@ -63,9 +59,8 @@
               "y_pos": 0
             }
           }
-        }
-  {% endif %}{% endfor %}
+        }{% endfor %}
       ]
-    }{% if loop.index != categories|length %},{% endif %}{% endfor %}
+    }{% if loop.index != category_dict|length %},{% endif %}{% endfor %}
   ]
 }

@@ -22,6 +22,7 @@ interface IFilterMetadataProps {
   tags: string[];
   onFilter: (searchValue: string, filterTags: string[]) => void;
   namespaceId: string;
+  omitTags?: boolean;
 }
 
 interface IFilterMetadataState {
@@ -205,16 +206,20 @@ export class FilterTools extends React.Component<
             value={this.state.searchValue}
           />
         </div>
-        <div className={FILTER_CLASS} id={this.props.namespaceId}>
-          <button
-            title="Filter by tag"
-            className={FILTER_BUTTON}
-            onClick={this.createFilterBox}
-          >
-            <tagIcon.react />
-          </button>
-          {this.renderFilterOption()}
-        </div>
+        {this.props.omitTags ? (
+          <div style={{ height: '4px' }} />
+        ) : (
+          <div className={FILTER_CLASS} id={this.props.namespaceId}>
+            <button
+              title="Filter by tag"
+              className={FILTER_BUTTON}
+              onClick={this.createFilterBox}
+            >
+              <tagIcon.react />
+            </button>
+            {this.renderFilterOption()}
+          </div>
+        )}
       </div>
     );
   }
