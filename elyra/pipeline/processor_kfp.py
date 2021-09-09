@@ -608,13 +608,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # try to authenticate using the provided credentials
         if 'dex/auth' in get_response.url:
             auth_info['endpoint_secured'] = True  # KF is secured
-
+            payload = {'login': username, 'password': password}
             # Try to authenticate user by sending a request to the
             # Dex redirect URL
             session = requests.Session()
             session.post(get_response.url,
-                         data={'login': username,
-                               'password': password})
+                         data=payload)
             # Capture authservice_session cookie, if one was returned
             # in the response
             cookie_auth_key = 'authservice_session'
@@ -623,7 +622,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             if cookie_auth_value:
                 auth_info['authservice_session_cookie'] = \
                     f"{cookie_auth_key}={cookie_auth_value}"
-            else: # try dex local auth            
+            else: 
+                # try dex local auth
                 m = re.search('req=([^"]*)', get_response.text)
                 req = m.group(0).replace("req=", "")
                 r = session.post(f"{url}/dex/auth/local?req={req}", params=payload)
