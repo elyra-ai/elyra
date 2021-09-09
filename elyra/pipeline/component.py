@@ -244,6 +244,11 @@ class ComponentReader(LoggingConfigurable):
 
     @property
     def resource_type(self):
+        """
+        The RuntimePipelineProcessor accesses this property in order to
+        process components on pipeline submit/export. The value must be
+        one of ('filename', 'url').
+        """
         return self.location_type
 
     @abstractmethod
@@ -325,6 +330,11 @@ class DirectoryComponentReader(FilesystemComponentReader):
 
     @property
     def resource_type(self):
+        """
+        The RuntimePipelineProcessor accesses this property in order to process
+        components on pipeline submit/export. The superclass location_type is
+        used because the value must be one of ('filename', 'url').
+        """
         return super().location_type
 
 
@@ -362,6 +372,11 @@ class GitHubComponentReader(UrlComponentReader):
 
     @property
     def resource_type(self):
+        """
+        The RuntimePipelineProcessor accesses this property in order to process
+        components on pipeline submit/export. The superclass location_type is
+        used because the value must be one of ('filename', 'url').
+        """
         return super().location_type
 
 

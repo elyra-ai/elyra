@@ -30,9 +30,6 @@ class KfpComponentParser(ComponentParser):
     _component_platform = "kfp"
     _file_types = [".yaml"]
 
-    def __init__(self):
-        super().__init__()
-
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         # Get YAML object from component definition
         component_yaml = self._read_component_yaml(registry_entry)

@@ -1,0 +1,11 @@
+{
+  "display_name": "Airflow Preloaded Components - Filename",
+  "metadata": {
+    "description": "Preloaded filename-based components that are supported by Apache Airflow",
+    "runtime": "airflow",
+    "location_type": "Filename",
+    "categories": ["Preloaded Airflow"],
+    "paths": ["airflow/slack_operator.py"]
+  },
+  "schema_name": "component-registry"
+}

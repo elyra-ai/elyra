@@ -29,9 +29,6 @@ class AirflowComponentParser(ComponentParser):
     _component_platform = "airflow"
     _file_types = [".py"]
 
-    def __init__(self):
-        super().__init__()
-
     def get_catalog_entry_id_for_component(self, component_id: str) -> str:
         # Component ids are structure differently in Airflow to handle the case
         # where there are multiple classes in one operator file. The id queried
