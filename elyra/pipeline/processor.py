@@ -410,22 +410,24 @@ class RuntimePipelineProcessor(PipelineProcessor):
         envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
         return envs
 
-    def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
+    def _process_dictionary_value(self, value: str) -> Optional[Union[Dict, str]]:
         """
         For component parameters of type dictionary, the user-entered string value given in the pipeline
         JSON should be converted to the appropriate Dict format, if possible. If a Dict cannot be formed,
         log and return stripped string value.
         """
-        converted_dict = None
         value = value.strip()
+        if not value:
+            return {}
+        if value == "None":
+            return None
+
+        converted_dict = None
         if value.startswith('{') and value.endswith('}'):
             try:
                 converted_dict = ast.literal_eval(value)
             except Exception:
                 pass
-
-        if not value or value == "None":
-            return {}
 
         # Value could not be successfully converted to dictionary
         if not isinstance(converted_dict, dict):
@@ -434,22 +436,24 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
         return converted_dict
 
-    def _process_list_value(self, value: str) -> Union[List, str]:
+    def _process_list_value(self, value: str) -> Optional[Union[List, str]]:
         """
         For component parameters of type list, the user-entered string value given in the pipeline JSON
         should be converted to the appropriate List format, if possible. If a List cannot be formed,
         log and return stripped string value.
         """
         value = value.strip()
+        if not value:
+            return []
+        if value == "None":
+            return None
+
         converted_list = None
         if value.startswith('[') and value.endswith(']'):
             try:
                 converted_list = ast.literal_eval(value)
             except Exception:
                 pass
-
-        if not value or value == "None":
-            return []
 
         # Value could not be successfully converted to list
         if not isinstance(converted_list, list):

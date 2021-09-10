@@ -197,6 +197,7 @@ def test_process_list_value_function(processor):
     # Test values that will be successfully converted to list
     assert processor._process_list_value("") == []
     assert processor._process_list_value("[]") == []
+    assert processor._process_list_value("None") is None
     assert processor._process_list_value("['elem1']") == ["elem1"]
     assert processor._process_list_value("['elem1', 'elem2', 'elem3']") == ["elem1", "elem2", "elem3"]
     assert processor._process_list_value("  ['elem1',   'elem2' , 'elem3']  ") == ["elem1", "elem2", "elem3"]
@@ -216,6 +217,7 @@ def test_process_dictionary_value_function(processor):
     # Test values that will be successfully converted to dictionary
     assert processor._process_dictionary_value("") == {}
     assert processor._process_dictionary_value("{}") == {}
+    assert processor._process_dictionary_value("None") is None
     assert processor._process_dictionary_value("{'key': 'value'}") == {"key": "value"}
 
     dict_as_str = "{'key1': 'value', 'key2': 'value'}"
