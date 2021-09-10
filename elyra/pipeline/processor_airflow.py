@@ -22,7 +22,6 @@ import tempfile
 import time
 from typing import Dict
 from typing import List
-from typing import Optional
 from typing import Union
 
 import autopep8
@@ -360,7 +359,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
         return unique_operation_name
 
-    def _process_dictionary_value(self, value: str) -> Optional[Union[Dict, str]]:
+    def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
         """
         For component parameters of type dictionary, if a string value is returned from the superclass
         method, it must be converted to include surrounding quotation marks for correct rendering
@@ -371,7 +370,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             converted_value = json.dumps(converted_value)
         return converted_value
 
-    def _process_list_value(self, value: str) -> Optional[Union[List, str]]:
+    def _process_list_value(self, value: str) -> Union[List, str]:
         """
         For component parameters of type list, if a string value is returned from the superclass
         method, it must be converted to include surrounding quotation marks for correct rendering
