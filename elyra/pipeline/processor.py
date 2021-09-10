@@ -424,6 +424,9 @@ class RuntimePipelineProcessor(PipelineProcessor):
             except Exception:
                 pass
 
+        if not value or value == "None":
+            return {}
+
         # Value could not be successfully converted to dictionary
         if not isinstance(converted_dict, dict):
             self.log.debug(f"Could not convert entered parameter value `{value}` to dictionary")
@@ -444,6 +447,9 @@ class RuntimePipelineProcessor(PipelineProcessor):
                 converted_list = ast.literal_eval(value)
             except Exception:
                 pass
+
+        if not value or value == "None":
+            return []
 
         # Value could not be successfully converted to list
         if not isinstance(converted_list, list):
