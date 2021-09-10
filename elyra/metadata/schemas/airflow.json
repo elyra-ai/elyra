@@ -3,6 +3,7 @@
   "title": "Apache Airflow runtime configuration",
   "name": "airflow",
   "display_name": "Apache Airflow",
+  "namespace": "runtimes",
   "schemaspace": "runtimes",
   "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
   "uihints": {

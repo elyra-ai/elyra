@@ -3,6 +3,7 @@
   "title": "Component Registry",
   "name": "component-registry",
   "display_name": "Pipeline Component",
+  "namespace": "component-registries",
   "schemaspace": "component-registries",
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
   "uihints": {
