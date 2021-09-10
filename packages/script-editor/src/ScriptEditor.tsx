@@ -90,7 +90,7 @@ export class ScriptEditor extends DocumentWidget<
     this.model = this.content.model;
     this.runner = new ScriptRunner(this.disableButton);
     this.kernelSelectorRef = null;
-    this.kernelName = options.context.sessionContext.kernelPreference.language;
+    this.kernelName = '';
     this.emptyOutput = true;
     this.runDisabled = false;
     this.debugDisabled = false;

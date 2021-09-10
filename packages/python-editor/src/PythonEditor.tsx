@@ -38,9 +38,10 @@ export class PythonEditor extends ScriptEditor {
     // Add icon to main tab
     this.title.icon = pyIcon;
 
-    this.initializeKernelSpecs();
-
-    this.context.ready.then(this.initializeDebugger);
+    this.context.ready.then(() => {
+      this.initializeKernelSpecs();
+      this.initializeDebugger();
+    });
   }
 }
 
