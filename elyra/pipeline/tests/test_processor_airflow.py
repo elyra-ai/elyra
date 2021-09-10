@@ -32,7 +32,7 @@ PIPELINE_FILE = 'resources/sample_pipelines/pipeline_dependency_complex.json'
 
 
 @pytest.fixture
-def processor():
+def processor(setup_factory_data):
     processor = AirflowPipelineProcessor(os.getcwd())
     return processor
 

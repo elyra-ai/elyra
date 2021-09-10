@@ -37,7 +37,7 @@ def load_pipeline():
 
 
 @pytest.fixture
-def validation_manager():
+def validation_manager(setup_factory_data):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__), "resources/validation_pipelines"))
     yield PipelineValidationManager.instance(root_dir=root)
     PipelineValidationManager.clear_instance()
