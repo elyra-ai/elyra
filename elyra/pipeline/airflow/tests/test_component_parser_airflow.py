@@ -115,9 +115,8 @@ def test_directory_based_component_registry():
 
     metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
 
-    # Create new directory-based registry instance
-    root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    registry_path = os.path.join(root, 'resources', 'components')
+    # Create new directory-based registry instance with components in ../../test/resources/components
+    registry_path = _get_resource_path('')
     instance_metadata = {
         "description": "A test registry",
         "runtime": "airflow",
