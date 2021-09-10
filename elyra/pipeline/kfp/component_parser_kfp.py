@@ -187,18 +187,16 @@ class KfpComponentParser(ComponentParser):
 
         # Prefer types that occur in a clause of the form "[type] of ..."
         # E.g. "a dictionary of key/value pairs" will produce the type "dictionary"
-        if any(word + " of " in type_lowered for word in type_options):
-            for option in type_options:
+        for option in type_options:
+            if any(word + " of " in type_lowered for word in type_options):
                 reg = re.compile(f"({option}) of ")
                 match = reg.search(type_lowered)
                 if match:
                     type_lowered = option
                     break
-        else:
-            for option in type_options:
-                if option in type_lowered:
-                    type_lowered = option
-                    break
+            elif option in type_lowered:
+                type_lowered = option
+                break
 
         # Set control id and default value for UI rendering purposes
         # Standardize type names
