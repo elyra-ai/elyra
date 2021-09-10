@@ -154,8 +154,8 @@ def update_version_to_release() -> None:
             f"{new_version}")
 
         sed(_source('etc/docker/kubeflow/Dockerfile'),
-            r"elyra==.*",
-            f"elyra=={new_version}")
+            r"elyra[all]==.*",
+            f"elyra[all]=={new_version}")
         sed(_source('etc/docker/elyra/Dockerfile'),
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
             f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra")
@@ -230,7 +230,7 @@ def update_version_to_dev() -> None:
             "master")
 
         # for now, this stays with the latest release
-        # sed(_source('etc/docker/kubeflow/Dockerfile'), r"elyra==.*", f"elyra=={new_version}")
+        # sed(_source('etc/docker/kubeflow/Dockerfile'), r"elyra[all]==.*", f"elyra[all]=={new_version}")
 
         sed(_source('etc/docker/elyra/Dockerfile'),
             rf"\&\& git checkout tags/v{new_version} -b v{new_version} ",
@@ -539,10 +539,10 @@ def publish_release(working_dir) -> None:
         f'{config.source_dir}/dist/elyra-{config.new_version}.tar.gz',
         f'{config.source_dir}/dist/elyra_server-{config.new_version}-py3-none-any.whl',
         f'{config.source_dir}/dist/elyra-server-{config.new_version}.tar.gz',
-        f'{config.work_dir}/airflow-notebook/dist/airflow-notebook--{config.new_version}-py3-none-any.whl',
-        f'{config.work_dir}/airflow-notebook/dist/airflow-notebook--{config.new_version}.tar.gz',
-        f'{config.work_dir}/kfp-notebook/dist/kfp-notebook--{config.new_version}-py3-none-any.whl',
-        f'{config.work_dir}/kfp-notebook/dist/kfp-notebook--{config.new_version}.tar.gz',
+        f'{config.work_dir}/airflow-notebook/dist/airflow_notebook-{config.new_version}-py3-none-any.whl',
+        f'{config.work_dir}/airflow-notebook/dist/airflow-notebook-{config.new_version}.tar.gz',
+        f'{config.work_dir}/kfp-notebook/dist/kfp_notebook-{config.new_version}-py3-none-any.whl',
+        f'{config.work_dir}/kfp-notebook/dist/kfp-notebook-{config.new_version}.tar.gz',
         f'{config.work_dir}/elyra-code-snippet-extension/dist/elyra_code_snippet_extension-{config.new_version}-py3-none-any.whl',
         f'{config.work_dir}/elyra-code-snippet-extension/dist/elyra-code-snippet-extension-{config.new_version}.tar.gz',
         f'{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra_pipeline_editor_extension-{config.new_version}-py3-none-any.whl',

@@ -44,7 +44,7 @@ RUN conda remove --force -y terminado && \
        cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
        cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra; \
     else \
-        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra=="$TAG" && \
+        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
         jupyter lab build; \
     fi
 

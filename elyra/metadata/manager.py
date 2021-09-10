@@ -37,6 +37,7 @@ class MetadataManager(LoggingConfigurable):
     NAMESPACE_RUNTIMES = "runtimes"
     NAMESPACE_CODE_SNIPPETS = "code-snippets"
     NAMESPACE_RUNTIME_IMAGES = "runtime-images"
+    NAMESPACE_COMPONENT_REGISTRIES = "component-registries"
 
     metadata_store_class = Type(allow_none=True, default_value=None, config=True,
                                 klass=MetadataStore,

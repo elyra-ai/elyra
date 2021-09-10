@@ -37,7 +37,9 @@ class ElyraSchemasProvider(SchemasProvider, metaclass=ABCMeta):
         # get set of registered runtimes
         self._runtime_processor_names = set()
         for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
-            # load the names of the runtime processors
+            # load the names of the runtime processors (skip 'local')
+            if processor.name == 'local':
+                continue
             self._runtime_processor_names.add(processor.name)
 
     def get_schemas_by_name(self, schema_names: List[str]) -> List[Dict]:
@@ -103,6 +105,6 @@ class ComponentRegistriesSchemas(ElyraSchemasProvider):
 
         # Update runtime enum with set of currently registered runtimes
         for schema in schemas:
-            schema['properties']['metadata']['properties']['runtime']['enum'] = self._runtime_processor_names
+            schema['properties']['metadata']['properties']['runtime']['enum'] = list(self._runtime_processor_names)
 
         return schemas

@@ -26,7 +26,6 @@ from typing import Optional
 from typing import Union
 
 import entrypoints
-from jupyter_core.paths import ENV_JUPYTER_PATH
 from minio.error import SignatureDoesNotMatch
 from traitlets.config import Bool
 from traitlets.config import LoggingConfigurable
@@ -36,7 +35,6 @@ from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentCategory
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_registry import CachedComponentRegistry
 from elyra.pipeline.component_registry import ComponentRegistry
@@ -107,12 +105,6 @@ class PipelineProcessorManager(SingletonConfigurable):
 
         res = await asyncio.get_event_loop().\
             run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
-        return res
-
-    async def get_all_categories(self, processor_type):
-        processor = self._get_processor_for_runtime(processor_type)
-
-        res = await asyncio.get_event_loop().run_in_executor(None, processor.get_all_categories)
         return res
 
     async def process(self, pipeline):
@@ -218,14 +210,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
         return ComponentRegistry.get_generic_component(component_id)
 
-    def get_all_categories(self) -> List[ComponentCategory]:
-        categories: List[ComponentCategory] = [ComponentRegistry.get_generic_category()]
-
-        if self._component_registry:
-            categories.extend(self._component_registry.get_all_categories())
-
-        return categories
-
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:
         raise NotImplementedError()
@@ -316,26 +300,14 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 class RuntimePipelineProcessor(PipelineProcessor):
 
     @property
-    def registry_location(self) -> str:
-        return self._component_registry_location
-
-    @property
     def component_parser(self) -> ComponentParser:
         return self._component_parser
 
     def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
         super().__init__(root_dir, **kwargs)
 
-        # then sys.prefix, where installed files will reside (factory data)
-        self._component_registry_location = \
-            os.path.join(ENV_JUPYTER_PATH[0], 'components', f"{self._type}_component_catalog.json")
-
-        if not os.path.exists(self._component_registry_location):
-            raise FileNotFoundError(f'Invalid component registry location: {self._component_registry_location}'
-                                    f' for "{self._type}" processor')
-
         self._component_parser = component_parser
-        self._component_registry = CachedComponentRegistry(self.registry_location, component_parser)
+        self._component_registry = CachedComponentRegistry(component_parser)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)

@@ -253,8 +253,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
         for pipeline in pipeline_definition.pipelines:
             component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-            categories: list = await PipelineProcessorManager.instance().get_all_categories(pipeline_runtime)
-            components = ComponentRegistry.to_canvas_palette(component_list, categories)
+            components = ComponentRegistry.to_canvas_palette(component_list)
             for node in pipeline.nodes:
                 if node.type == 'execution_node':
                     node_label = node.label

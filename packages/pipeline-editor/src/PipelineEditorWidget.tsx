@@ -34,7 +34,8 @@ import {
   RequestErrors,
   showFormDialog,
   kubeflowIcon,
-  airflowIcon
+  airflowIcon,
+  pipelineComponentsIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
 import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
@@ -71,7 +72,8 @@ import {
   ISchema,
   PipelineService,
   RUNTIMES_NAMESPACE,
-  RUNTIME_IMAGES_NAMESPACE
+  RUNTIME_IMAGES_NAMESPACE,
+  PIPELINE_COMPONENTS_NAMESPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
@@ -829,6 +831,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         case 'openRuntimeImages':
           shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
           break;
+        case 'openPipelineComponents':
+          shell.activateById(`elyra-metadata:${PIPELINE_COMPONENTS_NAMESPACE}`);
+          break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, {
             path: PipelineService.getWorkspaceRelativeNodePath(
@@ -892,6 +897,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         enable: true,
         iconEnabled: IconUtil.encode(containerIcon),
         iconDisabled: IconUtil.encode(containerIcon)
+      },
+      {
+        action: 'openPipelineComponents',
+        label: 'Open Pipeline Components',
+        enable: true,
+        iconEnabled: IconUtil.encode(pipelineComponentsIcon),
+        iconDisabled: IconUtil.encode(pipelineComponentsIcon)
       },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },

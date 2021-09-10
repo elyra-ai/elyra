@@ -18,6 +18,8 @@ from types import SimpleNamespace
 
 import jupyter_core.paths
 
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import FilesystemComponentReader
 from elyra.pipeline.component import UrlComponentReader
 from elyra.pipeline.component_parser_airflow import AirflowComponentParser
@@ -33,26 +35,134 @@ def _get_resource_path(filename):
     return resource_path
 
 
-def test_component_registry_can_load_components_from_catalog():
-    component_registry_location = os.path.join(COMPONENT_CATALOG_DIRECTORY, 'airflow_component_catalog.json')
+def test_component_registry_can_load_components_from_registries():
     component_parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(component_registry_location, component_parser)
+    component_registry = ComponentRegistry(component_parser)
 
     components = component_registry.get_all_components()
     assert len(components) > 0
 
 
+def test_modify_component_registries():
+    # Get initial set of components from the current active registries
+    parser = AirflowComponentParser()
+    component_registry = ComponentRegistry(parser)
+    initial_components = component_registry.get_all_components()
+
+    metadata_manager = MetadataManager(schemaspace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+
+    # Create new registry instance with a single URL-based component
+    paths = ["https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/pipeline/tests/resources/components"
+             "/airflow_test_operator.py"]
+
+    instance_metadata = {
+        "description": "A test registry",
+        "runtime": "airflow",
+        "categories": ["New Components"],
+        "location_type": "URL",
+        "paths": paths
+    }
+    registry_instance = Metadata(schema_name="component-registry",
+                                 name="new_registry",
+                                 display_name="New Registry",
+                                 metadata=instance_metadata)
+
+    metadata_manager.create("new_registry", registry_instance)
+
+    # Get new set of components from all active registries, including added test registry
+    added_components = component_registry.get_all_components()
+    assert len(added_components) > len(initial_components)
+
+    added_component_names = [component.name for component in added_components]
+    assert 'TestOperator' in added_component_names
+    assert 'TestOperatorNoInputs' not in added_component_names
+
+    # Modify the test registry to add an additional path to
+    paths.append("https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/pipeline/tests/resources/components"
+                 "/airflow_test_operator_no_inputs.py")
+    metadata_manager.update("new_registry", registry_instance)
+
+    # Get set of components from all active registries, including modified test registry
+    modified_components = component_registry.get_all_components()
+    assert len(modified_components) > len(added_components)
+
+    modified_component_names = [component.name for component in modified_components]
+    assert 'TestOperator' in modified_component_names
+    assert 'TestOperatorNoInputs' in modified_component_names
+
+    # Delete the test registry
+    metadata_manager.remove("new_registry")
+    post_delete_components = component_registry.get_all_components()
+    assert len(post_delete_components) == len(initial_components)
+
+    # Check that the list of component ids is the same as before addition of the test registry
+    initial_component_ids = [component.id for component in initial_components]
+    post_delete_component_ids = [component.id for component in post_delete_components]
+    assert post_delete_component_ids == initial_component_ids
+
+    # Check that component palette is the same as before addition of the test registry
+    initial_palette = ComponentRegistry.to_canvas_palette(post_delete_components)
+    post_delete_palette = ComponentRegistry.to_canvas_palette(initial_components)
+    assert initial_palette == post_delete_palette
+
+
+def test_directory_based_component_registry():
+    # Get initial set of components from the current active registries
+    parser = AirflowComponentParser()
+    component_registry = ComponentRegistry(parser)
+    initial_components = component_registry.get_all_components()
+
+    metadata_manager = MetadataManager(schemaspace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+
+    # Create new directory-based registry instance
+    root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    registry_path = os.path.join(root, 'resources', 'components')
+    instance_metadata = {
+        "description": "A test registry",
+        "runtime": "airflow",
+        "categories": ["New Components"],
+        "location_type": "Directory",
+        "paths": [registry_path]
+    }
+    registry_instance = Metadata(schema_name="component-registry",
+                                 name="new_registry",
+                                 display_name="New Registry",
+                                 metadata=instance_metadata)
+
+    metadata_manager.create("new_registry", registry_instance)
+
+    # Get new set of components from all active registries, including added test registry
+    added_components = component_registry.get_all_components()
+    assert len(added_components) > len(initial_components)
+
+    # Check that all relevant components from the new registry have been added
+    added_component_names = [component.name for component in added_components]
+    assert 'TestOperator' in added_component_names
+    assert 'TestOperatorNoInputs' in added_component_names
+
+    # Remove the test instance
+    metadata_manager.remove("new_registry")
+
+
 def test_parse_airflow_component_file():
+    # Define the appropriate reader for a filesystem-type component definition
+    airflow_supported_file_types = [".py"]
+    reader = FilesystemComponentReader(airflow_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = _get_resource_path('airflow_test_operator.py')
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'test-operator_TestOperator',
-        'name': 'Test Operator',
-        'type': FilesystemComponentReader.type,
-        'location': _get_resource_path('airflow_test_operator.py'),
-        'catalog_entry_id': '',
-        'category_id': 'airflow'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
 
+    # Parse the component entry
     parser = AirflowComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -101,16 +211,24 @@ def test_parse_airflow_component_file():
 
 
 def test_parse_airflow_component_url():
+    # Define the appropriate reader for a Url-type component definition
+    airflow_supported_file_types = [".py"]
+    reader = UrlComponentReader(airflow_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'bash-operator_BashOperator',
-        'name': 'Bash Operator',
-        'type': UrlComponentReader.type,
-        'location': 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py',  # noqa: E501
-        'catalog_entry_id': '',
-        'category_id': 'airflow'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
 
+    # Parse the component entry
     parser = AirflowComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -125,15 +243,24 @@ def test_parse_airflow_component_url():
 
 
 def test_parse_airflow_component_file_no_inputs():
+    # Define the appropriate reader for a filesystem-type component definition
+    airflow_supported_file_types = [".py"]
+    reader = FilesystemComponentReader(airflow_supported_file_types)
+
+    # Get path to component definition file and read contents
+    path = _get_resource_path('airflow_test_operator_no_inputs.py')
+    component_definition = reader.read_component_definition(path)
+
+    # Build entry for parsing
     entry = {
-        'id': 'test-operator_TestOperatorNoInputs',
-        'type': FilesystemComponentReader.type,
-        'location': _get_resource_path('airflow_test_operator_no_inputs.py'),
-        'catalog_entry_id': '',
-        'category_id': 'kfp'
+        "location_type": reader.resource_type,
+        "location": path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
     component_entry = SimpleNamespace(**entry)
 
+    # Parse the component entry
     parser = AirflowComponentParser()
     component = parser.parse(component_entry)[0]
     properties_json = ComponentRegistry.to_canvas_properties(component)
@@ -151,23 +278,26 @@ def test_parse_airflow_component_file_no_inputs():
     assert properties_json['current_parameters']['component_source'] == component_entry.location
 
 
-async def test_parse_components_invalid_location():
-    # Ensure a component with an invalid location is not returned
-    component_registry_location = os.path.join(os.path.dirname(__file__),
-                                               'resources/components',
-                                               'airflow_component_catalog_invalid.json')
-    component_parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(component_registry_location, component_parser)
+async def test_parse_components_url_invalid_location():
+    # Define the appropriate reader for a Url-type component definition
+    airflow_supported_file_types = [".py"]
+    reader = UrlComponentReader(airflow_supported_file_types)
 
-    components = component_registry.get_all_components()
-    assert len(components) == 0
+    # Get path to an invalid component definition file and read contents
+    invalid_path = 'https://nourl.py'
+    component_definition = reader.read_component_definition(invalid_path)
+    assert component_definition is None
 
-    categories = component_registry.get_all_categories()
-    assert len(categories) == 0
-
-    palette_json = ComponentRegistry.to_canvas_palette(components, categories)
-    empty_palette = {
-        "version": "3.0",
-        "categories": []
+    # Build entry for parsing
+    entry = {
+        "location_type": reader.resource_type,
+        "location": invalid_path,
+        "categories": ["Test"],
+        "component_definition": component_definition
     }
-    assert palette_json == empty_palette
+    component_entry = SimpleNamespace(**entry)
+
+    # Parse the component entry
+    parser = AirflowComponentParser()
+    component = parser.parse(component_entry)
+    assert component is None
