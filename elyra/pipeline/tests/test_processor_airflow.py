@@ -377,6 +377,7 @@ def test_unique_operation_name_non_existent(processor):
 
 def test_process_list_value_function(processor):
     # Test values that will be successfully converted to list
+    assert processor._process_list_value("") == []
     assert processor._process_list_value("[]") == []
     assert processor._process_list_value("['elem1']") == ["elem1"]
     assert processor._process_list_value("['elem1', 'elem2', 'elem3']") == ["elem1", "elem2", "elem3"]
@@ -387,7 +388,6 @@ def test_process_list_value_function(processor):
 
     # Test values that will not be successfully converted to list
     # Surrounding quotes are added to string values for correct DAG render
-    assert processor._process_list_value("") == "\"\""
     assert processor._process_list_value("[[]") == "\"[[]\""
     assert processor._process_list_value("[elem1, elem2]") == "\"[elem1, elem2]\""
     assert processor._process_list_value("elem1, elem2") == "\"elem1, elem2\""
@@ -397,6 +397,7 @@ def test_process_list_value_function(processor):
 
 def test_process_dictionary_value_function(processor):
     # Test values that will be successfully converted to dictionary
+    assert processor._process_dictionary_value("") == {}
     assert processor._process_dictionary_value("{}") == {}
     assert processor._process_dictionary_value("{'key': 'value'}") == {"key": "value"}
 
@@ -432,7 +433,6 @@ def test_process_dictionary_value_function(processor):
 
     # Test values that will not be successfully converted to dictionary
     # Surrounding quotes are added to string values for correct DAG render
-    assert processor._process_dictionary_value("") == "\"\""
     assert processor._process_dictionary_value("{{}") == "\"{{}\""
     assert processor._process_dictionary_value("{key1: value, key2: value}") == "\"{key1: value, key2: value}\""
     assert processor._process_dictionary_value("  { key1: value, key2: value }  ") == "\"{ key1: value, key2: value }\""
