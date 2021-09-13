@@ -11,7 +11,7 @@
         {
           "id": "a13ccce5-e012-4d29-a132-541c7098ac05",
           "type": "execution_node",
-          "op": "run-notebook-using-papermill",
+          "op": "run_notebook_using_papermill_Runnotebookusingpapermill",
           "app_data": {
             "component_parameters": {
               "notebook": "metrics.ipynb",
@@ -80,7 +80,7 @@
         {
           "id": "1f23cf03-88fd-4258-9f61-d0a2f2523eeb",
           "type": "execution_node",
-          "op": "download_op",
+          "op": "download_op_Downloadop",
           "app_data": {
             "component_parameters": {
               "url": "https://raw.githubusercontent.com/kubeflow/pipelines/93fc34474bf989998cf19445149aca2847eee763/components/notebooks/samples/test_notebook.ipynb",

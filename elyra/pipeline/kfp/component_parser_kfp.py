@@ -78,7 +78,7 @@ class KfpComponentParser(ComponentParser):
                 # KFP components default to being required unless otherwise stated.
                 # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
                 required = True
-                if "optional" in param and param.get('optional') is True:
+                if param.get('optional') is True:
                     required = False
 
                 # Assign type, default to string
