@@ -37,7 +37,7 @@ def load_pipeline():
 
 
 @pytest.fixture
-def validation_manager():
+def validation_manager(setup_factory_data):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__), "resources/validation_pipelines"))
     yield PipelineValidationManager.instance(root_dir=root)
     PipelineValidationManager.clear_instance()
@@ -132,7 +132,7 @@ async def test_invalid_runtime_node_kubeflow_with_supernode(validation_manager, 
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidNodeType'
-    assert issues[0]['data']['pipelineID'] == pipeline_id
+    assert issues[0]['data']['pipelineId'] == pipeline_id
     assert issues[0]['data']['nodeID'] == node_id
 
 
@@ -191,7 +191,7 @@ async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
                         property_name, filename, response: True)
 
     monkeypatch.setattr(pvm, "_validate_label", lambda node_id, node_label,
-                        filename, response: True)
+                        response: True)
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await pvm._validate_node_properties(pipeline_definition=pipeline_definition,
@@ -302,7 +302,7 @@ async def test_valid_node_property_pipeline_filepath(monkeypatch, validation_man
     pipeline, response = load_pipeline('generic_basic_filepath_check.pipeline')
 
     monkeypatch.setattr(validation_manager, "_validate_label", lambda node_id, node_label,
-                        filename, response: True)
+                        response: True)
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
@@ -350,10 +350,8 @@ def test_invalid_node_property_env_var(validation_manager):
 def test_valid_node_property_label(validation_manager):
     response = ValidationResponse()
     node = {"id": "test-id"}
-    filename = "deadbread.py"
     valid_label_name = "dead-bread-dead-bread-dead-bread-dead-bread-dead-bread-dead-bre"
     validation_manager._validate_label(node_id=node['id'],
-                                       filename=filename,
                                        node_label=valid_label_name,
                                        response=response)
     issues = response.to_json().get('issues')
@@ -363,10 +361,8 @@ def test_valid_node_property_label(validation_manager):
 def test_valid_node_property_label_min_length(validation_manager):
     response = ValidationResponse()
     node = {"id": "test-id", "app_data": {"label": "test"}}
-    filename = "deadbread.py"
     valid_label_name = "d"
     validation_manager._validate_label(node_id=node['id'],
-                                       filename=filename,
                                        node_label=valid_label_name,
                                        response=response)
     issues = response.to_json().get('issues')
@@ -376,10 +372,8 @@ def test_valid_node_property_label_min_length(validation_manager):
 def test_invalid_node_property_label_filename_exceeds_max_length(validation_manager):
     response = ValidationResponse()
     node = {"id": "test-id", "app_data": {"label": "test"}}
-    filename = "deadbread-deadbread-deadbread-deadbread-deadbread-deadbread-de.py"
-    valid_label_name = filename
+    valid_label_name = "deadbread-deadbread-deadbread-deadbread-deadbread-deadbread-de.py"
     validation_manager._validate_label(node_id=node['id'],
-                                       filename=filename,
                                        node_label=valid_label_name,
                                        response=response)
     issues = response.to_json().get('issues')
@@ -389,10 +383,8 @@ def test_invalid_node_property_label_filename_exceeds_max_length(validation_mana
 def test_invalid_node_property_label_max_length(validation_manager):
     response = ValidationResponse()
     node = {"id": "test-id", "app_data": {"label": "test"}}
-    filename = "deadbread.py"
     invalid_label_name = "dead-bread-dead-bread-dead-bread-dead-bread-dead-bread-dead-bred"
     validation_manager._validate_label(node_id=node['id'],
-                                       filename=filename,
                                        node_label=invalid_label_name,
                                        response=response)
     issues = response.to_json().get('issues')
@@ -406,10 +398,8 @@ def test_invalid_node_property_label_max_length(validation_manager):
 def test_valid_node_property_label_filename_has_relative_path(validation_manager):
     response = ValidationResponse()
     node = {"id": "test-id", "app_data": {"label": "test"}}
-    filename = "another/subdirectory/deadbread.py"
     valid_label_name = "deadbread.py"
     validation_manager._validate_label(node_id=node['id'],
-                                       filename=filename,
                                        node_label=valid_label_name,
                                        response=response)
     issues = response.to_json().get('issues')
@@ -419,10 +409,8 @@ def test_valid_node_property_label_filename_has_relative_path(validation_manager
 def test_invalid_node_property_label_bad_characters(validation_manager):
     response = ValidationResponse()
     node = {"id": "test-id"}
-    filename = "another/subdirectory/deadbread.py"
     invalid_label_name = "bad_label_*&^&$"
     validation_manager._validate_label(node_id=node['id'],
-                                       filename=filename,
                                        node_label=invalid_label_name,
                                        response=response)
     issues = response.to_json().get('issues')
