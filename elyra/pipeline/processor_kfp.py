@@ -619,11 +619,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             cookie_auth_key = 'authservice_session'
             cookie_auth_value = session.cookies.get(cookie_auth_key)
 
+            # try dex local auth if existing method fails.
             if cookie_auth_value:
                 auth_info['authservice_session_cookie'] = \
                     f"{cookie_auth_key}={cookie_auth_value}"
-            else: 
-                # try dex local auth
+            else:
                 try:
                     m = re.search('req=([^"]*)', get_response.text)
                     req = m.group(0).replace("req=", "")
@@ -633,7 +633,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     cookie_auth_value = f"{session.cookies['authservice_session']}"
                     auth_info['authservice_session_cookie'] = \
                         f"{cookie_auth_key}={cookie_auth_value}"
-                except:
+                except KeyError:
                     # do nothing, the local dex auth failed
                     pass
 
