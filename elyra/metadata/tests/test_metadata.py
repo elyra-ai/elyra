@@ -15,6 +15,7 @@
 #
 from collections import OrderedDict
 import copy
+import io
 import json
 import os
 import shutil
@@ -48,30 +49,9 @@ from elyra.metadata.tests.test_utils import valid_metadata_json
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
 
 # Test factory schemas.
-# Note: should we ever decide to allow folks to bring their own schemas, we'd want to expose this.
-schema_schema = {
-    "title": "Schema for Elyra schema.",
-    "properties": {
-        "name": {
-            "description": "The name of the schema.",
-            "type": "string",
-            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
-        },
-        "schemaspace": {
-            "description": "The schemaspace corresponding to the schema and its instances.",
-            "type": "string",
-            "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
-        },
-        "properties": {
-            "type": "object",
-            "propertyNames": {
-                "enum": ["schema_name", "display_name", "metadata"]
-            },
-            "additionalProperties": True
-        }
-    },
-    "required": ["name", "schemaspace", "properties"]
-}
+schema_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'schemas', 'meta-schema.json')
+with io.open(schema_file, 'r', encoding='utf-8') as f:
+    meta_schema = json.load(f)
 
 
 def test_validate_factory_schemas():
@@ -82,7 +62,7 @@ def test_validate_factory_schemas():
         schemaspace = schema_mgr.get_schemaspace(schemaspace_name)
         for name, schema in schemaspace.schemas.items():
             print("Validating schema '{schemaspace}/{name}'...".format(schemaspace=schemaspace_name, name=name))
-            validate(instance=schema, schema=schema_schema, format_checker=draft7_format_checker)
+            validate(instance=schema, schema=meta_schema, format_checker=draft7_format_checker)
 
 
 # ########################## MetadataManager Tests ###########################
