@@ -34,7 +34,7 @@ PIPELINE_FILE_CUSTOM_COMPONENTS = 'resources/sample_pipelines/pipeline_with_cust
 
 
 @pytest.fixture
-def processor():
+def processor(setup_factory_data):
     processor = AirflowPipelineProcessor(os.getcwd())
     return processor
 

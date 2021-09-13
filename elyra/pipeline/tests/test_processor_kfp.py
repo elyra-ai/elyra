@@ -33,7 +33,7 @@ from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 
 
 @pytest.fixture
-def processor():
+def processor(setup_factory_data):
     processor = KfpPipelineProcessor(os.getcwd())
     return processor
 
