@@ -196,6 +196,7 @@ def test_collect_envs(processor):
 def test_process_list_value_function(processor):
     # Test values that will be successfully converted to list
     assert processor._process_list_value("") == []
+    assert processor._process_list_value(None) == []
     assert processor._process_list_value("[]") == []
     assert processor._process_list_value("None") == []
     assert processor._process_list_value("['elem1']") == ["elem1"]
@@ -216,6 +217,7 @@ def test_process_list_value_function(processor):
 def test_process_dictionary_value_function(processor):
     # Test values that will be successfully converted to dictionary
     assert processor._process_dictionary_value("") == {}
+    assert processor._process_dictionary_value(None) == {}
     assert processor._process_dictionary_value("{}") == {}
     assert processor._process_dictionary_value("None") == {}
     assert processor._process_dictionary_value("{'key': 'value'}") == {"key": "value"}
